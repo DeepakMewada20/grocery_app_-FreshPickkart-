@@ -114,7 +114,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     _vehicleController.forward();
 
     // Navigate after splash
-    await Future.delayed(const Duration(milliseconds: 4500));
+    await Future.delayed(const Duration(milliseconds: 3500));
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -210,7 +210,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                           ),
                           padding: const EdgeInsets.all(12),
                           child: Image.asset(
-                            'lib/assets/images/logo123.png',
+                            'lib/assets/images/name_logo.png',
                             fit: BoxFit.contain,
                           ),
                         ),

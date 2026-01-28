@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat/screens/home_screen.dart';
+import 'package:freshpickkat/cloude_page/home_screen.dart';
 import 'package:freshpickkat/screens/categories_screen.dart';
 import 'package:freshpickkat/screens/basket_screen.dart';
 import 'package:freshpickkat/screens/wallet_screen.dart';
@@ -16,7 +16,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    const HomePage(),
     const CategoriesScreen(),
     const BasketScreen(),
     const WalletScreen(),
