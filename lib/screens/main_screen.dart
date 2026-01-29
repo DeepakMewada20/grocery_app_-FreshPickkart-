@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat/cloude_page/home_screen.dart';
+import 'package:freshpickkat/screens/home_screen.dart';
 import 'package:freshpickkat/screens/categories_screen.dart';
 import 'package:freshpickkat/screens/basket_screen.dart';
 import 'package:freshpickkat/screens/wallet_screen.dart';
