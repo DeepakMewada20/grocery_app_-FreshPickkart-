@@ -79,15 +79,15 @@ flutter:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: lib/assets/images/logo.png
-  branding: lib/assets/images/logo.png
+  image: lib/assets/images/name_logo2.png
+  branding: lib/assets/images/name_logo2.png
 
   android: true
   ios: true
 
   android_12:
     color: "#FFFFFF"
-    image: lib/assets/images/logo.png
+    image: lib/assets/images/name_logo2.png
 
 
 

@@ -45,17 +45,25 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
     super.dispose();
   }
 
+  double _collapseProgress({
+    required double currentHeight,
+    required double expandedHeight,
+  }) {
+    final double collapsedHeight = kToolbarHeight;
+    final double totalRange = expandedHeight - collapsedHeight;
+    final double collapsedAmount = expandedHeight - currentHeight;
+
+    return (collapsedAmount / totalRange).clamp(0.0, 1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
       floating: false,
       expandedHeight: 130,
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-
-      // backgroundColor: Colors.black,
-      // surfaceTintColor: Colors.blue,
+      // backgroundColor: Colors.transparent,
+      // surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
 
       // 🔹 FIXED SEARCH BAR (never shrinks)
@@ -70,13 +78,17 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
       // 🔹 EXPAND / COLLAPSE CONTENT
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
-          final isCollapsed = constraints.biggest.height <= kToolbarHeight + 20;
-
-          return AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            color: isCollapsed ? Colors.black : const Color(0xFF3498DB),
-
+          final progress = _collapseProgress(
+            currentHeight: constraints.biggest.height,
+            expandedHeight: 130,
+          );
+          final backgroundColor = Color.lerp(
+            const Color(0xFF3498DB),
+            const Color.fromARGB(233, 0, 0, 0),
+            progress,
+          )!;
+          return Container(
+            color: backgroundColor,
             child: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(

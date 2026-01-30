@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat/screens/view_all_products_screen.dart';
 import 'package:freshpickkat/widgets/home_banner_with_horizontal_item.dart';
 import 'package:freshpickkat/widgets/home_page_header.dart';
 import 'package:freshpickkat/widgets/offer_banner.dart';
 import 'package:freshpickkat/widgets/offer_widget.dart';
 import 'package:freshpickkat/widgets/product_card.dart';
+import 'package:freshpickkat/widgets/view_all_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -63,38 +65,46 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: SizedBox(
-                height: 273,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: SizedBox(
-                        width: 130,
-                        child: ProductCard(
-                          imageUrl:
-                              'https://example.com/product${index + 1}.jpg',
-                          title: 'Dabur Honey Squeezy',
-                          quantity: '2 x 400 gm',
-                          price: '₹235',
-                          originalPrice: '₹420',
-                          discount: '₹185\nOFF',
-                          onAddPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Added product ${index + 1}'),
-                              ),
-                            );
-                          },
-                        ),
+            child: SizedBox(
+              height: 300,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: 5 + 1, // Products + 1 for ViewAllCard
+                itemBuilder: (context, index) {
+                  // Show ViewAllCard as last item
+                  if (index == 5) {
+                    return SizedBox(
+                      width: 160,
+
+                      child: ViewAllCard(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ViewAllProductsScreen(),
+                            ),
+                          );
+                        },
                       ),
                     );
-                  },
-                ),
+                  }
+
+                  // Show regular ProductCard
+                  return Container(
+                    width: 160,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: ProductCard(
+                      imageUrl: 'https://example.com/product${index + 1}.jpg',
+                      title: 'Dabur Honey Squeezy',
+                      quantity: '2 x 400 gm',
+                      price: '₹235',
+                      originalPrice: '₹420',
+                      discount: '₹185\nOFF',
+                      onAddPressed: () {},
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -131,38 +141,46 @@ class _HomePageState extends State<HomePage> {
           ),
 
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: SizedBox(
-                height: 273,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: SizedBox(
-                        width: 130,
-                        child: ProductCard(
-                          imageUrl:
-                              'https://example.com/product${index + 1}.jpg',
-                          title: 'Dabur Honey Squeezy',
-                          quantity: '2 x 400 gm',
-                          price: '₹235',
-                          originalPrice: '₹420',
-                          discount: '₹185\nOFF',
-                          onAddPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Added product ${index + 1}'),
-                              ),
-                            );
-                          },
-                        ),
+            child: SizedBox(
+              height: 300,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: 5 + 1, // Products + 1 for ViewAllCard
+                itemBuilder: (context, index) {
+                  // Show ViewAllCard as last item
+                  if (index == 5) {
+                    return SizedBox(
+                      width: 160,
+                      // margin: const EdgeInsets.only(right: 1),
+                      child: ViewAllCard(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ViewAllProductsScreen(),
+                            ),
+                          );
+                        },
                       ),
                     );
-                  },
-                ),
+                  }
+
+                  // Show regular ProductCard
+                  return Container(
+                    width: 160,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: ProductCard(
+                      imageUrl: 'https://example.com/product${index + 1}.jpg',
+                      title: 'Dabur Honey Squeezy',
+                      quantity: '2 x 400 gm',
+                      price: '₹235',
+                      originalPrice: '₹420',
+                      discount: '₹185\nOFF',
+                      onAddPressed: () {},
+                    ),
+                  );
+                },
               ),
             ),
           ),
