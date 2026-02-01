@@ -45,11 +45,11 @@ class CategoryItemCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),
                 child: Align(
-                  alignment: Alignment.bottomCenter,
+                  alignment: Alignment.topCenter,
                   child: Text(
                     itemName,
                     textAlign: TextAlign.center,
-                    maxLines: 3,
+                    maxLines: 2,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,

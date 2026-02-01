@@ -10,12 +10,12 @@ class OfferBanner extends StatefulWidget {
   final Duration autoScrollInterval;
 
   const OfferBanner({
-    Key? key,
+    super.key,
     required this.banners,
     this.height = 200,
     this.autoScrollDuration = const Duration(milliseconds: 800),
     this.autoScrollInterval = const Duration(seconds: 3),
-  }) : super(key: key);
+  });
 
   @override
   State<OfferBanner> createState() => _OfferBannerState();

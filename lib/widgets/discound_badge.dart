@@ -4,8 +4,7 @@ class DiscountBadge extends StatelessWidget {
   final String discount;
   final String? label;
 
-  const DiscountBadge({Key? key, required this.discount, this.label})
-    : super(key: key);
+  const DiscountBadge({super.key, required this.discount, this.label});
 
   @override
   Widget build(BuildContext context) {

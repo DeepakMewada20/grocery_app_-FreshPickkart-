@@ -11,7 +11,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onAddPressed;
 
   const ProductCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.title,
     required this.quantity,
@@ -19,7 +19,7 @@ class ProductCard extends StatelessWidget {
     this.originalPrice,
     this.discount,
     this.onAddPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

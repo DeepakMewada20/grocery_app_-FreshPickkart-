@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat/screens/cetegoris_screen_with_stick_heder.dart';
 import 'package:freshpickkat/screens/home_screen.dart';
-import 'package:freshpickkat/screens/categories_screen.dart';
 import 'package:freshpickkat/screens/basket_screen.dart';
 import 'package:freshpickkat/screens/wallet_screen.dart';
 import 'package:freshpickkat/screens/more_screen.dart';
@@ -17,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomePage(),
-    const CategoriesScreen(),
+    const CategoriesScreenWithStickyHeader(),
     const BasketScreen(),
     const WalletScreen(),
     const MoreScreen(),

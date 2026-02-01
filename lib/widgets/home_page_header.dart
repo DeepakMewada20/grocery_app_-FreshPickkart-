@@ -1,50 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat/widgets/search_bar.dart';
 
 class MilkbasketSliverAppBar extends StatefulWidget {
-  const MilkbasketSliverAppBar({Key? key}) : super(key: key);
+  const MilkbasketSliverAppBar({super.key});
 
   @override
   State<MilkbasketSliverAppBar> createState() => _MilkbasketSliverAppBarState();
 }
 
 class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
-  late PageController _pageController;
-  final List<String> hints = [
-    'Search for "Vegetable"',
-    'Search for "Fruits"',
-    'Search for "Dairy"',
-    'Search for "Snacks"',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    _startAutoScroll();
-  }
-
-  void _startAutoScroll() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        int nextPage = (_pageController.page?.toInt() ?? 0) + 1;
-        if (nextPage >= hints.length) nextPage = 0;
-
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-        _startAutoScroll();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   double _collapseProgress({
     required double currentHeight,
     required double expandedHeight,
@@ -71,7 +35,7 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
         preferredSize: const Size.fromHeight(5),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 2, 10, 12),
-          child: _buildSearchBar(context),
+          child: SearchBarWidget(),
         ),
       ),
 
@@ -136,61 +100,11 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
       ),
     );
   }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchScreen()),
-        );
-      },
-      child: Container(
-        height: 45, // Fixed height - same in both states
-        width: double.infinity, // Full width - same in both states
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: Colors.white, size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: ClipRect(
-                child: PageView.builder(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: hints.length,
-                  itemBuilder: (context, index) {
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        hints[index],
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 15,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // Placeholder SearchScreen
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

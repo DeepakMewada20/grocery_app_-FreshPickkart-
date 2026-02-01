@@ -7,10 +7,10 @@ class ViewAllCard extends StatelessWidget {
   final String text;
 
   const ViewAllCard({
-    Key? key,
+    super.key,
     required this.onTap,
     this.text = 'VIEW ALL',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
