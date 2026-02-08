@@ -1,0 +1,12 @@
+class: Product
+fields:
+    productId: String?
+    productName: String
+    category: String
+    imageUrl: String
+    price: int
+    realPrice: int
+    discount: int
+    isAvailable: bool
+    addedAt: DateTime
+    subcategory: List<String>

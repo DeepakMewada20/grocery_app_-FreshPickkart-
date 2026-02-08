@@ -1,0 +1,4 @@
+auth:
+  - verifyPhoneLogin:
+product:
+  - getProducts:
