@@ -47,7 +47,7 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
             expandedHeight: 130,
           );
           final backgroundColor = Color.lerp(
-            const Color(0xFF3498DB),
+            Color(0xFF1B8A4C),
             const Color.fromARGB(233, 0, 0, 0),
             progress,
           )!;
@@ -63,7 +63,7 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Image.asset(
+                        Image.asset( 
                           "lib/assets/images/name_logo.png",
                           height: 60,
                           fit: BoxFit.contain,

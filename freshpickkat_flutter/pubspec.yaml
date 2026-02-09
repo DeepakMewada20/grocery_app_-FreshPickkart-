@@ -42,6 +42,9 @@ dependencies:
   get: ^4.7.3
   device_info_plus: ^12.3.0
   flutter_sim_data: ^1.0.5
+  location: ^8.0.1
+  geocoding: ^4.0.0
+  cloud_firestore: ^6.1.2
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'

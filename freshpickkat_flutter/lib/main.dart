@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:freshpickkat_flutter/non_use_files/maincloude.dart';
+import 'package:freshpickkat_flutter/screens/address_screen.dart';
+import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 
 import 'package:get/get.dart';
@@ -45,6 +48,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const PhoneAuthScreen(),
+      routes: {
+        '/address': (context) => const AddressScreen(),
+        '/home': (context) => const MainScreen(),
+      },
     );
   }
 }

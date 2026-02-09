@@ -22,7 +22,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   final FocusNode _otpFocusNode = FocusNode();
   final AuthController _authController = AuthController();
 
-  String _countryCode = '+1';
+  String _countryCode = '+91';
   bool _isLoading = false;
   bool _showOtpInput = false;
   bool _isVerifying = false;
@@ -43,8 +43,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   late Animation<double> _successScaleAnimation;
 
   final List<Map<String, String>> _countryCodes = [
-    {'code': '+1', 'country': 'US/CA', 'flag': '🇺🇸'},
     {'code': '+91', 'country': 'India', 'flag': '🇮🇳'},
+    {'code': '+1', 'country': 'US/CA', 'flag': '🇺🇸'},
     {'code': '+44', 'country': 'UK', 'flag': '🇬🇧'},
     {'code': '+61', 'country': 'Australia', 'flag': '🇦🇺'},
     {'code': '+81', 'country': 'Japan', 'flag': '🇯🇵'},
@@ -56,7 +56,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   @override
   void initState() {
     super.initState();
-    _autoDetectCountryCode();
+    // _autoDetectCountryCode();
     _initAnimations();
   }
 
@@ -111,26 +111,26 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     _slideController.forward();
   }
 
-  Future<void> _autoDetectCountryCode() async {
-    try {
-      if (Platform.isAndroid) {
-        SimData simData = SimData();
-        List<SimDataModel>? simCards = await simData.getSimData();
-        if (simCards.isNotEmpty) {
-          String? countryCode = simCards.first.countryCode;
-          if (countryCode.isNotEmpty) {
-            setState(() {
-              _countryCode = countryCode.startsWith('+')
-                  ? countryCode
-                  : '+$countryCode';
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Auto-detect failed: $e');
-    }
-  }
+  // Future<void> _autoDetectCountryCode() async {
+  //   try {
+  //     if (Platform.isAndroid) {
+  //       SimData simData = SimData();
+  //       List<SimDataModel>? simCards = await simData.getSimData();
+  //       if (simCards.isNotEmpty) {
+  //         String? countryCode = simCards.first.countryCode;
+  //         if (countryCode.isNotEmpty) {
+  //           setState(() {
+  //             _countryCode = countryCode.startsWith('+')
+  //                 ? countryCode
+  //                 : '+$countryCode';
+  //           });
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Auto-detect failed: $e');
+  //   }
+  // }
 
   void _showCountryPicker() {
     showModalBottomSheet(
@@ -222,13 +222,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
     _phoneNumber = _countryCode + _phoneController.text;
 
-    // ADD THIS DEBUG PRINT
-    debugPrint('Sending OTP to: $_phoneNumber');
-
     await _authController.sendOTP(
       phoneNumber: _phoneNumber,
       onCodeSent: (verificationId) {
-        debugPrint('OTP sent successfully'); // ADD THIS
         setState(() {
           _isLoading = false;
           _verificationId = verificationId;
@@ -241,16 +237,14 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
         });
       },
       onError: (error) {
-        debugPrint('OTP Error: $error'); // ADD THIS
         setState(() {
           _isLoading = false;
           _errorMessage = error;
         });
       },
       onAutoVerify: () {
-        debugPrint('Auto verified'); // ADD THIS
         setState(() => _isLoading = false);
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/address');
       },
     );
   }
@@ -272,10 +266,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     );
 
     if (result['success']) {
-      await _successController.forward();
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // await _successController.forward();
+      // await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/address');
       }
     } else {
       setState(() {
@@ -398,6 +392,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    //app logo
                     const SizedBox(height: 40),
                     Center(
                       child: Image.asset(
