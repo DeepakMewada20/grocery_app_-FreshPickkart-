@@ -10,3 +10,4 @@ fields:
     isAvailable: bool
     addedAt: DateTime
     subcategory: List<String>
+    quantity: String

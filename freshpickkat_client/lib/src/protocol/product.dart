@@ -25,6 +25,7 @@ abstract class Product implements _i1.SerializableModel {
     required this.isAvailable,
     required this.addedAt,
     required this.subcategory,
+    required this.quantity,
   });
 
   factory Product({
@@ -38,6 +39,7 @@ abstract class Product implements _i1.SerializableModel {
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
+    required String quantity,
   }) = _ProductImpl;
 
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -54,6 +56,7 @@ abstract class Product implements _i1.SerializableModel {
       subcategory: _i2.Protocol().deserialize<List<String>>(
         jsonSerialization['subcategory'],
       ),
+      quantity: jsonSerialization['quantity'] as String,
     );
   }
 
@@ -77,6 +80,8 @@ abstract class Product implements _i1.SerializableModel {
 
   List<String> subcategory;
 
+  String quantity;
+
   /// Returns a shallow copy of this [Product]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -91,6 +96,7 @@ abstract class Product implements _i1.SerializableModel {
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
+    String? quantity,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -106,6 +112,7 @@ abstract class Product implements _i1.SerializableModel {
       'isAvailable': isAvailable,
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
+      'quantity': quantity,
     };
   }
 
@@ -129,6 +136,7 @@ class _ProductImpl extends Product {
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
+    required String quantity,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -140,6 +148,7 @@ class _ProductImpl extends Product {
          isAvailable: isAvailable,
          addedAt: addedAt,
          subcategory: subcategory,
+         quantity: quantity,
        );
 
   /// Returns a shallow copy of this [Product]
@@ -157,6 +166,7 @@ class _ProductImpl extends Product {
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
+    String? quantity,
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
@@ -169,6 +179,7 @@ class _ProductImpl extends Product {
       isAvailable: isAvailable ?? this.isAvailable,
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),
+      quantity: quantity ?? this.quantity,
     );
   }
 }

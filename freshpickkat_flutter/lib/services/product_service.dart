@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class ProductProvider {
@@ -15,7 +16,9 @@ class ProductProvider {
       var newProducts = await client.product.getProducts(
         limit: 10,
         // Pehli baar null jayega, uske baad last product ka naam
-        lastProductName: allProducts.isEmpty ? null : allProducts.last.productName,
+        lastProductName: allProducts.isEmpty
+            ? null
+            : allProducts.last.productName,
       );
 
       if (newProducts.length < 10) {
@@ -23,6 +26,7 @@ class ProductProvider {
       }
 
       allProducts.addAll(newProducts);
+      print(newProducts);
     } catch (e) {
       print("Flutter Error: $e");
     }

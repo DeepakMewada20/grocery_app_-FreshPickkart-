@@ -1,30 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:freshpickkat_flutter/non_use_files/maincloude.dart';
+import 'package:freshpickkat_flutter/non_use_files/product_list_test_screen.dart';
 import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
+import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
+import 'package:freshpickkat_flutter/services/product_service.dart';
 
 import 'package:get/get.dart';
 
-// Sets up a singleton client object that can be used to talk to the server from
-// anywhere in our app. The client is generated from your server code.
-// The client is set up to connect to a Serverpod running on a local server on
-// the default port. You will need to modify this to connect to staging or
-// production servers.
-// var client = Client(
-//   'http://$localhost:8080/',
-//   authenticationKeyManager: FlutterAuthenticationKeyManager(),
-// )..connectivityMonitor = FlutterConnectivityMonitor();
-
-// late SessionManager sessionManager;
-
 void main() async {
-
   // Initialize Firebase
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -47,7 +38,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const PhoneAuthScreen(),
+      home: const ModernSplashScreen(),
       routes: {
         '/address': (context) => const AddressScreen(),
         '/home': (context) => const MainScreen(),
