@@ -33,11 +33,15 @@ dependencies:
     path: ../freshpickkat_client
   serverpod_auth_idp_flutter: 3.1.1
   serverpod_flutter: 3.1.1
+  serverpod_auth_client: 3.1.1
   firebase_auth: ^6.1.4
   pinput: ^6.0.2
   google_fonts: ^6.3.3
   firebase_core: ^4.4.0
   serverpod_auth_shared_flutter: ^3.1.1
+  get: ^4.7.3
+  device_info_plus: ^12.3.0
+  flutter_sim_data: ^1.0.5
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'

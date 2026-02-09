@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "784305413937",
+    "project_id": "freshpickkart-a6824",
+    "storage_bucket": "freshpickkart-a6824.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784305413937:android:570ac054ed84ceb479da10",
+        "android_client_info": {
+          "package_name": "com.example.freshpickkat_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbE8qQGVluyYuKu7omcT3-fl8e6TQNY_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
