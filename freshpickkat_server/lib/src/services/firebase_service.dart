@@ -4,7 +4,7 @@ import 'package:googleapis_auth/auth_io.dart';
 
 class FirebaseService {
   static const _serviceAccountPath =
-      'secrets/service-account.json';
+      'config/firebase_service_account_key.json';
 
   // Firestore API ka client lene ke liye ye function use karein
   static Future<FirestoreApi> getFirestoreClient() async {
