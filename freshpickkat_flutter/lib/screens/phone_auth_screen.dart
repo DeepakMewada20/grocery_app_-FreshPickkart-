@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_sim_data/sim_data.dart';
-import 'package:flutter_sim_data/sim_data_model.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
-import 'dart:io';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});

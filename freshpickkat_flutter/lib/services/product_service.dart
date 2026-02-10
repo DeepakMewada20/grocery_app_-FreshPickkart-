@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class ProductProvider {
