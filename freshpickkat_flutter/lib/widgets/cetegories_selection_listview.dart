@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
+import 'package:freshpickkat_flutter/services/product_service.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
 
 class CetegoriesSelectionListview extends StatefulWidget {
   final String titalWord;
-
-  const CetegoriesSelectionListview({super.key, required this.titalWord});
+  final ProductProvider provider;
+  const CetegoriesSelectionListview({super.key, required this.titalWord,required this.provider});
 
   @override
   State<CetegoriesSelectionListview> createState() =>
@@ -51,6 +52,7 @@ class _CetegoriesSelectionListviewState
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: 5 + 1, // Products + 1 for ViewAllCard
             itemBuilder: (context, index) {
+              final p = widget.provider.allProducts[0];
               // Show ViewAllCard as last item
               if (index == 5) {
                 return SizedBox(
@@ -74,12 +76,12 @@ class _CetegoriesSelectionListviewState
                 width: 160,
                 margin: const EdgeInsets.only(right: 12),
                 child: ProductCard(
-                  imageUrl: 'https://example.com/product${index + 1}.jpg',
-                  title: 'Dabur Honey Squeezy',
-                  quantity: '2 x 400 gm',
-                  price: '₹235',
-                  originalPrice: '₹420',
-                  discount: '₹185\nOFF',
+                  imageUrl: p.imageUrl,
+                  title: p.productName,
+                  quantity: p.quantity,
+                  price: '₹${p.price}',
+                  originalPrice: '₹${p.realPrice}',
+                  discount: '₹${p.discount}\nOFF',
                   onAddPressed: () {},
                 ),
               );

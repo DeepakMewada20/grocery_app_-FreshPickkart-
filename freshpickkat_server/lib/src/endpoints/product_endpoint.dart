@@ -9,9 +9,6 @@ class ProductEndpoint extends Endpoint {
     int limit = 10,
     String? lastProductName,
   }) async {
-    print(
-      'ProductEndpoint.getProducts called -> limit=$limit lastProductName=$lastProductName',
-    );
     final firestore = await FirebaseService.getFirestoreClient();
 
     // Aapke project ki database path
@@ -43,15 +40,6 @@ class ProductEndpoint extends Endpoint {
         database,
       );
 
-      print(
-        'ProductEndpoint: Firestore runQuery returned ${response.length} rows',
-      );
-      if (response.isNotEmpty && response.first.document != null) {
-        print(
-          'ProductEndpoint: first doc path=${response.first.document!.name}',
-        );
-      }
-
       final products = response.map((res) {
         final fields = res.document!.fields!;
 
@@ -74,12 +62,9 @@ class ProductEndpoint extends Endpoint {
           quantity: fields['quantity']?.stringValue ?? "",
         );
       }).toList();
-
-      print('ProductEndpoint: parsed ${products.length} products');
       return products;
-    } catch (e, st) {
-      print('ProductEndpoint.getProducts error: $e');
-      print(st);
+    } catch (e) {
+      
       rethrow;
     }
   }
