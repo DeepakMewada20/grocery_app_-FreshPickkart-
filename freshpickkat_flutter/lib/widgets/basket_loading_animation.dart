@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GroceryLoadingAnimation extends StatefulWidget {
-  const GroceryLoadingAnimation({Key? key}) : super(key: key);
+  const GroceryLoadingAnimation({super.key});
 
   @override
   State<GroceryLoadingAnimation> createState() =>

@@ -1,0 +1,5 @@
+class: Category
+fields:
+    categoryName: String
+    categoryImageUrl: String
+    subCategory: Map<String, String>

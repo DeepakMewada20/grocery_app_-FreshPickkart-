@@ -1,4 +1,6 @@
 auth:
   - verifyPhoneLogin:
+category:
+  - getCategories:
 product:
   - getProducts:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/product_service.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:freshpickkat_flutter/widgets/cetegories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
@@ -26,8 +27,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     // Use 10.0.2.2 for Android emulator to reach host machine's localhost.
-    client = Client('http://10.0.2.2:8080/')
-      ..connectivityMonitor = FlutterConnectivityMonitor();
+    client = ServerpodClient().client;
     provider = ProductProvider(client);
     _loadProducts();
   }

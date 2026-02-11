@@ -16,8 +16,11 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'product.dart' as _i5;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i6;
+import 'category.dart' as _i5;
+import 'product.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i7;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i8;
+export 'category.dart';
 export 'product.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -60,17 +63,33 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Product) {
-      return _i5.Product.fromJson(data) as T;
+    if (t == _i5.Category) {
+      return _i5.Category.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Product?>()) {
-      return (data != null ? _i5.Product.fromJson(data) : null) as T;
+    if (t == _i6.Product) {
+      return _i6.Product.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i5.Category?>()) {
+      return (data != null ? _i5.Category.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.Product?>()) {
+      return (data != null ? _i6.Product.fromJson(data) : null) as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i6.Product>) {
-      return (data as List).map((e) => deserialize<_i6.Product>(e)).toList()
+    if (t == List<_i7.Category>) {
+      return (data as List).map((e) => deserialize<_i7.Category>(e)).toList()
+          as T;
+    }
+    if (t == List<_i8.Product>) {
+      return (data as List).map((e) => deserialize<_i8.Product>(e)).toList()
           as T;
     }
     try {
@@ -87,7 +106,8 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Product => 'Product',
+      _i5.Category => 'Category',
+      _i6.Product => 'Product',
       _ => null,
     };
   }
@@ -105,7 +125,9 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Product():
+      case _i5.Category():
+        return 'Category';
+      case _i6.Product():
         return 'Product';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -129,8 +151,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'Category') {
+      return deserialize<_i5.Category>(data['data']);
+    }
     if (dataClassName == 'Product') {
-      return deserialize<_i5.Product>(data['data']);
+      return deserialize<_i6.Product>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

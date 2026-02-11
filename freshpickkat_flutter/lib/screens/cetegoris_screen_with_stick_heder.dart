@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
+import 'package:get/get.dart';
 // import 'category_item_card.dart';
 
 class CategoriesScreenWithStickyHeader extends StatefulWidget {
@@ -17,6 +19,8 @@ class _CategoriesScreenWithStickyHeaderState
     extends State<CategoriesScreenWithStickyHeader> {
   final ScrollController _itemsScrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
+  final categoryController = CategoryProviderController.instance;
+
   int _selectedCategoryIndex = 0;
   bool _isAutoScrolling = false;
   String _currentStickyHeader = '';
@@ -309,9 +313,9 @@ class _CategoriesScreenWithStickyHeaderState
     return Container(
       width: 90,
       color: const Color(0xFF1A1A1A),
-      child: ListView.builder(
+      child: Obx(() => ListView.builder(
         controller: _categoryScrollController,
-        itemCount: categories.length,
+        itemCount: categoryController.categories.length,
         itemBuilder: (context, index) {
           final isSelected = _selectedCategoryIndex == index;
           final isTapped = _tappedCategoryIndex == index;
@@ -355,43 +359,54 @@ class _CategoriesScreenWithStickyHeaderState
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Center(
+                  child: Center(
                   child: Column(
-                    children: [
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: AnimatedScale(
-                            scale: isTapped ? 1.3 : 1.0,
-                            duration: Duration(milliseconds: 250),
-                            child: Image.asset(
-                              'lib/assets/images/Wellness+&+Health_1729062880.png',
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: AnimatedScale(
+                              scale: isTapped ? 1.3 : 1.0,
+                              duration: Duration(milliseconds: 250),
+                              child: Image.network(
+                                categoryController.categories[index].categoryImageUrl,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image,
+                                      size: 50,
+                                      color: Colors.grey[400],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Text(
-                        categories[index].name,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                        Text(
+                          categoryController.categories[index].categoryName,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+            
+                    ),
                 ),
               ),
             ),
           );
         },
-      ),
+      )),
     );
   }
 
@@ -418,14 +433,17 @@ class _CategoriesScreenWithStickyHeaderState
   Widget _buildItemsGrid() {
     return Container(
       color: const Color(0xFF0A0A0A),
-      child: ListView(
-        // ListView.builder ko ListView mein change karo
+      child: Obx(() => ListView(
         controller: _itemsScrollController,
         padding: const EdgeInsets.only(top: 0, left: 10, right: 10, bottom: 0),
         children: [
           // Pehle saari categories
-          ...List.generate(categories.length, (categoryIndex) {
-            final category = categories[categoryIndex];
+          ...List.generate(categoryController.categories.length, (
+            categoryIndex,
+          ) {
+            final remoteCategory = categoryController.categories[categoryIndex];
+            final categoryName = remoteCategory.categoryName;
+            final subCategories = remoteCategory.subCategory.entries.toList();
             return Column(
               key: _categoryKeys[categoryIndex],
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,7 +452,7 @@ class _CategoriesScreenWithStickyHeaderState
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
-                    category.name,
+                    categoryName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -452,20 +470,23 @@ class _CategoriesScreenWithStickyHeaderState
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
-                  itemCount: category.items.length,
+                  itemCount: subCategories.length,
                   itemBuilder: (context, itemIndex) {
-                    final item = category.items[itemIndex];
+                    final entry = subCategories[itemIndex];
+                    // subCategory map: key = subcategoryName, value = subcategoryImageUrl
+                    final itemName = entry.key;
+                    final imageUrl = entry.value;
                     return CategoryItemCard(
-                      itemName: item.name,
-                      imagePath: item.imagePath,
+                      itemName: itemName,
+                      imagePath: imageUrl,
                       onTap: () {
                         // Category item card se navigate karo
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => CategoryItemsScreen(
-                              categoryName: 'Fruits',
-                              subCategoryName: 'Apple & Pear',
+                              categoryName: categoryName,
+                              subCategoryName: itemName,
                             ),
                           ),
                         );
@@ -485,7 +506,7 @@ class _CategoriesScreenWithStickyHeaderState
             titalWord: "All Items",
           ),
         ],
-      ),
+      )),
     );
   }
 }

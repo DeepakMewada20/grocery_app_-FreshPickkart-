@@ -35,7 +35,7 @@ class CategoryItemCard extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Image.asset(imagePath, fit: BoxFit.cover),
+                  child: _buildImage(imagePath),
                 ),
               ),
             ),
@@ -61,6 +61,35 @@ class CategoryItemCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage(String path) {
+    final isNetwork = path.startsWith('http://') || path.startsWith('https://');
+    if (isNetwork) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Center(
+          child: Icon(
+            Icons.broken_image,
+            size: 40,
+            color: Colors.grey[400],
+          ),
+        ),
+      );
+    }
+    // fallback to asset image
+    return Image.asset(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Center(
+        child: Icon(
+          Icons.broken_image,
+          size: 40,
+          color: Colors.grey[400],
         ),
       ),
     );

@@ -12,11 +12,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
-import '../endpoints/product_endpoint.dart' as _i3;
+import '../endpoints/category_endpoint.dart' as _i3;
+import '../endpoints/product_endpoint.dart' as _i4;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i4;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i5;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i6;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -28,7 +29,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'auth',
           null,
         ),
-      'product': _i3.ProductEndpoint()
+      'category': _i3.CategoryEndpoint()
+        ..initialize(
+          server,
+          'category',
+          null,
+        ),
+      'product': _i4.ProductEndpoint()
         ..initialize(
           server,
           'product',
@@ -60,6 +67,22 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['category'] = _i1.EndpointConnector(
+      name: 'category',
+      endpoint: endpoints['category']!,
+      methodConnectors: {
+        'getCategories': _i1.MethodConnector(
+          name: 'getCategories',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['category'] as _i3.CategoryEndpoint)
+                  .getCategories(session),
+        ),
+      },
+    );
     connectors['product'] = _i1.EndpointConnector(
       name: 'product',
       endpoint: endpoints['product']!,
@@ -83,7 +106,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i3.ProductEndpoint).getProducts(
+                  (endpoints['product'] as _i4.ProductEndpoint).getProducts(
                     session,
                     limit: params['limit'],
                     lastProductName: params['lastProductName'],
@@ -91,9 +114,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i4.Endpoints()
+    modules['serverpod_auth_idp'] = _i5.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i5.Endpoints()
+    modules['serverpod_auth_core'] = _i6.Endpoints()
       ..initializeEndpoints(server);
   }
 }
