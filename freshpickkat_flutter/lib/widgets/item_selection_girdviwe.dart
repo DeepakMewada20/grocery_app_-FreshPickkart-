@@ -6,7 +6,7 @@ class ItemSelectionGirdviwe extends StatefulWidget {
   final int crossAxisCount;
   final double childAspectRatio;
   const ItemSelectionGirdviwe({
-    this.childAspectRatio = 0.47,
+    this.childAspectRatio = 0.458,
     this.crossAxisCount = 3,
     super.key,
     required this.titalWord,
@@ -19,11 +19,11 @@ class ItemSelectionGirdviwe extends StatefulWidget {
 class _ItemSelectionGirdviweState extends State<ItemSelectionGirdviwe> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 16),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 16),
+      child: Column(
+        children: [
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -36,35 +36,35 @@ class _ItemSelectionGirdviweState extends State<ItemSelectionGirdviwe> {
               ),
             ],
           ),
-        ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: widget.crossAxisCount,
-            childAspectRatio: widget.childAspectRatio, // same as before
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+          GridView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: widget.crossAxisCount,
+              childAspectRatio: widget.childAspectRatio, // same as before
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: 5, // Number of products
+            itemBuilder: (context, index) {
+              return ProductCard(
+                imageUrl: 'https://example.com/product${index + 1}.jpg',
+                title: 'Dabur Honey Squeezy',
+                quantity: '2 x 400 gm',
+                price: '₹235',
+                originalPrice: '₹420',
+                discount: '₹185\nOFF',
+                onAddPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Added product ${index + 1}')),
+                  );
+                },
+              );
+            },
           ),
-          itemCount: 5, // Number of products
-          itemBuilder: (context, index) {
-            return ProductCard(
-              imageUrl: 'https://example.com/product${index + 1}.jpg',
-              title: 'Dabur Honey Squeezy',
-              quantity: '2 x 400 gm',
-              price: '₹235',
-              originalPrice: '₹420',
-              discount: '₹185\nOFF',
-              onAddPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added product ${index + 1}')),
-                );
-              },
-            );
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

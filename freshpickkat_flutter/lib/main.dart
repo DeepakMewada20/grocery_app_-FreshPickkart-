@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
+import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 
 import 'package:get/get.dart';
 

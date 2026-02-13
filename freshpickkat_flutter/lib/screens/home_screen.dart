@@ -9,7 +9,6 @@ import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
-import 'package:serverpod_flutter/serverpod_flutter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
