@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'dart:math' as math;
 
-import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 
 class ModernSplashScreen extends StatefulWidget {
   const ModernSplashScreen({super.key});

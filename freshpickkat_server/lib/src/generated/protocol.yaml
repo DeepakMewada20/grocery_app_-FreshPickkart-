@@ -5,3 +5,6 @@ category:
 product:
   - getProducts:
   - uploadProduct:
+subCategory:
+  - getSubCategories:
+  - uploadSubCategory:

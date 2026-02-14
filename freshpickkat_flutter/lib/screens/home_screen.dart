@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/services/product_service.dart';
-import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:freshpickkat_flutter/widgets/cetegories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
@@ -9,125 +7,137 @@ import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
+import 'package:get/get.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  late final Client client;
-  late final ProductProvider provider;
-  bool loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Use 10.0.2.2 for Android emulator to reach host machine's localhost.
-    client = ServerpodClient().client;
-    provider = ProductProvider(client);
-    _loadProducts();
-  }
-
-  Future<void> _loadProducts() async {
-    setState(() => loading = true);
-    try {
-      await provider.loadProducts();
-      setState(() {});
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading products: $e')),
-        );
-      }
-    } finally {
-      setState(() => loading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final productController = ProductProviderController.instance;
     var height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(233, 0, 0, 0),
-      body: CustomScrollView(
-        slivers: [
-          // Header with app name, tagline, and search bar
-          const MilkbasketSliverAppBar(),
-
-          // Loading indicator ya content
-          if (loading)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: GroceryLoadingAnimation()),
-            )
-          else ...[
-            // 🎁 OFFER WIDGET
-            OfferWidget(),
-
-            // 🎪 BANNER WITH HORIZONTAL ITEMS
-            HomeBannerWithHorizontalItem(height: height),
-
-            // 📦 CATEGORIES SECTION
-            SliverToBoxAdapter(
-              child: CetegoriesSelectionListview(
-                titalWord: "Trending Products",
-                provider: provider,
+      body: Obx(() {
+        if (productController.isLoading.value && !productController.hasData) {
+          return CustomScrollView(
+            slivers: [
+              const MilkbasketSliverAppBar(),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: GroceryLoadingAnimation()),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: CetegoriesSelectionListview(
-                titalWord: "Best Sellers",
-                provider: provider,
-              ),
-            ),
+            ],
+          );
+        }
 
-            // OFFER BANNER
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: OfferBanner(
-                  height: 180,
-                  banners: [
-                    OfferBannerItem(
-                      imagePath: 'lib/assets/images/discount.jpg',
-                      onTap: () {
-                        print('Banner 1 tapped');
-                      },
-                    ),
-                    OfferBannerItem(
-                      imagePath: 'lib/assets/images/discount.jpg',
-                      onTap: () {
-                        print('Banner 2 tapped');
-                      },
-                    ),
-                    OfferBannerItem(
-                      imagePath: 'lib/assets/images/discount.jpg',
-                      onTap: () {
-                        print('Banner 3 tapped');
-                      },
-                    ),
-                  ],
-                  autoScrollInterval: const Duration(seconds: 3),
-                  autoScrollDuration: const Duration(milliseconds: 500),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (scrollInfo) {
+            // Jab user bottom ke near aaye (200px pehle) toh next page load kare
+            if (scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200 &&
+                !productController.isLoading.value &&
+                productController.isMoreDataAvailable.value) {
+              productController.loadMore();
+            }
+            return false;
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Header with app name, tagline, and search bar
+              const MilkbasketSliverAppBar(),
+
+              // 🎁 OFFER WIDGET
+              OfferWidget(),
+
+              // 🎪 BANNER WITH HORIZONTAL ITEMS
+              HomeBannerWithHorizontalItem(height: height),
+
+              // 📦 CATEGORIES SECTION
+              SliverToBoxAdapter(
+                child: CetegoriesSelectionListview(
+                  titalWord: "Trending Products",
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: ItemSelectionGirdviwe(titalWord: "Other Products",provider:provider,),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+              SliverToBoxAdapter(
+                child: CetegoriesSelectionListview(
+                  titalWord: "Best Sellers",
+                ),
+              ),
 
-  @override
-  void dispose() {
-    client.close();
-    super.dispose();
+              // OFFER BANNER
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: OfferBanner(
+                    height: 180,
+                    banners: [
+                      OfferBannerItem(
+                        imagePath: 'lib/assets/images/discount.jpg',
+                        onTap: () {
+                          print('Banner 1 tapped');
+                        },
+                      ),
+                      OfferBannerItem(
+                        imagePath: 'lib/assets/images/discount.jpg',
+                        onTap: () {
+                          print('Banner 2 tapped');
+                        },
+                      ),
+                      OfferBannerItem(
+                        imagePath: 'lib/assets/images/discount.jpg',
+                        onTap: () {
+                          print('Banner 3 tapped');
+                        },
+                      ),
+                    ],
+                    autoScrollInterval: const Duration(seconds: 3),
+                    autoScrollDuration: const Duration(milliseconds: 500),
+                  ),
+                ),
+              ),
+
+              // 📦 ALL PRODUCTS GRID (infinite scroll)
+              SliverToBoxAdapter(
+                child: ItemSelectionGirdviwe(titalWord: "Other Products"),
+              ),
+
+              // Loading indicator at bottom when fetching more
+              if (productController.isLoading.value &&
+                  productController.hasData)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // "No more products" message
+              if (!productController.isMoreDataAvailable.value &&
+                  productController.hasData)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: Text(
+                        'All products loaded ✅',
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
+    );
   }
 }

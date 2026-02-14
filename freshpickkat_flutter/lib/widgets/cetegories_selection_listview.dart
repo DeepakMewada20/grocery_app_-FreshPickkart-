@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
-import 'package:freshpickkat_flutter/services/product_service.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
+import 'package:get/get.dart';
 
-class CetegoriesSelectionListview extends StatefulWidget {
+class CetegoriesSelectionListview extends StatelessWidget {
   final String titalWord;
-  final ProductProvider provider;
-  const CetegoriesSelectionListview({super.key, required this.titalWord,required this.provider});
+  const CetegoriesSelectionListview({super.key, required this.titalWord});
 
-  @override
-  State<CetegoriesSelectionListview> createState() =>
-      _CetegoriesSelectionListviewState();
-}
-
-class _CetegoriesSelectionListviewState
-    extends State<CetegoriesSelectionListview> {
   @override
   Widget build(BuildContext context) {
+    final productController = ProductProviderController.instance;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,14 +22,13 @@ class _CetegoriesSelectionListviewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.titalWord,
+                titalWord,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-
               TextButton(
                 onPressed: () {},
                 child: const Text(
@@ -47,46 +41,50 @@ class _CetegoriesSelectionListviewState
         ),
         SizedBox(
           height: 289,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: 5 + 1, // Products + 1 for ViewAllCard
-            itemBuilder: (context, index) {
-              final p = widget.provider.allProducts[index];
-              // Show ViewAllCard as last item
-              if (index == 5) {
-                return SizedBox(
-                  width: 160,
+          child: Obx(() {
+            final products = productController.allProducts;
+            final itemCount = (products.length > 5 ? 5 : products.length) + 1;
 
-                  child: ViewAllCard(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ViewAllProductsScreen(),
-                        ),
-                      );
-                    },
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
+                // Show ViewAllCard as last item
+                if (index == itemCount - 1) {
+                  return SizedBox(
+                    width: 160,
+                    child: ViewAllCard(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ViewAllProductsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+
+                final p = products[index];
+                // Show regular ProductCard
+                return Container(
+                  width: 160,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: ProductCard(
+                    imageUrl: p.imageUrl,
+                    title: p.productName,
+                    quantity: p.quantity,
+                    price: '₹${p.price}',
+                    originalPrice: '₹${p.realPrice}',
+                    discount: '₹${p.discount}\nOFF',
+                    onAddPressed: () {},
                   ),
                 );
-              }
-
-              // Show regular ProductCard
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 12),
-                child: ProductCard(
-                  imageUrl: p.imageUrl,
-                  title: p.productName,
-                  quantity: p.quantity,
-                  price: '₹${p.price}',
-                  originalPrice: '₹${p.realPrice}',
-                  discount: '₹${p.discount}\nOFF',
-                  onAddPressed: () {},
-                ),
-              );
-            },
-          ),
+              },
+            );
+          }),
         ),
       ],
     );

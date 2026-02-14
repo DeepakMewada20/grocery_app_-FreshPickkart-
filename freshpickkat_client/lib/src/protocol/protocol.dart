@@ -13,14 +13,17 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'category.dart' as _i2;
 import 'product.dart' as _i3;
-import 'package:freshpickkat_client/src/protocol/category.dart' as _i4;
-import 'package:freshpickkat_client/src/protocol/product.dart' as _i5;
+import 'sub_category.dart' as _i4;
+import 'package:freshpickkat_client/src/protocol/category.dart' as _i5;
+import 'package:freshpickkat_client/src/protocol/product.dart' as _i6;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i7;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i6;
+    as _i8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i7;
+    as _i9;
 export 'category.dart';
 export 'product.dart';
+export 'sub_category.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {
@@ -63,11 +66,17 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i3.Product) {
       return _i3.Product.fromJson(data) as T;
     }
+    if (t == _i4.SubCategory) {
+      return _i4.SubCategory.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i2.Category?>()) {
       return (data != null ? _i2.Category.fromJson(data) : null) as T;
     }
     if (t == _i1.getType<_i3.Product?>()) {
       return (data != null ? _i3.Product.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i4.SubCategory?>()) {
+      return (data != null ? _i4.SubCategory.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -78,19 +87,23 @@ class Protocol extends _i1.SerializationManager {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i4.Category>) {
-      return (data as List).map((e) => deserialize<_i4.Category>(e)).toList()
+    if (t == List<_i5.Category>) {
+      return (data as List).map((e) => deserialize<_i5.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i5.Product>) {
-      return (data as List).map((e) => deserialize<_i5.Product>(e)).toList()
+    if (t == List<_i6.Product>) {
+      return (data as List).map((e) => deserialize<_i6.Product>(e)).toList()
+          as T;
+    }
+    if (t == List<_i7.SubCategory>) {
+      return (data as List).map((e) => deserialize<_i7.SubCategory>(e)).toList()
           as T;
     }
     try {
-      return _i6.Protocol().deserialize<T>(data, t);
+      return _i8.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i7.Protocol().deserialize<T>(data, t);
+      return _i9.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -99,6 +112,7 @@ class Protocol extends _i1.SerializationManager {
     return switch (type) {
       _i2.Category => 'Category',
       _i3.Product => 'Product',
+      _i4.SubCategory => 'SubCategory',
       _ => null,
     };
   }
@@ -120,12 +134,14 @@ class Protocol extends _i1.SerializationManager {
         return 'Category';
       case _i3.Product():
         return 'Product';
+      case _i4.SubCategory():
+        return 'SubCategory';
     }
-    className = _i6.Protocol().getClassNameForObject(data);
+    className = _i8.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i7.Protocol().getClassNameForObject(data);
+    className = _i9.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -144,13 +160,16 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'Product') {
       return deserialize<_i3.Product>(data['data']);
     }
+    if (dataClassName == 'SubCategory') {
+      return deserialize<_i4.SubCategory>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i6.Protocol().deserializeByClassName(data);
+      return _i8.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i7.Protocol().deserializeByClassName(data);
+      return _i9.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }

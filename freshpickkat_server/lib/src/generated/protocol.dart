@@ -18,10 +18,13 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'category.dart' as _i5;
 import 'product.dart' as _i6;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i7;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i8;
+import 'sub_category.dart' as _i7;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i8;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i9;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i10;
 export 'category.dart';
 export 'product.dart';
+export 'sub_category.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -69,11 +72,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i6.Product) {
       return _i6.Product.fromJson(data) as T;
     }
+    if (t == _i7.SubCategory) {
+      return _i7.SubCategory.fromJson(data) as T;
+    }
     if (t == _i1.getType<_i5.Category?>()) {
       return (data != null ? _i5.Category.fromJson(data) : null) as T;
     }
     if (t == _i1.getType<_i6.Product?>()) {
       return (data != null ? _i6.Product.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.SubCategory?>()) {
+      return (data != null ? _i7.SubCategory.fromJson(data) : null) as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
@@ -84,12 +93,18 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i7.Category>) {
-      return (data as List).map((e) => deserialize<_i7.Category>(e)).toList()
+    if (t == List<_i8.Category>) {
+      return (data as List).map((e) => deserialize<_i8.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i8.Product>) {
-      return (data as List).map((e) => deserialize<_i8.Product>(e)).toList()
+    if (t == List<_i9.Product>) {
+      return (data as List).map((e) => deserialize<_i9.Product>(e)).toList()
+          as T;
+    }
+    if (t == List<_i10.SubCategory>) {
+      return (data as List)
+              .map((e) => deserialize<_i10.SubCategory>(e))
+              .toList()
           as T;
     }
     try {
@@ -108,6 +123,7 @@ class Protocol extends _i1.SerializationManagerServer {
     return switch (type) {
       _i5.Category => 'Category',
       _i6.Product => 'Product',
+      _i7.SubCategory => 'SubCategory',
       _ => null,
     };
   }
@@ -129,6 +145,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'Category';
       case _i6.Product():
         return 'Product';
+      case _i7.SubCategory():
+        return 'SubCategory';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -156,6 +174,9 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (dataClassName == 'Product') {
       return deserialize<_i6.Product>(data['data']);
+    }
+    if (dataClassName == 'SubCategory') {
+      return deserialize<_i7.SubCategory>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

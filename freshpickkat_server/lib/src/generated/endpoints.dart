@@ -14,11 +14,13 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../endpoints/auth_endpoint.dart' as _i2;
 import '../endpoints/category_endpoint.dart' as _i3;
 import '../endpoints/product_endpoint.dart' as _i4;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i5;
+import '../endpoints/sub_category_endpoint.dart' as _i5;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i7;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i6;
+    as _i8;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i7;
+    as _i9;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -40,6 +42,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'product',
+          null,
+        ),
+      'subCategory': _i5.SubCategoryEndpoint()
+        ..initialize(
+          server,
+          'subCategory',
           null,
         ),
     };
@@ -118,7 +126,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i5.Product>(),
+              type: _i1.getType<_i6.Product>(),
               nullable: false,
             ),
           },
@@ -134,9 +142,44 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i6.Endpoints()
+    connectors['subCategory'] = _i1.EndpointConnector(
+      name: 'subCategory',
+      endpoint: endpoints['subCategory']!,
+      methodConnectors: {
+        'getSubCategories': _i1.MethodConnector(
+          name: 'getSubCategories',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['subCategory'] as _i5.SubCategoryEndpoint)
+                  .getSubCategories(session),
+        ),
+        'uploadSubCategory': _i1.MethodConnector(
+          name: 'uploadSubCategory',
+          params: {
+            'subCategory': _i1.ParameterDescription(
+              name: 'subCategory',
+              type: _i1.getType<_i7.SubCategory>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['subCategory'] as _i5.SubCategoryEndpoint)
+                  .uploadSubCategory(
+                    session,
+                    params['subCategory'],
+                  ),
+        ),
+      },
+    );
+    modules['serverpod_auth_idp'] = _i8.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i7.Endpoints()
+    modules['serverpod_auth_core'] = _i9.Endpoints()
       ..initializeEndpoints(server);
   }
 }

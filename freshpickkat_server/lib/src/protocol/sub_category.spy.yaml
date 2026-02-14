@@ -1,0 +1,5 @@
+class: SubCategory
+fields:
+    categoryId: String
+    subCategoriesName: List<String>
+    subCategoriesUrl: String

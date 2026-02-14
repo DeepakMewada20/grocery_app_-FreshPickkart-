@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
-import 'package:freshpickkat_flutter/services/product_service.dart';
-import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 import 'package:get/get.dart';
-// import 'category_item_card.dart';
 
 class CategoriesScreenWithStickyHeader extends StatefulWidget {
   const CategoriesScreenWithStickyHeader({super.key});
@@ -165,15 +161,12 @@ class _CategoriesScreenWithStickyHeaderState
 
   final Map<int, GlobalKey> _categoryKeys = {};
   int? _tappedCategoryIndex;
-  late final Client client;
-  late final ProductProvider provider;
+
   @override
   void initState() {
     super.initState();
     _currentStickyHeader = categories[0].name;
     _itemsScrollController.addListener(_onItemsScroll);
-    client = ServerpodClient().client;
-    provider = ProductProvider(client);
 
     for (int i = 0; i < categories.length; i++) {
       _categoryKeys[i] = GlobalKey();
@@ -524,7 +517,6 @@ class _CategoriesScreenWithStickyHeaderState
               crossAxisCount: 2,
               childAspectRatio: 0.471,
               titalWord: "All Items",
-              provider: provider,
             ),
           ],
         ),

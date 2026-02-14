@@ -14,11 +14,12 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:freshpickkat_client/src/protocol/category.dart' as _i3;
 import 'package:freshpickkat_client/src/protocol/product.dart' as _i4;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i5;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i5;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i6;
-import 'protocol.dart' as _i7;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i7;
+import 'protocol.dart' as _i8;
 
 /// {@category Endpoint}
 class EndpointAuth extends _i1.EndpointRef {
@@ -78,15 +79,39 @@ class EndpointProduct extends _i1.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointSubCategory extends _i1.EndpointRef {
+  EndpointSubCategory(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'subCategory';
+
+  /// Fetch all subcategories from Firestore 'subCategories' collection
+  _i2.Future<List<_i5.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i5.SubCategory>>(
+        'subCategory',
+        'getSubCategories',
+        {},
+      );
+
+  /// Upload a subcategory to Firestore 'subCategories' collection
+  _i2.Future<bool> uploadSubCategory(_i5.SubCategory subCategory) =>
+      caller.callServerEndpoint<bool>(
+        'subCategory',
+        'uploadSubCategory',
+        {'subCategory': subCategory},
+      );
+}
+
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i5.Caller(client);
-    serverpod_auth_core = _i6.Caller(client);
+    serverpod_auth_idp = _i6.Caller(client);
+    serverpod_auth_core = _i7.Caller(client);
   }
 
-  late final _i5.Caller serverpod_auth_idp;
+  late final _i6.Caller serverpod_auth_idp;
 
-  late final _i6.Caller serverpod_auth_core;
+  late final _i7.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -109,7 +134,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i7.Protocol(),
+         _i8.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -121,6 +146,7 @@ class Client extends _i1.ServerpodClientShared {
     auth = EndpointAuth(this);
     category = EndpointCategory(this);
     product = EndpointProduct(this);
+    subCategory = EndpointSubCategory(this);
     modules = Modules(this);
   }
 
@@ -130,6 +156,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointProduct product;
 
+  late final EndpointSubCategory subCategory;
+
   late final Modules modules;
 
   @override
@@ -137,6 +165,7 @@ class Client extends _i1.ServerpodClientShared {
     'auth': auth,
     'category': category,
     'product': product,
+    'subCategory': subCategory,
   };
 
   @override

@@ -508,6 +508,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         ),
         itemCount: 10, // Number of products
         itemBuilder: (context, index) {
+          return null;
+        
           // return ItemSelectionGirdviwe(titalWord: "",provider: provider);
         },
       ),
