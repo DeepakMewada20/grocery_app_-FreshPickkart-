@@ -16,11 +16,31 @@ class ProductProviderController extends GetxController {
   final isMoreDataAvailable = true.obs;
   final errorMessage = ''.obs;
 
+  // Filters
+  final currentCategory = ''.obs;
+  final currentSubcategories = <String>[].obs;
+
   @override
   void onInit() {
     super.onInit();
-    // Auto fetch once when app starts
+    // Auto fetch once when app starts (Home screen context)
     fetchProducts();
+  }
+
+  /// Apply new filters and refresh products
+  Future<void> setFilters({
+    String? category,
+    List<String>? subcategories,
+  }) async {
+    currentCategory.value = category ?? '';
+    currentSubcategories.assignAll(subcategories ?? []);
+    refreshProducts();
+  }
+
+  /// Change subcategories filter only
+  Future<void> setSubcategories(List<String> subs) async {
+    currentSubcategories.assignAll(subs);
+    refreshProducts();
   }
 
   Future<void> fetchProducts() async {
@@ -35,6 +55,10 @@ class ProductProviderController extends GetxController {
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,
+        category: currentCategory.value.isEmpty ? null : currentCategory.value,
+        subcategories: currentSubcategories.isEmpty
+            ? null
+            : currentSubcategories.toList(),
       );
 
       if (newProducts.length < 10) {
@@ -43,7 +67,7 @@ class ProductProviderController extends GetxController {
 
       allProducts.addAll(newProducts);
       print(
-        'Fetched ${newProducts.length} products, total: ${allProducts.length}',
+        'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: ${currentSubcategories}), total: ${allProducts.length}',
       );
     } catch (e) {
       errorMessage.value = e.toString();

@@ -61,12 +61,16 @@ class EndpointProduct extends _i1.EndpointRef {
   _i2.Future<List<_i4.Product>> getProducts({
     required int limit,
     String? lastProductName,
+    String? category,
+    List<String>? subcategories,
   }) => caller.callServerEndpoint<List<_i4.Product>>(
     'product',
     'getProducts',
     {
       'limit': limit,
       'lastProductName': lastProductName,
+      'category': category,
+      'subcategories': subcategories,
     },
   );
 

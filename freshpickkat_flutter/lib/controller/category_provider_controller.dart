@@ -11,6 +11,7 @@ class CategoryProviderController extends GetxController {
   final Client _client = ServerpodClient().client;
   // States
   final categories = <Category>[].obs;
+  final subCategories = <SubCategory>[].obs;
   final isLoading = false.obs;
   final errorMessage = ''.obs;
 
@@ -18,7 +19,14 @@ class CategoryProviderController extends GetxController {
   void onInit() {
     super.onInit();
     // Optional: auto fetch once when app starts
-    fetchCategories();
+    refreshData();
+  }
+
+  Future<void> refreshData() async {
+    await Future.wait([
+      fetchCategories(),
+      fetchSubCategories(),
+    ]);
   }
 
   Future<void> fetchCategories() async {
@@ -29,7 +37,24 @@ class CategoryProviderController extends GetxController {
       final List<Category> result = await _client.category.getCategories();
 
       categories.assignAll(result);
-      print(result);
+      print('Categories fetched: ${result.length}');
+    } catch (e) {
+      errorMessage.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchSubCategories() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      final List<SubCategory> result = await _client.subCategory
+          .getSubCategories();
+
+      subCategories.assignAll(result);
+      print('SubCategories fetched: ${result.length}');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -38,8 +63,9 @@ class CategoryProviderController extends GetxController {
   }
 
   // Utility methods
-  void clearCategories() {
+  void clearData() {
     categories.clear();
+    subCategories.clear();
   }
 
   bool get hasData => categories.isNotEmpty;

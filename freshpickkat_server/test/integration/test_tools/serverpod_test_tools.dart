@@ -257,6 +257,8 @@ class _ProductEndpoint {
     _i1.TestSessionBuilder sessionBuilder, {
     required int limit,
     String? lastProductName,
+    String? category,
+    List<String>? subcategories,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -272,6 +274,8 @@ class _ProductEndpoint {
           parameters: _i1.testObjectToJson({
             'limit': limit,
             'lastProductName': lastProductName,
+            'category': category,
+            'subcategories': subcategories,
           }),
           serializationManager: _serializationManager,
         );

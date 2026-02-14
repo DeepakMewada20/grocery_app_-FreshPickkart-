@@ -1,16 +1,18 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart'; // Add to pubspec.yaml
+import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
+import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:get/get.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
-  final String categoryName; // e.g., "Fruits"
-  final String subCategoryName; // e.g., "Apple & Pear"
+  final String categoryName; // e.g., "Vegetables"
+  final String subCategoryGroupName; // e.g., "Onion, Potato & Tomato"
 
   const CategoryItemsScreen({
     super.key,
     required this.categoryName,
-    required this.subCategoryName,
+    required this.subCategoryGroupName,
   });
 
   @override
@@ -18,92 +20,114 @@ class CategoryItemsScreen extends StatefulWidget {
 }
 
 class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
+  final productController = ProductProviderController.instance;
+  final categoryController = CategoryProviderController.instance;
+
   final ScrollController _subCategoryScrollController = ScrollController();
   final ScrollController _itemsScrollController = ScrollController();
 
-  int _selectedSubCategoryIndex = 0;
-  String _selectedFilter = 'All'; // 'All', 'Apple', 'Pear', etc.
-  bool _showStickyHeader = false;
-
-  // Sample sub-categories data
-  final List<SubCategory> subCategories = [
-    SubCategory(
-      name: 'All',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Apple & Pear',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Banana, Papaya & Pineapple',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Coconut & Dates',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Citrus & Pomegranate',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Kiwi & Avocado',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-    SubCategory(
-      name: 'Berries, Guava & Sapota',
-      imageUrl: 'lib/assets/images/Wellness+&+Health_1729062880.png',
-    ),
-  ];
-
-  // Sample banner data
-  final List<String> bannerImages = [
-    'lib/assets/images/discount.jpg',
-    'lib/assets/images/discount.jpg',
-    'lib/assets/images/discount.jpg',
-    'lib/assets/images/discount.jpg',
-  ];
-
-  // Sample filter buttons (for Apple & Pear category)
-  final List<String> filterOptions = ['All', 'Apple', 'Pear'];
+  String _selectedSubGroupName = '';
+  String _selectedFilterSub = 'All';
 
   @override
   void initState() {
     super.initState();
-    _itemsScrollController.addListener(_onItemsScroll);
+    _selectedSubGroupName = widget.subCategoryGroupName;
+
+    // Set initial filters and fetch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyGroupFilter(_selectedSubGroupName);
+      _scrollToSelectedSubGroup();
+    });
+
+    _itemsScrollController.addListener(_onScroll);
   }
 
-  void _onItemsScroll() {
-    // Check if banner has scrolled past the app bar
-    final offset = _itemsScrollController.offset;
-    final shouldShowSticky = offset > 200; // Adjust based on banner height
-
-    if (shouldShowSticky != _showStickyHeader) {
-      setState(() {
-        _showStickyHeader = shouldShowSticky;
-      });
+  void _onScroll() {
+    if (_itemsScrollController.position.pixels >=
+            _itemsScrollController.position.maxScrollExtent - 200 &&
+        !productController.isLoading.value &&
+        productController.isMoreDataAvailable.value) {
+      productController.loadMore();
     }
   }
 
-  void _onSubCategoryTap(int index) {
-    setState(() {
-      _selectedSubCategoryIndex = index;
-      _selectedFilter = 'All'; // Reset filter when changing sub-category
-    });
+  void _scrollToSelectedSubGroup() {
+    // Basic auto-scroll logic for sidebar
+    final subGroups = categoryController.subCategories
+        .where(
+          (sc) =>
+              sc.categoryId.trim().toLowerCase() ==
+              widget.categoryName.trim().toLowerCase(),
+        )
+        .toList();
 
-    // Scroll to top of items
-    _itemsScrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
+    // If 'All' is selected, no need to auto-scroll to a specific subgroup
+    if (_selectedSubGroupName.toLowerCase() == 'all') return;
+
+    final index = subGroups.indexWhere(
+      (sub) =>
+          sub.subCategoriesName.join(', ').trim().toLowerCase() ==
+          _selectedSubGroupName.trim().toLowerCase(),
     );
+
+    if (index != -1) {
+      final itemHeight = 100.0; // Approx height of sidebar item
+      // +1 because 'All' is at index 0
+      _subCategoryScrollController.animateTo(
+        (index + 1) * itemHeight,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
-  void _onFilterTap(String filter) {
+  void _applyGroupFilter(String groupName) {
     setState(() {
-      _selectedFilter = filter;
+      _selectedSubGroupName = groupName;
+      _selectedFilterSub = 'All';
     });
+
+    if (groupName.toLowerCase() == 'all') {
+      productController.setFilters(
+        category: widget.categoryName.trim(),
+        subcategories: null,
+      );
+    } else {
+      // Parse individual subcategories for the group
+      final subList = groupName
+          .split(RegExp(r'[,&]'))
+          .map((e) => e.trim())
+          .toList();
+
+      productController.setFilters(
+        category: widget.categoryName.trim(),
+        subcategories: subList,
+      );
+    }
+  }
+
+  void _applySubFilter(String sub) {
+    setState(() {
+      _selectedFilterSub = sub;
+    });
+
+    if (_selectedSubGroupName.toLowerCase() == 'all') {
+      productController.setFilters(
+        category: widget.categoryName.trim(),
+        subcategories: null,
+      );
+    } else {
+      productController.setFilters(
+        category: widget.categoryName.trim(),
+        subcategories: sub.toLowerCase() == 'all'
+            ? _selectedSubGroupName
+                  .split(RegExp(r'[,&]'))
+                  .map((e) => e.trim())
+                  .toList()
+            : [sub.trim()],
+      );
+    }
   }
 
   @override
@@ -117,44 +141,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Row(
-            children: [
-              // Left side - Sub-categories list
-              _buildSubCategoriesList(),
-
-              // Right side - Banner + Items
-              Expanded(
-                child: Stack(
-                  children: [
-                    _buildItemsSection(),
-
-                    // Sticky filter header (appears when scrolling)
-                    if (_showStickyHeader) _buildStickyFilterHeader(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          // AppBar overlay
-          _buildAppBar(),
-
-          // Blur effect below AppBar
-          // _buildBlurEffect(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.7),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -164,510 +152,259 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           widget.categoryName,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // Implement search
-            },
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: Row(
+        children: [
+          // Sidebar
+          _buildSidebar(),
+
+          // Main Content
+          Expanded(
+            child: Column(
+              children: [
+                // Offer Banner
+                _buildOfferBanner(),
+
+                // Filter Chips
+                _buildFilterSection(),
+
+                // Product Grid
+                Expanded(child: _buildProductGrid()),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBlurEffect() {
-    return Positioned(
-      top: kToolbarHeight + MediaQuery.of(context).padding.top,
-      left: 0,
-      right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.black.withOpacity(0.5), Colors.transparent],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildSidebar() {
+    final subGroups = categoryController.subCategories
+        .where(
+          (sc) =>
+              sc.categoryId.trim().toLowerCase() ==
+              widget.categoryName.trim().toLowerCase(),
+        )
+        .toList();
 
-  Widget _buildSubCategoriesList() {
     return Container(
       width: 90,
-      color: const Color(0xFF1A1A1A),
-      child: Column(
-        children: [
-          SizedBox(height: kToolbarHeight + MediaQuery.of(context).padding.top),
-          Expanded(
-            child: ListView.builder(
-              controller: _subCategoryScrollController,
-              itemCount: subCategories.length,
-              itemBuilder: (context, index) {
-                final isSelected = _selectedSubCategoryIndex == index;
-                final subCategory = subCategories[index];
-
-                return GestureDetector(
-                  onTap: () => _onSubCategoryTap(index),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF0A0A0A)
-                          : Colors.transparent,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.white.withOpacity(0.1),
-                          width: 1,
-                        ),
-                        left: BorderSide(
-                          color: isSelected
-                              ? const Color(0xFF2196F3)
-                              : Colors.transparent,
-                          width: 6,
-                        ),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 1,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset(
-                              subCategory.imageUrl,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.grey[800],
-                                  child: const Icon(
-                                    Icons.image,
-                                    color: Colors.white54,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        Text(
-                          subCategory.name,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 12,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        border: const Border(right: BorderSide(color: Colors.white10)),
       ),
-    );
-  }
-
-  Widget _buildItemsSection() {
-    return Container(
-      color: const Color(0xFF0A0A0A),
-      child: ListView(
-        controller: _itemsScrollController,
-        padding: EdgeInsets.only(
-          top: kToolbarHeight + MediaQuery.of(context).padding.top + 40,
-        ),
-        children: [
-          // Animated banner carousel
-          _buildBannerCarousel(),
-
-          const SizedBox(height: 16),
-
-          // Filter chips/buttons
-          _buildFilterSection(),
-
-          const SizedBox(height: 16),
-
-          // Items grid
-          _buildItemsGrid(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBannerCarousel() {
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: 200,
-        autoPlay: true,
-        autoPlayInterval: const Duration(seconds: 3),
-        autoPlayAnimationDuration: const Duration(milliseconds: 800),
-        autoPlayCurve: Curves.fastOutSlowIn,
-        enlargeCenterPage: true,
-        viewportFraction: 0.9,
-      ),
-      items: bannerImages.map((imagePath) {
-        return Builder(
-          builder: (BuildContext context) {
-            return Container(
-              width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.symmetric(horizontal: 5.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.5)],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Nutrient Rich\nBananas',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text(
-                          'Order Now',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+      child: ListView.builder(
+        controller: _subCategoryScrollController,
+        itemCount: subGroups.length + 1, // +1 for "All"
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            // "All" Sidebar Item
+            final isSelected = _selectedSubGroupName.toLowerCase() == 'all';
+            return _buildSidebarItem(
+              title: "All",
+              icon: Icons.grid_view_rounded,
+              isSelected: isSelected,
+              onTap: () => _applyGroupFilter("All"),
             );
-          },
-        );
-      }).toList(),
-    );
-  }
+          }
 
-  Widget _buildFilterSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            subCategories[_selectedSubCategoryIndex].name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: filterOptions.map((filter) {
-                final isSelected = _selectedFilter == filter;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) _onFilterTap(filter);
-                    },
-                    backgroundColor: const Color(0xFF1A1A1A),
-                    selectedColor: const Color(0xFF2196F3),
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white70,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? const Color(0xFF2196F3)
-                          : Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+          final subGroup = subGroups[index - 1];
+          final groupTitle = subGroup.subCategoriesName.join(', ');
+          final isSelected =
+              groupTitle.trim().toLowerCase() ==
+              _selectedSubGroupName.trim().toLowerCase();
+
+          return _buildSidebarItem(
+            title: groupTitle,
+            imageUrl: subGroup.subCategoriesUrl,
+            isSelected: isSelected,
+            onTap: () => _applyGroupFilter(groupTitle),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStickyFilterHeader() {
-    return Positioned(
-      top: kToolbarHeight + MediaQuery.of(context).padding.top,
-      left: 0,
-      right: 0,
+  Widget _buildSidebarItem({
+    required String title,
+    String? imageUrl,
+    IconData? icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        color: const Color(0xFF0A0A0A),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.transparent,
+          border: Border(
+            left: BorderSide(
+              color: isSelected ? Colors.blue : Colors.transparent,
+              width: 4,
+            ),
+          ),
+        ),
+        child: Column(
           children: [
-            Expanded(
-              child: Text(
-                subCategories[_selectedSubCategoryIndex].name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                overflow: TextOverflow.ellipsis,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.image, color: Colors.white24),
+                    )
+                  : Container(
+                      height: 50,
+                      width: 50,
+                      color: Colors.blue.withOpacity(0.1),
+                      child: Icon(icon, color: Colors.blue, size: 28),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            const SizedBox(width: 8),
-            ...filterOptions.map((filter) {
-              final isSelected = _selectedFilter == filter;
-              return Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: ChoiceChip(
-                  label: Text(filter),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) _onFilterTap(filter);
-                  },
-                  backgroundColor: const Color(0xFF1A1A1A),
-                  selectedColor: const Color(0xFF2196F3),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: 12,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  visualDensity: VisualDensity.compact,
-                  side: BorderSide(
-                    color: isSelected
-                        ? const Color(0xFF2196F3)
-                        : Colors.white.withOpacity(0.2),
-                  ),
-                ),
-              );
-            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildItemsGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.6,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: 10, // Number of products
-        itemBuilder: (context, index) {
-          return null;
-        
-          // return ItemSelectionGirdviwe(titalWord: "",provider: provider);
-        },
-      ),
-    );
-  }
-
-  Widget _buildProductCard(int index) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image with discount badge
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    color: Colors.grey[800],
-                    child: const Icon(
-                      Icons.image,
-                      color: Colors.white54,
-                      size: 50,
-                    ),
-                  ),
-                ),
-              ),
-              if (index % 3 == 0)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.yellow,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      '30%\nOFF',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-
-          // Product details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Apple Kashmir',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '4 pc (600gm - 750 gm approx.)',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      const Text(
-                        '₹135',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '₹200',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          child: const Text(
-                            'Subscribe now',
-                            style: TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2196F3),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.shopping_cart_outlined),
-                          color: Colors.white,
-                          iconSize: 20,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 40,
-                            minHeight: 40,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+  Widget _buildOfferBanner() {
+    return SizedBox(
+      width: double.infinity,
+      child: OfferBanner(
+        height: 140, // Slightly taller for better visibility
+        banners: [
+          OfferBannerItem(
+            imagePath: 'lib/assets/images/discount.jpg',
+            onTap: () {},
           ),
         ],
       ),
     );
   }
-}
 
-// Data Models
-class SubCategory {
-  final String name;
-  final String imageUrl;
+  Widget _buildFilterSection() {
+    if (_selectedSubGroupName.toLowerCase() == 'all') {
+      return const SizedBox.shrink(); // No chips if "All" is selected in sidebar
+    }
 
-  SubCategory({required this.name, required this.imageUrl});
+    // Parse individual subcategories from the group name
+    final filters = [
+      'All',
+      ..._selectedSubGroupName.split(RegExp(r'[,&]')).map((e) => e.trim()),
+    ];
+
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: filters.length,
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          final isSelected =
+              filter.trim().toLowerCase() ==
+              _selectedFilterSub.trim().toLowerCase();
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(filter),
+              selected: isSelected,
+              onSelected: (val) {
+                if (val) _applySubFilter(filter);
+              },
+              backgroundColor: const Color(0xFF1A1A1A),
+              selectedColor: Colors.blue,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontSize: 12,
+              ),
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductGrid() {
+    return Obx(() {
+      if (productController.isLoading.value && !productController.hasData) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.blue),
+        );
+      }
+
+      if (productController.allProducts.isEmpty) {
+        return const Center(
+          child: Text(
+            'No products found',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }
+
+      return GridView.builder(
+        controller: _itemsScrollController,
+        padding: const EdgeInsets.all(12),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.528,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount:
+            productController.allProducts.length +
+            (productController.isMoreDataAvailable.value ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == productController.allProducts.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(color: Colors.blue),
+              ),
+            );
+          }
+
+          final p = productController.allProducts[index];
+          return ProductCard(
+            imageUrl: p.imageUrl,
+            title: p.productName,
+            quantity: p.quantity,
+            price: '₹${p.price}',
+            originalPrice: '₹${p.realPrice}',
+            discount: '₹${p.discount}\nOFF',
+            onAddPressed: () {},
+          );
+        },
+      );
+    });
+  }
 }

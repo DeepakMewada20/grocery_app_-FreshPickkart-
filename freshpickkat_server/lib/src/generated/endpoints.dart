@@ -109,6 +109,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'category': _i1.ParameterDescription(
+              name: 'category',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'subcategories': _i1.ParameterDescription(
+              name: 'subcategories',
+              type: _i1.getType<List<String>?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -119,6 +129,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     limit: params['limit'],
                     lastProductName: params['lastProductName'],
+                    category: params['category'],
+                    subcategories: params['subcategories'],
                   ),
         ),
         'uploadProduct': _i1.MethodConnector(
