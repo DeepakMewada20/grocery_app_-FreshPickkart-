@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'dart:math' as math;
 
-import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 
 class ModernSplashScreen extends StatefulWidget {
@@ -121,7 +121,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const PhoneAuthScreen(),
+              const MainScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

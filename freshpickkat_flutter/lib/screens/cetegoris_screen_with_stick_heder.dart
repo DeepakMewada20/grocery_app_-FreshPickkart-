@@ -268,7 +268,7 @@ class _CategoriesScreenWithStickyHeaderState
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF3498DB),
+        backgroundColor: const Color(0xFF1B8A4C),
         title: Container(
           margin: EdgeInsets.symmetric(horizontal: 16),
           child: SearchBarWidget(),
@@ -313,54 +313,58 @@ class _CategoriesScreenWithStickyHeaderState
     return Container(
       width: 90,
       color: const Color(0xFF1A1A1A),
-      child: Obx(() => ListView.builder(
-        controller: _categoryScrollController,
-        itemCount: categoryController.categories.length,
-        itemBuilder: (context, index) {
-          final isSelected = _selectedCategoryIndex == index;
-          final isTapped = _tappedCategoryIndex == index;
+      child: Obx(
+        () => ListView.builder(
+          controller: _categoryScrollController,
+          itemCount: categoryController.categories.length,
+          itemBuilder: (context, index) {
+            final isSelected = _selectedCategoryIndex == index;
+            final isTapped = _tappedCategoryIndex == index;
 
-          return GestureDetector(
-            onTapDown: (_) {
-              setState(() => _tappedCategoryIndex = index);
-            },
-            onTapUp: (_) {
-              setState(() => _tappedCategoryIndex = null);
-              _onCategoryTap(index);
-            },
-            onTapCancel: () {
-              setState(() => _tappedCategoryIndex = null);
-            },
-            child: ClipRRect(
-              // ... baaki code same
-              borderRadius: BorderRadiusGeometry.only(
-                topLeft: Radius.circular(10),
-                bottomLeft: Radius.circular(10),
-              ),
-              child: Container(
-                // height: 60,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF0A0A0A)
-                      : Colors.transparent,
+            return GestureDetector(
+              onTapDown: (_) {
+                setState(() => _tappedCategoryIndex = index);
+              },
+              onTapUp: (_) {
+                setState(() => _tappedCategoryIndex = null);
+                _onCategoryTap(index);
+              },
+              onTapCancel: () {
+                setState(() => _tappedCategoryIndex = null);
+              },
+              child: ClipRRect(
+                // ... baaki code same
+                borderRadius: BorderRadiusGeometry.only(
+                  topLeft: Radius.circular(10),
+                  bottomLeft: Radius.circular(10),
+                ),
+                child: Container(
+                  // height: 60,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFF0A0A0A)
+                        : Colors.transparent,
 
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1,
-                    ),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
 
-                    left: BorderSide(
-                      color: isSelected
-                          ? const Color(0xFF2196F3)
-                          : Colors.transparent,
-                      width: 6,
+                      left: BorderSide(
+                        color: isSelected
+                            ? const Color(0xFF2196F3)
+                            : Colors.transparent,
+                        width: 6,
+                      ),
                     ),
                   ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Center(
-                  child: Column(
+                    child: Column(
                       children: [
                         AspectRatio(
                           aspectRatio: 1,
@@ -370,7 +374,9 @@ class _CategoriesScreenWithStickyHeaderState
                               scale: isTapped ? 1.3 : 1.0,
                               duration: Duration(milliseconds: 250),
                               child: Image.network(
-                                categoryController.categories[index].categoryImageUrl,
+                                categoryController
+                                    .categories[index]
+                                    .categoryImageUrl,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Center(
@@ -399,14 +405,14 @@ class _CategoriesScreenWithStickyHeaderState
                           ),
                         ),
                       ],
-            
                     ),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      )),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -433,80 +439,89 @@ class _CategoriesScreenWithStickyHeaderState
   Widget _buildItemsGrid() {
     return Container(
       color: const Color(0xFF0A0A0A),
-      child: Obx(() => ListView(
-        controller: _itemsScrollController,
-        padding: const EdgeInsets.only(top: 0, left: 10, right: 10, bottom: 0),
-        children: [
-          // Pehle saari categories
-          ...List.generate(categoryController.categories.length, (
-            categoryIndex,
-          ) {
-            final remoteCategory = categoryController.categories[categoryIndex];
-            final categoryName = remoteCategory.categoryName;
-            final subCategories = remoteCategory.subCategory.entries.toList();
-            return Column(
-              key: _categoryKeys[categoryIndex],
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Category Header
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    categoryName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+      child: Obx(
+        () => ListView(
+          controller: _itemsScrollController,
+          padding: const EdgeInsets.only(
+            top: 0,
+            left: 10,
+            right: 10,
+            bottom: 0,
+          ),
+          children: [
+            // Pehle saari categories
+            ...List.generate(categoryController.categories.length, (
+              categoryIndex,
+            ) {
+              final remoteCategory =
+                  categoryController.categories[categoryIndex];
+              final categoryName = remoteCategory.categoryName;
+              final subCategories = remoteCategory.subCategory.entries.toList();
+              return Column(
+                key: _categoryKeys[categoryIndex],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Category Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      categoryName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                // Items Grid
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.74,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: subCategories.length,
-                  itemBuilder: (context, itemIndex) {
-                    final entry = subCategories[itemIndex];
-                    // subCategory map: key = subcategoryName, value = subcategoryImageUrl
-                    final itemName = entry.key;
-                    final imageUrl = entry.value;
-                    return CategoryItemCard(
-                      itemName: itemName,
-                      imagePath: imageUrl,
-                      onTap: () {
-                        // Category item card se navigate karo
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CategoryItemsScreen(
-                              categoryName: categoryName,
-                              subCategoryName: itemName,
+                  // Items Grid
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 0.74,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                    itemCount: subCategories.length,
+                    itemBuilder: (context, itemIndex) {
+                      final entry = subCategories[itemIndex];
+                      // subCategory map: key = subcategoryName, value = subcategoryImageUrl
+                      final itemName = entry.key;
+                      final imageUrl = entry.value;
+                      return CategoryItemCard(
+                        itemName: itemName,
+                        imagePath: imageUrl,
+                        onTap: () {
+                          // Category item card se navigate karo
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CategoryItemsScreen(
+                                categoryName: categoryName,
+                                subCategoryName: itemName,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-            );
-          }),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            }),
 
-          // Sabse neeche - All Items section
-          ItemSelectionGirdviwe(
-            crossAxisCount: 2,
-            childAspectRatio: 0.495,
-            titalWord: "All Items",
-          ),
-        ],
-      )),
+            // Sabse neeche - All Items section
+            ItemSelectionGirdviwe(
+              crossAxisCount: 2,
+              childAspectRatio: 0.471,
+              titalWord: "All Items",
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

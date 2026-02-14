@@ -28,6 +28,17 @@ class ProductProvider {
       print(newProducts);
     } catch (e) {
       print("Flutter Error: $e");
+      // Show error in UI
+      /*
+      if (context.mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+      */
+      // Since we don't have context here easily, we rely on console or UI state.
+      // But we can rethrow or set a state variable if this was a provider.
+      // Actually, ProductProvider is just a class, not a ChangeNotifier in this file?
+      // Wait, let's check if it's a proxy.
+      rethrow;
     }
   }
 }

@@ -34,7 +34,7 @@ class CategoryItemCard extends StatelessWidget {
                   color: Colors.grey[800],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(1),
                   child: _buildImage(imagePath),
                 ),
               ),
@@ -43,13 +43,13 @@ class CategoryItemCard extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.only(top: 3),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Text(
                     itemName,
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: 3,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
