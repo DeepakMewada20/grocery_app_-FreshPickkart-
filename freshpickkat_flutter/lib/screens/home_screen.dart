@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SliverToBoxAdapter(
-              child: ItemSelectionGirdviwe(titalWord: "Other Products"),
+              child: ItemSelectionGirdviwe(titalWord: "Other Products",provider:provider,),
             ),
           ],
         ],

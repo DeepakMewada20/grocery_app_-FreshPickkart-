@@ -3,7 +3,6 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 class ProductProvider {
   final Client client;
   ProductProvider(this.client);
-
   List<Product> allProducts = [];
   bool isMoreDataAvailable = true;
 

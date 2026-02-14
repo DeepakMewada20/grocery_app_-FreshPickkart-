@@ -52,7 +52,7 @@ class _CetegoriesSelectionListviewState
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: 5 + 1, // Products + 1 for ViewAllCard
             itemBuilder: (context, index) {
-              final p = widget.provider.allProducts[0];
+              final p = widget.provider.allProducts[index];
               // Show ViewAllCard as last item
               if (index == 5) {
                 return SizedBox(

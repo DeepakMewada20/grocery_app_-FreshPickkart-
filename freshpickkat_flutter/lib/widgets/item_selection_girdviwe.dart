@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:freshpickkat_flutter/services/product_service.dart';
 
 class ItemSelectionGirdviwe extends StatefulWidget {
+  final ProductProvider provider;
   final String titalWord;
   final int crossAxisCount;
   final double childAspectRatio;
@@ -10,6 +12,7 @@ class ItemSelectionGirdviwe extends StatefulWidget {
     this.crossAxisCount = 3,
     super.key,
     required this.titalWord,
+    required this.provider,
   });
 
   @override
@@ -46,15 +49,16 @@ class _ItemSelectionGirdviweState extends State<ItemSelectionGirdviwe> {
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
-            itemCount: 5, // Number of products
+            itemCount: widget.provider.allProducts.length, // Number of products
             itemBuilder: (context, index) {
+              final p = widget.provider.allProducts[index];
               return ProductCard(
-                imageUrl: 'https://example.com/product${index + 1}.jpg',
-                title: 'Dabur Honey Squeezy',
-                quantity: '2 x 400 gm',
-                price: '₹235',
-                originalPrice: '₹420',
-                discount: '₹185\nOFF',
+                imageUrl: p.imageUrl,
+                title: p.productName,
+                quantity: p.quantity,
+                price: '₹${p.price}',
+                originalPrice: '₹${p.realPrice}',
+                discount: '₹${p.discount}\nOFF',
                 onAddPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Added product ${index + 1}')),

@@ -4,3 +4,4 @@ category:
   - getCategories:
 product:
   - getProducts:
+  - uploadProduct:

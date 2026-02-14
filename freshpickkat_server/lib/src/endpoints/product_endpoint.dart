@@ -64,7 +64,58 @@ class ProductEndpoint extends Endpoint {
       }).toList();
       return products;
     } catch (e) {
-      
+      rethrow;
+    }
+  }
+
+  /// Upload a product to Firestore 'Products' collection
+  Future<bool> uploadProduct(Session session, Product product) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+
+    final String parent =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    // Convert Product to Firestore Document fields
+    final document = firestore_api.Document(
+      fields: {
+        'productName': firestore_api.Value(stringValue: product.productName),
+        'category': firestore_api.Value(stringValue: product.category),
+        'imageUrl': firestore_api.Value(stringValue: product.imageUrl),
+        'price': firestore_api.Value(
+          integerValue: product.price.toString(),
+        ),
+        'realPrice': firestore_api.Value(
+          integerValue: product.realPrice.toString(),
+        ),
+        'discount': firestore_api.Value(
+          integerValue: product.discount.toString(),
+        ),
+        'isAvailable': firestore_api.Value(booleanValue: product.isAvailable),
+        'addedAt': firestore_api.Value(
+          timestampValue: product.addedAt.toUtc().toIso8601String(),
+        ),
+        'subcategory': firestore_api.Value(
+          arrayValue: firestore_api.ArrayValue(
+            values: product.subcategory
+                .map((s) => firestore_api.Value(stringValue: s))
+                .toList(),
+          ),
+        ),
+        'quantity': firestore_api.Value(stringValue: product.quantity),
+      },
+    );
+
+    try {
+      await firestore.projects.databases.documents.createDocument(
+        document,
+        parent, // parent path = database/documents root
+        'Products', // collection ID
+      );
+      session.log('Product uploaded: ${product.productName}');
+      return true;
+    } catch (e, stack) {
+      session.log('Error uploading product: $e');
+      session.log(stack.toString());
       rethrow;
     }
   }

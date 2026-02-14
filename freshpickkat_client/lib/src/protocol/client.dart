@@ -68,6 +68,14 @@ class EndpointProduct extends _i1.EndpointRef {
       'lastProductName': lastProductName,
     },
   );
+
+  /// Upload a product to Firestore 'Products' collection
+  _i2.Future<bool> uploadProduct(_i4.Product product) =>
+      caller.callServerEndpoint<bool>(
+        'product',
+        'uploadProduct',
+        {'product': product},
+      );
 }
 
 class Modules {
