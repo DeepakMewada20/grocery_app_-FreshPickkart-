@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
 
@@ -47,7 +48,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
     _currentVerificationId = widget.verificationId;
     _startResendTimer();
     _initAnimations();
-    
+
     // Auto focus on OTP field
     Future.delayed(const Duration(milliseconds: 500), () {
       _focusNode.requestFocus();
@@ -69,13 +70,16 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.elasticOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(
+          begin: const Offset(0, 0.3),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: _slideController,
+            curve: Curves.elasticOut,
+          ),
+        );
 
     // Scale animation for loading
     _scaleController = AnimationController(
@@ -138,12 +142,19 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
       // Show success animation
       await _scaleController.reverse();
       await _successController.forward();
-      
+
       // Wait for animation then navigate
       await Future.delayed(const Duration(milliseconds: 1000));
-      
+
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        final authController = AuthController.instance;
+        if (authController.returnRoute.value.isNotEmpty) {
+          String route = authController.returnRoute.value;
+          authController.returnRoute.value = ''; // Clear it
+          Get.offAllNamed(route);
+        } else {
+          Navigator.pushReplacementNamed(context, '/address');
+        }
       }
     } else {
       // Show error
@@ -313,13 +324,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                           length: 6,
                           defaultPinTheme: defaultPinTheme,
                           focusedPinTheme: focusedPinTheme,
-                          errorPinTheme: _errorMessage != null 
-                              ? errorPinTheme 
+                          errorPinTheme: _errorMessage != null
+                              ? errorPinTheme
                               : defaultPinTheme,
                           onCompleted: (pin) => _verifyOTP(),
                           // NEW CODE
-autofocus: true,
-hapticFeedbackType: HapticFeedbackType.lightImpact,
+                          autofocus: true,
+                          hapticFeedbackType: HapticFeedbackType.lightImpact,
                           cursor: Container(
                             width: 2,
                             height: 24,

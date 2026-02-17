@@ -395,12 +395,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
           final p = productController.allProducts[index];
           return ProductCard(
-            imageUrl: p.imageUrl,
-            title: p.productName,
-            quantity: p.quantity,
-            price: '₹${p.price}',
-            originalPrice: '₹${p.realPrice}',
-            discount: '₹${p.discount}\nOFF',
+            product: p,
             onAddPressed: () {},
           );
         },

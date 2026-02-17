@@ -5,47 +5,49 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
 import 'package:get/get.dart';
 
-class CetegoriesSelectionListview extends StatelessWidget {
+class CategoriesSelectionListview extends StatelessWidget {
   final String titalWord;
-  const CetegoriesSelectionListview({super.key, required this.titalWord});
+  const CategoriesSelectionListview({super.key, required this.titalWord});
 
   @override
   Widget build(BuildContext context) {
     final productController = ProductProviderController.instance;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 16, left: 12, right: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                titalWord,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'See All',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 289,
-          child: Obx(() {
-            final products = productController.allProducts;
-            final itemCount = (products.length > 5 ? 5 : products.length) + 1;
+    return Obx(() {
+      final products = productController.allProducts.toList();
+      if (products.isEmpty) return const SizedBox.shrink();
 
-            return ListView.builder(
+      final itemCount = (products.length > 5 ? 5 : products.length) + 1;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 16, left: 12, right: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  titalWord,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text(
+                    'See All',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 289,
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: itemCount,
@@ -73,20 +75,15 @@ class CetegoriesSelectionListview extends StatelessWidget {
                   width: 160,
                   margin: const EdgeInsets.only(right: 12),
                   child: ProductCard(
-                    imageUrl: p.imageUrl,
-                    title: p.productName,
-                    quantity: p.quantity,
-                    price: '₹${p.price}',
-                    originalPrice: '₹${p.realPrice}',
-                    discount: '₹${p.discount}\nOFF',
+                    product: p,
                     onAddPressed: () {},
                   ),
                 );
               },
-            );
-          }),
-        ),
-      ],
-    );
+            ),
+          ),
+        ],
+      );
+    });
   }
 }

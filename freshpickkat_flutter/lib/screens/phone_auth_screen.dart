@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
 
@@ -241,7 +242,13 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
       },
       onAutoVerify: () {
         setState(() => _isLoading = false);
-        Navigator.pushReplacementNamed(context, '/address');
+        if (_authController.returnRoute.value.isNotEmpty) {
+          String route = _authController.returnRoute.value;
+          _authController.returnRoute.value = ''; // Clear it
+          Get.offAllNamed(route);
+        } else {
+          Navigator.pushReplacementNamed(context, '/address');
+        }
       },
     );
   }

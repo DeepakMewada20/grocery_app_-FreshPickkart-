@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
-import 'package:freshpickkat_flutter/widgets/cetegories_selection_listview.dart';
+import 'package:freshpickkat_flutter/widgets/categories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
 import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
@@ -56,12 +56,12 @@ class HomePage extends StatelessWidget {
 
               // 📦 CATEGORIES SECTION
               SliverToBoxAdapter(
-                child: CetegoriesSelectionListview(
+                child: CategoriesSelectionListview(
                   titalWord: "Trending Products",
                 ),
               ),
               SliverToBoxAdapter(
-                child: CetegoriesSelectionListview(
+                child: CategoriesSelectionListview(
                   titalWord: "Best Sellers",
                 ),
               ),

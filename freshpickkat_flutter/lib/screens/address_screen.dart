@@ -3,6 +3,8 @@ import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:get/get.dart';
 
 class AddressScreen extends StatefulWidget {
   const AddressScreen({super.key});
@@ -261,9 +263,16 @@ class _AddressScreenState extends State<AddressScreen>
       // await _successController.forward();
       // await Future.delayed(const Duration(milliseconds: 1500));
 
-      // Navigate to home
+      // Navigate to home or return route
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        final authController = AuthController.instance;
+        if (authController.returnRoute.value.isNotEmpty) {
+          String route = authController.returnRoute.value;
+          authController.returnRoute.value = ''; // Clear it
+          Get.offAllNamed(route);
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } catch (e) {
       setState(() {

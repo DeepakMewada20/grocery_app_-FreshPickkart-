@@ -1,12 +1,35 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
-class AuthController {
+class AuthController extends GetxController {
+  // --------- SINGLETON PATTERN ---------
+  static AuthController get instance =>
+      Get.put(AuthController(), permanent: true);
+  // -------------------------------------
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _verificationId;
   int? _resendToken;
 
+  // Reactive states
+  final Rx<User?> _user = Rx<User?>(null);
+  final RxString returnRoute = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Bind current user to reactive variable
+    _user.value = _auth.currentUser;
+    _auth.userChanges().listen((User? user) {
+      _user.value = user;
+    });
+  }
+
   // Get current user
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser => _user.value;
+
+  // Check if user is logged in
+  bool get isLoggedIn => _user.value != null;
 
   // Send OTP to phone number
   Future<bool> sendOTP({
@@ -63,8 +86,10 @@ class AuthController {
         smsCode: otpCode,
       );
 
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
-      
+      UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
       return {
         'success': true,
         'user': userCredential.user,
@@ -108,11 +133,6 @@ class AuthController {
     await _auth.signOut();
   }
 
-  // Check if user is logged in
-  bool isLoggedIn() {
-    return _auth.currentUser != null;
-  }
-
   // Get verification ID
-  String? get verificationId => _verificationId;
+  String? get currentVerificationId => _verificationId;
 }

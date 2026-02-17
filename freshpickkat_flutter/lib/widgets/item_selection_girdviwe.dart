@@ -51,12 +51,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
               itemBuilder: (context, index) {
                 final p = products[index];
                 return ProductCard(
-                  imageUrl: p.imageUrl,
-                  title: p.productName,
-                  quantity: p.quantity,
-                  price: '₹${p.price}',
-                  originalPrice: '₹${p.realPrice}',
-                  discount: '₹${p.discount}\nOFF',
+                  product: p,
                   onAddPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Added product ${index + 1}')),
