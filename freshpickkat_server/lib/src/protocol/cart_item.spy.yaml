@@ -1,0 +1,4 @@
+class: CartItem
+fields:
+  productId: String
+  quantity: int

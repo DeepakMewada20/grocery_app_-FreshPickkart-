@@ -15,12 +15,15 @@ import '../endpoints/auth_endpoint.dart' as _i2;
 import '../endpoints/category_endpoint.dart' as _i3;
 import '../endpoints/product_endpoint.dart' as _i4;
 import '../endpoints/sub_category_endpoint.dart' as _i5;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i6;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i7;
+import '../endpoints/user_endpoint.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i7;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i8;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i9;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i10;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i8;
+    as _i11;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
-    as _i9;
+    as _i12;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -48,6 +51,12 @@ class Endpoints extends _i1.EndpointDispatch {
         ..initialize(
           server,
           'subCategory',
+          null,
+        ),
+      'user': _i6.UserEndpoint()
+        ..initialize(
+          server,
+          'user',
           null,
         ),
     };
@@ -138,7 +147,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i6.Product>(),
+              type: _i1.getType<_i7.Product>(),
               nullable: false,
             ),
           },
@@ -151,6 +160,54 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['product'],
                   ),
+        ),
+        'getProductSuggestions': _i1.MethodConnector(
+          name: 'getProductSuggestions',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .getProductSuggestions(
+                    session,
+                    params['query'],
+                  ),
+        ),
+        'searchProducts': _i1.MethodConnector(
+          name: 'searchProducts',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['product'] as _i4.ProductEndpoint).searchProducts(
+                    session,
+                    params['query'],
+                  ),
+        ),
+        'migrateProducts': _i1.MethodConnector(
+          name: 'migrateProducts',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .migrateProducts(session),
         ),
       },
     );
@@ -173,7 +230,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i7.SubCategory>(),
+              type: _i1.getType<_i8.SubCategory>(),
               nullable: false,
             ),
           },
@@ -189,9 +246,77 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i8.Endpoints()
+    connectors['user'] = _i1.EndpointConnector(
+      name: 'user',
+      endpoint: endpoints['user']!,
+      methodConnectors: {
+        'getUserByFirebaseUid': _i1.MethodConnector(
+          name: 'getUserByFirebaseUid',
+          params: {
+            'uid': _i1.ParameterDescription(
+              name: 'uid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['user'] as _i6.UserEndpoint).getUserByFirebaseUid(
+                    session,
+                    params['uid'],
+                  ),
+        ),
+        'createOrUpdateUser': _i1.MethodConnector(
+          name: 'createOrUpdateUser',
+          params: {
+            'user': _i1.ParameterDescription(
+              name: 'user',
+              type: _i1.getType<_i9.AppUser>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['user'] as _i6.UserEndpoint).createOrUpdateUser(
+                    session,
+                    params['user'],
+                  ),
+        ),
+        'updateCart': _i1.MethodConnector(
+          name: 'updateCart',
+          params: {
+            'uid': _i1.ParameterDescription(
+              name: 'uid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'cart': _i1.ParameterDescription(
+              name: 'cart',
+              type: _i1.getType<List<_i10.CartItem>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['user'] as _i6.UserEndpoint).updateCart(
+                session,
+                params['uid'],
+                params['cart'],
+              ),
+        ),
+      },
+    );
+    modules['serverpod_auth_idp'] = _i11.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i9.Endpoints()
+    modules['serverpod_auth_core'] = _i12.Endpoints()
       ..initializeEndpoints(server);
   }
 }

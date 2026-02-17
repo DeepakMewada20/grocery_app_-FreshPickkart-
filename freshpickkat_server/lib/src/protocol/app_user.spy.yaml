@@ -1,0 +1,12 @@
+class: AppUser
+table: app_user
+fields:
+  firebaseUid: String
+  phoneNumber: String
+  name: String?
+  address: String?
+  cart: List<CartItem>?
+indexes:
+  app_user_firebase_uid_idx:
+    fields: firebaseUid
+    unique: true

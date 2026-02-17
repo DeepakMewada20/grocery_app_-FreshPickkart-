@@ -16,12 +16,17 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'category.dart' as _i5;
-import 'product.dart' as _i6;
-import 'sub_category.dart' as _i7;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i8;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i9;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i10;
+import 'app_user.dart' as _i5;
+import 'cart_item.dart' as _i6;
+import 'category.dart' as _i7;
+import 'product.dart' as _i8;
+import 'sub_category.dart' as _i9;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i10;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i11;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i12;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i13;
+export 'app_user.dart';
+export 'cart_item.dart';
 export 'category.dart';
 export 'product.dart';
 export 'sub_category.dart';
@@ -34,6 +39,81 @@ class Protocol extends _i1.SerializationManagerServer {
   static final Protocol _instance = Protocol._();
 
   static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'app_user',
+      dartName: 'AppUser',
+      schema: 'public',
+      module: 'freshpickkat',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'app_user_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'firebaseUid',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'phoneNumber',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'name',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'address',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'cart',
+          columnType: _i2.ColumnType.json,
+          isNullable: true,
+          dartType: 'List<protocol:CartItem>?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'app_user_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'app_user_firebase_uid_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'firebaseUid',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i4.Protocol.targetTableDefinitions,
     ..._i2.Protocol.targetTableDefinitions,
@@ -66,39 +146,50 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Category) {
-      return _i5.Category.fromJson(data) as T;
+    if (t == _i5.AppUser) {
+      return _i5.AppUser.fromJson(data) as T;
     }
-    if (t == _i6.Product) {
-      return _i6.Product.fromJson(data) as T;
+    if (t == _i6.CartItem) {
+      return _i6.CartItem.fromJson(data) as T;
     }
-    if (t == _i7.SubCategory) {
-      return _i7.SubCategory.fromJson(data) as T;
+    if (t == _i7.Category) {
+      return _i7.Category.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Category?>()) {
-      return (data != null ? _i5.Category.fromJson(data) : null) as T;
+    if (t == _i8.Product) {
+      return _i8.Product.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i6.Product?>()) {
-      return (data != null ? _i6.Product.fromJson(data) : null) as T;
+    if (t == _i9.SubCategory) {
+      return _i9.SubCategory.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i7.SubCategory?>()) {
-      return (data != null ? _i7.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i5.AppUser?>()) {
+      return (data != null ? _i5.AppUser.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.CartItem?>()) {
+      return (data != null ? _i6.CartItem.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.Category?>()) {
+      return (data != null ? _i7.Category.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i8.Product?>()) {
+      return (data != null ? _i8.Product.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i9.SubCategory?>()) {
+      return (data != null ? _i9.SubCategory.fromJson(data) : null) as T;
+    }
+    if (t == List<_i6.CartItem>) {
+      return (data as List).map((e) => deserialize<_i6.CartItem>(e)).toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i6.CartItem>?>()) {
+      return (data != null
+              ? (data as List).map((e) => deserialize<_i6.CartItem>(e)).toList()
+              : null)
+          as T;
     }
     if (t == Map<String, String>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
           )
-          as T;
-    }
-    if (t == List<String>) {
-      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
-    }
-    if (t == List<_i8.Category>) {
-      return (data as List).map((e) => deserialize<_i8.Category>(e)).toList()
-          as T;
-    }
-    if (t == List<_i9.Product>) {
-      return (data as List).map((e) => deserialize<_i9.Product>(e)).toList()
           as T;
     }
     if (t == List<String>) {
@@ -110,10 +201,31 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i10.SubCategory>) {
+    if (t == List<_i10.Category>) {
+      return (data as List).map((e) => deserialize<_i10.Category>(e)).toList()
+          as T;
+    }
+    if (t == List<_i11.Product>) {
+      return (data as List).map((e) => deserialize<_i11.Product>(e)).toList()
+          as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
+    if (t == _i1.getType<List<String>?>()) {
+      return (data != null
+              ? (data as List).map((e) => deserialize<String>(e)).toList()
+              : null)
+          as T;
+    }
+    if (t == List<_i12.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i10.SubCategory>(e))
+              .map((e) => deserialize<_i12.SubCategory>(e))
               .toList()
+          as T;
+    }
+    if (t == List<_i13.CartItem>) {
+      return (data as List).map((e) => deserialize<_i13.CartItem>(e)).toList()
           as T;
     }
     try {
@@ -130,9 +242,11 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Category => 'Category',
-      _i6.Product => 'Product',
-      _i7.SubCategory => 'SubCategory',
+      _i5.AppUser => 'AppUser',
+      _i6.CartItem => 'CartItem',
+      _i7.Category => 'Category',
+      _i8.Product => 'Product',
+      _i9.SubCategory => 'SubCategory',
       _ => null,
     };
   }
@@ -150,11 +264,15 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Category():
+      case _i5.AppUser():
+        return 'AppUser';
+      case _i6.CartItem():
+        return 'CartItem';
+      case _i7.Category():
         return 'Category';
-      case _i6.Product():
+      case _i8.Product():
         return 'Product';
-      case _i7.SubCategory():
+      case _i9.SubCategory():
         return 'SubCategory';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -178,14 +296,20 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'AppUser') {
+      return deserialize<_i5.AppUser>(data['data']);
+    }
+    if (dataClassName == 'CartItem') {
+      return deserialize<_i6.CartItem>(data['data']);
+    }
     if (dataClassName == 'Category') {
-      return deserialize<_i5.Category>(data['data']);
+      return deserialize<_i7.Category>(data['data']);
     }
     if (dataClassName == 'Product') {
-      return deserialize<_i6.Product>(data['data']);
+      return deserialize<_i8.Product>(data['data']);
     }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i7.SubCategory>(data['data']);
+      return deserialize<_i9.SubCategory>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -221,6 +345,10 @@ class Protocol extends _i1.SerializationManagerServer {
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _i5.AppUser:
+        return _i5.AppUser.t;
     }
     return null;
   }

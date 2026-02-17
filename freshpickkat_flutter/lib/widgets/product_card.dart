@@ -113,72 +113,77 @@ class _ProductCardState extends State<ProductCard> {
               ),
             ),
             // Product details section
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Product title
-                  Text(
-                    widget.product.productName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  // Quantity
-                  Text(
-                    widget.product.quantity,
-                    style: const TextStyle(color: Colors.white60, fontSize: 11),
-                  ),
-                  const SizedBox(height: 8),
-                  // Price section
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '₹${widget.product.price}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product title
+                    Text(
+                      widget.product.productName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
                       ),
-                      if (widget.product.realPrice > widget.product.price) ...[
-                        const SizedBox(width: 5),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(), // Pushes follows to bottom
+                    // Quantity
+                    Text(
+                      widget.product.quantity,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Price section
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
                         Text(
-                          '₹${widget.product.realPrice}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 11,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: Colors.white.withOpacity(0.4),
+                          '₹${widget.product.price}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
+                        if (widget.product.realPrice >
+                            widget.product.price) ...[
+                          const SizedBox(width: 5),
+                          Text(
+                            '₹${widget.product.realPrice}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.4),
+                              fontSize: 11,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: Colors.white.withOpacity(0.4),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // Add button or Quantity selector
-                  SizedBox(
-                    width: double.infinity,
-                    height: 32,
-                    child: Obx(() {
-                      final quantity = _cartController.getProductQuantity(
-                        widget.product.productId,
-                      );
-                      return quantity == 0
-                          ? _buildAddButton()
-                          : _buildQuantitySelector(quantity);
-                    }),
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Add button or Quantity selector
+                    SizedBox(
+                      width: double.infinity,
+                      height: 32,
+                      child: Obx(() {
+                        final quantity = _cartController.getProductQuantity(
+                          widget.product.productId,
+                        );
+                        return quantity == 0
+                            ? _buildAddButton()
+                            : _buildQuantitySelector(quantity);
+                      }),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

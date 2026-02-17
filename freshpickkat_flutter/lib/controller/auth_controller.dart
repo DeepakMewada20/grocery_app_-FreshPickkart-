@@ -1,4 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {
@@ -12,21 +16,55 @@ class AuthController extends GetxController {
   int? _resendToken;
 
   // Reactive states
-  final Rx<User?> _user = Rx<User?>(null);
+  final Rx<fb.User?> _user = Rx<fb.User?>(null);
+  final Rx<AppUser?> _appUser = Rx<AppUser?>(null);
   final RxString returnRoute = ''.obs;
+
+  final client = ServerpodClient().client;
 
   @override
   void onInit() {
     super.onInit();
     // Bind current user to reactive variable
     _user.value = _auth.currentUser;
-    _auth.userChanges().listen((User? user) {
+    if (_user.value != null) {
+      _syncAppUser();
+    }
+    _auth.userChanges().listen((fb.User? user) {
       _user.value = user;
+      if (user != null) {
+        _syncAppUser();
+      } else {
+        _appUser.value = null;
+      }
     });
   }
 
-  // Get current user
-  User? get currentUser => _user.value;
+  Future<void> _syncAppUser() async {
+    if (_user.value == null) return;
+    try {
+      var user = await client.user.getUserByFirebaseUid(_user.value!.uid);
+      if (user == null) {
+        // Create new user if not exists
+        user = AppUser(
+          firebaseUid: _user.value!.uid,
+          phoneNumber: _user.value!.phoneNumber ?? '',
+        );
+        user = await client.user.createOrUpdateUser(user);
+      }
+      _appUser.value = user;
+      // Fetch cart once user is synced
+      CartController.instance.fetchCartFromServer();
+    } catch (e) {
+      print('Error syncing AppUser: $e');
+    }
+  }
+
+  // Get current firebase user
+  fb.User? get currentUser => _user.value;
+
+  // Get current app user (Serverpod)
+  AppUser? get appUser => _appUser.value;
 
   // Check if user is logged in
   bool get isLoggedIn => _user.value != null;
@@ -46,6 +84,7 @@ class AuthController extends GetxController {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto verification (Android only)
           await _auth.signInWithCredential(credential);
+          await _syncAppUser();
           onAutoVerify();
         },
         verificationFailed: (FirebaseAuthException e) {
@@ -86,9 +125,11 @@ class AuthController extends GetxController {
         smsCode: otpCode,
       );
 
-      UserCredential userCredential = await _auth.signInWithCredential(
+      fb.UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
+
+      await _syncAppUser();
 
       return {
         'success': true,

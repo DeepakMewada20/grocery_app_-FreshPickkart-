@@ -1,4 +1,8 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as protocol;
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class CartItem {
@@ -13,6 +17,67 @@ class CartController extends GetxController {
       Get.put(CartController(), permanent: true);
 
   final RxList<CartItem> cartItems = <CartItem>[].obs;
+  final client = ServerpodClient().client;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Listen to cart changes and sync with server
+    ever(cartItems, (_) => _syncWithServer());
+  }
+
+  Future<void> _syncWithServer() async {
+    final authController = AuthController.instance;
+    if (authController.isLoggedIn && authController.currentUser != null) {
+      try {
+        final protocolCart = cartItems
+            .map(
+              (item) => protocol.CartItem(
+                productId: item.product.productId!,
+                quantity: item.quantity,
+              ),
+            )
+            .toList();
+        await client.user.updateCart(
+          authController.currentUser!.uid,
+          protocolCart,
+        );
+      } catch (e) {
+        print('Error syncing cart to server: $e');
+      }
+    }
+  }
+
+  Future<void> fetchCartFromServer() async {
+    final authController = AuthController.instance;
+    if (authController.isLoggedIn && authController.currentUser != null) {
+      try {
+        final serverUser = await client.user.getUserByFirebaseUid(
+          authController.currentUser!.uid,
+        );
+        if (serverUser != null && serverUser.cart != null) {
+          final productController = ProductProviderController.instance;
+          final List<CartItem> newCartItems = [];
+
+          for (var item in serverUser.cart!) {
+            final product = productController.allProducts.firstWhereOrNull(
+              (p) => p.productId == item.productId,
+            );
+            if (product != null) {
+              newCartItems.add(
+                CartItem(product: product, quantity: item.quantity),
+              );
+            }
+          }
+
+          // Disable syncing while loading from server to avoid loop
+          cartItems.assignAll(newCartItems);
+        }
+      } catch (e) {
+        print('Error fetching cart from server: $e');
+      }
+    }
+  }
 
   // Rx derived properties
   int get itemCount => cartItems.length;

@@ -15,11 +15,13 @@ import 'dart:async' as _i2;
 import 'package:freshpickkat_client/src/protocol/category.dart' as _i3;
 import 'package:freshpickkat_client/src/protocol/product.dart' as _i4;
 import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i5;
+import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i6;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i7;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i6;
+    as _i8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i7;
-import 'protocol.dart' as _i8;
+    as _i9;
+import 'protocol.dart' as _i10;
 
 /// {@category Endpoint}
 class EndpointAuth extends _i1.EndpointRef {
@@ -81,6 +83,26 @@ class EndpointProduct extends _i1.EndpointRef {
         'uploadProduct',
         {'product': product},
       );
+
+  _i2.Future<List<String>> getProductSuggestions(String query) =>
+      caller.callServerEndpoint<List<String>>(
+        'product',
+        'getProductSuggestions',
+        {'query': query},
+      );
+
+  _i2.Future<List<_i4.Product>> searchProducts(String query) =>
+      caller.callServerEndpoint<List<_i4.Product>>(
+        'product',
+        'searchProducts',
+        {'query': query},
+      );
+
+  _i2.Future<int> migrateProducts() => caller.callServerEndpoint<int>(
+    'product',
+    'migrateProducts',
+    {},
+  );
 }
 
 /// {@category Endpoint}
@@ -107,15 +129,49 @@ class EndpointSubCategory extends _i1.EndpointRef {
       );
 }
 
+/// {@category Endpoint}
+class EndpointUser extends _i1.EndpointRef {
+  EndpointUser(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'user';
+
+  _i2.Future<_i6.AppUser?> getUserByFirebaseUid(String uid) =>
+      caller.callServerEndpoint<_i6.AppUser?>(
+        'user',
+        'getUserByFirebaseUid',
+        {'uid': uid},
+      );
+
+  _i2.Future<_i6.AppUser> createOrUpdateUser(_i6.AppUser user) =>
+      caller.callServerEndpoint<_i6.AppUser>(
+        'user',
+        'createOrUpdateUser',
+        {'user': user},
+      );
+
+  _i2.Future<bool> updateCart(
+    String uid,
+    List<_i7.CartItem> cart,
+  ) => caller.callServerEndpoint<bool>(
+    'user',
+    'updateCart',
+    {
+      'uid': uid,
+      'cart': cart,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i6.Caller(client);
-    serverpod_auth_core = _i7.Caller(client);
+    serverpod_auth_idp = _i8.Caller(client);
+    serverpod_auth_core = _i9.Caller(client);
   }
 
-  late final _i6.Caller serverpod_auth_idp;
+  late final _i8.Caller serverpod_auth_idp;
 
-  late final _i7.Caller serverpod_auth_core;
+  late final _i9.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -138,7 +194,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i8.Protocol(),
+         _i10.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -151,6 +207,7 @@ class Client extends _i1.ServerpodClientShared {
     category = EndpointCategory(this);
     product = EndpointProduct(this);
     subCategory = EndpointSubCategory(this);
+    user = EndpointUser(this);
     modules = Modules(this);
   }
 
@@ -162,6 +219,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointSubCategory subCategory;
 
+  late final EndpointUser user;
+
   late final Modules modules;
 
   @override
@@ -170,6 +229,7 @@ class Client extends _i1.ServerpodClientShared {
     'category': category,
     'product': product,
     'subCategory': subCategory,
+    'user': user,
   };
 
   @override

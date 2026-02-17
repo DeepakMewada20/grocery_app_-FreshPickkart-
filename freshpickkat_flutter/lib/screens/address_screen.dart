@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class AddressScreen extends StatefulWidget {
@@ -23,8 +23,7 @@ class _AddressScreenState extends State<AddressScreen>
   final TextEditingController _instructionsController = TextEditingController();
 
   final Location _location = Location();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final client = ServerpodClient().client;
 
   bool _isLoadingLocation = false;
   bool _isSaving = false;
@@ -32,7 +31,6 @@ class _AddressScreenState extends State<AddressScreen>
   String? _selectedAddress;
   String? _errorMessage;
   List<String> _nearbyAddresses = [];
-  LocationData? _currentLocation;
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -120,7 +118,6 @@ class _AddressScreenState extends State<AddressScreen>
 
       // Get current location
       LocationData locationData = await _location.getLocation();
-      _currentLocation = locationData;
 
       // Get nearby addresses using reverse geocoding
       await _getNearbyAddresses(
@@ -220,40 +217,32 @@ class _AddressScreenState extends State<AddressScreen>
     });
 
     try {
-      User? user = _auth.currentUser;
-      if (user == null) {
+      final authController = AuthController.instance;
+      if (!authController.isLoggedIn || authController.currentUser == null) {
         throw Exception('User not authenticated');
       }
-      print("####### user id :${user.uid}");
 
       // Prepare data
-      Map<String, dynamic> userData = {
-        'name': _nameController.text.trim(),
-        'address': finalAddress,
-        'latitude': _currentLocation?.latitude,
-        'longitude': _currentLocation?.longitude,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      // Add optional fields only if they have values
-      if (_landmarkController.text.trim().isNotEmpty) {
-        userData['landmark'] = _landmarkController.text.trim();
-      }
-      if (_floorController.text.trim().isNotEmpty) {
-        userData['floor'] = _floorController.text.trim();
-      }
-      if (_instructionsController.text.trim().isNotEmpty) {
-        userData['deliveryInstructions'] = _instructionsController.text.trim();
-      }
-
-      // Save to Firestore
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(
-            userData,
-            SetOptions(merge: true),
+      final appUser =
+          authController.appUser ??
+          AppUser(
+            firebaseUid: authController.currentUser!.uid,
+            phoneNumber: authController.currentUser!.phoneNumber ?? '',
           );
+
+      appUser.name = _nameController.text.trim();
+      appUser.address = finalAddress;
+
+      // Add optional fields to address if needed, but for now we just save the main address
+      // If we want to store landmark etc., we should add them to AppUser model or format them into address string
+      if (_landmarkController.text.trim().isNotEmpty ||
+          _floorController.text.trim().isNotEmpty) {
+        appUser.address =
+            '$finalAddress (Floor: ${_floorController.text}, Landmark: ${_landmarkController.text})';
+      }
+
+      // Save to Serverpod
+      await client.user.createOrUpdateUser(appUser);
 
       setState(() {
         _isSaving = false;

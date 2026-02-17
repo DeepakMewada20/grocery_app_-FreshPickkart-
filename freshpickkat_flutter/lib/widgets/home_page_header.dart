@@ -63,7 +63,7 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Image.asset( 
+                        Image.asset(
                           "lib/assets/images/name_logo.png",
                           height: 60,
                           fit: BoxFit.contain,
@@ -98,19 +98,6 @@ class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
           );
         },
       ),
-    );
-  }
-}
-
-// Placeholder SearchScreen
-class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search')),
-      body: const Center(child: Text('Search Screen')),
     );
   }
 }

@@ -11,3 +11,4 @@ fields:
     addedAt: DateTime
     subcategory: List<String>
     quantity: String
+    searchKeywords: List<String>?

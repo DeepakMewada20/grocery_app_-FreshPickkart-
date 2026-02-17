@@ -81,50 +81,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                Positioned(
-                  bottom: 16,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildPageIndicator(true),
-                      const SizedBox(width: 4),
-                      _buildPageIndicator(false),
-                      const SizedBox(width: 4),
-                      _buildPageIndicator(false),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.zoom_in, color: Colors.white, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          'TAP TO ZOOM',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
 
@@ -279,7 +235,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.calendar_today, color: Colors.white),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Text(
                   'Subscribe Now',
                   style: TextStyle(
@@ -293,17 +249,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         );
       }),
-    );
-  }
-
-  Widget _buildPageIndicator(bool isActive) {
-    return Container(
-      width: isActive ? 12 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.black : Colors.grey[400],
-        borderRadius: BorderRadius.circular(4),
-      ),
     );
   }
 
@@ -384,7 +329,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     return SizedBox(
-      height: 250,
+      height: 290,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: relatedProducts.length,

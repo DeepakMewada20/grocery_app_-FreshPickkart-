@@ -67,7 +67,7 @@ class ProductProviderController extends GetxController {
 
       allProducts.addAll(newProducts);
       print(
-        'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: ${currentSubcategories}), total: ${allProducts.length}',
+        'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories), total: ${allProducts.length}',
       );
     } catch (e) {
       errorMessage.value = e.toString();

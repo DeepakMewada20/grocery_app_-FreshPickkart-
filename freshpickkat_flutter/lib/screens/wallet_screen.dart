@@ -114,6 +114,18 @@ class WalletScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                final count = await ServerpodClient().client.product
+                    .migrateProducts();
+                print('Successfully migrated $count products');
+              },
+              child: Text(
+                'add search keyword',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),

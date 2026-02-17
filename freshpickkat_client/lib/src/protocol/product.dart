@@ -26,6 +26,7 @@ abstract class Product implements _i1.SerializableModel {
     required this.addedAt,
     required this.subcategory,
     required this.quantity,
+    this.searchKeywords,
   });
 
   factory Product({
@@ -40,6 +41,7 @@ abstract class Product implements _i1.SerializableModel {
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    List<String>? searchKeywords,
   }) = _ProductImpl;
 
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -57,6 +59,11 @@ abstract class Product implements _i1.SerializableModel {
         jsonSerialization['subcategory'],
       ),
       quantity: jsonSerialization['quantity'] as String,
+      searchKeywords: jsonSerialization['searchKeywords'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['searchKeywords'],
+            ),
     );
   }
 
@@ -82,6 +89,8 @@ abstract class Product implements _i1.SerializableModel {
 
   String quantity;
 
+  List<String>? searchKeywords;
+
   /// Returns a shallow copy of this [Product]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -97,6 +106,7 @@ abstract class Product implements _i1.SerializableModel {
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    List<String>? searchKeywords,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -113,6 +123,7 @@ abstract class Product implements _i1.SerializableModel {
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
+      if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
     };
   }
 
@@ -137,6 +148,7 @@ class _ProductImpl extends Product {
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    List<String>? searchKeywords,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -149,6 +161,7 @@ class _ProductImpl extends Product {
          addedAt: addedAt,
          subcategory: subcategory,
          quantity: quantity,
+         searchKeywords: searchKeywords,
        );
 
   /// Returns a shallow copy of this [Product]
@@ -167,6 +180,7 @@ class _ProductImpl extends Product {
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    Object? searchKeywords = _Undefined,
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
@@ -180,6 +194,9 @@ class _ProductImpl extends Product {
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),
       quantity: quantity ?? this.quantity,
+      searchKeywords: searchKeywords is List<String>?
+          ? searchKeywords
+          : this.searchKeywords?.map((e0) => e0).toList(),
     );
   }
 }

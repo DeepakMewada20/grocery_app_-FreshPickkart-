@@ -5,6 +5,13 @@ category:
 product:
   - getProducts:
   - uploadProduct:
+  - getProductSuggestions:
+  - searchProducts:
+  - migrateProducts:
 subCategory:
   - getSubCategories:
   - uploadSubCategory:
+user:
+  - getUserByFirebaseUid:
+  - createOrUpdateUser:
+  - updateCart:

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
+import 'package:freshpickkat_flutter/widgets/product_search_delegate.dart';
 
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({super.key});
@@ -51,9 +51,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchScreen()),
+        showSearch(
+          context: context,
+          delegate: ProductSearchDelegate(),
         );
       },
       child: Container(
