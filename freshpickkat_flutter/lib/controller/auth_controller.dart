@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -28,19 +29,19 @@ class AuthController extends GetxController {
     // Bind current user to reactive variable
     _user.value = _auth.currentUser;
     if (_user.value != null) {
-      _syncAppUser();
+      refreshAppUser();
     }
     _auth.userChanges().listen((fb.User? user) {
       _user.value = user;
       if (user != null) {
-        _syncAppUser();
+        refreshAppUser();
       } else {
         _appUser.value = null;
       }
     });
   }
 
-  Future<void> _syncAppUser() async {
+  Future<void> refreshAppUser() async {
     if (_user.value == null) return;
     try {
       var user = await client.user.getUserByFirebaseUid(_user.value!.uid);
@@ -56,7 +57,7 @@ class AuthController extends GetxController {
       // Fetch cart once user is synced
       CartController.instance.fetchCartFromServer();
     } catch (e) {
-      print('Error syncing AppUser: $e');
+      debugPrint('Error syncing AppUser: $e');
     }
   }
 
@@ -84,7 +85,7 @@ class AuthController extends GetxController {
         verificationCompleted: (PhoneAuthCredential credential) async {
           // Auto verification (Android only)
           await _auth.signInWithCredential(credential);
-          await _syncAppUser();
+          await refreshAppUser();
           onAutoVerify();
         },
         verificationFailed: (FirebaseAuthException e) {
@@ -129,7 +130,7 @@ class AuthController extends GetxController {
         credential,
       );
 
-      await _syncAppUser();
+      await refreshAppUser();
 
       return {
         'success': true,

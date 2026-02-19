@@ -1,0 +1,9 @@
+class: Address
+fields:
+  street: String
+  city: String
+  state: String
+  zipCode: String
+  country: String
+  latitude: double?
+  longitude: double?

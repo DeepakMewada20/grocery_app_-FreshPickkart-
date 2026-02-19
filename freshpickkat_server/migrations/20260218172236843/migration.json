@@ -1,0 +1,56 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "app_user",
+        "schema": "public",
+        "addColumns": [
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "shippingAddress",
+            "columnType": 8,
+            "isNullable": true,
+            "dartType": "protocol:Address?"
+          }
+        ],
+        "deleteColumns": [
+          "address"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"address\" of table \"app_user\" will be dropped.",
+            "table": "app_user",
+            "columns": [
+              "address"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"address\" of table \"app_user\" will be dropped.",
+      "table": "app_user",
+      "columns": [
+        "address"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

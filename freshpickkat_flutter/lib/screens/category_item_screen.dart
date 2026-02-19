@@ -376,7 +376,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.528,
+          childAspectRatio:
+              0.46, // Adjusted for 1:1 image + vertical stack details
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),

@@ -11,47 +11,44 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'cart_item.dart' as _i2;
-import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
+import 'address.dart' as _i2;
+import 'cart_item.dart' as _i3;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i4;
 
 abstract class AppUser implements _i1.SerializableModel {
   AppUser._({
-    this.id,
     required this.firebaseUid,
     required this.phoneNumber,
     this.name,
-    this.address,
+    this.shippingAddress,
     this.cart,
   });
 
   factory AppUser({
-    int? id,
     required String firebaseUid,
     required String phoneNumber,
     String? name,
-    String? address,
-    List<_i2.CartItem>? cart,
+    _i2.Address? shippingAddress,
+    List<_i3.CartItem>? cart,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
     return AppUser(
-      id: jsonSerialization['id'] as int?,
       firebaseUid: jsonSerialization['firebaseUid'] as String,
       phoneNumber: jsonSerialization['phoneNumber'] as String,
       name: jsonSerialization['name'] as String?,
-      address: jsonSerialization['address'] as String?,
+      shippingAddress: jsonSerialization['shippingAddress'] == null
+          ? null
+          : _i4.Protocol().deserialize<_i2.Address>(
+              jsonSerialization['shippingAddress'],
+            ),
       cart: jsonSerialization['cart'] == null
           ? null
-          : _i3.Protocol().deserialize<List<_i2.CartItem>>(
+          : _i4.Protocol().deserialize<List<_i3.CartItem>>(
               jsonSerialization['cart'],
             ),
     );
   }
-
-  /// The database id, set if the object has been inserted into the
-  /// database or if it has been fetched from the database. Otherwise,
-  /// the id will be null.
-  int? id;
 
   String firebaseUid;
 
@@ -59,30 +56,28 @@ abstract class AppUser implements _i1.SerializableModel {
 
   String? name;
 
-  String? address;
+  _i2.Address? shippingAddress;
 
-  List<_i2.CartItem>? cart;
+  List<_i3.CartItem>? cart;
 
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   AppUser copyWith({
-    int? id,
     String? firebaseUid,
     String? phoneNumber,
     String? name,
-    String? address,
-    List<_i2.CartItem>? cart,
+    _i2.Address? shippingAddress,
+    List<_i3.CartItem>? cart,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'AppUser',
-      if (id != null) 'id': id,
       'firebaseUid': firebaseUid,
       'phoneNumber': phoneNumber,
       if (name != null) 'name': name,
-      if (address != null) 'address': address,
+      if (shippingAddress != null) 'shippingAddress': shippingAddress?.toJson(),
       if (cart != null) 'cart': cart?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
@@ -97,18 +92,16 @@ class _Undefined {}
 
 class _AppUserImpl extends AppUser {
   _AppUserImpl({
-    int? id,
     required String firebaseUid,
     required String phoneNumber,
     String? name,
-    String? address,
-    List<_i2.CartItem>? cart,
+    _i2.Address? shippingAddress,
+    List<_i3.CartItem>? cart,
   }) : super._(
-         id: id,
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
          name: name,
-         address: address,
+         shippingAddress: shippingAddress,
          cart: cart,
        );
 
@@ -117,20 +110,20 @@ class _AppUserImpl extends AppUser {
   @_i1.useResult
   @override
   AppUser copyWith({
-    Object? id = _Undefined,
     String? firebaseUid,
     String? phoneNumber,
     Object? name = _Undefined,
-    Object? address = _Undefined,
+    Object? shippingAddress = _Undefined,
     Object? cart = _Undefined,
   }) {
     return AppUser(
-      id: id is int? ? id : this.id,
       firebaseUid: firebaseUid ?? this.firebaseUid,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       name: name is String? ? name : this.name,
-      address: address is String? ? address : this.address,
-      cart: cart is List<_i2.CartItem>?
+      shippingAddress: shippingAddress is _i2.Address?
+          ? shippingAddress
+          : this.shippingAddress?.copyWith(),
+      cart: cart is List<_i3.CartItem>?
           ? cart
           : this.cart?.map((e0) => e0.copyWith()).toList(),
     );

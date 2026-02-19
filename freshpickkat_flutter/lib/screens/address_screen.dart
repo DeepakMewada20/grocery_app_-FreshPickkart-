@@ -3,6 +3,7 @@ import 'package:location/location.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -16,8 +17,10 @@ class AddressScreen extends StatefulWidget {
 class _AddressScreenState extends State<AddressScreen>
     with TickerProviderStateMixin {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _customAddressController =
-      TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _zipController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
   final TextEditingController _floorController = TextEditingController();
   final TextEditingController _instructionsController = TextEditingController();
@@ -28,9 +31,9 @@ class _AddressScreenState extends State<AddressScreen>
   bool _isLoadingLocation = false;
   bool _isSaving = false;
   bool _showCustomAddress = false;
-  String? _selectedAddress;
+  int? _selectedIndex;
   String? _errorMessage;
-  List<String> _nearbyAddresses = [];
+  List<geo.Placemark> _nearbyPlacemarks = [];
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -144,19 +147,10 @@ class _AddressScreenState extends State<AddressScreen>
         lng,
       );
 
-      List<String> addresses = [];
-
-      for (var placemark in placemarks.take(6)) {
-        String address = _formatAddress(placemark);
-        if (address.isNotEmpty && !addresses.contains(address)) {
-          addresses.add(address);
-        }
-      }
-
       setState(() {
-        _nearbyAddresses = addresses;
-        if (addresses.isNotEmpty) {
-          _selectedAddress = addresses.first;
+        _nearbyPlacemarks = placemarks.take(6).toList();
+        if (_nearbyPlacemarks.isNotEmpty) {
+          _selectedIndex = 0;
         }
       });
     } catch (e) {
@@ -199,58 +193,75 @@ class _AddressScreenState extends State<AddressScreen>
       return;
     }
 
-    // Validate address
-    String finalAddress = _showCustomAddress
-        ? _customAddressController.text.trim()
-        : _selectedAddress ?? '';
-
-    if (finalAddress.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please select or enter an address';
-      });
-      return;
-    }
-
     setState(() {
       _isSaving = true;
       _errorMessage = null;
     });
 
     try {
-      final authController = AuthController.instance;
-      if (!authController.isLoggedIn || authController.currentUser == null) {
-        throw Exception('User not authenticated');
+      Address address;
+
+      if (_showCustomAddress) {
+        address = Address(
+          street: _streetController.text.trim(),
+          city: _cityController.text.trim(),
+          state: _stateController.text.trim(),
+          zipCode: _zipController.text.trim(),
+          country: 'India', // Default or add field
+        );
+      } else {
+        if (_selectedIndex == null || _nearbyPlacemarks.isEmpty) {
+          setState(() {
+            _isSaving = false;
+            _errorMessage = 'Please select an address';
+          });
+          return;
+        }
+        final p = _nearbyPlacemarks[_selectedIndex!];
+        // Try to get location for the selected placemark if possible, or use current location
+        LocationData? loc;
+        try {
+          loc = await _location.getLocation();
+        } catch (_) {}
+
+        address = Address(
+          street: p.street ?? '',
+          city: p.locality ?? '',
+          state: p.administrativeArea ?? '',
+          zipCode: p.postalCode ?? '',
+          country: p.country ?? '',
+          latitude: loc?.latitude,
+          longitude: loc?.longitude,
+        );
       }
 
-      // Prepare data
-      final appUser =
-          authController.appUser ??
-          AppUser(
-            firebaseUid: authController.currentUser!.uid,
-            phoneNumber: authController.currentUser!.phoneNumber ?? '',
-          );
+      // Appending floor and landmark to street for simplicity in structured address
+      // but keeping them in street field if user wants them there or we can add fields to Address class.
+      // For now, following user's structure in address.spy.yaml which only has street, city, state, zipCode, country.
 
-      appUser.name = _nameController.text.trim();
-      appUser.address = finalAddress;
-
-      // Add optional fields to address if needed, but for now we just save the main address
-      // If we want to store landmark etc., we should add them to AppUser model or format them into address string
-      if (_landmarkController.text.trim().isNotEmpty ||
-          _floorController.text.trim().isNotEmpty) {
-        appUser.address =
-            '$finalAddress (Floor: ${_floorController.text}, Landmark: ${_landmarkController.text})';
+      String combinedStreet = address.street;
+      if (_landmarkController.text.trim().isNotEmpty) {
+        combinedStreet += ', near ${_landmarkController.text.trim()}';
       }
+      if (_floorController.text.trim().isNotEmpty) {
+        combinedStreet += ', Floor: ${_floorController.text.trim()}';
+      }
+      if (_instructionsController.text.trim().isNotEmpty) {
+        combinedStreet += ' (${_instructionsController.text.trim()})';
+      }
+      address.street = combinedStreet;
 
-      // Save to Serverpod
-      await client.user.createOrUpdateUser(appUser);
+      final userController = UserController.instance;
+
+      // Update name profile if changed
+      await userController.updateProfile(name: _nameController.text.trim());
+
+      // Save address to Firestore
+      await userController.updateAddress(address);
 
       setState(() {
         _isSaving = false;
       });
-
-      // Show success animation
-      // await _successController.forward();
-      // await Future.delayed(const Duration(milliseconds: 1500));
 
       // Navigate to home or return route
       if (mounted) {
@@ -275,7 +286,10 @@ class _AddressScreenState extends State<AddressScreen>
   @override
   void dispose() {
     _nameController.dispose();
-    _customAddressController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _zipController.dispose();
     _landmarkController.dispose();
     _floorController.dispose();
     _instructionsController.dispose();
@@ -362,11 +376,11 @@ class _AddressScreenState extends State<AddressScreen>
                           const SizedBox(height: 12),
 
                           // Current location button
-                          if (!_isLoadingLocation && _nearbyAddresses.isEmpty)
+                          if (!_isLoadingLocation && _nearbyPlacemarks.isEmpty)
                             _buildLocationButton(),
 
                           // Nearby addresses
-                          if (_nearbyAddresses.isNotEmpty &&
+                          if (_nearbyPlacemarks.isNotEmpty &&
                               !_showCustomAddress)
                             ..._buildNearbyAddresses(),
 
@@ -398,14 +412,39 @@ class _AddressScreenState extends State<AddressScreen>
                             ),
                           ),
 
-                          // Custom address field
+                          // Custom address fields
                           if (_showCustomAddress) ...[
                             const SizedBox(height: 12),
                             _buildTextField(
-                              controller: _customAddressController,
-                              hint: 'Enter complete address',
-                              icon: Icons.location_on_outlined,
-                              maxLines: 3,
+                              controller: _streetController,
+                              hint: 'Street Address',
+                              icon: Icons.add_home_work_outlined,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildTextField(
+                              controller: _cityController,
+                              hint: 'City',
+                              icon: Icons.location_city,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _stateController,
+                                    hint: 'State',
+                                    icon: Icons.map_outlined,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _zipController,
+                                    hint: 'Zip Code',
+                                    icon: Icons.numbers,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
 
@@ -519,7 +558,7 @@ class _AddressScreenState extends State<AddressScreen>
           // Success overlay
           if (_successController.isAnimating || _successController.isCompleted)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: Center(
                 child: ScaleTransition(
                   scale: _successScaleAnimation,
@@ -535,7 +574,9 @@ class _AddressScreenState extends State<AddressScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00B894).withOpacity(0.1),
+                            color: const Color(
+                              0xFF00B894,
+                            ).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -624,10 +665,10 @@ class _AddressScreenState extends State<AddressScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF00B894).withOpacity(0.1),
+          color: const Color(0xFF00B894).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF00B894).withOpacity(0.3),
+            color: const Color(0xFF00B894).withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -680,61 +721,69 @@ class _AddressScreenState extends State<AddressScreen>
   }
 
   List<Widget> _buildNearbyAddresses() {
-    return _nearbyAddresses.map((address) {
-      bool isSelected = _selectedAddress == address;
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              _selectedAddress = address;
-              _errorMessage = null;
-            });
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF00B894).withOpacity(0.1)
-                  : Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? const Color(0xFF00B894) : Colors.grey[300]!,
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isSelected
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_off,
+    List<Widget> list = [];
+    for (int i = 0; i < _nearbyPlacemarks.length; i++) {
+      final placemark = _nearbyPlacemarks[i];
+      bool isSelected = _selectedIndex == i;
+      String formattedAddress = _formatAddress(placemark);
+      list.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedIndex = i;
+                _errorMessage = null;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF00B894).withValues(alpha: 0.1)
+                    : Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
                   color: isSelected
                       ? const Color(0xFF00B894)
-                      : Colors.grey[400],
-                  size: 22,
+                      : Colors.grey[300]!,
+                  width: isSelected ? 2 : 1,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    address,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isSelected
-                          ? const Color(0xFF2D3436)
-                          : Colors.grey[700],
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: isSelected
+                        ? const Color(0xFF00B894)
+                        : Colors.grey[400],
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      formattedAddress,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isSelected
+                            ? const Color(0xFF2D3436)
+                            : Colors.grey[700],
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       );
-    }).toList();
+    }
+    return list;
   }
 }
