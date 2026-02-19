@@ -2,15 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/widgets/login_bottom_sheet.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
+
+class ProductDetailWrapper extends StatefulWidget {
+  final Product initialProduct;
+
+  const ProductDetailWrapper({super.key, required this.initialProduct});
+
+  @override
+  State<ProductDetailWrapper> createState() => _ProductDetailWrapperState();
+}
+
+class _ProductDetailWrapperState extends State<ProductDetailWrapper> {
+  late Product _currentProduct;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentProduct = widget.initialProduct;
+  }
+
+  void _updateProduct(Product newProduct) {
+    setState(() {
+      _currentProduct = newProduct;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ProductDetailScreen(
+      product: _currentProduct,
+      onProductChange: _updateProduct,
+    );
+  }
+}
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final void Function(Product)? onProductChange;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.onProductChange,
+  });
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -31,19 +69,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _handleAddToCart() {
-    if (_authController.isLoggedIn) {
-      _incrementQuantity();
-    } else {
-      Get.bottomSheet(
-        LoginBottomSheet(
-          onLoginPressed: () {
-            _authController.returnRoute.value = Get.currentRoute;
-            Get.back(); // Close bottom sheet
-            Get.toNamed('/phone-auth');
-          },
-        ),
-      );
-    }
+    ProtectedNavigationHelper.executeProtectedAction(
+      onLoggedIn: () => _incrementQuantity(),
+      productToAdd: widget.product,
+    );
   }
 
   @override
@@ -215,14 +244,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         }
         return GestureDetector(
           onTap: () {
-            Get.bottomSheet(
-              LoginBottomSheet(
-                onLoginPressed: () {
-                  _authController.returnRoute.value = Get.currentRoute;
-                  Get.back(); // Close bottom sheet
-                  Get.toNamed('/phone-auth');
-                },
-              ),
+            ProtectedNavigationHelper.navigateTo(
+              routeName: Get.currentRoute,
             );
           },
           child: Container(
@@ -338,15 +361,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return Container(
             width: 160,
             margin: const EdgeInsets.only(right: 12),
-            child: ProductCard(
-              product: p,
-              onAddPressed: () {
-                // This will be handled inside ProductCard
+            child: GestureDetector(
+              onTap: () {
+                if (widget.onProductChange != null) {
+                  widget.onProductChange!(p);
+                }
               },
+              child: ProductCard(
+                product: p,
+                enableHero:
+                    false, // Disable Hero animation for related products
+                onAddPressed: () {
+                  // This will be handled inside ProductCard
+                },
+              ),
             ),
           );
         },
       ),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant ProductDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.product != widget.product) {
+      setState(() {
+        // Trigger a rebuild with the new product
+        // No additional logic is needed here as the widget.product is already updated
+      });
+    }
   }
 }

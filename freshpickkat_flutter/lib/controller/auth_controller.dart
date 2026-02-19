@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {
@@ -18,8 +19,9 @@ class AuthController extends GetxController {
 
   // Reactive states
   final Rx<fb.User?> _user = Rx<fb.User?>(null);
-  final Rx<AppUser?> _appUser = Rx<AppUser?>(null);
+  final Rx<AppUser?> appUserRx = Rx<AppUser?>(null);
   final RxString returnRoute = ''.obs;
+  Product? _pendingProductToAdd; // Store product to add after login
 
   final client = ServerpodClient().client;
 
@@ -36,7 +38,7 @@ class AuthController extends GetxController {
       if (user != null) {
         refreshAppUser();
       } else {
-        _appUser.value = null;
+        appUserRx.value = null;
       }
     });
   }
@@ -53,9 +55,18 @@ class AuthController extends GetxController {
         );
         user = await client.user.createOrUpdateUser(user);
       }
-      _appUser.value = user;
+      appUserRx.value = user;
       // Fetch cart once user is synced
       CartController.instance.fetchCartFromServer();
+
+      // Check if there's a pending product to add after login
+      final pendingProduct = getPendingProductToAdd();
+      if (pendingProduct != null) {
+        CartController.instance.addItem(pendingProduct);
+      }
+
+      // Execute any pending navigation callbacks
+      executePendingNavigation();
     } catch (e) {
       debugPrint('Error syncing AppUser: $e');
     }
@@ -65,7 +76,7 @@ class AuthController extends GetxController {
   fb.User? get currentUser => _user.value;
 
   // Get current app user (Serverpod)
-  AppUser? get appUser => _appUser.value;
+  AppUser? get appUser => appUserRx.value;
 
   // Check if user is logged in
   bool get isLoggedIn => _user.value != null;
@@ -177,4 +188,16 @@ class AuthController extends GetxController {
 
   // Get verification ID
   String? get currentVerificationId => _verificationId;
+
+  // Set product to add after login
+  void setPendingProductToAdd(Product product) {
+    _pendingProductToAdd = product;
+  }
+
+  // Get and clear pending product
+  Product? getPendingProductToAdd() {
+    final product = _pendingProductToAdd;
+    _pendingProductToAdd = null;
+    return product;
+  }
 }

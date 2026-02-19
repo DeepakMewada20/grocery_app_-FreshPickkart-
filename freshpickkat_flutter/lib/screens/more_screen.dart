@@ -6,8 +6,22 @@ import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:get/get.dart';
 
-class MoreScreen extends StatelessWidget {
+class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
+
+  @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user data from server when screen opens
+    Future.microtask(() {
+      UserController.instance.refreshUserDataFromServer();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +116,7 @@ class MoreScreen extends StatelessWidget {
                         TextButton(
                           onPressed: () {
                             authController.signOut();
-                            Get.offAllNamed('/login');
+                            Get.offAllNamed('/home');
                           },
                           child: const Text(
                             'Logout',

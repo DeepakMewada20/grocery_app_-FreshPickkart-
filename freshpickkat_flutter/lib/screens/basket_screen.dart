@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
-import 'package:freshpickkat_flutter/widgets/login_bottom_sheet.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
 class BasketScreen extends StatelessWidget {
@@ -329,22 +329,13 @@ class BasketScreen extends StatelessWidget {
       ),
       child: ElevatedButton(
         onPressed: () {
-          if (authController.isLoggedIn) {
-            // Proceed to checkout logic
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Proceeding to checkout...')),
-            );
-          } else {
-            Get.bottomSheet(
-              LoginBottomSheet(
-                onLoginPressed: () {
-                  authController.returnRoute.value = Get.currentRoute;
-                  Get.back();
-                  Get.toNamed('/phone-auth');
-                },
-              ),
-            );
-          }
+          ProtectedNavigationHelper.executeProtectedAction(
+            onLoggedIn: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Proceeding to checkout...')),
+              );
+            },
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2196F3),

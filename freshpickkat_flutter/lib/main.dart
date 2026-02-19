@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
         '/address': (context) => const AddressScreen(),
         '/home': (context) => const MainScreen(),
         '/login': (context) => const PhoneAuthScreen(),
+        '/phone-auth': (context) => const PhoneAuthScreen(),
       },
     );
   }

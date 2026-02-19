@@ -4,6 +4,7 @@ import 'package:freshpickkat_flutter/screens/home_screen.dart';
 import 'package:freshpickkat_flutter/screens/basket_screen.dart';
 import 'package:freshpickkat_flutter/screens/wallet_screen.dart';
 import 'package:freshpickkat_flutter/screens/more_screen.dart';
+import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,9 +25,21 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    // Basket (index 2) and More (index 4) require login
+    if (index == 2 || index == 4) {
+      ProtectedNavigationHelper.navigateToIndex(
+        index: index,
+        onNavigate: () {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      );
+    } else {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 
   @override

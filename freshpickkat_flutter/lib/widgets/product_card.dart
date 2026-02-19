@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
-
-import 'package:freshpickkat_flutter/widgets/login_bottom_sheet.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onAddPressed;
+  final bool enableHero;
 
   const ProductCard({
     super.key,
     required this.product,
     this.onAddPressed,
+    this.enableHero = true,
   });
 
   @override
@@ -40,14 +41,9 @@ class _ProductCardState extends State<ProductCard> {
       _increment();
       if (widget.onAddPressed != null) widget.onAddPressed!();
     } else {
-      Get.bottomSheet(
-        LoginBottomSheet(
-          onLoginPressed: () {
-            _authController.returnRoute.value = Get.currentRoute;
-            Get.back(); // Close bottom sheet
-            Get.toNamed('/phone-auth');
-          },
-        ),
+      ProtectedNavigationHelper.navigateTo(
+        routeName: Get.currentRoute,
+        productToAdd: widget.product,
       );
     }
   }
@@ -104,22 +100,37 @@ class _ProductCardState extends State<ProductCard> {
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          child: Hero(
-                            tag: 'product_${widget.product.productId}',
-                            child: Image.network(
-                              widget.product.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.image_not_supported_outlined,
-                                    size: 40,
-                                    color: Colors.grey[400],
+                          child: widget.enableHero
+                              ? Hero(
+                                  tag:
+                                      'product_${widget.product.productId}_${this.hashCode}',
+                                  child: Image.network(
+                                    widget.product.imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Icon(
+                                          Icons.image_not_supported_outlined,
+                                          size: 40,
+                                          color: Colors.grey[400],
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
-                          ),
+                                )
+                              : Image.network(
+                                  widget.product.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Icon(
+                                        Icons.image_not_supported_outlined,
+                                        size: 40,
+                                        color: Colors.grey[400],
+                                      ),
+                                    );
+                                  },
+                                ),
                         ),
                       ),
                       // Discount badge

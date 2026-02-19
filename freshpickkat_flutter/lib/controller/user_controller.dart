@@ -1,22 +1,19 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find<UserController>();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   final RxString userName = ''.obs;
   final RxString userPhone = ''.obs;
   final RxString profileImageUrl = ''.obs;
-
-  // Use protocol Address object
   final Rx<Address?> shippingAddress = Rx<Address?>(null);
-
   final RxBool isLoading = false.obs;
+
+  final client = ServerpodClient().client;
 
   @override
   void onInit() {
@@ -25,21 +22,17 @@ class UserController extends GetxController {
   }
 
   void _listenToUserProfile() {
-    // Listen to current user changes in AuthController
     final auth = AuthController.instance;
-    ever(auth.currentUser.obs, (user) {
-      if (user == null) {
+    ever<AppUser?>(auth.appUserRx, (appUser) {
+      if (appUser == null) {
         _resetData();
       } else {
-        _startFirestoreListener(user.uid, user.phoneNumber);
+        _updateFromAppUser(appUser);
       }
     });
-
-    if (auth.currentUser != null) {
-      _startFirestoreListener(
-        auth.currentUser!.uid,
-        auth.currentUser!.phoneNumber,
-      );
+    final appUser = auth.appUserRx.value;
+    if (appUser != null) {
+      _updateFromAppUser(appUser);
     }
   }
 
@@ -50,56 +43,29 @@ class UserController extends GetxController {
     shippingAddress.value = null;
   }
 
-  void _startFirestoreListener(String uid, String? phone) {
-    userPhone.value = phone ?? '';
-
-    _firestore.collection('users').doc(uid).snapshots().listen((snapshot) {
-      if (snapshot.exists) {
-        final data = snapshot.data();
-        if (data != null) {
-          userName.value = data['name'] ?? '';
-          profileImageUrl.value = data['profileImage'] ?? '';
-
-          // Parse structured address
-          if (data['address'] != null && data['address'] is Map) {
-            final addrMap = data['address'] as Map<String, dynamic>;
-            shippingAddress.value = Address(
-              street: addrMap['street'] ?? '',
-              city: addrMap['city'] ?? '',
-              state: addrMap['state'] ?? '',
-              zipCode: addrMap['zipCode'] ?? '',
-              country: addrMap['country'] ?? '',
-              latitude: (addrMap['latitude'] as num?)?.toDouble(),
-              longitude: (addrMap['longitude'] as num?)?.toDouble(),
-            );
-          } else {
-            shippingAddress.value = null;
-          }
-        }
-      } else {
-        userName.value = 'Guest User';
-      }
-    });
+  void _updateFromAppUser(AppUser user) {
+    userName.value = user.name ?? '';
+    userPhone.value = user.phoneNumber;
+    shippingAddress.value = user.shippingAddress;
+    // profileImageUrl.value = user.profileImage ?? '';
   }
 
   Future<void> updateProfile({required String name, String? imageUrl}) async {
-    final user = AuthController.instance.currentUser;
-    if (user == null) return;
-
+    final auth = AuthController.instance;
+    final appUser = auth.appUserRx.value;
+    if (appUser == null) return;
     isLoading.value = true;
     try {
-      await _firestore.collection('users').doc(user.uid).set({
-        'name': name,
-        'phoneNumber': user.phoneNumber,
-        'profileImage': ?imageUrl,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      // Update local AppUser DTO for consistency in UI components relying on AuthController
-      final appUser = AuthController.instance.appUser;
-      if (appUser != null) {
-        appUser.name = name;
-      }
+      final updatedUser = AppUser(
+        firebaseUid: appUser.firebaseUid,
+        phoneNumber: appUser.phoneNumber,
+        name: name,
+        shippingAddress: appUser.shippingAddress,
+        cart: appUser.cart,
+      );
+      final result = await client.user.createOrUpdateUser(updatedUser);
+      auth.appUserRx.value = result;
+      userName.value = result.name ?? '';
     } catch (e) {
       debugPrint('Error updating profile: $e');
       rethrow;
@@ -109,35 +75,43 @@ class UserController extends GetxController {
   }
 
   Future<void> updateAddress(Address address) async {
-    final user = AuthController.instance.currentUser;
-    if (user == null) return;
-
+    final auth = AuthController.instance;
+    final appUser = auth.appUserRx.value;
+    if (appUser == null) return;
     isLoading.value = true;
     try {
-      await _firestore.collection('users').doc(user.uid).set({
-        'address': {
-          'street': address.street,
-          'city': address.city,
-          'state': address.state,
-          'zipCode': address.zipCode,
-          'country': address.country,
-          'latitude': address.latitude,
-          'longitude': address.longitude,
-        },
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      // Update local AppUser DTO
-      final appUser = AuthController.instance.appUser;
-      if (appUser != null) {
-        appUser.shippingAddress = address;
-      }
-      shippingAddress.value = address;
+      final updatedUser = AppUser(
+        firebaseUid: appUser.firebaseUid,
+        phoneNumber: appUser.phoneNumber,
+        name: appUser.name,
+        shippingAddress: address,
+        cart: appUser.cart,
+      );
+      final result = await client.user.createOrUpdateUser(updatedUser);
+      auth.appUserRx.value = result;
+      shippingAddress.value = result.shippingAddress;
     } catch (e) {
       debugPrint('Error updating address: $e');
       rethrow;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Refresh user data from backend
+  Future<void> refreshUserDataFromServer() async {
+    final auth = AuthController.instance;
+    if (auth.currentUser == null) return;
+    try {
+      final freshUser = await client.user.getUserByFirebaseUid(
+        auth.currentUser!.uid,
+      );
+      if (freshUser != null) {
+        auth.appUserRx.value = freshUser;
+        _updateFromAppUser(freshUser);
+      }
+    } catch (e) {
+      debugPrint('Error refreshing user data: $e');
     }
   }
 }
