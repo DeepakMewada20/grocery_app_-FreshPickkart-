@@ -4,11 +4,13 @@ fields:
     productName: String
     category: String
     imageUrl: String
-    price: int
-    realPrice: int
-    discount: int
+    price: double
+    realPrice: double
+    discount: double
     isAvailable: bool
     addedAt: DateTime
     subcategory: List<String>
     quantity: String
     searchKeywords: List<String>?
+    mostSearch: int
+    mostPurchases: int

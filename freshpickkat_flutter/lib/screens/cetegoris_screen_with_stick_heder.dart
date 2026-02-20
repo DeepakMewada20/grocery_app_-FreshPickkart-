@@ -147,7 +147,7 @@ class _CategoriesScreenWithStickyHeaderState
   Widget build(BuildContext context) {
     var hight = MediaQuery.of(context).size.height;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1B8A4C),
         title: Container(
@@ -230,7 +230,7 @@ class _CategoriesScreenWithStickyHeaderState
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF0A0A0A)
+                      ? const Color(0xFF252525)
                       : Colors.transparent,
                   border: Border(
                     bottom: BorderSide(
@@ -238,9 +238,7 @@ class _CategoriesScreenWithStickyHeaderState
                       width: 1,
                     ),
                     left: BorderSide(
-                      color: isSelected
-                          ? const Color(0xFF2196F3)
-                          : Colors.transparent,
+                      color: isSelected ? Colors.blue : Colors.transparent,
                       width: 6,
                     ),
                   ),
@@ -307,7 +305,7 @@ class _CategoriesScreenWithStickyHeaderState
       left: 0,
       right: 0,
       child: Container(
-        color: const Color(0xFF0A0A0A),
+        color: const Color(0xFF0F0F0F),
         padding: const EdgeInsets.fromLTRB(10, 10, 16, 10),
         child: Text(
           _currentStickyHeader,
@@ -323,7 +321,7 @@ class _CategoriesScreenWithStickyHeaderState
 
   Widget _buildItemsGrid() {
     return Container(
-      color: const Color(0xFF0A0A0A),
+      color: const Color(0xFF0F0F0F),
       child: ListView(
         controller: _itemsScrollController,
         padding: const EdgeInsets.only(

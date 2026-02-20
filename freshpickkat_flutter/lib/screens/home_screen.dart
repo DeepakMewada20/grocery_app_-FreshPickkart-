@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
     var height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(233, 0, 0, 0),
+      backgroundColor: const Color(0xFF0F0F0F),
       body: Obx(() {
         if (productController.isLoading.value && !productController.hasData) {
           return CustomScrollView(
@@ -58,11 +58,13 @@ class HomePage extends StatelessWidget {
               SliverToBoxAdapter(
                 child: CategoriesSelectionListview(
                   titalWord: "Trending Products",
+                  sortBy: "trending",
                 ),
               ),
               SliverToBoxAdapter(
                 child: CategoriesSelectionListview(
                   titalWord: "Best Sellers",
+                  sortBy: "best_sellers",
                 ),
               ),
 

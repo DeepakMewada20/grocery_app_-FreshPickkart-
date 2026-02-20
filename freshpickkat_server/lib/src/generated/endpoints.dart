@@ -83,6 +83,24 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'signOut': _i1.MethodConnector(
+          name: 'signOut',
+          params: {
+            'uid': _i1.ParameterDescription(
+              name: 'uid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['auth'] as _i2.AuthEndpoint).signOut(
+                session,
+                params['uid'],
+              ),
+        ),
       },
     );
     connectors['category'] = _i1.EndpointConnector(
@@ -128,6 +146,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<List<String>?>(),
               nullable: true,
             ),
+            'sortBy': _i1.ParameterDescription(
+              name: 'sortBy',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -140,6 +163,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     lastProductName: params['lastProductName'],
                     category: params['category'],
                     subcategories: params['subcategories'],
+                    sortBy: params['sortBy'],
                   ),
         ),
         'uploadProduct': _i1.MethodConnector(
@@ -208,6 +232,64 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['product'] as _i4.ProductEndpoint)
                   .migrateProducts(session),
+        ),
+        'initializeProductMetrics': _i1.MethodConnector(
+          name: 'initializeProductMetrics',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .initializeProductMetrics(session),
+        ),
+        'incrementProductSearch': _i1.MethodConnector(
+          name: 'incrementProductSearch',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .incrementProductSearch(
+                    session,
+                    params['productId'],
+                  ),
+        ),
+        'incrementProductPurchase': _i1.MethodConnector(
+          name: 'incrementProductPurchase',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .incrementProductPurchase(
+                    session,
+                    params['productId'],
+                  ),
+        ),
+        'seedProductMetricsForTesting': _i1.MethodConnector(
+          name: 'seedProductMetricsForTesting',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i4.ProductEndpoint)
+                  .seedProductMetricsForTesting(session),
         ),
       },
     );

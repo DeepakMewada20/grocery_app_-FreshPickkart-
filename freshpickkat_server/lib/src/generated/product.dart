@@ -28,6 +28,8 @@ abstract class Product
     required this.subcategory,
     required this.quantity,
     this.searchKeywords,
+    required this.mostSearch,
+    required this.mostPurchases,
   });
 
   factory Product({
@@ -35,14 +37,16 @@ abstract class Product
     required String productName,
     required String category,
     required String imageUrl,
-    required int price,
-    required int realPrice,
-    required int discount,
+    required double price,
+    required double realPrice,
+    required double discount,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
     List<String>? searchKeywords,
+    required int mostSearch,
+    required int mostPurchases,
   }) = _ProductImpl;
 
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -51,9 +55,9 @@ abstract class Product
       productName: jsonSerialization['productName'] as String,
       category: jsonSerialization['category'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String,
-      price: jsonSerialization['price'] as int,
-      realPrice: jsonSerialization['realPrice'] as int,
-      discount: jsonSerialization['discount'] as int,
+      price: (jsonSerialization['price'] as num).toDouble(),
+      realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
+      discount: (jsonSerialization['discount'] as num).toDouble(),
       isAvailable: jsonSerialization['isAvailable'] as bool,
       addedAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['addedAt']),
       subcategory: _i2.Protocol().deserialize<List<String>>(
@@ -65,6 +69,8 @@ abstract class Product
           : _i2.Protocol().deserialize<List<String>>(
               jsonSerialization['searchKeywords'],
             ),
+      mostSearch: jsonSerialization['mostSearch'] as int,
+      mostPurchases: jsonSerialization['mostPurchases'] as int,
     );
   }
 
@@ -76,11 +82,11 @@ abstract class Product
 
   String imageUrl;
 
-  int price;
+  double price;
 
-  int realPrice;
+  double realPrice;
 
-  int discount;
+  double discount;
 
   bool isAvailable;
 
@@ -92,6 +98,10 @@ abstract class Product
 
   List<String>? searchKeywords;
 
+  int mostSearch;
+
+  int mostPurchases;
+
   /// Returns a shallow copy of this [Product]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -100,14 +110,16 @@ abstract class Product
     String? productName,
     String? category,
     String? imageUrl,
-    int? price,
-    int? realPrice,
-    int? discount,
+    double? price,
+    double? realPrice,
+    double? discount,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
     List<String>? searchKeywords,
+    int? mostSearch,
+    int? mostPurchases,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -125,6 +137,8 @@ abstract class Product
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
+      'mostSearch': mostSearch,
+      'mostPurchases': mostPurchases,
     };
   }
 
@@ -144,6 +158,8 @@ abstract class Product
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
+      'mostSearch': mostSearch,
+      'mostPurchases': mostPurchases,
     };
   }
 
@@ -161,14 +177,16 @@ class _ProductImpl extends Product {
     required String productName,
     required String category,
     required String imageUrl,
-    required int price,
-    required int realPrice,
-    required int discount,
+    required double price,
+    required double realPrice,
+    required double discount,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
     List<String>? searchKeywords,
+    required int mostSearch,
+    required int mostPurchases,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -182,6 +200,8 @@ class _ProductImpl extends Product {
          subcategory: subcategory,
          quantity: quantity,
          searchKeywords: searchKeywords,
+         mostSearch: mostSearch,
+         mostPurchases: mostPurchases,
        );
 
   /// Returns a shallow copy of this [Product]
@@ -193,14 +213,16 @@ class _ProductImpl extends Product {
     String? productName,
     String? category,
     String? imageUrl,
-    int? price,
-    int? realPrice,
-    int? discount,
+    double? price,
+    double? realPrice,
+    double? discount,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
     Object? searchKeywords = _Undefined,
+    int? mostSearch,
+    int? mostPurchases,
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
@@ -217,6 +239,8 @@ class _ProductImpl extends Product {
       searchKeywords: searchKeywords is List<String>?
           ? searchKeywords
           : this.searchKeywords?.map((e0) => e0).toList(),
+      mostSearch: mostSearch ?? this.mostSearch,
+      mostPurchases: mostPurchases ?? this.mostPurchases,
     );
   }
 }

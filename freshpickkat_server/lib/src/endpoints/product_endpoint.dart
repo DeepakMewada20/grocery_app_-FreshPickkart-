@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
+import 'dart:math';
 
 class ProductEndpoint extends Endpoint {
   Future<List<Product>> getProducts(
@@ -10,6 +11,7 @@ class ProductEndpoint extends Endpoint {
     String? lastProductName,
     String? category,
     List<String>? subcategories,
+    String sortBy = 'name', // 'name', 'trending', 'best_sellers'
   }) async {
     final firestore = await FirebaseService.getFirestoreClient();
 
@@ -94,16 +96,37 @@ class ProductEndpoint extends Endpoint {
       }
     }
 
-    final query = firestore_api.StructuredQuery(
-      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
-      where: finalFilter,
-      limit: limit,
-      orderBy: [
+    // Build orderBy based on sortBy parameter
+    List<firestore_api.Order> orderByList = [];
+
+    if (sortBy == 'trending') {
+      orderByList.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'mostSearch'),
+          direction: 'DESCENDING',
+        ),
+      );
+    } else if (sortBy == 'best_sellers') {
+      orderByList.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'mostPurchases'),
+          direction: 'DESCENDING',
+        ),
+      );
+    } else {
+      orderByList.add(
         firestore_api.Order(
           field: firestore_api.FieldReference(fieldPath: 'productName'),
           direction: 'ASCENDING',
         ),
-      ],
+      );
+    }
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
+      where: finalFilter,
+      limit: limit,
+      orderBy: orderByList,
       // Pagination: startAfter logic
       startAt: lastProductName != null
           ? firestore_api.Cursor(
@@ -126,16 +149,36 @@ class ProductEndpoint extends Endpoint {
           .map((res) {
             final fields = res.document!.fields!;
 
+            // Helper to safely extract double/int values from Firestore
+            double _getDoubleValue(
+              Map<String, firestore_api.Value> fields,
+              String key,
+            ) {
+              final value = fields[key];
+              if (value == null) return 0.0;
+
+              // Try doubleValue first
+              if (value.doubleValue != null) {
+                return value.doubleValue!;
+              }
+
+              // Try integerValue (as string)
+              if (value.integerValue != null &&
+                  value.integerValue!.isNotEmpty) {
+                return double.tryParse(value.integerValue!) ?? 0.0;
+              }
+
+              return 0.0;
+            }
+
             return Product(
               productId: res.document!.name!.split('/').last,
               productName: fields['productName']?.stringValue ?? '',
               category: fields['category']?.stringValue ?? '',
               imageUrl: fields['imageUrl']?.stringValue ?? '',
-              price: int.tryParse(fields['price']?.integerValue ?? '0') ?? 0,
-              realPrice:
-                  int.tryParse(fields['realPrice']?.integerValue ?? '0') ?? 0,
-              discount:
-                  int.tryParse(fields['discount']?.integerValue ?? '0') ?? 0,
+              price: _getDoubleValue(fields, 'price'),
+              realPrice: _getDoubleValue(fields, 'realPrice'),
+              discount: _getDoubleValue(fields, 'discount'),
               isAvailable: fields['isAvailable']?.booleanValue ?? false,
               addedAt:
                   DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
@@ -148,6 +191,11 @@ class ProductEndpoint extends Endpoint {
                   (fields['searchKeywords']?.arrayValue?.values ?? [])
                       .map((v) => v.stringValue ?? '')
                       .toList(),
+              mostSearch:
+                  int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
+              mostPurchases:
+                  int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ??
+                  0,
             );
           })
           .toList();
@@ -171,13 +219,13 @@ class ProductEndpoint extends Endpoint {
         'category': firestore_api.Value(stringValue: product.category),
         'imageUrl': firestore_api.Value(stringValue: product.imageUrl),
         'price': firestore_api.Value(
-          integerValue: product.price.toString(),
+          doubleValue: product.price,
         ),
         'realPrice': firestore_api.Value(
-          integerValue: product.realPrice.toString(),
+          doubleValue: product.realPrice,
         ),
         'discount': firestore_api.Value(
-          integerValue: product.discount.toString(),
+          doubleValue: product.discount,
         ),
         'isAvailable': firestore_api.Value(booleanValue: product.isAvailable),
         'addedAt': firestore_api.Value(
@@ -199,6 +247,12 @@ class ProductEndpoint extends Endpoint {
               product.subcategory,
             ).map((s) => firestore_api.Value(stringValue: s)).toList(),
           ),
+        ),
+        'mostSearch': firestore_api.Value(
+          integerValue: product.mostSearch.toString(),
+        ),
+        'mostPurchases': firestore_api.Value(
+          integerValue: product.mostPurchases.toString(),
         ),
       },
     );
@@ -299,10 +353,27 @@ class ProductEndpoint extends Endpoint {
           productName: fields['productName']?.stringValue ?? '',
           category: fields['category']?.stringValue ?? '',
           imageUrl: fields['imageUrl']?.stringValue ?? '',
-          price: int.tryParse(fields['price']?.integerValue ?? '0') ?? 0,
+          price:
+              double.tryParse(
+                fields['price']?.doubleValue?.toString() ??
+                    fields['price']?.integerValue ??
+                    '0',
+              ) ??
+              0.0,
           realPrice:
-              int.tryParse(fields['realPrice']?.integerValue ?? '0') ?? 0,
-          discount: int.tryParse(fields['discount']?.integerValue ?? '0') ?? 0,
+              double.tryParse(
+                fields['realPrice']?.doubleValue?.toString() ??
+                    fields['realPrice']?.integerValue ??
+                    '0',
+              ) ??
+              0.0,
+          discount:
+              double.tryParse(
+                fields['discount']?.doubleValue?.toString() ??
+                    fields['discount']?.integerValue ??
+                    '0',
+              ) ??
+              0.0,
           isAvailable: fields['isAvailable']?.booleanValue ?? false,
           addedAt:
               DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
@@ -314,6 +385,10 @@ class ProductEndpoint extends Endpoint {
           searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
               .map((v) => v.stringValue ?? '')
               .toList(),
+          mostSearch:
+              int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
+          mostPurchases:
+              int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
         );
       }).toList();
 
@@ -351,11 +426,27 @@ class ProductEndpoint extends Endpoint {
                 productName: fields['productName']?.stringValue ?? '',
                 category: fields['category']?.stringValue ?? '',
                 imageUrl: fields['imageUrl']?.stringValue ?? '',
-                price: int.tryParse(fields['price']?.integerValue ?? '0') ?? 0,
+                price:
+                    double.tryParse(
+                      fields['price']?.doubleValue?.toString() ??
+                          fields['price']?.integerValue ??
+                          '0',
+                    ) ??
+                    0.0,
                 realPrice:
-                    int.tryParse(fields['realPrice']?.integerValue ?? '0') ?? 0,
+                    double.tryParse(
+                      fields['realPrice']?.doubleValue?.toString() ??
+                          fields['realPrice']?.integerValue ??
+                          '0',
+                    ) ??
+                    0.0,
                 discount:
-                    int.tryParse(fields['discount']?.integerValue ?? '0') ?? 0,
+                    double.tryParse(
+                      fields['discount']?.doubleValue?.toString() ??
+                          fields['discount']?.integerValue ??
+                          '0',
+                    ) ??
+                    0.0,
                 isAvailable: fields['isAvailable']?.booleanValue ?? false,
                 addedAt:
                     DateTime.tryParse(
@@ -370,6 +461,14 @@ class ProductEndpoint extends Endpoint {
                     (fields['searchKeywords']?.arrayValue?.values ?? [])
                         .map((v) => v.stringValue ?? '')
                         .toList(),
+                mostSearch:
+                    int.tryParse(fields['mostSearch']?.integerValue ?? '0') ??
+                    0,
+                mostPurchases:
+                    int.tryParse(
+                      fields['mostPurchases']?.integerValue ?? '0',
+                    ) ??
+                    0,
               );
             })
             .whereType<Product>()
@@ -447,6 +546,210 @@ class ProductEndpoint extends Endpoint {
       return updatedCount;
     } catch (e) {
       session.log('Error migrating products: $e');
+      return 0;
+    }
+  }
+
+  /// Initialize mostSearch and mostPurchases fields for all products
+  Future<int> initializeProductMetrics(Session session) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    // 1. Fetch all products
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
+    );
+
+    try {
+      final response = await firestore.projects.databases.documents.runQuery(
+        firestore_api.RunQueryRequest(structuredQuery: query),
+        database,
+      );
+
+      int updatedCount = 0;
+      for (var res in response) {
+        if (res.document == null) continue;
+
+        final doc = res.document!;
+        final name = doc.name!;
+        final fields = doc.fields!;
+
+        final productName = fields['productName']?.stringValue ?? '';
+
+        // 2. Update the document with metrics fields if they don't exist
+        final updatedDoc = firestore_api.Document(
+          fields: {
+            ...fields,
+            'mostSearch': firestore_api.Value(
+              integerValue: (fields['mostSearch']?.integerValue ?? '0'),
+            ),
+            'mostPurchases': firestore_api.Value(
+              integerValue: (fields['mostPurchases']?.integerValue ?? '0'),
+            ),
+          },
+        );
+
+        await firestore.projects.databases.documents.patch(
+          updatedDoc,
+          name,
+          updateMask_fieldPaths: ['mostSearch', 'mostPurchases'],
+        );
+        updatedCount++;
+        session.log('Initialized metrics for product: $productName');
+      }
+
+      return updatedCount;
+    } catch (e) {
+      session.log('Error initializing product metrics: $e');
+      return 0;
+    }
+  }
+
+  /// Increment the search count for a product
+  Future<bool> incrementProductSearch(Session session, String productId) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    try {
+      // Get the product document
+      final docPath = '$database/Products/$productId';
+      final doc = await firestore.projects.databases.documents.get(docPath);
+
+      if (doc.fields == null) return false;
+
+      final currentSearch =
+          int.tryParse(doc.fields!['mostSearch']?.integerValue ?? '0') ?? 0;
+
+      // Update with incremented value
+      final updatedDoc = firestore_api.Document(
+        fields: {
+          ...doc.fields!,
+          'mostSearch': firestore_api.Value(
+            integerValue: (currentSearch + 1).toString(),
+          ),
+        },
+      );
+
+      await firestore.projects.databases.documents.patch(
+        updatedDoc,
+        doc.name!,
+        updateMask_fieldPaths: ['mostSearch'],
+      );
+
+      return true;
+    } catch (e) {
+      session.log('Error incrementing product search: $e');
+      return false;
+    }
+  }
+
+  /// Increment the purchase count for a product
+  Future<bool> incrementProductPurchase(
+    Session session,
+    String productId,
+  ) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    try {
+      // Get the product document
+      final docPath = '$database/Products/$productId';
+      final doc = await firestore.projects.databases.documents.get(docPath);
+
+      if (doc.fields == null) return false;
+
+      final currentPurchases =
+          int.tryParse(doc.fields!['mostPurchases']?.integerValue ?? '0') ?? 0;
+
+      // Update with incremented value
+      final updatedDoc = firestore_api.Document(
+        fields: {
+          ...doc.fields!,
+          'mostPurchases': firestore_api.Value(
+            integerValue: (currentPurchases + 1).toString(),
+          ),
+        },
+      );
+
+      await firestore.projects.databases.documents.patch(
+        updatedDoc,
+        doc.name!,
+        updateMask_fieldPaths: ['mostPurchases'],
+      );
+
+      return true;
+    } catch (e) {
+      session.log('Error incrementing product purchase: $e');
+      return false;
+    }
+  }
+
+  /// Seed all products with random test data (mostSearch & mostPurchases)
+  /// Call this from wallet_screen to fill all products with random values (1-30)
+  /// for testing that Trending and Best Sellers sections display correctly
+  Future<int> seedProductMetricsForTesting(Session session) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+    final random = Random();
+
+    // 1. Fetch all products
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
+    );
+
+    try {
+      final response = await firestore.projects.databases.documents.runQuery(
+        firestore_api.RunQueryRequest(structuredQuery: query),
+        database,
+      );
+
+      int updatedCount = 0;
+      for (var res in response) {
+        if (res.document == null) continue;
+
+        final doc = res.document!;
+        final name = doc.name!;
+        final fields = doc.fields!;
+
+        final productName = fields['productName']?.stringValue ?? '';
+
+        // Generate random values between 1-30 for both fields
+        final randomSearch = 1 + random.nextInt(30); // 1-30
+        final randomPurchases = 1 + random.nextInt(30); // 1-30
+
+        // 2. Update the document with random test metrics
+        final updatedDoc = firestore_api.Document(
+          fields: {
+            ...fields,
+            'mostSearch': firestore_api.Value(
+              integerValue: randomSearch.toString(),
+            ),
+            'mostPurchases': firestore_api.Value(
+              integerValue: randomPurchases.toString(),
+            ),
+          },
+        );
+
+        await firestore.projects.databases.documents.patch(
+          updatedDoc,
+          name,
+          updateMask_fieldPaths: ['mostSearch', 'mostPurchases'],
+        );
+        updatedCount++;
+        session.log(
+          'Seeded test metrics for product: $productName '
+          '(searches: $randomSearch, purchases: $randomPurchases)',
+        );
+      }
+
+      session.log('Successfully seeded test data for $updatedCount products');
+      return updatedCount;
+    } catch (e) {
+      session.log('Error seeding product metrics for testing: $e');
       return 0;
     }
   }

@@ -30,12 +30,18 @@ class EndpointAuth extends _i1.EndpointRef {
   @override
   String get name => 'auth';
 
-  _i2.Future<String> verifyPhoneLogin(String idToken) =>
-      caller.callServerEndpoint<String>(
+  _i2.Future<String?> verifyPhoneLogin(String idToken) =>
+      caller.callServerEndpoint<String?>(
         'auth',
         'verifyPhoneLogin',
         {'idToken': idToken},
       );
+
+  _i2.Future<bool> signOut(String uid) => caller.callServerEndpoint<bool>(
+    'auth',
+    'signOut',
+    {'uid': uid},
+  );
 }
 
 /// {@category Endpoint}
@@ -65,6 +71,7 @@ class EndpointProduct extends _i1.EndpointRef {
     String? lastProductName,
     String? category,
     List<String>? subcategories,
+    required String sortBy,
   }) => caller.callServerEndpoint<List<_i4.Product>>(
     'product',
     'getProducts',
@@ -73,6 +80,7 @@ class EndpointProduct extends _i1.EndpointRef {
       'lastProductName': lastProductName,
       'category': category,
       'subcategories': subcategories,
+      'sortBy': sortBy,
     },
   );
 
@@ -103,6 +111,39 @@ class EndpointProduct extends _i1.EndpointRef {
     'migrateProducts',
     {},
   );
+
+  /// Initialize mostSearch and mostPurchases fields for all products
+  _i2.Future<int> initializeProductMetrics() => caller.callServerEndpoint<int>(
+    'product',
+    'initializeProductMetrics',
+    {},
+  );
+
+  /// Increment the search count for a product
+  _i2.Future<bool> incrementProductSearch(String productId) =>
+      caller.callServerEndpoint<bool>(
+        'product',
+        'incrementProductSearch',
+        {'productId': productId},
+      );
+
+  /// Increment the purchase count for a product
+  _i2.Future<bool> incrementProductPurchase(String productId) =>
+      caller.callServerEndpoint<bool>(
+        'product',
+        'incrementProductPurchase',
+        {'productId': productId},
+      );
+
+  /// Seed all products with random test data (mostSearch & mostPurchases)
+  /// Call this from wallet_screen to fill all products with random values (1-30)
+  /// for testing that Trending and Best Sellers sections display correctly
+  _i2.Future<int> seedProductMetricsForTesting() =>
+      caller.callServerEndpoint<int>(
+        'product',
+        'seedProductMetricsForTesting',
+        {},
+      );
 }
 
 /// {@category Endpoint}

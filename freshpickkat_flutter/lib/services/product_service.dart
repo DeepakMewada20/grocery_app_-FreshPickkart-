@@ -17,6 +17,7 @@ class ProductProvider {
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,
+        sortBy: 'name',
       );
 
       if (newProducts.length < 10) {

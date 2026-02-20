@@ -20,6 +20,8 @@ class WalletScreen extends StatelessWidget {
       addedAt: DateTime.now(),
       subcategory: ['Root Vegetables', 'Raw Banana'],
       quantity: '500 gm',
+      mostPurchases: 1,
+      mostSearch: 5,
     );
   }
 
@@ -83,6 +85,39 @@ class WalletScreen extends StatelessWidget {
     }
   }
 
+  /// Seed all products with random test data for metrics testing
+  /// mostSearch: 1-30 (random)
+  /// mostPurchases: 1-30 (random)
+  /// This helps verify that Trending and Best Sellers sections display correctly
+  Future<void> _seedTestData(BuildContext context) async {
+    try {
+      final count = await _client.product.seedProductMetricsForTesting();
+
+      if (count > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '✅ Test data seeded for $count products!\n'
+              'Each product now has random mostSearch (1-30)\n'
+              'and random mostPurchases (1-30) values.\n'
+              'Check Trending Products and Best Sellers sections!',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error seeding test data: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,13 +151,9 @@ class WalletScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () async {
-                final count = await ServerpodClient().client.product
-                    .migrateProducts();
-                print('Successfully migrated $count products');
-              },
+              onPressed: () => _seedTestData(context),
               child: Text(
-                'add search keyword',
+                'Seed Test Data (Random Metrics)',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),

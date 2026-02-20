@@ -19,6 +19,7 @@ class ProductProviderController extends GetxController {
   // Filters
   final currentCategory = ''.obs;
   final currentSubcategories = <String>[].obs;
+  final currentSortBy = 'name'.obs; // 'name', 'trending', 'best_sellers'
 
   @override
   void onInit() {
@@ -43,6 +44,12 @@ class ProductProviderController extends GetxController {
     refreshProducts();
   }
 
+  /// Change sort type and refresh products
+  Future<void> setSortBy(String sortBy) async {
+    currentSortBy.value = sortBy;
+    refreshProducts();
+  }
+
   Future<void> fetchProducts() async {
     if (!isMoreDataAvailable.value) return;
 
@@ -59,6 +66,7 @@ class ProductProviderController extends GetxController {
         subcategories: currentSubcategories.isEmpty
             ? null
             : currentSubcategories.toList(),
+        sortBy: currentSortBy.value,
       );
 
       if (newProducts.length < 10) {
@@ -67,7 +75,7 @@ class ProductProviderController extends GetxController {
 
       allProducts.addAll(newProducts);
       print(
-        'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories), total: ${allProducts.length}',
+        'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories, Sort: ${currentSortBy.value}), total: ${allProducts.length}',
       );
     } catch (e) {
       errorMessage.value = e.toString();
