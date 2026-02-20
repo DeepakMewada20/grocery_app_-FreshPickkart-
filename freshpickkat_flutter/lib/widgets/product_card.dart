@@ -10,12 +10,14 @@ import 'package:google_fonts/google_fonts.dart';
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onAddPressed;
+  final VoidCallback? onTap;
   final bool enableHero;
 
   const ProductCard({
     super.key,
     required this.product,
     this.onAddPressed,
+    this.onTap,
     this.enableHero = true,
   });
 
@@ -60,7 +62,11 @@ class _ProductCardState extends State<ProductCard> {
         curve: Curves.easeInOut,
         child: InkWell(
           onTap: () {
-            Get.to(() => ProductDetailScreen(product: widget.product));
+            if (widget.onTap != null) {
+              widget.onTap!();
+            } else {
+              Get.to(() => ProductDetailScreen(product: widget.product));
+            }
           },
           borderRadius: BorderRadius.circular(16),
           child: Container(
@@ -103,7 +109,7 @@ class _ProductCardState extends State<ProductCard> {
                           child: widget.enableHero
                               ? Hero(
                                   tag:
-                                      'product_${widget.product.productId}_${this.hashCode}',
+                                      'product_${widget.product.productId}_$hashCode',
                                   child: Image.network(
                                     widget.product.imageUrl,
                                     fit: BoxFit.cover,

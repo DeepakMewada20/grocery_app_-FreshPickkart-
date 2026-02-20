@@ -85,8 +85,9 @@ class UserEndpoint extends Endpoint {
     final map = <String, firestore_api.Value>{
       'phoneNumber': firestore_api.Value(stringValue: user.phoneNumber),
     };
-    if (user.name != null)
+    if (user.name != null) {
       map['name'] = firestore_api.Value(stringValue: user.name);
+    }
     if (user.shippingAddress != null) {
       map['shippingAddress'] = firestore_api.Value(
         mapValue: firestore_api.MapValue(
@@ -126,10 +127,12 @@ class UserEndpoint extends Endpoint {
       'zipCode': firestore_api.Value(stringValue: address.zipCode),
       'country': firestore_api.Value(stringValue: address.country),
     };
-    if (address.latitude != null)
+    if (address.latitude != null) {
       map['latitude'] = firestore_api.Value(doubleValue: address.latitude);
-    if (address.longitude != null)
+    }
+    if (address.longitude != null) {
       map['longitude'] = firestore_api.Value(doubleValue: address.longitude);
+    }
     return map;
   }
 

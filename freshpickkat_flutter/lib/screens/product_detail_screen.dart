@@ -1,53 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_detail_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
-class ProductDetailWrapper extends StatefulWidget {
-  final Product initialProduct;
-
-  const ProductDetailWrapper({super.key, required this.initialProduct});
-
-  @override
-  State<ProductDetailWrapper> createState() => _ProductDetailWrapperState();
-}
-
-class _ProductDetailWrapperState extends State<ProductDetailWrapper> {
-  late Product _currentProduct;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentProduct = widget.initialProduct;
-  }
-
-  void _updateProduct(Product newProduct) {
-    setState(() {
-      _currentProduct = newProduct;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ProductDetailScreen(
-      product: _currentProduct,
-      onProductChange: _updateProduct,
-    );
-  }
-}
-
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
-  final void Function(Product)? onProductChange;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
-    this.onProductChange,
   });
 
   @override
@@ -56,231 +22,256 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final AuthController _authController = AuthController.instance;
-  final ProductProviderController _productController =
+  final ProductProviderController _productProviderController =
       ProductProviderController.instance;
   final CartController _cartController = CartController.instance;
+  late final ProductDetailController _controller;
+  late final String _controllerTag;
 
-  void _incrementQuantity() {
-    _cartController.addItem(widget.product);
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the controller with the initial product
+    _controllerTag =
+        'product_detail_${widget.product.productId}_${UniqueKey()}';
+    _controller = Get.put(
+      ProductDetailController(widget.product),
+      tag: _controllerTag,
+    );
   }
 
-  void _decrementQuantity() {
-    _cartController.removeItem(widget.product);
+  @override
+  void dispose() {
+    Get.delete<ProductDetailController>(tag: _controllerTag);
+    super.dispose();
   }
 
-  void _handleAddToCart() {
+  void _incrementQuantity(Product product) {
+    _cartController.addItem(product);
+  }
+
+  void _decrementQuantity(Product product) {
+    _cartController.removeItem(product);
+  }
+
+  void _handleAddToCart(Product product) {
     ProtectedNavigationHelper.executeProtectedAction(
-      onLoggedIn: () => _incrementQuantity(),
-      productToAdd: widget.product,
+      onLoggedIn: () => _incrementQuantity(product),
+      productToAdd: product,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.white),
-            onPressed: () {},
+    return Obx(() {
+      final product = _controller.product.value;
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Get.back(),
           ),
-        ],
-      ),
-      extendBodyBehindAppBar: true,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product Image Section
-            Stack(
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.width,
-                  width: double.infinity,
-                  color: Colors.white,
-                  child: Image.network(
-                    widget.product.imageUrl,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ],
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share_outlined, color: Colors.white),
+              onPressed: () {},
             ),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        extendBodyBehindAppBar: true,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image Section
+              Stack(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8BC34A),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.location_on, color: Colors.white, size: 12),
-                        SizedBox(width: 4),
-                        Text(
-                          'Solapur (Maharashtra)',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    height: MediaQuery.of(context).size.width,
+                    width: double.infinity,
+                    color: Colors.white,
+                    child: Image.network(
+                      product.imageUrl,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.product.productName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.product.quantity,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Obx(
-                        () => _buildAddButton(
-                          _cartController.getProductQuantity(
-                            widget.product.productId,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        Text(
-                          '₹${widget.product.price}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'M.R.P: ₹${widget.product.realPrice}',
-                          style: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '${widget.product.discount}% OFF',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '(Inclusive of all taxes)',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(color: Colors.white24),
-                  const SizedBox(height: 12),
+                ],
+              ),
 
-                  const Text(
-                    'Related Products',
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8BC34A),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Solapur (Maharashtra)',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.productName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                product.quantity,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // We need to pass the *current* product to the cart controller
+                        _buildAddButton(
+                          product,
+                          _cartController.getProductQuantity(product.productId),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          Text(
+                            '₹${product.price}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'M.R.P: ₹${product.realPrice}',
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 14,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '${product.discount}% OFF',
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '(Inclusive of all taxes)',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(color: Colors.white24),
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      'Related Products',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildRelatedProducts(product),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: Obx(() {
+          if (_authController.isLoggedIn) {
+            return const SizedBox.shrink();
+          }
+          return GestureDetector(
+            onTap: () {
+              ProtectedNavigationHelper.navigateTo(
+                routeName: Get.currentRoute,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Color(0xFF1E88E5),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text(
+                    'Subscribe Now',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildRelatedProducts(),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Obx(() {
-        if (_authController.isLoggedIn) {
-          return const SizedBox.shrink();
-        }
-        return GestureDetector(
-          onTap: () {
-            ProtectedNavigationHelper.navigateTo(
-              routeName: Get.currentRoute,
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E88E5),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.calendar_today, color: Colors.white),
-                SizedBox(width: 12),
-                Text(
-                  'Subscribe Now',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }),
-    );
+          );
+        }),
+      );
+    });
   }
 
-  Widget _buildAddButton(int quantity) {
+  Widget _buildAddButton(Product product, int quantity) {
     if (quantity == 0) {
       return SizedBox(
         height: 36,
         child: OutlinedButton(
-          onPressed: _handleAddToCart,
+          onPressed: () => _handleAddToCart(product),
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFF2196F3),
             side: const BorderSide(color: Color(0xFF2196F3), width: 1.5),
@@ -310,7 +301,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               icon: const Icon(Icons.remove, color: Colors.white, size: 18),
-              onPressed: _decrementQuantity,
+              onPressed: () => _decrementQuantity(product),
             ),
             const SizedBox(width: 12),
             Text(
@@ -326,7 +317,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               icon: const Icon(Icons.add, color: Colors.white, size: 18),
-              onPressed: _incrementQuantity,
+              onPressed: () => _incrementQuantity(product),
             ),
           ],
         ),
@@ -334,13 +325,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  Widget _buildRelatedProducts() {
+  Widget _buildRelatedProducts(Product currentProduct) {
     // Filter related products by category
-    final relatedProducts = _productController.allProducts
+    final relatedProducts = _productProviderController.allProducts
         .where(
           (p) =>
-              p.category == widget.product.category &&
-              p.productId != widget.product.productId,
+              p.category == currentProduct.category &&
+              p.productId != currentProduct.productId,
         )
         .toList();
 
@@ -361,35 +352,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return Container(
             width: 160,
             margin: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
+            child: ProductCard(
+              product: p,
+              enableHero: false,
               onTap: () {
-                if (widget.onProductChange != null) {
-                  widget.onProductChange!(p);
-                }
+                _controller.updateProduct(p);
               },
-              child: ProductCard(
-                product: p,
-                enableHero:
-                    false, // Disable Hero animation for related products
-                onAddPressed: () {
-                  // This will be handled inside ProductCard
-                },
-              ),
+              onAddPressed: () {},
             ),
           );
         },
       ),
     );
-  }
-
-  @override
-  void didUpdateWidget(covariant ProductDetailScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.product != widget.product) {
-      setState(() {
-        // Trigger a rebuild with the new product
-        // No additional logic is needed here as the widget.product is already updated
-      });
-    }
   }
 }

@@ -30,10 +30,11 @@ class LoginBottomSheet extends StatelessWidget {
           Image.network(
             'https://cdn-icons-png.flaticon.com/512/3081/3081986.png', // Placeholder shopping cart icon
             height: 120,
+            color: Colors.green,
             errorBuilder: (context, error, stackTrace) => const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Colors.blue,
+              color: Colors.green,
             ),
           ),
           const SizedBox(height: 24),
