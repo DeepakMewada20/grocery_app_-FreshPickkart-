@@ -391,333 +391,366 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    //app logo
-                    const SizedBox(height: 40),
-                    Center(
-                      child: Image.asset(
-                        'lib/assets/images/name_logo.png',
-                        height: 80,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Welcome text
-                    SlideTransition(
-                      position: _slideAnimation,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Welcome! 👋',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D3436),
+                          //app logo
+                          const SizedBox(height: 40),
+                          Center(
+                            child: Image.asset(
+                              'lib/assets/images/name_logo.png',
+                              height: 80,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _showOtpInput
-                                ? 'Enter the verification code'
-                                : 'Enter your phone number to get started',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 50),
+                          const SizedBox(height: 40),
 
-                    // Phone Number Input
-                    SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Phone Number',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                              if (_showOtpInput)
-                                TextButton.icon(
-                                  onPressed: _editPhoneNumber,
-                                  icon: const Icon(Icons.edit, size: 16),
-                                  label: const Text('Edit'),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: const Color(0xFF00B894),
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: _showOtpInput
-                                  ? Colors.grey[200]
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _errorMessage != null && !_showOtpInput
-                                    ? Colors.red.shade300
-                                    : Colors.transparent,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
+                          // Welcome text
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                InkWell(
-                                  onTap: _showOtpInput
-                                      ? null
-                                      : _showCountryPicker,
-                                  borderRadius: const BorderRadius.horizontal(
-                                    left: Radius.circular(16),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 18,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          _countryCode,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        if (!_showOtpInput) ...[
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.arrow_drop_down,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ],
-                                      ],
-                                    ),
+                                const Text(
+                                  'Welcome! 👋',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2D3436),
                                   ),
                                 ),
-                                Container(
-                                  width: 1,
-                                  height: 30,
-                                  color: Colors.grey[300],
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _phoneController,
-                                    focusNode: _phoneFocusNode,
-                                    enabled: !_showOtpInput,
-                                    keyboardType: TextInputType.phone,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Phone number',
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey[400],
-                                      ),
-                                      border: InputBorder.none,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 18,
-                                          ),
-                                    ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(15),
-                                    ],
-                                    onChanged: (value) {
-                                      if (_errorMessage != null) {
-                                        setState(() => _errorMessage = null);
-                                      }
-                                    },
+                                const SizedBox(height: 8),
+                                Text(
+                                  _showOtpInput
+                                      ? 'Enter the verification code'
+                                      : 'Enter your phone number to get started',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(height: 50),
+
+                          // Phone Number Input
+                          SlideTransition(
+                            position: _slideAnimation,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Phone Number',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    if (_showOtpInput)
+                                      TextButton.icon(
+                                        onPressed: _editPhoneNumber,
+                                        icon: const Icon(Icons.edit, size: 16),
+                                        label: const Text('Edit'),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: const Color(
+                                            0xFF00B894,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: _showOtpInput
+                                        ? Colors.grey[200]
+                                        : Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color:
+                                          _errorMessage != null &&
+                                              !_showOtpInput
+                                          ? Colors.red.shade300
+                                          : Colors.transparent,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      InkWell(
+                                        onTap: _showOtpInput
+                                            ? null
+                                            : _showCountryPicker,
+                                        borderRadius:
+                                            const BorderRadius.horizontal(
+                                              left: Radius.circular(16),
+                                            ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 18,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                _countryCode,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              if (!_showOtpInput) ...[
+                                                const SizedBox(width: 4),
+                                                Icon(
+                                                  Icons.arrow_drop_down,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: Colors.grey[300],
+                                      ),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _phoneController,
+                                          focusNode: _phoneFocusNode,
+                                          enabled: !_showOtpInput,
+                                          keyboardType: TextInputType.phone,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          decoration: InputDecoration(
+                                            hintText: 'Phone number',
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey[400],
+                                            ),
+                                            border: InputBorder.none,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 18,
+                                                ),
+                                          ),
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter
+                                                .digitsOnly,
+                                            LengthLimitingTextInputFormatter(
+                                              15,
+                                            ),
+                                          ],
+                                          onChanged: (value) {
+                                            if (_errorMessage != null) {
+                                              setState(
+                                                () => _errorMessage = null,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // OTP Input Section
+                          if (_showOtpInput) ...[
+                            const SizedBox(height: 40),
+                            SlideTransition(
+                              position: _otpSlideAnimation,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Verification Code',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Enter the 6-digit code sent to $_phoneNumber',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Center(
+                                    child: Pinput(
+                                      controller: _otpController,
+                                      focusNode: _otpFocusNode,
+                                      length: 6,
+                                      defaultPinTheme: defaultPinTheme,
+                                      focusedPinTheme: focusedPinTheme,
+                                      errorPinTheme: _errorMessage != null
+                                          ? errorPinTheme
+                                          : defaultPinTheme,
+                                      onCompleted: (pin) => _verifyOTP(),
+                                      hapticFeedbackType:
+                                          HapticFeedbackType.lightImpact,
+                                      cursor: Container(
+                                        width: 2,
+                                        height: 22,
+                                        color: const Color(0xFF00B894),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Center(
+                                    child: _resendTimer > 0
+                                        ? Text(
+                                            'Resend code in ${_resendTimer}s',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
+                                          )
+                                        : TextButton(
+                                            onPressed: _isLoading
+                                                ? null
+                                                : _resendOTP,
+                                            child: _isLoading
+                                                ? const SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Color(
+                                                            0xFF00B894,
+                                                          ),
+                                                        ),
+                                                  )
+                                                : const Text(
+                                                    'Resend OTP',
+                                                    style: TextStyle(
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Color(0xFF00B894),
+                                                    ),
+                                                  ),
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          // Error message
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 16,
+                                  color: Colors.red[700],
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: TextStyle(
+                                      color: Colors.red[700],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
-
-                    // OTP Input Section
-                    if (_showOtpInput) ...[
-                      const SizedBox(height: 40),
-                      SlideTransition(
-                        position: _otpSlideAnimation,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Verification Code',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[700],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 24.0,
+                      right: 24.0,
+                      bottom: 24.0,
+                      top: 8.0,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Action Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _isLoading || _isVerifying
+                                ? null
+                                : (_showOtpInput ? _verifyOTP : _sendOTP),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00B894),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
+                              disabledBackgroundColor: Colors.grey[300],
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Enter the 6-digit code sent to $_phoneNumber',
+                            child: _isLoading || _isVerifying
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : Text(
+                                    _showOtpInput
+                                        ? 'Verify & Continue'
+                                        : 'Send OTP',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        if (!_showOtpInput) ...[
+                          const SizedBox(height: 20),
+                          // Terms
+                          Center(
+                            child: Text(
+                              'By continuing, you agree to our Terms & Privacy Policy',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 color: Colors.grey[600],
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            Center(
-                              child: Pinput(
-                                controller: _otpController,
-                                focusNode: _otpFocusNode,
-                                length: 6,
-                                defaultPinTheme: defaultPinTheme,
-                                focusedPinTheme: focusedPinTheme,
-                                errorPinTheme: _errorMessage != null
-                                    ? errorPinTheme
-                                    : defaultPinTheme,
-                                onCompleted: (pin) => _verifyOTP(),
-                                hapticFeedbackType:
-                                    HapticFeedbackType.lightImpact,
-                                cursor: Container(
-                                  width: 2,
-                                  height: 22,
-                                  color: const Color(0xFF00B894),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Center(
-                              child: _resendTimer > 0
-                                  ? Text(
-                                      'Resend code in ${_resendTimer}s',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    )
-                                  : TextButton(
-                                      onPressed: _isLoading ? null : _resendOTP,
-                                      child: _isLoading
-                                          ? const SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Color(0xFF00B894),
-                                              ),
-                                            )
-                                          : const Text(
-                                              'Resend OTP',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFF00B894),
-                                              ),
-                                            ),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    // Error message
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 16,
-                            color: Colors.red[700],
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: TextStyle(
-                                color: Colors.red[700],
-                                fontSize: 13,
-                              ),
-                            ),
                           ),
                         ],
-                      ),
-                    ],
-
-                    SizedBox(height: _showOtpInput ? 60 : 200),
-
-                    // Action Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isLoading || _isVerifying
-                            ? null
-                            : (_showOtpInput ? _verifyOTP : _sendOTP),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00B894),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          disabledBackgroundColor: Colors.grey[300],
-                        ),
-                        child: _isLoading || _isVerifying
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Text(
-                                _showOtpInput
-                                    ? 'Verify & Continue'
-                                    : 'Send OTP',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-
-                    // Terms
-                    if (!_showOtpInput)
-                      Center(
-                        child: Text(
-                          'By continuing, you agree to our Terms & Privacy Policy',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

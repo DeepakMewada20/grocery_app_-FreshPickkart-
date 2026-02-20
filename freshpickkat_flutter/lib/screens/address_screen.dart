@@ -5,6 +5,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/utils/address_utils.dart';
 import 'package:get/get.dart';
 
 class AddressScreen extends StatefulWidget {
@@ -193,6 +194,43 @@ class _AddressScreenState extends State<AddressScreen>
       return;
     }
 
+    // Validate custom address if in custom mode
+    if (_showCustomAddress) {
+      if (_streetController.text.trim().isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter street address';
+        });
+        return;
+      }
+      if (_cityController.text.trim().isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter city';
+        });
+        return;
+      }
+      if (_stateController.text.trim().isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter state';
+        });
+        return;
+      }
+      if (_zipController.text.trim().isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter zip code';
+        });
+        return;
+      }
+    }
+
+    // Validate address selection if not custom
+    if (!_showCustomAddress &&
+        (_selectedIndex == null || _nearbyPlacemarks.isEmpty)) {
+      setState(() {
+        _errorMessage = 'Please select an address';
+      });
+      return;
+    }
+
     setState(() {
       _isSaving = true;
       _errorMessage = null;
@@ -210,13 +248,6 @@ class _AddressScreenState extends State<AddressScreen>
           country: 'India', // Default or add field
         );
       } else {
-        if (_selectedIndex == null || _nearbyPlacemarks.isEmpty) {
-          setState(() {
-            _isSaving = false;
-            _errorMessage = 'Please select an address';
-          });
-          return;
-        }
         final p = _nearbyPlacemarks[_selectedIndex!];
         // Try to get location for the selected placemark if possible, or use current location
         LocationData? loc;
@@ -225,7 +256,7 @@ class _AddressScreenState extends State<AddressScreen>
         } catch (_) {}
 
         address = Address(
-          street: p.street ?? '',
+          street: AddressUtils.extractStreetAndColony(p),
           city: p.locality ?? '',
           state: p.administrativeArea ?? '',
           zipCode: p.postalCode ?? '',
