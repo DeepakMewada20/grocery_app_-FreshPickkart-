@@ -333,7 +333,7 @@ class _AddressScreenState extends State<AddressScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF0F0F0F),
       body: Stack(
         children: [
           SafeArea(
@@ -355,7 +355,7 @@ class _AddressScreenState extends State<AddressScreen>
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D3436),
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -363,7 +363,7 @@ class _AddressScreenState extends State<AddressScreen>
                             'Help us deliver to the right location',
                             style: TextStyle(
                               fontSize: 15,
-                              color: Colors.grey[600],
+                              color: Colors.white70,
                             ),
                           ),
                         ],
@@ -399,7 +399,7 @@ class _AddressScreenState extends State<AddressScreen>
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Color(0xFF00B894),
+                                    color: Colors.blue,
                                   ),
                                 ),
                             ],
@@ -439,7 +439,7 @@ class _AddressScreenState extends State<AddressScreen>
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF00B894),
+                              foregroundColor: Colors.blue,
                             ),
                           ),
 
@@ -512,9 +512,9 @@ class _AddressScreenState extends State<AddressScreen>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red.shade50,
+                                color: Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.red.shade200),
+                                border: Border.all(color: Colors.red.shade300),
                               ),
                               child: Row(
                                 children: [
@@ -553,13 +553,13 @@ class _AddressScreenState extends State<AddressScreen>
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveAddress,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00B894),
+                          backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          disabledBackgroundColor: Colors.grey[300],
+                          disabledBackgroundColor: Colors.grey[700],
                         ),
                         child: _isSaving
                             ? const SizedBox(
@@ -596,7 +596,7 @@ class _AddressScreenState extends State<AddressScreen>
                   child: Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
@@ -605,14 +605,12 @@ class _AddressScreenState extends State<AddressScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF00B894,
-                            ).withValues(alpha: 0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.check_circle,
-                            color: Color(0xFF00B894),
+                            color: Colors.blue,
                             size: 64,
                           ),
                         ),
@@ -622,7 +620,7 @@ class _AddressScreenState extends State<AddressScreen>
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D3436),
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -630,7 +628,7 @@ class _AddressScreenState extends State<AddressScreen>
                           'Welcome to the app',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: Colors.white70,
                           ),
                         ),
                       ],
@@ -650,7 +648,7 @@ class _AddressScreenState extends State<AddressScreen>
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: Colors.grey[700],
+        color: Colors.white70,
       ),
     );
   }
@@ -663,17 +661,20 @@ class _AddressScreenState extends State<AddressScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(fontSize: 15),
+        style: const TextStyle(
+          fontSize: 15,
+          color: Colors.white,
+        ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-          prefixIcon: Icon(icon, color: Colors.grey[600], size: 22),
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+          prefixIcon: Icon(icon, color: Colors.white70, size: 22),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -696,10 +697,10 @@ class _AddressScreenState extends State<AddressScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF00B894).withValues(alpha: 0.1),
+          color: Colors.blue.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF00B894).withValues(alpha: 0.3),
+            color: Colors.blue.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -707,7 +708,7 @@ class _AddressScreenState extends State<AddressScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Color(0xFF00B894),
+                color: Colors.blue,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -726,7 +727,7 @@ class _AddressScreenState extends State<AddressScreen>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D3436),
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: 2),
@@ -734,7 +735,7 @@ class _AddressScreenState extends State<AddressScreen>
                     'We\'ll detect nearby addresses',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: Colors.white70,
                     ),
                   ),
                 ],
@@ -742,7 +743,7 @@ class _AddressScreenState extends State<AddressScreen>
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey[400],
+              color: Colors.grey[600],
               size: 16,
             ),
           ],
@@ -772,13 +773,11 @@ class _AddressScreenState extends State<AddressScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF00B894).withValues(alpha: 0.1)
-                    : Colors.grey[50],
+                    ? Colors.blue.withValues(alpha: 0.1)
+                    : const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF00B894)
-                      : Colors.grey[300]!,
+                  color: isSelected ? Colors.blue : Colors.grey[600]!,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -788,9 +787,7 @@ class _AddressScreenState extends State<AddressScreen>
                     isSelected
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
-                    color: isSelected
-                        ? const Color(0xFF00B894)
-                        : Colors.grey[400],
+                    color: isSelected ? Colors.blue : Colors.white70,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -799,9 +796,7 @@ class _AddressScreenState extends State<AddressScreen>
                       formattedAddress,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isSelected
-                            ? const Color(0xFF2D3436)
-                            : Colors.grey[700],
+                        color: isSelected ? Colors.white : Colors.white70,
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.w400,
