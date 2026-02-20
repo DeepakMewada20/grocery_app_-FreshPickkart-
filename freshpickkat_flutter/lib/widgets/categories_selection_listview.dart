@@ -87,7 +87,17 @@ class _CategoriesSelectionListviewState
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ViewAllProductsScreen(
+                          sortBy: widget.sortBy,
+                          title: widget.titalWord,
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text(
                     'See All',
                     style: TextStyle(color: Colors.blue),
@@ -112,7 +122,10 @@ class _CategoriesSelectionListviewState
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const ViewAllProductsScreen(),
+                            builder: (_) => ViewAllProductsScreen(
+                              sortBy: widget.sortBy,
+                              title: widget.titalWord,
+                            ),
                           ),
                         );
                       },

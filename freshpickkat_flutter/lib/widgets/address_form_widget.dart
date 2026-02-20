@@ -41,7 +41,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
   List<geo.Placemark> _nearbyPlacemarks = [];
 
   // Field-level error tracking
-  Map<String, String?> _fieldErrors = {
+  final Map<String, String?> _fieldErrors = {
     'name': null,
     'street': null,
     'city': null,
@@ -119,8 +119,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     if (widget.zipController == null) _zipController.dispose();
     if (widget.landmarkController == null) _landmarkController.dispose();
     if (widget.floorController == null) _floorController.dispose();
-    if (widget.instructionsController == null)
+    if (widget.instructionsController == null) {
       _instructionsController.dispose();
+    }
     super.dispose();
   }
 

@@ -150,7 +150,7 @@ class ProductEndpoint extends Endpoint {
             final fields = res.document!.fields!;
 
             // Helper to safely extract double/int values from Firestore
-            double _getDoubleValue(
+            double getDoubleValue(
               Map<String, firestore_api.Value> fields,
               String key,
             ) {
@@ -176,9 +176,9 @@ class ProductEndpoint extends Endpoint {
               productName: fields['productName']?.stringValue ?? '',
               category: fields['category']?.stringValue ?? '',
               imageUrl: fields['imageUrl']?.stringValue ?? '',
-              price: _getDoubleValue(fields, 'price'),
-              realPrice: _getDoubleValue(fields, 'realPrice'),
-              discount: _getDoubleValue(fields, 'discount'),
+              price: getDoubleValue(fields, 'price'),
+              realPrice: getDoubleValue(fields, 'realPrice'),
+              discount: getDoubleValue(fields, 'discount'),
               isAvailable: fields['isAvailable']?.booleanValue ?? false,
               addedAt:
                   DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
