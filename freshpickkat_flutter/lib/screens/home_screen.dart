@@ -11,8 +11,21 @@ import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:get/get.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +55,6 @@ class HomePage extends StatelessWidget {
 
         return NotificationListener<ScrollNotification>(
           onNotification: (scrollInfo) {
-            // Jab user bottom ke near aaye (200px pehle) toh next page load kare
             if (scrollInfo.metrics.pixels >=
                     scrollInfo.metrics.maxScrollExtent - 200 &&
                 !productController.isLoading.value &&
@@ -52,9 +64,9 @@ class HomePage extends StatelessWidget {
             return false;
           },
           child: CustomScrollView(
+            controller: _scrollController,
             slivers: [
-              // Header with app name, tagline, and search bar
-              const FreshPickKartSliverAppBar(),
+              FreshPickKartSliverAppBar(scrollController: _scrollController),
 
               // 🎁 OFFER WIDGET
               OfferWidget(),

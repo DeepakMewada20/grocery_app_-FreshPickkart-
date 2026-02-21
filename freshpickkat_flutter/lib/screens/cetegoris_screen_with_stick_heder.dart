@@ -152,7 +152,7 @@ class _CategoriesScreenWithStickyHeaderState
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: const Color(0xFF1A1A1A),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Container(
@@ -296,7 +296,7 @@ class _CategoriesScreenWithStickyHeaderState
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF252525)
+                      ? Colors.black
                       : Colors.transparent,
                   border: Border(
                     bottom: BorderSide(

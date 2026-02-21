@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 
 class FreshPickKartSliverAppBar extends StatefulWidget {
-  const FreshPickKartSliverAppBar({super.key});
+  final ScrollController? scrollController;
+
+  const FreshPickKartSliverAppBar({
+    super.key,
+    this.scrollController,
+  });
 
   @override
   State<FreshPickKartSliverAppBar> createState() =>
@@ -10,28 +15,52 @@ class FreshPickKartSliverAppBar extends StatefulWidget {
 }
 
 class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
-  double _collapseProgress({
-    required double currentHeight,
-    required double expandedHeight,
-  }) {
-    final double collapsedHeight = kToolbarHeight;
-    final double totalRange = expandedHeight - collapsedHeight;
-    final double collapsedAmount = expandedHeight - currentHeight;
+  double _scrollOffset = 0;
 
-    return (collapsedAmount / totalRange).clamp(0.0, 1.0);
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController?.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController?.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (widget.scrollController != null &&
+        widget.scrollController!.hasClients) {
+      setState(() {
+        _scrollOffset = widget.scrollController!.offset;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    const expandedHeight = 130.0;
+    const collapsedHeight = kToolbarHeight;
+    final progress = (_scrollOffset / (expandedHeight - collapsedHeight)).clamp(
+      0.0,
+      1.0,
+    );
+
+    final backgroundColor = Color.lerp(
+      const Color(0xFF1B8A4C),
+      const Color(0xFF1A1A1A),
+      progress,
+    )!;
+
     return SliverAppBar(
       pinned: true,
       floating: false,
-      expandedHeight: 130,
-      // backgroundColor: Colors.transparent,
-      // surfaceTintColor: Colors.transparent,
+      expandedHeight: expandedHeight,
+      backgroundColor: backgroundColor,
+      surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
 
-      // 🔹 FIXED SEARCH BAR (never shrinks)
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(5),
         child: Padding(
@@ -40,18 +69,8 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
         ),
       ),
 
-      // 🔹 EXPAND / COLLAPSE CONTENT
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
-          final progress = _collapseProgress(
-            currentHeight: constraints.biggest.height,
-            expandedHeight: 130,
-          );
-          final backgroundColor = Color.lerp(
-            Color(0xFF1B8A4C),
-            const Color.fromARGB(233, 0, 0, 0),
-            progress,
-          )!;
           return Container(
             color: backgroundColor,
             child: FlexibleSpaceBar(
