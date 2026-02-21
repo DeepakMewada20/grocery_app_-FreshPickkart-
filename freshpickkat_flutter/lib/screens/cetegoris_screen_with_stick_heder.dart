@@ -152,9 +152,11 @@ class _CategoriesScreenWithStickyHeaderState
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1B8A4C),
+        backgroundColor: const Color(0xFF0F0F0F),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
         title: Container(
-          margin: EdgeInsets.symmetric(horizontal: 16),
+          margin: const EdgeInsets.symmetric(horizontal: 16),
           child: SearchBarWidget(),
         ),
         titleSpacing: 0,

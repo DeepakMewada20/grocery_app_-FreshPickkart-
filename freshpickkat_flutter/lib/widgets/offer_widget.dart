@@ -8,7 +8,7 @@ class OfferWidget extends StatelessWidget {
     return SliverToBoxAdapter(
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: Color.fromARGB(255, 12, 82, 42)),
+        decoration: const BoxDecoration(color: Color(0xFF0C5A2A)),
         child: const Row(
           children: [
             Icon(Icons.card_giftcard, color: Colors.white),
