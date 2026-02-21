@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
@@ -11,15 +12,20 @@ class BasketScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartController = CartController.instance;
     final authController = AuthController.instance;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: cs.onSurface,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Basket',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: cs.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -39,7 +45,7 @@ class BasketScreen extends StatelessWidget {
       ),
       body: Obx(() {
         if (cartController.itemCount == 0) {
-          return _buildEmptyState(context);
+          return _buildEmptyState(context, cs);
         }
 
         return Column(
@@ -48,20 +54,20 @@ class BasketScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildCartItemsList(cartController),
-                    _buildBillDetails(cartController),
+                    _buildCartItemsList(cartController, cs),
+                    _buildBillDetails(cartController, cs),
                   ],
                 ),
               ),
             ),
-            _buildProceedButton(context, cartController, authController),
+            _buildProceedButton(context, cartController, authController, cs),
           ],
         );
       }),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, ColorScheme cs) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -69,30 +75,30 @@ class BasketScreen extends StatelessWidget {
           Icon(
             Icons.shopping_basket_outlined,
             size: 100,
-            color: Colors.white24,
+            color: cs.onSurface.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Your basket is empty',
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Looks like you haven\'t added anything yet.',
-            style: TextStyle(color: Colors.white60, fontSize: 16),
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.5),
+              fontSize: 16,
+            ),
           ),
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: () {
-              // Navigate back to home or categories
-              Get.back(); // Assuming we are in a tab, maybe not valid, but standard
-            },
+            onPressed: () => Get.back(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1B8A4C),
+              backgroundColor: AppTheme.primaryGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -109,7 +115,7 @@ class BasketScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItemsList(CartController cartController) {
+  Widget _buildCartItemsList(CartController cartController, ColorScheme cs) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -120,9 +126,9 @@ class BasketScreen extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
+            color: cs.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: cs.outlineVariant),
           ),
           child: Row(
             children: [
@@ -145,8 +151,8 @@ class BasketScreen extends StatelessWidget {
                   children: [
                     Text(
                       item.product.productName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: cs.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -156,8 +162,8 @@ class BasketScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       item.product.quantity,
-                      style: const TextStyle(
-                        color: Colors.white60,
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.5),
                         fontSize: 14,
                       ),
                     ),
@@ -167,8 +173,8 @@ class BasketScreen extends StatelessWidget {
                       children: [
                         Text(
                           '₹${item.product.price}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: cs.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -189,7 +195,7 @@ class BasketScreen extends StatelessWidget {
   Widget _buildQuantitySelector(CartController cartController, CartItem item) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1B8A4C),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -223,22 +229,22 @@ class BasketScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBillDetails(CartController cartController) {
+  Widget _buildBillDetails(CartController cartController, ColorScheme cs) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Bill Details',
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -247,6 +253,7 @@ class BasketScreen extends StatelessWidget {
           _buildBillRow(
             'Item Total',
             '₹${cartController.subtotal.toStringAsFixed(0)}',
+            cs: cs,
           ),
           const SizedBox(height: 12),
           _buildBillRow(
@@ -256,7 +263,8 @@ class BasketScreen extends StatelessWidget {
                 : '₹${cartController.deliveryFee.toStringAsFixed(0)}',
             valueColor: cartController.deliveryFee == 0
                 ? Colors.green
-                : Colors.white,
+                : cs.onSurface,
+            cs: cs,
           ),
           if (cartController.totalSavings > 0) ...[
             const SizedBox(height: 12),
@@ -264,16 +272,18 @@ class BasketScreen extends StatelessWidget {
               'Total Savings',
               '-₹${cartController.totalSavings.toStringAsFixed(0)}',
               valueColor: Colors.green,
+              cs: cs,
             ),
           ],
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Divider(color: Colors.white10),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Divider(color: cs.outlineVariant),
           ),
           _buildBillRow(
             'To Pay',
             '₹${cartController.totalAmount.toStringAsFixed(0)}',
             isTotal: true,
+            cs: cs,
           ),
         ],
       ),
@@ -284,15 +294,18 @@ class BasketScreen extends StatelessWidget {
     String label,
     String value, {
     bool isTotal = false,
-    Color valueColor = Colors.white,
+    Color? valueColor,
+    required ColorScheme cs,
   }) {
+    final effectiveValueColor =
+        valueColor ?? (isTotal ? cs.onSurface : cs.onSurface);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            color: isTotal ? Colors.white : Colors.white60,
+            color: isTotal ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
             fontSize: isTotal ? 18 : 16,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
           ),
@@ -300,9 +313,9 @@ class BasketScreen extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: isTotal ? Colors.white : valueColor,
+            color: effectiveValueColor,
             fontSize: isTotal ? 20 : 16,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.bold,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
@@ -313,15 +326,16 @@ class BasketScreen extends StatelessWidget {
     BuildContext context,
     CartController cartController,
     AuthController authController,
+    ColorScheme cs,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.black,
-        border: const Border(top: BorderSide(color: Colors.white10)),
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(top: BorderSide(color: cs.outlineVariant)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -338,7 +352,7 @@ class BasketScreen extends StatelessWidget {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1B8A4C),
+          backgroundColor: AppTheme.primaryGreen,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
@@ -390,24 +404,25 @@ class BasketScreen extends StatelessWidget {
     BuildContext context,
     CartController cartController,
   ) {
+    final cs = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
+        backgroundColor: cs.surfaceContainerHighest,
+        title: Text(
           'Clear Basket?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: cs.onSurface),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to remove all items from your basket?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'CANCEL',
-              style: TextStyle(color: Color(0xFF1B8A4C)),
+              style: TextStyle(color: AppTheme.primaryGreen),
             ),
           ),
           TextButton(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 
 class LoginBottomSheet extends StatelessWidget {
   final VoidCallback onLoginPressed;
@@ -11,11 +12,13 @@ class LoginBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      decoration: const BoxDecoration(
-        color: Color(0xFF121212),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -24,34 +27,34 @@ class LoginBottomSheet extends StatelessWidget {
             alignment: Alignment.topRight,
             child: IconButton(
               onPressed: () => Get.back(),
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: Icon(Icons.close, color: cs.onSurface),
             ),
           ),
           Image.network(
-            'https://cdn-icons-png.flaticon.com/512/3081/3081986.png', // Placeholder shopping cart icon
+            'https://cdn-icons-png.flaticon.com/512/3081/3081986.png',
             height: 120,
-            color: Colors.green,
+            color: AppTheme.primaryGreen,
             errorBuilder: (context, error, stackTrace) => const Icon(
               Icons.shopping_cart_outlined,
               size: 80,
-              color: Colors.green,
+              color: AppTheme.primaryGreen,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Hey Stranger!',
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Please Login/Signup before adding items to the cart.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white70,
+              color: cs.onSurface.withValues(alpha: 0.6),
               fontSize: 16,
             ),
           ),
@@ -62,7 +65,7 @@ class LoginBottomSheet extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onLoginPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B8A4C),
+                backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

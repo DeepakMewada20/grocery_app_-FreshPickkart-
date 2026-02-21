@@ -418,7 +418,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();

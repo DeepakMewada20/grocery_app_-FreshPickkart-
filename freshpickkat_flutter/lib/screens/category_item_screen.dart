@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
@@ -9,8 +10,8 @@ import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:get/get.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
-  final String categoryName; // e.g., "Vegetables"
-  final String subCategoryGroupName; // e.g., "Onion, Potato & Tomato"
+  final String categoryName;
+  final String subCategoryGroupName;
 
   const CategoryItemsScreen({
     super.key,
@@ -37,7 +38,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     super.initState();
     _selectedSubGroupName = widget.subCategoryGroupName;
 
-    // Set initial filters and fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyGroupFilter(_selectedSubGroupName);
       _scrollToSelectedSubGroup();
@@ -56,7 +56,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   }
 
   void _scrollToSelectedSubGroup() {
-    // Basic auto-scroll logic for sidebar
     final subGroups = categoryController.subCategories
         .where(
           (sc) =>
@@ -65,7 +64,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         )
         .toList();
 
-    // If 'All' is selected, no need to auto-scroll to a specific subgroup
     if (_selectedSubGroupName.toLowerCase() == 'all') return;
 
     final index = subGroups.indexWhere(
@@ -75,10 +73,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
 
     if (index != -1) {
-      final itemHeight = 100.0; // Approx height of sidebar item
-      // +1 because 'All' is at index 0
       _subCategoryScrollController.animateTo(
-        (index + 1) * itemHeight,
+        (index + 1) * 100.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
@@ -97,7 +93,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         subcategories: null,
       );
     } else {
-      // Parse individual subcategories for the group
       final subList = groupName
           .split(RegExp(r'[,&]'))
           .map((e) => e.trim())
@@ -142,47 +137,40 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: cs.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           widget.categoryName,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: cs.onSurface),
             onPressed: () {},
           ),
         ],
       ),
       body: Row(
         children: [
-          // Sidebar
-          _buildSidebar(),
-
-          // Main Content
+          _buildSidebar(cs),
           Expanded(
             child: Column(
               children: [
-                // Offer Banner
                 _buildOfferBanner(),
-
-                // Filter Chips
-                _buildFilterSection(),
-
-                // Product Grid
-                Expanded(child: _buildProductGrid()),
+                _buildFilterSection(cs),
+                Expanded(child: _buildProductGrid(cs)),
               ],
             ),
           ),
@@ -191,7 +179,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar(ColorScheme cs) {
     final subGroups = categoryController.subCategories
         .where(
           (sc) =>
@@ -203,21 +191,21 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     return Container(
       width: 90,
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        border: const Border(right: BorderSide(color: Colors.white10)),
+        color: cs.surfaceContainerHighest,
+        border: Border(right: BorderSide(color: cs.outlineVariant)),
       ),
       child: ListView.builder(
         controller: _subCategoryScrollController,
-        itemCount: subGroups.length + 1, // +1 for "All"
+        itemCount: subGroups.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
-            // "All" Sidebar Item
             final isSelected = _selectedSubGroupName.toLowerCase() == 'all';
             return _buildSidebarItem(
               title: "All",
               icon: Icons.grid_view_rounded,
               isSelected: isSelected,
               onTap: () => _applyGroupFilter("All"),
+              cs: cs,
             );
           }
 
@@ -232,6 +220,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             imageUrl: subGroup.subCategoriesUrl,
             isSelected: isSelected,
             onTap: () => _applyGroupFilter(groupTitle),
+            cs: cs,
           );
         },
       ),
@@ -244,16 +233,17 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     IconData? icon,
     required bool isSelected,
     required VoidCallback onTap,
+    required ColorScheme cs,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.transparent,
+          color: isSelected ? cs.surface : Colors.transparent,
           border: Border(
             left: BorderSide(
-              color: isSelected ? Color(0xFF1B8A4C) : Colors.transparent,
+              color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
               width: 4,
             ),
           ),
@@ -268,14 +258,16 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                       height: 50,
                       width: 50,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.image, color: Colors.white24),
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.image,
+                        color: cs.onSurface.withValues(alpha: 0.3),
+                      ),
                     )
                   : Container(
                       height: 50,
                       width: 50,
-                      color: Color(0xFF1B8A4C).withOpacity(0.1),
-                      child: Icon(icon, color: Color(0xFF1B8A4C), size: 28),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      child: Icon(icon, color: AppTheme.primaryGreen, size: 28),
                     ),
             ),
             const SizedBox(height: 8),
@@ -283,7 +275,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected
+                    ? cs.onSurface
+                    : cs.onSurface.withValues(alpha: 0.6),
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -298,7 +292,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     return SizedBox(
       width: double.infinity,
       child: OfferBanner(
-        height: 140, // Slightly taller for better visibility
+        height: 140,
         banners: [
           OfferBannerItem(
             imagePath: 'lib/assets/images/discount.jpg',
@@ -309,12 +303,11 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
   }
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterSection(ColorScheme cs) {
     if (_selectedSubGroupName.toLowerCase() == 'all') {
-      return const SizedBox.shrink(); // No chips if "All" is selected in sidebar
+      return const SizedBox.shrink();
     }
 
-    // Parse individual subcategories from the group name
     final filters = [
       'All',
       ..._selectedSubGroupName.split(RegExp(r'[,&]')).map((e) => e.trim()),
@@ -340,10 +333,12 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               onSelected: (val) {
                 if (val) _applySubFilter(filter);
               },
-              backgroundColor: const Color(0xFF1A1A1A),
-              selectedColor: Color(0xFF1B8A4C),
+              backgroundColor: cs.surfaceContainerHighest,
+              selectedColor: AppTheme.primaryGreen,
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected
+                    ? Colors.white
+                    : cs.onSurface.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
               side: BorderSide.none,
@@ -357,7 +352,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
   }
 
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(ColorScheme cs) {
     return Obx(() {
       final networkController = NetworkController.instance;
       final isConnected = networkController.isConnected.value;
@@ -383,10 +378,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       }
 
       if (productController.allProducts.isEmpty) {
-        return const Center(
+        return Center(
           child: Text(
             'No products found',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
           ),
         );
       }
@@ -396,8 +391,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio:
-              0.46, // Adjusted for 1:1 image + vertical stack details
+          childAspectRatio: 0.46,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),

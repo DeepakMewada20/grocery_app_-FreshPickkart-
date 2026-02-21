@@ -49,6 +49,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: () {
         showSearch(
@@ -61,12 +63,16 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: isDark ? Colors.black : Colors.grey[200],
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            const Icon(Icons.search, color: Colors.white, size: 22),
+            Icon(
+              Icons.search,
+              color: isDark ? Colors.white : Colors.black54,
+              size: 22,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: ClipRect(
@@ -75,15 +81,14 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   scrollDirection: Axis.vertical,
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
-                    // Loop through hints infinitely
                     final hintIndex = index % hints.length;
 
                     return Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         hints[hintIndex],
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black54,
                           fontSize: 15,
                         ),
                         maxLines: 1,

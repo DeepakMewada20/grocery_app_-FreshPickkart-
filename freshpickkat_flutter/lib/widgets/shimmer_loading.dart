@@ -1,5 +1,64 @@
 import 'package:flutter/material.dart';
 
+/// A utility shimmer box that adapts its colors to the current theme.
+/// In light mode: uses light gray shades. In dark mode: uses dark gray shades.
+class _ShimmerBox extends StatelessWidget {
+  final Animation<double> animation;
+  final double? width;
+  final double? height;
+  final BorderRadius borderRadius;
+
+  const _ShimmerBox({
+    required this.animation,
+    this.width,
+    this.height,
+    required this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFDEE8D9);
+    final highlightColor = isDark
+        ? const Color(0xFF3A3A3A)
+        : const Color(0xFFF0F5EE);
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: baseColor,
+            borderRadius: borderRadius,
+          ),
+          child: ClipRRect(
+            borderRadius: borderRadius,
+            child: ShaderMask(
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment(animation.value - 1, 0),
+                  end: Alignment(animation.value + 1, 0),
+                  colors: [baseColor, highlightColor, baseColor],
+                  stops: const [0.0, 0.5, 1.0],
+                ).createShader(bounds);
+              },
+              blendMode: BlendMode.srcIn,
+              child: Container(color: baseColor),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Product Grid Shimmer
+// ─────────────────────────────────────────────────────────────────────────────
 class ProductGridShimmer extends StatefulWidget {
   final int crossAxisCount;
   final double crossAxisSpacing;
@@ -71,32 +130,29 @@ class _ProductCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : const Color(0xFFEFF5EC);
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : const Color(0xFFD5E5CE);
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1,
-        ),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
             aspectRatio: 1.0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-              ),
-              child: _ShimmerBox(
-                animation: animation,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
+            child: _ShimmerBox(
+              animation: animation,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
             ),
           ),
@@ -141,6 +197,9 @@ class _ProductCardShimmer extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Horizontal Product List Shimmer
+// ─────────────────────────────────────────────────────────────────────────────
 class HorizontalProductListShimmer extends StatefulWidget {
   final double height;
   final int itemCount;
@@ -213,35 +272,32 @@ class _HorizontalProductCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : const Color(0xFFEFF5EC);
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : const Color(0xFFD5E5CE);
+
     return Container(
       width: width,
       height: height,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 1,
-        ),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
             aspectRatio: 1.0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-              ),
-              child: _ShimmerBox(
-                animation: animation,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
+            child: _ShimmerBox(
+              animation: animation,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
             ),
           ),
@@ -286,6 +342,9 @@ class _HorizontalProductCardShimmer extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Category Item Grid Shimmer
+// ─────────────────────────────────────────────────────────────────────────────
 class CategoryItemGridShimmer extends StatefulWidget {
   final int crossAxisCount;
   final double childAspectRatio;
@@ -364,15 +423,9 @@ class _CategoryItemCardShimmer extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: const Color(0xFF2A2A2A),
-              ),
-              child: _ShimmerBox(
-                animation: animation,
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: _ShimmerBox(
+              animation: animation,
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
           const SizedBox(height: 4),
@@ -390,56 +443,6 @@ class _CategoryItemCardShimmer extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ShimmerBox extends StatelessWidget {
-  final Animation<double> animation;
-  final double? width;
-  final double? height;
-  final BorderRadius borderRadius;
-
-  const _ShimmerBox({
-    required this.animation,
-    this.width,
-    this.height,
-    required this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        return Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2A2A2A),
-            borderRadius: borderRadius,
-          ),
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: ShaderMask(
-              shaderCallback: (bounds) {
-                return LinearGradient(
-                  begin: Alignment(animation.value - 1, 0),
-                  end: Alignment(animation.value + 1, 0),
-                  colors: const [
-                    Color(0xFF2A2A2A),
-                    Color(0xFF3A3A3A),
-                    Color(0xFF2A2A2A),
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.srcIn,
-              child: Container(color: const Color(0xFF2A2A2A)),
-            ),
-          ),
-        );
-      },
     );
   }
 }

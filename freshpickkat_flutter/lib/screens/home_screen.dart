@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     var height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Obx(() {
         final isConnected = networkController.isConnected.value;
         final isLoading = productController.isLoading.value;
@@ -143,15 +143,19 @@ class _HomePageState extends State<HomePage> {
               // "No more products" message
               if (!productController.isMoreDataAvailable.value &&
                   productController.hasData)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Center(
-                      child: Text(
-                        'All products loaded ✅',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 14,
+                      child: Builder(
+                        builder: (context) => Text(
+                          'All products loaded ✅',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.4),
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),

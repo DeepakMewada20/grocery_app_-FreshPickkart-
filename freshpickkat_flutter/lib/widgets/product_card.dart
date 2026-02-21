@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
@@ -52,6 +53,9 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -71,15 +75,15 @@ class _ProductCardState extends State<ProductCard> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.08),
+                color: cs.outlineVariant,
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -184,7 +188,7 @@ class _ProductCardState extends State<ProductCard> {
                         Text(
                           widget.product.productName,
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: cs.onSurface,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             height: 1.1,
@@ -204,7 +208,7 @@ class _ProductCardState extends State<ProductCard> {
                             Text(
                               widget.product.quantity,
                               style: GoogleFonts.inter(
-                                color: Colors.white54,
+                                color: cs.onSurface.withValues(alpha: 0.5),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -228,10 +232,14 @@ class _ProductCardState extends State<ProductCard> {
                                   Text(
                                     '₹${widget.product.realPrice}',
                                     style: GoogleFonts.inter(
-                                      color: Colors.white38,
+                                      color: cs.onSurface.withValues(
+                                        alpha: 0.35,
+                                      ),
                                       fontSize: 10,
                                       decoration: TextDecoration.lineThrough,
-                                      decorationColor: Colors.white38,
+                                      decorationColor: cs.onSurface.withValues(
+                                        alpha: 0.35,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -249,7 +257,7 @@ class _ProductCardState extends State<ProductCard> {
                                       widget.product.productId,
                                     );
                                 return quantity == 0
-                                    ? _buildAddButton()
+                                    ? _buildAddButton(cs)
                                     : _buildQuantitySelector(quantity);
                               }),
                             ),
@@ -267,23 +275,20 @@ class _ProductCardState extends State<ProductCard> {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(ColorScheme cs) {
+    // White bg with dark text — works on both light and dark themes
     return Material(
-      color: Colors.white,
+      color: cs.inverseSurface,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: _handleAddToCart,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white, width: 1),
-            borderRadius: BorderRadius.circular(8),
-          ),
           alignment: Alignment.center,
           child: Text(
             'ADD',
             style: GoogleFonts.poppins(
-              color: Colors.black,
+              color: cs.onInverseSurface,
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -296,11 +301,11 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildQuantitySelector(int quantity) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1B8A4C),
+        color: AppTheme.primaryGreen,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1B8A4C).withOpacity(0.3),
+            color: AppTheme.primaryGreen.withOpacity(0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

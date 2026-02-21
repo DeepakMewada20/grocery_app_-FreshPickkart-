@@ -1,6 +1,5 @@
-// lib/widgets/view_all_card.dart
-
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 
 class ViewAllCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -14,19 +13,17 @@ class ViewAllCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
+          border: Border.all(color: cs.outlineVariant, width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -39,8 +36,8 @@ class ViewAllCard extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                  color: Color(0xFF1B8A4C),
-                  fontSize: 16,
+                  color: AppTheme.primaryGreen,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
@@ -48,8 +45,8 @@ class ViewAllCard extends StatelessWidget {
               const SizedBox(height: 8),
               const Icon(
                 Icons.arrow_forward,
-                color: Color(0xFF1B8A4C),
-                size: 24,
+                color: AppTheme.primaryGreen,
+                size: 22,
               ),
             ],
           ),

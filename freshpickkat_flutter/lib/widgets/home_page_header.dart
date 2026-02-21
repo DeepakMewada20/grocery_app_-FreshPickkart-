@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 
 class FreshPickKartSliverAppBar extends StatefulWidget {
@@ -40,6 +41,9 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const primaryColor = AppTheme.primaryGreen;
+
     const expandedHeight = 130.0;
     const collapsedHeight = kToolbarHeight;
     final progress = (_scrollOffset / (expandedHeight - collapsedHeight)).clamp(
@@ -48,8 +52,8 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
     );
 
     final backgroundColor = Color.lerp(
-      const Color(0xFF1B8A4C),
-      const Color(0xFF1A1A1A),
+      primaryColor,
+      isDark ? const Color(0xFF1A1A1A) : Colors.white,
       progress,
     )!;
 
@@ -91,11 +95,11 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Text(
                               'Order by Midnight',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: isDark ? Colors.white : Colors.black,
                                 fontSize: 15,
                               ),
                             ),

@@ -46,15 +46,21 @@ class HomeBannerWithHorizontalItem extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: 5,
-                      itemBuilder: (context, index) => Container(
-                        width: 100,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: const Color(0xFF2A2A2A),
-                        ),
-                        child: const _ShimmerBox(),
-                      ),
+                      itemBuilder: (context, index) {
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        return Container(
+                          width: 100,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDark
+                                ? const Color(0xFF2A2A2A)
+                                : const Color(0xFFE8F5E9),
+                          ),
+                          child: const _ShimmerBox(),
+                        );
+                      },
                     );
                   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 
 class CategoryItemCard extends StatelessWidget {
   final String itemName;
@@ -14,6 +15,9 @@ class CategoryItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -24,35 +28,43 @@ class CategoryItemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Image Container - Fixed Height
+            // Image Container
             AspectRatio(
               aspectRatio: 1,
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey[800],
+                  color: isDark
+                      ? const Color(0xFF2E2E2E)
+                      : const Color(0xFFE8F5E9), // light green tint
+                  border: isDark
+                      ? null
+                      : Border.all(
+                          color: AppTheme.lightDivider,
+                          width: 1,
+                        ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(1),
+                  padding: const EdgeInsets.all(6),
                   child: _buildImage(imagePath),
                 ),
               ),
             ),
-            // Item Name - Fixed Area at Bottom
+            // Item Name
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 3),
+                padding: const EdgeInsets.only(top: 4),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Text(
                     itemName,
                     textAlign: TextAlign.center,
                     maxLines: 3,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                       height: 1.2,
                     ),
@@ -71,7 +83,7 @@ class CategoryItemCard extends StatelessWidget {
     if (isNetwork) {
       return Image.network(
         path,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) => Center(
           child: Icon(
             Icons.broken_image,
@@ -81,10 +93,9 @@ class CategoryItemCard extends StatelessWidget {
         ),
       );
     }
-    // fallback to asset image
     return Image.asset(
       path,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) => Center(
         child: Icon(
           Icons.broken_image,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
@@ -35,7 +36,6 @@ class _CategoriesScreenWithStickyHeaderState
     super.initState();
     _itemsScrollController.addListener(_onItemsScroll);
 
-    // Listen to category updates to initialize keys and sticky header
     ever(categoryController.categories, (categories) {
       if (categories.isNotEmpty) {
         if (mounted) {
@@ -49,7 +49,6 @@ class _CategoriesScreenWithStickyHeaderState
       }
     });
 
-    // Initial setup if data already exists
     if (categoryController.categories.isNotEmpty) {
       _currentStickyHeader = categoryController.categories[0].categoryName;
       for (int i = 0; i < categoryController.categories.length; i++) {
@@ -61,9 +60,7 @@ class _CategoriesScreenWithStickyHeaderState
   void _onItemsScroll() {
     if (_isAutoScrolling || categoryController.categories.isEmpty) return;
 
-    final stickyHeaderHeight =
-        120.0; // Adjust based on your sticky header actual height
-
+    const stickyHeaderHeight = 120.0;
     int newSelectedIndex = 0;
 
     for (int i = 0; i < categoryController.categories.length; i++) {
@@ -72,7 +69,6 @@ class _CategoriesScreenWithStickyHeaderState
 
       if (renderBox != null) {
         final position = renderBox.localToGlobal(Offset.zero);
-
         if (position.dy <= stickyHeaderHeight) {
           newSelectedIndex = i;
         }
@@ -91,7 +87,7 @@ class _CategoriesScreenWithStickyHeaderState
 
   void _scrollCategoryIntoView(int index) {
     if (!_categoryScrollController.hasClients) return;
-    final categoryHeight = 60.0;
+    const categoryHeight = 60.0;
     final targetPosition = index * categoryHeight;
     final viewportHeight = _categoryScrollController.position.viewportDimension;
 
@@ -120,10 +116,7 @@ class _CategoriesScreenWithStickyHeaderState
 
     if (renderBox != null) {
       final position = renderBox.localToGlobal(Offset.zero);
-      final scrollOffset =
-          _itemsScrollController.offset +
-          position.dy -
-          40.0; // 40 = sticky header height
+      final scrollOffset = _itemsScrollController.offset + position.dy - 40.0;
 
       _itemsScrollController
           .animateTo(
@@ -148,11 +141,12 @@ class _CategoriesScreenWithStickyHeaderState
 
   @override
   Widget build(BuildContext context) {
-    var hight = MediaQuery.of(context).size.height;
+    final cs = Theme.of(context).colorScheme;
+    var height = MediaQuery.of(context).size.height;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Container(
@@ -183,7 +177,7 @@ class _CategoriesScreenWithStickyHeaderState
             children: [
               Container(
                 width: 90,
-                color: const Color(0xFF1A1A1A),
+                color: cs.surfaceContainerHighest,
                 child: ListView.builder(
                   itemCount: 8,
                   itemBuilder: (context, index) => Container(
@@ -194,7 +188,7 @@ class _CategoriesScreenWithStickyHeaderState
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2A2A2A),
+                            color: cs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -203,7 +197,7 @@ class _CategoriesScreenWithStickyHeaderState
                           width: 50,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2A2A2A),
+                            color: cs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -228,24 +222,24 @@ class _CategoriesScreenWithStickyHeaderState
           );
         }
         if (categoryController.categories.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No categories found',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: cs.onSurface),
             ),
           );
         }
         return Row(
           children: [
-            _buildCategoriesList(),
+            _buildCategoriesList(cs),
             Container(
-              height: hight,
+              height: height,
               width: 9,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF1A1A1A).withOpacity(1.0),
-                    const Color(0xFF1A1A1A).withOpacity(0.0),
+                    cs.surfaceContainerHighest.withOpacity(1.0),
+                    cs.surfaceContainerHighest.withOpacity(0.0),
                   ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
@@ -255,8 +249,8 @@ class _CategoriesScreenWithStickyHeaderState
             Expanded(
               child: Stack(
                 children: [
-                  _buildItemsGrid(),
-                  _buildStickyHeader(),
+                  _buildItemsGrid(cs),
+                  _buildStickyHeader(cs),
                 ],
               ),
             ),
@@ -266,10 +260,10 @@ class _CategoriesScreenWithStickyHeaderState
     );
   }
 
-  Widget _buildCategoriesList() {
+  Widget _buildCategoriesList(ColorScheme cs) {
     return Container(
       width: 90,
-      color: const Color(0xFF1A1A1A),
+      color: cs.surfaceContainerHighest,
       child: ListView.builder(
         controller: _categoryScrollController,
         itemCount: categoryController.categories.length,
@@ -289,23 +283,23 @@ class _CategoriesScreenWithStickyHeaderState
               setState(() => _tappedCategoryIndex = null);
             },
             child: ClipRRect(
-              borderRadius: BorderRadiusGeometry.only(
-                topLeft: Radius.circular(10),
-                bottomLeft: Radius.circular(10),
+              borderRadius: const BorderRadiusDirectional.only(
+                topStart: Radius.circular(10),
+                bottomStart: Radius.circular(10),
               ),
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.black
+                      ? Theme.of(context).scaffoldBackgroundColor
                       : Colors.transparent,
                   border: Border(
                     bottom: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
+                      color: cs.outlineVariant,
                       width: 1,
                     ),
                     left: BorderSide(
                       color: isSelected
-                          ? Color(0xFF1B8A4C)
+                          ? AppTheme.primaryGreen
                           : Colors.transparent,
                       width: 6,
                     ),
@@ -324,7 +318,7 @@ class _CategoriesScreenWithStickyHeaderState
                           padding: const EdgeInsets.all(8.0),
                           child: AnimatedScale(
                             scale: isTapped ? 1.3 : 1.0,
-                            duration: Duration(milliseconds: 250),
+                            duration: const Duration(milliseconds: 250),
                             child: Image.network(
                               categoryController
                                   .categories[index]
@@ -349,7 +343,9 @@ class _CategoriesScreenWithStickyHeaderState
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected
+                              ? cs.onSurface
+                              : cs.onSurface.withValues(alpha: 0.6),
                           fontSize: 12,
                           fontWeight: isSelected
                               ? FontWeight.bold
@@ -367,18 +363,18 @@ class _CategoriesScreenWithStickyHeaderState
     );
   }
 
-  Widget _buildStickyHeader() {
+  Widget _buildStickyHeader(ColorScheme cs) {
     return Positioned(
       top: 0,
       left: 0,
       right: 0,
       child: Container(
-        color: const Color(0xFF0F0F0F),
+        color: Theme.of(context).scaffoldBackgroundColor,
         padding: const EdgeInsets.fromLTRB(10, 10, 16, 10),
         child: Text(
           _currentStickyHeader,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: cs.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -387,9 +383,9 @@ class _CategoriesScreenWithStickyHeaderState
     );
   }
 
-  Widget _buildItemsGrid() {
+  Widget _buildItemsGrid(ColorScheme cs) {
     return Container(
-      color: const Color(0xFF0F0F0F),
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         controller: _itemsScrollController,
         padding: const EdgeInsets.only(
@@ -405,8 +401,6 @@ class _CategoriesScreenWithStickyHeaderState
             final remoteCategory = categoryController.categories[categoryIndex];
             final categoryName = remoteCategory.categoryName;
 
-            // Filter subcategories by categoryId (matching categoryName)
-            // Handling case-insensitive and trimmed match for robust sorting
             final subCategoriesList = categoryController.subCategories
                 .where(
                   (sc) =>
@@ -423,8 +417,8 @@ class _CategoriesScreenWithStickyHeaderState
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(
                     categoryName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -435,7 +429,9 @@ class _CategoriesScreenWithStickyHeaderState
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
                       'No subcategories for $categoryName',
-                      style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                      ),
                     ),
                   )
                 else
@@ -452,8 +448,6 @@ class _CategoriesScreenWithStickyHeaderState
                     itemCount: subCategoriesList.length,
                     itemBuilder: (context, itemIndex) {
                       final subCategory = subCategoriesList[itemIndex];
-
-                      // Joining names if there are multiple in subCategoriesName array
                       final itemName = subCategory.subCategoriesName.join(', ');
                       final imageUrl = subCategory.subCategoriesUrl;
 

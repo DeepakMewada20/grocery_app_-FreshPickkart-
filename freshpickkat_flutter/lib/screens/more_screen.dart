@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/appearance_screen.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
@@ -17,7 +18,6 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh user data from server when screen opens
     Future.microtask(() {
       UserController.instance.refreshUserDataFromServer();
     });
@@ -27,68 +27,59 @@ class _MoreScreenState extends State<MoreScreen> {
   Widget build(BuildContext context) {
     final authController = AuthController.instance;
     final userController = UserController.instance;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Profile Header
-              _buildProfileHeader(userController),
-
-              // 2. Membership Banner
+              _buildProfileHeader(userController, cs),
               _buildMembershipBanner(),
-
-              // 3. Quick Actions (My Orders, Support)
-              _buildQuickActions(),
-
+              _buildQuickActions(cs),
               const SizedBox(height: 16),
-
-              // 4. Delivery Address Section
-              _buildSectionHeader('Your Delivery Address'),
-              _buildAddressSection(userController),
-
+              _buildSectionHeader('Your Delivery Address', cs),
+              _buildAddressSection(userController, cs),
               const SizedBox(height: 16),
-
-              // 5. Appearance Section
-              _buildAppearanceSection(),
-
+              _buildAppearanceSection(cs),
               const SizedBox(height: 16),
-
-              // 6. Menu List
               _buildMenuItem(
                 icon: Icons.notifications_none_outlined,
                 title: 'Notifications',
                 onTap: () {},
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.headset_mic_outlined,
                 title: 'Help & Support',
                 onTap: () {},
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.privacy_tip_outlined,
                 title: 'Privacy Policy',
                 onTap: () {},
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.description_outlined,
                 title: 'Terms & Conditions',
                 onTap: () {},
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.help_outline,
                 title: 'FAQ',
                 onTap: () {},
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.person_outline,
                 title: 'My Profile',
-                onTap: () {
-                  Get.to(() => const EditProfileScreen());
-                },
+                onTap: () => Get.to(() => const EditProfileScreen()),
+                cs: cs,
               ),
               _buildMenuItem(
                 icon: Icons.logout,
@@ -96,21 +87,25 @@ class _MoreScreenState extends State<MoreScreen> {
                 onTap: () {
                   Get.dialog(
                     AlertDialog(
-                      backgroundColor: const Color(0xFF1A1A1A),
-                      title: const Text(
+                      backgroundColor: cs.surfaceContainerHighest,
+                      title: Text(
                         'Logout',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: cs.onSurface),
                       ),
-                      content: const Text(
+                      content: Text(
                         'Are you sure you want to logout?',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.7),
+                        ),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Get.back(),
-                          child: const Text(
+                          child: Text(
                             'Cancel',
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.7),
+                            ),
                           ),
                         ),
                         TextButton(
@@ -127,12 +122,10 @@ class _MoreScreenState extends State<MoreScreen> {
                     ),
                   );
                 },
+                cs: cs,
               ),
-
               const SizedBox(height: 40),
-
-              // 7. Footer
-              _buildFooter(),
+              _buildFooter(cs),
               const SizedBox(height: 40),
             ],
           ),
@@ -141,27 +134,25 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildProfileHeader(UserController userController) {
+  Widget _buildProfileHeader(UserController userController, ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
-          // Avatar
           Obx(() {
             final imageUrl = userController.profileImageUrl.value;
             return CircleAvatar(
               radius: 35,
-              backgroundColor: Colors.white,
+              backgroundColor: cs.surfaceContainerHighest,
               backgroundImage: imageUrl.isNotEmpty
                   ? NetworkImage(imageUrl)
                   : null,
               child: imageUrl.isEmpty
-                  ? const Icon(Icons.person, size: 40, color: Color(0xFF0F0F0F))
+                  ? Icon(Icons.person, size: 40, color: cs.onSurface)
                   : null,
             );
           }),
           const SizedBox(width: 16),
-          // User Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,30 +162,39 @@ class _MoreScreenState extends State<MoreScreen> {
                     userController.userName.value.isEmpty
                         ? 'Guest User'
                         : userController.userName.value,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const Text(
-                  'email address', // Placeholder as per image
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                Text(
+                  'email address',
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    fontSize: 14,
+                  ),
                 ),
                 Obx(
                   () => Text(
                     userController.userPhone.value,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Edit Icon
           IconButton(
             onPressed: () => Get.to(() => const EditProfileScreen()),
-            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
+            icon: const Icon(
+              Icons.edit,
+              color: AppTheme.primaryGreen,
+              size: 20,
+            ),
           ),
         ],
       ),
@@ -216,10 +216,8 @@ class _MoreScreenState extends State<MoreScreen> {
       ),
       child: Row(
         children: [
-          // Crown Icon / Image
           const Icon(Icons.workspace_premium, color: Colors.amber, size: 32),
           const SizedBox(width: 12),
-          // Text
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,8 +230,6 @@ class _MoreScreenState extends State<MoreScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 4),
-                // Badge
               ],
             ),
           ),
@@ -246,7 +242,7 @@ class _MoreScreenState extends State<MoreScreen> {
             child: const Text(
               'Free Trial Available',
               style: TextStyle(
-                color: Color(0xFF1B8A4C),
+                color: AppTheme.primaryGreen,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -258,7 +254,7 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -268,6 +264,7 @@ class _MoreScreenState extends State<MoreScreen> {
               icon: Icons.receipt_long,
               label: 'My Orders',
               onTap: () => Get.to(() => const OrdersScreen()),
+              cs: cs,
             ),
           ),
           const SizedBox(width: 12),
@@ -276,6 +273,7 @@ class _MoreScreenState extends State<MoreScreen> {
               icon: Icons.support_agent,
               label: 'Support',
               onTap: () {},
+              cs: cs,
             ),
           ),
         ],
@@ -287,13 +285,14 @@ class _MoreScreenState extends State<MoreScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required ColorScheme cs,
   }) {
     return InkWell(
       onTap: onTap,
       child: Container(
         height: 100,
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -302,16 +301,16 @@ class _MoreScreenState extends State<MoreScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.grey[850],
+                color: cs.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: Colors.white, size: 28),
+              child: Icon(icon, color: cs.onSurface, size: 28),
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: cs.onSurface,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -321,13 +320,13 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.white70,
+        style: TextStyle(
+          color: cs.onSurface.withValues(alpha: 0.6),
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -335,12 +334,12 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildAddressSection(UserController userController) {
+  Widget _buildAddressSection(UserController userController, ColorScheme cs) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -348,19 +347,22 @@ class _MoreScreenState extends State<MoreScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.grey[850],
+              color: cs.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.location_on, color: Colors.white),
+            child: Icon(Icons.location_on, color: cs.onSurface),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Obx(() {
               final addr = userController.shippingAddress.value;
               if (addr == null) {
-                return const Text(
+                return Text(
                   'No address set',
-                  style: TextStyle(color: Colors.white54, fontSize: 13),
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.4),
+                    fontSize: 13,
+                  ),
                 );
               }
               return Column(
@@ -368,8 +370,8 @@ class _MoreScreenState extends State<MoreScreen> {
                 children: [
                   Text(
                     addr.street,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -377,8 +379,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   ),
                   Text(
                     '${addr.city}, ${addr.state} ${addr.zipCode}',
-                    style: const TextStyle(
-                      color: Colors.white54,
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5),
                       fontSize: 13,
                     ),
                     maxLines: 1,
@@ -390,19 +392,24 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
           IconButton(
             onPressed: () => Get.toNamed('/address'),
-            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
+            icon: const Icon(
+              Icons.edit,
+              color: AppTheme.primaryGreen,
+              size: 20,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAppearanceSection() {
+  Widget _buildAppearanceSection(ColorScheme cs) {
+    final themeController = ThemeController.instance;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -410,35 +417,52 @@ class _MoreScreenState extends State<MoreScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.grey[850],
+              color: cs.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.brightness_4, color: Colors.white),
+            child: Icon(Icons.brightness_4, color: cs.onSurface),
           ),
           const SizedBox(width: 12),
-          const Text(
+          Text(
             'Appearance',
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white24),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'SYSTEM DEFAULT',
-              style: TextStyle(color: Colors.white, fontSize: 10),
-            ),
-          ),
+          Obx(() {
+            String label;
+            switch (themeController.themeMode) {
+              case ThemeMode.light:
+                label = 'LIGHT';
+                break;
+              case ThemeMode.dark:
+                label = 'DARK';
+                break;
+              default:
+                label = 'SYSTEM DEFAULT';
+            }
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                border: Border.all(color: cs.outlineVariant),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(color: cs.onSurface, fontSize: 10),
+              ),
+            );
+          }),
           IconButton(
             onPressed: () => Get.to(() => const AppearanceScreen()),
-            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
+            icon: const Icon(
+              Icons.edit,
+              color: AppTheme.primaryGreen,
+              size: 20,
+            ),
           ),
         ],
       ),
@@ -449,54 +473,63 @@ class _MoreScreenState extends State<MoreScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required ColorScheme cs,
   }) {
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: cs.outlineVariant),
+          ),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey[850],
+                color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: cs.onSurface, size: 22),
             ),
             const SizedBox(width: 16),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: cs.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, color: Colors.white24),
+            Icon(
+              Icons.chevron_right,
+              color: cs.onSurface.withValues(alpha: 0.3),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(ColorScheme cs) {
     return Center(
       child: Column(
         children: [
           Image.asset(
             'lib/assets/images/logo.png',
             height: 40,
-            color: Colors.white24,
+            color: cs.onSurface.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'App Version 8.0.2.0',
-            style: TextStyle(color: Colors.white24, fontSize: 12),
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.2),
+              fontSize: 12,
+            ),
           ),
         ],
       ),
