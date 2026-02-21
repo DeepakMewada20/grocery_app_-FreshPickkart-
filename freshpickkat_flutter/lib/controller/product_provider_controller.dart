@@ -58,7 +58,7 @@ class ProductProviderController extends GetxController {
       errorMessage.value = '';
 
       final newProducts = await _client.product.getProducts(
-        limit: 10,
+        limit: 12,
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,

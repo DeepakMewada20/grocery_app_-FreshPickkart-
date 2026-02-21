@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
@@ -240,13 +241,28 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           _errorMessage = error;
         });
       },
-      onAutoVerify: () {
+      onAutoVerify: () async {
         setState(() => _isLoading = false);
-        if (_authController.returnRoute.value.isNotEmpty) {
-          String route = _authController.returnRoute.value;
-          _authController.returnRoute.value = ''; // Clear it
-          Get.offAllNamed(route);
+
+        // Wait for user data to be synced
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Check if user has profile data (name and address)
+        final userController = UserController.instance;
+        final hasName = userController.userName.value.isNotEmpty;
+        final hasAddress = userController.shippingAddress.value != null;
+
+        if (hasName && hasAddress) {
+          // User has profile data, redirect to returnRoute or home
+          if (_authController.returnRoute.value.isNotEmpty) {
+            String route = _authController.returnRoute.value;
+            _authController.returnRoute.value = '';
+            Get.offAllNamed(route);
+          } else {
+            Get.offAllNamed('/home');
+          }
         } else {
+          // First time user or missing profile data, go to AddressScreen
           Navigator.pushReplacementNamed(context, '/address');
         }
       },
@@ -270,10 +286,25 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     );
 
     if (result['success']) {
-      // await _successController.forward();
-      // await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/address');
+        // Check if user has profile data (name and address)
+        final userController = UserController.instance;
+        final hasName = userController.userName.value.isNotEmpty;
+        final hasAddress = userController.shippingAddress.value != null;
+
+        if (hasName && hasAddress) {
+          // User has profile data, redirect to returnRoute or home
+          if (_authController.returnRoute.value.isNotEmpty) {
+            String route = _authController.returnRoute.value;
+            _authController.returnRoute.value = '';
+            Get.offAllNamed(route);
+          } else {
+            Get.offAllNamed('/home');
+          }
+        } else {
+          // First time user or missing profile data, go to AddressScreen
+          Navigator.pushReplacementNamed(context, '/address');
+        }
       }
     } else {
       setState(() {

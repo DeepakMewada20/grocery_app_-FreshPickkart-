@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
+import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:get/get.dart';
 
 class CategoriesScreenWithStickyHeader extends StatefulWidget {
@@ -157,9 +160,70 @@ class _CategoriesScreenWithStickyHeaderState
         titleSpacing: 0,
       ),
       body: Obx(() {
-        if (categoryController.isLoading.value &&
-            categoryController.categories.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+        final networkController = NetworkController.instance;
+        final isConnected = networkController.isConnected.value;
+        final isLoading = categoryController.isLoading.value;
+        final hasData = categoryController.categories.isNotEmpty;
+
+        if (!isConnected || (isLoading && !hasData)) {
+          if (!isConnected) {
+            return NetworkErrorWidget(
+              message: 'No internet connection',
+              onRetry: () async {
+                final connected = await networkController.checkConnection();
+                if (connected) {
+                  categoryController.refreshData();
+                }
+              },
+            );
+          }
+          return Row(
+            children: [
+              Container(
+                width: 90,
+                color: const Color(0xFF1A1A1A),
+                child: ListView.builder(
+                  itemCount: 8,
+                  itemBuilder: (context, index) => Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2A2A2A),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 50,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2A2A2A),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: CategoryItemGridShimmer(
+                    crossAxisCount: 3,
+                    childAspectRatio: 0.74,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    itemCount: 9,
+                  ),
+                ),
+              ),
+            ],
+          );
         }
         if (categoryController.categories.isEmpty) {
           return const Center(

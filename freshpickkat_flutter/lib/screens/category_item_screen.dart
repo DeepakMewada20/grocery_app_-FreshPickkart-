@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:get/get.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
@@ -356,9 +359,26 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   Widget _buildProductGrid() {
     return Obx(() {
-      if (productController.isLoading.value && !productController.hasData) {
-        return const Center(
-          child: CircularProgressIndicator(color: Colors.blue),
+      final networkController = NetworkController.instance;
+      final isConnected = networkController.isConnected.value;
+      final isLoading = productController.isLoading.value;
+      final hasData = productController.hasData;
+
+      if (!isConnected || (isLoading && !hasData)) {
+        if (!isConnected) {
+          return NetworkErrorWidget(
+            message: 'No internet connection',
+            onRetry: () async {
+              final connected = await networkController.checkConnection();
+              if (connected) {
+                productController.fetchProducts();
+              }
+            },
+          );
+        }
+        return ProductGridShimmer(
+          itemCount: 6,
+          padding: const EdgeInsets.all(12),
         );
       }
 
@@ -386,10 +406,13 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             (productController.isMoreDataAvailable.value ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == productController.allProducts.length) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(color: Colors.blue),
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  height: 180,
+                  child: ProductGridShimmer(itemCount: 2),
+                ),
               ),
             );
           }

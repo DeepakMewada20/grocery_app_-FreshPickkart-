@@ -3,6 +3,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
 import 'package:get/get.dart';
 
@@ -58,9 +59,11 @@ class _CategoriesSelectionListviewState
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 40),
           child: SizedBox(
-            height: 200,
-            child: Center(
-              child: CircularProgressIndicator(),
+            height: 260,
+            child: HorizontalProductListShimmer(
+              height: 260,
+              itemCount: 5,
+              itemWidth: 160,
             ),
           ),
         );

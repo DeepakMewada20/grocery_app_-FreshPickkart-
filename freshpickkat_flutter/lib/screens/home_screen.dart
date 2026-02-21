@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:freshpickkat_flutter/widgets/categories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
 import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
+import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
+import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatelessWidget {
@@ -15,20 +17,26 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productController = ProductProviderController.instance;
+    final networkController = NetworkController.instance;
     var height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       body: Obx(() {
-        if (productController.isLoading.value && !productController.hasData) {
-          return CustomScrollView(
-            slivers: [
-              const MilkbasketSliverAppBar(),
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: GroceryLoadingAnimation()),
-              ),
-            ],
+        final isConnected = networkController.isConnected.value;
+        final isLoading = productController.isLoading.value;
+        final hasData = productController.hasData;
+
+        if (!isConnected || (isLoading && !hasData)) {
+          return InitialLoadingScreen(
+            hasError: !isConnected,
+            errorMessage: !isConnected ? 'No internet connection' : '',
+            onRetry: () async {
+              final connected = await networkController.checkConnection();
+              if (connected) {
+                productController.fetchProducts();
+              }
+            },
           );
         }
 
@@ -108,13 +116,14 @@ class HomePage extends StatelessWidget {
               // Loading indicator at bottom when fetching more
               if (productController.isLoading.value &&
                   productController.hasData)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                      ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 400,
+                    child: ProductGridShimmer(
+                      itemCount: 6,
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.458,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                   ),
                 ),

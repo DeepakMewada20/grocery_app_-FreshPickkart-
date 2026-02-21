@@ -27,6 +27,7 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter_native_splash: ^2.4.7
   carousel_slider: ^5.1.1
+  connectivity_plus: ^6.1.0
   flutter:
     sdk: flutter
   freshpickkat_client:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:get/get.dart';
 
 /// Displays a full list of products in a grid. The [sortBy] value is forwarded
@@ -80,7 +81,10 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
       body: SafeArea(
         child: Obx(() {
           if (isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return ProductGridShimmer(
+              itemCount: 6,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            );
           }
           if (products.isEmpty) {
             return const Center(
