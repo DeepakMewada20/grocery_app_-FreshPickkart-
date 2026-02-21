@@ -398,10 +398,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF252525),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue, width: 2),
+        border: Border.all(color: Color(0xFF1B8A4C), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.2),
+            color: Color(0xFF1B8A4C).withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -502,7 +502,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                           ),
                                           label: const Text('Edit'),
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Colors.blue,
+                                            foregroundColor: Color(0xFF1B8A4C),
                                             padding: EdgeInsets.zero,
                                           ),
                                         ),
@@ -650,7 +650,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         cursor: Container(
                                           width: 2,
                                           height: 22,
-                                          color: Colors.blue,
+                                          color: Color(0xFF1B8A4C),
                                         ),
                                       ),
                                     ),
@@ -675,7 +675,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                       child:
                                                           CircularProgressIndicator(
                                                             strokeWidth: 2,
-                                                            color: Colors.blue,
+                                                            color: Color(
+                                                              0xFF1B8A4C,
+                                                            ),
                                                           ),
                                                     )
                                                   : const Text(
@@ -684,7 +686,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                         fontSize: 15,
                                                         fontWeight:
                                                             FontWeight.w600,
-                                                        color: Colors.blue,
+                                                        color: Color(
+                                                          0xFF1B8A4C,
+                                                        ),
                                                       ),
                                                     ),
                                             ),
@@ -751,7 +755,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                   ? null
                                   : (_showOtpInput ? _verifyOTP : _sendOTP),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
+                                backgroundColor: Color(0xFF1B8A4C),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -822,12 +826,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Color(0xFF1B8A4C).withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.check_circle,
-                              color: Colors.blue,
+                              color: Color(0xFF1B8A4C),
                               size: 64,
                             ),
                           ),

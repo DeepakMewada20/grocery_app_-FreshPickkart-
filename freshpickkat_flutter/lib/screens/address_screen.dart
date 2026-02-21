@@ -399,7 +399,7 @@ class _AddressScreenState extends State<AddressScreen>
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.blue,
+                                    color: Color(0xFF1B8A4C),
                                   ),
                                 ),
                             ],
@@ -439,7 +439,7 @@ class _AddressScreenState extends State<AddressScreen>
                               ),
                             ),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.blue,
+                              foregroundColor: Color(0xFF1B8A4C),
                             ),
                           ),
 
@@ -553,7 +553,7 @@ class _AddressScreenState extends State<AddressScreen>
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveAddress,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Color(0xFF1B8A4C),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -605,12 +605,12 @@ class _AddressScreenState extends State<AddressScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: Color(0xFF1B8A4C).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.check_circle,
-                            color: Colors.blue,
+                            color: Color(0xFF1B8A4C),
                             size: 64,
                           ),
                         ),
@@ -697,10 +697,10 @@ class _AddressScreenState extends State<AddressScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.1),
+          color: Color(0xFF1B8A4C).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.blue.withValues(alpha: 0.3),
+            color: Color(0xFF1B8A4C).withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -708,7 +708,7 @@ class _AddressScreenState extends State<AddressScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Colors.blue,
+                color: Color(0xFF1B8A4C),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -773,11 +773,11 @@ class _AddressScreenState extends State<AddressScreen>
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.blue.withValues(alpha: 0.1)
+                    ? Color(0xFF1B8A4C).withValues(alpha: 0.1)
                     : const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? Colors.blue : Colors.grey[600]!,
+                  color: isSelected ? Color(0xFF1B8A4C) : Colors.grey[600]!,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -787,7 +787,7 @@ class _AddressScreenState extends State<AddressScreen>
                     isSelected
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
-                    color: isSelected ? Colors.blue : Colors.white70,
+                    color: isSelected ? Color(0xFF1B8A4C) : Colors.white70,
                     size: 22,
                   ),
                   const SizedBox(width: 12),

@@ -273,8 +273,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: OutlinedButton(
           onPressed: () => _handleAddToCart(product),
           style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF2196F3),
-            side: const BorderSide(color: Color(0xFF2196F3), width: 1.5),
+            foregroundColor: const Color(0xFF1B8A4C),
+            side: const BorderSide(color: Color(0xFF1B8A4C), width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -291,7 +291,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         height: 36,
         padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF2196F3),
+          color: const Color(0xFF1B8A4C),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(

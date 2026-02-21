@@ -54,7 +54,7 @@ class HomePage extends StatelessWidget {
           child: CustomScrollView(
             slivers: [
               // Header with app name, tagline, and search bar
-              const MilkbasketSliverAppBar(),
+              const FreshPickKartSliverAppBar(),
 
               // 🎁 OFFER WIDGET
               OfferWidget(),

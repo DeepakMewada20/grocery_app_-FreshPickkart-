@@ -296,11 +296,11 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildQuantitySelector(int quantity) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2196F3),
+        color: const Color(0xFF1B8A4C),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2196F3).withOpacity(0.3),
+            color: const Color(0xFF1B8A4C).withOpacity(0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

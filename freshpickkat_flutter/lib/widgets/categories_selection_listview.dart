@@ -103,7 +103,7 @@ class _CategoriesSelectionListviewState
                   },
                   child: const Text(
                     'See All',
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: Color(0xFF1B8A4C)),
                   ),
                 ),
               ],

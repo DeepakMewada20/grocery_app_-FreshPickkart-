@@ -21,7 +21,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
         titleLarge: TextStyle(color: Colors.white),
       ),
       textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Colors.blue,
+        cursorColor: Color(0xFF1B8A4C),
       ),
     );
   }
@@ -59,7 +59,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
       child: Obx(() {
         if (searchController.isLoadingResults.value) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.blue),
+            child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
           );
         }
 
@@ -138,7 +138,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
         if (searchController.isLoadingSuggestions.value &&
             searchController.suggestions.isEmpty) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.blue),
+            child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
           );
         }
 

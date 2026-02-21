@@ -451,12 +451,12 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: widget.isDarkTheme
-              ? Colors.blue.withValues(alpha: 0.15)
+              ? Color(0xFF1B8A4C).withValues(alpha: 0.15)
               : const Color(0xFF00B894).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: widget.isDarkTheme
-                ? Colors.blue.withValues(alpha: 0.3)
+                ? Color(0xFF1B8A4C).withValues(alpha: 0.3)
                 : const Color(0xFF00B894).withValues(alpha: 0.3),
           ),
         ),
@@ -466,7 +466,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: widget.isDarkTheme
-                    ? Colors.blue
+                    ? Color(0xFF1B8A4C)
                     : const Color(0xFF00B894),
                 shape: BoxShape.circle,
               ),
@@ -541,14 +541,14 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? (widget.isDarkTheme
-                          ? Colors.blue.withValues(alpha: 0.2)
+                          ? Color(0xFF1B8A4C).withValues(alpha: 0.2)
                           : const Color(0xFF00B894).withValues(alpha: 0.1))
                     : _getBgColor(),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
                       ? (widget.isDarkTheme
-                            ? Colors.blue
+                            ? Color(0xFF1B8A4C)
                             : const Color(0xFF00B894))
                       : (widget.isDarkTheme
                             ? Colors.grey[700]!
@@ -564,7 +564,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                         : Icons.radio_button_off,
                     color: isSelected
                         ? (widget.isDarkTheme
-                              ? Colors.blue
+                              ? Color(0xFF1B8A4C)
                               : const Color(0xFF00B894))
                         : (widget.isDarkTheme
                               ? Colors.grey[600]

@@ -92,7 +92,7 @@ class BasketScreen extends StatelessWidget {
               Get.back(); // Assuming we are in a tab, maybe not valid, but standard
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
+              backgroundColor: const Color(0xFF1B8A4C),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -189,7 +189,7 @@ class BasketScreen extends StatelessWidget {
   Widget _buildQuantitySelector(CartController cartController, CartItem item) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2196F3),
+        color: const Color(0xFF1B8A4C),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -338,7 +338,7 @@ class BasketScreen extends StatelessWidget {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2196F3),
+          backgroundColor: const Color(0xFF1B8A4C),
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
@@ -405,7 +405,10 @@ class BasketScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.blue)),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: Color(0xFF1B8A4C)),
+            ),
           ),
           TextButton(
             onPressed: () {

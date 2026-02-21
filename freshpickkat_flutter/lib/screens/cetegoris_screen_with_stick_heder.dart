@@ -304,7 +304,9 @@ class _CategoriesScreenWithStickyHeaderState
                       width: 1,
                     ),
                     left: BorderSide(
-                      color: isSelected ? Colors.blue : Colors.transparent,
+                      color: isSelected
+                          ? Color(0xFF1B8A4C)
+                          : Colors.transparent,
                       width: 6,
                     ),
                   ),

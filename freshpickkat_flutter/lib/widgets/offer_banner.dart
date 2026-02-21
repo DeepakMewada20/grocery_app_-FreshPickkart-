@@ -121,7 +121,7 @@ class _OfferBannerState extends State<OfferBanner> {
               return Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade700, Colors.blue.shade900],
+                    colors: [Color(0xFF1B8A4C), Color(0xFF1B8A4C)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

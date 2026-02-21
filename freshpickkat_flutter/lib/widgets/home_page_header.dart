@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 
-class MilkbasketSliverAppBar extends StatefulWidget {
-  const MilkbasketSliverAppBar({super.key});
+class FreshPickKartSliverAppBar extends StatefulWidget {
+  const FreshPickKartSliverAppBar({super.key});
 
   @override
-  State<MilkbasketSliverAppBar> createState() => _MilkbasketSliverAppBarState();
+  State<FreshPickKartSliverAppBar> createState() =>
+      _FreshPickKartSliverAppBarState();
 }
 
-class _MilkbasketSliverAppBarState extends State<MilkbasketSliverAppBar> {
+class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
   double _collapseProgress({
     required double currentHeight,
     required double expandedHeight,

@@ -39,7 +39,7 @@ class ViewAllCard extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                  color: Color(0xFF2196F3),
+                  color: Color(0xFF1B8A4C),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -48,7 +48,7 @@ class ViewAllCard extends StatelessWidget {
               const SizedBox(height: 8),
               const Icon(
                 Icons.arrow_forward,
-                color: Color(0xFF2196F3),
+                color: Color(0xFF1B8A4C),
                 size: 24,
               ),
             ],

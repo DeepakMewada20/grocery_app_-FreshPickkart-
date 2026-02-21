@@ -194,7 +194,7 @@ class _MoreScreenState extends State<MoreScreen> {
           // Edit Icon
           IconButton(
             onPressed: () => Get.to(() => const EditProfileScreen()),
-            icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
+            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
           ),
         ],
       ),
@@ -207,7 +207,7 @@ class _MoreScreenState extends State<MoreScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+          colors: [Color(0xFF1B8A4C), Color(0xFF2ECC71)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -225,7 +225,7 @@ class _MoreScreenState extends State<MoreScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Milkbasket Membership',
+                  'FreshPickKart Membership',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -240,14 +240,13 @@ class _MoreScreenState extends State<MoreScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF2ECC71).withValues(alpha: 0.2),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF2ECC71)),
             ),
             child: const Text(
               'Free Trial Available',
               style: TextStyle(
-                color: Color(0xFF2ECC71),
+                color: Color(0xFF1B8A4C),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -391,7 +390,7 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
           IconButton(
             onPressed: () => Get.toNamed('/address'),
-            icon: const Icon(Icons.edit, color: Color(0xFF3B82F6), size: 20),
+            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
           ),
         ],
       ),
@@ -439,7 +438,7 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
           IconButton(
             onPressed: () => Get.to(() => const AppearanceScreen()),
-            icon: const Icon(Icons.edit, color: Color(0xFF3B82F6), size: 20),
+            icon: const Icon(Icons.edit, color: Color(0xFF1B8A4C), size: 20),
           ),
         ],
       ),

@@ -253,7 +253,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           color: isSelected ? Colors.black : Colors.transparent,
           border: Border(
             left: BorderSide(
-              color: isSelected ? Colors.blue : Colors.transparent,
+              color: isSelected ? Color(0xFF1B8A4C) : Colors.transparent,
               width: 4,
             ),
           ),
@@ -274,8 +274,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   : Container(
                       height: 50,
                       width: 50,
-                      color: Colors.blue.withOpacity(0.1),
-                      child: Icon(icon, color: Colors.blue, size: 28),
+                      color: Color(0xFF1B8A4C).withOpacity(0.1),
+                      child: Icon(icon, color: Color(0xFF1B8A4C), size: 28),
                     ),
             ),
             const SizedBox(height: 8),
@@ -341,7 +341,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 if (val) _applySubFilter(filter);
               },
               backgroundColor: const Color(0xFF1A1A1A),
-              selectedColor: Colors.blue,
+              selectedColor: Color(0xFF1B8A4C),
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : Colors.white70,
                 fontSize: 12,

@@ -85,7 +85,7 @@ class InitialLoadingScreen extends StatelessWidget {
     if (hasError) {
       return CustomScrollView(
         slivers: [
-          const MilkbasketSliverAppBar(),
+          const FreshPickKartSliverAppBar(),
           SliverFillRemaining(
             hasScrollBody: false,
             child: NetworkErrorWidget(
@@ -101,7 +101,7 @@ class InitialLoadingScreen extends StatelessWidget {
 
     return CustomScrollView(
       slivers: [
-        const MilkbasketSliverAppBar(),
+        const FreshPickKartSliverAppBar(),
         const SliverFillRemaining(
           hasScrollBody: false,
           child: GroceryLoadingAnimation(),
