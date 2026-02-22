@@ -8,17 +8,18 @@ class ProductSearchDelegate extends SearchDelegate<String> {
 
   @override
   ThemeData appBarTheme(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ThemeData(
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.black87,
-        iconTheme: IconThemeData(color: Colors.white),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: cs.onSurface),
       ),
-      inputDecorationTheme: const InputDecorationTheme(
-        hintStyle: TextStyle(color: Colors.white70),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
         border: InputBorder.none,
       ),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(color: Colors.white),
+      textTheme: TextTheme(
+        titleLarge: TextStyle(color: cs.onSurface),
       ),
       textSelectionTheme: const TextSelectionThemeData(
         cursorColor: Color(0xFF1B8A4C),
@@ -54,8 +55,9 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     // Trigger search when query is submitted
     searchController.searchProducts(query);
 
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: Colors.black,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Obx(() {
         if (searchController.isLoadingResults.value) {
           return const Center(
@@ -64,10 +66,10 @@ class ProductSearchDelegate extends SearchDelegate<String> {
         }
 
         if (searchController.searchResults.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No products found.',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
             ),
           );
         }
@@ -78,12 +80,12 @@ class ProductSearchDelegate extends SearchDelegate<String> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Search Results',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: cs.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -117,13 +119,14 @@ class ProductSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     if (query.length < 2) {
       return Container(
-        color: Colors.black,
-        child: const Center(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Center(
           child: Text(
             'Type at least 2 characters to search',
-            style: TextStyle(color: Colors.white54),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.4)),
           ),
         ),
       );
@@ -133,7 +136,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     searchController.fetchSuggestions(query);
 
     return Container(
-      color: Colors.black,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Obx(() {
         if (searchController.isLoadingSuggestions.value &&
             searchController.suggestions.isEmpty) {
@@ -148,12 +151,12 @@ class ProductSearchDelegate extends SearchDelegate<String> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Suggestions',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: cs.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),

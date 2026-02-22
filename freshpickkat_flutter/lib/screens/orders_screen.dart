@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('My Orders'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF2D3436),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: cs.onSurface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
@@ -21,22 +24,22 @@ class OrdersScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF00B894).withValues(alpha: 0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.shopping_bag_outlined,
-                color: Color(0xFF00B894),
+                color: AppTheme.primaryGreen,
                 size: 64,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No Orders Yet',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3436),
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -45,7 +48,7 @@ class OrdersScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey[600],
+                color: cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 32),
@@ -54,7 +57,7 @@ class OrdersScreen extends StatelessWidget {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00B894),
+                backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
@@ -122,7 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'Success',
         'Profile updated successfully',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
+        backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } catch (e) {
@@ -130,7 +131,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'Error',
         'Failed to update profile: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
       debugPrint('Save error: $e');
@@ -198,8 +199,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    disabledBackgroundColor: Colors.grey[700],
+                    backgroundColor: AppTheme.primaryGreen,
+                    disabledBackgroundColor: Theme.of(
+                      context,
+                    ).disabledColor.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
