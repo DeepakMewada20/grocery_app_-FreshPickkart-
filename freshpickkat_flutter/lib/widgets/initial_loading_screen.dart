@@ -38,7 +38,7 @@ class NetworkErrorWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Please check your internet connection',
+              'Please check your network',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,

@@ -13,15 +13,19 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:freshpickkat_client/src/protocol/category.dart' as _i3;
-import 'package:freshpickkat_client/src/protocol/product.dart' as _i4;
-import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i5;
-import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i6;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i7;
+import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i4;
+import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i5;
+import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
+    as _i6;
+import 'package:freshpickkat_client/src/protocol/product.dart' as _i7;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i8;
+import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i9;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i10;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i8;
+    as _i11;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i9;
-import 'protocol.dart' as _i10;
+    as _i12;
+import 'protocol.dart' as _i13;
 
 /// {@category Endpoint}
 class EndpointAuth extends _i1.EndpointRef {
@@ -60,19 +64,66 @@ class EndpointCategory extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointCoupon extends _i1.EndpointRef {
+  EndpointCoupon(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'coupon';
+
+  /// Fetch coupons from Firestore
+  _i2.Future<List<_i4.Coupon>> fetchCoupons() =>
+      caller.callServerEndpoint<List<_i4.Coupon>>(
+        'coupon',
+        'fetchCoupons',
+        {},
+      );
+
+  /// Upload a new coupon to Firestore
+  _i2.Future<bool> uploadCoupon(_i4.Coupon coupon) =>
+      caller.callServerEndpoint<bool>(
+        'coupon',
+        'uploadCoupon',
+        {'coupon': coupon},
+      );
+
+  /// Fetch coupons filtered by order amount - only returns applicable coupons
+  /// This only returns necessary fields for UI (not usageLimit, usedCount, dates, etc.)
+  _i2.Future<List<_i5.CouponDisplay>> fetchApplicableCoupons(
+    double orderAmount,
+  ) => caller.callServerEndpoint<List<_i5.CouponDisplay>>(
+    'coupon',
+    'fetchApplicableCoupons',
+    {'orderAmount': orderAmount},
+  );
+
+  /// Validate a coupon and calculate discount based on order amount
+  _i2.Future<_i6.CouponValidationResult> validateCoupon(
+    String couponCode,
+    double orderAmount,
+  ) => caller.callServerEndpoint<_i6.CouponValidationResult>(
+    'coupon',
+    'validateCoupon',
+    {
+      'couponCode': couponCode,
+      'orderAmount': orderAmount,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointProduct extends _i1.EndpointRef {
   EndpointProduct(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'product';
 
-  _i2.Future<List<_i4.Product>> getProducts({
+  _i2.Future<List<_i7.Product>> getProducts({
     required int limit,
     String? lastProductName,
     String? category,
     List<String>? subcategories,
     required String sortBy,
-  }) => caller.callServerEndpoint<List<_i4.Product>>(
+  }) => caller.callServerEndpoint<List<_i7.Product>>(
     'product',
     'getProducts',
     {
@@ -85,7 +136,7 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   /// Upload a product to Firestore 'Products' collection
-  _i2.Future<bool> uploadProduct(_i4.Product product) =>
+  _i2.Future<bool> uploadProduct(_i7.Product product) =>
       caller.callServerEndpoint<bool>(
         'product',
         'uploadProduct',
@@ -99,8 +150,8 @@ class EndpointProduct extends _i1.EndpointRef {
         {'query': query},
       );
 
-  _i2.Future<List<_i4.Product>> searchProducts(String query) =>
-      caller.callServerEndpoint<List<_i4.Product>>(
+  _i2.Future<List<_i7.Product>> searchProducts(String query) =>
+      caller.callServerEndpoint<List<_i7.Product>>(
         'product',
         'searchProducts',
         {'query': query},
@@ -154,15 +205,15 @@ class EndpointSubCategory extends _i1.EndpointRef {
   String get name => 'subCategory';
 
   /// Fetch all subcategories from Firestore 'subCategories' collection
-  _i2.Future<List<_i5.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i5.SubCategory>>(
+  _i2.Future<List<_i8.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i8.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
       );
 
   /// Upload a subcategory to Firestore 'subCategories' collection
-  _i2.Future<bool> uploadSubCategory(_i5.SubCategory subCategory) =>
+  _i2.Future<bool> uploadSubCategory(_i8.SubCategory subCategory) =>
       caller.callServerEndpoint<bool>(
         'subCategory',
         'uploadSubCategory',
@@ -177,15 +228,15 @@ class EndpointUser extends _i1.EndpointRef {
   @override
   String get name => 'user';
 
-  _i2.Future<_i6.AppUser?> getUserByFirebaseUid(String uid) =>
-      caller.callServerEndpoint<_i6.AppUser?>(
+  _i2.Future<_i9.AppUser?> getUserByFirebaseUid(String uid) =>
+      caller.callServerEndpoint<_i9.AppUser?>(
         'user',
         'getUserByFirebaseUid',
         {'uid': uid},
       );
 
-  _i2.Future<_i6.AppUser> createOrUpdateUser(_i6.AppUser user) =>
-      caller.callServerEndpoint<_i6.AppUser>(
+  _i2.Future<_i9.AppUser> createOrUpdateUser(_i9.AppUser user) =>
+      caller.callServerEndpoint<_i9.AppUser>(
         'user',
         'createOrUpdateUser',
         {'user': user},
@@ -193,7 +244,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i7.CartItem> cart,
+    List<_i10.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -206,13 +257,13 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i8.Caller(client);
-    serverpod_auth_core = _i9.Caller(client);
+    serverpod_auth_idp = _i11.Caller(client);
+    serverpod_auth_core = _i12.Caller(client);
   }
 
-  late final _i8.Caller serverpod_auth_idp;
+  late final _i11.Caller serverpod_auth_idp;
 
-  late final _i9.Caller serverpod_auth_core;
+  late final _i12.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -235,7 +286,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i10.Protocol(),
+         _i13.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -246,6 +297,7 @@ class Client extends _i1.ServerpodClientShared {
        ) {
     auth = EndpointAuth(this);
     category = EndpointCategory(this);
+    coupon = EndpointCoupon(this);
     product = EndpointProduct(this);
     subCategory = EndpointSubCategory(this);
     user = EndpointUser(this);
@@ -255,6 +307,8 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointAuth auth;
 
   late final EndpointCategory category;
+
+  late final EndpointCoupon coupon;
 
   late final EndpointProduct product;
 
@@ -268,6 +322,7 @@ class Client extends _i1.ServerpodClientShared {
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'auth': auth,
     'category': category,
+    'coupon': coupon,
     'product': product,
     'subCategory': subCategory,
     'user': user,

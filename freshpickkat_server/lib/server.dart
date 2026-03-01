@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:serverpod/serverpod.dart';
 import 'src/services/firebase_service.dart';
 
-
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';

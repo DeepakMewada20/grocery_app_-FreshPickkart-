@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 
@@ -31,7 +32,7 @@ class NetworkController extends GetxController {
     try {
       isChecking.value = true;
       final result = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(result);
+      await _updateConnectionStatus(result);
     } catch (e) {
       isConnected.value = false;
     } finally {
@@ -39,16 +40,40 @@ class NetworkController extends GetxController {
     }
   }
 
-  void _updateConnectionStatus(List<ConnectivityResult> results) {
-    isConnected.value =
-        results.isNotEmpty && !results.contains(ConnectivityResult.none);
+  Future<void> _updateConnectionStatus(List<ConnectivityResult> results) async {
+    if (results.isEmpty || results.contains(ConnectivityResult.none)) {
+      isConnected.value = false;
+    } else {
+      // Even if connectivity says we are connected, check if we can actually reach the internet
+      try {
+        final result = await InternetAddress.lookup('google.com').timeout(
+          const Duration(seconds: 3),
+        );
+        isConnected.value =
+            result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      } catch (_) {
+        isConnected.value = false;
+      }
+    }
   }
 
   Future<bool> checkConnection() async {
-    final result = await _connectivity.checkConnectivity();
-    final connected =
-        result.isNotEmpty && !result.contains(ConnectivityResult.none);
-    isConnected.value = connected;
-    return connected;
+    try {
+      final result = await _connectivity.checkConnectivity();
+      if (result.isEmpty || result.contains(ConnectivityResult.none)) {
+        isConnected.value = false;
+        return false;
+      }
+
+      final lookup = await InternetAddress.lookup('google.com').timeout(
+        const Duration(seconds: 3),
+      );
+      final connected = lookup.isNotEmpty && lookup[0].rawAddress.isNotEmpty;
+      isConnected.value = connected;
+      return connected;
+    } catch (_) {
+      isConnected.value = false;
+      return false;
+    }
   }
 }

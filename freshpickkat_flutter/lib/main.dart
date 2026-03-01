@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
@@ -21,6 +22,7 @@ void main() async {
   );
 
   Get.put(ThemeController(), permanent: true);
+  Get.put(AuthController(), permanent: true);
   Get.put(UserController(), permanent: true);
 
   runApp(const MyApp());

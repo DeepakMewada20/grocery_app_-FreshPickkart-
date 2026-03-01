@@ -40,10 +40,15 @@ class _HomePageState extends State<HomePage> {
         final isLoading = productController.isLoading.value;
         final hasData = productController.hasData;
 
-        if (!isConnected || (isLoading && !hasData)) {
+        final hasError =
+            !isConnected || productController.errorMessage.value.isNotEmpty;
+
+        if (hasError || (isLoading && !hasData)) {
           return InitialLoadingScreen(
-            hasError: !isConnected,
-            errorMessage: !isConnected ? 'No internet connection' : '',
+            hasError: hasError,
+            errorMessage: !isConnected
+                ? 'No internet connection'
+                : productController.errorMessage.value,
             onRetry: () async {
               final connected = await networkController.checkConnection();
               if (connected) {

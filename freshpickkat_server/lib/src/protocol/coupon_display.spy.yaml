@@ -1,0 +1,11 @@
+class: CouponDisplay
+fields:
+  code: String
+  description: String
+  couponCategory: String
+  minOrderAmount: double
+  maxDiscount: double?
+  discountValue: double?
+  discountType: String?
+  isDeliveryDiscount: bool
+  isApplicable: bool

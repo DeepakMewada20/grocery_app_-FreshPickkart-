@@ -8,7 +8,6 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
-
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -16,10 +15,14 @@ import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:freshpickkat_server/src/generated/category.dart' as _i4;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i5;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i6;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i7;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i8;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i5;
+import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/coupon_validation_result.dart'
+    as _i7;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i8;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i9;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i10;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i11;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -131,6 +134,8 @@ class TestEndpoints {
 
   late final _CategoryEndpoint category;
 
+  late final _CouponEndpoint coupon;
+
   late final _ProductEndpoint product;
 
   late final _SubCategoryEndpoint subCategory;
@@ -150,6 +155,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     category = _CategoryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    coupon = _CouponEndpoint(
       endpoints,
       serializationManager,
     );
@@ -282,6 +291,144 @@ class _CategoryEndpoint {
   }
 }
 
+class _CouponEndpoint {
+  _CouponEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<List<_i5.Coupon>> fetchCoupons(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'fetchCoupons',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'fetchCoupons',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i5.Coupon>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> uploadCoupon(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i5.Coupon coupon,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'uploadCoupon',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'uploadCoupon',
+          parameters: _i1.testObjectToJson({'coupon': coupon}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i6.CouponDisplay>> fetchApplicableCoupons(
+    _i1.TestSessionBuilder sessionBuilder,
+    double orderAmount,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'fetchApplicableCoupons',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'fetchApplicableCoupons',
+          parameters: _i1.testObjectToJson({'orderAmount': orderAmount}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i6.CouponDisplay>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i7.CouponValidationResult> validateCoupon(
+    _i1.TestSessionBuilder sessionBuilder,
+    String couponCode,
+    double orderAmount,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'validateCoupon',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'validateCoupon',
+          parameters: _i1.testObjectToJson({
+            'couponCode': couponCode,
+            'orderAmount': orderAmount,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.CouponValidationResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _ProductEndpoint {
   _ProductEndpoint(
     this._endpointDispatch,
@@ -292,7 +439,7 @@ class _ProductEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i5.Product>> getProducts(
+  _i3.Future<List<_i8.Product>> getProducts(
     _i1.TestSessionBuilder sessionBuilder, {
     required int limit,
     String? lastProductName,
@@ -325,7 +472,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Product>>);
+                as _i3.Future<List<_i8.Product>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -335,7 +482,7 @@ class _ProductEndpoint {
 
   _i3.Future<bool> uploadProduct(
     _i1.TestSessionBuilder sessionBuilder,
-    _i5.Product product,
+    _i8.Product product,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -395,7 +542,7 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<List<_i5.Product>> searchProducts(
+  _i3.Future<List<_i8.Product>> searchProducts(
     _i1.TestSessionBuilder sessionBuilder,
     String query,
   ) async {
@@ -418,7 +565,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Product>>);
+                as _i3.Future<List<_i8.Product>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -587,7 +734,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i6.SubCategory>> getSubCategories(
+  _i3.Future<List<_i9.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -609,7 +756,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.SubCategory>>);
+                as _i3.Future<List<_i9.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -619,7 +766,7 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i6.SubCategory subCategory,
+    _i9.SubCategory subCategory,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -659,7 +806,7 @@ class _UserEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.AppUser?> getUserByFirebaseUid(
+  _i3.Future<_i10.AppUser?> getUserByFirebaseUid(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
   ) async {
@@ -682,7 +829,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.AppUser?>);
+                as _i3.Future<_i10.AppUser?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -690,9 +837,9 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i7.AppUser> createOrUpdateUser(
+  _i3.Future<_i10.AppUser> createOrUpdateUser(
     _i1.TestSessionBuilder sessionBuilder,
-    _i7.AppUser user,
+    _i10.AppUser user,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -713,7 +860,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.AppUser>);
+                as _i3.Future<_i10.AppUser>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -724,7 +871,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i8.CartItem> cart,
+    List<_i11.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

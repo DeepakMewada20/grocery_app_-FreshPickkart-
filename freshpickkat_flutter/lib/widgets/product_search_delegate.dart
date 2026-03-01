@@ -9,7 +9,12 @@ class ProductSearchDelegate extends SearchDelegate<String> {
   @override
   ThemeData appBarTheme(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ThemeData(
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      useMaterial3: true,
+      colorScheme: Theme.of(context).colorScheme,
+      scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBarTheme: AppBarTheme(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         iconTheme: IconThemeData(color: cs.onSurface),

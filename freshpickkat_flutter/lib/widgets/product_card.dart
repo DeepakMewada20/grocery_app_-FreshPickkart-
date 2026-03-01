@@ -100,8 +100,8 @@ class _ProductCardState extends State<ProductCard> {
                       Container(
                         width: double.infinity,
                         height: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),

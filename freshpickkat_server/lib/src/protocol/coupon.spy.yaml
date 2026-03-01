@@ -1,0 +1,14 @@
+class: Coupon
+fields:
+  code: String
+  description: String
+  discountType: String?
+  discountValue: double?
+  minOrderAmount: double
+  maxDiscount: double?
+  startDate: DateTime
+  endDate: DateTime
+  usageLimit: int?
+  usedCount: int
+  isActive: bool
+  couponCategory: String

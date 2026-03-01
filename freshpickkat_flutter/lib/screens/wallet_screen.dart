@@ -118,6 +118,57 @@ class WalletScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _uploadCouponData(BuildContext context) async {
+    try {
+      final coupon = Coupon(
+        code: 'NIGHT30',
+        description: '₹30 off on late-night orders',
+        couponCategory: 'price',
+        discountType: 'flat',
+        discountValue: 30.0,
+        minOrderAmount: 250.0,
+        maxDiscount: null,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 30)),
+        usageLimit: 800,
+        usedCount: 0,
+        isActive: true,
+      );
+
+      final result = await _client.coupon.uploadCoupon(coupon);
+
+      if (context.mounted) {
+        if (result) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '✅ Dummy Coupon ${coupon.code} uploaded via Server!',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ Server side upload failed!'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print(e);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error uploading coupon: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,6 +206,21 @@ class WalletScreen extends StatelessWidget {
               child: Text(
                 'Seed Test Data (Random Metrics)',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _uploadCouponData(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+              ),
+              child: const Text(
+                'Upload Default Coupon',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
