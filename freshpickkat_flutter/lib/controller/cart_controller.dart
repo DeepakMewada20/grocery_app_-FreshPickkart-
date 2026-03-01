@@ -23,7 +23,10 @@ class CartController extends GetxController {
   void onInit() {
     super.onInit();
     // Listen to cart changes and sync with server
-    ever(cartItems, (_) => _syncWithServer());
+    ever(cartItems, (_) {
+      _syncWithServer();
+      fetchAvailableCoupons();
+    });
   }
 
   Future<void> _syncWithServer() async {
@@ -82,6 +85,14 @@ class CartController extends GetxController {
   // Rx derived properties
   int get itemCount => cartItems.length;
 
+  // Coupon state
+  final Rxn<CouponDisplay> appliedCoupon = Rxn<CouponDisplay>();
+  final Rxn<CouponValidationResult> couponValidation =
+      Rxn<CouponValidationResult>();
+  final RxList<CouponDisplay> availableCoupons = <CouponDisplay>[].obs;
+  final RxBool isLoadingCoupons = false.obs;
+  final RxString couponError = ''.obs;
+
   double get subtotal => cartItems.fold(
     0,
     (sum, item) => sum + (item.product.price * item.quantity),
@@ -93,9 +104,84 @@ class CartController extends GetxController {
         sum + ((item.product.realPrice - item.product.price) * item.quantity),
   );
 
-  double get deliveryFee => subtotal > 500 ? 0.0 : 40.0;
+  double get deliveryFee {
+    if (appliedCoupon.value?.isDeliveryDiscount == true &&
+        couponValidation.value != null &&
+        couponValidation.value!.isValid) {
+      return (40.0 - couponValidation.value!.discountAmount).clamp(0, 40);
+    }
+    return 40.0;
+  }
 
-  double get totalAmount => subtotal + deliveryFee;
+  double get couponDiscount {
+    if (couponValidation.value != null &&
+        couponValidation.value!.isValid &&
+        !couponValidation.value!.isDeliveryDiscount) {
+      return couponValidation.value!.discountAmount;
+    }
+    return 0;
+  }
+
+  double get totalAmount {
+    final delivery = deliveryFee;
+    final priceAfterDiscount = subtotal - couponDiscount;
+    return (priceAfterDiscount + delivery).clamp(0, double.infinity);
+  }
+
+  Future<void> fetchAvailableCoupons() async {
+    if (cartItems.isEmpty) {
+      availableCoupons.clear();
+      return;
+    }
+
+    isLoadingCoupons.value = true;
+    couponError.value = '';
+
+    try {
+      final response = await client.coupon.fetchApplicableCoupons(subtotal);
+      availableCoupons.assignAll(response);
+    } catch (e) {
+      couponError.value = 'Failed to load coupons';
+      print('Error fetching coupons: $e');
+    } finally {
+      isLoadingCoupons.value = false;
+    }
+  }
+
+  Future<bool> applyCoupon(String couponCode) async {
+    if (cartItems.isEmpty) return false;
+
+    couponError.value = '';
+
+    try {
+      final response = await client.coupon.validateCoupon(couponCode, subtotal);
+      final result = response;
+
+      couponValidation.value = result;
+
+      if (result.isValid) {
+        final matchedCoupon = availableCoupons.firstWhereOrNull(
+          (c) => c.code.toUpperCase() == couponCode.toUpperCase(),
+        );
+        appliedCoupon.value = matchedCoupon;
+        return true;
+      } else {
+        couponError.value = result.errorMessage ?? 'Invalid coupon';
+        appliedCoupon.value = null;
+        return false;
+      }
+    } catch (e) {
+      couponError.value = 'Error applying coupon';
+      print('Error applying coupon: $e');
+      return false;
+    }
+  }
+
+  void removeCoupon() {
+    appliedCoupon.value = null;
+    couponValidation.value = null;
+    couponError.value = '';
+  }
 
   void addItem(Product product) {
     int index = cartItems.indexWhere(

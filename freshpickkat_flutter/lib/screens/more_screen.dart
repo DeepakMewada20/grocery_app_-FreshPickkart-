@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/appearance_screen.dart';
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:get/get.dart';
@@ -39,6 +40,20 @@ class _MoreScreenState extends State<MoreScreen> {
               _buildProfileHeader(userController, cs),
               _buildMembershipBanner(),
               _buildQuickActions(cs),
+              const SizedBox(height: 16),
+              _buildSectionHeader('My Activity', cs),
+              _buildMenuItem(
+                icon: Icons.receipt_long_outlined,
+                title: 'My Orders',
+                onTap: () => Get.to(() => const OrdersScreen()),
+                cs: cs,
+              ),
+              _buildMenuItem(
+                icon: Icons.local_offer_outlined,
+                title: 'My Coupons',
+                onTap: () => Get.to(() => const CouponsScreen()),
+                cs: cs,
+              ),
               const SizedBox(height: 16),
               _buildSectionHeader('Your Delivery Address', cs),
               _buildAddressSection(userController, cs),
@@ -270,9 +285,9 @@ class _MoreScreenState extends State<MoreScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildActionCard(
-              icon: Icons.support_agent,
-              label: 'Support',
-              onTap: () {},
+              icon: Icons.local_offer_outlined,
+              label: 'Coupons',
+              onTap: () => Get.to(() => const CouponsScreen()),
               cs: cs,
             ),
           ),

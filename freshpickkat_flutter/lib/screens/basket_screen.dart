@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
+import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
 import 'package:get/get.dart';
 
 class BasketScreen extends StatelessWidget {
@@ -32,9 +33,9 @@ class BasketScreen extends StatelessWidget {
           Obx(
             () => cartController.itemCount > 0
                 ? IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.delete_outline,
-                      color: Colors.redAccent,
+                      color: cs.error,
                     ),
                     onPressed: () =>
                         _showClearCartDialog(context, cartController),
@@ -52,9 +53,11 @@ class BasketScreen extends StatelessWidget {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildCartItemsList(cartController, cs),
+                    const CouponSection(),
                     _buildBillDetails(cartController, cs),
                   ],
                 ),
@@ -99,7 +102,7 @@ class BasketScreen extends StatelessWidget {
             onPressed: () => Get.back(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryGreen,
-              foregroundColor: Colors.white,
+              foregroundColor: cs.onPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -137,7 +140,7 @@ class BasketScreen extends StatelessWidget {
                 child: Container(
                   width: 80,
                   height: 80,
-                  color: Colors.white,
+                  color: cs.surface,
                   child: Image.network(
                     item.product.imageUrl,
                     fit: BoxFit.contain,
@@ -179,7 +182,7 @@ class BasketScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        _buildQuantitySelector(cartController, item),
+                        _buildQuantitySelector(cartController, item, cs),
                       ],
                     ),
                   ],
@@ -192,7 +195,11 @@ class BasketScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantitySelector(CartController cartController, CartItem item) {
+  Widget _buildQuantitySelector(
+    CartController cartController,
+    CartItem item,
+    ColorScheme cs,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
@@ -204,15 +211,15 @@ class BasketScreen extends StatelessWidget {
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            icon: const Icon(Icons.remove, color: Colors.white, size: 20),
+            icon: Icon(Icons.remove, color: cs.onPrimary, size: 20),
             onPressed: () => cartController.removeItem(item.product),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
               '${item.quantity}',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: cs.onPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -221,7 +228,7 @@ class BasketScreen extends StatelessWidget {
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            icon: const Icon(Icons.add, color: Colors.white, size: 20),
+            icon: Icon(Icons.add, color: cs.onPrimary, size: 20),
             onPressed: () => cartController.addItem(item.product),
           ),
         ],
@@ -255,16 +262,29 @@ class BasketScreen extends StatelessWidget {
             '₹${cartController.subtotal.toStringAsFixed(0)}',
             cs: cs,
           ),
+          if (cartController.couponDiscount > 0) ...[
+            const SizedBox(height: 12),
+            Obx(
+              () => _buildBillRow(
+                'Coupon Discount',
+                '-₹${cartController.couponDiscount.toStringAsFixed(0)}',
+                valueColor: Colors.green,
+                cs: cs,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
-          _buildBillRow(
-            'Delivery Fee',
-            cartController.deliveryFee == 0
-                ? 'FREE'
-                : '₹${cartController.deliveryFee.toStringAsFixed(0)}',
-            valueColor: cartController.deliveryFee == 0
-                ? Colors.green
-                : cs.onSurface,
-            cs: cs,
+          Obx(
+            () => _buildBillRow(
+              'Delivery Fee',
+              cartController.deliveryFee == 0
+                  ? 'FREE'
+                  : '₹${cartController.deliveryFee.toStringAsFixed(0)}',
+              valueColor: cartController.deliveryFee == 0
+                  ? Colors.green
+                  : cs.onSurface,
+              cs: cs,
+            ),
           ),
           if (cartController.totalSavings > 0) ...[
             const SizedBox(height: 12),
@@ -279,11 +299,13 @@ class BasketScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: cs.outlineVariant),
           ),
-          _buildBillRow(
-            'To Pay',
-            '₹${cartController.totalAmount.toStringAsFixed(0)}',
-            isTotal: true,
-            cs: cs,
+          Obx(
+            () => _buildBillRow(
+              'To Pay',
+              '₹${cartController.totalAmount.toStringAsFixed(0)}',
+              isTotal: true,
+              cs: cs,
+            ),
           ),
         ],
       ),
@@ -353,7 +375,7 @@ class BasketScreen extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryGreen,
-          foregroundColor: Colors.white,
+          foregroundColor: cs.onPrimary,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -367,11 +389,13 @@ class BasketScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '₹${cartController.totalAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Obx(
+                  () => Text(
+                    '₹${cartController.totalAmount.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const Text(
@@ -430,9 +454,9 @@ class BasketScreen extends StatelessWidget {
               cartController.clearCart();
               Navigator.pop(context);
             },
-            child: const Text(
+            child: Text(
               'CLEAR',
-              style: TextStyle(color: Colors.redAccent),
+              style: TextStyle(color: cs.error),
             ),
           ),
         ],
