@@ -1,6 +1,10 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
+import '../services/role_guard_service.dart';
+import '../services/business/product_business_service.dart';
+import '../services/business/audit_log_service.dart';
+import '../services/business/validation_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import 'dart:math';
 
@@ -206,8 +210,20 @@ class ProductEndpoint extends Endpoint {
   }
 
   /// Upload a product to Firestore 'Products' collection
-  Future<bool> uploadProduct(Session session, Product product) async {
+  Future<bool> uploadProduct(
+    Session session,
+    Product product,
+    String firebaseUid,
+    String idToken,
+  ) async {
     final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final normalized = ProductBusinessService.normalizeForSave(product);
+    ValidationService.validateProduct(normalized);
 
     final String parent =
         'projects/freshpickkart-a6824/databases/(default)/documents';
@@ -215,44 +231,46 @@ class ProductEndpoint extends Endpoint {
     // Convert Product to Firestore Document fields
     final document = firestore_api.Document(
       fields: {
-        'productName': firestore_api.Value(stringValue: product.productName),
-        'category': firestore_api.Value(stringValue: product.category),
-        'imageUrl': firestore_api.Value(stringValue: product.imageUrl),
+        'productName': firestore_api.Value(stringValue: normalized.productName),
+        'category': firestore_api.Value(stringValue: normalized.category),
+        'imageUrl': firestore_api.Value(stringValue: normalized.imageUrl),
         'price': firestore_api.Value(
-          doubleValue: product.price,
+          doubleValue: normalized.price,
         ),
         'realPrice': firestore_api.Value(
-          doubleValue: product.realPrice,
+          doubleValue: normalized.realPrice,
         ),
         'discount': firestore_api.Value(
-          doubleValue: product.discount,
+          doubleValue: normalized.discount,
         ),
-        'isAvailable': firestore_api.Value(booleanValue: product.isAvailable),
+        'isAvailable': firestore_api.Value(
+          booleanValue: normalized.isAvailable,
+        ),
         'addedAt': firestore_api.Value(
-          timestampValue: product.addedAt.toUtc().toIso8601String(),
+          timestampValue: normalized.addedAt.toUtc().toIso8601String(),
         ),
         'subcategory': firestore_api.Value(
           arrayValue: firestore_api.ArrayValue(
-            values: product.subcategory
+            values: normalized.subcategory
                 .map((s) => firestore_api.Value(stringValue: s))
                 .toList(),
           ),
         ),
-        'quantity': firestore_api.Value(stringValue: product.quantity),
+        'quantity': firestore_api.Value(stringValue: normalized.quantity),
         'searchKeywords': firestore_api.Value(
           arrayValue: firestore_api.ArrayValue(
             values: _generateSearchKeywords(
-              product.productName,
-              product.category,
-              product.subcategory,
+              normalized.productName,
+              normalized.category,
+              normalized.subcategory,
             ).map((s) => firestore_api.Value(stringValue: s)).toList(),
           ),
         ),
         'mostSearch': firestore_api.Value(
-          integerValue: product.mostSearch.toString(),
+          integerValue: normalized.mostSearch.toString(),
         ),
         'mostPurchases': firestore_api.Value(
-          integerValue: product.mostPurchases.toString(),
+          integerValue: normalized.mostPurchases.toString(),
         ),
       },
     );
@@ -263,6 +281,14 @@ class ProductEndpoint extends Endpoint {
         parent, // parent path = database/documents root
         'Products', // collection ID
       );
+      await AuditLogService.write(
+        firestore: firestore,
+        actorUid: firebaseUid,
+        action: 'create',
+        entityType: 'product',
+        entityId: normalized.productName,
+        metadata: {'category': normalized.category},
+      );
       session.log('Product uploaded: ${product.productName}');
       return true;
     } catch (e, stack) {
@@ -270,6 +296,108 @@ class ProductEndpoint extends Endpoint {
       session.log(stack.toString());
       rethrow;
     }
+  }
+
+  Future<bool> updateProduct(
+    Session session,
+    Product product,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    if (product.productId == null || product.productId!.trim().isEmpty) {
+      throw Exception('productId is required for update');
+    }
+
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final normalized = ProductBusinessService.normalizeForSave(product);
+    ValidationService.validateProduct(normalized);
+
+    final database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+    final docPath = '$database/Products/${product.productId}';
+
+    final fields = <String, firestore_api.Value>{
+      'productName': firestore_api.Value(stringValue: normalized.productName),
+      'category': firestore_api.Value(stringValue: normalized.category),
+      'imageUrl': firestore_api.Value(stringValue: normalized.imageUrl),
+      'price': firestore_api.Value(doubleValue: normalized.price),
+      'realPrice': firestore_api.Value(doubleValue: normalized.realPrice),
+      'discount': firestore_api.Value(doubleValue: normalized.discount),
+      'isAvailable': firestore_api.Value(booleanValue: normalized.isAvailable),
+      'addedAt': firestore_api.Value(
+        timestampValue: normalized.addedAt.toUtc().toIso8601String(),
+      ),
+      'subcategory': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: normalized.subcategory
+              .map((s) => firestore_api.Value(stringValue: s))
+              .toList(),
+        ),
+      ),
+      'quantity': firestore_api.Value(stringValue: normalized.quantity),
+      'searchKeywords': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: _generateSearchKeywords(
+            normalized.productName,
+            normalized.category,
+            normalized.subcategory,
+          ).map((s) => firestore_api.Value(stringValue: s)).toList(),
+        ),
+      ),
+      'mostSearch': firestore_api.Value(
+        integerValue: normalized.mostSearch.toString(),
+      ),
+      'mostPurchases': firestore_api.Value(
+        integerValue: normalized.mostPurchases.toString(),
+      ),
+    };
+
+    await firestore.projects.databases.documents.patch(
+      firestore_api.Document(fields: fields),
+      docPath,
+      updateMask_fieldPaths: fields.keys.toList(),
+    );
+    await AuditLogService.write(
+      firestore: firestore,
+      actorUid: firebaseUid,
+      action: 'update',
+      entityType: 'product',
+      entityId: product.productId!,
+      metadata: {'name': normalized.productName},
+    );
+    return true;
+  }
+
+  Future<bool> deleteProduct(
+    Session session,
+    String productId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+    final docPath = '$database/Products/$productId';
+    await firestore.projects.databases.documents.delete(docPath);
+    await AuditLogService.write(
+      firestore: firestore,
+      actorUid: firebaseUid,
+      action: 'delete',
+      entityType: 'product',
+      entityId: productId,
+    );
+    return true;
   }
 
   Future<List<String>> getProductSuggestions(

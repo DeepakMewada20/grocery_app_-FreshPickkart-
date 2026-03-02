@@ -1,6 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
+import '../services/role_guard_service.dart';
+import '../services/business/audit_log_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class CategoryEndpoint extends Endpoint {
@@ -112,5 +114,84 @@ class CategoryEndpoint extends Endpoint {
       session.log(stack.toString());
       rethrow;
     }
+  }
+
+  Future<bool> uploadCategory(
+    Session session,
+    Category category,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final docId = _toDocId(category.categoryName);
+    final docPath = '$database/Categorys/$docId';
+
+    final existing = await _getCategoryByDocPath(
+      firestore: firestore,
+      docPath: docPath,
+    );
+    if (existing != null && existing.fields != null) {
+      throw Exception('Category already exists');
+    }
+
+    final subCategoryFields = <String, firestore_api.Value>{};
+    for (final entry in category.subCategory.entries) {
+      subCategoryFields[entry.key] = firestore_api.Value(
+        stringValue: entry.value,
+      );
+    }
+
+    final fields = <String, firestore_api.Value>{
+      'categoryName': firestore_api.Value(stringValue: category.categoryName),
+      'categoryImageUrl': firestore_api.Value(
+        stringValue: category.categoryImageUrl,
+      ),
+      'subCategory': firestore_api.Value(
+        mapValue: firestore_api.MapValue(fields: subCategoryFields),
+      ),
+    };
+
+    final doc = firestore_api.Document(fields: fields);
+    await firestore.projects.databases.documents.patch(
+      doc,
+      docPath,
+      updateMask_fieldPaths: fields.keys.toList(),
+    );
+    await AuditLogService.write(
+      firestore: firestore,
+      actorUid: firebaseUid,
+      action: 'create',
+      entityType: 'category',
+      entityId: category.categoryName,
+    );
+    return true;
+  }
+
+  Future<firestore_api.Document?> _getCategoryByDocPath({
+    required firestore_api.FirestoreApi firestore,
+    required String docPath,
+  }) async {
+    try {
+      return await firestore.projects.databases.documents.get(docPath);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _toDocId(String input) {
+    final normalized = input.trim().toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9]+'),
+      '_',
+    );
+    return normalized.replaceAll(RegExp(r'^_+|_+$'), '');
   }
 }

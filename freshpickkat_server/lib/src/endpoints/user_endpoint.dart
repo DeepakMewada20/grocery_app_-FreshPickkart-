@@ -77,6 +77,7 @@ class UserEndpoint extends Endpoint {
                 .map((v) => _cartItemFromFirestore(v.mapValue!.fields!))
                 .toList()
           : null,
+      role: fields['role']?.stringValue ?? 'user',
     );
   }
 
@@ -84,6 +85,7 @@ class UserEndpoint extends Endpoint {
   Map<String, firestore_api.Value> _appUserToFirestore(AppUser user) {
     final map = <String, firestore_api.Value>{
       'phoneNumber': firestore_api.Value(stringValue: user.phoneNumber),
+      'role': firestore_api.Value(stringValue: user.role),
     };
     if (user.name != null) {
       map['name'] = firestore_api.Value(stringValue: user.name);

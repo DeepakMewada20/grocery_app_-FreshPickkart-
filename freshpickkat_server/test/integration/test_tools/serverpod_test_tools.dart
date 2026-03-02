@@ -14,15 +14,16 @@
 import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i4;
-import 'package:freshpickkat_server/src/generated/coupon.dart' as _i5;
-import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i4;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i5;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i7;
 import 'package:freshpickkat_server/src/generated/coupon_validation_result.dart'
-    as _i7;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i8;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i9;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i10;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i11;
+    as _i8;
+import 'package:freshpickkat_server/src/generated/order.dart' as _i9;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i10;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i11;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i12;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -130,11 +131,17 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final _AdminEndpoint admin;
+
   late final _AuthEndpoint auth;
 
   late final _CategoryEndpoint category;
 
   late final _CouponEndpoint coupon;
+
+  late final _OrderEndpoint order;
+
+  late final _PaymentEndpoint payment;
 
   late final _ProductEndpoint product;
 
@@ -150,6 +157,10 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
+    admin = _AdminEndpoint(
+      endpoints,
+      serializationManager,
+    );
     auth = _AuthEndpoint(
       endpoints,
       serializationManager,
@@ -159,6 +170,14 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     coupon = _CouponEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    order = _OrderEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    payment = _PaymentEndpoint(
       endpoints,
       serializationManager,
     );
@@ -177,6 +196,253 @@ class _InternalTestEndpoints extends TestEndpoints
   }
 }
 
+class _AdminEndpoint {
+  _AdminEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<bool> isAdminSetupCompleted(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'isAdminSetupCompleted',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'isAdminSetupCompleted',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> resolveAdminLoginEmail(
+    _i1.TestSessionBuilder sessionBuilder,
+    String usernameOrEmail,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'resolveAdminLoginEmail',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'resolveAdminLoginEmail',
+          parameters: _i1.testObjectToJson({
+            'usernameOrEmail': usernameOrEmail,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> firebaseLogin(
+    _i1.TestSessionBuilder sessionBuilder,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'firebaseLogin',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'firebaseLogin',
+          parameters: _i1.testObjectToJson({'idToken': idToken}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i4.AppUser>> getAllUsers(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getAllUsers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getAllUsers',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i4.AppUser>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getDashboardStats(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getDashboardStats',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getDashboardStats',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getAnalytics(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getAnalytics',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getAnalytics',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<Map<String, dynamic>>> getAuditLogs(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'admin',
+            method: 'getAuditLogs',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'admin',
+          methodName: 'getAuditLogs',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'limit': limit,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<Map<String, dynamic>>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _AuthEndpoint {
   _AuthEndpoint(
     this._endpointDispatch,
@@ -186,37 +452,6 @@ class _AuthEndpoint {
   final _i2.EndpointDispatch _endpointDispatch;
 
   final _i2.SerializationManager _serializationManager;
-
-  _i3.Future<String?> verifyPhoneLogin(
-    _i1.TestSessionBuilder sessionBuilder,
-    String idToken,
-  ) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'auth',
-            method: 'verifyPhoneLogin',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'auth',
-          methodName: 'verifyPhoneLogin',
-          parameters: _i1.testObjectToJson({'idToken': idToken}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<String?>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
 
   _i3.Future<bool> signOut(
     _i1.TestSessionBuilder sessionBuilder,
@@ -260,7 +495,7 @@ class _CategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i4.Category>> getCategories(
+  _i3.Future<List<_i5.Category>> getCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -282,7 +517,44 @@ class _CategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i4.Category>>);
+                as _i3.Future<List<_i5.Category>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> uploadCategory(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i5.Category category,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'category',
+            method: 'uploadCategory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'category',
+          methodName: 'uploadCategory',
+          parameters: _i1.testObjectToJson({
+            'category': category,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -301,8 +573,10 @@ class _CouponEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i5.Coupon>> fetchCoupons(
+  _i3.Future<List<_i6.Coupon>> fetchCoupons(
     _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -315,7 +589,10 @@ class _CouponEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'coupon',
           methodName: 'fetchCoupons',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -323,7 +600,7 @@ class _CouponEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Coupon>>);
+                as _i3.Future<List<_i6.Coupon>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -333,7 +610,9 @@ class _CouponEndpoint {
 
   _i3.Future<bool> uploadCoupon(
     _i1.TestSessionBuilder sessionBuilder,
-    _i5.Coupon coupon,
+    _i6.Coupon coupon,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -346,7 +625,11 @@ class _CouponEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'coupon',
           methodName: 'uploadCoupon',
-          parameters: _i1.testObjectToJson({'coupon': coupon}),
+          parameters: _i1.testObjectToJson({
+            'coupon': coupon,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -362,7 +645,83 @@ class _CouponEndpoint {
     });
   }
 
-  _i3.Future<List<_i6.CouponDisplay>> fetchApplicableCoupons(
+  _i3.Future<bool> setCouponActive(
+    _i1.TestSessionBuilder sessionBuilder,
+    String code,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'setCouponActive',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'setCouponActive',
+          parameters: _i1.testObjectToJson({
+            'code': code,
+            'isActive': isActive,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateCoupon(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i6.Coupon coupon,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'updateCoupon',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'updateCoupon',
+          parameters: _i1.testObjectToJson({
+            'coupon': coupon,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i7.CouponDisplay>> fetchApplicableCoupons(
     _i1.TestSessionBuilder sessionBuilder,
     double orderAmount,
   ) async {
@@ -385,7 +744,7 @@ class _CouponEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.CouponDisplay>>);
+                as _i3.Future<List<_i7.CouponDisplay>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -393,7 +752,7 @@ class _CouponEndpoint {
     });
   }
 
-  _i3.Future<_i7.CouponValidationResult> validateCoupon(
+  _i3.Future<_i8.CouponValidationResult> validateCoupon(
     _i1.TestSessionBuilder sessionBuilder,
     String couponCode,
     double orderAmount,
@@ -420,7 +779,494 @@ class _CouponEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.CouponValidationResult>);
+                as _i3.Future<_i8.CouponValidationResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _OrderEndpoint {
+  _OrderEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<String> createOrder(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i9.Order order,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'createOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'createOrder',
+          parameters: _i1.testObjectToJson({'order': order}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i9.Order>> getOrders(
+    _i1.TestSessionBuilder sessionBuilder, {
+    String? status,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'getOrders',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'getOrders',
+          parameters: _i1.testObjectToJson({
+            'status': status,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i9.Order>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i9.Order>> getTodayOrders(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'getTodayOrders',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'getTodayOrders',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i9.Order>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i9.Order>> getUserOrders(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'getUserOrders',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'getUserOrders',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i9.Order>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i9.Order?> getOrderById(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'getOrderById',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'getOrderById',
+          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.Order?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateOrderStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String newStatus, {
+    String? cancellationReason,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'updateOrderStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'updateOrderStatus',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'newStatus': newStatus,
+            'cancellationReason': cancellationReason,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updatePaymentStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String paymentStatus, {
+    String? razorpayPaymentId,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'updatePaymentStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'updatePaymentStatus',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'paymentStatus': paymentStatus,
+            'razorpayPaymentId': razorpayPaymentId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> assignDeliveryPerson(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String deliveryPersonName,
+    String deliveryPersonPhone,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'assignDeliveryPerson',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'assignDeliveryPerson',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'deliveryPersonName': deliveryPersonName,
+            'deliveryPersonPhone': deliveryPersonPhone,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getDashboardStats(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'getDashboardStats',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'getDashboardStats',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _PaymentEndpoint {
+  _PaymentEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<Map<String, dynamic>> createPaymentOrder(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    double amount,
+    String customerPhone,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'payment',
+            method: 'createPaymentOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'payment',
+          methodName: 'createPaymentOrder',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'amount': amount,
+            'customerPhone': customerPhone,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> verifyPayment(
+    _i1.TestSessionBuilder sessionBuilder,
+    String razorpayOrderId,
+    String razorpayPaymentId,
+    String razorpaySignature,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'payment',
+            method: 'verifyPayment',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'payment',
+          methodName: 'verifyPayment',
+          parameters: _i1.testObjectToJson({
+            'razorpayOrderId': razorpayOrderId,
+            'razorpayPaymentId': razorpayPaymentId,
+            'razorpaySignature': razorpaySignature,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> initiateRefund(
+    _i1.TestSessionBuilder sessionBuilder,
+    String razorpayPaymentId,
+    double amount,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'payment',
+            method: 'initiateRefund',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'payment',
+          methodName: 'initiateRefund',
+          parameters: _i1.testObjectToJson({
+            'razorpayPaymentId': razorpayPaymentId,
+            'amount': amount,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getPaymentStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    String razorpayPaymentId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'payment',
+            method: 'getPaymentStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'payment',
+          methodName: 'getPaymentStatus',
+          parameters: _i1.testObjectToJson({
+            'razorpayPaymentId': razorpayPaymentId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -439,7 +1285,7 @@ class _ProductEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i8.Product>> getProducts(
+  _i3.Future<List<_i10.Product>> getProducts(
     _i1.TestSessionBuilder sessionBuilder, {
     required int limit,
     String? lastProductName,
@@ -472,7 +1318,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i8.Product>>);
+                as _i3.Future<List<_i10.Product>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -482,7 +1328,9 @@ class _ProductEndpoint {
 
   _i3.Future<bool> uploadProduct(
     _i1.TestSessionBuilder sessionBuilder,
-    _i8.Product product,
+    _i10.Product product,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -495,7 +1343,85 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'uploadProduct',
-          parameters: _i1.testObjectToJson({'product': product}),
+          parameters: _i1.testObjectToJson({
+            'product': product,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> updateProduct(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i10.Product product,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'product',
+            method: 'updateProduct',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'product',
+          methodName: 'updateProduct',
+          parameters: _i1.testObjectToJson({
+            'product': product,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deleteProduct(
+    _i1.TestSessionBuilder sessionBuilder,
+    String productId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'product',
+            method: 'deleteProduct',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'product',
+          methodName: 'deleteProduct',
+          parameters: _i1.testObjectToJson({
+            'productId': productId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -542,7 +1468,7 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<List<_i8.Product>> searchProducts(
+  _i3.Future<List<_i10.Product>> searchProducts(
     _i1.TestSessionBuilder sessionBuilder,
     String query,
   ) async {
@@ -565,7 +1491,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i8.Product>>);
+                as _i3.Future<List<_i10.Product>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -734,7 +1660,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i9.SubCategory>> getSubCategories(
+  _i3.Future<List<_i11.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -756,7 +1682,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i9.SubCategory>>);
+                as _i3.Future<List<_i11.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -766,7 +1692,9 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i9.SubCategory subCategory,
+    _i11.SubCategory subCategory,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -779,7 +1707,11 @@ class _SubCategoryEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'subCategory',
           methodName: 'uploadSubCategory',
-          parameters: _i1.testObjectToJson({'subCategory': subCategory}),
+          parameters: _i1.testObjectToJson({
+            'subCategory': subCategory,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -806,7 +1738,7 @@ class _UserEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i10.AppUser?> getUserByFirebaseUid(
+  _i3.Future<_i4.AppUser?> getUserByFirebaseUid(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
   ) async {
@@ -829,7 +1761,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.AppUser?>);
+                as _i3.Future<_i4.AppUser?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -837,9 +1769,9 @@ class _UserEndpoint {
     });
   }
 
-  _i3.Future<_i10.AppUser> createOrUpdateUser(
+  _i3.Future<_i4.AppUser> createOrUpdateUser(
     _i1.TestSessionBuilder sessionBuilder,
-    _i10.AppUser user,
+    _i4.AppUser user,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -860,7 +1792,7 @@ class _UserEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.AppUser>);
+                as _i3.Future<_i4.AppUser>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -871,7 +1803,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i11.CartItem> cart,
+    List<_i12.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

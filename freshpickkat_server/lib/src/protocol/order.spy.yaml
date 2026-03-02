@@ -1,0 +1,27 @@
+class: Order
+fields:
+  orderId: String
+  userId: String
+  userName: String?
+  userPhone: String
+  items: List<OrderItem>
+  itemCount: int
+  totalAmount: double
+  discountAmount: double
+  deliveryFee: double
+  finalAmount: double
+  status: String
+  paymentStatus: String
+  razorpayOrderId: String?
+  razorpayPaymentId: String?
+  deliveryAddress: Address
+  orderedAt: DateTime
+  confirmedAt: DateTime?
+  outForDeliveryAt: DateTime?
+  deliveredAt: DateTime?
+  cancelledAt: DateTime?
+  cancellationReason: String?
+  deliveryPersonName: String?
+  deliveryPersonPhone: String?
+  deliveryOtp: String?
+  couponApplied: String?

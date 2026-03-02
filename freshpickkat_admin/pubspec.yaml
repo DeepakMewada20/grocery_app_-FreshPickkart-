@@ -1,0 +1,35 @@
+name: freshpickkat_admin
+description: FreshPickKart Admin App
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '^3.8.0'
+  flutter: '^3.32.0'
+
+dependencies:
+  cupertino_icons: ^1.0.5
+  flutter:
+    sdk: flutter
+  freshpickkat_client:
+    path: ../freshpickkat_client
+  serverpod_flutter: ^3.3.1
+  firebase_auth: ^6.1.4
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_storage: ^13.0.2
+  get: ^4.7.3
+  get_storage: ^2.1.1
+  google_fonts: ^6.3.3
+  pinput: ^6.0.2
+  image_picker: ^1.2.0
+
+dev_dependencies:
+  flutter_lints: '>=3.0.0 <7.0.0'
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

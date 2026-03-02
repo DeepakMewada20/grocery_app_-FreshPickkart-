@@ -1,0 +1,662 @@
+import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
+
+class CouponsScreen extends StatefulWidget {
+  const CouponsScreen({super.key});
+
+  @override
+  State<CouponsScreen> createState() => _CouponsScreenState();
+}
+
+class _CouponsScreenState extends State<CouponsScreen> {
+  final _client = ServerpodAdminClient().client;
+
+  List<Coupon> _coupons = [];
+  String _searchQuery = '';
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCoupons();
+  }
+
+  Future<void> _loadCoupons() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final coupons = await _client.coupon.fetchCoupons(uid, idToken);
+      if (!mounted) return;
+      setState(() {
+        _coupons = coupons;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _openAddCouponDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final codeCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final discountValueCtrl = TextEditingController();
+    final minOrderCtrl = TextEditingController(text: '0');
+    final maxDiscountCtrl = TextEditingController();
+    final usageLimitCtrl = TextEditingController();
+
+    String couponCategory = 'All';
+    String? discountType = 'flat';
+    bool isActive = true;
+    DateTime startDate = DateTime.now();
+    DateTime endDate = DateTime.now().add(const Duration(days: 30));
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Create Coupon'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: codeCtrl,
+                        decoration: const InputDecoration(labelText: 'Code'),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: descCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        initialValue: couponCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Coupon category',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'All', child: Text('All')),
+                          DropdownMenuItem(
+                            value: 'delivery',
+                            child: Text('Delivery'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setDialogState(() {
+                            couponCategory = value;
+                            if (couponCategory == 'delivery') {
+                              discountType = null;
+                            } else {
+                              discountType ??= 'flat';
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      if (couponCategory != 'delivery')
+                        DropdownButtonFormField<String>(
+                          initialValue: discountType,
+                          decoration: const InputDecoration(labelText: 'Type'),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'flat',
+                              child: Text('Flat'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'percentage',
+                              child: Text('Percentage'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() {
+                              discountType = value;
+                            });
+                          },
+                        ),
+                      if (couponCategory != 'delivery')
+                        const SizedBox(height: 10),
+                      if (couponCategory != 'delivery')
+                        TextFormField(
+                          controller: discountValueCtrl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: 'Discount value',
+                          ),
+                          validator: _numberValidator,
+                        ),
+                      if (couponCategory != 'delivery')
+                        const SizedBox(height: 10),
+                      TextFormField(
+                        controller: minOrderCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Minimum order amount',
+                        ),
+                        validator: _numberValidator,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: maxDiscountCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Max discount (optional)',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: usageLimitCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Usage limit (optional)',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Start: ${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+                        ),
+                        trailing: const Icon(Icons.date_range),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate,
+                            firstDate: DateTime(2023),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setDialogState(() {
+                              startDate = picked;
+                            });
+                          }
+                        },
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'End: ${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}',
+                        ),
+                        trailing: const Icon(Icons.date_range),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate,
+                            firstDate: startDate,
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setDialogState(() {
+                              endDate = picked;
+                            });
+                          }
+                        },
+                      ),
+                      SwitchListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        value: isActive,
+                        title: const Text('Active'),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            isActive = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                  child: const Text('Create'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (saved != true) return;
+
+    final maxDiscount = maxDiscountCtrl.text.trim().isEmpty
+        ? null
+        : double.tryParse(maxDiscountCtrl.text.trim());
+
+    final usageLimit = usageLimitCtrl.text.trim().isEmpty
+        ? null
+        : int.tryParse(usageLimitCtrl.text.trim());
+
+    final coupon = Coupon(
+      code: codeCtrl.text.trim().toUpperCase(),
+      description: descCtrl.text.trim(),
+      discountType: couponCategory == 'delivery' ? null : discountType,
+      discountValue: couponCategory == 'delivery'
+          ? null
+          : double.parse(discountValueCtrl.text.trim()),
+      minOrderAmount: double.parse(minOrderCtrl.text.trim()),
+      maxDiscount: maxDiscount,
+      startDate: startDate,
+      endDate: endDate,
+      usageLimit: usageLimit,
+      usedCount: 0,
+      isActive: isActive,
+      couponCategory: couponCategory,
+    );
+
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      await _client.coupon.uploadCoupon(coupon, uid, idToken);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Coupon created')));
+      await _loadCoupons();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to create coupon: $e')));
+    }
+  }
+
+  String? _numberValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Required';
+    }
+    return double.tryParse(value.trim()) == null ? 'Invalid number' : null;
+  }
+
+  Future<void> _setCouponActive(Coupon coupon, bool isActive) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final ok = await _client.coupon.setCouponActive(
+        coupon.code,
+        isActive,
+        uid,
+        idToken,
+      );
+      if (!mounted) return;
+      if (!ok) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Update failed')));
+        return;
+      }
+      await _loadCoupons();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+    }
+  }
+
+  Future<void> _openEditCouponDialog(Coupon coupon) async {
+    final formKey = GlobalKey<FormState>();
+    final descCtrl = TextEditingController(text: coupon.description);
+    final minOrderCtrl = TextEditingController(
+      text: coupon.minOrderAmount.toString(),
+    );
+    final discountValueCtrl = TextEditingController(
+      text: coupon.discountValue?.toString() ?? '',
+    );
+    final maxDiscountCtrl = TextEditingController(
+      text: coupon.maxDiscount?.toString() ?? '',
+    );
+    DateTime startDate = coupon.startDate;
+    DateTime endDate = coupon.endDate;
+    bool isActive = coupon.isActive;
+    String? discountType = coupon.discountType;
+    String couponCategory = coupon.couponCategory;
+
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text('Edit ${coupon.code}'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: descCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: minOrderCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Minimum order amount',
+                        ),
+                        validator: _numberValidator,
+                      ),
+                      const SizedBox(height: 10),
+                      if (couponCategory != 'delivery')
+                        DropdownButtonFormField<String>(
+                          initialValue: discountType,
+                          decoration: const InputDecoration(labelText: 'Type'),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'flat',
+                              child: Text('Flat'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'percentage',
+                              child: Text('Percentage'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setDialogState(() {
+                              discountType = value;
+                            });
+                          },
+                        ),
+                      if (couponCategory != 'delivery')
+                        const SizedBox(height: 10),
+                      if (couponCategory != 'delivery')
+                        TextFormField(
+                          controller: discountValueCtrl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: 'Discount value',
+                          ),
+                          validator: _numberValidator,
+                        ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: maxDiscountCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Max discount (optional)',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Start: ${startDate.toLocal()}'.split(' ').first,
+                        ),
+                        trailing: const Icon(Icons.date_range),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate,
+                            firstDate: DateTime(2023),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => startDate = picked);
+                          }
+                        },
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'End: ${endDate.toLocal()}'.split(' ').first,
+                        ),
+                        trailing: const Icon(Icons.date_range),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate,
+                            firstDate: startDate,
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => endDate = picked);
+                          }
+                        },
+                      ),
+                      SwitchListTile(
+                        value: isActive,
+                        onChanged: (v) => setDialogState(() => isActive = v),
+                        title: const Text('Active'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.pop(context, true);
+                    }
+                  },
+                  child: const Text('Update'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (saved != true) return;
+    final updated = coupon.copyWith(
+      description: descCtrl.text.trim(),
+      minOrderAmount: double.parse(minOrderCtrl.text.trim()),
+      discountType: couponCategory == 'delivery' ? null : discountType,
+      discountValue: couponCategory == 'delivery'
+          ? null
+          : double.parse(discountValueCtrl.text.trim()),
+      maxDiscount: maxDiscountCtrl.text.trim().isEmpty
+          ? null
+          : double.tryParse(maxDiscountCtrl.text.trim()),
+      startDate: startDate,
+      endDate: endDate,
+      isActive: isActive,
+    );
+
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final ok = await _client.coupon.updateCoupon(updated, uid, idToken);
+      if (!mounted) return;
+      if (!ok) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Update failed')));
+        return;
+      }
+      await _loadCoupons();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Coupons'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(onPressed: _loadCoupons, icon: const Icon(Icons.refresh)),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(child: Text('Error: $_error'))
+          : _coupons.isEmpty
+          ? const Center(child: Text('No coupons found'))
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Search coupon',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _loadCoupons,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _coupons.length,
+                      itemBuilder: (context, index) {
+                        final coupon = _coupons[index];
+                        final q = _searchQuery.toLowerCase().trim();
+                        if (q.isNotEmpty &&
+                            !coupon.code.toLowerCase().contains(q) &&
+                            !coupon.description.toLowerCase().contains(q)) {
+                          return const SizedBox.shrink();
+                        }
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          child: ListTile(
+                            title: Text(
+                              coupon.code,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${coupon.description}\n'
+                              'Type: ${coupon.discountType ?? 'delivery'} | Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                            ),
+                            trailing: SizedBox(
+                              width: 110,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Used ${coupon.usedCount}',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        coupon.isActive ? 'Active' : 'Off',
+                                        style: TextStyle(
+                                          color: coupon.isActive
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: coupon.isActive,
+                                        onChanged: (value) =>
+                                            _setCouponActive(coupon, value),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        _openEditCouponDialog(coupon),
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      size: 18,
+                                    ),
+                                    tooltip: 'Edit',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        onPressed: _openAddCouponDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Create Coupon'),
+      ),
+    );
+  }
+}

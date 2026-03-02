@@ -3,18 +3,25 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:googleapis_auth/auth_io.dart';
 
 class FirebaseService {
+  static const String projectId = 'freshpickkart-a6824';
+  static const String serviceAccountPath =
+      'config/firebase_service_account_key.json';
+
+  static FirestoreApi? _cachedFirestore;
+
   // Service account credentials for admin SDK
   static Future<ServiceAccountCredentials>
   getServiceAccountCredentials() async {
-    final jsonCredentials = await File(_serviceAccountPath).readAsString();
+    final jsonCredentials = await File(serviceAccountPath).readAsString();
     return ServiceAccountCredentials.fromJson(jsonCredentials);
   }
 
-  static const _serviceAccountPath = 'config/firebase_service_account_key.json';
-
   // Firestore API ka client lene ke liye ye function use karein
   static Future<FirestoreApi> getFirestoreClient() async {
-    final jsonCredentials = await File(_serviceAccountPath).readAsString();
+    final cached = _cachedFirestore;
+    if (cached != null) return cached;
+
+    final jsonCredentials = await File(serviceAccountPath).readAsString();
     final credentials = ServiceAccountCredentials.fromJson(jsonCredentials);
 
     // Firestore ke liye permission scope
@@ -22,6 +29,8 @@ class FirebaseService {
 
     // Auth client create karein
     final client = await clientViaServiceAccount(credentials, scopes);
-    return FirestoreApi(client);
+    final firestore = FirestoreApi(client);
+    _cachedFirestore = firestore;
+    return firestore;
   }
 }

@@ -5,3 +5,4 @@ fields:
   name: String?
   shippingAddress: Address?
   cart: List<CartItem>?
+  role: String

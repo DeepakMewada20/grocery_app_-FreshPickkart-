@@ -1,16 +1,43 @@
+admin:
+  - isAdminSetupCompleted:
+  - resolveAdminLoginEmail:
+  - firebaseLogin:
+  - getAllUsers:
+  - getDashboardStats:
+  - getAnalytics:
+  - getAuditLogs:
 auth:
-  - verifyPhoneLogin:
   - signOut:
 category:
   - getCategories:
+  - uploadCategory:
 coupon:
   - fetchCoupons:
   - uploadCoupon:
+  - setCouponActive:
+  - updateCoupon:
   - fetchApplicableCoupons:
   - validateCoupon:
+order:
+  - createOrder:
+  - getOrders:
+  - getTodayOrders:
+  - getUserOrders:
+  - getOrderById:
+  - updateOrderStatus:
+  - updatePaymentStatus:
+  - assignDeliveryPerson:
+  - getDashboardStats:
+payment:
+  - createPaymentOrder:
+  - verifyPayment:
+  - initiateRefund:
+  - getPaymentStatus:
 product:
   - getProducts:
   - uploadProduct:
+  - updateProduct:
+  - deleteProduct:
   - getProductSuggestions:
   - searchProducts:
   - migrateProducts:
