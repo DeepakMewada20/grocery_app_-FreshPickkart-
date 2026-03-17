@@ -63,6 +63,7 @@ class UserController extends GetxController {
         shippingAddress: appUser.shippingAddress,
         cart: appUser.cart,
         role: appUser.role,
+        fcmToken: appUser.fcmToken,
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
@@ -88,6 +89,7 @@ class UserController extends GetxController {
         shippingAddress: address,
         cart: appUser.cart,
         role: appUser.role,
+        fcmToken: appUser.fcmToken,
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;

@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _setupEmailCtrl = TextEditingController();
   final _setupPasswordCtrl = TextEditingController();
   final _setupConfirmPasswordCtrl = TextEditingController();
+  final _resetIdentityCtrl = TextEditingController();
 
   final _loginFormKey = GlobalKey<FormState>();
   final _setupFormKey = GlobalKey<FormState>();
@@ -63,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen>
     _setupEmailCtrl.dispose();
     _setupPasswordCtrl.dispose();
     _setupConfirmPasswordCtrl.dispose();
+    _resetIdentityCtrl.dispose();
     super.dispose();
   }
 
@@ -121,51 +123,127 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> _openPasswordResetDialog() async {
     final usernameInput = _loginUsernameCtrl.text.trim();
-    final initialEmail = usernameInput.contains('@') ? usernameInput : '';
-    final emailCtrl = TextEditingController(text: initialEmail);
+    _resetIdentityCtrl.text = usernameInput;
+    bool isSending = false;
+    bool isErrorMessage = false;
+    String? statusMessage;
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: TextField(
-            controller: emailCtrl,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'admin@example.com',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final email = emailCtrl.text.trim();
-                if (_validateEmail(email) != null) {
-                  _showMessage('Valid email required.', isError: true);
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> handleSend() async {
+              final identity = _resetIdentityCtrl.text.trim();
+              if (identity.isEmpty) {
+                setDialogState(() {
+                  isErrorMessage = true;
+                  statusMessage = 'Username or email required.';
+                });
+                return;
+              }
+
+              if (identity.contains('@')) {
+                if (!AdminAuthService.isValidEmail(identity)) {
+                  setDialogState(() {
+                    isErrorMessage = true;
+                    statusMessage = AdminAuthService.emailRuleText;
+                  });
                   return;
                 }
-                try {
-                  await _authService.sendPasswordResetEmail(email);
-                  if (!mounted || !dialogContext.mounted) return;
-                  Navigator.of(dialogContext).pop();
-                  _showMessage('Password reset link sent to $email');
-                } catch (e) {
-                  _showMessage(_friendlyError(e), isError: true);
+              } else {
+                if (!AdminAuthService.isValidUsername(identity)) {
+                  setDialogState(() {
+                    isErrorMessage = true;
+                    statusMessage = AdminAuthService.usernameRuleText;
+                  });
+                  return;
                 }
-              },
-              child: const Text('Send Link'),
-            ),
-          ],
+              }
+
+              setDialogState(() {
+                isSending = true;
+                isErrorMessage = false;
+                statusMessage = null;
+              });
+
+              try {
+                final resolvedEmail =
+                    await _authService.sendPasswordResetForIdentity(identity);
+                if (!mounted || !dialogContext.mounted) return;
+
+                final maskedEmail = _maskEmailForDisplay(resolvedEmail);
+
+                setDialogState(() {
+                  isSending = false;
+                  isErrorMessage = false;
+                  statusMessage =
+                      'Password reset link has been sent to $maskedEmail.';
+                });
+              } catch (e) {
+                if (!mounted || !dialogContext.mounted) return;
+                setDialogState(() {
+                  isSending = false;
+                  isErrorMessage = true;
+                  statusMessage = _friendlyError(e);
+                });
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Reset Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _resetIdentityCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (_) {
+                      if (statusMessage == null) return;
+                      setDialogState(() {
+                        statusMessage = null;
+                        isErrorMessage = false;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Username or Email',
+                      hintText: 'Enter your username or email',
+                    ),
+                  ),
+                  if (statusMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      statusMessage!,
+                      style: TextStyle(
+                        color: isErrorMessage ? Colors.red : Colors.green,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Close'),
+                ),
+                ElevatedButton(
+                  onPressed: isSending ? null : handleSend,
+                  child: isSending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Send Link'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
-
-    emailCtrl.dispose();
   }
 
   Future<void> _startSetup() async {
@@ -328,6 +406,26 @@ class _LoginScreenState extends State<LoginScreen>
       return 'Passwords do not match';
     }
     return null;
+  }
+
+  String _maskEmailForDisplay(String email) {
+    final trimmed = email.trim();
+    final atIndex = trimmed.indexOf('@');
+    if (atIndex <= 0) return trimmed;
+
+    final local = trimmed.substring(0, atIndex);
+    final domain = trimmed.substring(atIndex + 1);
+
+    String maskedLocal;
+    if (local.length <= 4) {
+      maskedLocal = local;
+    } else {
+      maskedLocal =
+          '${local.substring(0, 2)}${'*' * (local.length - 4)}${local.substring(local.length - 2)}';
+    }
+
+    if (domain.isEmpty) return '$maskedLocal@';
+    return '$maskedLocal@$domain';
   }
 
   @override

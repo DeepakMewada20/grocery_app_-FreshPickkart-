@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
 import '../services/firebase_service.dart';
 import '../services/role_guard_service.dart';
 import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
+import '../services/notification_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class OrderEndpoint extends Endpoint {
@@ -71,6 +74,51 @@ class OrderEndpoint extends Endpoint {
     return orders.where((order) => order.status == status).toList();
   }
 
+  Future<protocol.OrderPage> getOrdersPage(
+    Session session, {
+    String? status,
+    required String firebaseUid,
+    required String idToken,
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final page = await _fetchOrdersPage(
+      session,
+      status: status,
+      limit: limit,
+      pageToken: pageToken,
+    );
+    final totalCount = await _countOrders(session, status: status);
+
+    return protocol.OrderPage(
+      orders: page.orders,
+      nextPageToken: page.nextPageToken,
+      totalCount: totalCount,
+    );
+  }
+
+  Future<int> getOrdersCount(
+    Session session, {
+    String? status,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _countOrders(session, status: status);
+  }
+
   Future<List<protocol.Order>> getTodayOrders(
     Session session,
     String firebaseUid,
@@ -129,6 +177,255 @@ class OrderEndpoint extends Endpoint {
     return orders;
   }
 
+  Future<protocol.OrderPage> _fetchOrdersPage(
+    Session session, {
+    String? status,
+    required int limit,
+    String? pageToken,
+  }) async {
+    try {
+      return await _fetchOrdersPageWithOrdering(
+        session,
+        status: status,
+        limit: limit,
+        pageToken: pageToken,
+        includeOrderId: true,
+      );
+    } catch (_) {
+      try {
+        return await _fetchOrdersPageWithOrdering(
+          session,
+          status: status,
+          limit: limit,
+          pageToken: pageToken,
+          includeOrderId: false,
+        );
+      } catch (_) {
+        return await _fetchOrdersPageInMemory(
+          session,
+          status: status,
+          limit: limit,
+          pageToken: pageToken,
+        );
+      }
+    }
+  }
+
+  Future<protocol.OrderPage> _fetchOrdersPageWithOrdering(
+    Session session, {
+    String? status,
+    required int limit,
+    String? pageToken,
+    required bool includeOrderId,
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+
+    firestore_api.Filter? filter;
+    if (status != null && status.trim().isNotEmpty) {
+      filter = firestore_api.Filter(
+        fieldFilter: firestore_api.FieldFilter(
+          field: firestore_api.FieldReference(fieldPath: 'status'),
+          op: 'EQUAL',
+          value: firestore_api.Value(stringValue: status.trim()),
+        ),
+      );
+    }
+
+    firestore_api.Cursor? cursor;
+    final decoded = _decodePageToken(pageToken);
+    if (decoded != null) {
+      final orderedAtRaw = decoded['orderedAt'];
+      final orderId = decoded['orderId'];
+      final orderedAt = DateTime.tryParse(orderedAtRaw ?? '');
+      if (orderedAt != null) {
+        if (includeOrderId && orderId != null && orderId.isNotEmpty) {
+          cursor = firestore_api.Cursor(
+            values: [
+              firestore_api.Value(
+                timestampValue: orderedAt.toUtc().toIso8601String(),
+              ),
+              firestore_api.Value(stringValue: orderId),
+            ],
+            before: false,
+          );
+        } else if (!includeOrderId) {
+          cursor = firestore_api.Cursor(
+            values: [
+              firestore_api.Value(
+                timestampValue: orderedAt.toUtc().toIso8601String(),
+              ),
+            ],
+            before: false,
+          );
+        }
+      }
+    }
+
+    final orderBy = <firestore_api.Order>[
+      firestore_api.Order(
+        field: firestore_api.FieldReference(fieldPath: 'orderedAt'),
+        direction: 'DESCENDING',
+      ),
+    ];
+    if (includeOrderId) {
+      orderBy.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'orderId'),
+          direction: 'DESCENDING',
+        ),
+      );
+    }
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: orderCollection)],
+      where: filter,
+      orderBy: orderBy,
+      limit: limit,
+      startAt: cursor,
+    );
+
+    final response = await firestore.projects.databases.documents.runQuery(
+      firestore_api.RunQueryRequest(structuredQuery: query),
+      database,
+    );
+
+    final orders = <protocol.Order>[];
+    String? lastOrderedAt;
+    String? lastOrderId;
+    for (final res in response) {
+      if (res.document?.fields == null) continue;
+      final fields = res.document!.fields!;
+      final order = _orderFromFirestore(
+        fields,
+        res.document!.name!.split('/').last,
+      );
+      orders.add(order);
+      lastOrderedAt = fields['orderedAt']?.timestampValue;
+      lastOrderId = fields['orderId']?.stringValue ?? order.orderId;
+    }
+
+    String? nextPageToken;
+    if (orders.length == limit && lastOrderedAt != null) {
+      if (includeOrderId && lastOrderId != null && lastOrderId.isNotEmpty) {
+        nextPageToken = _encodePageToken({
+          'orderedAt': lastOrderedAt,
+          'orderId': lastOrderId,
+        });
+      } else {
+        nextPageToken = _encodePageToken({'orderedAt': lastOrderedAt});
+      }
+    }
+
+    return protocol.OrderPage(
+      orders: orders,
+      nextPageToken: nextPageToken,
+      totalCount: orders.length,
+    );
+  }
+
+  Future<protocol.OrderPage> _fetchOrdersPageInMemory(
+    Session session, {
+    String? status,
+    required int limit,
+    String? pageToken,
+  }) async {
+    final orders = await _fetchAllOrders(session);
+    final filtered = (status == null || status.trim().isEmpty)
+        ? orders
+        : orders.where((o) => o.status == status.trim()).toList();
+
+    filtered.sort((a, b) {
+      final cmp = b.orderedAt.compareTo(a.orderedAt);
+      if (cmp != 0) return cmp;
+      return b.orderId.compareTo(a.orderId);
+    });
+
+    final offset = _decodeOffsetToken(pageToken) ?? 0;
+    final pageOrders = filtered.skip(offset).take(limit).toList();
+    final nextOffset = offset + pageOrders.length;
+    final nextPageToken =
+        nextOffset < filtered.length ? _encodeOffsetToken(nextOffset) : null;
+
+    return protocol.OrderPage(
+      orders: pageOrders,
+      nextPageToken: nextPageToken,
+      totalCount: filtered.length,
+    );
+  }
+
+  Future<int> _countOrders(Session session, {String? status}) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+
+    firestore_api.Filter? filter;
+    if (status != null && status.trim().isNotEmpty) {
+      filter = firestore_api.Filter(
+        fieldFilter: firestore_api.FieldFilter(
+          field: firestore_api.FieldReference(fieldPath: 'status'),
+          op: 'EQUAL',
+          value: firestore_api.Value(stringValue: status.trim()),
+        ),
+      );
+    }
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: orderCollection)],
+      where: filter,
+    );
+
+    final response = await firestore.projects.databases.documents.runQuery(
+      firestore_api.RunQueryRequest(structuredQuery: query),
+      database,
+    );
+
+    var count = 0;
+    for (final res in response) {
+      if (res.document != null) count++;
+    }
+    return count;
+  }
+
+  String _encodePageToken(Map<String, String> payload) {
+    return base64Url.encode(utf8.encode(jsonEncode(payload)));
+  }
+
+  Map<String, String>? _decodePageToken(String? token) {
+    if (token == null || token.trim().isEmpty) return null;
+    try {
+      final decoded = utf8.decode(base64Url.decode(token));
+      final map = jsonDecode(decoded);
+      if (map is Map<String, dynamic>) {
+        return map.map(
+          (key, value) => MapEntry(key, value?.toString() ?? ''),
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _encodeOffsetToken(int offset) {
+    return base64Url.encode(utf8.encode(jsonEncode({'offset': offset})));
+  }
+
+  int? _decodeOffsetToken(String? token) {
+    if (token == null || token.trim().isEmpty) return null;
+    try {
+      final decoded = utf8.decode(base64Url.decode(token));
+      final map = jsonDecode(decoded);
+      if (map is Map<String, dynamic>) {
+        final raw = map['offset'];
+        if (raw is int) return raw;
+        return int.tryParse(raw?.toString() ?? '');
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<protocol.Order>> getUserOrders(
     Session session,
     String userId,
@@ -145,12 +442,6 @@ class OrderEndpoint extends Endpoint {
           value: firestore_api.Value(stringValue: userId),
         ),
       ),
-      orderBy: [
-        firestore_api.Order(
-          field: firestore_api.FieldReference(fieldPath: 'orderedAt'),
-          direction: 'DESCENDING',
-        ),
-      ],
     );
 
     final response = await firestore.projects.databases.documents.runQuery(
@@ -169,6 +460,7 @@ class OrderEndpoint extends Endpoint {
         );
       }
     }
+    orders.sort((a, b) => b.orderedAt.compareTo(a.orderedAt));
     return orders;
   }
 
@@ -255,6 +547,14 @@ class OrderEndpoint extends Endpoint {
       entityId: orderId,
       metadata: {'newStatus': newStatus},
     );
+
+    if (existingOrder.userId.isNotEmpty) {
+      await NotificationService.notifyUserStatusUpdate(
+        userId: existingOrder.userId,
+        orderId: orderId,
+        status: newStatus,
+      );
+    }
 
     return true;
   }

@@ -23,6 +23,7 @@ abstract class AppUser implements _i1.SerializableModel {
     this.shippingAddress,
     this.cart,
     required this.role,
+    this.fcmToken,
   });
 
   factory AppUser({
@@ -32,6 +33,7 @@ abstract class AppUser implements _i1.SerializableModel {
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     required String role,
+    String? fcmToken,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -50,6 +52,7 @@ abstract class AppUser implements _i1.SerializableModel {
               jsonSerialization['cart'],
             ),
       role: jsonSerialization['role'] as String,
+      fcmToken: jsonSerialization['fcmToken'] as String?,
     );
   }
 
@@ -65,6 +68,8 @@ abstract class AppUser implements _i1.SerializableModel {
 
   String role;
 
+  String? fcmToken;
+
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -75,6 +80,7 @@ abstract class AppUser implements _i1.SerializableModel {
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     String? role,
+    String? fcmToken,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -86,6 +92,7 @@ abstract class AppUser implements _i1.SerializableModel {
       if (shippingAddress != null) 'shippingAddress': shippingAddress?.toJson(),
       if (cart != null) 'cart': cart?.toJson(valueToJson: (v) => v.toJson()),
       'role': role,
+      if (fcmToken != null) 'fcmToken': fcmToken,
     };
   }
 
@@ -105,6 +112,7 @@ class _AppUserImpl extends AppUser {
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     required String role,
+    String? fcmToken,
   }) : super._(
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
@@ -112,6 +120,7 @@ class _AppUserImpl extends AppUser {
          shippingAddress: shippingAddress,
          cart: cart,
          role: role,
+         fcmToken: fcmToken,
        );
 
   /// Returns a shallow copy of this [AppUser]
@@ -125,6 +134,7 @@ class _AppUserImpl extends AppUser {
     Object? shippingAddress = _Undefined,
     Object? cart = _Undefined,
     String? role,
+    Object? fcmToken = _Undefined,
   }) {
     return AppUser(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -137,6 +147,7 @@ class _AppUserImpl extends AppUser {
           ? cart
           : this.cart?.map((e0) => e0.copyWith()).toList(),
       role: role ?? this.role,
+      fcmToken: fcmToken is String? ? fcmToken : this.fcmToken,
     );
   }
 }

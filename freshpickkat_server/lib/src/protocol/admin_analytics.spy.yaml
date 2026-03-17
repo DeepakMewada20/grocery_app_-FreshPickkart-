@@ -1,0 +1,5 @@
+class: AdminAnalytics
+fields:
+  cancellationRate: double
+  lowStockCount: int
+  topProducts: List<AdminTopProduct>

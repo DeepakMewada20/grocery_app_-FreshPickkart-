@@ -1,0 +1,12 @@
+class: AdminDashboardStats
+fields:
+  todayOrders: int
+  todayRevenue: double
+  totalOrders: int
+  totalRevenue: double
+  totalUsers: int
+  pendingOrders: int
+  confirmedOrders: int
+  outForDeliveryOrders: int
+  deliveredOrders: int
+  cancelledOrders: int

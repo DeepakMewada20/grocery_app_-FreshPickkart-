@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
+import 'package:freshpickkat_admin/services/admin_notification_service.dart';
 
 enum _AuthViewState { checking, login, awaitingVerification, authenticated }
 
@@ -108,6 +109,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
 
       await _authService.authorizeCurrentUser();
+      await AdminNotificationService.init();
       if (!mounted) return;
       setState(() {
         _viewState = _AuthViewState.authenticated;

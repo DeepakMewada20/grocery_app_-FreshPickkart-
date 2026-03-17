@@ -7,6 +7,7 @@ import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
+import 'src/web/routes/razorpay_webhook_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -37,6 +38,9 @@ void run(List<String> args) async {
     AppConfigRoute(apiConfig: pod.config.apiServer),
     '/app/assets/assets/config.json',
   );
+
+  // Razorpay webhook (POST)
+  pod.webServer.addRoute(RazorpayWebhookRoute(), '/payment/webhook');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

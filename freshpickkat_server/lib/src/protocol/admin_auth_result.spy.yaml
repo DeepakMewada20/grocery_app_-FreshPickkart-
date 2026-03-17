@@ -1,0 +1,4 @@
+class: AdminAuthResult
+fields:
+  ok: bool
+  message: String?

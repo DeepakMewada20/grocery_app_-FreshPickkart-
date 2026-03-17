@@ -52,26 +52,26 @@ class AdminEndpoint extends Endpoint {
     return email;
   }
 
-  Future<Map<String, dynamic>> firebaseLogin(
+  Future<protocol.AdminAuthResult> firebaseLogin(
     Session session,
     String idToken,
   ) async {
     final token = await FirebaseAuthService.verifyIdToken(idToken);
     if (token == null) {
       final verifyError = FirebaseAuthService.getLastVerifyError();
-      return {
-        'ok': false,
-        'message': verifyError == null || verifyError.trim().isEmpty
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: verifyError == null || verifyError.trim().isEmpty
             ? 'Invalid or expired Firebase token.'
             : 'Invalid or expired Firebase token. $verifyError',
-      };
+      );
     }
 
     if (!token.emailVerified) {
-      return {
-        'ok': false,
-        'message': 'Email verification required.',
-      };
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Email verification required.',
+      );
     }
 
     final firestore = await FirebaseService.getFirestoreClient();
@@ -80,22 +80,22 @@ class AdminEndpoint extends Endpoint {
       firebaseUid: token.uid,
     );
     if (seller == null) {
-      return {
-        'ok': false,
-        'message':
+      return protocol.AdminAuthResult(
+        ok: false,
+        message:
             'Seller profile not found for this account. Please complete setup again.',
-      };
+      );
     }
 
     final role = seller['role'] as String?;
     if (!SellerAccessService.isAdminSellerRole(role)) {
-      return {
-        'ok': false,
-        'message': 'Access denied: ADMIN_SELLER role required.',
-      };
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Access denied: ADMIN_SELLER role required.',
+      );
     }
 
-    return {'ok': true};
+    return protocol.AdminAuthResult(ok: true);
   }
 
   Future<List<protocol.AppUser>> getAllUsers(
@@ -129,7 +129,7 @@ class AdminEndpoint extends Endpoint {
         .toList();
   }
 
-  Future<Map<String, dynamic>> getDashboardStats(
+  Future<protocol.AdminDashboardStats> getDashboardStats(
     Session session,
     String firebaseUid,
     String idToken,
@@ -192,21 +192,21 @@ class AdminEndpoint extends Endpoint {
       }
     }
 
-    return {
-      'todayOrders': todayOrders.length,
-      'todayRevenue': todayRevenue,
-      'totalOrders': orders.length,
-      'totalRevenue': totalRevenue,
-      'totalUsers': users.length,
-      'pendingOrders': pendingCount,
-      'confirmedOrders': confirmedCount,
-      'outForDeliveryOrders': outForDeliveryCount,
-      'deliveredOrders': deliveredCount,
-      'cancelledOrders': cancelledCount,
-    };
+    return protocol.AdminDashboardStats(
+      todayOrders: todayOrders.length,
+      todayRevenue: todayRevenue,
+      totalOrders: orders.length,
+      totalRevenue: totalRevenue,
+      totalUsers: users.length,
+      pendingOrders: pendingCount,
+      confirmedOrders: confirmedCount,
+      outForDeliveryOrders: outForDeliveryCount,
+      deliveredOrders: deliveredCount,
+      cancelledOrders: cancelledCount,
+    );
   }
 
-  Future<Map<String, dynamic>> getAnalytics(
+  Future<protocol.AdminAnalytics> getAnalytics(
     Session session,
     String firebaseUid,
     String idToken,
@@ -239,7 +239,7 @@ class AdminEndpoint extends Endpoint {
         );
 
     int lowStockCount = 0;
-    final topProducts = <Map<String, dynamic>>[];
+    final topProducts = <protocol.AdminTopProduct>[];
     for (final row in productsResponse) {
       final fields = row.document?.fields;
       if (fields == null) continue;
@@ -249,12 +249,14 @@ class AdminEndpoint extends Endpoint {
         lowStockCount++;
       }
 
-      topProducts.add({
-        'name': fields['productName']?.stringValue ?? '',
-        'mostPurchases':
-            int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
-        'quantity': quantityText,
-      });
+      topProducts.add(
+        protocol.AdminTopProduct(
+          name: fields['productName']?.stringValue ?? '',
+          mostPurchases:
+              int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+          quantity: quantityText,
+        ),
+      );
     }
 
     final cancelled = orders.where((o) => o.status == 'cancelled').length;
@@ -262,14 +264,14 @@ class AdminEndpoint extends Endpoint {
         ? 0.0
         : (cancelled / orders.length) * 100;
 
-    return {
-      'cancellationRate': cancellationRate,
-      'lowStockCount': lowStockCount,
-      'topProducts': topProducts,
-    };
+    return protocol.AdminAnalytics(
+      cancellationRate: cancellationRate,
+      lowStockCount: lowStockCount,
+      topProducts: topProducts,
+    );
   }
 
-  Future<List<Map<String, dynamic>>> getAuditLogs(
+  Future<List<protocol.AdminAuditLogEntry>> getAuditLogs(
     Session session,
     String firebaseUid,
     String idToken, {
@@ -300,18 +302,20 @@ class AdminEndpoint extends Endpoint {
       database,
     );
 
-    final logs = <Map<String, dynamic>>[];
+    final logs = <protocol.AdminAuditLogEntry>[];
     for (final row in response) {
       final fields = row.document?.fields;
       if (fields == null) continue;
-      logs.add({
-        'id': row.document!.name!.split('/').last,
-        'actorUid': fields['actorUid']?.stringValue ?? '',
-        'action': fields['action']?.stringValue ?? '',
-        'entityType': fields['entityType']?.stringValue ?? '',
-        'entityId': fields['entityId']?.stringValue ?? '',
-        'createdAt': fields['createdAt']?.timestampValue ?? '',
-      });
+      logs.add(
+        protocol.AdminAuditLogEntry(
+          id: row.document!.name!.split('/').last,
+          actorUid: fields['actorUid']?.stringValue ?? '',
+          action: fields['action']?.stringValue ?? '',
+          entityType: fields['entityType']?.stringValue ?? '',
+          entityId: fields['entityId']?.stringValue ?? '',
+          createdAt: fields['createdAt']?.timestampValue ?? '',
+        ),
+      );
     }
     return logs;
   }

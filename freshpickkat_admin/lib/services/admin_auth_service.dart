@@ -140,6 +140,46 @@ class AdminAuthService {
     await _firebaseAuth.sendPasswordResetEmail(email: normalized);
   }
 
+  Future<String> sendPasswordResetForIdentity(String usernameOrEmail) async {
+    final trimmed = usernameOrEmail.trim();
+    if (trimmed.isEmpty) {
+      throw Exception('Username or email required.');
+    }
+
+    final normalized = trimmed.toLowerCase();
+    String? email;
+
+    if (normalized.contains('@')) {
+      _ensureValidEmail(normalized);
+      email = normalized;
+    } else {
+      _ensureValidUsername(normalized);
+      final resolved = await _client.admin.resolveAdminLoginEmail(normalized);
+      final resolvedEmail = resolved.trim().toLowerCase();
+      if (resolvedEmail.isNotEmpty && isValidEmail(resolvedEmail)) {
+        email = resolvedEmail;
+      }
+    }
+
+    if (email == null || email.isEmpty) {
+      throw Exception('Account not found.');
+    }
+
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw Exception('Account not found.');
+      }
+      if (e.code == 'invalid-email') {
+        throw Exception(emailRuleText);
+      }
+      rethrow;
+    }
+
+    return email;
+  }
+
   Future<String> resolveLoginEmail(String usernameOrEmail) async {
     final normalized = usernameOrEmail.trim().toLowerCase();
     if (normalized.isEmpty) {
@@ -275,31 +315,13 @@ class AdminAuthService {
   }
 
   Future<void> _verifyAdminToken(String idToken) async {
-    final response = await _client.admin.caller.callServerEndpoint<dynamic>(
-      'admin',
-      'firebaseLogin',
-      {'idToken': idToken},
-    );
-
-    if (response is bool) {
-      if (!response) {
-        throw Exception('Admin verification failed.');
+    final result = await _client.admin.firebaseLogin(idToken);
+    if (!result.ok) {
+      final message = (result.message ?? '').trim();
+      if (message.isNotEmpty) {
+        throw Exception(message);
       }
-      return;
+      throw Exception('Admin verification failed.');
     }
-
-    if (response is Map) {
-      final ok = response['ok'] == true;
-      if (!ok) {
-        final message = (response['message'] ?? '').toString().trim();
-        if (message.isNotEmpty) {
-          throw Exception(message);
-        }
-        throw Exception('Admin verification failed.');
-      }
-      return;
-    }
-
-    throw Exception('Unexpected admin auth response from server.');
   }
 }

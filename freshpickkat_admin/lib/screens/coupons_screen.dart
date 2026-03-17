@@ -589,58 +589,72 @@ class _CouponsScreenState extends State<CouponsScreen> {
                         }
                         return Card(
                           margin: const EdgeInsets.only(bottom: 10),
-                          child: ListTile(
-                            title: Text(
-                              coupon.code,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${coupon.description}\n'
-                              'Type: ${coupon.discountType ?? 'delivery'} | Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
-                            ),
-                            trailing: SizedBox(
-                              width: 110,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    'Used ${coupon.usedCount}',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        coupon.isActive ? 'Active' : 'Off',
-                                        style: TextStyle(
-                                          color: coupon.isActive
-                                              ? Colors.green
-                                              : Colors.red,
+                                        coupon.code,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      Switch(
-                                        value: coupon.isActive,
-                                        onChanged: (value) =>
-                                            _setCouponActive(coupon, value),
+                                      const SizedBox(height: 6),
+                                      Text(coupon.description),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Type: ${coupon.discountType ?? 'delivery'} | Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
                                       ),
                                     ],
                                   ),
-                                  IconButton(
-                                    onPressed: () =>
-                                        _openEditCouponDialog(coupon),
-                                    icon: const Icon(
-                                      Icons.edit_outlined,
-                                      size: 18,
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Used ${coupon.usedCount}',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade700,
+                                      ),
                                     ),
-                                    tooltip: 'Edit',
-                                  ),
-                                ],
-                              ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          coupon.isActive ? 'Active' : 'Off',
+                                          style: TextStyle(
+                                            color: coupon.isActive
+                                                ? Colors.green
+                                                : Colors.red,
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: coupon.isActive,
+                                          onChanged: (value) =>
+                                              _setCouponActive(coupon, value),
+                                        ),
+                                      ],
+                                    ),
+                                    IconButton(
+                                      onPressed: () =>
+                                          _openEditCouponDialog(coupon),
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Edit',
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         );

@@ -9,7 +9,9 @@ import 'package:freshpickkat_flutter/utils/address_utils.dart';
 import 'package:get/get.dart';
 
 class AddressScreen extends StatefulWidget {
-  const AddressScreen({super.key});
+  final bool autoUseCurrent;
+
+  const AddressScreen({super.key, this.autoUseCurrent = false});
 
   @override
   State<AddressScreen> createState() => _AddressScreenState();
@@ -47,6 +49,10 @@ class _AddressScreenState extends State<AddressScreen>
   @override
   void initState() {
     super.initState();
+    final userController = UserController.instance;
+    if (userController.userName.value.isNotEmpty) {
+      _nameController.text = userController.userName.value;
+    }
     _initAnimations();
     _getCurrentLocation();
   }

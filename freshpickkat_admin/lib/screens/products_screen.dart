@@ -16,37 +16,53 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final _client = ServerpodAdminClient().client;
+  static const int _pageSize = 20;
+  final ScrollController _scrollController = ScrollController();
 
   List<Product> _products = [];
   List<Category> _categories = [];
   List<SubCategory> _subCategories = [];
+  String? _nextPageToken;
+  int _totalCount = 0;
   String _searchQuery = '';
   String _categoryFilter = 'All';
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
+      _products = [];
+      _nextPageToken = null;
+      _totalCount = 0;
+      _hasMore = true;
     });
 
     try {
       final result = await Future.wait([
-        _client.product.getProducts(limit: 100, sortBy: 'name'),
         _client.category.getCategories(),
         _client.subCategory.getSubCategories(),
       ]);
 
-      _products = result[0] as List<Product>;
-      _categories = result[1] as List<Category>;
-      _subCategories = result[2] as List<SubCategory>;
+      _categories = result[0] as List<Category>;
+      _subCategories = result[1] as List<SubCategory>;
+      await _loadMoreProducts(isInitial: true);
 
       if (mounted) {
         setState(() {
@@ -60,6 +76,78 @@ class _ProductsScreenState extends State<ProductsScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _reloadProducts() async {
+    setState(() {
+      _products = [];
+      _nextPageToken = null;
+      _totalCount = 0;
+      _error = null;
+      _hasMore = true;
+    });
+    await _loadMoreProducts(isInitial: true);
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _loadMoreProducts();
+    }
+  }
+
+  Future<void> _loadMoreProducts({bool isInitial = false}) async {
+    if (_isLoadingMore) return;
+    if (!_hasMore) return;
+
+    setState(() {
+      if (isInitial || _products.isEmpty) {
+        _isLoading = true;
+      } else {
+        _isLoadingMore = true;
+      }
+    });
+
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final page = await _client.product.getProductsPage(
+        firebaseUid: uid,
+        idToken: idToken,
+        limit: _pageSize,
+        pageToken: _nextPageToken,
+        sortBy: 'name',
+        category: _categoryFilter == 'All' ? null : _categoryFilter,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _products.addAll(page.products);
+        _nextPageToken = page.nextPageToken;
+        _totalCount = page.totalCount;
+        _hasMore = page.nextPageToken != null && page.products.isNotEmpty;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      if (_products.isEmpty) {
+        setState(() {
+          _error = e.toString();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load more products: $e')),
+        );
+      }
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
     }
   }
 
@@ -760,16 +848,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Products'),
+        title: Text(
+          _totalCount > 0 ? 'Products ($_totalCount)' : 'Products',
+        ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
           IconButton(onPressed: _loadData, icon: const Icon(Icons.refresh)),
         ],
       ),
-      body: _isLoading
+      body: _isLoading && _products.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
+          : _error != null && _products.isEmpty
           ? Center(child: Text('Error: $_error'))
           : _products.isEmpty
           ? const Center(child: Text('No products found'))
@@ -814,6 +904,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       setState(() {
                         _categoryFilter = value;
                       });
+                      _reloadProducts();
                     },
                   ),
                 ),
@@ -825,6 +916,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         final visible = _visibleProducts();
                         if (visible.isEmpty) {
                           return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             children: const [
                               SizedBox(height: 120),
                               Center(child: Text('No matching products')),
@@ -832,13 +924,27 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           );
                         }
                         return ListView.builder(
+                          controller: _scrollController,
                           padding: const EdgeInsets.all(12),
-                          itemCount: visible.length,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: visible.length +
+                              (_hasMore || _isLoadingMore
+                                  ? 1
+                                  : 0),
                           itemBuilder: (context, index) {
+                            if (index >= visible.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
                             final product = visible[index];
                             return Card(
                               margin: const EdgeInsets.only(bottom: 10),
                               child: ListTile(
+                                isThreeLine: true,
                                 leading: CircleAvatar(
                                   backgroundImage: NetworkImage(
                                     product.imageUrl,

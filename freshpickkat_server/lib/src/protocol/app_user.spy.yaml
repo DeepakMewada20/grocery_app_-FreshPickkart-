@@ -6,3 +6,4 @@ fields:
   shippingAddress: Address?
   cart: List<CartItem>?
   role: String
+  fcmToken: String?

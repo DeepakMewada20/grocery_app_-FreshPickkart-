@@ -36,9 +36,11 @@ dependencies:
   serverpod_flutter: ^3.3.1
   serverpod_auth_client: ^3.3.1
   firebase_auth: ^6.1.4
+  firebase_messaging: ^16.1.1
   pinput: ^6.0.2
   google_fonts: ^6.3.3
   firebase_core: ^4.4.0
+  flutter_dotenv: ^5.2.1
   serverpod_auth_shared_flutter: ^3.3.1
   get: ^4.7.3
   get_storage: ^2.1.1
@@ -47,6 +49,7 @@ dependencies:
   location: ^8.0.1
   geocoding: ^4.0.0
   cloud_firestore: ^6.1.2
+  razorpay_flutter: ^1.4.1
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
@@ -75,6 +78,7 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
+    - .env
     - assets/config.json
     - lib/assets/images/name_logo.png
     - lib/assets/images/delivery_truck.png

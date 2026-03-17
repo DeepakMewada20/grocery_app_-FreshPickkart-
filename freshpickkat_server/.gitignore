@@ -19,3 +19,5 @@ config/firebase_service_account_key.json
 
 freshpickkat_server/secrets/
 config/*.json
+*.env
+.env

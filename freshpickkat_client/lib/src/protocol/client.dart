@@ -12,21 +12,35 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i3;
-import 'package:freshpickkat_client/src/protocol/category.dart' as _i4;
-import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i5;
-import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i6;
-import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
+import 'package:freshpickkat_client/src/protocol/admin_auth_result.dart' as _i3;
+import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i4;
+import 'package:freshpickkat_client/src/protocol/admin_dashboard_stats.dart'
+    as _i5;
+import 'package:freshpickkat_client/src/protocol/admin_analytics.dart' as _i6;
+import 'package:freshpickkat_client/src/protocol/admin_audit_log_entry.dart'
     as _i7;
-import 'package:freshpickkat_client/src/protocol/order.dart' as _i8;
-import 'package:freshpickkat_client/src/protocol/product.dart' as _i9;
-import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i10;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i11;
+import 'package:freshpickkat_client/src/protocol/category.dart' as _i8;
+import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i9;
+import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i10;
+import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
+    as _i11;
+import 'package:freshpickkat_client/src/protocol/order.dart' as _i12;
+import 'package:freshpickkat_client/src/protocol/order_page.dart' as _i13;
+import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
+    as _i14;
+import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
+    as _i15;
+import 'package:freshpickkat_client/src/protocol/payment_action_result.dart'
+    as _i16;
+import 'package:freshpickkat_client/src/protocol/product.dart' as _i17;
+import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i18;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i19;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i20;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i12;
+    as _i21;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i13;
-import 'protocol.dart' as _i14;
+    as _i22;
+import 'protocol.dart' as _i23;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -48,17 +62,17 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'usernameOrEmail': usernameOrEmail},
       );
 
-  _i2.Future<bool> firebaseLogin(String idToken) =>
-      caller.callServerEndpoint<bool>(
+  _i2.Future<_i3.AdminAuthResult> firebaseLogin(String idToken) =>
+      caller.callServerEndpoint<_i3.AdminAuthResult>(
         'admin',
         'firebaseLogin',
         {'idToken': idToken},
       );
 
-  _i2.Future<List<_i3.AppUser>> getAllUsers(
+  _i2.Future<List<_i4.AppUser>> getAllUsers(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i3.AppUser>>(
+  ) => caller.callServerEndpoint<List<_i4.AppUser>>(
     'admin',
     'getAllUsers',
     {
@@ -67,10 +81,10 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> getDashboardStats(
+  _i2.Future<_i5.AdminDashboardStats> getDashboardStats(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i5.AdminDashboardStats>(
     'admin',
     'getDashboardStats',
     {
@@ -79,10 +93,10 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> getAnalytics(
+  _i2.Future<_i6.AdminAnalytics> getAnalytics(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i6.AdminAnalytics>(
     'admin',
     'getAnalytics',
     {
@@ -91,11 +105,11 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<Map<String, dynamic>>> getAuditLogs(
+  _i2.Future<List<_i7.AdminAuditLogEntry>> getAuditLogs(
     String firebaseUid,
     String idToken, {
     required int limit,
-  }) => caller.callServerEndpoint<List<Map<String, dynamic>>>(
+  }) => caller.callServerEndpoint<List<_i7.AdminAuditLogEntry>>(
     'admin',
     'getAuditLogs',
     {
@@ -127,15 +141,15 @@ class EndpointCategory extends _i1.EndpointRef {
   @override
   String get name => 'category';
 
-  _i2.Future<List<_i4.Category>> getCategories() =>
-      caller.callServerEndpoint<List<_i4.Category>>(
+  _i2.Future<List<_i8.Category>> getCategories() =>
+      caller.callServerEndpoint<List<_i8.Category>>(
         'category',
         'getCategories',
         {},
       );
 
   _i2.Future<bool> uploadCategory(
-    _i4.Category category,
+    _i8.Category category,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -157,10 +171,10 @@ class EndpointCoupon extends _i1.EndpointRef {
   String get name => 'coupon';
 
   /// Fetch coupons for admin panel.
-  _i2.Future<List<_i5.Coupon>> fetchCoupons(
+  _i2.Future<List<_i9.Coupon>> fetchCoupons(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i5.Coupon>>(
+  ) => caller.callServerEndpoint<List<_i9.Coupon>>(
     'coupon',
     'fetchCoupons',
     {
@@ -171,7 +185,7 @@ class EndpointCoupon extends _i1.EndpointRef {
 
   /// Upload a new coupon to Firestore
   _i2.Future<bool> uploadCoupon(
-    _i5.Coupon coupon,
+    _i9.Coupon coupon,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -201,7 +215,7 @@ class EndpointCoupon extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> updateCoupon(
-    _i5.Coupon coupon,
+    _i9.Coupon coupon,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -216,19 +230,19 @@ class EndpointCoupon extends _i1.EndpointRef {
 
   /// Fetch coupons filtered by order amount - only returns applicable coupons
   /// This only returns necessary fields for UI (not usageLimit, usedCount, dates, etc.)
-  _i2.Future<List<_i6.CouponDisplay>> fetchApplicableCoupons(
+  _i2.Future<List<_i10.CouponDisplay>> fetchApplicableCoupons(
     double orderAmount,
-  ) => caller.callServerEndpoint<List<_i6.CouponDisplay>>(
+  ) => caller.callServerEndpoint<List<_i10.CouponDisplay>>(
     'coupon',
     'fetchApplicableCoupons',
     {'orderAmount': orderAmount},
   );
 
   /// Validate a coupon and calculate discount based on order amount
-  _i2.Future<_i7.CouponValidationResult> validateCoupon(
+  _i2.Future<_i11.CouponValidationResult> validateCoupon(
     String couponCode,
     double orderAmount,
-  ) => caller.callServerEndpoint<_i7.CouponValidationResult>(
+  ) => caller.callServerEndpoint<_i11.CouponValidationResult>(
     'coupon',
     'validateCoupon',
     {
@@ -245,18 +259,18 @@ class EndpointOrder extends _i1.EndpointRef {
   @override
   String get name => 'order';
 
-  _i2.Future<String> createOrder(_i8.Order order) =>
+  _i2.Future<String> createOrder(_i12.Order order) =>
       caller.callServerEndpoint<String>(
         'order',
         'createOrder',
         {'order': order},
       );
 
-  _i2.Future<List<_i8.Order>> getOrders({
+  _i2.Future<List<_i12.Order>> getOrders({
     String? status,
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<List<_i8.Order>>(
+  }) => caller.callServerEndpoint<List<_i12.Order>>(
     'order',
     'getOrders',
     {
@@ -266,10 +280,42 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i8.Order>> getTodayOrders(
+  _i2.Future<_i13.OrderPage> getOrdersPage({
+    String? status,
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i13.OrderPage>(
+    'order',
+    'getOrdersPage',
+    {
+      'status': status,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
+
+  _i2.Future<int> getOrdersCount({
+    String? status,
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<int>(
+    'order',
+    'getOrdersCount',
+    {
+      'status': status,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<List<_i12.Order>> getTodayOrders(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i8.Order>>(
+  ) => caller.callServerEndpoint<List<_i12.Order>>(
     'order',
     'getTodayOrders',
     {
@@ -278,15 +324,15 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i8.Order>> getUserOrders(String userId) =>
-      caller.callServerEndpoint<List<_i8.Order>>(
+  _i2.Future<List<_i12.Order>> getUserOrders(String userId) =>
+      caller.callServerEndpoint<List<_i12.Order>>(
         'order',
         'getUserOrders',
         {'userId': userId},
       );
 
-  _i2.Future<_i8.Order?> getOrderById(String orderId) =>
-      caller.callServerEndpoint<_i8.Order?>(
+  _i2.Future<_i12.Order?> getOrderById(String orderId) =>
+      caller.callServerEndpoint<_i12.Order?>(
         'order',
         'getOrderById',
         {'orderId': orderId},
@@ -366,11 +412,11 @@ class EndpointPayment extends _i1.EndpointRef {
   @override
   String get name => 'payment';
 
-  _i2.Future<Map<String, dynamic>> createPaymentOrder(
+  _i2.Future<_i14.PaymentOrderResult> createPaymentOrder(
     String orderId,
     double amount,
     String customerPhone,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i14.PaymentOrderResult>(
     'payment',
     'createPaymentOrder',
     {
@@ -380,24 +426,33 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> verifyPayment(
+  _i2.Future<_i15.PaymentVerifyResult> verifyPayment(
+    String orderId,
     String razorpayOrderId,
     String razorpayPaymentId,
     String razorpaySignature,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i15.PaymentVerifyResult>(
     'payment',
     'verifyPayment',
     {
+      'orderId': orderId,
       'razorpayOrderId': razorpayOrderId,
       'razorpayPaymentId': razorpayPaymentId,
       'razorpaySignature': razorpaySignature,
     },
   );
 
-  _i2.Future<Map<String, dynamic>> initiateRefund(
+  _i2.Future<_i16.PaymentActionResult> markPaymentFailed(String orderId) =>
+      caller.callServerEndpoint<_i16.PaymentActionResult>(
+        'payment',
+        'markPaymentFailed',
+        {'orderId': orderId},
+      );
+
+  _i2.Future<_i16.PaymentActionResult> initiateRefund(
     String razorpayPaymentId,
     double amount,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i16.PaymentActionResult>(
     'payment',
     'initiateRefund',
     {
@@ -406,12 +461,13 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> getPaymentStatus(String razorpayPaymentId) =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
-        'payment',
-        'getPaymentStatus',
-        {'razorpayPaymentId': razorpayPaymentId},
-      );
+  _i2.Future<_i16.PaymentActionResult> getPaymentStatus(
+    String razorpayPaymentId,
+  ) => caller.callServerEndpoint<_i16.PaymentActionResult>(
+    'payment',
+    'getPaymentStatus',
+    {'razorpayPaymentId': razorpayPaymentId},
+  );
 }
 
 /// {@category Endpoint}
@@ -421,13 +477,13 @@ class EndpointProduct extends _i1.EndpointRef {
   @override
   String get name => 'product';
 
-  _i2.Future<List<_i9.Product>> getProducts({
+  _i2.Future<List<_i17.Product>> getProducts({
     required int limit,
     String? lastProductName,
     String? category,
     List<String>? subcategories,
     required String sortBy,
-  }) => caller.callServerEndpoint<List<_i9.Product>>(
+  }) => caller.callServerEndpoint<List<_i17.Product>>(
     'product',
     'getProducts',
     {
@@ -439,9 +495,47 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<_i18.ProductPage> getProductsPage({
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    required String sortBy,
+  }) => caller.callServerEndpoint<_i18.ProductPage>(
+    'product',
+    'getProductsPage',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+      'category': category,
+      'subcategories': subcategories,
+      'sortBy': sortBy,
+    },
+  );
+
+  _i2.Future<int> getProductsCount({
+    required String firebaseUid,
+    required String idToken,
+    String? category,
+    List<String>? subcategories,
+  }) => caller.callServerEndpoint<int>(
+    'product',
+    'getProductsCount',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'category': category,
+      'subcategories': subcategories,
+    },
+  );
+
   /// Upload a product to Firestore 'Products' collection
   _i2.Future<bool> uploadProduct(
-    _i9.Product product,
+    _i17.Product product,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -455,7 +549,7 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> updateProduct(
-    _i9.Product product,
+    _i17.Product product,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -489,8 +583,8 @@ class EndpointProduct extends _i1.EndpointRef {
         {'query': query},
       );
 
-  _i2.Future<List<_i9.Product>> searchProducts(String query) =>
-      caller.callServerEndpoint<List<_i9.Product>>(
+  _i2.Future<List<_i17.Product>> searchProducts(String query) =>
+      caller.callServerEndpoint<List<_i17.Product>>(
         'product',
         'searchProducts',
         {'query': query},
@@ -544,8 +638,8 @@ class EndpointSubCategory extends _i1.EndpointRef {
   String get name => 'subCategory';
 
   /// Fetch all subcategories from Firestore 'subCategories' collection
-  _i2.Future<List<_i10.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i10.SubCategory>>(
+  _i2.Future<List<_i19.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i19.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
@@ -553,7 +647,7 @@ class EndpointSubCategory extends _i1.EndpointRef {
 
   /// Upload a subcategory to Firestore 'subCategories' collection
   _i2.Future<bool> uploadSubCategory(
-    _i10.SubCategory subCategory,
+    _i19.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -574,15 +668,15 @@ class EndpointUser extends _i1.EndpointRef {
   @override
   String get name => 'user';
 
-  _i2.Future<_i3.AppUser?> getUserByFirebaseUid(String uid) =>
-      caller.callServerEndpoint<_i3.AppUser?>(
+  _i2.Future<_i4.AppUser?> getUserByFirebaseUid(String uid) =>
+      caller.callServerEndpoint<_i4.AppUser?>(
         'user',
         'getUserByFirebaseUid',
         {'uid': uid},
       );
 
-  _i2.Future<_i3.AppUser> createOrUpdateUser(_i3.AppUser user) =>
-      caller.callServerEndpoint<_i3.AppUser>(
+  _i2.Future<_i4.AppUser> createOrUpdateUser(_i4.AppUser user) =>
+      caller.callServerEndpoint<_i4.AppUser>(
         'user',
         'createOrUpdateUser',
         {'user': user},
@@ -590,7 +684,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i11.CartItem> cart,
+    List<_i20.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -599,17 +693,29 @@ class EndpointUser extends _i1.EndpointRef {
       'cart': cart,
     },
   );
+
+  _i2.Future<bool> updateFcmToken(
+    String uid,
+    String token,
+  ) => caller.callServerEndpoint<bool>(
+    'user',
+    'updateFcmToken',
+    {
+      'uid': uid,
+      'token': token,
+    },
+  );
 }
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i12.Caller(client);
-    serverpod_auth_core = _i13.Caller(client);
+    serverpod_auth_idp = _i21.Caller(client);
+    serverpod_auth_core = _i22.Caller(client);
   }
 
-  late final _i12.Caller serverpod_auth_idp;
+  late final _i21.Caller serverpod_auth_idp;
 
-  late final _i13.Caller serverpod_auth_core;
+  late final _i22.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -632,7 +738,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i14.Protocol(),
+         _i23.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

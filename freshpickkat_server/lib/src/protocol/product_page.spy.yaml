@@ -1,0 +1,5 @@
+class: ProductPage
+fields:
+  products: List<Product>
+  nextPageToken: String?
+  totalCount: int

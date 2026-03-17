@@ -21,6 +21,8 @@ coupon:
 order:
   - createOrder:
   - getOrders:
+  - getOrdersPage:
+  - getOrdersCount:
   - getTodayOrders:
   - getUserOrders:
   - getOrderById:
@@ -31,10 +33,13 @@ order:
 payment:
   - createPaymentOrder:
   - verifyPayment:
+  - markPaymentFailed:
   - initiateRefund:
   - getPaymentStatus:
 product:
   - getProducts:
+  - getProductsPage:
+  - getProductsCount:
   - uploadProduct:
   - updateProduct:
   - deleteProduct:
@@ -52,3 +57,4 @@ user:
   - getUserByFirebaseUid:
   - createOrUpdateUser:
   - updateCart:
+  - updateFcmToken:

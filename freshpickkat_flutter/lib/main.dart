@@ -4,11 +4,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/screens/address_screen.dart';
+import 'package:freshpickkat_flutter/screens/checkout_screen.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -17,6 +20,12 @@ void main() async {
 
   await GetStorage.init();
 
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {
+    // .env is optional in some environments.
+  }
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -24,6 +33,8 @@ void main() async {
   Get.put(ThemeController(), permanent: true);
   Get.put(AuthController(), permanent: true);
   Get.put(UserController(), permanent: true);
+  Get.put(NotificationController(), permanent: true);
+  NotificationController.instance.init();
 
   runApp(const MyApp());
 }
@@ -45,6 +56,7 @@ class MyApp extends StatelessWidget {
         home: const ModernSplashScreen(),
         routes: {
           '/address': (context) => const AddressScreen(),
+          '/checkout': (context) => const CheckoutScreen(),
           '/home': (context) => const MainScreen(),
           '/login': (context) => const PhoneAuthScreen(),
           '/phone-auth': (context) => const PhoneAuthScreen(),

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
@@ -6,7 +9,6 @@ import '../services/business/product_business_service.dart';
 import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
-import 'dart:math';
 
 class ProductEndpoint extends Endpoint {
   Future<List<Product>> getProducts(
@@ -22,83 +24,10 @@ class ProductEndpoint extends Endpoint {
     final String database =
         'projects/freshpickkart-a6824/databases/(default)/documents';
 
-    // Build filters
-    List<firestore_api.Filter> filters = [];
-
-    if (category != null && category.isNotEmpty) {
-      final cat = category.trim();
-      final catLower = cat.toLowerCase();
-
-      // Use 'IN' to search for both cases
-      final List<String> catList = [cat];
-      if (catLower != cat) catList.add(catLower);
-
-      filters.add(
-        firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'category'),
-            op: 'IN',
-            value: firestore_api.Value(
-              arrayValue: firestore_api.ArrayValue(
-                values: catList
-                    .map((s) => firestore_api.Value(stringValue: s))
-                    .toList(),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (subcategories != null && subcategories.isNotEmpty) {
-      // Expand list to include lowercase versions for case-insensitive(ish) matching
-      // Note: Firestore ARRAY_CONTAINS_ANY allows up to 10 values.
-      final List<String> expandedSubs = [];
-      for (var sub in subcategories) {
-        final trimmed = sub.trim();
-        if (trimmed.isNotEmpty && !expandedSubs.contains(trimmed)) {
-          expandedSubs.add(trimmed);
-        }
-
-        final lowered = trimmed.toLowerCase();
-        if (lowered.isNotEmpty && !expandedSubs.contains(lowered)) {
-          expandedSubs.add(lowered);
-        }
-      }
-
-      // Safeguard against too many filters (Firestore limit is 10)
-      final filterList = expandedSubs.take(10).toList();
-
-      filters.add(
-        firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'subcategory'),
-            op: 'ARRAY_CONTAINS_ANY',
-            value: firestore_api.Value(
-              arrayValue: firestore_api.ArrayValue(
-                values: filterList
-                    .map((s) => firestore_api.Value(stringValue: s))
-                    .toList(),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    firestore_api.Filter? finalFilter;
-    if (filters.isNotEmpty) {
-      if (filters.length == 1) {
-        finalFilter = filters.first;
-      } else {
-        finalFilter = firestore_api.Filter(
-          compositeFilter: firestore_api.CompositeFilter(
-            op: 'AND',
-            filters: filters,
-          ),
-        );
-      }
-    }
+    final finalFilter = _buildProductFilter(
+      category: category,
+      subcategories: subcategories,
+    );
 
     // Build orderBy based on sortBy parameter
     List<firestore_api.Order> orderByList = [];
@@ -207,6 +136,64 @@ class ProductEndpoint extends Endpoint {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<ProductPage> getProductsPage(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    int limit = 20,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    String sortBy = 'name',
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final page = await _fetchProductsPage(
+      session,
+      limit: limit,
+      pageToken: pageToken,
+      category: category,
+      subcategories: subcategories,
+      sortBy: sortBy,
+    );
+    final totalCount = await _countProducts(
+      session,
+      category: category,
+      subcategories: subcategories,
+    );
+
+    return ProductPage(
+      products: page.products,
+      nextPageToken: page.nextPageToken,
+      totalCount: totalCount,
+    );
+  }
+
+  Future<int> getProductsCount(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    String? category,
+    List<String>? subcategories,
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    await RoleGuardService.ensureAdminSeller(
+      firestore: firestore,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _countProducts(
+      session,
+      category: category,
+      subcategories: subcategories,
+    );
   }
 
   /// Upload a product to Firestore 'Products' collection
@@ -920,5 +907,292 @@ class ProductEndpoint extends Endpoint {
     }
 
     return keywords.toList();
+  }
+
+  double _getDoubleValue(
+    Map<String, firestore_api.Value> fields,
+    String key,
+  ) {
+    final value = fields[key];
+    if (value == null) return 0.0;
+    if (value.doubleValue != null) return value.doubleValue!;
+    if (value.integerValue != null && value.integerValue!.isNotEmpty) {
+      return double.tryParse(value.integerValue!) ?? 0.0;
+    }
+    return 0.0;
+  }
+
+  Future<ProductPage> _fetchProductsPage(
+    Session session, {
+    required int limit,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    String sortBy = 'name',
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    final finalFilter = _buildProductFilter(
+      category: category,
+      subcategories: subcategories,
+    );
+
+    final orderByList = <firestore_api.Order>[];
+    final isDescending = sortBy == 'trending' || sortBy == 'best_sellers';
+    if (sortBy == 'trending') {
+      orderByList.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'mostSearch'),
+          direction: 'DESCENDING',
+        ),
+      );
+    } else if (sortBy == 'best_sellers') {
+      orderByList.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'mostPurchases'),
+          direction: 'DESCENDING',
+        ),
+      );
+    } else {
+      orderByList.add(
+        firestore_api.Order(
+          field: firestore_api.FieldReference(fieldPath: 'productName'),
+          direction: 'ASCENDING',
+        ),
+      );
+    }
+    orderByList.add(
+      firestore_api.Order(
+        field: firestore_api.FieldReference(fieldPath: '__name__'),
+        direction: isDescending ? 'DESCENDING' : 'ASCENDING',
+      ),
+    );
+
+    firestore_api.Cursor? cursor;
+    final decoded = _decodePageToken(pageToken);
+    if (decoded != null) {
+      final sortValue = decoded['sort'];
+      final docName = decoded['doc'];
+      if (sortValue != null && docName != null && docName.isNotEmpty) {
+        cursor = firestore_api.Cursor(
+          values: [
+            _cursorSortValue(sortBy, sortValue),
+            firestore_api.Value(referenceValue: docName),
+          ],
+          before: false,
+        );
+      }
+    }
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
+      where: finalFilter,
+      limit: limit,
+      orderBy: orderByList,
+      startAt: cursor,
+    );
+
+    final response = await firestore.projects.databases.documents.runQuery(
+      firestore_api.RunQueryRequest(structuredQuery: query),
+      database,
+    );
+
+    final products = <Product>[];
+    String? lastSortValue;
+    String? lastDocName;
+    for (final res in response) {
+      if (res.document?.fields == null) continue;
+      final fields = res.document!.fields!;
+      products.add(
+        Product(
+          productId: res.document!.name!.split('/').last,
+          productName: fields['productName']?.stringValue ?? '',
+          category: fields['category']?.stringValue ?? '',
+          imageUrl: fields['imageUrl']?.stringValue ?? '',
+          price: _getDoubleValue(fields, 'price'),
+          realPrice: _getDoubleValue(fields, 'realPrice'),
+          discount: _getDoubleValue(fields, 'discount'),
+          isAvailable: fields['isAvailable']?.booleanValue ?? false,
+          addedAt:
+              DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
+              DateTime.now(),
+          subcategory: (fields['subcategory']?.arrayValue?.values ?? [])
+              .map((v) => v.stringValue ?? '')
+              .toList(),
+          quantity: fields['quantity']?.stringValue ?? "",
+          searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
+              .map((v) => v.stringValue ?? '')
+              .toList(),
+          mostSearch:
+              int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
+          mostPurchases:
+              int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+        ),
+      );
+      lastSortValue = _extractSortValue(sortBy, fields);
+      lastDocName = res.document!.name;
+    }
+
+    String? nextPageToken;
+    if (products.length == limit &&
+        lastSortValue != null &&
+        lastDocName != null) {
+      nextPageToken = _encodePageToken({
+        'sort': lastSortValue,
+        'doc': lastDocName,
+      });
+    }
+
+    return ProductPage(
+      products: products,
+      nextPageToken: nextPageToken,
+      totalCount: products.length,
+    );
+  }
+
+  Future<int> _countProducts(
+    Session session, {
+    String? category,
+    List<String>? subcategories,
+  }) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+
+    final finalFilter = _buildProductFilter(
+      category: category,
+      subcategories: subcategories,
+    );
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: 'Products')],
+      where: finalFilter,
+    );
+
+    final response = await firestore.projects.databases.documents.runQuery(
+      firestore_api.RunQueryRequest(structuredQuery: query),
+      database,
+    );
+
+    var count = 0;
+    for (final res in response) {
+      if (res.document != null) count++;
+    }
+    return count;
+  }
+
+  firestore_api.Filter? _buildProductFilter({
+    String? category,
+    List<String>? subcategories,
+  }) {
+    final filters = <firestore_api.Filter>[];
+
+    if (category != null && category.isNotEmpty) {
+      final cat = category.trim();
+      final catLower = cat.toLowerCase();
+
+      final List<String> catList = [cat];
+      if (catLower != cat) catList.add(catLower);
+
+      filters.add(
+        firestore_api.Filter(
+          fieldFilter: firestore_api.FieldFilter(
+            field: firestore_api.FieldReference(fieldPath: 'category'),
+            op: 'IN',
+            value: firestore_api.Value(
+              arrayValue: firestore_api.ArrayValue(
+                values: catList
+                    .map((s) => firestore_api.Value(stringValue: s))
+                    .toList(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (subcategories != null && subcategories.isNotEmpty) {
+      final List<String> expandedSubs = [];
+      for (var sub in subcategories) {
+        final trimmed = sub.trim();
+        if (trimmed.isNotEmpty && !expandedSubs.contains(trimmed)) {
+          expandedSubs.add(trimmed);
+        }
+
+        final lowered = trimmed.toLowerCase();
+        if (lowered.isNotEmpty && !expandedSubs.contains(lowered)) {
+          expandedSubs.add(lowered);
+        }
+      }
+
+      final filterList = expandedSubs.take(10).toList();
+
+      filters.add(
+        firestore_api.Filter(
+          fieldFilter: firestore_api.FieldFilter(
+            field: firestore_api.FieldReference(fieldPath: 'subcategory'),
+            op: 'ARRAY_CONTAINS_ANY',
+            value: firestore_api.Value(
+              arrayValue: firestore_api.ArrayValue(
+                values: filterList
+                    .map((s) => firestore_api.Value(stringValue: s))
+                    .toList(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (filters.isEmpty) return null;
+    if (filters.length == 1) return filters.first;
+    return firestore_api.Filter(
+      compositeFilter: firestore_api.CompositeFilter(
+        op: 'AND',
+        filters: filters,
+      ),
+    );
+  }
+
+  firestore_api.Value _cursorSortValue(String sortBy, String raw) {
+    if (sortBy == 'trending' || sortBy == 'best_sellers') {
+      return firestore_api.Value(integerValue: raw);
+    }
+    return firestore_api.Value(stringValue: raw);
+  }
+
+  String _extractSortValue(
+    String sortBy,
+    Map<String, firestore_api.Value> fields,
+  ) {
+    if (sortBy == 'trending') {
+      return fields['mostSearch']?.integerValue ?? '0';
+    }
+    if (sortBy == 'best_sellers') {
+      return fields['mostPurchases']?.integerValue ?? '0';
+    }
+    return fields['productName']?.stringValue ?? '';
+  }
+
+  String _encodePageToken(Map<String, String> payload) {
+    return base64Url.encode(utf8.encode(jsonEncode(payload)));
+  }
+
+  Map<String, String>? _decodePageToken(String? token) {
+    if (token == null || token.trim().isEmpty) return null;
+    try {
+      final decoded = utf8.decode(base64Url.decode(token));
+      final map = jsonDecode(decoded);
+      if (map is Map<String, dynamic>) {
+        return map.map(
+          (key, value) => MapEntry(key, value?.toString() ?? ''),
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }

@@ -1,0 +1,8 @@
+class: PaymentOrderResult
+fields:
+  success: bool
+  razorpayOrderId: String?
+  amount: int?
+  currency: String?
+  error: String?
+  details: String?

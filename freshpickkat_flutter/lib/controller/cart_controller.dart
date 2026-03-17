@@ -24,9 +24,14 @@ class CartController extends GetxController {
     super.onInit();
     // Listen to cart changes and sync with server
     ever(cartItems, (_) {
-      _syncWithServer();
-      fetchAvailableCoupons();
+      _handleCartChanged();
     });
+  }
+
+  Future<void> _handleCartChanged() async {
+    await _syncWithServer();
+    await fetchAvailableCoupons();
+    await _revalidateAppliedCoupon();
   }
 
   Future<void> _syncWithServer() async {
@@ -131,6 +136,7 @@ class CartController extends GetxController {
   Future<void> fetchAvailableCoupons() async {
     if (cartItems.isEmpty) {
       availableCoupons.clear();
+      removeCoupon();
       return;
     }
 
@@ -145,6 +151,24 @@ class CartController extends GetxController {
       print('Error fetching coupons: $e');
     } finally {
       isLoadingCoupons.value = false;
+    }
+  }
+
+  Future<void> _revalidateAppliedCoupon() async {
+    final coupon = appliedCoupon.value;
+    if (coupon == null) return;
+
+    try {
+      final result = await client.coupon.validateCoupon(coupon.code, subtotal);
+      couponValidation.value = result;
+
+      if (!result.isValid) {
+        removeCoupon();
+        couponError.value = result.errorMessage ?? 'Coupon removed';
+      }
+    } catch (e) {
+      removeCoupon();
+      couponError.value = 'Coupon removed';
     }
   }
 

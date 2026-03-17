@@ -10,7 +10,7 @@ class ServerpodClient {
   factory ServerpodClient() => _instance;
 
   // 👇 CHANGE ONLY THIS (your PC local IP)
-  static const String _localIp = '10.95.88.170';
+  static const String _localIp = '10.16.155.170';
 
   static String get baseUrl {
     if (Platform.isAndroid) {

@@ -1,0 +1,5 @@
+class: OrderPage
+fields:
+  orders: List<Order>
+  nextPageToken: String?
+  totalCount: int

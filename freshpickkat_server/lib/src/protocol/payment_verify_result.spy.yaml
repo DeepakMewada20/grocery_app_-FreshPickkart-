@@ -1,0 +1,6 @@
+class: PaymentVerifyResult
+fields:
+  success: bool
+  verified: bool
+  message: String?
+  error: String?

@@ -1,0 +1,9 @@
+class: PaymentActionResult
+fields:
+  success: bool
+  message: String?
+  error: String?
+  refundId: String?
+  amount: int?
+  status: String?
+  paymentId: String?

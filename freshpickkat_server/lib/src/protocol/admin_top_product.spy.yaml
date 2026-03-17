@@ -1,0 +1,5 @@
+class: AdminTopProduct
+fields:
+  name: String
+  mostPurchases: int
+  quantity: String?

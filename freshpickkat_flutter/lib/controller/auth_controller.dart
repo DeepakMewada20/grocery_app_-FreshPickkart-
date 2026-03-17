@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
@@ -59,6 +60,8 @@ class AuthController extends GetxController {
       appUserRx.value = user;
       // Fetch cart once user is synced
       CartController.instance.fetchCartFromServer();
+      // Sync FCM token once user is available
+      NotificationController.instance.syncTokenWithServer();
 
       // Check if there's a pending product to add after login
       final pendingProduct = getPendingProductToAdd();

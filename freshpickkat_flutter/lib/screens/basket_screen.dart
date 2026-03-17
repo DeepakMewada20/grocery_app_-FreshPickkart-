@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
-import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
@@ -12,7 +11,6 @@ class BasketScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartController = CartController.instance;
-    final authController = AuthController.instance;
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -63,7 +61,7 @@ class BasketScreen extends StatelessWidget {
                 ),
               ),
             ),
-            _buildProceedButton(context, cartController, authController, cs),
+            _buildProceedButton(context, cartController, cs),
           ],
         );
       }),
@@ -347,7 +345,6 @@ class BasketScreen extends StatelessWidget {
   Widget _buildProceedButton(
     BuildContext context,
     CartController cartController,
-    AuthController authController,
     ColorScheme cs,
   ) {
     return Container(
@@ -365,13 +362,7 @@ class BasketScreen extends StatelessWidget {
       ),
       child: ElevatedButton(
         onPressed: () {
-          ProtectedNavigationHelper.executeProtectedAction(
-            onLoggedIn: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Proceeding to checkout...')),
-              );
-            },
-          );
+          ProtectedNavigationHelper.navigateTo(routeName: '/checkout');
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryGreen,

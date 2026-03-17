@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 
@@ -11,7 +12,7 @@ class AuditLogsScreen extends StatefulWidget {
 
 class _AuditLogsScreenState extends State<AuditLogsScreen> {
   final _client = ServerpodAdminClient().client;
-  late Future<List<Map<String, dynamic>>> _future;
+  late Future<List<AdminAuditLogEntry>> _future;
 
   @override
   void initState() {
@@ -19,7 +20,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
     _future = _loadAuditLogs();
   }
 
-  Future<List<Map<String, dynamic>>> _loadAuditLogs() async {
+  Future<List<AdminAuditLogEntry>> _loadAuditLogs() async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
       forceRefresh: true,
@@ -44,7 +45,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
           IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
         ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<AdminAuditLogEntry>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -69,17 +70,18 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
                   child: ListTile(
+                    isThreeLine: true,
                     title: Text(
-                      '${row['action'] ?? ''} ${row['entityType'] ?? ''}',
+                      '${row.action} ${row.entityType}',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Entity: ${row['entityId'] ?? ''}\nActor: ${row['actorUid'] ?? ''}',
+                      'Entity: ${row.entityId}\nActor: ${row.actorUid}',
                     ),
                     trailing: SizedBox(
                       width: 95,
                       child: Text(
-                        '${row['createdAt'] ?? ''}'.replaceFirst('T', '\n'),
+                        row.createdAt.replaceFirst('T', '\n'),
                         textAlign: TextAlign.end,
                         style: TextStyle(
                           fontSize: 11,

@@ -1,0 +1,8 @@
+class: AdminAuditLogEntry
+fields:
+  id: String
+  actorUid: String
+  action: String
+  entityType: String
+  entityId: String
+  createdAt: String

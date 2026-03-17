@@ -58,6 +58,27 @@ class UserEndpoint extends Endpoint {
     return true;
   }
 
+  // Update user FCM token
+  Future<bool> updateFcmToken(
+    Session session,
+    String uid,
+    String token,
+  ) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final docPath =
+        'projects/$projectId/databases/(default)/documents/$userCollection/$uid';
+    final updateFields = <String, firestore_api.Value>{
+      'fcmToken': firestore_api.Value(stringValue: token),
+    };
+    final doc = firestore_api.Document(fields: updateFields);
+    await firestore.projects.databases.documents.patch(
+      doc,
+      docPath,
+      updateMask_fieldPaths: updateFields.keys.toList(),
+    );
+    return true;
+  }
+
   // Helper: Convert Firestore fields to AppUser
   AppUser _appUserFromFirestore(
     Map<String, firestore_api.Value> fields,
@@ -78,6 +99,7 @@ class UserEndpoint extends Endpoint {
                 .toList()
           : null,
       role: fields['role']?.stringValue ?? 'user',
+      fcmToken: fields['fcmToken']?.stringValue,
     );
   }
 
@@ -103,6 +125,9 @@ class UserEndpoint extends Endpoint {
           values: user.cart!.map(_cartItemToFirestore).toList(),
         ),
       );
+    }
+    if (user.fcmToken != null) {
+      map['fcmToken'] = firestore_api.Value(stringValue: user.fcmToken!);
     }
     return map;
   }

@@ -12,7 +12,15 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   final _client = ServerpodAdminClient().client;
-  late Future<List<Order>> _ordersFuture;
+  static const int _pageSize = 20;
+  final ScrollController _scrollController = ScrollController();
+  final List<Order> _orders = [];
+  String? _nextPageToken;
+  int _totalCount = 0;
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  String? _error;
   String _searchQuery = '';
   String _statusFilter = 'all';
 
@@ -27,21 +35,87 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
-    _ordersFuture = _loadOrders();
+    _scrollController.addListener(_handleScroll);
+    _loadInitial();
   }
 
-  Future<List<Order>> _loadOrders() async {
-    final uid = AdminSessionService.requireUid();
-    final idToken = await AdminSessionService.requireIdToken(
-      forceRefresh: true,
-    );
-    return _client.order.getOrders(firebaseUid: uid, idToken: idToken);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  Future<void> _reload() async {
+  Future<void> _loadInitial() async {
     setState(() {
-      _ordersFuture = _loadOrders();
+      _isLoading = true;
+      _isLoadingMore = false;
+      _error = null;
+      _orders.clear();
+      _nextPageToken = null;
+      _totalCount = 0;
+      _hasMore = true;
     });
+    await _loadMore();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore) return;
+    if (!_hasMore) return;
+
+    setState(() {
+      if (_orders.isEmpty) {
+        _isLoading = true;
+      } else {
+        _isLoadingMore = true;
+      }
+    });
+
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final page = await _client.order.getOrdersPage(
+        firebaseUid: uid,
+        idToken: idToken,
+        limit: _pageSize,
+        pageToken: _nextPageToken,
+        status: _statusFilter == 'all' ? null : _statusFilter,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _orders.addAll(page.orders);
+        _nextPageToken = page.nextPageToken;
+        _totalCount = page.totalCount;
+        _hasMore = page.nextPageToken != null && page.orders.isNotEmpty;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      if (_orders.isEmpty) {
+        setState(() {
+          _error = e.toString();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load more orders: $e')),
+        );
+      }
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
+    }
   }
 
   Future<void> _updateStatus(Order order, String status) async {
@@ -68,7 +142,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Order ${order.orderId} updated to $status')),
       );
-      await _reload();
+      await _loadInitial();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -108,32 +182,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Orders'),
+        title: Text(
+          _totalCount > 0 ? 'Orders ($_totalCount)' : 'Orders',
+        ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _loadInitial, icon: const Icon(Icons.refresh)),
         ],
       ),
-      body: FutureBuilder<List<Order>>(
-        future: _ordersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Builder(
+        builder: (context) {
+          if (_isLoading && _orders.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Failed to load orders\n${snapshot.error}'),
-            );
+          if (_error != null && _orders.isEmpty) {
+            return Center(child: Text('Failed to load orders\n$_error'));
           }
 
-          final orders = snapshot.data ?? [];
-          if (orders.isEmpty) {
+          if (_orders.isEmpty) {
             return const Center(child: Text('No orders yet'));
           }
 
-          final filtered = orders.where((o) {
+          final filtered = _orders.where((o) {
             if (_statusFilter != 'all' && o.status != _statusFilter) {
               return false;
             }
@@ -196,23 +268,38 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     setState(() {
                       _statusFilter = value;
                     });
+                    _loadInitial();
                   },
                 ),
               ),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: _reload,
+                  onRefresh: _loadInitial,
                   child: filtered.isEmpty
                       ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           children: const [
                             SizedBox(height: 120),
                             Center(child: Text('No matching orders')),
                           ],
                         )
                       : ListView.builder(
+                          controller: _scrollController,
                           padding: const EdgeInsets.all(12),
-                          itemCount: filtered.length,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: filtered.length +
+                              (_hasMore || _isLoadingMore
+                                  ? 1
+                                  : 0),
                           itemBuilder: (context, index) {
+                            if (index >= filtered.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
                             final order = filtered[index];
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),

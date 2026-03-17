@@ -8,7 +8,7 @@ RUN dart pub get
 RUN dart compile exe bin/main.dart -o bin/server
 
 # Final stage
-FROM alpine:latest
+FROM debian:stable-slim
 
 # Environment variables
 ENV runmode=production
@@ -16,7 +16,11 @@ ENV serverid=default
 ENV logging=normal
 ENV role=monolith
 
-# Copy runtime dependencies
+# Install necessary libraries for Dart runtime (if needed, but usually copying runtime is enough if bases match)
+# However, using the same base for build and run is better.
+# For now, let's just use debian to match the dart image's default base.
+
+# Copy runtime dependencies from the build stage
 COPY --from=build /runtime/ /
 
 # Copy compiled server executable

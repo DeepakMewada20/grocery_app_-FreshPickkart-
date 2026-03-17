@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 
@@ -11,7 +12,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final _client = ServerpodAdminClient().client;
-  late Future<Map<String, dynamic>> _dashboardFuture;
+  late Future<_DashboardPayload> _dashboardFuture;
 
   @override
   void initState() {
@@ -25,16 +26,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  Future<Map<String, dynamic>> _loadDashboard() async {
+  Future<_DashboardPayload> _loadDashboard() async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
       forceRefresh: true,
     );
-    final result = await Future.wait<Map<String, dynamic>>([
-      _client.admin.getDashboardStats(uid, idToken),
-      _client.admin.getAnalytics(uid, idToken),
-    ]);
-    return {'stats': result[0], 'analytics': result[1]};
+    final stats = await _client.admin.getDashboardStats(uid, idToken);
+    final analytics = await _client.admin.getAnalytics(uid, idToken);
+    return _DashboardPayload(stats: stats, analytics: analytics);
   }
 
   @override
@@ -48,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
+      body: FutureBuilder<_DashboardPayload>(
         future: _dashboardFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,11 +79,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           }
 
-          final data = snapshot.data ?? <String, dynamic>{};
-          final stats = (data['stats'] as Map<String, dynamic>? ?? {});
-          final analytics = (data['analytics'] as Map<String, dynamic>? ?? {});
-          final topProducts =
-              (analytics['topProducts'] as List<dynamic>? ?? const []);
+          final payload = snapshot.data;
+          if (payload == null) {
+            return const Center(child: Text('No data'));
+          }
+          final stats = payload.stats;
+          final analytics = payload.analytics;
+          final topProducts = analytics.topProducts;
 
           return RefreshIndicator(
             onRefresh: _reload,
@@ -111,37 +112,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _statCard(
                       title: 'Today Orders',
-                      value: '${stats['todayOrders'] ?? 0}',
+                      value: '${stats.todayOrders}',
                       icon: Icons.shopping_bag,
                       color: Colors.blue,
                     ),
                     _statCard(
                       title: 'Today Revenue',
-                      value: _asCurrency(stats['todayRevenue']),
+                      value: _asCurrency(stats.todayRevenue),
                       icon: Icons.currency_rupee,
                       color: Colors.green,
                     ),
                     _statCard(
                       title: 'Pending',
-                      value: '${stats['pendingOrders'] ?? 0}',
+                      value: '${stats.pendingOrders}',
                       icon: Icons.pending_actions,
                       color: Colors.orange,
                     ),
                     _statCard(
                       title: 'Delivered',
-                      value: '${stats['deliveredOrders'] ?? 0}',
+                      value: '${stats.deliveredOrders}',
                       icon: Icons.check_circle,
                       color: Colors.teal,
                     ),
                     _statCard(
                       title: 'Total Orders',
-                      value: '${stats['totalOrders'] ?? 0}',
+                      value: '${stats.totalOrders}',
                       icon: Icons.receipt_long,
                       color: Colors.indigo,
                     ),
                     _statCard(
                       title: 'Total Revenue',
-                      value: _asCurrency(stats['totalRevenue']),
+                      value: _asCurrency(stats.totalRevenue),
                       icon: Icons.savings,
                       color: Colors.pink,
                     ),
@@ -163,10 +164,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Cancellation Rate: ${(analytics['cancellationRate'] as num? ?? 0).toStringAsFixed(1)}%',
+                          'Cancellation Rate: ${analytics.cancellationRate.toStringAsFixed(1)}%',
                         ),
                         Text(
-                          'Low Stock Items (<=5): ${analytics['lowStockCount'] ?? 0}',
+                          'Low Stock Items (<=5): ${analytics.lowStockCount}',
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -178,11 +179,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Text('No data')
                         else
                           ...topProducts.take(5).map((e) {
-                            final row = e as Map<dynamic, dynamic>;
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 2),
                               child: Text(
-                                '${row['name'] ?? ''} • Sold ${row['mostPurchases'] ?? 0}',
+                                '${e.name} • Sold ${e.mostPurchases}',
                               ),
                             );
                           }),
@@ -237,4 +237,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
+
+class _DashboardPayload {
+  const _DashboardPayload({required this.stats, required this.analytics});
+
+  final AdminDashboardStats stats;
+  final AdminAnalytics analytics;
 }
