@@ -30,6 +30,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   bool _isLoadingMore = false;
   bool _hasMore = true;
   String? _error;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -167,226 +168,299 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final selectedSubcategories = <String>{};
     String? subcategoryError;
 
-    final saved = await showDialog<bool>(
+    final saved = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Add Product'),
-              content: Form(
+            return Container(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Form(
                 key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: nameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Product name',
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedCategory,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                        items: _categories
-                            .map(
-                              (c) => DropdownMenuItem(
-                                value: c.categoryName,
-                                child: Text(c.categoryName),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setDialogState(() {
-                            selectedCategory = value;
-                            selectedSubcategories.clear();
-                            subcategoryError = null;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      if (selectedCategory != null)
-                        _SubcategorySelector(
-                          options: _subcategoryOptionsFor(selectedCategory!),
-                          selected: selectedSubcategories,
-                          errorText: subcategoryError,
-                          onToggle: (name, checked) {
-                            setDialogState(() {
-                              if (checked) {
-                                selectedSubcategories.add(name);
-                              } else {
-                                selectedSubcategories.remove(name);
-                              }
-                              subcategoryError = null;
-                            });
-                          },
-                        ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: imageCtrl,
-                        readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Product image',
-                          hintText: 'Upload from gallery',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: isUploadingImage
-                              ? null
-                              : () async {
-                                  setDialogState(() => isUploadingImage = true);
-                                  try {
-                                    final source = await _pickImageSource();
-                                    if (source == null) return;
-                                    final url =
-                                        await _pickAndUploadProductImage(
-                                          source,
-                                        );
-                                    if (url != null && context.mounted) {
-                                      setDialogState(() {
-                                        imageCtrl.text = url;
-                                      });
-                                    }
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Image upload failed: $e',
-                                        ),
-                                      ),
-                                    );
-                                  } finally {
-                                    if (context.mounted) {
-                                      setDialogState(
-                                        () => isUploadingImage = false,
-                                      );
-                                    }
-                                  }
-                                },
-                          icon: isUploadingImage
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.upload),
-                          label: Text(
-                            isUploadingImage ? 'Uploading...' : 'Upload Image',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Add Product',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      if (imageCtrl.text.trim().isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            imageCtrl.text.trim(),
-                            height: 90,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              height: 90,
-                              alignment: Alignment.center,
-                              color: Colors.grey.shade200,
-                              child: const Text('Image preview unavailable'),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextFormField(
+                              controller: nameCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Product name',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
                             ),
+                            const SizedBox(height: 10),
+                            DropdownButtonFormField<String>(
+                              initialValue: selectedCategory,
+                              decoration: const InputDecoration(
+                                labelText: 'Category',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                              items: _categories
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c.categoryName,
+                                      child: Text(c.categoryName),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedCategory = value;
+                                  selectedSubcategories.clear();
+                                  subcategoryError = null;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            if (selectedCategory != null)
+                              _SubcategorySelector(
+                                options: _subcategoryOptionsFor(
+                                  selectedCategory!,
+                                ),
+                                selected: selectedSubcategories,
+                                errorText: subcategoryError,
+                                onToggle: (name, checked) {
+                                  setDialogState(() {
+                                    if (checked) {
+                                      selectedSubcategories.add(name);
+                                    } else {
+                                      selectedSubcategories.remove(name);
+                                    }
+                                    subcategoryError = null;
+                                  });
+                                },
+                              ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: imageCtrl,
+                              readOnly: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Product image',
+                                hintText: 'Upload from gallery',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: isUploadingImage
+                                    ? null
+                                    : () async {
+                                        setDialogState(
+                                          () => isUploadingImage = true,
+                                        );
+                                        try {
+                                          final source =
+                                              await _pickImageSource();
+                                          if (source == null) return;
+                                          final url =
+                                              await _pickAndUploadProductImage(
+                                                source,
+                                              );
+                                          if (url != null && context.mounted) {
+                                            setDialogState(() {
+                                              imageCtrl.text = url;
+                                            });
+                                          }
+                                        } catch (e) {
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Image upload failed: $e',
+                                              ),
+                                            ),
+                                          );
+                                        } finally {
+                                          if (context.mounted) {
+                                            setDialogState(
+                                              () => isUploadingImage = false,
+                                            );
+                                          }
+                                        }
+                                      },
+                                icon: isUploadingImage
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.upload),
+                                label: Text(
+                                  isUploadingImage
+                                      ? 'Uploading...'
+                                      : 'Upload Image',
+                                ),
+                              ),
+                            ),
+                            if (imageCtrl.text.trim().isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  imageCtrl.text.trim(),
+                                  height: 90,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => Container(
+                                    height: 90,
+                                    alignment: Alignment.center,
+                                    color: Colors.grey.shade200,
+                                    child: const Text(
+                                      'Image preview unavailable',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: quantityCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: mrpCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: priceCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Selling price',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: discountCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Discount %',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 8),
+                            SwitchListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Available'),
+                              value: isAvailable,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  isAvailable = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (!formKey.currentState!.validate()) return;
+                              if (selectedSubcategories.isEmpty) {
+                                setDialogState(() {
+                                  subcategoryError =
+                                      'Please select at least one subcategory';
+                                });
+                                return;
+                              }
+                              if (selectedCategory != null) {
+                                Navigator.pop(context, true);
+                              }
+                            },
+                            child: const Text('Save'),
                           ),
                         ),
                       ],
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: quantityCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantity',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: mrpCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(labelText: 'MRP'),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: priceCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Selling price',
-                        ),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: discountCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Discount %',
-                        ),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 8),
-                      SwitchListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Available'),
-                        value: isAvailable,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            isAvailable = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    if (selectedSubcategories.isEmpty) {
-                      setDialogState(() {
-                        subcategoryError =
-                            'Please select at least one subcategory';
-                      });
-                      return;
-                    }
-                    if (selectedCategory != null) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
             );
           },
         );
@@ -446,226 +520,299 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final selectedSubcategories = <String>{...product.subcategory};
     String? subcategoryError;
 
-    final saved = await showDialog<bool>(
+    final saved = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Edit Product'),
-              content: Form(
+            return Container(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Form(
                 key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: nameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Product name',
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedCategory,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                        items: _categories
-                            .map(
-                              (c) => DropdownMenuItem(
-                                value: c.categoryName,
-                                child: Text(c.categoryName),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setDialogState(() {
-                            selectedCategory = value;
-                            selectedSubcategories.clear();
-                            subcategoryError = null;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      if (selectedCategory != null)
-                        _SubcategorySelector(
-                          options: _subcategoryOptionsFor(selectedCategory!),
-                          selected: selectedSubcategories,
-                          errorText: subcategoryError,
-                          onToggle: (name, checked) {
-                            setDialogState(() {
-                              if (checked) {
-                                selectedSubcategories.add(name);
-                              } else {
-                                selectedSubcategories.remove(name);
-                              }
-                              subcategoryError = null;
-                            });
-                          },
-                        ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: imageCtrl,
-                        readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Product image',
-                          hintText: 'Upload from gallery',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: isUploadingImage
-                              ? null
-                              : () async {
-                                  setDialogState(() => isUploadingImage = true);
-                                  try {
-                                    final source = await _pickImageSource();
-                                    if (source == null) return;
-                                    final url =
-                                        await _pickAndUploadProductImage(
-                                          source,
-                                        );
-                                    if (url != null && context.mounted) {
-                                      setDialogState(() {
-                                        imageCtrl.text = url;
-                                      });
-                                    }
-                                  } catch (e) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Image upload failed: $e',
-                                        ),
-                                      ),
-                                    );
-                                  } finally {
-                                    if (context.mounted) {
-                                      setDialogState(
-                                        () => isUploadingImage = false,
-                                      );
-                                    }
-                                  }
-                                },
-                          icon: isUploadingImage
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.upload),
-                          label: Text(
-                            isUploadingImage ? 'Uploading...' : 'Upload Image',
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Edit Product',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      if (imageCtrl.text.trim().isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            imageCtrl.text.trim(),
-                            height: 90,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              height: 90,
-                              alignment: Alignment.center,
-                              color: Colors.grey.shade200,
-                              child: const Text('Image preview unavailable'),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextFormField(
+                              controller: nameCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Product name',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
                             ),
+                            const SizedBox(height: 10),
+                            DropdownButtonFormField<String>(
+                              initialValue: selectedCategory,
+                              decoration: const InputDecoration(
+                                labelText: 'Category',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                              items: _categories
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c.categoryName,
+                                      child: Text(c.categoryName),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedCategory = value;
+                                  selectedSubcategories.clear();
+                                  subcategoryError = null;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            if (selectedCategory != null)
+                              _SubcategorySelector(
+                                options: _subcategoryOptionsFor(
+                                  selectedCategory!,
+                                ),
+                                selected: selectedSubcategories,
+                                errorText: subcategoryError,
+                                onToggle: (name, checked) {
+                                  setDialogState(() {
+                                    if (checked) {
+                                      selectedSubcategories.add(name);
+                                    } else {
+                                      selectedSubcategories.remove(name);
+                                    }
+                                    subcategoryError = null;
+                                  });
+                                },
+                              ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: imageCtrl,
+                              readOnly: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Product image',
+                                hintText: 'Upload from gallery',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: isUploadingImage
+                                    ? null
+                                    : () async {
+                                        setDialogState(
+                                          () => isUploadingImage = true,
+                                        );
+                                        try {
+                                          final source =
+                                              await _pickImageSource();
+                                          if (source == null) return;
+                                          final url =
+                                              await _pickAndUploadProductImage(
+                                                source,
+                                              );
+                                          if (url != null && context.mounted) {
+                                            setDialogState(() {
+                                              imageCtrl.text = url;
+                                            });
+                                          }
+                                        } catch (e) {
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Image upload failed: $e',
+                                              ),
+                                            ),
+                                          );
+                                        } finally {
+                                          if (context.mounted) {
+                                            setDialogState(
+                                              () => isUploadingImage = false,
+                                            );
+                                          }
+                                        }
+                                      },
+                                icon: isUploadingImage
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.upload),
+                                label: Text(
+                                  isUploadingImage
+                                      ? 'Uploading...'
+                                      : 'Upload Image',
+                                ),
+                              ),
+                            ),
+                            if (imageCtrl.text.trim().isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  imageCtrl.text.trim(),
+                                  height: 90,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => Container(
+                                    height: 90,
+                                    alignment: Alignment.center,
+                                    color: Colors.grey.shade200,
+                                    child: const Text(
+                                      'Image preview unavailable',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: quantityCtrl,
+                              decoration: const InputDecoration(
+                                labelText: 'Quantity',
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: mrpCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: priceCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Selling price',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: discountCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'Discount %',
+                              ),
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 8),
+                            SwitchListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Available'),
+                              value: isAvailable,
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  isAvailable = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (!formKey.currentState!.validate()) return;
+                              if (selectedSubcategories.isEmpty) {
+                                setDialogState(() {
+                                  subcategoryError =
+                                      'Please select at least one subcategory';
+                                });
+                                return;
+                              }
+                              if (selectedCategory != null) {
+                                Navigator.pop(context, true);
+                              }
+                            },
+                            child: const Text('Update'),
                           ),
                         ),
                       ],
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: quantityCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantity',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: mrpCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(labelText: 'MRP'),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: priceCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Selling price',
-                        ),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: discountCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Discount %',
-                        ),
-                        validator: _numberValidator,
-                      ),
-                      const SizedBox(height: 8),
-                      SwitchListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Available'),
-                        value: isAvailable,
-                        onChanged: (value) {
-                          setDialogState(() {
-                            isAvailable = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    if (selectedSubcategories.isEmpty) {
-                      setDialogState(() {
-                        subcategoryError =
-                            'Please select at least one subcategory';
-                      });
-                      return;
-                    }
-                    if (selectedCategory != null) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Update'),
-                ),
-              ],
             );
           },
         );
@@ -848,13 +995,38 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _totalCount > 0 ? 'Products ($_totalCount)' : 'Products',
-        ),
+        title: _isSearching
+            ? TextField(
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search products...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              )
+            : Text(_totalCount > 0 ? 'Products ($_totalCount)' : 'Products'),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(onPressed: _loadData, icon: const Icon(Icons.refresh)),
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchQuery = '';
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
         ],
       ),
       body: _isLoading && _products.isEmpty
@@ -865,22 +1037,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ? const Center(child: Text('No products found'))
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Search products',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
                   child: DropdownButtonFormField<String>(
@@ -927,10 +1083,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           controller: _scrollController,
                           padding: const EdgeInsets.all(12),
                           physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: visible.length +
-                              (_hasMore || _isLoadingMore
-                                  ? 1
-                                  : 0),
+                          itemCount:
+                              visible.length +
+                              (_hasMore || _isLoadingMore ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index >= visible.length) {
                               return const Padding(

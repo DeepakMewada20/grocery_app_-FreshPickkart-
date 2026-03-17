@@ -113,76 +113,128 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _statCard(
                       title: 'Today Orders',
                       value: '${stats.todayOrders}',
-                      icon: Icons.shopping_bag,
+                      icon: Icons.shopping_bag_outlined,
                       color: Colors.blue,
                     ),
                     _statCard(
                       title: 'Today Revenue',
                       value: _asCurrency(stats.todayRevenue),
-                      icon: Icons.currency_rupee,
+                      icon: Icons.currency_rupee_outlined,
                       color: Colors.green,
                     ),
                     _statCard(
                       title: 'Pending',
                       value: '${stats.pendingOrders}',
-                      icon: Icons.pending_actions,
+                      icon: Icons.schedule_outlined,
                       color: Colors.orange,
                     ),
                     _statCard(
                       title: 'Delivered',
                       value: '${stats.deliveredOrders}',
-                      icon: Icons.check_circle,
+                      icon: Icons.check_circle_outline,
                       color: Colors.teal,
                     ),
                     _statCard(
                       title: 'Total Orders',
                       value: '${stats.totalOrders}',
-                      icon: Icons.receipt_long,
+                      icon: Icons.receipt_long_outlined,
                       color: Colors.indigo,
                     ),
                     _statCard(
                       title: 'Total Revenue',
                       value: _asCurrency(stats.totalRevenue),
-                      icon: Icons.savings,
+                      icon: Icons.savings_outlined,
                       color: Colors.pink,
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Analytics',
+                          'Analytics & Insights',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Cancellation Rate: ${analytics.cancellationRate.toStringAsFixed(1)}%',
+                        const SizedBox(height: 16),
+                        _analyticsRow(
+                          'Cancellation Rate',
+                          '${analytics.cancellationRate.toStringAsFixed(1)}%',
+                          Icons.cancel_outlined,
+                          Colors.red,
                         ),
-                        Text(
-                          'Low Stock Items (<=5): ${analytics.lowStockCount}',
+                        const Divider(height: 24),
+                        _analyticsRow(
+                          'Low Stock Items (<=5)',
+                          '${analytics.lowStockCount}',
+                          Icons.inventory_2_outlined,
+                          Colors.orange,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 24),
                         const Text(
                           'Top Products',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 12),
                         if (topProducts.isEmpty)
-                          const Text('No data')
+                          const Text('No data available')
                         else
                           ...topProducts.take(5).map((e) {
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Text(
-                                '${e.name} • Sold ${e.mostPurchases}',
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.star_outline,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          e.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 15,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          'Sold ${e.mostPurchases} times',
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           }),
@@ -210,31 +262,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
   }) {
     return Card(
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color),
+              child: Icon(icon, color: color, size: 24),
             ),
             const Spacer(),
             Text(
               value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 2),
-            Text(title, style: TextStyle(color: Colors.grey.shade700)),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _analyticsRow(String title, String value, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 }
