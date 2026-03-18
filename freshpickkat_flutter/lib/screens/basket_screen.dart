@@ -133,6 +133,7 @@ class BasketScreen extends StatelessWidget {
             border: Border.all(color: cs.outlineVariant),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -173,13 +174,31 @@ class BasketScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '₹${item.product.price.formatPrice}',
-                          style: TextStyle(
-                            color: cs.onSurface,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '₹${item.product.price.formatPrice}',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (item.product.realPrice >
+                                item.product.price) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                '₹${item.product.realPrice.formatPrice}',
+                                style: TextStyle(
+                                  color: cs.onSurface.withValues(alpha: 0.4),
+                                  fontSize: 14,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         _buildQuantitySelector(cartController, item, cs),
                       ],
@@ -207,14 +226,16 @@ class BasketScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            icon: Icon(Icons.remove, color: cs.onPrimary, size: 20),
-            onPressed: () => cartController.removeItem(item.product),
+          InkWell(
+            onTap: () => cartController.removeItem(item.product),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Icon(Icons.remove, color: cs.onPrimary, size: 20),
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '${item.quantity}',
               style: TextStyle(
@@ -224,11 +245,13 @@ class BasketScreen extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            icon: Icon(Icons.add, color: cs.onPrimary, size: 20),
-            onPressed: () => cartController.addItem(item.product),
+          InkWell(
+            onTap: () => cartController.addItem(item.product),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Icon(Icons.add, color: cs.onPrimary, size: 20),
+            ),
           ),
         ],
       ),

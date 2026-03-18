@@ -326,8 +326,9 @@ class _ProductCardState extends State<ProductCard> {
         children: [
           InkWell(
             onTap: _decrement,
+            borderRadius: BorderRadius.circular(4),
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Icon(Icons.remove, color: Colors.white, size: 16),
             ),
           ),
@@ -341,8 +342,9 @@ class _ProductCardState extends State<ProductCard> {
           ),
           InkWell(
             onTap: _increment,
+            borderRadius: BorderRadius.circular(4),
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Icon(Icons.add, color: Colors.white, size: 16),
             ),
           ),

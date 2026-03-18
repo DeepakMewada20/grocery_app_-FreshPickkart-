@@ -298,13 +298,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: const Icon(Icons.remove, color: Colors.white, size: 18),
-              onPressed: () => _decrementQuantity(product),
+            InkWell(
+              onTap: () => _decrementQuantity(product),
+              borderRadius: BorderRadius.circular(4),
+              child: const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Icon(Icons.remove, color: Colors.white, size: 18),
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Text(
               '$quantity',
               style: const TextStyle(
@@ -313,12 +315,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 fontSize: 16,
               ),
             ),
-            const SizedBox(width: 12),
-            IconButton(
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              icon: const Icon(Icons.add, color: Colors.white, size: 18),
-              onPressed: () => _incrementQuantity(product),
+            const SizedBox(width: 4),
+            InkWell(
+              onTap: () => _incrementQuantity(product),
+              borderRadius: BorderRadius.circular(4),
+              child: const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Icon(Icons.add, color: Colors.white, size: 18),
+              ),
             ),
           ],
         ),
