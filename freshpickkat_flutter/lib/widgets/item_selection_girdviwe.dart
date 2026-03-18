@@ -52,11 +52,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                 final p = products[index];
                 return ProductCard(
                   product: p,
-                  onAddPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Added product ${index + 1}')),
-                    );
-                  },
+                  onAddPressed: () {},
                 );
               },
             );

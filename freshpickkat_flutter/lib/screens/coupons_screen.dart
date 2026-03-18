@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CouponsScreen extends StatefulWidget {
@@ -400,7 +401,7 @@ class CouponListCard extends StatelessWidget {
                         _detail(
                           icon: Icons.shopping_bag_outlined,
                           label: 'Min. Order',
-                          value: '₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                          value: '₹${coupon.minOrderAmount.formatPrice}',
                           cs: cs,
                         ),
                         if (coupon.discountValue != null)
@@ -410,15 +411,15 @@ class CouponListCard extends StatelessWidget {
                                 : Icons.currency_rupee,
                             label: 'Discount',
                             value: coupon.discountType == 'percentage'
-                                ? '${coupon.discountValue!.toStringAsFixed(0)}% OFF'
-                                : '₹${coupon.discountValue!.toStringAsFixed(0)} OFF',
+                                ? '${coupon.discountValue!.formatPrice}% OFF'
+                                : '₹${coupon.discountValue!.formatPrice} OFF',
                             cs: cs,
                           ),
                         if (coupon.maxDiscount != null)
                           _detail(
                             icon: Icons.trending_down_rounded,
                             label: 'Upto',
-                            value: '₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                            value: '₹${coupon.maxDiscount!.formatPrice}',
                             cs: cs,
                           ),
                       ],

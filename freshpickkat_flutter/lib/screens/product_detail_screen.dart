@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -175,7 +176,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       child: Row(
                         children: [
                           Text(
-                            '₹${product.price}',
+                            '₹${product.price.formatPrice}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -184,7 +185,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'M.R.P: ₹${product.realPrice}',
+                            'M.R.P: ₹${product.realPrice.formatPrice}',
                             style: const TextStyle(
                               color: Colors.white60,
                               fontSize: 14,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 class CouponSection extends StatefulWidget {
   const CouponSection({super.key});
@@ -157,7 +158,7 @@ class _CouponSectionState extends State<CouponSection> {
                                     .value!
                                     .isDeliveryDiscount
                                 ? 'Free delivery applied!'
-                                : '₹${_cartController.couponDiscount.toStringAsFixed(0)} discount applied!',
+                                : '₹${_cartController.couponDiscount.formatPrice} discount applied!',
                             style: TextStyle(
                               color: Colors.green.shade700,
                               fontSize: 12,
@@ -341,7 +342,7 @@ class _CouponSectionState extends State<CouponSection> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Minimum order of ₹${coupon.minOrderAmount.toStringAsFixed(0)} required for this coupon',
+                              'Minimum order of ₹${coupon.minOrderAmount.formatPrice} required for this coupon',
                             ),
                             backgroundColor: cs.error,
                             behavior: SnackBarBehavior.floating,
@@ -443,7 +444,7 @@ class _CouponCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Min. order: ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                  'Min. order: ₹${coupon.minOrderAmount.formatPrice}',
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.4),
                     fontSize: 10,

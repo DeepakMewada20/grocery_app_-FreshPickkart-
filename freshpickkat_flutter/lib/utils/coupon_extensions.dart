@@ -1,18 +1,19 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 extension CouponDisplayExtension on CouponDisplay {
   String get displayDiscount {
     if (isDeliveryDiscount) {
       if (maxDiscount != null) {
-        return 'Free delivery up to ₹${maxDiscount!.toStringAsFixed(0)}';
+        return 'Free delivery up to ₹${maxDiscount!.formatPrice}';
       }
       return 'Free delivery';
     }
 
     if (discountType == 'flat') {
-      return '₹${discountValue!.toStringAsFixed(0)} off';
+      return '₹${discountValue!.formatPrice} off';
     } else if (discountType == 'percentage') {
-      return '${discountValue!.toStringAsFixed(0)}% off${maxDiscount != null ? ' (max ₹${maxDiscount!.toStringAsFixed(0)})' : ''}';
+      return '${discountValue!.formatPrice}% off${maxDiscount != null ? ' (max ₹${maxDiscount!.formatPrice})' : ''}';
     }
     return '';
   }

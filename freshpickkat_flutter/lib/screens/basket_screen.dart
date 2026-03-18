@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
 
 class BasketScreen extends StatelessWidget {
@@ -173,7 +174,7 @@ class BasketScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₹${item.product.price}',
+                          '₹${item.product.price.formatPrice}',
                           style: TextStyle(
                             color: cs.onSurface,
                             fontSize: 18,
@@ -257,7 +258,7 @@ class BasketScreen extends StatelessWidget {
           const SizedBox(height: 20),
           _buildBillRow(
             'Item Total',
-            '₹${cartController.subtotal.toStringAsFixed(0)}',
+            '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.couponDiscount > 0) ...[
@@ -265,7 +266,7 @@ class BasketScreen extends StatelessWidget {
             Obx(
               () => _buildBillRow(
                 'Coupon Discount',
-                '-₹${cartController.couponDiscount.toStringAsFixed(0)}',
+                '-₹${cartController.couponDiscount.formatPrice}',
                 valueColor: Colors.green,
                 cs: cs,
               ),
@@ -277,7 +278,7 @@ class BasketScreen extends StatelessWidget {
               'Delivery Fee',
               cartController.deliveryFee == 0
                   ? 'FREE'
-                  : '₹${cartController.deliveryFee.toStringAsFixed(0)}',
+                  : '₹${cartController.deliveryFee.formatPrice}',
               valueColor: cartController.deliveryFee == 0
                   ? Colors.green
                   : cs.onSurface,
@@ -288,7 +289,7 @@ class BasketScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildBillRow(
               'Total Savings',
-              '-₹${cartController.totalSavings.toStringAsFixed(0)}',
+              '-₹${cartController.totalSavings.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -300,7 +301,7 @@ class BasketScreen extends StatelessWidget {
           Obx(
             () => _buildBillRow(
               'To Pay',
-              '₹${cartController.totalAmount.toStringAsFixed(0)}',
+              '₹${cartController.totalAmount.formatPrice}',
               isTotal: true,
               cs: cs,
             ),
@@ -382,7 +383,7 @@ class BasketScreen extends StatelessWidget {
               children: [
                 Obx(
                   () => Text(
-                    '₹${cartController.totalAmount.toStringAsFixed(0)}',
+                    '₹${cartController.totalAmount.formatPrice}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

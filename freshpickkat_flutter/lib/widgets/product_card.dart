@@ -7,12 +7,17 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onAddPressed;
   final VoidCallback? onTap;
   final bool enableHero;
+  final double? titleFontSize;
+  final double? priceFontSize;
+  final double? quantityFontSize;
+  final double? realPriceFontSize;
 
   const ProductCard({
     super.key,
@@ -20,6 +25,10 @@ class ProductCard extends StatefulWidget {
     this.onAddPressed,
     this.onTap,
     this.enableHero = true,
+    this.titleFontSize,
+    this.priceFontSize,
+    this.quantityFontSize,
+    this.realPriceFontSize,
   });
 
   @override
@@ -189,7 +198,7 @@ class _ProductCardState extends State<ProductCard> {
                           widget.product.productName,
                           style: GoogleFonts.poppins(
                             color: cs.onSurface,
-                            fontSize: 12,
+                            fontSize: widget.titleFontSize ?? 12,
                             fontWeight: FontWeight.w600,
                             height: 1.1,
                           ),
@@ -210,21 +219,20 @@ class _ProductCardState extends State<ProductCard> {
                               widget.product.quantity,
                               style: GoogleFonts.inter(
                                 color: cs.onSurface.withValues(alpha: 0.5),
-                                fontSize: 10,
+                                fontSize: widget.quantityFontSize ?? 10,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
 
-                            // Price
                             Row(
                               children: [
                                 Text(
-                                  '₹${widget.product.price}',
+                                  '₹${widget.product.price.formatPrice}',
                                   style: GoogleFonts.inter(
                                     color: const Color(0xFF4CAF50),
-                                    fontSize: 14,
+                                    fontSize: widget.priceFontSize ?? 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -232,12 +240,12 @@ class _ProductCardState extends State<ProductCard> {
                                     widget.product.price) ...[
                                   const SizedBox(width: 6),
                                   Text(
-                                    '₹${widget.product.realPrice}',
+                                    '₹${widget.product.realPrice.formatPrice}',
                                     style: GoogleFonts.inter(
                                       color: cs.onSurface.withValues(
                                         alpha: 0.35,
                                       ),
-                                      fontSize: 10,
+                                      fontSize: widget.realPriceFontSize ?? 10,
                                       decoration: TextDecoration.lineThrough,
                                       decorationColor: cs.onSurface.withValues(
                                         alpha: 0.35,
