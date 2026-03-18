@@ -9,27 +9,17 @@ class ServerpodClient {
 
   factory ServerpodClient() => _instance;
 
-  // 👇 CHANGE ONLY THIS (your PC local IP)
-  static const String _localIp = '10.16.155.170';
-
   static String get baseUrl {
+    String url;
     if (Platform.isAndroid) {
-      // Android Emulator
-      if (_isAndroidEmulator()) {
-        return 'http://10.0.2.2:8080/';
-      } else {
-        // Real Android Phone
-        return 'http://$_localIp:8080/';
-      }
+      url = 'http://localhost:8080/';
     } else if (Platform.isIOS) {
-      return 'http://localhost:8080/';
+      url = 'http://localhost:8080/';
     } else {
-      return 'http://$_localIp:8080/';
+      url = 'http://localhost:8080/';
     }
-  }
-
-  static bool _isAndroidEmulator() {
-    return !Platform.environment.containsKey('ANDROID_ROOT');
+    print('Serverpod Base URL: $url');
+    return url;
   }
 
   final Client client = Client(

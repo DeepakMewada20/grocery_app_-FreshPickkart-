@@ -204,14 +204,16 @@ class _ProductCardState extends State<ProductCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Quantity
+                            // Quantity (Truncated to 1 line)
+                            // Product quantity
                             Text(
                               widget.product.quantity,
                               style: GoogleFonts.inter(
                                 color: cs.onSurface.withValues(alpha: 0.5),
                                 fontSize: 10,
-                                fontWeight: FontWeight.w500,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
 
