@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -12,19 +12,10 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
-  final _client = ServerpodAdminClient().client;
-  static const int _pageSize = 20;
+  final AdminOrderController _orderController = AdminOrderController.instance;
   final ScrollController _scrollController = ScrollController();
-  final List<Order> _orders = [];
-  String? _nextPageToken;
-  int _totalCount = 0;
-  bool _isLoading = true;
-  bool _isLoadingMore = false;
-  bool _hasMore = true;
-  String? _error;
-  String _searchQuery = '';
   bool _isSearching = false;
-  String _statusFilter = 'all';
+  String _searchQuery = '';
 
   static const _statuses = <String>[
     'pending',
@@ -48,75 +39,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Future<void> _loadInitial() async {
-    setState(() {
-      _isLoading = true;
-      _isLoadingMore = false;
-      _error = null;
-      _orders.clear();
-      _nextPageToken = null;
-      _totalCount = 0;
-      _hasMore = true;
-    });
-    await _loadMore();
+    await _orderController.loadInitial();
   }
 
   void _handleScroll() {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
-      _loadMore();
-    }
-  }
-
-  Future<void> _loadMore() async {
-    if (_isLoadingMore) return;
-    if (!_hasMore) return;
-
-    setState(() {
-      if (_orders.isEmpty) {
-        _isLoading = true;
-      } else {
-        _isLoadingMore = true;
-      }
-    });
-
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final page = await _client.order.getOrdersPage(
-        firebaseUid: uid,
-        idToken: idToken,
-        limit: _pageSize,
-        pageToken: _nextPageToken,
-        status: _statusFilter == 'all' ? null : _statusFilter,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _orders.addAll(page.orders);
-        _nextPageToken = page.nextPageToken;
-        _totalCount = page.totalCount;
-        _hasMore = page.nextPageToken != null && page.orders.isNotEmpty;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      if (_orders.isEmpty) {
-        setState(() {
-          _error = e.toString();
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load more orders: $e')),
-        );
-      }
-    } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
+      _orderController.loadMore();
     }
   }
 
@@ -128,23 +58,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.order.updateOrderStatus(
-        order.orderId,
+      await _orderController.updateOrderStatus(
+        order,
         status,
         cancellationReason: reason,
-        firebaseUid: uid,
-        idToken: idToken,
       );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Order ${order.orderId} updated to $status')),
       );
-      await _loadInitial();
+      // No need to reload initial, Obx will handle reactive update
+      // await _loadInitial();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -199,7 +124,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   });
                 },
               )
-            : Text(_totalCount > 0 ? 'Orders ($_totalCount)' : 'Orders'),
+            : Obx(
+                () => Text(
+                  _orderController.totalCount.value > 0
+                      ? 'Orders (${_orderController.totalCount.value})'
+                      : 'Orders',
+                ),
+              ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
@@ -218,303 +149,302 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ),
         ],
       ),
-      body: Builder(
-        builder: (context) {
-          if (_isLoading && _orders.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+      body: Obx(() {
+        final orders = _orderController.orders;
+        final isLoading = _orderController.isLoading.value;
+        final error = _orderController.error.value;
+        final hasMore = _orderController.hasMore.value;
+        final isLoadingMore = _orderController.isLoadingMore.value;
+
+        if (isLoading && orders.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (error != null && orders.isEmpty) {
+          return Center(child: Text('Failed to load orders\n$error'));
+        }
+
+        if (orders.isEmpty) {
+          return const Center(child: Text('No orders yet'));
+        }
+
+        final filtered = orders.where((o) {
+          final statusFilter = _orderController.statusFilter;
+          if (statusFilter != 'all' && o.status != statusFilter) {
+            return false;
           }
+          final q = _searchQuery.toLowerCase().trim();
+          if (q.isEmpty) return true;
+          return o.orderId.toLowerCase().contains(q) ||
+              (o.userName ?? '').toLowerCase().contains(q) ||
+              o.userPhone.toLowerCase().contains(q);
+        }).toList();
 
-          if (_error != null && _orders.isEmpty) {
-            return Center(child: Text('Failed to load orders\n$_error'));
-          }
-
-          if (_orders.isEmpty) {
-            return const Center(child: Text('No orders yet'));
-          }
-
-          final filtered = _orders.where((o) {
-            if (_statusFilter != 'all' && o.status != _statusFilter) {
-              return false;
-            }
-            final q = _searchQuery.toLowerCase().trim();
-            if (q.isEmpty) return true;
-            return o.orderId.toLowerCase().contains(q) ||
-                (o.userName ?? '').toLowerCase().contains(q) ||
-                o.userPhone.toLowerCase().contains(q);
-          }).toList();
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: DropdownButtonFormField<String>(
-                  initialValue: _statusFilter,
-                  decoration: const InputDecoration(
-                    labelText: 'Filter by status',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'all', child: Text('All')),
-                    DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                    DropdownMenuItem(
-                      value: 'confirmed',
-                      child: Text('Confirmed'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'out_for_delivery',
-                      child: Text('Out for delivery'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'delivered',
-                      child: Text('Delivered'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'cancelled',
-                      child: Text('Cancelled'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _statusFilter = value;
-                    });
-                    _loadInitial();
-                  },
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: DropdownButtonFormField<String>(
+                initialValue: _orderController.statusFilter,
+                decoration: const InputDecoration(
+                  labelText: 'Filter by status',
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
+                items: const [
+                  DropdownMenuItem(value: 'all', child: Text('All')),
+                  DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                  DropdownMenuItem(
+                    value: 'confirmed',
+                    child: Text('Confirmed'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'out_for_delivery',
+                    child: Text('Out for delivery'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'delivered',
+                    child: Text('Delivered'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'cancelled',
+                    child: Text('Cancelled'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value == null) return;
+                  _orderController.loadInitial(status: value);
+                },
               ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _loadInitial,
-                  child: filtered.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: const [
-                            SizedBox(height: 120),
-                            Center(child: Text('No matching orders')),
-                          ],
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(12),
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount:
-                              filtered.length +
-                              (_hasMore || _isLoadingMore ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index >= filtered.length) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            final order = filtered[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () => _showOrderDetails(order),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Order #${order.orderId}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadInitial,
+                child: filtered.isEmpty
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 120),
+                          Center(child: Text('No matching orders')),
+                        ],
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(12),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount:
+                            filtered.length +
+                            (hasMore || isLoadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= filtered.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          final order = filtered[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => _showOrderDetails(order),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            'Order #${order.orderId}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
                                             ),
                                           ),
-                                          _statusChip(order.status),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Divider(height: 1),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.person_outline,
-                                            size: 20,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              order.userName ?? 'N/A',
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.phone_outlined,
-                                            size: 20,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            order.userPhone,
+                                        ),
+                                        _statusChip(order.status),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Divider(height: 1),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.person_outline,
+                                          size: 20,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            order.userName ?? 'N/A',
                                             style: const TextStyle(
                                               fontSize: 15,
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.copy,
-                                              size: 16,
-                                            ),
-                                            tooltip: 'Copy Phone',
-                                            constraints: const BoxConstraints(),
-                                            padding: const EdgeInsets.all(4),
-                                            onPressed: () {
-                                              Clipboard.setData(
-                                                ClipboardData(
-                                                  text: order.userPhone,
-                                                ),
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Phone number copied',
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade100,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              '${order.itemCount} Items',
-                                              style: TextStyle(
-                                                color: Colors.grey.shade800,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            '₹${order.finalAmount.toStringAsFixed(0)}',
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      if (order.cancellationReason != null &&
-                                          order
-                                              .cancellationReason!
-                                              .isNotEmpty) ...[
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Reason: ${order.cancellationReason}',
-                                          style: const TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 13,
                                           ),
                                         ),
                                       ],
-                                      const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: DropdownButtonFormField<String>(
-                                          initialValue:
-                                              _statuses.contains(order.status)
-                                              ? order.status
-                                              : 'pending',
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              borderSide: BorderSide(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            filled: true,
-                                            fillColor: Colors.grey.shade50,
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 12,
-                                                ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.phone_outlined,
+                                          size: 20,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          order.userPhone,
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.copy,
+                                            size: 16,
                                           ),
-                                          items: _statuses
-                                              .map(
-                                                (s) => DropdownMenuItem(
-                                                  value: s,
-                                                  child: Text(
-                                                    s
-                                                        .replaceAll('_', ' ')
-                                                        .toUpperCase(),
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
+                                          tooltip: 'Copy Phone',
+                                          constraints: const BoxConstraints(),
+                                          padding: const EdgeInsets.all(4),
+                                          onPressed: () {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: order.userPhone,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Phone number copied',
                                                 ),
-                                              )
-                                              .toList(),
-                                          onChanged: (value) {
-                                            if (value == null ||
-                                                value == order.status)
-                                              return;
-                                            _updateStatus(order, value);
+                                              ),
+                                            );
                                           },
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${order.itemCount} Items',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade800,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          '₹${order.finalAmount.toStringAsFixed(0)}',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (order.cancellationReason != null &&
+                                        order
+                                            .cancellationReason!
+                                            .isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Reason: ${order.cancellationReason}',
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 13,
                                         ),
                                       ),
                                     ],
-                                  ),
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: DropdownButtonFormField<String>(
+                                        initialValue:
+                                            _statuses.contains(order.status)
+                                            ? order.status
+                                            : 'pending',
+                                        decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.shade300,
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.grey.shade50,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
+                                        ),
+                                        items: _statuses
+                                            .map(
+                                              (s) => DropdownMenuItem(
+                                                value: s,
+                                                child: Text(
+                                                  s
+                                                      .replaceAll('_', ' ')
+                                                      .toUpperCase(),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                            .toList(),
+                                        onChanged: (value) {
+                                          if (value == null ||
+                                              value == order.status) {
+                                            return;
+                                          }
+                                          _updateStatus(order, value);
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                ),
+                            ),
+                          );
+                        },
+                      ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      }),
     );
   }
 

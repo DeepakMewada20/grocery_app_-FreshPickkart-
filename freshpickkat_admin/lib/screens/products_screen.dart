@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart';
+import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -15,22 +18,14 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
-  final _client = ServerpodAdminClient().client;
-  static const int _pageSize = 20;
-  final ScrollController _scrollController = ScrollController();
+  final AdminProductController _productController =
+      AdminProductController.instance;
+  final AdminCategoryController _categoryController =
+      AdminCategoryController.instance;
 
-  List<Product> _products = [];
-  List<Category> _categories = [];
-  List<SubCategory> _subCategories = [];
-  String? _nextPageToken;
-  int _totalCount = 0;
-  String _searchQuery = '';
-  String _categoryFilter = 'All';
-  bool _isLoading = true;
-  bool _isLoadingMore = false;
-  bool _hasMore = true;
-  String? _error;
+  final ScrollController _scrollController = ScrollController();
   bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -46,109 +41,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-      _products = [];
-      _nextPageToken = null;
-      _totalCount = 0;
-      _hasMore = true;
-    });
-
-    try {
-      final result = await Future.wait([
-        _client.category.getCategories(),
-        _client.subCategory.getSubCategories(),
-      ]);
-
-      _categories = result[0] as List<Category>;
-      _subCategories = result[1] as List<SubCategory>;
-      await _loadMoreProducts(isInitial: true);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _reloadProducts() async {
-    setState(() {
-      _products = [];
-      _nextPageToken = null;
-      _totalCount = 0;
-      _error = null;
-      _hasMore = true;
-    });
-    await _loadMoreProducts(isInitial: true);
+    print('DEBUG: _loadData pulling refresh...');
+    await _categoryController.loadCategories();
+    await _productController.loadInitial();
+    print('DEBUG: _loadData refresh complete.');
   }
 
   void _handleScroll() {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 200) {
-      _loadMoreProducts();
-    }
-  }
-
-  Future<void> _loadMoreProducts({bool isInitial = false}) async {
-    if (_isLoadingMore) return;
-    if (!_hasMore) return;
-
-    setState(() {
-      if (isInitial || _products.isEmpty) {
-        _isLoading = true;
-      } else {
-        _isLoadingMore = true;
+    // Increased threshold for more sensitive triggering
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      if (_productController.hasMore.value &&
+          !_productController.isLoadingMore.value) {
+        print('DEBUG: _handleScroll triggering loadMore...');
+        _productController.loadMore();
       }
-    });
-
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final page = await _client.product.getProductsPage(
-        firebaseUid: uid,
-        idToken: idToken,
-        limit: _pageSize,
-        pageToken: _nextPageToken,
-        sortBy: 'name',
-        category: _categoryFilter == 'All' ? null : _categoryFilter,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _products.addAll(page.products);
-        _nextPageToken = page.nextPageToken;
-        _totalCount = page.totalCount;
-        _hasMore = page.nextPageToken != null && page.products.isNotEmpty;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      if (_products.isEmpty) {
-        setState(() {
-          _error = e.toString();
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load more products: $e')),
-        );
-      }
-    } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
     }
   }
 
@@ -163,6 +71,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final discountCtrl = TextEditingController(text: '0');
     var isAvailable = true;
     var isUploadingImage = false;
+    String? imageError;
 
     String? selectedCategory;
     final selectedSubcategories = <String>{};
@@ -241,7 +150,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Required'
                                   : null,
-                              items: _categories
+                              items: _categoryController.categories
                                   .map(
                                     (c) => DropdownMenuItem(
                                       value: c.categoryName,
@@ -260,17 +169,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             const SizedBox(height: 10),
                             if (selectedCategory != null)
                               _SubcategorySelector(
-                                options: _subcategoryOptionsFor(
-                                  selectedCategory!,
-                                ),
+                                options: _categoryController
+                                    .groupedSubcategoryOptionsFor(
+                                      selectedCategory!,
+                                    ),
                                 selected: selectedSubcategories,
                                 errorText: subcategoryError,
-                                onToggle: (name, checked) {
+                                onToggleBunch: (bunch, checked) {
                                   setDialogState(() {
                                     if (checked) {
-                                      selectedSubcategories.add(name);
+                                      selectedSubcategories.addAll(bunch);
                                     } else {
-                                      selectedSubcategories.remove(name);
+                                      selectedSubcategories.removeAll(bunch);
                                     }
                                     subcategoryError = null;
                                   });
@@ -312,16 +222,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                             });
                                           }
                                         } catch (e) {
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Image upload failed: $e',
-                                              ),
-                                            ),
-                                          );
+                                          setDialogState(() {
+                                            imageError = e.toString();
+                                          });
                                         } finally {
                                           if (context.mounted) {
                                             setDialogState(
@@ -346,17 +249,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 ),
                               ),
                             ),
+                            if (imageError != null) ...[
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  imageError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (imageCtrl.text.trim().isNotEmpty) ...[
                               const SizedBox(height: 8),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
                                   imageCtrl.text.trim(),
-                                  height: 90,
+                                  height: 200,
                                   width: double.infinity,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, _, _) => Container(
-                                    height: 90,
+                                    height: 200,
                                     alignment: Alignment.center,
                                     color: Colors.grey.shade200,
                                     child: const Text(
@@ -378,18 +294,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             ),
                             const SizedBox(height: 10),
                             TextFormField(
-                              controller: mrpCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: const InputDecoration(
-                                labelText: 'MRP',
-                              ),
-                              validator: _numberValidator,
-                            ),
-                            const SizedBox(height: 10),
-                            TextFormField(
                               controller: priceCtrl,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
@@ -398,6 +302,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               decoration: const InputDecoration(
                                 labelText: 'Selling price',
                               ),
+                              onChanged: (v) {
+                                final p = double.tryParse(v) ?? 0;
+                                final d =
+                                    double.tryParse(discountCtrl.text) ?? 0;
+                                if (d < 100) {
+                                  final mrp = p / (1 - (d / 100));
+                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                }
+                              },
                               validator: _numberValidator,
                             ),
                             const SizedBox(height: 10),
@@ -409,6 +322,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                               decoration: const InputDecoration(
                                 labelText: 'Discount %',
+                              ),
+                              onChanged: (v) {
+                                final d = double.tryParse(v) ?? 0;
+                                final p = double.tryParse(priceCtrl.text) ?? 0;
+                                if (d < 100) {
+                                  final mrp = p / (1 - (d / 100));
+                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                }
+                              },
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: mrpCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP',
                               ),
                               validator: _numberValidator,
                             ),
@@ -485,11 +418,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.product.uploadProduct(product, uid, idToken);
+      await _productController.addProduct(product);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -515,6 +444,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
     var isAvailable = product.isAvailable;
     var isUploadingImage = false;
+    String? imageError;
 
     String? selectedCategory = product.category;
     final selectedSubcategories = <String>{...product.subcategory};
@@ -593,7 +523,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Required'
                                   : null,
-                              items: _categories
+                              items: _categoryController.categories
                                   .map(
                                     (c) => DropdownMenuItem(
                                       value: c.categoryName,
@@ -612,17 +542,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             const SizedBox(height: 10),
                             if (selectedCategory != null)
                               _SubcategorySelector(
-                                options: _subcategoryOptionsFor(
-                                  selectedCategory!,
-                                ),
+                                options: _categoryController
+                                    .groupedSubcategoryOptionsFor(
+                                      selectedCategory!,
+                                    ),
                                 selected: selectedSubcategories,
                                 errorText: subcategoryError,
-                                onToggle: (name, checked) {
+                                onToggleBunch: (bunch, checked) {
                                   setDialogState(() {
                                     if (checked) {
-                                      selectedSubcategories.add(name);
+                                      selectedSubcategories.addAll(bunch);
                                     } else {
-                                      selectedSubcategories.remove(name);
+                                      selectedSubcategories.removeAll(bunch);
                                     }
                                     subcategoryError = null;
                                   });
@@ -664,16 +595,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                             });
                                           }
                                         } catch (e) {
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Image upload failed: $e',
-                                              ),
-                                            ),
-                                          );
+                                          setDialogState(() {
+                                            imageError = e.toString();
+                                          });
                                         } finally {
                                           if (context.mounted) {
                                             setDialogState(
@@ -698,17 +622,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 ),
                               ),
                             ),
+                            if (imageError != null) ...[
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  imageError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (imageCtrl.text.trim().isNotEmpty) ...[
                               const SizedBox(height: 8),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
                                   imageCtrl.text.trim(),
-                                  height: 90,
+                                  height: 200,
                                   width: double.infinity,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, _, _) => Container(
-                                    height: 90,
+                                    height: 200,
                                     alignment: Alignment.center,
                                     color: Colors.grey.shade200,
                                     child: const Text(
@@ -730,18 +667,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             ),
                             const SizedBox(height: 10),
                             TextFormField(
-                              controller: mrpCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: const InputDecoration(
-                                labelText: 'MRP',
-                              ),
-                              validator: _numberValidator,
-                            ),
-                            const SizedBox(height: 10),
-                            TextFormField(
                               controller: priceCtrl,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
@@ -750,6 +675,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               decoration: const InputDecoration(
                                 labelText: 'Selling price',
                               ),
+                              onChanged: (v) {
+                                final p = double.tryParse(v) ?? 0;
+                                final d =
+                                    double.tryParse(discountCtrl.text) ?? 0;
+                                if (d < 100) {
+                                  final mrp = p / (1 - (d / 100));
+                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                }
+                              },
                               validator: _numberValidator,
                             ),
                             const SizedBox(height: 10),
@@ -761,6 +695,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                               decoration: const InputDecoration(
                                 labelText: 'Discount %',
+                              ),
+                              onChanged: (v) {
+                                final d = double.tryParse(v) ?? 0;
+                                final p = double.tryParse(priceCtrl.text) ?? 0;
+                                if (d < 100) {
+                                  final mrp = p / (1 - (d / 100));
+                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                }
+                              },
+                              validator: _numberValidator,
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: mrpCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: const InputDecoration(
+                                labelText: 'MRP',
                               ),
                               validator: _numberValidator,
                             ),
@@ -834,11 +788,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.product.updateProduct(updated, uid, idToken);
+      await _productController.updateProduct(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -882,11 +832,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (confirm != true) return;
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.product.deleteProduct(product.productId!, uid, idToken);
+      await _productController.deleteProduct(product.productId!);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -917,8 +863,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     if (picked == null) return null;
 
+    // Image Cropping
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: picked.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Image',
+          toolbarColor: Colors.green,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(title: 'Crop Image', aspectRatioLockEnabled: true),
+      ],
+    );
+
+    if (croppedFile == null) return null;
+
     final uid = AdminSessionService.requireUid();
-    final file = File(picked.path);
+    final file = File(croppedFile.path);
     final now = DateTime.now().millisecondsSinceEpoch;
     final name = picked.name.replaceAll(' ', '_');
     final ref = FirebaseStorage.instance
@@ -957,32 +921,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
-  List<String> _subcategoryOptionsFor(String categoryName) {
-    final loweredCategory = categoryName.toLowerCase().trim();
-    final options = <String>{};
-
-    final matchingCategory = _categories.where(
-      (c) => c.categoryName.toLowerCase().trim() == loweredCategory,
-    );
-    for (final category in matchingCategory) {
-      options.addAll(category.subCategory.keys);
-    }
-
-    final matchingSubCategories = _subCategories.where(
-      (s) => s.categoryId.toLowerCase().trim() == loweredCategory,
-    );
-    for (final subCategory in matchingSubCategories) {
-      options.addAll(subCategory.subCategoriesName);
-    }
-
-    return options.where((e) => e.trim().isNotEmpty).toList()..sort();
-  }
-
   List<Product> _visibleProducts() {
     final query = _searchQuery.toLowerCase().trim();
-    return _products.where((p) {
+    return _productController.products.where((p) {
       final categoryMatch =
-          _categoryFilter == 'All' || p.category == _categoryFilter;
+          _productController.categoryFilter == 'All' ||
+          p.category == _productController.categoryFilter;
       if (!categoryMatch) return false;
       if (query.isEmpty) return true;
       return p.productName.toLowerCase().contains(query) ||
@@ -1010,7 +954,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   });
                 },
               )
-            : Text(_totalCount > 0 ? 'Products ($_totalCount)' : 'Products'),
+            : Obx(
+                () => Text(
+                  _productController.totalCount.value > 0
+                      ? 'Products (${_productController.totalCount.value})'
+                      : 'Products',
+                ),
+              ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
@@ -1029,118 +979,160 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
-      body: _isLoading && _products.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null && _products.isEmpty
-          ? Center(child: Text('Error: $_error'))
-          : _products.isEmpty
-          ? const Center(child: Text('No products found'))
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _categoryFilter,
-                    decoration: const InputDecoration(
-                      labelText: 'Filter by category',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    items: [
-                      const DropdownMenuItem(value: 'All', child: Text('All')),
-                      ..._categories.map(
-                        (c) => DropdownMenuItem(
-                          value: c.categoryName,
-                          child: Text(c.categoryName),
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _categoryFilter = value;
-                      });
-                      _reloadProducts();
-                    },
-                  ),
+      body: Obx(() {
+        final products = _productController.products;
+        final isLoading = _productController.isLoading.value;
+        final error = _productController.error.value;
+        final hasMore = _productController.hasMore.value;
+        final isLoadingMore = _productController.isLoadingMore.value;
+
+        final categoryItems = <DropdownMenuItem<String>>[
+          const DropdownMenuItem<String>(value: 'All', child: Text('All')),
+          ..._categoryController.categories.map<DropdownMenuItem<String>>(
+            (c) => DropdownMenuItem<String>(
+              value: c.categoryName,
+              child: Text(c.categoryName),
+            ),
+          ),
+        ];
+
+        if (isLoading && products.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (error != null && products.isEmpty) {
+          return Center(child: Text('Error: $error'));
+        }
+
+        if (products.isEmpty) {
+          return const Center(child: Text('No products found'));
+        }
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: DropdownButtonFormField<String>(
+                initialValue: _productController.categoryFilter,
+                decoration: const InputDecoration(
+                  labelText: 'Filter by category',
+                  border: OutlineInputBorder(),
+                  isDense: true,
                 ),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _loadData,
-                    child: Builder(
-                      builder: (context) {
-                        final visible = _visibleProducts();
-                        if (visible.isEmpty) {
-                          return ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            children: const [
-                              SizedBox(height: 120),
-                              Center(child: Text('No matching products')),
-                            ],
+                items: categoryItems,
+                onChanged: (value) {
+                  if (value == null) return;
+                  _productController.loadInitial(category: value);
+                },
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadData,
+                child: (() {
+                  final visible = _visibleProducts();
+                  if (visible.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        const SizedBox(height: 120),
+                        const Center(child: Text('No matching products')),
+                        if (hasMore) ...[
+                          const SizedBox(height: 16),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () => _productController.loadMore(),
+                              child: isLoadingMore
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Load More from Server'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(12),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount:
+                        visible.length +
+                        (hasMore || isLoadingMore || error != null ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= visible.length) {
+                        if (error != null) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Error: $error',
+                                  style: const TextStyle(color: Colors.red),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      _productController.loadMore(),
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
                           );
                         }
-                        return ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(12),
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount:
-                              visible.length +
-                              (_hasMore || _isLoadingMore ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index >= visible.length) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            final product = visible[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: ListTile(
-                                isThreeLine: true,
-                                leading: CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    product.imageUrl,
-                                  ),
-                                  onBackgroundImageError: (_, _) {},
-                                ),
-                                title: Text(product.productName),
-                                subtitle: Text(
-                                  '${product.category} • ${product.quantity}\n'
-                                  '₹${product.price.toStringAsFixed(0)} | '
-                                  '${product.isAvailable ? 'Available' : 'Out of stock'}',
-                                ),
-                                trailing: PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'edit') {
-                                      _openEditProductDialog(product);
-                                    } else if (value == 'delete') {
-                                      _deleteProduct(product);
-                                    }
-                                  },
-                                  itemBuilder: (context) => const [
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text('Edit'),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
                         );
-                      },
-                    ),
-                  ),
-                ),
-              ],
+                      }
+                      final product = visible[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        child: ListTile(
+                          onTap: () => _openEditProductDialog(product),
+                          isThreeLine: true,
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(product.imageUrl),
+                            onBackgroundImageError: (_, _) {},
+                          ),
+                          title: Text(product.productName),
+                          subtitle: Text(
+                            '${product.category} • ${product.quantity}\n'
+                            '₹${product.price.toStringAsFixed(0)} | '
+                            '${product.isAvailable ? 'Available' : 'Out of stock'}',
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                _openEditProductDialog(product);
+                              } else if (value == 'delete') {
+                                _deleteProduct(product);
+                              }
+                            },
+                            itemBuilder: (context) => const [
+                              PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                })(),
+              ),
             ),
+          ],
+        );
+      }),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
@@ -1157,13 +1149,13 @@ class _SubcategorySelector extends StatelessWidget {
     required this.options,
     required this.selected,
     required this.errorText,
-    required this.onToggle,
+    required this.onToggleBunch,
   });
 
-  final List<String> options;
+  final List<List<String>> options;
   final Set<String> selected;
   final String? errorText;
-  final void Function(String name, bool checked) onToggle;
+  final void Function(List<String> bunch, bool checked) onToggleBunch;
 
   @override
   Widget build(BuildContext context) {
@@ -1191,15 +1183,17 @@ class _SubcategorySelector extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: options
-              .map(
-                (name) => FilterChip(
-                  label: Text(name),
-                  selected: selected.contains(name),
-                  onSelected: (checked) => onToggle(name, checked),
-                ),
-              )
-              .toList(),
+          children: options.map((bunch) {
+            final isBunchSelected = bunch.every(
+              (item) => selected.contains(item),
+            );
+
+            return FilterChip(
+              label: Text(bunch.join(', ')), // Show all as one unit
+              selected: isBunchSelected,
+              onSelected: (checked) => onToggleBunch(bunch, checked),
+            );
+          }).toList(),
         ),
         if (errorText != null) ...[
           const SizedBox(height: 6),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -11,44 +11,113 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  final _client = ServerpodAdminClient().client;
-
-  List<Category> _categories = [];
-  List<SubCategory> _subCategories = [];
-  bool _isLoading = true;
-  String? _error;
+  final AdminCategoryController _controller = AdminCategoryController.instance;
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Categories'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: _controller.loadCategories,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: Obx(() {
+        final categories = _controller.categories;
+        final subCategories = _controller.subCategories;
+        final isLoading = _controller.isLoading.value;
+        final error = _controller.error.value;
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+        if (isLoading && categories.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    try {
-      final result = await Future.wait([
-        _client.category.getCategories(),
-        _client.subCategory.getSubCategories(),
-      ]);
+        if (error != null && categories.isEmpty) {
+          return Center(child: Text('Error: $error'));
+        }
 
-      if (!mounted) return;
-      setState(() {
-        _categories = result[0] as List<Category>;
-        _subCategories = result[1] as List<SubCategory>;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
+        return RefreshIndicator(
+          onRefresh: _controller.loadCategories,
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: [
+              const Text(
+                'Categories',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (categories.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('No categories yet'),
+                  ),
+                )
+              else
+                ...categories.map(
+                  (category) => Card(
+                    child: ListTile(
+                      title: Text(category.categoryName),
+                      subtitle: Text(
+                        'Mapped subcategories: ${category.subCategory.length}',
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              const Text(
+                'Subcategories',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (subCategories.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('No subcategories yet'),
+                  ),
+                )
+              else
+                ...subCategories.map(
+                  (sub) => Card(
+                    child: ListTile(
+                      title: Text(sub.subCategoriesName.join(', ')),
+                      subtitle: Text('Category: ${sub.categoryId}'),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'addCategory',
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            onPressed: _openAddCategoryDialog,
+            icon: const Icon(Icons.add),
+            label: const Text('Category'),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            heroTag: 'addSubCategory',
+            backgroundColor: Colors.teal,
+            foregroundColor: Colors.white,
+            onPressed: _openAddSubcategoryDialog,
+            icon: const Icon(Icons.add),
+            label: const Text('Subcategory'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _openAddCategoryDialog() async {
@@ -103,25 +172,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (saved != true) return;
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.category.uploadCategory(
+      await _controller.uploadCategory(
         Category(
           categoryName: nameCtrl.text.trim(),
           categoryImageUrl: imageCtrl.text.trim(),
           subCategory: {},
         ),
-        uid,
-        idToken,
       );
-
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Category added')));
-      await _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -131,7 +192,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _openAddSubcategoryDialog() async {
-    if (_categories.isEmpty) {
+    if (_controller.categories.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Create category first')));
@@ -139,7 +200,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
 
     final formKey = GlobalKey<FormState>();
-    String selectedCategory = _categories.first.categoryName;
+    String selectedCategory = _controller.categories.first.categoryName;
     final nameCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
 
@@ -158,7 +219,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: selectedCategory,
                       decoration: const InputDecoration(labelText: 'Category'),
-                      items: _categories
+                      items: _controller.categories
                           .map(
                             (c) => DropdownMenuItem(
                               value: c.categoryName,
@@ -213,115 +274,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (saved != true) return;
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.subCategory.uploadSubCategory(
+      await _controller.uploadSubCategory(
         SubCategory(
           categoryId: selectedCategory,
           subCategoriesName: [nameCtrl.text.trim()],
           subCategoriesUrl: imageCtrl.text.trim(),
         ),
-        uid,
-        idToken,
       );
-
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Subcategory added')));
-      await _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to add subcategory: $e')));
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categories'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(onPressed: _loadData, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: ListView(
-                padding: const EdgeInsets.all(12),
-                children: [
-                  const Text(
-                    'Categories',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._categories.map(
-                    (category) => Card(
-                      child: ListTile(
-                        title: Text(category.categoryName),
-                        subtitle: Text(
-                          'Mapped subcategories: ${category.subCategory.length}',
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Subcategories',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_subCategories.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No subcategories yet'),
-                      ),
-                    )
-                  else
-                    ..._subCategories.map(
-                      (sub) => Card(
-                        child: ListTile(
-                          title: Text(sub.subCategoriesName.join(', ')),
-                          subtitle: Text('Category: ${sub.categoryId}'),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: 'addCategory',
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            onPressed: _openAddCategoryDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('Category'),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton.extended(
-            heroTag: 'addSubCategory',
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
-            onPressed: _openAddSubcategoryDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('Subcategory'),
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class CouponsScreen extends StatefulWidget {
@@ -11,43 +11,155 @@ class CouponsScreen extends StatefulWidget {
 }
 
 class _CouponsScreenState extends State<CouponsScreen> {
-  final _client = ServerpodAdminClient().client;
-
-  List<Coupon> _coupons = [];
+  final AdminCouponController _controller = AdminCouponController.instance;
   String _searchQuery = '';
-  bool _isLoading = true;
-  String? _error;
 
   @override
-  void initState() {
-    super.initState();
-    _loadCoupons();
-  }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Coupons'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            onPressed: _controller.loadCoupons,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: Obx(() {
+        final coupons = _controller.coupons;
+        final isLoading = _controller.isLoading.value;
+        final error = _controller.error.value;
 
-  Future<void> _loadCoupons() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+        if (isLoading && coupons.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final coupons = await _client.coupon.fetchCoupons(uid, idToken);
-      if (!mounted) return;
-      setState(() {
-        _coupons = coupons;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
+        if (error != null && coupons.isEmpty) {
+          return Center(child: Text('Error: $error'));
+        }
+
+        if (coupons.isEmpty) {
+          return const Center(child: Text('No coupons found'));
+        }
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+              child: TextField(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search coupon',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              ),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _controller.loadCoupons,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: coupons.length,
+                  itemBuilder: (context, index) {
+                    final coupon = coupons[index];
+                    final q = _searchQuery.toLowerCase().trim();
+                    if (q.isNotEmpty &&
+                        !coupon.code.toLowerCase().contains(q) &&
+                        !coupon.description.toLowerCase().contains(q)) {
+                      return const SizedBox.shrink();
+                    }
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    coupon.code,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(coupon.description),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Type: ${coupon.discountType ?? 'delivery'} | Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'Used ${coupon.usedCount}',
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      coupon.isActive ? 'Active' : 'Off',
+                                      style: TextStyle(
+                                        color: coupon.isActive
+                                            ? Colors.green
+                                            : Colors.red,
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: coupon.isActive,
+                                      onChanged: (value) => _controller
+                                          .setCouponActive(coupon.code, value),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  onPressed: () =>
+                                      _openEditCouponDialog(coupon),
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                  ),
+                                  tooltip: 'Edit',
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        onPressed: _openAddCouponDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Create Coupon'),
+      ),
+    );
   }
 
   Future<void> _openAddCouponDialog() async {
@@ -286,16 +398,11 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.coupon.uploadCoupon(coupon, uid, idToken);
+      await _controller.uploadCoupon(coupon);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Coupon created')));
-      await _loadCoupons();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -309,34 +416,6 @@ class _CouponsScreenState extends State<CouponsScreen> {
       return 'Required';
     }
     return double.tryParse(value.trim()) == null ? 'Invalid number' : null;
-  }
-
-  Future<void> _setCouponActive(Coupon coupon, bool isActive) async {
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final ok = await _client.coupon.setCouponActive(
-        coupon.code,
-        isActive,
-        uid,
-        idToken,
-      );
-      if (!mounted) return;
-      if (!ok) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Update failed')));
-        return;
-      }
-      await _loadCoupons();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed: $e')));
-    }
   }
 
   Future<void> _openEditCouponDialog(Coupon coupon) async {
@@ -517,11 +596,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final ok = await _client.coupon.updateCoupon(updated, uid, idToken);
+      final ok = await _controller.updateCoupon(updated);
       if (!mounted) return;
       if (!ok) {
         ScaffoldMessenger.of(
@@ -529,148 +604,11 @@ class _CouponsScreenState extends State<CouponsScreen> {
         ).showSnackBar(const SnackBar(content: Text('Update failed')));
         return;
       }
-      await _loadCoupons();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed: $e')));
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Coupons'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(onPressed: _loadCoupons, icon: const Icon(Icons.refresh)),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text('Error: $_error'))
-          : _coupons.isEmpty
-          ? const Center(child: Text('No coupons found'))
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Search coupon',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _loadCoupons,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _coupons.length,
-                      itemBuilder: (context, index) {
-                        final coupon = _coupons[index];
-                        final q = _searchQuery.toLowerCase().trim();
-                        if (q.isNotEmpty &&
-                            !coupon.code.toLowerCase().contains(q) &&
-                            !coupon.description.toLowerCase().contains(q)) {
-                          return const SizedBox.shrink();
-                        }
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        coupon.code,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(coupon.description),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Type: ${coupon.discountType ?? 'delivery'} | Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      'Used ${coupon.usedCount}',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          coupon.isActive ? 'Active' : 'Off',
-                                          style: TextStyle(
-                                            color: coupon.isActive
-                                                ? Colors.green
-                                                : Colors.red,
-                                          ),
-                                        ),
-                                        Switch(
-                                          value: coupon.isActive,
-                                          onChanged: (value) =>
-                                              _setCouponActive(coupon, value),
-                                        ),
-                                      ],
-                                    ),
-                                    IconButton(
-                                      onPressed: () =>
-                                          _openEditCouponDialog(coupon),
-                                      icon: const Icon(
-                                        Icons.edit_outlined,
-                                        size: 18,
-                                      ),
-                                      tooltip: 'Edit',
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        onPressed: _openAddCouponDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Create Coupon'),
-      ),
-    );
   }
 }

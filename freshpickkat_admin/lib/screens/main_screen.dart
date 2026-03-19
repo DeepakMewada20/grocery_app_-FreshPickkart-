@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
 import 'dashboard_screen.dart';
 import 'orders_screen.dart';
 import 'products_screen.dart';
@@ -26,9 +32,20 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize controllers
+    Get.put(AdminCategoryController());
+    Get.put(AdminProductController());
+    Get.put(AdminOrderController());
+    Get.put(AdminDashboardController());
+    Get.put(AdminCouponController());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
