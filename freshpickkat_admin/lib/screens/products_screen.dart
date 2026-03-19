@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -82,6 +83,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      isDismissible: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -89,25 +91,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
+              ),
               padding: EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                MediaQuery.of(context).viewInsets.bottom + 16,
+                20,
+                12,
+                20,
+                MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -117,13 +120,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         const Text(
                           'Add Product',
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.pop(context, false),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                          ),
                         ),
                       ],
                     ),
@@ -133,316 +139,297 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            TextFormField(
-                              controller: nameCtrl,
-                              decoration: const InputDecoration(
-                                labelText: 'Product name',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 10),
-                            DropdownButtonFormField<String>(
-                              initialValue: selectedCategory,
-                              decoration: const InputDecoration(
-                                labelText: 'Category',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                              items: _categoryController.categories
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c.categoryName,
-                                      child: Text(c.categoryName),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  selectedCategory = value;
-                                  selectedSubcategories.clear();
-                                  subcategoryError = null;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            if (selectedCategory != null)
-                              _SubcategorySelector(
-                                options: _categoryController
-                                    .groupedSubcategoryOptionsFor(
-                                      selectedCategory!,
-                                    ),
-                                selected: selectedSubcategories,
-                                errorText: subcategoryError,
-                                onToggleBunch: (bunch, checked) {
-                                  setDialogState(() {
-                                    if (checked) {
-                                      selectedSubcategories.addAll(bunch);
-                                    } else {
-                                      selectedSubcategories.removeAll(bunch);
-                                    }
-                                    subcategoryError = null;
-                                  });
-                                },
-                              ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: imageCtrl,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Product image',
-                                hintText: 'Upload from gallery',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: isUploadingImage
-                                    ? null
-                                    : () async {
-                                        setDialogState(
-                                          () => isUploadingImage = true,
-                                        );
-                                        try {
-                                          final source =
-                                              await _pickImageSource();
-                                          if (source == null) return;
-                                          final url =
-                                              await _pickAndUploadProductImage(
-                                                source,
-                                              );
-                                          if (url != null && context.mounted) {
-                                            setDialogState(() {
-                                              imageCtrl.text = url;
-                                            });
-                                          }
-                                        } catch (e) {
-                                          setDialogState(() {
-                                            imageError = e.toString();
-                                          });
-                                        } finally {
-                                          if (context.mounted) {
-                                            setDialogState(
-                                              () => isUploadingImage = false,
+                            SectionCard(
+                              icon: Icons.info_outline,
+                              title: 'Basic Info',
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: nameCtrl,
+                                    labelText: 'Product name',
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                        ? 'Required'
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ModernDropdown<String>(
+                                    value: selectedCategory,
+                                    labelText: 'Category',
+                                    items: _categoryController.categories
+                                        .map(
+                                          (c) => DropdownMenuItem(
+                                            value: c.categoryName,
+                                            child: Text(c.categoryName),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        selectedCategory = value;
+                                        selectedSubcategories.clear();
+                                        subcategoryError = null;
+                                      });
+                                    },
+                                  ),
+                                  if (selectedCategory != null) ...[
+                                    const SizedBox(height: 12),
+                                    _SubcategorySelector(
+                                      options: _categoryController
+                                          .groupedSubcategoryOptionsFor(
+                                            selectedCategory!,
+                                          ),
+                                      selected: selectedSubcategories,
+                                      errorText: subcategoryError,
+                                      onToggleBunch: (bunch, checked) {
+                                        setDialogState(() {
+                                          if (checked) {
+                                            selectedSubcategories.addAll(bunch);
+                                          } else {
+                                            selectedSubcategories.removeAll(
+                                              bunch,
                                             );
                                           }
-                                        }
+                                          subcategoryError = null;
+                                        });
                                       },
-                                icon: isUploadingImage
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.upload),
-                                label: Text(
-                                  isUploadingImage
-                                      ? 'Uploading...'
-                                      : 'Upload Image',
-                                ),
-                              ),
-                            ),
-                            if (imageError != null) ...[
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                child: Text(
-                                  imageError!,
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (imageCtrl.text.trim().isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageCtrl.text.trim(),
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => Container(
-                                    height: 200,
-                                    alignment: Alignment.center,
-                                    color: Colors.grey.shade200,
-                                    child: const Text(
-                                      'Image preview unavailable',
                                     ),
-                                  ),
-                                ),
+                                  ],
+                                ],
                               ),
-                            ],
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: quantityCtrl,
-                              decoration: const InputDecoration(
-                                labelText: 'Quantity',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
                             ),
-                            const SizedBox(height: 10),
-                            DropdownButtonFormField<String>(
-                              initialValue: discountType,
-                              decoration: const InputDecoration(
-                                labelText: 'Discount Type',
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'percentage',
-                                  child: Text('Percentage (%)'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'flat',
-                                  child: Text('Flat (₹)'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setDialogState(() {
-                                    discountType = value;
-                                    final d =
-                                        double.tryParse(discountCtrl.text) ?? 0;
-                                    final p =
-                                        double.tryParse(priceCtrl.text) ?? 0;
-                                    if (discountType == 'percentage') {
-                                      if (d < 100) {
-                                        final mrp = p / (1 - (d / 100));
-                                        mrpCtrl.text = mrp.toStringAsFixed(0);
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.image_outlined,
+                              title: 'Product Image',
+                              child: Column(
+                                children: [
+                                  if (imageCtrl.text.trim().isNotEmpty) ...[
+                                    ImagePreview(
+                                      imageUrl: imageCtrl.text.trim(),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  ImagePickerButton(
+                                    isUploading: isUploadingImage,
+                                    onPressed: () async {
+                                      setDialogState(
+                                        () => isUploadingImage = true,
+                                      );
+                                      try {
+                                        final source = await _pickImageSource();
+                                        if (source == null) return;
+                                        final url =
+                                            await _pickAndUploadProductImage(
+                                              source,
+                                            );
+                                        if (url != null && context.mounted) {
+                                          setDialogState(
+                                            () => imageCtrl.text = url,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        setDialogState(
+                                          () => imageError = e.toString(),
+                                        );
+                                      } finally {
+                                        if (context.mounted) {
+                                          setDialogState(
+                                            () => isUploadingImage = false,
+                                          );
+                                        }
                                       }
-                                    } else {
-                                      mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: priceCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                                    },
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'Selling price',
-                                prefixText: '₹ ',
+                                  if (imageError != null) ...[
+                                    const SizedBox(height: 8),
+                                    ErrorMessage(message: imageError!),
+                                  ],
+                                ],
                               ),
-                              onChanged: (v) {
-                                final p = double.tryParse(v) ?? 0;
-                                final d =
-                                    double.tryParse(discountCtrl.text) ?? 0;
-                                if (discountType == 'percentage') {
-                                  if (d < 100) {
-                                    final mrp = p / (1 - (d / 100));
-                                    mrpCtrl.text = mrp.toStringAsFixed(0);
-                                  }
-                                } else {
-                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                }
-                              },
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: discountCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: InputDecoration(
-                                labelText: discountType == 'percentage'
-                                    ? 'Discount %'
-                                    : 'Discount Flat (₹)',
-                                prefixText: discountType == 'percentage'
-                                    ? null
-                                    : '₹ ',
-                                suffixText: discountType == 'percentage'
-                                    ? '%'
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.inventory_2_outlined,
+                              title: 'Quantity',
+                              child: ModernTextField(
+                                controller: quantityCtrl,
+                                labelText: 'e.g., 1kg, 500ml',
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                    ? 'Required'
                                     : null,
                               ),
-                              onChanged: (v) {
-                                final d = double.tryParse(v) ?? 0;
-                                final p = double.tryParse(priceCtrl.text) ?? 0;
-                                if (discountType == 'percentage') {
-                                  if (d < 100) {
-                                    final mrp = p / (1 - (d / 100));
-                                    mrpCtrl.text = mrp.toStringAsFixed(0);
-                                  }
-                                } else {
-                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                }
-                              },
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: mrpCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.local_offer_outlined,
+                              title: 'Pricing',
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: priceCtrl,
+                                    labelText: 'Selling Price',
+                                    prefixText: '₹ ',
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    onChanged: (v) {
+                                      final p = double.tryParse(v) ?? 0;
+                                      final d =
+                                          double.tryParse(discountCtrl.text) ??
+                                          0;
+                                      if (discountType == 'percentage' &&
+                                          d < 100) {
+                                        mrpCtrl.text = (p / (1 - (d / 100)))
+                                            .toStringAsFixed(0);
+                                      } else {
+                                        mrpCtrl.text = (p + d).toStringAsFixed(
+                                          0,
+                                        );
+                                      }
+                                    },
+                                    validator: _numberValidator,
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'MRP',
+                                  const SizedBox(height: 12),
+                                  ModernTextField(
+                                    controller: mrpCtrl,
+                                    labelText: 'MRP',
+                                    prefixText: '₹ ',
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    validator: _numberValidator,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  CompactFieldRow(
+                                    children: [
+                                      ModernDropdown<String>(
+                                        value: discountType,
+                                        labelText: 'Type',
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: 'percentage',
+                                            child: Text('%'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'flat',
+                                            child: Text('₹'),
+                                          ),
+                                        ],
+                                        onChanged: (value) {
+                                          if (value != null) {
+                                            setDialogState(() {
+                                              discountType = value;
+                                              final d =
+                                                  double.tryParse(
+                                                    discountCtrl.text,
+                                                  ) ??
+                                                  0;
+                                              final p =
+                                                  double.tryParse(
+                                                    priceCtrl.text,
+                                                  ) ??
+                                                  0;
+                                              if (discountType ==
+                                                      'percentage' &&
+                                                  d < 100) {
+                                                mrpCtrl.text =
+                                                    (p / (1 - (d / 100)))
+                                                        .toStringAsFixed(0);
+                                              } else {
+                                                mrpCtrl.text = (p + d)
+                                                    .toStringAsFixed(0);
+                                              }
+                                            });
+                                          }
+                                        },
+                                      ),
+                                      ModernTextField(
+                                        controller: discountCtrl,
+                                        labelText: 'Discount',
+                                        prefixText: discountType == 'flat'
+                                            ? '₹ '
+                                            : null,
+                                        suffixText: discountType == 'percentage'
+                                            ? '%'
+                                            : null,
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                        onChanged: (v) {
+                                          final d = double.tryParse(v) ?? 0;
+                                          final p =
+                                              double.tryParse(priceCtrl.text) ??
+                                              0;
+                                          if (discountType == 'percentage' &&
+                                              d < 100) {
+                                            mrpCtrl.text = (p / (1 - (d / 100)))
+                                                .toStringAsFixed(0);
+                                          } else {
+                                            mrpCtrl.text = (p + d)
+                                                .toStringAsFixed(0);
+                                          }
+                                        },
+                                        validator: _numberValidator,
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 8),
-                            SwitchListTile(
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('Available'),
+                            const SizedBox(height: 12),
+                            AvailabilitySwitch(
                               value: isAvailable,
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  isAvailable = value;
-                                });
-                              },
+                              onChanged: (value) =>
+                                  setDialogState(() => isAvailable = value),
                             ),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(context, false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                             child: const Text('Cancel'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: ElevatedButton(
+                          flex: 2,
+                          child: FilledButton(
                             onPressed: () {
                               if (!formKey.currentState!.validate()) return;
                               if (selectedSubcategories.isEmpty) {
-                                setDialogState(() {
-                                  subcategoryError =
-                                      'Please select at least one subcategory';
-                                });
+                                setDialogState(
+                                  () => subcategoryError =
+                                      'Please select at least one subcategory',
+                                );
                                 return;
                               }
                               if (selectedCategory != null) {
                                 Navigator.pop(context, true);
                               }
                             },
-                            child: const Text('Save'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Save Product'),
                           ),
                         ),
                       ],
@@ -515,6 +502,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      isDismissible: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -522,25 +510,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.9,
+              ),
               padding: EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                MediaQuery.of(context).viewInsets.bottom + 16,
+                20,
+                12,
+                20,
+                MediaQuery.of(context).viewInsets.bottom + 20,
               ),
               child: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -550,13 +539,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         const Text(
                           'Edit Product',
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.pop(context, false),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                          ),
                         ),
                       ],
                     ),
@@ -566,316 +558,297 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            TextFormField(
-                              controller: nameCtrl,
-                              decoration: const InputDecoration(
-                                labelText: 'Product name',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 10),
-                            DropdownButtonFormField<String>(
-                              initialValue: selectedCategory,
-                              decoration: const InputDecoration(
-                                labelText: 'Category',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                              items: _categoryController.categories
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c.categoryName,
-                                      child: Text(c.categoryName),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  selectedCategory = value;
-                                  selectedSubcategories.clear();
-                                  subcategoryError = null;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            if (selectedCategory != null)
-                              _SubcategorySelector(
-                                options: _categoryController
-                                    .groupedSubcategoryOptionsFor(
-                                      selectedCategory!,
-                                    ),
-                                selected: selectedSubcategories,
-                                errorText: subcategoryError,
-                                onToggleBunch: (bunch, checked) {
-                                  setDialogState(() {
-                                    if (checked) {
-                                      selectedSubcategories.addAll(bunch);
-                                    } else {
-                                      selectedSubcategories.removeAll(bunch);
-                                    }
-                                    subcategoryError = null;
-                                  });
-                                },
-                              ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: imageCtrl,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Product image',
-                                hintText: 'Upload from gallery',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed: isUploadingImage
-                                    ? null
-                                    : () async {
-                                        setDialogState(
-                                          () => isUploadingImage = true,
-                                        );
-                                        try {
-                                          final source =
-                                              await _pickImageSource();
-                                          if (source == null) return;
-                                          final url =
-                                              await _pickAndUploadProductImage(
-                                                source,
-                                              );
-                                          if (url != null && context.mounted) {
-                                            setDialogState(() {
-                                              imageCtrl.text = url;
-                                            });
-                                          }
-                                        } catch (e) {
-                                          setDialogState(() {
-                                            imageError = e.toString();
-                                          });
-                                        } finally {
-                                          if (context.mounted) {
-                                            setDialogState(
-                                              () => isUploadingImage = false,
+                            SectionCard(
+                              icon: Icons.info_outline,
+                              title: 'Basic Info',
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: nameCtrl,
+                                    labelText: 'Product name',
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                        ? 'Required'
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ModernDropdown<String>(
+                                    value: selectedCategory,
+                                    labelText: 'Category',
+                                    items: _categoryController.categories
+                                        .map(
+                                          (c) => DropdownMenuItem(
+                                            value: c.categoryName,
+                                            child: Text(c.categoryName),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) {
+                                      setDialogState(() {
+                                        selectedCategory = value;
+                                        selectedSubcategories.clear();
+                                        subcategoryError = null;
+                                      });
+                                    },
+                                  ),
+                                  if (selectedCategory != null) ...[
+                                    const SizedBox(height: 12),
+                                    _SubcategorySelector(
+                                      options: _categoryController
+                                          .groupedSubcategoryOptionsFor(
+                                            selectedCategory!,
+                                          ),
+                                      selected: selectedSubcategories,
+                                      errorText: subcategoryError,
+                                      onToggleBunch: (bunch, checked) {
+                                        setDialogState(() {
+                                          if (checked) {
+                                            selectedSubcategories.addAll(bunch);
+                                          } else {
+                                            selectedSubcategories.removeAll(
+                                              bunch,
                                             );
                                           }
-                                        }
+                                          subcategoryError = null;
+                                        });
                                       },
-                                icon: isUploadingImage
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.upload),
-                                label: Text(
-                                  isUploadingImage
-                                      ? 'Uploading...'
-                                      : 'Upload Image',
-                                ),
-                              ),
-                            ),
-                            if (imageError != null) ...[
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                child: Text(
-                                  imageError!,
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (imageCtrl.text.trim().isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  imageCtrl.text.trim(),
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => Container(
-                                    height: 200,
-                                    alignment: Alignment.center,
-                                    color: Colors.grey.shade200,
-                                    child: const Text(
-                                      'Image preview unavailable',
                                     ),
-                                  ),
-                                ),
+                                  ],
+                                ],
                               ),
-                            ],
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: quantityCtrl,
-                              decoration: const InputDecoration(
-                                labelText: 'Quantity',
-                              ),
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
                             ),
-                            const SizedBox(height: 10),
-                            DropdownButtonFormField<String>(
-                              initialValue: discountType,
-                              decoration: const InputDecoration(
-                                labelText: 'Discount Type',
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'percentage',
-                                  child: Text('Percentage (%)'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'flat',
-                                  child: Text('Flat (₹)'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setDialogState(() {
-                                    discountType = value;
-                                    final d =
-                                        double.tryParse(discountCtrl.text) ?? 0;
-                                    final p =
-                                        double.tryParse(priceCtrl.text) ?? 0;
-                                    if (discountType == 'percentage') {
-                                      if (d < 100) {
-                                        final mrp = p / (1 - (d / 100));
-                                        mrpCtrl.text = mrp.toStringAsFixed(0);
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.image_outlined,
+                              title: 'Product Image',
+                              child: Column(
+                                children: [
+                                  if (imageCtrl.text.trim().isNotEmpty) ...[
+                                    ImagePreview(
+                                      imageUrl: imageCtrl.text.trim(),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                  ImagePickerButton(
+                                    isUploading: isUploadingImage,
+                                    onPressed: () async {
+                                      setDialogState(
+                                        () => isUploadingImage = true,
+                                      );
+                                      try {
+                                        final source = await _pickImageSource();
+                                        if (source == null) return;
+                                        final url =
+                                            await _pickAndUploadProductImage(
+                                              source,
+                                            );
+                                        if (url != null && context.mounted) {
+                                          setDialogState(
+                                            () => imageCtrl.text = url,
+                                          );
+                                        }
+                                      } catch (e) {
+                                        setDialogState(
+                                          () => imageError = e.toString(),
+                                        );
+                                      } finally {
+                                        if (context.mounted) {
+                                          setDialogState(
+                                            () => isUploadingImage = false,
+                                          );
+                                        }
                                       }
-                                    } else {
-                                      mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                    }
-                                  });
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: priceCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                                    },
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'Selling price',
-                                prefixText: '₹ ',
+                                  if (imageError != null) ...[
+                                    const SizedBox(height: 8),
+                                    ErrorMessage(message: imageError!),
+                                  ],
+                                ],
                               ),
-                              onChanged: (v) {
-                                final p = double.tryParse(v) ?? 0;
-                                final d =
-                                    double.tryParse(discountCtrl.text) ?? 0;
-                                if (discountType == 'percentage') {
-                                  if (d < 100) {
-                                    final mrp = p / (1 - (d / 100));
-                                    mrpCtrl.text = mrp.toStringAsFixed(0);
-                                  }
-                                } else {
-                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                }
-                              },
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: discountCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: InputDecoration(
-                                labelText: discountType == 'percentage'
-                                    ? 'Discount %'
-                                    : 'Discount Flat (₹)',
-                                prefixText: discountType == 'percentage'
-                                    ? null
-                                    : '₹ ',
-                                suffixText: discountType == 'percentage'
-                                    ? '%'
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.inventory_2_outlined,
+                              title: 'Quantity',
+                              child: ModernTextField(
+                                controller: quantityCtrl,
+                                labelText: 'e.g., 1kg, 500ml',
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                    ? 'Required'
                                     : null,
                               ),
-                              onChanged: (v) {
-                                final d = double.tryParse(v) ?? 0;
-                                final p = double.tryParse(priceCtrl.text) ?? 0;
-                                if (discountType == 'percentage') {
-                                  if (d < 100) {
-                                    final mrp = p / (1 - (d / 100));
-                                    mrpCtrl.text = mrp.toStringAsFixed(0);
-                                  }
-                                } else {
-                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
-                                }
-                              },
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: mrpCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                            const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.local_offer_outlined,
+                              title: 'Pricing',
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: priceCtrl,
+                                    labelText: 'Selling Price',
+                                    prefixText: '₹ ',
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    onChanged: (v) {
+                                      final p = double.tryParse(v) ?? 0;
+                                      final d =
+                                          double.tryParse(discountCtrl.text) ??
+                                          0;
+                                      if (discountType == 'percentage' &&
+                                          d < 100) {
+                                        mrpCtrl.text = (p / (1 - (d / 100)))
+                                            .toStringAsFixed(0);
+                                      } else {
+                                        mrpCtrl.text = (p + d).toStringAsFixed(
+                                          0,
+                                        );
+                                      }
+                                    },
+                                    validator: _numberValidator,
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'MRP',
+                                  const SizedBox(height: 12),
+                                  ModernTextField(
+                                    controller: mrpCtrl,
+                                    labelText: 'MRP',
+                                    prefixText: '₹ ',
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    validator: _numberValidator,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  CompactFieldRow(
+                                    children: [
+                                      ModernDropdown<String>(
+                                        value: discountType,
+                                        labelText: 'Type',
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: 'percentage',
+                                            child: Text('%'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'flat',
+                                            child: Text('₹'),
+                                          ),
+                                        ],
+                                        onChanged: (value) {
+                                          if (value != null) {
+                                            setDialogState(() {
+                                              discountType = value;
+                                              final d =
+                                                  double.tryParse(
+                                                    discountCtrl.text,
+                                                  ) ??
+                                                  0;
+                                              final p =
+                                                  double.tryParse(
+                                                    priceCtrl.text,
+                                                  ) ??
+                                                  0;
+                                              if (discountType ==
+                                                      'percentage' &&
+                                                  d < 100) {
+                                                mrpCtrl.text =
+                                                    (p / (1 - (d / 100)))
+                                                        .toStringAsFixed(0);
+                                              } else {
+                                                mrpCtrl.text = (p + d)
+                                                    .toStringAsFixed(0);
+                                              }
+                                            });
+                                          }
+                                        },
+                                      ),
+                                      ModernTextField(
+                                        controller: discountCtrl,
+                                        labelText: 'Discount',
+                                        prefixText: discountType == 'flat'
+                                            ? '₹ '
+                                            : null,
+                                        suffixText: discountType == 'percentage'
+                                            ? '%'
+                                            : null,
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                        onChanged: (v) {
+                                          final d = double.tryParse(v) ?? 0;
+                                          final p =
+                                              double.tryParse(priceCtrl.text) ??
+                                              0;
+                                          if (discountType == 'percentage' &&
+                                              d < 100) {
+                                            mrpCtrl.text = (p / (1 - (d / 100)))
+                                                .toStringAsFixed(0);
+                                          } else {
+                                            mrpCtrl.text = (p + d)
+                                                .toStringAsFixed(0);
+                                          }
+                                        },
+                                        validator: _numberValidator,
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              validator: _numberValidator,
                             ),
-                            const SizedBox(height: 8),
-                            SwitchListTile(
-                              dense: true,
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('Available'),
+                            const SizedBox(height: 12),
+                            AvailabilitySwitch(
                               value: isAvailable,
-                              onChanged: (value) {
-                                setDialogState(() {
-                                  isAvailable = value;
-                                });
-                              },
+                              onChanged: (value) =>
+                                  setDialogState(() => isAvailable = value),
                             ),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(context, false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                             child: const Text('Cancel'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: ElevatedButton(
+                          flex: 2,
+                          child: FilledButton(
                             onPressed: () {
                               if (!formKey.currentState!.validate()) return;
                               if (selectedSubcategories.isEmpty) {
-                                setDialogState(() {
-                                  subcategoryError =
-                                      'Please select at least one subcategory';
-                                });
+                                setDialogState(
+                                  () => subcategoryError =
+                                      'Please select at least one subcategory',
+                                );
                                 return;
                               }
                               if (selectedCategory != null) {
                                 Navigator.pop(context, true);
                               }
                             },
-                            child: const Text('Update'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Update Product'),
                           ),
                         ),
                       ],
@@ -1130,14 +1103,20 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: DropdownButtonFormField<String>(
                 initialValue: _productController.categoryFilter,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Filter by category',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
                 ),
                 items: categoryItems,
                 onChanged: (value) {

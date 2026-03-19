@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
+import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,18 +18,20 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    _checkAuthAndStartLoading();
   }
 
-  Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
-
+  Future<void> _checkAuthAndStartLoading() async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
       final hasAccess = await _authService.verifyCurrentSession();
       if (!mounted) return;
+
       if (hasAccess) {
+        AdminDashboardController.instance.loadDashboard();
+        AdminProductController.instance.loadInitial();
+        AdminCategoryController.instance.loadCategories();
         Navigator.of(context).pushReplacementNamed('/main');
       } else {
         await FirebaseAuth.instance.signOut();
