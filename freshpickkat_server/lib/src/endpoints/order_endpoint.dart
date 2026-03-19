@@ -344,8 +344,9 @@ class OrderEndpoint extends Endpoint {
     final offset = _decodeOffsetToken(pageToken) ?? 0;
     final pageOrders = filtered.skip(offset).take(limit).toList();
     final nextOffset = offset + pageOrders.length;
-    final nextPageToken =
-        nextOffset < filtered.length ? _encodeOffsetToken(nextOffset) : null;
+    final nextPageToken = nextOffset < filtered.length
+        ? _encodeOffsetToken(nextOffset)
+        : null;
 
     return protocol.OrderPage(
       orders: pageOrders,

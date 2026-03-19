@@ -21,7 +21,7 @@ class ImagePreview extends StatelessWidget {
         height: height,
         width: double.infinity,
         fit: fit,
-        errorBuilder: (_, __, ___) => Container(
+        errorBuilder: (_, _, _) => Container(
           height: height,
           alignment: Alignment.center,
           color: Colors.grey[100],

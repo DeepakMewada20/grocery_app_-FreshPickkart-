@@ -1,3 +1,4 @@
+import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart' as protocol;
 
 class ValidationService {
@@ -14,61 +15,69 @@ class ValidationService {
 
   static void validateProduct(protocol.Product product) {
     if (product.productName.trim().isEmpty) {
-      throw ArgumentError('Product name is required');
+      throw InvalidParametersException('Product name is required');
     }
     if (product.category.trim().isEmpty) {
-      throw ArgumentError('Category is required');
+      throw InvalidParametersException('Category is required');
     }
     if (product.imageUrl.trim().isEmpty) {
-      throw ArgumentError('Product image URL is required');
+      throw InvalidParametersException('Product image URL is required');
     }
     if (product.quantity.trim().isEmpty) {
-      throw ArgumentError('Quantity is required');
+      throw InvalidParametersException('Quantity is required');
     }
     if (product.subcategory.isEmpty) {
-      throw ArgumentError('At least one subcategory is required');
+      throw InvalidParametersException('At least one subcategory is required');
     }
     if (product.price < 0 || product.realPrice < 0) {
-      throw ArgumentError('Price values cannot be negative');
+      throw InvalidParametersException('Price values cannot be negative');
     }
   }
 
   static void validateCoupon(protocol.Coupon coupon) {
     if (coupon.code.trim().isEmpty) {
-      throw ArgumentError('Coupon code is required');
+      throw InvalidParametersException('Coupon code is required');
     }
     if (coupon.description.trim().isEmpty) {
-      throw ArgumentError('Coupon description is required');
+      throw InvalidParametersException('Coupon description is required');
     }
     if (coupon.minOrderAmount < 0) {
-      throw ArgumentError('Minimum order amount cannot be negative');
+      throw InvalidParametersException(
+        'Minimum order amount cannot be negative',
+      );
     }
     if (coupon.endDate.isBefore(coupon.startDate)) {
-      throw ArgumentError('Coupon end date must be after start date');
+      throw InvalidParametersException(
+        'Coupon end date must be after start date',
+      );
     }
     if (coupon.maxDiscount != null && coupon.maxDiscount! < 0) {
-      throw ArgumentError('Max discount cannot be negative');
+      throw InvalidParametersException('Max discount cannot be negative');
     }
     if (coupon.usageLimit != null && coupon.usageLimit! < 0) {
-      throw ArgumentError('Usage limit cannot be negative');
+      throw InvalidParametersException('Usage limit cannot be negative');
     }
 
     final category = coupon.couponCategory.toLowerCase().trim();
     if (category != 'all' && category != 'delivery') {
-      throw ArgumentError('Coupon category must be All or delivery');
+      throw InvalidParametersException(
+        'Coupon category must be All or delivery',
+      );
     }
 
     if (category == 'delivery') return;
 
     final type = coupon.discountType?.toLowerCase().trim();
     if (type != 'flat' && type != 'percentage') {
-      throw ArgumentError('Discount type must be flat or percentage');
+      throw InvalidParametersException(
+        'Discount type must be flat or percentage',
+      );
     }
     if (coupon.discountValue == null || coupon.discountValue! <= 0) {
-      throw ArgumentError('Discount value must be greater than 0');
+      throw InvalidParametersException('Discount value must be greater than 0');
     }
     if (type == 'percentage' && coupon.discountValue! > 100) {
-      throw ArgumentError('Percentage discount cannot exceed 100');
+      throw InvalidParametersException('Percentage discount cannot exceed 100');
     }
   }
 
@@ -80,6 +89,8 @@ class ValidationService {
     final current = currentStatus.toLowerCase().trim();
     final next = newStatus.toLowerCase().trim();
 
+    if (current == next) return;
+
     const allowed = <String, Set<String>>{
       statusPending: {statusConfirmed, statusCancelled},
       statusConfirmed: {statusOutForDelivery, statusCancelled},
@@ -88,21 +99,32 @@ class ValidationService {
       statusCancelled: {},
     };
 
-    if (current == next) return;
-
     final nextAllowed = allowed[current];
     if (nextAllowed == null || !nextAllowed.contains(next)) {
-      throw ArgumentError(
-        'Invalid order status transition: $currentStatus -> $newStatus',
+      final currentLabel = _getStatusLabel(current);
+      final nextLabel = _getStatusLabel(next);
+      throw InvalidParametersException(
+        'Cannot change status from "$currentLabel" to "$nextLabel". Please follow the correct order: Pending → Confirmed → Out for Delivery → Delivered',
       );
     }
 
     if (next == statusCancelled &&
         (cancellationReason == null || cancellationReason.trim().isEmpty)) {
-      throw ArgumentError(
-        'Cancellation reason is required for cancelled status',
+      throw InvalidParametersException(
+        'Cancellation reason is required when cancelling an order',
       );
     }
+  }
+
+  static String _getStatusLabel(String status) {
+    const labels = {
+      'pending': 'Pending',
+      'confirmed': 'Confirmed',
+      'out_for_delivery': 'Out for Delivery',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled',
+    };
+    return labels[status.toLowerCase()] ?? status;
   }
 
   static void validatePaymentStatus(String paymentStatus) {
@@ -114,7 +136,9 @@ class ValidationService {
       paymentRefunded,
     };
     if (!allowed.contains(value)) {
-      throw ArgumentError('Invalid payment status: $paymentStatus');
+      throw InvalidParametersException(
+        'Invalid payment status: $paymentStatus',
+      );
     }
   }
 }
