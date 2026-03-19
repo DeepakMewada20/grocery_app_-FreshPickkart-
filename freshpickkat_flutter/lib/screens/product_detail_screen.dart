@@ -194,7 +194,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            '${product.discount}% OFF',
+                            product.discountType == 'flat'
+                                ? '₹${product.discountValue?.toStringAsFixed(0)} OFF'
+                                : '${product.discountValue ?? product.discount}% OFF',
                             style: const TextStyle(
                               color: Colors.green,
                               fontSize: 14,

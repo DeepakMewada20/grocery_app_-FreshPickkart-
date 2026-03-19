@@ -22,6 +22,8 @@ abstract class Product implements _i1.SerializableModel {
     required this.price,
     required this.realPrice,
     required this.discount,
+    this.discountType,
+    this.discountValue,
     required this.isAvailable,
     required this.addedAt,
     required this.subcategory,
@@ -39,6 +41,8 @@ abstract class Product implements _i1.SerializableModel {
     required double price,
     required double realPrice,
     required double discount,
+    String? discountType,
+    double? discountValue,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
@@ -57,6 +61,8 @@ abstract class Product implements _i1.SerializableModel {
       price: (jsonSerialization['price'] as num).toDouble(),
       realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
       discount: (jsonSerialization['discount'] as num).toDouble(),
+      discountType: jsonSerialization['discountType'] as String?,
+      discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
       isAvailable: jsonSerialization['isAvailable'] as bool,
       addedAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['addedAt']),
       subcategory: _i2.Protocol().deserialize<List<String>>(
@@ -87,6 +93,10 @@ abstract class Product implements _i1.SerializableModel {
 
   double discount;
 
+  String? discountType;
+
+  double? discountValue;
+
   bool isAvailable;
 
   DateTime addedAt;
@@ -112,6 +122,8 @@ abstract class Product implements _i1.SerializableModel {
     double? price,
     double? realPrice,
     double? discount,
+    String? discountType,
+    double? discountValue,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
@@ -131,6 +143,8 @@ abstract class Product implements _i1.SerializableModel {
       'price': price,
       'realPrice': realPrice,
       'discount': discount,
+      if (discountType != null) 'discountType': discountType,
+      if (discountValue != null) 'discountValue': discountValue,
       'isAvailable': isAvailable,
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
@@ -158,6 +172,8 @@ class _ProductImpl extends Product {
     required double price,
     required double realPrice,
     required double discount,
+    String? discountType,
+    double? discountValue,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
@@ -173,6 +189,8 @@ class _ProductImpl extends Product {
          price: price,
          realPrice: realPrice,
          discount: discount,
+         discountType: discountType,
+         discountValue: discountValue,
          isAvailable: isAvailable,
          addedAt: addedAt,
          subcategory: subcategory,
@@ -194,6 +212,8 @@ class _ProductImpl extends Product {
     double? price,
     double? realPrice,
     double? discount,
+    Object? discountType = _Undefined,
+    Object? discountValue = _Undefined,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
@@ -210,6 +230,10 @@ class _ProductImpl extends Product {
       price: price ?? this.price,
       realPrice: realPrice ?? this.realPrice,
       discount: discount ?? this.discount,
+      discountType: discountType is String? ? discountType : this.discountType,
+      discountValue: discountValue is double?
+          ? discountValue
+          : this.discountValue,
       isAvailable: isAvailable ?? this.isAvailable,
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),

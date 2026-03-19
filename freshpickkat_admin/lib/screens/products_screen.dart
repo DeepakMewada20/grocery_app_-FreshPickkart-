@@ -69,6 +69,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final priceCtrl = TextEditingController();
     final mrpCtrl = TextEditingController();
     final discountCtrl = TextEditingController(text: '0');
+    var discountType = 'percentage'; // Default type
     var isAvailable = true;
     var isUploadingImage = false;
     String? imageError;
@@ -252,7 +253,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             if (imageError != null) ...[
                               const SizedBox(height: 4),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                                 child: Text(
                                   imageError!,
                                   style: const TextStyle(
@@ -293,6 +296,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   : null,
                             ),
                             const SizedBox(height: 10),
+                            DropdownButtonFormField<String>(
+                              initialValue: discountType,
+                              decoration: const InputDecoration(
+                                labelText: 'Discount Type',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'percentage',
+                                  child: Text('Percentage (%)'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'flat',
+                                  child: Text('Flat (₹)'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setDialogState(() {
+                                    discountType = value;
+                                    final d =
+                                        double.tryParse(discountCtrl.text) ?? 0;
+                                    final p =
+                                        double.tryParse(priceCtrl.text) ?? 0;
+                                    if (discountType == 'percentage') {
+                                      if (d < 100) {
+                                        final mrp = p / (1 - (d / 100));
+                                        mrpCtrl.text = mrp.toStringAsFixed(0);
+                                      }
+                                    } else {
+                                      mrpCtrl.text = (p + d).toStringAsFixed(0);
+                                    }
+                                  });
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 10),
                             TextFormField(
                               controller: priceCtrl,
                               keyboardType:
@@ -301,14 +340,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                               decoration: const InputDecoration(
                                 labelText: 'Selling price',
+                                prefixText: '₹ ',
                               ),
                               onChanged: (v) {
                                 final p = double.tryParse(v) ?? 0;
                                 final d =
                                     double.tryParse(discountCtrl.text) ?? 0;
-                                if (d < 100) {
-                                  final mrp = p / (1 - (d / 100));
-                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                if (discountType == 'percentage') {
+                                  if (d < 100) {
+                                    final mrp = p / (1 - (d / 100));
+                                    mrpCtrl.text = mrp.toStringAsFixed(0);
+                                  }
+                                } else {
+                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
                                 }
                               },
                               validator: _numberValidator,
@@ -320,15 +364,27 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'Discount %',
+                              decoration: InputDecoration(
+                                labelText: discountType == 'percentage'
+                                    ? 'Discount %'
+                                    : 'Discount Flat (₹)',
+                                prefixText: discountType == 'percentage'
+                                    ? null
+                                    : '₹ ',
+                                suffixText: discountType == 'percentage'
+                                    ? '%'
+                                    : null,
                               ),
                               onChanged: (v) {
                                 final d = double.tryParse(v) ?? 0;
                                 final p = double.tryParse(priceCtrl.text) ?? 0;
-                                if (d < 100) {
-                                  final mrp = p / (1 - (d / 100));
-                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                if (discountType == 'percentage') {
+                                  if (d < 100) {
+                                    final mrp = p / (1 - (d / 100));
+                                    mrpCtrl.text = mrp.toStringAsFixed(0);
+                                  }
+                                } else {
+                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
                                 }
                               },
                               validator: _numberValidator,
@@ -408,7 +464,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
       imageUrl: imageCtrl.text.trim(),
       price: double.parse(priceCtrl.text.trim()),
       realPrice: double.parse(mrpCtrl.text.trim()),
-      discount: double.parse(discountCtrl.text.trim()),
+      discount: discountType == 'percentage'
+          ? double.parse(discountCtrl.text.trim())
+          : 0,
+      discountType: discountType,
+      discountValue: double.parse(discountCtrl.text.trim()),
       isAvailable: isAvailable,
       addedAt: DateTime.now(),
       subcategory: selectedSubcategories.toList(),
@@ -440,8 +500,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final priceCtrl = TextEditingController(text: product.price.toString());
     final mrpCtrl = TextEditingController(text: product.realPrice.toString());
     final discountCtrl = TextEditingController(
-      text: product.discount.toString(),
+      text: (product.discountValue ?? product.discount).toString(),
     );
+    var discountType = product.discountType ?? 'percentage';
     var isAvailable = product.isAvailable;
     var isUploadingImage = false;
     String? imageError;
@@ -625,7 +686,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             if (imageError != null) ...[
                               const SizedBox(height: 4),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                                 child: Text(
                                   imageError!,
                                   style: const TextStyle(
@@ -666,6 +729,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   : null,
                             ),
                             const SizedBox(height: 10),
+                            DropdownButtonFormField<String>(
+                              initialValue: discountType,
+                              decoration: const InputDecoration(
+                                labelText: 'Discount Type',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'percentage',
+                                  child: Text('Percentage (%)'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'flat',
+                                  child: Text('Flat (₹)'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setDialogState(() {
+                                    discountType = value;
+                                    final d =
+                                        double.tryParse(discountCtrl.text) ?? 0;
+                                    final p =
+                                        double.tryParse(priceCtrl.text) ?? 0;
+                                    if (discountType == 'percentage') {
+                                      if (d < 100) {
+                                        final mrp = p / (1 - (d / 100));
+                                        mrpCtrl.text = mrp.toStringAsFixed(0);
+                                      }
+                                    } else {
+                                      mrpCtrl.text = (p + d).toStringAsFixed(0);
+                                    }
+                                  });
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 10),
                             TextFormField(
                               controller: priceCtrl,
                               keyboardType:
@@ -674,14 +773,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                               decoration: const InputDecoration(
                                 labelText: 'Selling price',
+                                prefixText: '₹ ',
                               ),
                               onChanged: (v) {
                                 final p = double.tryParse(v) ?? 0;
                                 final d =
                                     double.tryParse(discountCtrl.text) ?? 0;
-                                if (d < 100) {
-                                  final mrp = p / (1 - (d / 100));
-                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                if (discountType == 'percentage') {
+                                  if (d < 100) {
+                                    final mrp = p / (1 - (d / 100));
+                                    mrpCtrl.text = mrp.toStringAsFixed(0);
+                                  }
+                                } else {
+                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
                                 }
                               },
                               validator: _numberValidator,
@@ -693,15 +797,27 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
-                              decoration: const InputDecoration(
-                                labelText: 'Discount %',
+                              decoration: InputDecoration(
+                                labelText: discountType == 'percentage'
+                                    ? 'Discount %'
+                                    : 'Discount Flat (₹)',
+                                prefixText: discountType == 'percentage'
+                                    ? null
+                                    : '₹ ',
+                                suffixText: discountType == 'percentage'
+                                    ? '%'
+                                    : null,
                               ),
                               onChanged: (v) {
                                 final d = double.tryParse(v) ?? 0;
                                 final p = double.tryParse(priceCtrl.text) ?? 0;
-                                if (d < 100) {
-                                  final mrp = p / (1 - (d / 100));
-                                  mrpCtrl.text = mrp.toStringAsFixed(0);
+                                if (discountType == 'percentage') {
+                                  if (d < 100) {
+                                    final mrp = p / (1 - (d / 100));
+                                    mrpCtrl.text = mrp.toStringAsFixed(0);
+                                  }
+                                } else {
+                                  mrpCtrl.text = (p + d).toStringAsFixed(0);
                                 }
                               },
                               validator: _numberValidator,
@@ -781,7 +897,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
       imageUrl: imageCtrl.text.trim(),
       price: double.parse(priceCtrl.text.trim()),
       realPrice: double.parse(mrpCtrl.text.trim()),
-      discount: double.parse(discountCtrl.text.trim()),
+      discount: discountType == 'percentage'
+          ? double.parse(discountCtrl.text.trim())
+          : 0,
+      discountType: discountType,
+      discountValue: double.parse(discountCtrl.text.trim()),
       isAvailable: isAvailable,
       subcategory: selectedSubcategories.toList(),
       quantity: quantityCtrl.text.trim(),

@@ -153,7 +153,9 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ),
                       // Discount badge
-                      if (widget.product.discount > 0)
+                      if ((widget.product.discountValue ??
+                              widget.product.discount) >
+                          0)
                         Positioned(
                           top: 8,
                           left: 8,
@@ -173,7 +175,9 @@ class _ProductCardState extends State<ProductCard> {
                               ],
                             ),
                             child: Text(
-                              '${widget.product.discount}% OFF',
+                              widget.product.discountType == 'flat'
+                                  ? '₹${widget.product.discountValue?.toStringAsFixed(0)} OFF'
+                                  : '${widget.product.discountValue ?? widget.product.discount}% OFF',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontSize: 10,

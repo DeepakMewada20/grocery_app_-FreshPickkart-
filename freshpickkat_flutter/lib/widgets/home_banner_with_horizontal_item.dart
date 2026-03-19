@@ -135,7 +135,7 @@ class _ProductBannerCard extends StatelessWidget {
                   );
                 },
               ),
-              if (product.discount > 0)
+              if ((product.discountValue ?? product.discount) > 0)
                 Positioned(
                   top: 6,
                   left: 6,
@@ -149,7 +149,9 @@ class _ProductBannerCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      '${product.discount}% OFF',
+                      product.discountType == 'flat'
+                          ? '₹${product.discountValue?.toStringAsFixed(0)} OFF'
+                          : '${product.discountValue ?? product.discount}% OFF',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
