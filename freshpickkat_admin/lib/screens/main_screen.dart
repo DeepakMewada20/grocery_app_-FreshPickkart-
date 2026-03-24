@@ -8,8 +8,7 @@ import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
 import 'dashboard_screen.dart';
 import 'orders_screen.dart';
 import 'products_screen.dart';
-import 'categories_screen.dart';
-import 'coupons_screen.dart';
+import 'catalog_offers_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -26,8 +25,7 @@ class _MainScreenState extends State<MainScreen> {
     const DashboardScreen(),
     const OrdersScreen(),
     const ProductsScreen(),
-    const CategoriesScreen(),
-    const CouponsScreen(),
+    const CatalogOffersScreen(),
     const SettingsScreen(),
   ];
 
@@ -71,14 +69,9 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Products',
           ),
           NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category),
-            label: 'Category',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.discount_outlined),
-            selectedIcon: Icon(Icons.discount),
-            label: 'Coupons',
+            icon: Icon(Icons.layers_outlined),
+            selectedIcon: Icon(Icons.layers),
+            label: 'Catalog',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

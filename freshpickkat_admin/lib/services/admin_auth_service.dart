@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'network_status_service.dart';
 import 'serverpod_client.dart';
 
 class AdminAuthService {
@@ -126,6 +127,9 @@ class AdminAuthService {
     try {
       await _verifyAdminToken(idToken);
     } catch (e) {
+      if (NetworkStatusService.looksLikeNetworkError(e)) {
+        rethrow;
+      }
       await _firebaseAuth.signOut();
       rethrow;
     }
