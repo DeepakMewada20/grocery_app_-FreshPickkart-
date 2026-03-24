@@ -20,7 +20,13 @@ class ProductBusinessService {
       realPrice: normalizedRealPrice,
       price: normalizedPrice,
       discount: resolvedDiscount,
+      discountType: product.discountType ?? 'percentage',
+      discountValue: product.discountValue ?? resolvedDiscount,
       isAvailable: resolvedAvailable,
+      countryOfOrigin: product.countryOfOrigin?.trim().isEmpty == true
+          ? null
+          : product.countryOfOrigin?.trim(),
+      bogoFreeProductIds: product.bogoFreeProductIds,
     );
   }
 

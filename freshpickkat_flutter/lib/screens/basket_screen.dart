@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
 class BasketScreen extends StatelessWidget {
   const BasketScreen({super.key});
@@ -123,91 +127,231 @@ class BasketScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: cartController.cartItems.length,
       itemBuilder: (context, index) {
-        final item = cartController.cartItems[index];
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: cs.outlineVariant),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  color: cs.surface,
-                  child: Image.network(
-                    item.product.imageUrl,
-                    fit: BoxFit.contain,
-                  ),
+        final item = cartController.cartItems[index]; // <--- Missing variable
+        final bogoController = BogoController.instance;
+        final offerTheme =
+            Theme.of(context).extension<AppOfferTheme>() ??
+            AppOfferTheme.fallback(Theme.of(context).brightness);
+
+        final bogoOffer = bogoController.getOfferForProduct(
+          item.product.productId!,
+        );
+        final freeProduct = item.bogoFreeProductId != null
+            ? Get.find<ProductProviderController>().allProducts
+                  .firstWhereOrNull(
+                    (p) => p.productId == item.bogoFreeProductId,
+                  )
+            : null;
+
+        return Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: bogoOffer != null
+                      ? offerTheme.badgeBorder
+                      : cs.outlineVariant,
+                  width: bogoOffer != null ? 2 : 1,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.product.productName,
-                      style: TextStyle(
-                        color: cs.onSurface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          color: cs.surface,
+                          child: Image.network(
+                            item.product.imageUrl,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.product.quantity,
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.5),
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '₹${item.product.price.formatPrice}',
+                      if (bogoOffer != null)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: offerTheme.badge,
+                              borderRadius: BorderRadius.only(
+                                bottomRight: Radius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'BOGO',
                               style: TextStyle(
-                                color: cs.onSurface,
-                                fontSize: 18,
+                                color: offerTheme.onBadge,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (item.product.realPrice >
-                                item.product.price) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                '₹${item.product.realPrice.formatPrice}',
-                                style: TextStyle(
-                                  color: cs.onSurface.withValues(alpha: 0.4),
-                                  fontSize: 14,
-                                  decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.product.productName,
+                          style: TextStyle(
+                            color: cs.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.product.quantity,
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.5),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '₹${item.product.price.formatPrice}',
+                                  style: TextStyle(
+                                    color: cs.onSurface,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                if (item.product.realPrice >
+                                    item.product.price) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '₹${item.product.realPrice.formatPrice}',
+                                    style: TextStyle(
+                                      color: cs.onSurface.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      fontSize: 14,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            _buildQuantitySelector(cartController, item, cs),
                           ],
                         ),
-                        _buildQuantitySelector(cartController, item, cs),
                       ],
                     ),
+                  ),
+                ],
+              ),
+            ),
+            if (bogoOffer != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    if (freeProduct != null)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: offerTheme.badgeSoft,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: offerTheme.badgeBorder),
+                        ),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                freeProduct.imageUrl,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'FREE: ${freeProduct.productName}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: offerTheme.badge,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${freeProduct.quantity} x ${item.quantity}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: cs.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Get.bottomSheet(
+                                  BogoSelectionBottomSheet(
+                                    triggerProductId: item.product.productId!,
+                                    freeProductIds: bogoOffer.freeProductIds,
+                                  ),
+                                );
+                              },
+                              child: const Text('Change'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Get.bottomSheet(
+                            BogoSelectionBottomSheet(
+                              triggerProductId: item.product.productId!,
+                              freeProductIds: bogoOffer.freeProductIds,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.card_giftcard, size: 18),
+                        label: const Text('Select your free gift'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: offerTheme.badge,
+                          foregroundColor: offerTheme.onBadge,
+                          minimumSize: const Size(double.infinity, 40),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
-            ],
-          ),
+          ],
         );
       },
     );

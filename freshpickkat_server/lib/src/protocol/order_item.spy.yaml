@@ -6,3 +6,5 @@ fields:
   quantity: int
   unitPrice: double
   totalPrice: double
+  isFreeItem: bool
+  triggerProductId: String?

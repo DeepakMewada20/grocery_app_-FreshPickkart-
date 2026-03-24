@@ -28,9 +28,11 @@ abstract class Product implements _i1.SerializableModel {
     required this.addedAt,
     required this.subcategory,
     required this.quantity,
+    this.countryOfOrigin,
     this.searchKeywords,
     required this.mostSearch,
     required this.mostPurchases,
+    this.bogoFreeProductIds,
   });
 
   factory Product({
@@ -47,9 +49,11 @@ abstract class Product implements _i1.SerializableModel {
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
     required int mostPurchases,
+    List<String>? bogoFreeProductIds,
   }) = _ProductImpl;
 
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -69,6 +73,7 @@ abstract class Product implements _i1.SerializableModel {
         jsonSerialization['subcategory'],
       ),
       quantity: jsonSerialization['quantity'] as String,
+      countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
       searchKeywords: jsonSerialization['searchKeywords'] == null
           ? null
           : _i2.Protocol().deserialize<List<String>>(
@@ -76,6 +81,11 @@ abstract class Product implements _i1.SerializableModel {
             ),
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
+      bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['bogoFreeProductIds'],
+            ),
     );
   }
 
@@ -105,11 +115,15 @@ abstract class Product implements _i1.SerializableModel {
 
   String quantity;
 
+  String? countryOfOrigin;
+
   List<String>? searchKeywords;
 
   int mostSearch;
 
   int mostPurchases;
+
+  List<String>? bogoFreeProductIds;
 
   /// Returns a shallow copy of this [Product]
   /// with some or all fields replaced by the given arguments.
@@ -128,9 +142,11 @@ abstract class Product implements _i1.SerializableModel {
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    String? countryOfOrigin,
     List<String>? searchKeywords,
     int? mostSearch,
     int? mostPurchases,
+    List<String>? bogoFreeProductIds,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -149,9 +165,12 @@ abstract class Product implements _i1.SerializableModel {
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
+      if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
       'mostSearch': mostSearch,
       'mostPurchases': mostPurchases,
+      if (bogoFreeProductIds != null)
+        'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
     };
   }
 
@@ -178,9 +197,11 @@ class _ProductImpl extends Product {
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
     required int mostPurchases,
+    List<String>? bogoFreeProductIds,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -195,9 +216,11 @@ class _ProductImpl extends Product {
          addedAt: addedAt,
          subcategory: subcategory,
          quantity: quantity,
+         countryOfOrigin: countryOfOrigin,
          searchKeywords: searchKeywords,
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
+         bogoFreeProductIds: bogoFreeProductIds,
        );
 
   /// Returns a shallow copy of this [Product]
@@ -218,9 +241,11 @@ class _ProductImpl extends Product {
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    Object? countryOfOrigin = _Undefined,
     Object? searchKeywords = _Undefined,
     int? mostSearch,
     int? mostPurchases,
+    Object? bogoFreeProductIds = _Undefined,
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
@@ -238,11 +263,17 @@ class _ProductImpl extends Product {
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),
       quantity: quantity ?? this.quantity,
+      countryOfOrigin: countryOfOrigin is String?
+          ? countryOfOrigin
+          : this.countryOfOrigin,
       searchKeywords: searchKeywords is List<String>?
           ? searchKeywords
           : this.searchKeywords?.map((e0) => e0).toList(),
       mostSearch: mostSearch ?? this.mostSearch,
       mostPurchases: mostPurchases ?? this.mostPurchases,
+      bogoFreeProductIds: bogoFreeProductIds is List<String>?
+          ? bogoFreeProductIds
+          : this.bogoFreeProductIds?.map((e0) => e0).toList(),
     );
   }
 }

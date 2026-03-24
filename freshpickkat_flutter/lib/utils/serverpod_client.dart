@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
+import '../config/env_config.dart';
 
 class ServerpodClient {
   ServerpodClient._internal();
@@ -9,18 +9,7 @@ class ServerpodClient {
 
   factory ServerpodClient() => _instance;
 
-  static String get baseUrl {
-    String url;
-    if (Platform.isAndroid) {
-      url = 'http://localhost:8080/';
-    } else if (Platform.isIOS) {
-      url = 'http://localhost:8080/';
-    } else {
-      url = 'http://localhost:8080/';
-    }
-    print('Serverpod Base URL: $url');
-    return url;
-  }
+  static String get baseUrl => EnvConfig.apiBaseUrl;
 
   final Client client = Client(
     baseUrl,

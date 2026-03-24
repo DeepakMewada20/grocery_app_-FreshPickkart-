@@ -8,6 +8,8 @@ import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
+import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -51,6 +53,7 @@ class _ProductCardState extends State<ProductCard> {
   void _handleAddToCart() {
     if (_authController.isLoggedIn) {
       _increment();
+      _showBogoSelectionIfNeeded(widget.product);
       if (widget.onAddPressed != null) widget.onAddPressed!();
     } else {
       ProtectedNavigationHelper.navigateTo(
@@ -58,6 +61,35 @@ class _ProductCardState extends State<ProductCard> {
         productToAdd: widget.product,
       );
     }
+  }
+
+  void _showBogoSelectionIfNeeded(Product product) {
+    final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
+    if (!isBogoProduct(product) || product.productId == null) return;
+
+    final cartItem = _cartController.cartItems.firstWhereOrNull(
+      (item) => item.product.productId == product.productId,
+    );
+    if (cartItem?.bogoFreeProductId != null) return;
+
+    if (freeProductIds.length == 1) {
+      _cartController.setBogoSelection(
+        product.productId!,
+        freeProductIds.first,
+      );
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Get.bottomSheet(
+        BogoSelectionBottomSheet(
+          triggerProductId: product.productId!,
+          freeProductIds: freeProductIds,
+        ),
+        isScrollControlled: true,
+      );
+    });
   }
 
   @override
@@ -92,7 +124,7 @@ class _ProductCardState extends State<ProductCard> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -152,38 +184,13 @@ class _ProductCardState extends State<ProductCard> {
                                 ),
                         ),
                       ),
-                      // Discount badge
-                      if ((widget.product.discountValue ??
-                              widget.product.discount) >
-                          0)
+                      if (hasProductOffer(widget.product))
                         Positioned(
                           top: 8,
                           left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              widget.product.discountType == 'flat'
-                                  ? '₹${widget.product.discountValue?.toStringAsFixed(0)} OFF'
-                                  : '${widget.product.discountValue ?? widget.product.discount}% OFF',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                          child: ProductOfferBadge(
+                            product: widget.product,
+                            fontSize: 10,
                           ),
                         ),
                     ],
@@ -319,7 +326,7 @@ class _ProductCardState extends State<ProductCard> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryGreen.withOpacity(0.3),
+            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

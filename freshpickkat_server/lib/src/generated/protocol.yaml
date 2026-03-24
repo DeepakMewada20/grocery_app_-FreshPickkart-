@@ -8,6 +8,11 @@ admin:
   - getAuditLogs:
 auth:
   - signOut:
+bogo:
+  - upsertOffer:
+  - deleteOffer:
+  - getActiveOffers:
+  - getOfferForProduct:
 category:
   - getCategories:
   - uploadCategory:

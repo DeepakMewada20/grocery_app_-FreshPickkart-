@@ -76,6 +76,68 @@ class ThemeController extends GetxController {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Offer Theme Extension
+// ─────────────────────────────────────────────────────────────────────────────
+@immutable
+class AppOfferTheme extends ThemeExtension<AppOfferTheme> {
+  final Color badge;
+  final Color onBadge;
+  final Color badgeSoft;
+  final Color badgeBorder;
+
+  const AppOfferTheme({
+    required this.badge,
+    required this.onBadge,
+    required this.badgeSoft,
+    required this.badgeBorder,
+  });
+
+  factory AppOfferTheme.fallback(Brightness brightness) {
+    if (brightness == Brightness.dark) {
+      return const AppOfferTheme(
+        badge: Color(0xFFE6A23C),
+        onBadge: Color(0xFF1A1206),
+        badgeSoft: Color(0xFF3B2A12),
+        badgeBorder: Color(0x80E6A23C),
+      );
+    }
+
+    return const AppOfferTheme(
+      badge: Color(0xFFE6A23C),
+      onBadge: Colors.white,
+      badgeSoft: Color(0xFFFFF3DF),
+      badgeBorder: Color(0x80E6A23C),
+    );
+  }
+
+  @override
+  AppOfferTheme copyWith({
+    Color? badge,
+    Color? onBadge,
+    Color? badgeSoft,
+    Color? badgeBorder,
+  }) {
+    return AppOfferTheme(
+      badge: badge ?? this.badge,
+      onBadge: onBadge ?? this.onBadge,
+      badgeSoft: badgeSoft ?? this.badgeSoft,
+      badgeBorder: badgeBorder ?? this.badgeBorder,
+    );
+  }
+
+  @override
+  AppOfferTheme lerp(ThemeExtension<AppOfferTheme>? other, double t) {
+    if (other is! AppOfferTheme) return this;
+    return AppOfferTheme(
+      badge: Color.lerp(badge, other.badge, t) ?? badge,
+      onBadge: Color.lerp(onBadge, other.onBadge, t) ?? onBadge,
+      badgeSoft: Color.lerp(badgeSoft, other.badgeSoft, t) ?? badgeSoft,
+      badgeBorder: Color.lerp(badgeBorder, other.badgeBorder, t) ?? badgeBorder,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AppTheme
 // ─────────────────────────────────────────────────────────────────────────────
 class AppTheme {
@@ -185,6 +247,12 @@ class AppTheme {
     LightThemePreset preset = LightThemePreset.sageGreen,
   ]) {
     final p = _getPreset(preset);
+    const offerTheme = AppOfferTheme(
+      badge: Color(0xFFE6A23C),
+      onBadge: Colors.white,
+      badgeSoft: Color(0xFFFFF3DF),
+      badgeBorder: Color(0x80E6A23C),
+    );
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -251,11 +319,20 @@ class AppTheme {
         backgroundColor: p.surface,
         surfaceTintColor: Colors.transparent,
       ),
+      extensions: const <ThemeExtension<dynamic>>[
+        offerTheme,
+      ],
     );
   }
 
   // ── Dark Theme ──────────────────────────────────────────────────────────────
   static ThemeData darkTheme() {
+    const offerTheme = AppOfferTheme(
+      badge: Color(0xFFE6A23C),
+      onBadge: Color(0xFF1A1206),
+      badgeSoft: Color(0xFF3B2A12),
+      badgeBorder: Color(0x80E6A23C),
+    );
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -302,6 +379,9 @@ class AppTheme {
         backgroundColor: darkSurface,
         surfaceTintColor: Colors.transparent,
       ),
+      extensions: const <ThemeExtension<dynamic>>[
+        offerTheme,
+      ],
     );
   }
 

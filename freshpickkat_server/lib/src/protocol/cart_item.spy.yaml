@@ -2,3 +2,4 @@ class: CartItem
 fields:
   productId: String
   quantity: int
+  bogoFreeProductId: String?

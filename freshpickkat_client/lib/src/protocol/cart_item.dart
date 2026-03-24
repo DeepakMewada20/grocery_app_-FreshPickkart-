@@ -16,17 +16,20 @@ abstract class CartItem implements _i1.SerializableModel {
   CartItem._({
     required this.productId,
     required this.quantity,
+    this.bogoFreeProductId,
   });
 
   factory CartItem({
     required String productId,
     required int quantity,
+    String? bogoFreeProductId,
   }) = _CartItemImpl;
 
   factory CartItem.fromJson(Map<String, dynamic> jsonSerialization) {
     return CartItem(
       productId: jsonSerialization['productId'] as String,
       quantity: jsonSerialization['quantity'] as int,
+      bogoFreeProductId: jsonSerialization['bogoFreeProductId'] as String?,
     );
   }
 
@@ -34,12 +37,15 @@ abstract class CartItem implements _i1.SerializableModel {
 
   int quantity;
 
+  String? bogoFreeProductId;
+
   /// Returns a shallow copy of this [CartItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   CartItem copyWith({
     String? productId,
     int? quantity,
+    String? bogoFreeProductId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -47,6 +53,7 @@ abstract class CartItem implements _i1.SerializableModel {
       '__className__': 'CartItem',
       'productId': productId,
       'quantity': quantity,
+      if (bogoFreeProductId != null) 'bogoFreeProductId': bogoFreeProductId,
     };
   }
 
@@ -56,13 +63,17 @@ abstract class CartItem implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _CartItemImpl extends CartItem {
   _CartItemImpl({
     required String productId,
     required int quantity,
+    String? bogoFreeProductId,
   }) : super._(
          productId: productId,
          quantity: quantity,
+         bogoFreeProductId: bogoFreeProductId,
        );
 
   /// Returns a shallow copy of this [CartItem]
@@ -72,10 +83,14 @@ class _CartItemImpl extends CartItem {
   CartItem copyWith({
     String? productId,
     int? quantity,
+    Object? bogoFreeProductId = _Undefined,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
       quantity: quantity ?? this.quantity,
+      bogoFreeProductId: bogoFreeProductId is String?
+          ? bogoFreeProductId
+          : this.bogoFreeProductId,
     );
   }
 }

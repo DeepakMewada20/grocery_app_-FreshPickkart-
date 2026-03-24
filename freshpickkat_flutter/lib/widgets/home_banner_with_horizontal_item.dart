@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
+import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:get/get.dart';
 
 class HomeBannerWithHorizontalItem extends StatelessWidget {
@@ -135,29 +136,18 @@ class _ProductBannerCard extends StatelessWidget {
                   );
                 },
               ),
-              if ((product.discountValue ?? product.discount) > 0)
+              if (hasProductOffer(product))
                 Positioned(
                   top: 6,
                   left: 6,
-                  child: Container(
+                  child: ProductOfferBadge(
+                    product: product,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
                       vertical: 3,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      product.discountType == 'flat'
-                          ? '₹${product.discountValue?.toStringAsFixed(0)} OFF'
-                          : '${product.discountValue ?? product.discount}% OFF',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    fontSize: 9,
+                    borderRadius: 6,
                   ),
                 ),
             ],

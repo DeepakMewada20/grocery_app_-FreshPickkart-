@@ -74,19 +74,21 @@ class AdminProductController extends GetxController {
     }
   }
 
-  Future<void> addProduct(Product product) async {
+  Future<String?> addProduct(Product product) async {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
-      await _client.product.uploadProduct(product, uid, idToken);
+      final newId = await _client.product.uploadProduct(product, uid, idToken);
       // Refresh list
       await loadInitial(category: categoryFilter);
+      return newId;
     } catch (e) {
       rethrow;
     }
   }
+
 
   Future<void> updateProduct(Product product) async {
     try {

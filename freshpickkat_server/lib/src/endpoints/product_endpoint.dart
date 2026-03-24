@@ -120,6 +120,7 @@ class ProductEndpoint extends Endpoint {
                   .map((v) => v.stringValue ?? '')
                   .toList(),
               quantity: fields['quantity']?.stringValue ?? "",
+              countryOfOrigin: fields['countryOfOrigin']?.stringValue,
               searchKeywords:
                   (fields['searchKeywords']?.arrayValue?.values ?? [])
                       .map((v) => v.stringValue ?? '')
@@ -129,6 +130,12 @@ class ProductEndpoint extends Endpoint {
               mostPurchases:
                   int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ??
                   0,
+              discountType: fields['discountType']?.stringValue,
+              discountValue: getDoubleValue(fields, 'discountValue'),
+              bogoFreeProductIds:
+                  (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
+                      .map((v) => v.stringValue ?? '')
+                      .toList(),
             );
           })
           .toList();
@@ -197,7 +204,7 @@ class ProductEndpoint extends Endpoint {
   }
 
   /// Upload a product to Firestore 'Products' collection
-  Future<bool> uploadProduct(
+  Future<String?> uploadProduct(
     Session session,
     Product product,
     String firebaseUid,
@@ -244,6 +251,9 @@ class ProductEndpoint extends Endpoint {
           ),
         ),
         'quantity': firestore_api.Value(stringValue: normalized.quantity),
+        'countryOfOrigin': normalized.countryOfOrigin != null
+            ? firestore_api.Value(stringValue: normalized.countryOfOrigin)
+            : firestore_api.Value(nullValue: 'NULL_VALUE'),
         'searchKeywords': firestore_api.Value(
           arrayValue: firestore_api.ArrayValue(
             values: _generateSearchKeywords(
@@ -259,25 +269,41 @@ class ProductEndpoint extends Endpoint {
         'mostPurchases': firestore_api.Value(
           integerValue: normalized.mostPurchases.toString(),
         ),
+        'discountType': firestore_api.Value(
+          stringValue: normalized.discountType,
+        ),
+        'discountValue': firestore_api.Value(
+          doubleValue: normalized.discountValue,
+        ),
+        'bogoFreeProductIds': firestore_api.Value(
+          arrayValue: firestore_api.ArrayValue(
+            values: (normalized.bogoFreeProductIds ?? [])
+                .map((id) => firestore_api.Value(stringValue: id))
+                .toList(),
+          ),
+        ),
       },
     );
 
     try {
-      await firestore.projects.databases.documents.createDocument(
-        document,
-        parent, // parent path = database/documents root
-        'Products', // collection ID
-      );
+      final createdDoc = await firestore.projects.databases.documents
+          .createDocument(
+            document,
+            parent, // parent path = database/documents root
+            'Products', // collection ID
+          );
+      final newId = createdDoc.name!.split('/').last;
+      await _syncBogoOffer(session, firestore, newId, normalized);
       await AuditLogService.write(
         firestore: firestore,
         actorUid: firebaseUid,
         action: 'create',
         entityType: 'product',
-        entityId: normalized.productName,
+        entityId: newId,
         metadata: {'category': normalized.category},
       );
-      session.log('Product uploaded: ${product.productName}');
-      return true;
+      session.log('Product uploaded: ${product.productName} (ID: $newId)');
+      return newId;
     } catch (e, stack) {
       session.log('Error uploading product: $e');
       session.log(stack.toString());
@@ -327,6 +353,9 @@ class ProductEndpoint extends Endpoint {
         ),
       ),
       'quantity': firestore_api.Value(stringValue: normalized.quantity),
+      'countryOfOrigin': normalized.countryOfOrigin != null
+          ? firestore_api.Value(stringValue: normalized.countryOfOrigin)
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
       'searchKeywords': firestore_api.Value(
         arrayValue: firestore_api.ArrayValue(
           values: _generateSearchKeywords(
@@ -342,6 +371,17 @@ class ProductEndpoint extends Endpoint {
       'mostPurchases': firestore_api.Value(
         integerValue: normalized.mostPurchases.toString(),
       ),
+      'discountType': firestore_api.Value(stringValue: normalized.discountType),
+      'discountValue': firestore_api.Value(
+        doubleValue: normalized.discountValue,
+      ),
+      'bogoFreeProductIds': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: (normalized.bogoFreeProductIds ?? [])
+              .map((id) => firestore_api.Value(stringValue: id))
+              .toList(),
+        ),
+      ),
     };
 
     await firestore.projects.databases.documents.patch(
@@ -349,6 +389,7 @@ class ProductEndpoint extends Endpoint {
       docPath,
       updateMask_fieldPaths: fields.keys.toList(),
     );
+    await _syncBogoOffer(session, firestore, product.productId!, normalized);
     await AuditLogService.write(
       firestore: firestore,
       actorUid: firebaseUid,
@@ -377,6 +418,13 @@ class ProductEndpoint extends Endpoint {
         'projects/freshpickkart-a6824/databases/(default)/documents';
     final docPath = '$database/Products/$productId';
     await firestore.projects.databases.documents.delete(docPath);
+
+    // Also delete BOGO offer if it exists
+    final bogoDocPath = '$database/bogo_offers/$productId';
+    try {
+      await firestore.projects.databases.documents.delete(bogoDocPath);
+    } catch (_) {}
+
     await AuditLogService.write(
       firestore: firestore,
       actorUid: firebaseUid,
@@ -497,6 +545,7 @@ class ProductEndpoint extends Endpoint {
               .map((v) => v.stringValue ?? '')
               .toList(),
           quantity: fields['quantity']?.stringValue ?? "",
+          countryOfOrigin: fields['countryOfOrigin']?.stringValue,
           searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
               .map((v) => v.stringValue ?? '')
               .toList(),
@@ -504,6 +553,12 @@ class ProductEndpoint extends Endpoint {
               int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
           mostPurchases:
               int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+          discountType: fields['discountType']?.stringValue,
+          discountValue: _getDoubleValue(fields, 'discountValue'),
+          bogoFreeProductIds:
+              (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
+                  .map((v) => v.stringValue ?? '')
+                  .toList(),
         );
       }).toList();
 
@@ -572,6 +627,7 @@ class ProductEndpoint extends Endpoint {
                     .map((v) => v.stringValue ?? '')
                     .toList(),
                 quantity: fields['quantity']?.stringValue ?? "",
+                countryOfOrigin: fields['countryOfOrigin']?.stringValue,
                 searchKeywords:
                     (fields['searchKeywords']?.arrayValue?.values ?? [])
                         .map((v) => v.stringValue ?? '')
@@ -584,6 +640,16 @@ class ProductEndpoint extends Endpoint {
                       fields['mostPurchases']?.integerValue ?? '0',
                     ) ??
                     0,
+                discountType: fields['discountType']?.stringValue,
+                discountValue: double.tryParse(
+                  fields['discountValue']?.doubleValue?.toString() ??
+                      fields['discountValue']?.integerValue ??
+                      '0',
+                ),
+                bogoFreeProductIds:
+                    (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
+                        .map((v) => v.stringValue ?? '')
+                        .toList(),
               );
             })
             .whereType<Product>()
@@ -799,6 +865,54 @@ class ProductEndpoint extends Endpoint {
     } catch (e) {
       session.log('Error incrementing product purchase: $e');
       return false;
+    }
+  }
+
+  Future<void> _syncBogoOffer(
+    Session session,
+    firestore_api.FirestoreApi firestore,
+    String triggerProductId,
+    Product product,
+  ) async {
+    final String database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+    final String bogoCollection = 'bogo_offers';
+
+    if (product.discountType == 'bogo' &&
+        product.bogoFreeProductIds != null &&
+        product.bogoFreeProductIds!.isNotEmpty) {
+      // Upsert BOGO offer document
+      final docPath = '$database/$bogoCollection/$triggerProductId';
+      final fields = {
+        'offerId': firestore_api.Value(stringValue: triggerProductId),
+        'triggerProductId': firestore_api.Value(stringValue: triggerProductId),
+        'freeProductIds': firestore_api.Value(
+          arrayValue: firestore_api.ArrayValue(
+            values: product.bogoFreeProductIds!
+                .map((id) => firestore_api.Value(stringValue: id))
+                .toList(),
+          ),
+        ),
+        'offerTitle': firestore_api.Value(stringValue: 'Buy 1 Get 1 Free'),
+        'isActive': firestore_api.Value(booleanValue: true),
+        'createdAt': firestore_api.Value(
+          timestampValue: DateTime.now().toUtc().toIso8601String(),
+        ),
+      };
+
+      await firestore.projects.databases.documents.patch(
+        firestore_api.Document(fields: fields),
+        docPath,
+        updateMask_fieldPaths: fields.keys.toList(),
+      );
+    } else {
+      // Delete BOGO offer document if it exists but type is no longer bogo
+      final docPath = '$database/$bogoCollection/$triggerProductId';
+      try {
+        await firestore.projects.databases.documents.delete(docPath);
+      } catch (_) {
+        // Ignore if document not found
+      }
     }
   }
 
@@ -1022,6 +1136,7 @@ class ProductEndpoint extends Endpoint {
               .map((v) => v.stringValue ?? '')
               .toList(),
           quantity: fields['quantity']?.stringValue ?? "",
+          countryOfOrigin: fields['countryOfOrigin']?.stringValue,
           searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
               .map((v) => v.stringValue ?? '')
               .toList(),
@@ -1029,6 +1144,12 @@ class ProductEndpoint extends Endpoint {
               int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
           mostPurchases:
               int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+          discountType: fields['discountType']?.stringValue,
+          discountValue: _getDoubleValue(fields, 'discountValue'),
+          bogoFreeProductIds:
+              (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
+                  .map((v) => v.stringValue ?? '')
+                  .toList(),
         ),
       );
       lastSortValue = _extractSortValue(sortBy, fields);

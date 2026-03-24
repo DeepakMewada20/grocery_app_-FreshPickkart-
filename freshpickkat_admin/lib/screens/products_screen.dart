@@ -8,8 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:freshpickkat_admin/services/serverpod_client.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -67,10 +69,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final nameCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
     final quantityCtrl = TextEditingController(text: '1kg');
+    final countryOfOriginCtrl = TextEditingController(text: 'India');
     final priceCtrl = TextEditingController();
     final mrpCtrl = TextEditingController();
     final discountCtrl = TextEditingController(text: '0');
     var discountType = 'percentage'; // Default type
+    final bogoFreeProductIds = <String>{}; // Selected free products
+    final selectedBogoProducts = <String, Product>{};
     var isAvailable = true;
     var isUploadingImage = false;
     String? imageError;
@@ -205,11 +210,43 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               child: Column(
                                 children: [
                                   if (imageCtrl.text.trim().isNotEmpty) ...[
-                                    ImagePreview(
-                                      imageUrl: imageCtrl.text.trim(),
+                                    Stack(
+                                      alignment: Alignment.topRight,
+                                      children: [
+                                        ImagePreview(
+                                          imageUrl: imageCtrl.text.trim(),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.cancel,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            setDialogState(() {
+                                              imageCtrl.clear();
+                                            });
+                                          },
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 12),
                                   ],
+                                  ModernTextField(
+                                    controller: imageCtrl,
+                                    labelText: 'Image URL',
+                                    hintText: 'Paste image link here',
+                                    onChanged: (v) => setDialogState(() {}),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'OR',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
                                   ImagePickerButton(
                                     isUploading: isUploadingImage,
                                     onPressed: () async {
@@ -252,13 +289,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             SectionCard(
                               icon: Icons.inventory_2_outlined,
                               title: 'Quantity',
-                              child: ModernTextField(
-                                controller: quantityCtrl,
-                                labelText: 'e.g., 1kg, 500ml',
-                                validator: (v) =>
-                                    (v == null || v.trim().isEmpty)
-                                    ? 'Required'
-                                    : null,
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: quantityCtrl,
+                                    labelText: 'e.g., 1kg, 500ml',
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                        ? 'Required'
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ModernTextField(
+                                    controller: countryOfOriginCtrl,
+                                    labelText: 'Country of Origin (Optional)',
+                                    hintText: 'e.g., India',
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -312,72 +359,165 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         items: const [
                                           DropdownMenuItem(
                                             value: 'percentage',
-                                            child: Text('%'),
+                                            child: Text('Percentage (%)'),
                                           ),
                                           DropdownMenuItem(
                                             value: 'flat',
-                                            child: Text('₹'),
+                                            child: Text('Flat (₹)'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'bogo',
+                                            child: Text('🎁 BOGO'),
                                           ),
                                         ],
+
                                         onChanged: (value) {
                                           if (value != null) {
                                             setDialogState(() {
                                               discountType = value;
-                                              final d =
-                                                  double.tryParse(
-                                                    discountCtrl.text,
-                                                  ) ??
-                                                  0;
-                                              final p =
-                                                  double.tryParse(
-                                                    priceCtrl.text,
-                                                  ) ??
-                                                  0;
-                                              if (discountType ==
-                                                      'percentage' &&
-                                                  d < 100) {
-                                                mrpCtrl.text =
-                                                    (p / (1 - (d / 100)))
-                                                        .toStringAsFixed(0);
+                                              if (discountType == 'bogo') {
+                                                discountCtrl.text = '0';
+                                                mrpCtrl.text = priceCtrl.text;
                                               } else {
-                                                mrpCtrl.text = (p + d)
-                                                    .toStringAsFixed(0);
+                                                final d =
+                                                    double.tryParse(
+                                                      discountCtrl.text,
+                                                    ) ??
+                                                    0;
+                                                final p =
+                                                    double.tryParse(
+                                                      priceCtrl.text,
+                                                    ) ??
+                                                    0;
+                                                if (discountType ==
+                                                        'percentage' &&
+                                                    d < 100) {
+                                                  mrpCtrl.text =
+                                                      (p / (1 - (d / 100)))
+                                                          .toStringAsFixed(0);
+                                                } else {
+                                                  mrpCtrl.text = (p + d)
+                                                      .toStringAsFixed(0);
+                                                }
                                               }
                                             });
                                           }
                                         },
                                       ),
-                                      ModernTextField(
-                                        controller: discountCtrl,
-                                        labelText: 'Discount',
-                                        prefixText: discountType == 'flat'
-                                            ? '₹ '
-                                            : null,
-                                        suffixText: discountType == 'percentage'
-                                            ? '%'
-                                            : null,
-                                        keyboardType:
-                                            const TextInputType.numberWithOptions(
-                                              decimal: true,
-                                            ),
-                                        onChanged: (v) {
-                                          final d = double.tryParse(v) ?? 0;
-                                          final p =
-                                              double.tryParse(priceCtrl.text) ??
-                                              0;
-                                          if (discountType == 'percentage' &&
-                                              d < 100) {
-                                            mrpCtrl.text = (p / (1 - (d / 100)))
-                                                .toStringAsFixed(0);
-                                          } else {
-                                            mrpCtrl.text = (p + d)
-                                                .toStringAsFixed(0);
-                                          }
-                                        },
-                                        validator: _numberValidator,
-                                      ),
+                                      if (discountType != 'bogo')
+                                        ModernTextField(
+                                          controller: discountCtrl,
+                                          labelText: 'Discount',
+                                          prefixText: discountType == 'flat'
+                                              ? '₹ '
+                                              : null,
+                                          suffixText:
+                                              discountType == 'percentage'
+                                              ? '%'
+                                              : null,
+                                          keyboardType:
+                                              const TextInputType.numberWithOptions(
+                                                decimal: true,
+                                              ),
+                                          onChanged: (v) {
+                                            final d = double.tryParse(v) ?? 0;
+                                            final p =
+                                                double.tryParse(
+                                                  priceCtrl.text,
+                                                ) ??
+                                                0;
+                                            if (discountType == 'percentage' &&
+                                                d < 100) {
+                                              mrpCtrl.text =
+                                                  (p / (1 - (d / 100)))
+                                                      .toStringAsFixed(0);
+                                            } else {
+                                              mrpCtrl.text = (p + d)
+                                                  .toStringAsFixed(0);
+                                            }
+                                          },
+                                          validator: _numberValidator,
+                                        ),
                                     ],
                                   ),
+                                  if (discountType == 'bogo') ...[
+                                    const SizedBox(height: 12),
+                                    _BogoSelectorWidget(
+                                      selectedProducts: selectedBogoProducts
+                                          .values
+                                          .toList(),
+                                      unresolvedIds: bogoFreeProductIds
+                                          .difference(
+                                            selectedBogoProducts.keys.toSet(),
+                                          ),
+                                      canBrowse:
+                                          selectedCategory != null &&
+                                          selectedCategory!.trim().isNotEmpty,
+                                      onBrowsePressed: () async {
+                                        if (selectedCategory == null ||
+                                            selectedCategory!.trim().isEmpty) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Please select product category first',
+                                              ),
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        final result =
+                                            await Navigator.of(
+                                              context,
+                                            ).push<List<Product>>(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    BogoProductPickerScreen(
+                                                      initialCategory:
+                                                          selectedCategory,
+                                                      initiallySelectedProducts:
+                                                          selectedBogoProducts
+                                                              .values
+                                                              .toList(),
+                                                    ),
+                                              ),
+                                            );
+
+                                        if (result == null) return;
+                                        setDialogState(() {
+                                          selectedBogoProducts
+                                            ..clear()
+                                            ..addEntries(
+                                              result
+                                                  .where(
+                                                    (product) =>
+                                                        product.productId !=
+                                                        null,
+                                                  )
+                                                  .map(
+                                                    (product) => MapEntry(
+                                                      product.productId!,
+                                                      product,
+                                                    ),
+                                                  ),
+                                            );
+                                          bogoFreeProductIds
+                                            ..clear()
+                                            ..addAll(selectedBogoProducts.keys);
+                                        });
+                                      },
+                                      onRemove: (productId) {
+                                        setDialogState(() {
+                                          bogoFreeProductIds.remove(productId);
+                                          selectedBogoProducts.remove(
+                                            productId,
+                                          );
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -416,6 +556,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 setDialogState(
                                   () => subcategoryError =
                                       'Please select at least one subcategory',
+                                );
+                                return;
+                              }
+                              if (discountType == 'bogo' &&
+                                  bogoFreeProductIds.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please select at least one free product for BOGO offer',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
                                 );
                                 return;
                               }
@@ -460,12 +612,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
       addedAt: DateTime.now(),
       subcategory: selectedSubcategories.toList(),
       quantity: quantityCtrl.text.trim(),
+      countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
+          ? null
+          : countryOfOriginCtrl.text.trim(),
       mostSearch: 0,
       mostPurchases: 0,
+      bogoFreeProductIds: bogoFreeProductIds.toList(),
     );
 
     try {
       await _productController.addProduct(product);
+
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -484,19 +641,49 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final nameCtrl = TextEditingController(text: product.productName);
     final imageCtrl = TextEditingController(text: product.imageUrl);
     final quantityCtrl = TextEditingController(text: product.quantity);
+    final countryOfOriginCtrl = TextEditingController(
+      text: product.countryOfOrigin ?? '',
+    );
     final priceCtrl = TextEditingController(text: product.price.toString());
     final mrpCtrl = TextEditingController(text: product.realPrice.toString());
     final discountCtrl = TextEditingController(
       text: (product.discountValue ?? product.discount).toString(),
     );
     var discountType = product.discountType ?? 'percentage';
+    final bogoFreeProductIds = <String>{};
+    final selectedBogoProducts = <String, Product>{};
     var isAvailable = product.isAvailable;
+
+    // Fetch BOGO offer
+    if (discountType == 'bogo') {
+      try {
+        final offer = await ServerpodAdminClient().client.bogo
+            .getOfferForProduct(product.productId!);
+        if (offer != null) {
+          bogoFreeProductIds.addAll(offer.freeProductIds);
+        }
+      } catch (e) {
+        debugPrint('Error fetching BOGO offer: $e');
+      }
+
+      if (bogoFreeProductIds.isNotEmpty) {
+        final resolvedProducts = await _resolveSelectedBogoProducts(
+          selectedIds: bogoFreeProductIds,
+          preferredCategory: product.category,
+        );
+        selectedBogoProducts.addAll(resolvedProducts);
+      }
+    }
+
     var isUploadingImage = false;
+
     String? imageError;
 
     String? selectedCategory = product.category;
     final selectedSubcategories = <String>{...product.subcategory};
     String? subcategoryError;
+
+    if (!mounted) return;
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -624,11 +811,43 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               child: Column(
                                 children: [
                                   if (imageCtrl.text.trim().isNotEmpty) ...[
-                                    ImagePreview(
-                                      imageUrl: imageCtrl.text.trim(),
+                                    Stack(
+                                      alignment: Alignment.topRight,
+                                      children: [
+                                        ImagePreview(
+                                          imageUrl: imageCtrl.text.trim(),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.cancel,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            setDialogState(() {
+                                              imageCtrl.clear();
+                                            });
+                                          },
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 12),
                                   ],
+                                  ModernTextField(
+                                    controller: imageCtrl,
+                                    labelText: 'Image URL',
+                                    hintText: 'Paste image link here',
+                                    onChanged: (v) => setDialogState(() {}),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'OR',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
                                   ImagePickerButton(
                                     isUploading: isUploadingImage,
                                     onPressed: () async {
@@ -671,13 +890,23 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             SectionCard(
                               icon: Icons.inventory_2_outlined,
                               title: 'Quantity',
-                              child: ModernTextField(
-                                controller: quantityCtrl,
-                                labelText: 'e.g., 1kg, 500ml',
-                                validator: (v) =>
-                                    (v == null || v.trim().isEmpty)
-                                    ? 'Required'
-                                    : null,
+                              child: Column(
+                                children: [
+                                  ModernTextField(
+                                    controller: quantityCtrl,
+                                    labelText: 'e.g., 1kg, 500ml',
+                                    validator: (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                        ? 'Required'
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ModernTextField(
+                                    controller: countryOfOriginCtrl,
+                                    labelText: 'Country of Origin (Optional)',
+                                    hintText: 'e.g., India',
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -731,72 +960,164 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         items: const [
                                           DropdownMenuItem(
                                             value: 'percentage',
-                                            child: Text('%'),
+                                            child: Text('Percentage (%)'),
                                           ),
                                           DropdownMenuItem(
                                             value: 'flat',
-                                            child: Text('₹'),
+                                            child: Text('Flat (₹)'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'bogo',
+                                            child: Text('🎁 BOGO'),
                                           ),
                                         ],
                                         onChanged: (value) {
                                           if (value != null) {
                                             setDialogState(() {
                                               discountType = value;
-                                              final d =
-                                                  double.tryParse(
-                                                    discountCtrl.text,
-                                                  ) ??
-                                                  0;
-                                              final p =
-                                                  double.tryParse(
-                                                    priceCtrl.text,
-                                                  ) ??
-                                                  0;
-                                              if (discountType ==
-                                                      'percentage' &&
-                                                  d < 100) {
-                                                mrpCtrl.text =
-                                                    (p / (1 - (d / 100)))
-                                                        .toStringAsFixed(0);
+                                              if (discountType == 'bogo') {
+                                                discountCtrl.text = '0';
+                                                mrpCtrl.text = priceCtrl.text;
                                               } else {
-                                                mrpCtrl.text = (p + d)
-                                                    .toStringAsFixed(0);
+                                                final d =
+                                                    double.tryParse(
+                                                      discountCtrl.text,
+                                                    ) ??
+                                                    0;
+                                                final p =
+                                                    double.tryParse(
+                                                      priceCtrl.text,
+                                                    ) ??
+                                                    0;
+                                                if (discountType ==
+                                                        'percentage' &&
+                                                    d < 100) {
+                                                  mrpCtrl.text =
+                                                      (p / (1 - (d / 100)))
+                                                          .toStringAsFixed(0);
+                                                } else {
+                                                  mrpCtrl.text = (p + d)
+                                                      .toStringAsFixed(0);
+                                                }
                                               }
                                             });
                                           }
                                         },
                                       ),
-                                      ModernTextField(
-                                        controller: discountCtrl,
-                                        labelText: 'Discount',
-                                        prefixText: discountType == 'flat'
-                                            ? '₹ '
-                                            : null,
-                                        suffixText: discountType == 'percentage'
-                                            ? '%'
-                                            : null,
-                                        keyboardType:
-                                            const TextInputType.numberWithOptions(
-                                              decimal: true,
-                                            ),
-                                        onChanged: (v) {
-                                          final d = double.tryParse(v) ?? 0;
-                                          final p =
-                                              double.tryParse(priceCtrl.text) ??
-                                              0;
-                                          if (discountType == 'percentage' &&
-                                              d < 100) {
-                                            mrpCtrl.text = (p / (1 - (d / 100)))
-                                                .toStringAsFixed(0);
-                                          } else {
-                                            mrpCtrl.text = (p + d)
-                                                .toStringAsFixed(0);
-                                          }
-                                        },
-                                        validator: _numberValidator,
-                                      ),
+                                      if (discountType != 'bogo')
+                                        ModernTextField(
+                                          controller: discountCtrl,
+                                          labelText: 'Discount',
+                                          prefixText: discountType == 'flat'
+                                              ? '₹ '
+                                              : null,
+                                          suffixText:
+                                              discountType == 'percentage'
+                                              ? '%'
+                                              : null,
+                                          keyboardType:
+                                              const TextInputType.numberWithOptions(
+                                                decimal: true,
+                                              ),
+                                          onChanged: (v) {
+                                            final d = double.tryParse(v) ?? 0;
+                                            final p =
+                                                double.tryParse(
+                                                  priceCtrl.text,
+                                                ) ??
+                                                0;
+                                            if (discountType == 'percentage' &&
+                                                d < 100) {
+                                              mrpCtrl.text =
+                                                  (p / (1 - (d / 100)))
+                                                      .toStringAsFixed(0);
+                                            } else {
+                                              mrpCtrl.text = (p + d)
+                                                  .toStringAsFixed(0);
+                                            }
+                                          },
+                                          validator: _numberValidator,
+                                        ),
                                     ],
                                   ),
+                                  if (discountType == 'bogo') ...[
+                                    const SizedBox(height: 12),
+                                    _BogoSelectorWidget(
+                                      selectedProducts: selectedBogoProducts
+                                          .values
+                                          .toList(),
+                                      unresolvedIds: bogoFreeProductIds
+                                          .difference(
+                                            selectedBogoProducts.keys.toSet(),
+                                          ),
+                                      canBrowse:
+                                          selectedCategory != null &&
+                                          selectedCategory!.trim().isNotEmpty,
+                                      onBrowsePressed: () async {
+                                        if (selectedCategory == null ||
+                                            selectedCategory!.trim().isEmpty) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Please select product category first',
+                                              ),
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        final result =
+                                            await Navigator.of(
+                                              context,
+                                            ).push<List<Product>>(
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    BogoProductPickerScreen(
+                                                      initialCategory:
+                                                          selectedCategory,
+                                                      initiallySelectedProducts:
+                                                          selectedBogoProducts
+                                                              .values
+                                                              .toList(),
+                                                    ),
+                                              ),
+                                            );
+
+                                        if (result == null) return;
+                                        setDialogState(() {
+                                          selectedBogoProducts
+                                            ..clear()
+                                            ..addEntries(
+                                              result
+                                                  .where(
+                                                    (product) =>
+                                                        product.productId !=
+                                                        null,
+                                                  )
+                                                  .map(
+                                                    (product) => MapEntry(
+                                                      product.productId!,
+                                                      product,
+                                                    ),
+                                                  ),
+                                            );
+                                          bogoFreeProductIds
+                                            ..clear()
+                                            ..addAll(selectedBogoProducts.keys);
+                                        });
+                                      },
+                                      onRemove: (productId) {
+                                        setDialogState(() {
+                                          bogoFreeProductIds.remove(productId);
+                                          selectedBogoProducts.remove(
+                                            productId,
+                                          );
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -835,6 +1156,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 setDialogState(
                                   () => subcategoryError =
                                       'Please select at least one subcategory',
+                                );
+                                return;
+                              }
+                              if (discountType == 'bogo' &&
+                                  bogoFreeProductIds.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please select at least one free product for BOGO offer',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
                                 );
                                 return;
                               }
@@ -878,10 +1211,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
       isAvailable: isAvailable,
       subcategory: selectedSubcategories.toList(),
       quantity: quantityCtrl.text.trim(),
+      countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
+          ? null
+          : countryOfOriginCtrl.text.trim(),
+      bogoFreeProductIds: bogoFreeProductIds.toList(),
     );
 
     try {
       await _productController.updateProduct(updated);
+
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -1012,6 +1350,62 @@ class _ProductsScreenState extends State<ProductsScreen> {
         );
       },
     );
+  }
+
+  Future<List<Product>> _fetchAllProductsForCategory(String category) async {
+    final uid = AdminSessionService.requireUid();
+    final idToken = await AdminSessionService.requireIdToken(
+      forceRefresh: true,
+    );
+
+    final products = <Product>[];
+    String? pageToken;
+
+    do {
+      final page = await ServerpodAdminClient().client.product.getProductsPage(
+        firebaseUid: uid,
+        idToken: idToken,
+        category: category,
+        sortBy: 'name',
+        limit: 100,
+        pageToken: pageToken,
+      );
+      products.addAll(page.products);
+      pageToken = page.nextPageToken;
+    } while (pageToken != null);
+
+    return products;
+  }
+
+  Future<Map<String, Product>> _resolveSelectedBogoProducts({
+    required Set<String> selectedIds,
+    String? preferredCategory,
+  }) async {
+    final resolved = <String, Product>{};
+
+    for (final product in _productController.products) {
+      final id = product.productId;
+      if (id != null && selectedIds.contains(id)) {
+        resolved[id] = product;
+      }
+    }
+
+    if ((preferredCategory == null || preferredCategory.trim().isEmpty) ||
+        resolved.length == selectedIds.length) {
+      return resolved;
+    }
+
+    final categoryProducts = await _fetchAllProductsForCategory(
+      preferredCategory.trim(),
+    );
+    for (final product in categoryProducts) {
+      final id = product.productId;
+      if (id != null && selectedIds.contains(id)) {
+        resolved[id] = product;
+      }
+    }
+
+    return resolved;
   }
 
   List<Product> _visibleProducts() {
@@ -1298,6 +1692,151 @@ class _SubcategorySelector extends StatelessWidget {
           const SizedBox(height: 6),
           Text(errorText!, style: const TextStyle(color: Colors.red)),
         ],
+      ],
+    );
+  }
+}
+
+class _BogoSelectorWidget extends StatelessWidget {
+  final List<Product> selectedProducts;
+  final Set<String> unresolvedIds;
+  final bool canBrowse;
+  final Future<void> Function() onBrowsePressed;
+  final ValueChanged<String> onRemove;
+
+  const _BogoSelectorWidget({
+    required this.selectedProducts,
+    required this.unresolvedIds,
+    required this.canBrowse,
+    required this.onBrowsePressed,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Free Products (Pick one or more)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ),
+            FilledButton.tonalIcon(
+              onPressed: canBrowse ? onBrowsePressed : null,
+              icon: const Icon(Icons.grid_view_rounded, size: 18),
+              label: Text(
+                selectedProducts.isEmpty ? 'Browse Products' : 'Edit',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (!canBrowse)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.amber.shade200),
+            ),
+            child: const Text('Select the main product category first.'),
+          )
+        else if (selectedProducts.isEmpty && unresolvedIds.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: const Text('No free products selected yet.'),
+          )
+        else
+          Column(
+            children: [
+              ...selectedProducts.map((product) {
+                final productId = product.productId;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: 52,
+                          height: 52,
+                          color: Colors.grey.shade100,
+                          child: product.imageUrl.isEmpty
+                              ? const Icon(Icons.image_outlined)
+                              : Image.network(
+                                  product.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.broken_image_outlined,
+                                    );
+                                  },
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.productName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${product.category} • ${product.quantity}',
+                              style: TextStyle(color: Colors.grey.shade700),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: productId == null
+                            ? null
+                            : () => onRemove(productId),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (unresolvedIds.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: unresolvedIds
+                      .map(
+                        (id) => Chip(
+                          label: Text('Unresolved: $id'),
+                          onDeleted: () => onRemove(id),
+                        ),
+                      )
+                      .toList(),
+                ),
+            ],
+          ),
       ],
     );
   }

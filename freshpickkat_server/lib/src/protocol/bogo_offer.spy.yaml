@@ -1,0 +1,8 @@
+class: BogoOffer
+fields:
+  offerId: String?
+  triggerProductId: String
+  freeProductIds: List<String>
+  offerTitle: String
+  isActive: bool
+  createdAt: DateTime

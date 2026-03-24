@@ -21,6 +21,8 @@ abstract class OrderItem
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
+    required this.isFreeItem,
+    this.triggerProductId,
   });
 
   factory OrderItem({
@@ -30,6 +32,8 @@ abstract class OrderItem
     required int quantity,
     required double unitPrice,
     required double totalPrice,
+    required bool isFreeItem,
+    String? triggerProductId,
   }) = _OrderItemImpl;
 
   factory OrderItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -40,6 +44,8 @@ abstract class OrderItem
       quantity: jsonSerialization['quantity'] as int,
       unitPrice: (jsonSerialization['unitPrice'] as num).toDouble(),
       totalPrice: (jsonSerialization['totalPrice'] as num).toDouble(),
+      isFreeItem: jsonSerialization['isFreeItem'] as bool,
+      triggerProductId: jsonSerialization['triggerProductId'] as String?,
     );
   }
 
@@ -55,6 +61,10 @@ abstract class OrderItem
 
   double totalPrice;
 
+  bool isFreeItem;
+
+  String? triggerProductId;
+
   /// Returns a shallow copy of this [OrderItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -65,6 +75,8 @@ abstract class OrderItem
     int? quantity,
     double? unitPrice,
     double? totalPrice,
+    bool? isFreeItem,
+    String? triggerProductId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -76,6 +88,8 @@ abstract class OrderItem
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
+      'isFreeItem': isFreeItem,
+      if (triggerProductId != null) 'triggerProductId': triggerProductId,
     };
   }
 
@@ -89,6 +103,8 @@ abstract class OrderItem
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
+      'isFreeItem': isFreeItem,
+      if (triggerProductId != null) 'triggerProductId': triggerProductId,
     };
   }
 
@@ -98,6 +114,8 @@ abstract class OrderItem
   }
 }
 
+class _Undefined {}
+
 class _OrderItemImpl extends OrderItem {
   _OrderItemImpl({
     required String productId,
@@ -106,6 +124,8 @@ class _OrderItemImpl extends OrderItem {
     required int quantity,
     required double unitPrice,
     required double totalPrice,
+    required bool isFreeItem,
+    String? triggerProductId,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -113,6 +133,8 @@ class _OrderItemImpl extends OrderItem {
          quantity: quantity,
          unitPrice: unitPrice,
          totalPrice: totalPrice,
+         isFreeItem: isFreeItem,
+         triggerProductId: triggerProductId,
        );
 
   /// Returns a shallow copy of this [OrderItem]
@@ -126,6 +148,8 @@ class _OrderItemImpl extends OrderItem {
     int? quantity,
     double? unitPrice,
     double? totalPrice,
+    bool? isFreeItem,
+    Object? triggerProductId = _Undefined,
   }) {
     return OrderItem(
       productId: productId ?? this.productId,
@@ -134,6 +158,10 @@ class _OrderItemImpl extends OrderItem {
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
+      isFreeItem: isFreeItem ?? this.isFreeItem,
+      triggerProductId: triggerProductId is String?
+          ? triggerProductId
+          : this.triggerProductId,
     );
   }
 }

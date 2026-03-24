@@ -8,10 +8,14 @@ import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
 import '../services/notification_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
+import 'package:googleapis/firestore/v1.dart' show FirestoreApi;
+
 
 class OrderEndpoint extends Endpoint {
   static const String orderCollection = 'orders';
+  static const String bogoCollection = 'bogo_offers';
   static const String projectId = 'freshpickkart-a6824';
+
 
   static const String statusPending = 'pending';
   static const String statusConfirmed = 'confirmed';
@@ -43,6 +47,27 @@ class OrderEndpoint extends Endpoint {
     order.paymentStatus = paymentPending;
     order.orderedAt = DateTime.now();
 
+    // --- BOGO Validation ---
+    // Validate each free item: if the BOGO offer is inactive, remove the item
+    final validatedItems = <protocol.OrderItem>[];
+    for (final item in order.items) {
+      if (item.isFreeItem && item.triggerProductId != null) {
+        // Check if BOGO offer is still active for the trigger product
+        final isValid = await _isBogoOfferActive(
+          firestore,
+          triggerProductId: item.triggerProductId!,
+          freeProductId: item.productId,
+        );
+        if (!isValid) continue; // silently remove invalid free items
+      }
+      validatedItems.add(item);
+    }
+    order.items = validatedItems;
+
+    // Recalculate totals after removing invalid free items
+    // (totalAmount/finalAmount passed from client are trusted for paid items;
+    //  free items never contribute to the total, so no recalc needed here)
+
     final database = 'projects/$projectId/databases/(default)/documents';
     final docPath = '$database/$orderCollection/${order.orderId}';
     final fields = _orderToFirestore(order);
@@ -55,6 +80,69 @@ class OrderEndpoint extends Endpoint {
 
     return order.orderId;
   }
+
+  /// Returns true if the BOGO offer for [triggerProductId] is active
+  /// and [freeProductId] is still in its freeProductIds list.
+  Future<bool> _isBogoOfferActive(
+    FirestoreApi firestore, {
+    required String triggerProductId,
+    required String freeProductId,
+  }) async {
+    try {
+      final database = 'projects/$projectId/databases/(default)/documents';
+      final query = firestore_api.StructuredQuery(
+        from: [
+          firestore_api.CollectionSelector(collectionId: bogoCollection),
+        ],
+        where: firestore_api.Filter(
+          compositeFilter: firestore_api.CompositeFilter(
+            op: 'AND',
+            filters: [
+              firestore_api.Filter(
+                fieldFilter: firestore_api.FieldFilter(
+                  field: firestore_api.FieldReference(
+                    fieldPath: 'triggerProductId',
+                  ),
+                  op: 'EQUAL',
+                  value: firestore_api.Value(stringValue: triggerProductId),
+                ),
+              ),
+              firestore_api.Filter(
+                fieldFilter: firestore_api.FieldFilter(
+                  field: firestore_api.FieldReference(
+                    fieldPath: 'isActive',
+                  ),
+                  op: 'EQUAL',
+                  value: firestore_api.Value(booleanValue: true),
+                ),
+              ),
+            ],
+          ),
+        ),
+        limit: 1,
+      );
+      final response = await firestore.projects.databases.documents.runQuery(
+        firestore_api.RunQueryRequest(structuredQuery: query),
+        database,
+      );
+      for (final res in response) {
+        if (res.document?.fields != null) {
+          final fields = res.document!.fields!;
+          final freeProductIdsList =
+              fields['freeProductIds']?.arrayValue?.values
+                  ?.map((v) => v.stringValue ?? '')
+                  .where((s) => s.isNotEmpty)
+                  .toList() ??
+              [];
+          return freeProductIdsList.contains(freeProductId);
+        }
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
 
   Future<List<protocol.Order>> getOrders(
     Session session, {
@@ -859,8 +947,11 @@ class OrderEndpoint extends Endpoint {
       quantity: int.tryParse(fields['quantity']?.integerValue ?? '0') ?? 0,
       unitPrice: _getDoubleValue(fields, 'unitPrice'),
       totalPrice: _getDoubleValue(fields, 'totalPrice'),
+      isFreeItem: fields['isFreeItem']?.booleanValue ?? false,
+      triggerProductId: fields['triggerProductId']?.stringValue,
     );
   }
+
 
   firestore_api.Value _orderItemToFirestore(protocol.OrderItem item) {
     return firestore_api.Value(
@@ -874,10 +965,16 @@ class OrderEndpoint extends Endpoint {
           ),
           'unitPrice': firestore_api.Value(doubleValue: item.unitPrice),
           'totalPrice': firestore_api.Value(doubleValue: item.totalPrice),
+          'isFreeItem': firestore_api.Value(booleanValue: item.isFreeItem),
+          if (item.triggerProductId != null)
+            'triggerProductId': firestore_api.Value(
+              stringValue: item.triggerProductId!,
+            ),
         },
       ),
     );
   }
+
 
   protocol.Address _addressFromFirestore(
     Map<String, firestore_api.Value> fields,

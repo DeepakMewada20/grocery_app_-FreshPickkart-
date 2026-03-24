@@ -7,6 +7,9 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
+import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
+import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:get/get.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -57,8 +60,65 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _handleAddToCart(Product product) {
     ProtectedNavigationHelper.executeProtectedAction(
-      onLoggedIn: () => _incrementQuantity(product),
+      onLoggedIn: () {
+        _incrementQuantity(product);
+        _showBogoSelectionIfNeeded(product);
+      },
       productToAdd: product,
+    );
+  }
+
+  void _showBogoSelectionIfNeeded(Product product) {
+    final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
+    if (!isBogoProduct(product) || product.productId == null) return;
+
+    final cartItem = _cartController.cartItems.firstWhereOrNull(
+      (item) => item.product.productId == product.productId,
+    );
+    if (cartItem?.bogoFreeProductId != null) return;
+
+    if (freeProductIds.length == 1) {
+      _cartController.setBogoSelection(
+        product.productId!,
+        freeProductIds.first,
+      );
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Get.bottomSheet(
+        BogoSelectionBottomSheet(
+          triggerProductId: product.productId!,
+          freeProductIds: freeProductIds,
+        ),
+        isScrollControlled: true,
+      );
+    });
+  }
+
+  void _openBogoSelectionSheet(Product product) {
+    if (!isBogoProduct(product) || product.productId == null) return;
+    Get.bottomSheet(
+      BogoSelectionBottomSheet(
+        triggerProductId: product.productId!,
+        freeProductIds: product.bogoFreeProductIds ?? const <String>[],
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  dynamic _cartItemForProduct(Product product) {
+    return _cartController.cartItems.firstWhereOrNull(
+      (item) => item.product.productId == product.productId,
+    );
+  }
+
+  Product? _selectedBogoFreeProduct(Product product) {
+    final selectedId = _cartItemForProduct(product)?.bogoFreeProductId;
+    if (selectedId == null) return null;
+    return _productProviderController.allProducts.firstWhereOrNull(
+      (item) => item.productId == selectedId,
     );
   }
 
@@ -66,6 +126,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     return Obx(() {
       final product = _controller.product.value;
+      final cs = Theme.of(context).colorScheme;
+      final offerTheme =
+          Theme.of(context).extension<AppOfferTheme>() ??
+          AppOfferTheme.fallback(Theme.of(context).brightness);
+      final selectedFreeProduct = _selectedBogoFreeProduct(product);
+      final cartItem = _cartItemForProduct(product);
+      final selectedQuantity = cartItem?.quantity ?? 0;
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
@@ -107,35 +174,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8BC34A),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                            size: 12,
+                    if ((product.countryOfOrigin ?? '').trim().isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
                           ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Solapur (Maharashtra)',
-                            style: TextStyle(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.public_rounded,
                               color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              size: 14,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            Text(
+                              'Country of Origin: ${product.countryOfOrigin}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,9 +235,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ),
                         // We need to pass the *current* product to the cart controller
-                        _buildAddButton(
-                          product,
-                          _cartController.getProductQuantity(product.productId),
+                        Obx(
+                          () => _buildAddButton(
+                            product,
+                            _cartController.getProductQuantity(
+                              product.productId,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -192,20 +267,129 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            product.discountType == 'flat'
-                                ? '₹${product.discountValue?.toStringAsFixed(0)} OFF'
-                                : '${product.discountValue ?? product.discount}% OFF',
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                          if (hasProductOffer(product)) ...[
+                            const SizedBox(width: 12),
+                            Text(
+                              buildProductOfferLabel(product),
+                              style: TextStyle(
+                                color: productOfferColor(context),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
+                    if (isBogoProduct(product))
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: offerTheme.badgeSoft,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: offerTheme.badgeBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'BOGO free product',
+                              style: TextStyle(
+                                color: offerTheme.badge,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              selectedQuantity == 0
+                                  ? 'Add this item to choose 1 free product from ${product.bogoFreeProductIds?.length ?? 0} options.'
+                                  : selectedFreeProduct == null
+                                  ? 'Choose your free product now.'
+                                  : 'Selected free product for this offer.',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (selectedQuantity > 0) ...[
+                              const SizedBox(height: 12),
+                              if (selectedFreeProduct != null)
+                                Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        width: 54,
+                                        height: 54,
+                                        color: cs.surface,
+                                        child: Image.network(
+                                          selectedFreeProduct.imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: cs.onSurface
+                                                      .withValues(
+                                                        alpha: 0.4,
+                                                      ),
+                                                );
+                                              },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            selectedFreeProduct.productName,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: cs.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            selectedFreeProduct.quantity,
+                                            style: TextStyle(
+                                              color: cs.onSurface.withValues(
+                                                alpha: 0.68,
+                                              ),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              const SizedBox(height: 12),
+                              FilledButton.tonalIcon(
+                                onPressed: () =>
+                                    _openBogoSelectionSheet(product),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: offerTheme.badge,
+                                  foregroundColor: offerTheme.onBadge,
+                                ),
+                                icon: const Icon(Icons.card_giftcard_outlined),
+                                label: Text(
+                                  selectedFreeProduct == null
+                                      ? 'Choose Free Product'
+                                      : 'Change Free Product',
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 4),
                     const Text(
                       '(Inclusive of all taxes)',

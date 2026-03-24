@@ -32,6 +32,26 @@ class ValidationService {
     if (product.price < 0 || product.realPrice < 0) {
       throw InvalidParametersException('Price values cannot be negative');
     }
+    final type = product.discountType?.toLowerCase().trim() ?? 'percentage';
+    if (type == 'bogo') {
+      if (product.bogoFreeProductIds == null ||
+          product.bogoFreeProductIds!.isEmpty) {
+        throw InvalidParametersException(
+          'At least one free product is required for BOGO offer',
+        );
+      }
+    } else {
+      if (product.discountValue != null && product.discountValue! < 0) {
+        throw InvalidParametersException('Discount value cannot be negative');
+      }
+      if (type == 'percentage' &&
+          product.discountValue != null &&
+          product.discountValue! > 100) {
+        throw InvalidParametersException(
+          'Percentage discount cannot exceed 100',
+        );
+      }
+    }
   }
 
   static void validateCoupon(protocol.Coupon coupon) {

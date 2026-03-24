@@ -8,9 +8,15 @@ import 'package:get/get.dart';
 class CartItem {
   final Product product;
   int quantity;
+  String? bogoFreeProductId; // Selected free item ID
 
-  CartItem({required this.product, this.quantity = 1});
+  CartItem({
+    required this.product,
+    this.quantity = 1,
+    this.bogoFreeProductId,
+  });
 }
+
 
 class CartController extends GetxController {
   static CartController get instance =>
@@ -43,9 +49,11 @@ class CartController extends GetxController {
               (item) => protocol.CartItem(
                 productId: item.product.productId!,
                 quantity: item.quantity,
+                bogoFreeProductId: item.bogoFreeProductId,
               ),
             )
             .toList();
+
         await client.user.updateCart(
           authController.currentUser!.uid,
           protocolCart,
@@ -73,9 +81,14 @@ class CartController extends GetxController {
             );
             if (product != null) {
               newCartItems.add(
-                CartItem(product: product, quantity: item.quantity),
+                CartItem(
+                  product: product,
+                  quantity: item.quantity,
+                  bogoFreeProductId: item.bogoFreeProductId,
+                ),
               );
             }
+
           }
 
           // Disable syncing while loading from server to avoid loop
@@ -260,4 +273,16 @@ class CartController extends GetxController {
   void clearCart() {
     cartItems.clear();
   }
+
+  void setBogoSelection(String triggerProductId, String? freeProductId) {
+    int index = cartItems.indexWhere(
+      (item) => item.product.productId == triggerProductId,
+    );
+    if (index != -1) {
+      cartItems[index].bogoFreeProductId = freeProductId;
+      cartItems.refresh();
+      _syncWithServer(); // Explicit sync for selection
+    }
+  }
 }
+

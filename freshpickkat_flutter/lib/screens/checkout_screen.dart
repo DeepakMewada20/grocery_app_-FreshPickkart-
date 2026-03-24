@@ -9,6 +9,8 @@ import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -141,21 +143,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final userId = authController.currentUser?.uid ?? '';
     final userName = userController.userName.value;
     final userPhone = _getCustomerPhone();
-    final items = cartController.cartItems
-        .map(
-          (item) => OrderItem(
-            productId: item.product.productId ?? '',
-            productName: item.product.productName,
-            productImage: item.product.imageUrl,
-            quantity: item.quantity,
-            unitPrice: item.product.price,
-            totalPrice: item.product.price * item.quantity,
-          ),
-        )
-        .toList();
-    final itemCount = cartController.cartItems.fold(
+    final List<OrderItem> items = [];
+    final productProvider = Get.find<ProductProviderController>();
+    
+    for (final item in cartController.cartItems) {
+      // Add main product
+      items.add(OrderItem(
+        productId: item.product.productId ?? '',
+        productName: item.product.productName,
+        productImage: item.product.imageUrl,
+        quantity: item.quantity,
+        unitPrice: item.product.price,
+        totalPrice: item.product.price * item.quantity,
+        isFreeItem: false,
+      ));
+
+      // Add BOGO free item if selected
+      if (item.bogoFreeProductId != null) {
+        final freeProduct = productProvider.allProducts
+            .firstWhereOrNull((p) => p.productId == item.bogoFreeProductId);
+        
+        if (freeProduct != null) {
+          items.add(OrderItem(
+            productId: freeProduct.productId!,
+            productName: freeProduct.productName,
+            productImage: freeProduct.imageUrl,
+            quantity: item.quantity, // 1 free for every 1 trigger
+            unitPrice: 0,
+            totalPrice: 0,
+            isFreeItem: true,
+            triggerProductId: item.product.productId,
+          ));
+        }
+      }
+    }
+
+    final itemCount = items.fold(
       0,
-      (sum, item) => sum + item.quantity,
+      (sum, i) => sum + i.quantity,
     );
 
     return Order(
