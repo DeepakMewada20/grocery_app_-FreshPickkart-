@@ -16,7 +16,7 @@ abstract class ProductVariant
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   ProductVariant._({
     required this.variantId,
-    required this.label,
+    required this.quantity,
     required this.price,
     required this.realPrice,
     required this.isAvailable,
@@ -25,7 +25,7 @@ abstract class ProductVariant
 
   factory ProductVariant({
     required String variantId,
-    required String label,
+    required String quantity,
     required double price,
     required double realPrice,
     required bool isAvailable,
@@ -35,7 +35,7 @@ abstract class ProductVariant
   factory ProductVariant.fromJson(Map<String, dynamic> jsonSerialization) {
     return ProductVariant(
       variantId: jsonSerialization['variantId'] as String,
-      label: jsonSerialization['label'] as String,
+      quantity: jsonSerialization['quantity'] as String,
       price: (jsonSerialization['price'] as num).toDouble(),
       realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
       isAvailable: jsonSerialization['isAvailable'] as bool,
@@ -45,7 +45,7 @@ abstract class ProductVariant
 
   String variantId;
 
-  String label;
+  String quantity;
 
   double price;
 
@@ -60,7 +60,7 @@ abstract class ProductVariant
   @_i1.useResult
   ProductVariant copyWith({
     String? variantId,
-    String? label,
+    String? quantity,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -71,7 +71,7 @@ abstract class ProductVariant
     return {
       '__className__': 'ProductVariant',
       'variantId': variantId,
-      'label': label,
+      'quantity': quantity,
       'price': price,
       'realPrice': realPrice,
       'isAvailable': isAvailable,
@@ -84,7 +84,7 @@ abstract class ProductVariant
     return {
       '__className__': 'ProductVariant',
       'variantId': variantId,
-      'label': label,
+      'quantity': quantity,
       'price': price,
       'realPrice': realPrice,
       'isAvailable': isAvailable,
@@ -103,14 +103,14 @@ class _Undefined {}
 class _ProductVariantImpl extends ProductVariant {
   _ProductVariantImpl({
     required String variantId,
-    required String label,
+    required String quantity,
     required double price,
     required double realPrice,
     required bool isAvailable,
     int? sortOrder,
   }) : super._(
          variantId: variantId,
-         label: label,
+         quantity: quantity,
          price: price,
          realPrice: realPrice,
          isAvailable: isAvailable,
@@ -123,7 +123,7 @@ class _ProductVariantImpl extends ProductVariant {
   @override
   ProductVariant copyWith({
     String? variantId,
-    String? label,
+    String? quantity,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -131,7 +131,7 @@ class _ProductVariantImpl extends ProductVariant {
   }) {
     return ProductVariant(
       variantId: variantId ?? this.variantId,
-      label: label ?? this.label,
+      quantity: quantity ?? this.quantity,
       price: price ?? this.price,
       realPrice: realPrice ?? this.realPrice,
       isAvailable: isAvailable ?? this.isAvailable,

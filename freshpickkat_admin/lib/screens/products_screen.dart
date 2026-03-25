@@ -655,7 +655,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       mostPurchases: 0,
       bogoFreeProductIds: bogoFreeProductIds.toList(),
       variants: _buildVariants(
-        primaryLabel: quantityCtrl.text.trim(),
+        primaryQuantity: quantityCtrl.text.trim(),
         primaryPrice: double.parse(priceCtrl.text.trim()),
         primaryMrp: double.parse(mrpCtrl.text.trim()),
         primaryAvailability: isAvailable,
@@ -1319,7 +1319,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           : countryOfOriginCtrl.text.trim(),
       bogoFreeProductIds: bogoFreeProductIds.toList(),
       variants: _buildVariants(
-        primaryLabel: quantityCtrl.text.trim(),
+        primaryQuantity: quantityCtrl.text.trim(),
         primaryPrice: double.parse(priceCtrl.text.trim()),
         primaryMrp: double.parse(mrpCtrl.text.trim()),
         primaryAvailability: isAvailable,
@@ -1404,8 +1404,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   String? _validateVariantDrafts(List<_VariantDraft> drafts) {
     for (final draft in drafts) {
-      if (draft.labelCtrl.text.trim().isEmpty) {
-        return 'Each variant label is required';
+      if (draft.quantityCtrl.text.trim().isEmpty) {
+        return 'Each variant quantity is required';
       }
       if (_numberValidator(draft.priceCtrl.text) != null ||
           _numberValidator(draft.mrpCtrl.text) != null) {
@@ -1416,7 +1416,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   List<ProductVariant> _buildVariants({
-    required String primaryLabel,
+    required String primaryQuantity,
     required double primaryPrice,
     required double primaryMrp,
     required bool primaryAvailability,
@@ -1425,7 +1425,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return [
       ProductVariant(
         variantId: 'default',
-        label: primaryLabel,
+        quantity: primaryQuantity,
         price: primaryPrice,
         realPrice: primaryMrp,
         isAvailable: primaryAvailability,
@@ -1436,7 +1436,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           variantId: entry.value.variantId.trim().isEmpty
               ? 'variant_${entry.key + 1}'
               : entry.value.variantId.trim(),
-          label: entry.value.labelCtrl.text.trim(),
+          quantity: entry.value.quantityCtrl.text.trim(),
           price: double.parse(entry.value.priceCtrl.text.trim()),
           realPrice: double.parse(entry.value.mrpCtrl.text.trim()),
           isAvailable: entry.value.isAvailable,
@@ -2127,26 +2127,26 @@ class _BogoSelectorWidget extends StatelessWidget {
 
 class _VariantDraft {
   final String variantId;
-  final TextEditingController labelCtrl;
+  final TextEditingController quantityCtrl;
   final TextEditingController priceCtrl;
   final TextEditingController mrpCtrl;
   bool isAvailable;
 
   _VariantDraft({
     String? variantId,
-    String label = '',
+    String quantity = '',
     String price = '',
     String mrp = '',
     this.isAvailable = true,
   }) : variantId = variantId ?? '',
-       labelCtrl = TextEditingController(text: label),
+       quantityCtrl = TextEditingController(text: quantity),
        priceCtrl = TextEditingController(text: price),
        mrpCtrl = TextEditingController(text: mrp);
 
   factory _VariantDraft.fromVariant(ProductVariant variant) {
     return _VariantDraft(
       variantId: variant.variantId,
-      label: variant.label,
+      quantity: variant.quantity,
       price: variant.price.toString(),
       mrp: variant.realPrice.toString(),
       isAvailable: variant.isAvailable,
@@ -2154,7 +2154,7 @@ class _VariantDraft {
   }
 
   void dispose() {
-    labelCtrl.dispose();
+    quantityCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
   }
@@ -2222,8 +2222,8 @@ class _VariantListEditor extends StatelessWidget {
                       ],
                     ),
                     ModernTextField(
-                      controller: draft.labelCtrl,
-                      labelText: 'Label',
+                      controller: draft.quantityCtrl,
+                      labelText: 'Quantity',
                       hintText: 'e.g. 500 gm, 1 kg, 2 kg',
                       onChanged: (_) => onChanged(),
                     ),

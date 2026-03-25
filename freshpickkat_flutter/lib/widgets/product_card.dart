@@ -228,52 +228,12 @@ class _ProductCardState extends State<ProductCard> {
                             color: cs.onSurface,
                             fontSize: widget.titleFontSize ?? 12,
                             fontWeight: FontWeight.w600,
-                            height: 1.1,
+                            height: 1.2,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
 
-                        if (variants.length > 1) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: cs.outlineVariant),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _selectedVariantId,
-                                isExpanded: true,
-                                iconSize: 18,
-                                style: GoogleFonts.inter(
-                                  color: cs.onSurface,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                dropdownColor: cs.surface,
-                                items: variants
-                                    .map(
-                                      (variant) => DropdownMenuItem(
-                                        value: variant.variantId,
-                                        child: Text(
-                                          variant.label,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _selectedVariantId = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                        ],
                         const Spacer(),
 
                         // Bottom Section
@@ -281,17 +241,49 @@ class _ProductCardState extends State<ProductCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Quantity (Truncated to 1 line)
-                            // Product quantity
-                            Text(
-                              displayProduct.quantity,
-                              style: GoogleFonts.inter(
-                                color: cs.onSurface.withValues(alpha: 0.5),
-                                fontSize: widget.quantityFontSize ?? 10,
+                            if (variants.length > 1) ...[
+                              DropdownButton<String>(
+                                value: _selectedVariantId,
+                                isExpanded: true,
+                                isDense: true,
+                                iconSize: 14,
+                                style: GoogleFonts.inter(
+                                  color: cs.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  fontSize: widget.quantityFontSize ?? 10,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                dropdownColor: cs.surface,
+                                items: variants.map(
+                                  (variant) {
+                                    return DropdownMenuItem(
+                                      value: variant.variantId,
+                                      child: Text(
+                                        variant.quantity,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  },
+                                ).toList(),
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  setState(() {
+                                    _selectedVariantId = value;
+                                  });
+                                },
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            ] else ...[
+                              Text(
+                                displayProduct.quantity,
+                                style: GoogleFonts.inter(
+                                  color: cs.onSurface.withValues(alpha: 0.5),
+                                  fontSize: widget.quantityFontSize ?? 10,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                             const SizedBox(height: 4),
 
                             Row(

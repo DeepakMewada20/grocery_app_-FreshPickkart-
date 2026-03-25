@@ -1,7 +1,7 @@
 class: ProductVariant
 fields:
   variantId: String
-  label: String
+  quantity: String
   price: double
   realPrice: double
   isAvailable: bool

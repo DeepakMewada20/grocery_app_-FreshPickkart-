@@ -19,7 +19,7 @@ class ProductBusinessService {
     );
 
     return product.copyWith(
-      quantity: primaryVariant.label,
+      quantity: primaryVariant.quantity,
       realPrice: normalizedRealPrice,
       price: normalizedPrice,
       discount: resolvedDiscount,
@@ -39,7 +39,7 @@ class ProductBusinessService {
         ? <ProductVariant>[
             ProductVariant(
               variantId: 'default',
-              label: product.quantity.trim(),
+              quantity: product.quantity.trim(),
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,
@@ -55,14 +55,13 @@ class ProductBusinessService {
         variantId: variant.variantId.trim().isEmpty
             ? 'variant_$index'
             : variant.variantId.trim(),
-        label: variant.label.trim(),
+        quantity: variant.quantity.trim(),
         price: _nonNegative(variant.price),
         realPrice: _nonNegative(variant.realPrice),
         isAvailable: variant.isAvailable,
         sortOrder: variant.sortOrder ?? index,
       );
-    }).toList()
-      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+    }).toList()..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
   }
 
   static double _nonNegative(double value) => value < 0 ? 0 : value;

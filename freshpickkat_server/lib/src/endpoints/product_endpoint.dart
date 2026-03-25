@@ -352,16 +352,13 @@ class ProductEndpoint extends Endpoint {
         database,
       );
 
-      final products = response
-          .where((res) => res.document != null)
-          .map((res) {
-            final fields = res.document!.fields!;
-            return _productFromFirestore(
-              res.document!.name!.split('/').last,
-              fields,
-            );
-          })
-          .toList();
+      final products = response.where((res) => res.document != null).map((res) {
+        final fields = res.document!.fields!;
+        return _productFromFirestore(
+          res.document!.name!.split('/').last,
+          fields,
+        );
+      }).toList();
 
       // If we found products, also fetch some related products from the same category (optional but requested)
       if (products.isNotEmpty) {
@@ -867,7 +864,7 @@ class ProductEndpoint extends Endpoint {
           DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
           DateTime.now(),
       subcategory: _stringListField(fields['subcategory']),
-      quantity: fields['quantity']?.stringValue ?? primaryVariant.label,
+      quantity: fields['quantity']?.stringValue ?? primaryVariant.quantity,
       countryOfOrigin: fields['countryOfOrigin']?.stringValue,
       searchKeywords: _stringListField(fields['searchKeywords']),
       mostSearch: int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
@@ -891,20 +888,21 @@ class ProductEndpoint extends Endpoint {
               itemFields['variantId']?.stringValue?.trim().isNotEmpty == true
               ? itemFields['variantId']!.stringValue!
               : 'variant_$index',
-          label: itemFields['label']?.stringValue ?? '',
+          quantity: itemFields['quantity']?.stringValue ?? '',
           price: _getValueAsDouble(itemFields['price']),
           realPrice: _getValueAsDouble(itemFields['realPrice']),
           isAvailable: itemFields['isAvailable']?.booleanValue ?? true,
           sortOrder: int.tryParse(itemFields['sortOrder']?.integerValue ?? ''),
         );
-      }).toList()
-        ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+      }).toList()..sort(
+        (a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0),
+      );
     }
 
     return [
       ProductVariant(
         variantId: 'default',
-        label: fields['quantity']?.stringValue ?? '',
+        quantity: fields['quantity']?.stringValue ?? '',
         price: _getDoubleValue(fields, 'price'),
         realPrice: _getDoubleValue(fields, 'realPrice'),
         isAvailable: fields['isAvailable']?.booleanValue ?? false,
@@ -970,7 +968,9 @@ class ProductEndpoint extends Endpoint {
                       'variantId': firestore_api.Value(
                         stringValue: variant.variantId,
                       ),
-                      'label': firestore_api.Value(stringValue: variant.label),
+                      'quantity': firestore_api.Value(
+                        stringValue: variant.quantity,
+                      ),
                       'price': firestore_api.Value(doubleValue: variant.price),
                       'realPrice': firestore_api.Value(
                         doubleValue: variant.realPrice,

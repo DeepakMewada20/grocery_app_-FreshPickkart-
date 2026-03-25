@@ -11,7 +11,7 @@ List<ProductVariant> sortedProductVariants(Product product) {
   return [
     ProductVariant(
       variantId: 'default',
-      label: product.quantity,
+      quantity: product.quantity,
       price: product.price,
       realPrice: product.realPrice,
       isAvailable: product.isAvailable,
@@ -24,7 +24,7 @@ String inferProductVariantId(Product product) {
   final variants = sortedProductVariants(product);
   final matched = variants.where(
     (variant) =>
-        variant.label == product.quantity &&
+        variant.quantity == product.quantity &&
         variant.price == product.price &&
         variant.realPrice == product.realPrice,
   );
@@ -48,7 +48,7 @@ ProductVariant resolveProductVariant(Product product, {String? variantId}) {
 Product applyVariantToProduct(Product product, {String? variantId}) {
   final selectedVariant = resolveProductVariant(product, variantId: variantId);
   return product.copyWith(
-    quantity: selectedVariant.label,
+    quantity: selectedVariant.quantity,
     price: selectedVariant.price,
     realPrice: selectedVariant.realPrice,
     isAvailable: selectedVariant.isAvailable,

@@ -34,11 +34,13 @@ class ValidationService {
       throw InvalidParametersException('Price values cannot be negative');
     }
     for (final variant in variants) {
-      if (variant.label.trim().isEmpty) {
-        throw InvalidParametersException('Variant label is required');
+      if (variant.quantity.trim().isEmpty) {
+        throw InvalidParametersException('Variant quantity is required');
       }
       if (variant.price < 0 || variant.realPrice < 0) {
-        throw InvalidParametersException('Variant price values cannot be negative');
+        throw InvalidParametersException(
+          'Variant price values cannot be negative',
+        );
       }
     }
     final type = product.discountType?.toLowerCase().trim() ?? 'percentage';
