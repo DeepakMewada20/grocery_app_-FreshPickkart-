@@ -1,141 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
-import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:get/get.dart';
 
-class BogoCartSuggestionBanner extends StatelessWidget {
+class BogoCartSuggestionBanner extends StatefulWidget {
   const BogoCartSuggestionBanner({super.key});
 
-  bool _isMainShellVisible() {
-    // This banner is mounted from GetMaterialApp.builder, whose context may
-    // sit above the Navigator. Read navigator state from Get instead of
-    // calling Navigator.of(context), which asserts in that setup.
-    final navigatorState = Get.key.currentState;
-    if (navigatorState == null) return false;
-    return !navigatorState.canPop();
+  @override
+  State<BogoCartSuggestionBanner> createState() =>
+      _BogoCartSuggestionBannerState();
+}
+
+class _BogoCartSuggestionBannerState extends State<BogoCartSuggestionBanner> {
+  final _cartController = CartController.instance;
+  final _bogoController = BogoController.instance;
+  final _notificationController = NotificationController.instance;
+
+  late final Worker _suggestionWorker;
+  String? _lastShownId;
+
+  @override
+  void initState() {
+    super.initState();
+    _suggestionWorker = ever<BogoCartSuggestion?>(
+      _cartController.bogoSuggestion,
+      _handleSuggestionChanged,
+    );
+  }
+
+  @override
+  void dispose() {
+    _suggestionWorker.dispose();
+    super.dispose();
+  }
+
+  void _handleSuggestionChanged(BogoCartSuggestion? suggestion) {
+    if (suggestion == null) {
+      _lastShownId = null;
+      return;
+    }
+
+    final triggerId = suggestion.triggerProduct.productId ?? 'unknown-trigger';
+    final freeId = suggestion.freeProduct.productId ?? 'unknown-free';
+    final notificationId = 'bogo:$triggerId:$freeId';
+    if (_lastShownId == notificationId) return;
+    _lastShownId = notificationId;
+
+    final freeQuantityLabel = _bogoController.freeProductQuantityLabel(
+      suggestion.offer.triggerProductId,
+      suggestion.freeProduct.productId ?? '',
+      fallback: suggestion.freeProduct.quantity,
+    );
+    final message =
+        'Buy ${suggestion.triggerProduct.productName} to get ${suggestion.freeProduct.productName} ($freeQuantityLabel) free';
+
+    _notificationController.saveNotification(
+      AppNotificationItem(
+        id: notificationId,
+        title: 'BOGO Alert',
+        message: message,
+        createdAt: DateTime.now(),
+        product: suggestion.triggerProduct,
+      ),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final currentContext = Get.context ?? context;
+      final messenger = ScaffoldMessenger.maybeOf(currentContext);
+      if (messenger == null) return;
+
+      messenger
+        ..removeCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final cartController = CartController.instance;
-    final bogoController = BogoController.instance;
-
-    return Obx(() {
-      final suggestion = cartController.bogoSuggestion.value;
-      if (suggestion == null) {
-        return const SizedBox.shrink();
-      }
-      final freeQuantityLabel = bogoController.freeProductQuantityLabel(
-        suggestion.offer.triggerProductId,
-        suggestion.freeProduct.productId ?? '',
-        fallback: suggestion.freeProduct.quantity,
-      );
-
-      final offerTheme =
-          Theme.of(context).extension<AppOfferTheme>() ??
-          AppOfferTheme.fallback(Theme.of(context).brightness);
-      final mediaQuery = MediaQuery.of(context);
-      final isHomeShell = _isMainShellVisible();
-      final bottomSpacing = isHomeShell ? 10.0 : 12.0;
-      final bottomOffset =
-          mediaQuery.viewPadding.bottom +
-          mediaQuery.viewInsets.bottom +
-          (isHomeShell ? kBottomNavigationBarHeight + bottomSpacing : bottomSpacing);
-
-      return Positioned(
-        left: 16,
-        right: 16,
-        bottom: bottomOffset,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: () {
-              Get.to(
-                () => ProductDetailScreen(
-                  product: suggestion.triggerProduct,
-                ),
-              );
-            },
-            child: Ink(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: offerTheme.badgeSoft,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: offerTheme.badgeBorder),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: offerTheme.badge,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.card_giftcard_rounded,
-                      color: offerTheme.onBadge,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Buy ${suggestion.triggerProduct.productName} to get ${suggestion.freeProduct.productName} ($freeQuantityLabel) free',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w700,
-                            height: 1.25,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Tap to open the offer product.',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.72),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    color: offerTheme.badge,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    });
+    return const SizedBox.shrink();
   }
 }

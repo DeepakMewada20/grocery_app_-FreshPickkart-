@@ -3,7 +3,8 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/cetegoris_screen_with_stick_heder.dart';
 import 'package:freshpickkat_flutter/screens/home_screen.dart';
 import 'package:freshpickkat_flutter/screens/basket_screen.dart';
-import 'package:freshpickkat_flutter/screens/wallet_screen.dart';
+import 'package:freshpickkat_flutter/controller/notification_controller.dart';
+import 'package:freshpickkat_flutter/screens/notification_screen.dart';
 import 'package:freshpickkat_flutter/screens/more_screen.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
@@ -23,7 +24,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomePage(),
     const CategoriesScreenWithStickyHeader(),
     const BasketScreen(),
-    const WalletScreen(),
+    const NotificationScreen(),
     const MoreScreen(),
   ];
 
@@ -114,9 +115,19 @@ class _MainScreenState extends State<MainScreen> {
               }),
               label: 'Basket',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: 'Wallet',
+            BottomNavigationBarItem(
+              icon: Obx(() {
+                final notificationCount =
+                    NotificationController.instance.notifications.length;
+                return Badge(
+                  label: Text('$notificationCount'),
+                  isLabelVisible: notificationCount > 0,
+                  backgroundColor: AppTheme.primaryGreen,
+                  textColor: Colors.white,
+                  child: const Icon(Icons.notifications_outlined),
+                );
+              }),
+              label: 'Notifications',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.more_horiz),
