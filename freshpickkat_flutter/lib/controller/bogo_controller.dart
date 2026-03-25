@@ -3,7 +3,8 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class BogoController extends GetxController {
-  static BogoController get instance => Get.put(BogoController(), permanent: true);
+  static BogoController get instance =>
+      Get.put(BogoController(), permanent: true);
 
   final Client _client = ServerpodClient().client;
   final RxList<BogoOffer> activeOffers = <BogoOffer>[].obs;
@@ -28,6 +29,36 @@ class BogoController extends GetxController {
   }
 
   BogoOffer? getOfferForProduct(String productId) {
-    return activeOffers.firstWhereOrNull((o) => o.triggerProductId == productId);
+    return activeOffers.firstWhereOrNull(
+      (o) => o.triggerProductId == productId,
+    );
+  }
+
+  BogoFreeProduct? getFreeProductConfig(
+    String triggerProductId,
+    String freeProductId,
+  ) {
+    final offer = getOfferForProduct(triggerProductId);
+    return offer?.freeProducts?.firstWhereOrNull(
+      (freeProduct) => freeProduct.productId == freeProductId,
+    );
+  }
+
+  String freeProductQuantityLabel(
+    String triggerProductId,
+    String freeProductId, {
+    required String fallback,
+  }) {
+    final configuredQuantity = getFreeProductConfig(
+      triggerProductId,
+      freeProductId,
+    )?.quantity?.trim();
+
+    if (configuredQuantity != null && configuredQuantity.isNotEmpty) {
+      return configuredQuantity;
+    }
+
+    final normalizedFallback = fallback.trim();
+    return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
   }
 }

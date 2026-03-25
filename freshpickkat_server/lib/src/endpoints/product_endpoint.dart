@@ -883,13 +883,66 @@ class ProductEndpoint extends Endpoint {
         product.bogoFreeProductIds!.isNotEmpty) {
       // Upsert BOGO offer document
       final docPath = '$database/$bogoCollection/$triggerProductId';
+      final normalizedFreeProductIds = product.bogoFreeProductIds!
+          .map((id) => id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet()
+          .toList();
+      final existingFreeProductQuantities = <String, String?>{};
+
+      try {
+        final existingDoc = await firestore.projects.databases.documents.get(
+          docPath,
+        );
+        if (existingDoc.fields != null) {
+          for (final freeProduct in _parseBogoFreeProducts(
+            existingDoc.fields!,
+          )) {
+            existingFreeProductQuantities[freeProduct.productId] =
+                freeProduct.quantity;
+          }
+        }
+      } catch (_) {
+        // Ignore missing BOGO document; this path also creates new offers.
+      }
+
+      final freeProducts = normalizedFreeProductIds
+          .map(
+            (freeProductId) => BogoFreeProduct(
+              productId: freeProductId,
+              quantity: existingFreeProductQuantities[freeProductId],
+            ),
+          )
+          .toList();
       final fields = {
         'offerId': firestore_api.Value(stringValue: triggerProductId),
         'triggerProductId': firestore_api.Value(stringValue: triggerProductId),
         'freeProductIds': firestore_api.Value(
           arrayValue: firestore_api.ArrayValue(
-            values: product.bogoFreeProductIds!
+            values: normalizedFreeProductIds
                 .map((id) => firestore_api.Value(stringValue: id))
+                .toList(),
+          ),
+        ),
+        'freeProducts': firestore_api.Value(
+          arrayValue: firestore_api.ArrayValue(
+            values: freeProducts
+                .map(
+                  (freeProduct) => firestore_api.Value(
+                    mapValue: firestore_api.MapValue(
+                      fields: {
+                        'productId': firestore_api.Value(
+                          stringValue: freeProduct.productId,
+                        ),
+                        if (freeProduct.quantity != null &&
+                            freeProduct.quantity!.trim().isNotEmpty)
+                          'quantity': firestore_api.Value(
+                            stringValue: freeProduct.quantity!.trim(),
+                          ),
+                      },
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ),
@@ -914,6 +967,22 @@ class ProductEndpoint extends Endpoint {
         // Ignore if document not found
       }
     }
+  }
+
+  List<BogoFreeProduct> _parseBogoFreeProducts(
+    Map<String, firestore_api.Value> fields,
+  ) {
+    return fields['freeProducts']?.arrayValue?.values
+            ?.map((value) => value.mapValue?.fields ?? const {})
+            .map(
+              (itemFields) => BogoFreeProduct(
+                productId: itemFields['productId']?.stringValue ?? '',
+                quantity: itemFields['quantity']?.stringValue,
+              ),
+            )
+            .where((freeProduct) => freeProduct.productId.trim().isNotEmpty)
+            .toList() ??
+        const <BogoFreeProduct>[];
   }
 
   /// Seed all products with random test data (mostSearch & mostPurchases)

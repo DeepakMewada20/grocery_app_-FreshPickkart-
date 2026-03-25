@@ -3,6 +3,7 @@ fields:
   offerId: String?
   triggerProductId: String
   freeProductIds: List<String>
+  freeProducts: List<BogoFreeProduct>?
   offerTitle: String
   isActive: bool
   createdAt: DateTime

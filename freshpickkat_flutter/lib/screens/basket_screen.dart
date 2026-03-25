@@ -142,6 +142,13 @@ class BasketScreen extends StatelessWidget {
                     (p) => p.productId == item.bogoFreeProductId,
                   )
             : null;
+        final freeProductQuantity = freeProduct == null
+            ? null
+            : bogoController.freeProductQuantityLabel(
+                item.product.productId ?? '',
+                freeProduct.productId ?? '',
+                fallback: freeProduct.quantity,
+              );
 
         return Column(
           children: [
@@ -301,7 +308,7 @@ class BasketScreen extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '${freeProduct.quantity} x ${item.quantity}',
+                                    '${freeProductQuantity ?? freeProduct.quantity} x ${item.quantity}',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: cs.onSurface.withValues(

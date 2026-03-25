@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_detail_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
@@ -119,6 +120,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (selectedId == null) return null;
     return _productProviderController.allProducts.firstWhereOrNull(
       (item) => item.productId == selectedId,
+    );
+  }
+
+  String _selectedBogoFreeQuantity(
+    Product triggerProduct,
+    Product freeProduct,
+  ) {
+    return BogoController.instance.freeProductQuantityLabel(
+      triggerProduct.productId ?? '',
+      freeProduct.productId ?? '',
+      fallback: freeProduct.quantity,
     );
   }
 
@@ -358,7 +370,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            selectedFreeProduct.quantity,
+                                            _selectedBogoFreeQuantity(
+                                              product,
+                                              selectedFreeProduct,
+                                            ),
                                             style: TextStyle(
                                               color: cs.onSurface.withValues(
                                                 alpha: 0.68,

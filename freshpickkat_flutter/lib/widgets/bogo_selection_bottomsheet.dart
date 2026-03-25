@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
@@ -18,6 +19,7 @@ class BogoSelectionBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productController = ProductProviderController.instance;
+    final bogoController = BogoController.instance;
     final cartController = CartController.instance;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -120,6 +122,12 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                     final product = eligibleProducts[index];
                     final isSelected =
                         product.productId == selectedFreeProductId;
+                    final displayQuantity = bogoController
+                        .freeProductQuantityLabel(
+                          triggerProductId,
+                          product.productId ?? '',
+                          fallback: product.quantity,
+                        );
 
                     return Container(
                       padding: const EdgeInsets.all(12),
@@ -181,7 +189,7 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  product.quantity,
+                                  displayQuantity,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(

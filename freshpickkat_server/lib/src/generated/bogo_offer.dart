@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:freshpickkat_server/src/generated/protocol.dart' as _i2;
+import 'bogo_free_product.dart' as _i2;
+import 'package:freshpickkat_server/src/generated/protocol.dart' as _i3;
 
 abstract class BogoOffer
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -19,6 +20,7 @@ abstract class BogoOffer
     this.offerId,
     required this.triggerProductId,
     required this.freeProductIds,
+    this.freeProducts,
     required this.offerTitle,
     required this.isActive,
     required this.createdAt,
@@ -28,6 +30,7 @@ abstract class BogoOffer
     String? offerId,
     required String triggerProductId,
     required List<String> freeProductIds,
+    List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
     required bool isActive,
     required DateTime createdAt,
@@ -37,9 +40,14 @@ abstract class BogoOffer
     return BogoOffer(
       offerId: jsonSerialization['offerId'] as String?,
       triggerProductId: jsonSerialization['triggerProductId'] as String,
-      freeProductIds: _i2.Protocol().deserialize<List<String>>(
+      freeProductIds: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['freeProductIds'],
       ),
+      freeProducts: jsonSerialization['freeProducts'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<_i2.BogoFreeProduct>>(
+              jsonSerialization['freeProducts'],
+            ),
       offerTitle: jsonSerialization['offerTitle'] as String,
       isActive: jsonSerialization['isActive'] as bool,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -54,6 +62,8 @@ abstract class BogoOffer
 
   List<String> freeProductIds;
 
+  List<_i2.BogoFreeProduct>? freeProducts;
+
   String offerTitle;
 
   bool isActive;
@@ -67,6 +77,7 @@ abstract class BogoOffer
     String? offerId,
     String? triggerProductId,
     List<String>? freeProductIds,
+    List<_i2.BogoFreeProduct>? freeProducts,
     String? offerTitle,
     bool? isActive,
     DateTime? createdAt,
@@ -78,6 +89,8 @@ abstract class BogoOffer
       if (offerId != null) 'offerId': offerId,
       'triggerProductId': triggerProductId,
       'freeProductIds': freeProductIds.toJson(),
+      if (freeProducts != null)
+        'freeProducts': freeProducts?.toJson(valueToJson: (v) => v.toJson()),
       'offerTitle': offerTitle,
       'isActive': isActive,
       'createdAt': createdAt.toJson(),
@@ -91,6 +104,10 @@ abstract class BogoOffer
       if (offerId != null) 'offerId': offerId,
       'triggerProductId': triggerProductId,
       'freeProductIds': freeProductIds.toJson(),
+      if (freeProducts != null)
+        'freeProducts': freeProducts?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
       'offerTitle': offerTitle,
       'isActive': isActive,
       'createdAt': createdAt.toJson(),
@@ -110,6 +127,7 @@ class _BogoOfferImpl extends BogoOffer {
     String? offerId,
     required String triggerProductId,
     required List<String> freeProductIds,
+    List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
     required bool isActive,
     required DateTime createdAt,
@@ -117,6 +135,7 @@ class _BogoOfferImpl extends BogoOffer {
          offerId: offerId,
          triggerProductId: triggerProductId,
          freeProductIds: freeProductIds,
+         freeProducts: freeProducts,
          offerTitle: offerTitle,
          isActive: isActive,
          createdAt: createdAt,
@@ -130,6 +149,7 @@ class _BogoOfferImpl extends BogoOffer {
     Object? offerId = _Undefined,
     String? triggerProductId,
     List<String>? freeProductIds,
+    Object? freeProducts = _Undefined,
     String? offerTitle,
     bool? isActive,
     DateTime? createdAt,
@@ -139,6 +159,9 @@ class _BogoOfferImpl extends BogoOffer {
       triggerProductId: triggerProductId ?? this.triggerProductId,
       freeProductIds:
           freeProductIds ?? this.freeProductIds.map((e0) => e0).toList(),
+      freeProducts: freeProducts is List<_i2.BogoFreeProduct>?
+          ? freeProducts
+          : this.freeProducts?.map((e0) => e0.copyWith()).toList(),
       offerTitle: offerTitle ?? this.offerTitle,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,

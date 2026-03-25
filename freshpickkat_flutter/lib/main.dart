@@ -10,6 +10,7 @@ import 'package:freshpickkat_flutter/screens/checkout_screen.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_cart_suggestion_banner.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -54,6 +55,15 @@ class MyApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme(),
         themeMode: themeController.themeMode,
         home: const ModernSplashScreen(),
+        builder: (context, child) {
+          if (child == null) return const SizedBox.shrink();
+          return Stack(
+            children: [
+              child,
+              const BogoCartSuggestionBanner(),
+            ],
+          );
+        },
         routes: {
           '/address': (context) => const AddressScreen(),
           '/checkout': (context) => const CheckoutScreen(),

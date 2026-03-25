@@ -4,9 +4,19 @@ import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
+class BogoProductSelection {
+  final Product product;
+  final String freeQuantity;
+
+  const BogoProductSelection({
+    required this.product,
+    required this.freeQuantity,
+  });
+}
+
 class BogoProductPickerScreen extends StatefulWidget {
   final String? initialCategory;
-  final List<Product> initiallySelectedProducts;
+  final List<BogoProductSelection> initiallySelectedProducts;
 
   const BogoProductPickerScreen({
     super.key,
@@ -22,7 +32,9 @@ class BogoProductPickerScreen extends StatefulWidget {
 class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
   final _client = ServerpodAdminClient().client;
   final _searchCtrl = TextEditingController();
+  final _searchFocusNode = FocusNode();
   final _selectedProductsById = <String, Product>{};
+  final _selectedFreeQuantitiesById = <String, String>{};
 
   List<Product> _categoryProducts = [];
   bool _isLoading = false;
@@ -32,10 +44,15 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
   @override
   void initState() {
     super.initState();
-    for (final product in widget.initiallySelectedProducts) {
+    for (final selection in widget.initiallySelectedProducts) {
+      final product = selection.product;
       final id = product.productId;
       if (id != null) {
         _selectedProductsById[id] = product;
+        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantity(
+          selection.freeQuantity,
+          fallback: product.quantity,
+        );
       }
     }
     _selectedCategory = widget.initialCategory;
@@ -47,6 +64,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -104,10 +122,45 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     setState(() {
       if (_selectedProductsById.containsKey(id)) {
         _selectedProductsById.remove(id);
+        _selectedFreeQuantitiesById.remove(id);
       } else {
         _selectedProductsById[id] = product;
+        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantity(
+          _selectedFreeQuantitiesById[id],
+          fallback: product.quantity,
+        );
       }
     });
+  }
+
+  void _updateFreeQuantity(Product product, String quantity) {
+    final id = product.productId;
+    if (id == null) return;
+
+    setState(() {
+      _selectedFreeQuantitiesById[id] = quantity;
+    });
+  }
+
+  String _normalizeFreeQuantity(String? value, {required String fallback}) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isNotEmpty) return normalized;
+
+    final normalizedFallback = fallback.trim();
+    return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
+  }
+
+  List<BogoProductSelection> _buildSelections() {
+    return _selectedProductsById.entries.map((entry) {
+      final product = entry.value;
+      return BogoProductSelection(
+        product: product,
+        freeQuantity: _normalizeFreeQuantity(
+          _selectedFreeQuantitiesById[entry.key],
+          fallback: product.quantity,
+        ),
+      );
+    }).toList();
   }
 
   @override
@@ -117,6 +170,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
             .map((category) => category.categoryName)
             .toList()
           ..sort();
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final isKeyboardOpen = keyboardInset > 0;
 
     final query = _searchCtrl.text.toLowerCase().trim();
     final filteredProducts = _categoryProducts.where((product) {
@@ -129,6 +184,78 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 680;
+        final headerContent = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isNarrow)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildCategoryDropdown(categories),
+                  const SizedBox(height: 12),
+                  FilledButton.tonalIcon(
+                    onPressed: _selectedCategory == null
+                        ? null
+                        : () => _loadProductsForCategory(_selectedCategory!),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(child: _buildCategoryDropdown(categories)),
+                  const SizedBox(width: 12),
+                  FilledButton.tonalIcon(
+                    onPressed: _selectedCategory == null
+                        ? null
+                        : () => _loadProductsForCategory(_selectedCategory!),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _searchCtrl,
+              focusNode: _searchFocusNode,
+              decoration: InputDecoration(
+                hintText: 'Search within selected category...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchCtrl.text.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.close),
+                      ),
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            _SelectedProductsSummary(
+              selectedProducts: _buildSelections(),
+              onRemove: (id) {
+                setState(() {
+                  _selectedProductsById.remove(id);
+                  _selectedFreeQuantitiesById.remove(id);
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _selectedCategory == null
+                  ? 'Select a category to load products'
+                  : 'Products in $_selectedCategory (${filteredProducts.length})',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ],
+        );
 
         return Scaffold(
           appBar: AppBar(
@@ -141,10 +268,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                 ),
                 child: FilledButton.icon(
                   onPressed: () {
-                    Navigator.pop(
-                      context,
-                      _selectedProductsById.values.toList(),
-                    );
+                    Navigator.pop(context, _buildSelections());
                   },
                   icon: const Icon(Icons.check),
                   label: Text('Use (${_selectedProductsById.length})'),
@@ -152,83 +276,40 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isNarrow)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, bodyConstraints) {
+                final header = ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: isKeyboardOpen
+                        ? bodyConstraints.maxHeight * 0.42
+                        : bodyConstraints.maxHeight,
+                  ),
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.manual,
+                    child: headerContent,
+                  ),
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCategoryDropdown(categories),
+                      header,
                       const SizedBox(height: 12),
-                      FilledButton.tonalIcon(
-                        onPressed: _selectedCategory == null
-                            ? null
-                            : () =>
-                                  _loadProductsForCategory(_selectedCategory!),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Refresh'),
-                      ),
-                    ],
-                  )
-                else
-                  Row(
-                    children: [
-                      Expanded(child: _buildCategoryDropdown(categories)),
-                      const SizedBox(width: 12),
-                      FilledButton.tonalIcon(
-                        onPressed: _selectedCategory == null
-                            ? null
-                            : () =>
-                                  _loadProductsForCategory(_selectedCategory!),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Refresh'),
+                      Expanded(
+                        child: _buildContent(
+                          filteredProducts,
+                          isNarrow,
+                          bottomPadding: isKeyboardOpen ? 24 : 0,
+                        ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _searchCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Search within selected category...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchCtrl.text.isEmpty
-                        ? null
-                        : IconButton(
-                            onPressed: () {
-                              _searchCtrl.clear();
-                              setState(() {});
-                            },
-                            icon: const Icon(Icons.close),
-                          ),
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: 16),
-                _SelectedProductsSummary(
-                  selectedProducts: _selectedProductsById.values.toList(),
-                  onRemove: (id) {
-                    setState(() {
-                      _selectedProductsById.remove(id);
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _selectedCategory == null
-                      ? 'Select a category to load products'
-                      : 'Products in $_selectedCategory (${filteredProducts.length})',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(child: _buildContent(filteredProducts, isNarrow)),
-              ],
+                );
+              },
             ),
           ),
         );
@@ -261,7 +342,11 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     );
   }
 
-  Widget _buildContent(List<Product> filteredProducts, bool isNarrow) {
+  Widget _buildContent(
+    List<Product> filteredProducts,
+    bool isNarrow, {
+    double bottomPadding = 0,
+  }) {
     if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
       return const Center(
         child: Text('Select category first to browse products.'),
@@ -300,6 +385,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
 
     if (isNarrow) {
       return ListView.separated(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+        padding: EdgeInsets.only(bottom: bottomPadding),
         itemCount: filteredProducts.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
@@ -310,15 +397,25 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                 product.productId != null &&
                 _selectedProductsById.containsKey(product.productId),
             onTap: () => _toggleSelection(product),
+            freeQuantity: product.productId == null
+                ? product.quantity
+                : _normalizeFreeQuantity(
+                    _selectedFreeQuantitiesById[product.productId],
+                    fallback: product.quantity,
+                  ),
+            onFreeQuantityChanged: (value) =>
+                _updateFreeQuantity(product, value),
           );
         },
       );
     }
 
     return GridView.builder(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+      padding: EdgeInsets.only(bottom: bottomPadding),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 280,
-        mainAxisExtent: 136,
+        mainAxisExtent: 214,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -331,6 +428,13 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
               product.productId != null &&
               _selectedProductsById.containsKey(product.productId),
           onTap: () => _toggleSelection(product),
+          freeQuantity: product.productId == null
+              ? product.quantity
+              : _normalizeFreeQuantity(
+                  _selectedFreeQuantitiesById[product.productId],
+                  fallback: product.quantity,
+                ),
+          onFreeQuantityChanged: (value) => _updateFreeQuantity(product, value),
         );
       },
     );
@@ -341,11 +445,15 @@ class _ProductSelectionTile extends StatelessWidget {
   final Product product;
   final bool isSelected;
   final VoidCallback onTap;
+  final String freeQuantity;
+  final ValueChanged<String> onFreeQuantityChanged;
 
   const _ProductSelectionTile({
     required this.product,
     required this.isSelected,
     required this.onTap,
+    required this.freeQuantity,
+    required this.onFreeQuantityChanged,
   });
 
   @override
@@ -363,54 +471,78 @@ class _ProductSelectionTile extends StatelessWidget {
           ),
           color: isSelected ? Colors.green.shade50 : Colors.white,
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 64,
-                height: 64,
-                color: Colors.grey.shade100,
-                child: product.imageUrl.isEmpty
-                    ? const Icon(Icons.image_not_supported_outlined)
-                    : Image.network(
-                        product.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.broken_image_outlined);
-                        },
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    color: Colors.grey.shade100,
+                    child: product.imageUrl.isEmpty
+                        ? const Icon(Icons.image_not_supported_outlined)
+                        : Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.broken_image_outlined);
+                            },
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.productName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-              ),
+                      const SizedBox(height: 4),
+                      Text(
+                        product.quantity,
+                        style: TextStyle(color: Colors.grey.shade700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '₹${product.price.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Checkbox(value: isSelected, onChanged: (_) => onTap()),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+            if (isSelected) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                key: ValueKey(
+                  'picker_free_quantity_${product.productId ?? ''}',
+                ),
+                initialValue: freeQuantity,
+                onChanged: onFreeQuantityChanged,
+                decoration: InputDecoration(
+                  labelText: 'Free quantity',
+                  hintText: 'e.g. 500gm',
+                  helperText: 'Pack: ${product.quantity}',
+                  prefixIcon: const Icon(Icons.scale_rounded),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.quantity,
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '₹${product.price.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            Checkbox(value: isSelected, onChanged: (_) => onTap()),
+            ],
           ],
         ),
       ),
@@ -419,7 +551,7 @@ class _ProductSelectionTile extends StatelessWidget {
 }
 
 class _SelectedProductsSummary extends StatelessWidget {
-  final List<Product> selectedProducts;
+  final List<BogoProductSelection> selectedProducts;
   final ValueChanged<String> onRemove;
 
   const _SelectedProductsSummary({
@@ -454,14 +586,14 @@ class _SelectedProductsSummary extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 116,
+          height: 128,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: selectedProducts.length,
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final product = selectedProducts[index];
-              final productId = product.productId;
+              final productId = product.product.productId;
 
               return Container(
                 width: 250,
@@ -479,10 +611,10 @@ class _SelectedProductsSummary extends StatelessWidget {
                         width: 56,
                         height: 56,
                         color: Colors.grey.shade100,
-                        child: product.imageUrl.isEmpty
+                        child: product.product.imageUrl.isEmpty
                             ? const Icon(Icons.image_outlined)
                             : Image.network(
-                                product.imageUrl,
+                                product.product.imageUrl,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Icon(
@@ -500,17 +632,27 @@ class _SelectedProductsSummary extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            product.productName,
+                            product.product.productName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            product.quantity,
+                            'Pack: ${product.product.quantity}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Free: ${product.freeQuantity}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),

@@ -76,6 +76,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     var discountType = 'percentage'; // Default type
     final bogoFreeProductIds = <String>{}; // Selected free products
     final selectedBogoProducts = <String, Product>{};
+    final bogoFreeProductQuantities = <String, String>{};
     var isAvailable = true;
     var isUploadingImage = false;
     String? imageError;
@@ -471,41 +472,41 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         final result =
                                             await Navigator.of(
                                               context,
-                                            ).push<List<Product>>(
+                                            ).push<List<BogoProductSelection>>(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    BogoProductPickerScreen(
-                                                      initialCategory:
-                                                          selectedCategory,
-                                                      initiallySelectedProducts:
-                                                          selectedBogoProducts
-                                                              .values
-                                                              .toList(),
-                                                    ),
+                                                builder: (_) => BogoProductPickerScreen(
+                                                  initialCategory:
+                                                      selectedCategory,
+                                                  initiallySelectedProducts:
+                                                      selectedBogoProducts
+                                                          .values
+                                                          .map(
+                                                            (
+                                                              product,
+                                                            ) => BogoProductSelection(
+                                                              product: product,
+                                                              freeQuantity:
+                                                                  bogoFreeProductQuantities[product
+                                                                      .productId!] ??
+                                                                  product
+                                                                      .quantity,
+                                                            ),
+                                                          )
+                                                          .toList(),
+                                                ),
                                               ),
                                             );
 
                                         if (result == null) return;
                                         setDialogState(() {
-                                          selectedBogoProducts
-                                            ..clear()
-                                            ..addEntries(
-                                              result
-                                                  .where(
-                                                    (product) =>
-                                                        product.productId !=
-                                                        null,
-                                                  )
-                                                  .map(
-                                                    (product) => MapEntry(
-                                                      product.productId!,
-                                                      product,
-                                                    ),
-                                                  ),
-                                            );
-                                          bogoFreeProductIds
-                                            ..clear()
-                                            ..addAll(selectedBogoProducts.keys);
+                                          _syncBogoSelectionState(
+                                            selections: result,
+                                            selectedIds: bogoFreeProductIds,
+                                            resolvedProducts:
+                                                selectedBogoProducts,
+                                            freeProductQuantities:
+                                                bogoFreeProductQuantities,
+                                          );
                                         });
                                       },
                                       onRemove: (productId) {
@@ -514,8 +515,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                           selectedBogoProducts.remove(
                                             productId,
                                           );
+                                          bogoFreeProductQuantities.remove(
+                                            productId,
+                                          );
                                         });
                                       },
+                                      freeProductQuantities:
+                                          bogoFreeProductQuantities,
                                     ),
                                   ],
                                 ],
@@ -621,7 +627,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
 
     try {
-      await _productController.addProduct(product);
+      final productId = await _productController.addProduct(product);
+      if (discountType == 'bogo' &&
+          productId != null &&
+          bogoFreeProductIds.isNotEmpty) {
+        await _saveBogoOfferConfiguration(
+          triggerProductId: productId,
+          freeProductIds: bogoFreeProductIds,
+          resolvedProducts: selectedBogoProducts,
+          freeProductQuantities: bogoFreeProductQuantities,
+        );
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -652,6 +668,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     var discountType = product.discountType ?? 'percentage';
     final bogoFreeProductIds = <String>{};
     final selectedBogoProducts = <String, Product>{};
+    final bogoFreeProductQuantities = <String, String>{};
     var isAvailable = product.isAvailable;
 
     // Fetch BOGO offer
@@ -661,6 +678,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
             .getOfferForProduct(product.productId!);
         if (offer != null) {
           bogoFreeProductIds.addAll(offer.freeProductIds);
+          for (final freeProduct in offer.freeProducts ?? const []) {
+            if (freeProduct.productId.trim().isEmpty) continue;
+            bogoFreeProductQuantities[freeProduct.productId] =
+                freeProduct.quantity?.trim() ?? '';
+          }
         }
       } catch (e) {
         debugPrint('Error fetching BOGO offer: $e');
@@ -672,6 +694,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
           preferredCategory: product.category,
         );
         selectedBogoProducts.addAll(resolvedProducts);
+        for (final entry in selectedBogoProducts.entries) {
+          bogoFreeProductQuantities[entry.key] = _normalizeBogoFreeQuantity(
+            bogoFreeProductQuantities[entry.key],
+            fallback: entry.value.quantity,
+          );
+        }
       }
     }
 
@@ -1071,41 +1099,41 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         final result =
                                             await Navigator.of(
                                               context,
-                                            ).push<List<Product>>(
+                                            ).push<List<BogoProductSelection>>(
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    BogoProductPickerScreen(
-                                                      initialCategory:
-                                                          selectedCategory,
-                                                      initiallySelectedProducts:
-                                                          selectedBogoProducts
-                                                              .values
-                                                              .toList(),
-                                                    ),
+                                                builder: (_) => BogoProductPickerScreen(
+                                                  initialCategory:
+                                                      selectedCategory,
+                                                  initiallySelectedProducts:
+                                                      selectedBogoProducts
+                                                          .values
+                                                          .map(
+                                                            (
+                                                              product,
+                                                            ) => BogoProductSelection(
+                                                              product: product,
+                                                              freeQuantity:
+                                                                  bogoFreeProductQuantities[product
+                                                                      .productId!] ??
+                                                                  product
+                                                                      .quantity,
+                                                            ),
+                                                          )
+                                                          .toList(),
+                                                ),
                                               ),
                                             );
 
                                         if (result == null) return;
                                         setDialogState(() {
-                                          selectedBogoProducts
-                                            ..clear()
-                                            ..addEntries(
-                                              result
-                                                  .where(
-                                                    (product) =>
-                                                        product.productId !=
-                                                        null,
-                                                  )
-                                                  .map(
-                                                    (product) => MapEntry(
-                                                      product.productId!,
-                                                      product,
-                                                    ),
-                                                  ),
-                                            );
-                                          bogoFreeProductIds
-                                            ..clear()
-                                            ..addAll(selectedBogoProducts.keys);
+                                          _syncBogoSelectionState(
+                                            selections: result,
+                                            selectedIds: bogoFreeProductIds,
+                                            resolvedProducts:
+                                                selectedBogoProducts,
+                                            freeProductQuantities:
+                                                bogoFreeProductQuantities,
+                                          );
                                         });
                                       },
                                       onRemove: (productId) {
@@ -1114,8 +1142,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                           selectedBogoProducts.remove(
                                             productId,
                                           );
+                                          bogoFreeProductQuantities.remove(
+                                            productId,
+                                          );
                                         });
                                       },
+                                      freeProductQuantities:
+                                          bogoFreeProductQuantities,
                                     ),
                                   ],
                                 ],
@@ -1219,6 +1252,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     try {
       await _productController.updateProduct(updated);
+      if (discountType == 'bogo' && bogoFreeProductIds.isNotEmpty) {
+        await _saveBogoOfferConfiguration(
+          triggerProductId: updated.productId!,
+          freeProductIds: bogoFreeProductIds,
+          resolvedProducts: selectedBogoProducts,
+          freeProductQuantities: bogoFreeProductQuantities,
+        );
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -1406,6 +1447,79 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
 
     return resolved;
+  }
+
+  void _syncBogoSelectionState({
+    required List<BogoProductSelection> selections,
+    required Set<String> selectedIds,
+    required Map<String, Product> resolvedProducts,
+    required Map<String, String> freeProductQuantities,
+  }) {
+    final nextProducts = <String, Product>{};
+    for (final selection in selections) {
+      final product = selection.product;
+      final productId = product.productId;
+      if (productId == null || productId.trim().isEmpty) continue;
+      nextProducts[productId] = product;
+      freeProductQuantities[productId] = _normalizeBogoFreeQuantity(
+        selection.freeQuantity,
+        fallback: product.quantity,
+      );
+    }
+
+    resolvedProducts
+      ..clear()
+      ..addAll(nextProducts);
+    selectedIds
+      ..clear()
+      ..addAll(nextProducts.keys);
+    freeProductQuantities.removeWhere(
+      (productId, _) => !nextProducts.containsKey(productId),
+    );
+  }
+
+  String _normalizeBogoFreeQuantity(String? value, {required String fallback}) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isNotEmpty) return normalized;
+
+    final normalizedFallback = fallback.trim();
+    return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
+  }
+
+  Future<void> _saveBogoOfferConfiguration({
+    required String triggerProductId,
+    required Set<String> freeProductIds,
+    required Map<String, Product> resolvedProducts,
+    required Map<String, String> freeProductQuantities,
+  }) async {
+    final configuredFreeProducts = freeProductIds
+        .map((productId) {
+          final fallbackQuantity = resolvedProducts[productId]?.quantity ?? '';
+          return BogoFreeProduct(
+            productId: productId,
+            quantity: _normalizeBogoFreeQuantity(
+              freeProductQuantities[productId],
+              fallback: fallbackQuantity,
+            ),
+          );
+        })
+        .where((freeProduct) => freeProduct.productId.trim().isNotEmpty)
+        .toList();
+
+    if (configuredFreeProducts.isEmpty) return;
+
+    await ServerpodAdminClient().client.bogo.upsertOffer(
+      BogoOffer(
+        triggerProductId: triggerProductId,
+        freeProductIds: configuredFreeProducts
+            .map((freeProduct) => freeProduct.productId)
+            .toList(),
+        freeProducts: configuredFreeProducts,
+        offerTitle: 'Buy 1 Get 1 Free',
+        isActive: true,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   List<Product> _visibleProducts() {
@@ -1703,6 +1817,7 @@ class _BogoSelectorWidget extends StatelessWidget {
   final bool canBrowse;
   final Future<void> Function() onBrowsePressed;
   final ValueChanged<String> onRemove;
+  final Map<String, String> freeProductQuantities;
 
   const _BogoSelectorWidget({
     required this.selectedProducts,
@@ -1710,6 +1825,7 @@ class _BogoSelectorWidget extends StatelessWidget {
     required this.canBrowse,
     required this.onBrowsePressed,
     required this.onRemove,
+    required this.freeProductQuantities,
   });
 
   @override
@@ -1762,6 +1878,15 @@ class _BogoSelectorWidget extends StatelessWidget {
             children: [
               ...selectedProducts.map((product) {
                 final productId = product.productId;
+                final normalizedConfiguredQuantity = productId == null
+                    ? null
+                    : freeProductQuantities[productId]?.trim();
+                final freeQuantity = productId == null
+                    ? product.quantity
+                    : (normalizedConfiguredQuantity != null &&
+                          normalizedConfiguredQuantity.isNotEmpty)
+                    ? normalizedConfiguredQuantity
+                    : product.quantity;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(10),
@@ -1770,53 +1895,90 @@ class _BogoSelectorWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          width: 52,
-                          height: 52,
-                          color: Colors.grey.shade100,
-                          child: product.imageUrl.isEmpty
-                              ? const Icon(Icons.image_outlined)
-                              : Image.network(
-                                  product.imageUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.broken_image_outlined,
-                                    );
-                                  },
-                                ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.productName,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: 52,
+                              height: 52,
+                              color: Colors.grey.shade100,
+                              child: product.imageUrl.isEmpty
+                                  ? const Icon(Icons.image_outlined)
+                                  : Image.network(
+                                      product.imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.broken_image_outlined,
+                                            );
+                                          },
+                                    ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${product.category} • ${product.quantity}',
-                              style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.productName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${product.category} • Pack: ${product.quantity}',
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: productId == null
+                                ? null
+                                : () => onRemove(productId),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green.shade100),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.scale_rounded,
+                              size: 18,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Free quantity: $freeQuantity',
+                                style: TextStyle(
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      IconButton(
-                        onPressed: productId == null
-                            ? null
-                            : () => onRemove(productId),
-                        icon: const Icon(Icons.close),
                       ),
                     ],
                   ),

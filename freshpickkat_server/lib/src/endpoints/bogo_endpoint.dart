@@ -99,17 +99,22 @@ class BogoEndpoint extends Endpoint {
     Map<String, firestore_api.Value> fields,
     String docId,
   ) {
+    final freeProducts = _parseFreeProducts(fields);
     final freeProductIdsList =
         fields['freeProductIds']?.arrayValue?.values
             ?.map((v) => v.stringValue ?? '')
             .where((s) => s.isNotEmpty)
             .toList() ??
         [];
+    final normalizedFreeProductIds = freeProducts.isNotEmpty
+        ? freeProducts.map((freeProduct) => freeProduct.productId).toList()
+        : freeProductIdsList;
 
     return protocol.BogoOffer(
       offerId: docId,
       triggerProductId: fields['triggerProductId']?.stringValue ?? docId,
-      freeProductIds: freeProductIdsList,
+      freeProductIds: normalizedFreeProductIds,
+      freeProducts: freeProducts.isEmpty ? null : freeProducts,
       offerTitle: fields['offerTitle']?.stringValue ?? 'Buy 1 Get 1',
       isActive: fields['isActive']?.booleanValue ?? false,
       createdAt:
@@ -121,6 +126,29 @@ class BogoEndpoint extends Endpoint {
   Map<String, firestore_api.Value> _bogoOfferToFirestore(
     protocol.BogoOffer offer,
   ) {
+    final freeProducts =
+        offer.freeProducts
+            ?.where((freeProduct) => freeProduct.productId.trim().isNotEmpty)
+            .map((freeProduct) {
+              final normalizedQuantity = freeProduct.quantity?.trim();
+              return protocol.BogoFreeProduct(
+                productId: freeProduct.productId.trim(),
+                quantity:
+                    normalizedQuantity == null || normalizedQuantity.isEmpty
+                    ? null
+                    : normalizedQuantity,
+              );
+            })
+            .toList() ??
+        [];
+    final freeProductIds = freeProducts.isNotEmpty
+        ? freeProducts.map((freeProduct) => freeProduct.productId).toList()
+        : offer.freeProductIds
+              .map((id) => id.trim())
+              .where((id) => id.isNotEmpty)
+              .toSet()
+              .toList();
+
     return {
       'offerId': firestore_api.Value(stringValue: offer.triggerProductId),
       'triggerProductId': firestore_api.Value(
@@ -128,8 +156,29 @@ class BogoEndpoint extends Endpoint {
       ),
       'freeProductIds': firestore_api.Value(
         arrayValue: firestore_api.ArrayValue(
-          values: offer.freeProductIds
+          values: freeProductIds
               .map((id) => firestore_api.Value(stringValue: id))
+              .toList(),
+        ),
+      ),
+      'freeProducts': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: freeProducts
+              .map(
+                (freeProduct) => firestore_api.Value(
+                  mapValue: firestore_api.MapValue(
+                    fields: {
+                      'productId': firestore_api.Value(
+                        stringValue: freeProduct.productId,
+                      ),
+                      if (freeProduct.quantity != null)
+                        'quantity': firestore_api.Value(
+                          stringValue: freeProduct.quantity!,
+                        ),
+                    },
+                  ),
+                ),
+              )
               .toList(),
         ),
       ),
@@ -139,5 +188,21 @@ class BogoEndpoint extends Endpoint {
         timestampValue: offer.createdAt.toUtc().toIso8601String(),
       ),
     };
+  }
+
+  List<protocol.BogoFreeProduct> _parseFreeProducts(
+    Map<String, firestore_api.Value> fields,
+  ) {
+    return fields['freeProducts']?.arrayValue?.values
+            ?.map((value) => value.mapValue?.fields ?? const {})
+            .map(
+              (itemFields) => protocol.BogoFreeProduct(
+                productId: itemFields['productId']?.stringValue ?? '',
+                quantity: itemFields['quantity']?.stringValue,
+              ),
+            )
+            .where((freeProduct) => freeProduct.productId.trim().isNotEmpty)
+            .toList() ??
+        const <protocol.BogoFreeProduct>[];
   }
 }
