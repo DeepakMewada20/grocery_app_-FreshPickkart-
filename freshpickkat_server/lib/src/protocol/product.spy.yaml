@@ -13,9 +13,12 @@ fields:
     addedAt: DateTime
     subcategory: List<String>
     quantity: String
+    baseUnit: String?
+    baseQuantity: double?
     countryOfOrigin: String?
     searchKeywords: List<String>?
     mostSearch: int
     mostPurchases: int
     bogoFreeProductIds: List<String>?
     variants: List<ProductVariant>?
+

@@ -281,7 +281,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         children: variants
                             .map(
                               (variant) => ChoiceChip(
-                                label: Text(variant.quantity),
+                                label: Text(
+                                  formatQuantityString(
+                                    variant.quantityValue,
+                                    variant.quantityUnit,
+                                  ),
+                                ),
                                 selected:
                                     variant.variantId == _selectedVariantId,
                                 onSelected: (_) {

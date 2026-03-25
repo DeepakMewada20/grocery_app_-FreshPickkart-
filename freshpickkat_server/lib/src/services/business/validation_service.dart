@@ -34,8 +34,13 @@ class ValidationService {
       throw InvalidParametersException('Price values cannot be negative');
     }
     for (final variant in variants) {
-      if (variant.quantity.trim().isEmpty) {
-        throw InvalidParametersException('Variant quantity is required');
+      if (variant.quantityValue <= 0) {
+        throw InvalidParametersException(
+          'Variant quantity must be greater than 0',
+        );
+      }
+      if (variant.quantityUnit.trim().isEmpty) {
+        throw InvalidParametersException('Variant unit is required');
       }
       if (variant.price < 0 || variant.realPrice < 0) {
         throw InvalidParametersException(

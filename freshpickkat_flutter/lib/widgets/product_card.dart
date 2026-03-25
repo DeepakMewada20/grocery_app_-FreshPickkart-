@@ -260,7 +260,10 @@ class _ProductCardState extends State<ProductCard> {
                                     return DropdownMenuItem(
                                       value: variant.variantId,
                                       child: Text(
-                                        variant.quantity,
+                                        formatQuantityString(
+                                          variant.quantityValue,
+                                          variant.quantityUnit,
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     );

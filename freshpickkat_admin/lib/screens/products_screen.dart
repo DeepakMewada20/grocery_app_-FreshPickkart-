@@ -68,14 +68,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     final nameCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
-    final quantityCtrl = TextEditingController(text: '1kg');
+    final quantityValueCtrl = TextEditingController(text: '500');
     final countryOfOriginCtrl = TextEditingController(text: 'India');
     final priceCtrl = TextEditingController();
     final mrpCtrl = TextEditingController();
     final discountCtrl = TextEditingController(text: '0');
     final extraVariants = <_VariantDraft>[];
-    var discountType = 'percentage'; // Default type
-    final bogoFreeProductIds = <String>{}; // Selected free products
+    var discountType = 'percentage';
+    var baseUnit = 'gm';
+    final bogoFreeProductIds = <String>{};
     final selectedBogoProducts = <String, Product>{};
     final bogoFreeProductQuantities = <String, String>{};
     var isAvailable = true;
@@ -293,13 +294,69 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               title: 'Quantity',
                               child: Column(
                                 children: [
-                                  ModernTextField(
-                                    controller: quantityCtrl,
-                                    labelText: 'e.g., 1kg, 500ml',
-                                    validator: (v) =>
-                                        (v == null || v.trim().isEmpty)
-                                        ? 'Required'
-                                        : null,
+                                  CompactFieldRow(
+                                    children: [
+                                      ModernTextField(
+                                        controller: quantityValueCtrl,
+                                        labelText: 'Quantity',
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                        validator: (v) =>
+                                            (v == null || v.trim().isEmpty)
+                                            ? 'Required'
+                                            : null,
+                                      ),
+                                      SizedBox(
+                                        width: 120,
+                                        child: DropdownButtonFormField<String>(
+                                          value: baseUnit,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Unit',
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 8,
+                                                ),
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: const [
+                                            DropdownMenuItem(
+                                              value: 'gm',
+                                              child: Text('gm'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'kg',
+                                              child: Text('kg'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'litre',
+                                              child: Text('litre'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'ml',
+                                              child: Text('ml'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'pc',
+                                              child: Text('pc'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'pack',
+                                              child: Text('pack'),
+                                            ),
+                                          ],
+                                          onChanged: (value) {
+                                            if (value != null) {
+                                              setDialogState(
+                                                () => baseUnit = value,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 12),
                                   ModernTextField(
@@ -442,6 +499,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         ),
                                     ],
                                   ),
+                                  Builder(
+                                    builder: (context) {
+                                      final price =
+                                          double.tryParse(priceCtrl.text) ?? 0;
+                                      final mrp =
+                                          double.tryParse(mrpCtrl.text) ?? 0;
+                                      return _buildDiscountPreview(
+                                        price: price,
+                                        mrp: mrp,
+                                        discountType: discountType,
+                                      );
+                                    },
+                                  ),
                                   if (discountType == 'bogo') ...[
                                     const SizedBox(height: 12),
                                     _BogoSelectorWidget(
@@ -536,7 +606,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 variants: extraVariants,
                                 onAddVariant: () {
                                   setDialogState(() {
-                                    extraVariants.add(_VariantDraft());
+                                    extraVariants.add(
+                                      _VariantDraft(
+                                        baseRealPrice:
+                                            double.tryParse(mrpCtrl.text) ?? 0,
+                                        baseQuantity:
+                                            double.tryParse(
+                                              quantityValueCtrl.text,
+                                            ) ??
+                                            1,
+                                        baseUnit: baseUnit,
+                                      ),
+                                    );
                                   });
                                 },
                                 onRemoveVariant: (draft) {
@@ -546,6 +627,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   draft.dispose();
                                 },
                                 onChanged: () => setDialogState(() {}),
+                                baseRealPrice:
+                                    double.tryParse(mrpCtrl.text) ?? 0,
+                                baseQuantity:
+                                    double.tryParse(quantityValueCtrl.text) ??
+                                    1,
+                                baseUnit: baseUnit,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -647,7 +734,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
       isAvailable: isAvailable,
       addedAt: DateTime.now(),
       subcategory: selectedSubcategories.toList(),
-      quantity: quantityCtrl.text.trim(),
+      quantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+      baseUnit: baseUnit,
+      baseQuantity: double.parse(quantityValueCtrl.text.trim()),
       countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
           ? null
           : countryOfOriginCtrl.text.trim(),
@@ -655,7 +744,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       mostPurchases: 0,
       bogoFreeProductIds: bogoFreeProductIds.toList(),
       variants: _buildVariants(
-        primaryQuantity: quantityCtrl.text.trim(),
+        primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
         primaryPrice: double.parse(priceCtrl.text.trim()),
         primaryMrp: double.parse(mrpCtrl.text.trim()),
         primaryAvailability: isAvailable,
@@ -693,7 +782,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController(text: product.productName);
     final imageCtrl = TextEditingController(text: product.imageUrl);
-    final quantityCtrl = TextEditingController(text: product.quantity);
+    final quantityValueCtrl = TextEditingController(
+      text: (product.baseQuantity ?? _parseQuantityValue(product.quantity))
+          .toString(),
+    );
     final countryOfOriginCtrl = TextEditingController(
       text: product.countryOfOrigin ?? '',
     );
@@ -707,6 +799,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         .map(_VariantDraft.fromVariant)
         .toList();
     var discountType = product.discountType ?? 'percentage';
+    var baseUnit = product.baseUnit ?? _parseQuantityUnit(product.quantity);
     final bogoFreeProductIds = <String>{};
     final selectedBogoProducts = <String, Product>{};
     final bogoFreeProductQuantities = <String, String>{};
@@ -961,13 +1054,105 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               title: 'Quantity',
                               child: Column(
                                 children: [
-                                  ModernTextField(
-                                    controller: quantityCtrl,
-                                    labelText: 'e.g., 1kg, 500ml',
-                                    validator: (v) =>
-                                        (v == null || v.trim().isEmpty)
-                                        ? 'Required'
-                                        : null,
+                                  CompactFieldRow(
+                                    children: [
+                                      ModernTextField(
+                                        controller: quantityValueCtrl,
+                                        labelText: 'Quantity',
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                        validator: (v) =>
+                                            (v == null || v.trim().isEmpty)
+                                            ? 'Required'
+                                            : null,
+                                        onChanged: (_) {
+                                          _recalculateMrpFromQuantity(
+                                            quantityCtrl: quantityValueCtrl,
+                                            newUnit: baseUnit,
+                                            mrpCtrl: mrpCtrl,
+                                            originalMrp: product.realPrice,
+                                            originalQuantity:
+                                                product.baseQuantity ??
+                                                _parseQuantityValue(
+                                                  product.quantity,
+                                                ),
+                                            originalUnit:
+                                                product.baseUnit ??
+                                                _parseQuantityUnit(
+                                                  product.quantity,
+                                                ),
+                                          );
+                                        },
+                                      ),
+                                      SizedBox(
+                                        width: 120,
+                                        child: DropdownButtonFormField<String>(
+                                          value: baseUnit,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Unit',
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 8,
+                                                ),
+                                            border: OutlineInputBorder(),
+                                          ),
+                                          items: const [
+                                            DropdownMenuItem(
+                                              value: 'gm',
+                                              child: Text('gm'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'kg',
+                                              child: Text('kg'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'litre',
+                                              child: Text('litre'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'ml',
+                                              child: Text('ml'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'pc',
+                                              child: Text('pc'),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'pack',
+                                              child: Text('pack'),
+                                            ),
+                                          ],
+                                          onChanged: (value) {
+                                            if (value != null) {
+                                              setDialogState(() {
+                                                baseUnit = value;
+                                                _recalculateMrpFromQuantity(
+                                                  quantityCtrl:
+                                                      quantityValueCtrl,
+                                                  newUnit: baseUnit,
+                                                  mrpCtrl: mrpCtrl,
+                                                  originalMrp:
+                                                      product.realPrice,
+                                                  originalQuantity:
+                                                      product.baseQuantity ??
+                                                      _parseQuantityValue(
+                                                        product.quantity,
+                                                      ),
+                                                  originalUnit:
+                                                      product.baseUnit ??
+                                                      _parseQuantityUnit(
+                                                        product.quantity,
+                                                      ),
+                                                );
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 12),
                                   ModernTextField(
@@ -1109,6 +1294,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         ),
                                     ],
                                   ),
+                                  Builder(
+                                    builder: (context) {
+                                      final price =
+                                          double.tryParse(priceCtrl.text) ?? 0;
+                                      final mrp =
+                                          double.tryParse(mrpCtrl.text) ?? 0;
+                                      return _buildDiscountPreview(
+                                        price: price,
+                                        mrp: mrp,
+                                        discountType: discountType,
+                                      );
+                                    },
+                                  ),
                                   if (discountType == 'bogo') ...[
                                     const SizedBox(height: 12),
                                     _BogoSelectorWidget(
@@ -1203,7 +1401,21 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 variants: extraVariants,
                                 onAddVariant: () {
                                   setDialogState(() {
-                                    extraVariants.add(_VariantDraft());
+                                    extraVariants.add(
+                                      _VariantDraft(
+                                        baseRealPrice: product.realPrice,
+                                        baseQuantity:
+                                            product.baseQuantity ??
+                                            _parseQuantityValue(
+                                              product.quantity,
+                                            ),
+                                        baseUnit:
+                                            product.baseUnit ??
+                                            _parseQuantityUnit(
+                                              product.quantity,
+                                            ),
+                                      ),
+                                    );
                                   });
                                 },
                                 onRemoveVariant: (draft) {
@@ -1213,6 +1425,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   draft.dispose();
                                 },
                                 onChanged: () => setDialogState(() {}),
+                                baseRealPrice: product.realPrice,
+                                baseQuantity:
+                                    product.baseQuantity ??
+                                    _parseQuantityValue(product.quantity),
+                                baseUnit:
+                                    product.baseUnit ??
+                                    _parseQuantityUnit(product.quantity),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -1313,13 +1532,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
       discountValue: double.parse(discountCtrl.text.trim()),
       isAvailable: isAvailable,
       subcategory: selectedSubcategories.toList(),
-      quantity: quantityCtrl.text.trim(),
+      quantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+      baseUnit: baseUnit,
+      baseQuantity: double.parse(quantityValueCtrl.text.trim()),
       countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
           ? null
           : countryOfOriginCtrl.text.trim(),
       bogoFreeProductIds: bogoFreeProductIds.toList(),
       variants: _buildVariants(
-        primaryQuantity: quantityCtrl.text.trim(),
+        primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
         primaryPrice: double.parse(priceCtrl.text.trim()),
         primaryMrp: double.parse(mrpCtrl.text.trim()),
         primaryAvailability: isAvailable,
@@ -1404,8 +1625,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   String? _validateVariantDrafts(List<_VariantDraft> drafts) {
     for (final draft in drafts) {
-      if (draft.quantityCtrl.text.trim().isEmpty) {
+      if (draft.quantityValueCtrl.text.trim().isEmpty) {
         return 'Each variant quantity is required';
+      }
+      if (double.tryParse(draft.quantityValueCtrl.text.trim()) == null) {
+        return 'Each variant quantity must be a valid number';
       }
       if (_numberValidator(draft.priceCtrl.text) != null ||
           _numberValidator(draft.mrpCtrl.text) != null) {
@@ -1425,7 +1649,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
     return [
       ProductVariant(
         variantId: 'default',
-        quantity: primaryQuantity,
+        quantityValue: _parseQuantityValue(primaryQuantity),
+        quantityUnit: _parseQuantityUnit(primaryQuantity),
         price: primaryPrice,
         realPrice: primaryMrp,
         isAvailable: primaryAvailability,
@@ -1436,7 +1661,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
           variantId: entry.value.variantId.trim().isEmpty
               ? 'variant_${entry.key + 1}'
               : entry.value.variantId.trim(),
-          quantity: entry.value.quantityCtrl.text.trim(),
+          quantityValue: double.parse(
+            entry.value.quantityValueCtrl.text.trim(),
+          ),
+          quantityUnit: entry.value.quantityUnit,
           price: double.parse(entry.value.priceCtrl.text.trim()),
           realPrice: double.parse(entry.value.mrpCtrl.text.trim()),
           isAvailable: entry.value.isAvailable,
@@ -1444,6 +1672,98 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
       ),
     ];
+  }
+
+  double _parseQuantityValue(String text) {
+    final match = RegExp(r'^([0-9]+(\.[0-9]+)?)').firstMatch(text.trim());
+    if (match != null) {
+      return double.tryParse(match.group(1)!) ?? 1;
+    }
+    return 1;
+  }
+
+  String _parseQuantityUnit(String text) {
+    final lower = text.toLowerCase().trim();
+    if (lower.contains('kg')) return 'kg';
+    if (lower.contains('litre') || lower.contains('l ')) return 'litre';
+    if (lower.contains('ml')) return 'ml';
+    if (lower.contains('pc') ||
+        lower.contains('piece') ||
+        lower.contains('pcs'))
+      return 'pc';
+    if (lower.contains('pack')) return 'pack';
+    return 'gm';
+  }
+
+  static const Map<String, double> _unitConversions = {
+    'gm': 1.0,
+    'kg': 1000.0,
+    'litre': 1000.0,
+    'ml': 1.0,
+    'pc': 1.0,
+    'pack': 1.0,
+  };
+
+  void _recalculateMrpFromQuantity({
+    required TextEditingController quantityCtrl,
+    required String newUnit,
+    required TextEditingController mrpCtrl,
+    required double originalMrp,
+    required double originalQuantity,
+    required String originalUnit,
+  }) {
+    final newQty = double.tryParse(quantityCtrl.text.trim()) ?? 0;
+    if (newQty <= 0 || originalMrp <= 0) return;
+
+    final originalInBase =
+        originalQuantity * (_unitConversions[originalUnit] ?? 1.0);
+    final newInBase = newQty * (_unitConversions[newUnit] ?? 1.0);
+
+    if (originalInBase <= 0) return;
+
+    final ratio = newInBase / originalInBase;
+    final newMrp = originalMrp * ratio;
+    mrpCtrl.text = newMrp.toStringAsFixed(0);
+  }
+
+  Widget _buildDiscountPreview({
+    required double price,
+    required double mrp,
+    required String? discountType,
+  }) {
+    if (price <= 0 || mrp <= 0 || price >= mrp) {
+      return const SizedBox.shrink();
+    }
+
+    final discount = mrp - price;
+    final discountPercent = (discount / mrp * 100);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.local_offer, size: 14, color: Colors.green.shade700),
+          const SizedBox(width: 6),
+          Text(
+            discountType == 'flat'
+                ? '₹${discount.toStringAsFixed(0)} off'
+                : '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
+            style: TextStyle(
+              color: Colors.green.shade700,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String?> _pickAndUploadProductImage(ImageSource source) async {
@@ -2127,37 +2447,60 @@ class _BogoSelectorWidget extends StatelessWidget {
 
 class _VariantDraft {
   final String variantId;
-  final TextEditingController quantityCtrl;
+  final TextEditingController quantityValueCtrl;
+  String quantityUnit;
   final TextEditingController priceCtrl;
   final TextEditingController mrpCtrl;
   bool isAvailable;
 
+  final double baseRealPrice;
+  final double baseQuantity;
+  final String baseUnit;
+
   _VariantDraft({
     String? variantId,
-    String quantity = '',
+    double quantityValue = 1,
+    String quantityUnit = 'gm',
     String price = '',
     String mrp = '',
     this.isAvailable = true,
+    this.baseRealPrice = 0,
+    this.baseQuantity = 1,
+    this.baseUnit = 'gm',
   }) : variantId = variantId ?? '',
-       quantityCtrl = TextEditingController(text: quantity),
+       quantityValueCtrl = TextEditingController(
+         text: quantityValue.toString(),
+       ),
+       quantityUnit = quantityUnit,
        priceCtrl = TextEditingController(text: price),
        mrpCtrl = TextEditingController(text: mrp);
 
-  factory _VariantDraft.fromVariant(ProductVariant variant) {
+  factory _VariantDraft.fromVariant(
+    ProductVariant variant, {
+    double? baseRealPrice,
+    double? baseQuantity,
+    String? baseUnit,
+  }) {
     return _VariantDraft(
       variantId: variant.variantId,
-      quantity: variant.quantity,
+      quantityValue: variant.quantityValue,
+      quantityUnit: variant.quantityUnit,
       price: variant.price.toString(),
       mrp: variant.realPrice.toString(),
       isAvailable: variant.isAvailable,
+      baseRealPrice: baseRealPrice ?? variant.realPrice,
+      baseQuantity: baseQuantity ?? variant.quantityValue,
+      baseUnit: baseUnit ?? variant.quantityUnit,
     );
   }
 
   void dispose() {
-    quantityCtrl.dispose();
+    quantityValueCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
   }
+
+  String get quantityString => '${quantityValueCtrl.text} $quantityUnit';
 }
 
 class _VariantListEditor extends StatelessWidget {
@@ -2165,12 +2508,18 @@ class _VariantListEditor extends StatelessWidget {
   final VoidCallback onAddVariant;
   final ValueChanged<_VariantDraft> onRemoveVariant;
   final VoidCallback onChanged;
+  final double baseRealPrice;
+  final double baseQuantity;
+  final String baseUnit;
 
   const _VariantListEditor({
     required this.variants,
     required this.onAddVariant,
     required this.onRemoveVariant,
     required this.onChanged,
+    required this.baseRealPrice,
+    required this.baseQuantity,
+    required this.baseUnit,
   });
 
   @override
@@ -2197,71 +2546,11 @@ class _VariantListEditor extends StatelessWidget {
         else
           Column(
             children: variants.map((draft) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'Variant',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => onRemoveVariant(draft),
-                          icon: const Icon(Icons.delete_outline),
-                        ),
-                      ],
-                    ),
-                    ModernTextField(
-                      controller: draft.quantityCtrl,
-                      labelText: 'Quantity',
-                      hintText: 'e.g. 500 gm, 1 kg, 2 kg',
-                      onChanged: (_) => onChanged(),
-                    ),
-                    const SizedBox(height: 12),
-                    CompactFieldRow(
-                      children: [
-                        ModernTextField(
-                          controller: draft.priceCtrl,
-                          labelText: 'Price',
-                          prefixText: '₹ ',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          onChanged: (_) => onChanged(),
-                        ),
-                        ModernTextField(
-                          controller: draft.mrpCtrl,
-                          labelText: 'MRP',
-                          prefixText: '₹ ',
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          onChanged: (_) => onChanged(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SwitchListTile(
-                      value: draft.isAvailable,
-                      onChanged: (value) {
-                        draft.isAvailable = value;
-                        onChanged();
-                      },
-                      title: const Text('Available'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
+              return _VariantItemEditor(
+                key: ValueKey(draft.variantId),
+                draft: draft,
+                onRemove: () => onRemoveVariant(draft),
+                onChanged: onChanged,
               );
             }).toList(),
           ),
@@ -2274,6 +2563,200 @@ class _VariantListEditor extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _VariantItemEditor extends StatefulWidget {
+  final _VariantDraft draft;
+  final VoidCallback onRemove;
+  final VoidCallback onChanged;
+
+  const _VariantItemEditor({
+    super.key,
+    required this.draft,
+    required this.onRemove,
+    required this.onChanged,
+  });
+
+  @override
+  State<_VariantItemEditor> createState() => _VariantItemEditorState();
+}
+
+class _VariantItemEditorState extends State<_VariantItemEditor> {
+  late String _unit;
+
+  static const List<String> _units = ['gm', 'kg', 'litre', 'ml', 'pc', 'pack'];
+
+  static const Map<String, double> _unitConversions = {
+    'gm': 1.0,
+    'kg': 1000.0,
+    'litre': 1000.0,
+    'ml': 1.0,
+    'pc': 1.0,
+    'pack': 1.0,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _unit = widget.draft.quantityUnit;
+  }
+
+  void _recalculateMrp() {
+    final newQty =
+        double.tryParse(widget.draft.quantityValueCtrl.text.trim()) ?? 0;
+    if (newQty <= 0 || widget.draft.baseRealPrice <= 0) return;
+
+    final originalInBase =
+        widget.draft.baseQuantity *
+        (_unitConversions[widget.draft.baseUnit] ?? 1.0);
+    final newInBase = newQty * (_unitConversions[_unit] ?? 1.0);
+
+    if (originalInBase <= 0) return;
+
+    final ratio = newInBase / originalInBase;
+    final newMrp = widget.draft.baseRealPrice * ratio;
+    widget.draft.mrpCtrl.text = newMrp.toStringAsFixed(0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final price = double.tryParse(widget.draft.priceCtrl.text) ?? 0;
+    final mrp = double.tryParse(widget.draft.mrpCtrl.text) ?? 0;
+    final hasDiscount = price > 0 && mrp > 0 && price < mrp;
+    final discount = mrp - price;
+    final discountPercent = hasDiscount ? (discount / mrp * 100) : 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Variant',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              IconButton(
+                onPressed: widget.onRemove,
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ],
+          ),
+          CompactFieldRow(
+            children: [
+              ModernTextField(
+                controller: widget.draft.quantityValueCtrl,
+                labelText: 'Quantity',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (_) {
+                  _recalculateMrp();
+                  widget.onChanged();
+                },
+              ),
+              SizedBox(
+                width: 100,
+                child: DropdownButtonFormField<String>(
+                  value: _unit,
+                  decoration: const InputDecoration(
+                    labelText: 'Unit',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: _units
+                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _unit = value);
+                      widget.draft.quantityUnit = value;
+                      _recalculateMrp();
+                      widget.onChanged();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          CompactFieldRow(
+            children: [
+              ModernTextField(
+                controller: widget.draft.priceCtrl,
+                labelText: 'Selling Price',
+                prefixText: '₹ ',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (_) => widget.onChanged(),
+              ),
+              ModernTextField(
+                controller: widget.draft.mrpCtrl,
+                labelText: 'MRP',
+                prefixText: '₹ ',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (_) => widget.onChanged(),
+              ),
+            ],
+          ),
+          if (hasDiscount) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.local_offer,
+                    size: 14,
+                    color: Colors.green.shade700,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          SwitchListTile(
+            value: widget.draft.isAvailable,
+            onChanged: (value) {
+              widget.draft.isAvailable = value;
+              widget.onChanged();
+            },
+            title: const Text('Available'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
     );
   }
 }

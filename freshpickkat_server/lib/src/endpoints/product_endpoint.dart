@@ -864,7 +864,11 @@ class ProductEndpoint extends Endpoint {
           DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
           DateTime.now(),
       subcategory: _stringListField(fields['subcategory']),
-      quantity: fields['quantity']?.stringValue ?? primaryVariant.quantity,
+      quantity:
+          fields['quantity']?.stringValue ??
+          primaryVariant.quantityValue.toString(),
+      baseUnit: fields['baseUnit']?.stringValue,
+      baseQuantity: _getDoubleValueOrNull(fields, 'baseQuantity'),
       countryOfOrigin: fields['countryOfOrigin']?.stringValue,
       searchKeywords: _stringListField(fields['searchKeywords']),
       mostSearch: int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
@@ -879,6 +883,11 @@ class ProductEndpoint extends Endpoint {
 
   List<ProductVariant> _readVariants(Map<String, firestore_api.Value> fields) {
     final rawVariants = fields['variants']?.arrayValue?.values ?? const [];
+    final baseUnit = fields['baseUnit']?.stringValue ?? 'gm';
+    final baseQuantity = _getDoubleValue(fields, 'baseQuantity') > 0
+        ? _getDoubleValue(fields, 'baseQuantity')
+        : _parseQuantityFromString(fields['quantity']?.stringValue ?? '500');
+
     if (rawVariants.isNotEmpty) {
       return rawVariants.asMap().entries.map((entry) {
         final index = entry.key;
@@ -888,7 +897,17 @@ class ProductEndpoint extends Endpoint {
               itemFields['variantId']?.stringValue?.trim().isNotEmpty == true
               ? itemFields['variantId']!.stringValue!
               : 'variant_$index',
-          quantity: itemFields['quantity']?.stringValue ?? '',
+          quantityValue: _getValueAsDouble(itemFields['quantityValue']) > 0
+              ? _getValueAsDouble(itemFields['quantityValue'])
+              : (itemFields['quantity']?.stringValue != null
+                    ? _parseQuantityFromString(
+                        itemFields['quantity']!.stringValue!,
+                      )
+                    : baseQuantity),
+          quantityUnit:
+              itemFields['quantityUnit']?.stringValue ??
+              _parseUnitFromString(itemFields['quantity']?.stringValue) ??
+              baseUnit,
           price: _getValueAsDouble(itemFields['price']),
           realPrice: _getValueAsDouble(itemFields['realPrice']),
           isAvailable: itemFields['isAvailable']?.booleanValue ?? true,
@@ -902,7 +921,8 @@ class ProductEndpoint extends Endpoint {
     return [
       ProductVariant(
         variantId: 'default',
-        quantity: fields['quantity']?.stringValue ?? '',
+        quantityValue: baseQuantity,
+        quantityUnit: baseUnit,
         price: _getDoubleValue(fields, 'price'),
         realPrice: _getDoubleValue(fields, 'realPrice'),
         isAvailable: fields['isAvailable']?.booleanValue ?? false,
@@ -911,7 +931,32 @@ class ProductEndpoint extends Endpoint {
     ];
   }
 
+  double _parseQuantityFromString(String text) {
+    final match = RegExp(r'^([0-9]+(\.[0-9]+)?)').firstMatch(text.trim());
+    if (match != null) {
+      return double.tryParse(match.group(1)!) ?? 500;
+    }
+    return 500;
+  }
+
+  String? _parseUnitFromString(String? text) {
+    if (text == null || text.isEmpty) return null;
+    final lower = text.toLowerCase().trim();
+    if (lower.contains('kg')) return 'kg';
+    if (lower.contains('litre') || lower.contains('l')) return 'litre';
+    if (lower.contains('ml')) return 'ml';
+    if (lower.contains('pc') ||
+        lower.contains('piece') ||
+        lower.contains('pcs'))
+      return 'pc';
+    if (lower.contains('pack')) return 'pack';
+    return 'gm';
+  }
+
   Map<String, firestore_api.Value> _productFieldsToFirestore(Product product) {
+    final baseUnit = product.baseUnit ?? 'gm';
+    final baseQuantity = product.baseQuantity ?? 1.0;
+
     return {
       'productName': firestore_api.Value(stringValue: product.productName),
       'category': firestore_api.Value(stringValue: product.category),
@@ -931,6 +976,8 @@ class ProductEndpoint extends Endpoint {
         ),
       ),
       'quantity': firestore_api.Value(stringValue: product.quantity),
+      'baseUnit': firestore_api.Value(stringValue: baseUnit),
+      'baseQuantity': firestore_api.Value(doubleValue: baseQuantity),
       'countryOfOrigin': product.countryOfOrigin != null
           ? firestore_api.Value(stringValue: product.countryOfOrigin)
           : firestore_api.Value(nullValue: 'NULL_VALUE'),
@@ -950,7 +997,9 @@ class ProductEndpoint extends Endpoint {
         integerValue: product.mostPurchases.toString(),
       ),
       'discountType': firestore_api.Value(stringValue: product.discountType),
-      'discountValue': firestore_api.Value(doubleValue: product.discountValue),
+      'discountValue': firestore_api.Value(
+        doubleValue: product.discountValue ?? 0,
+      ),
       'bogoFreeProductIds': firestore_api.Value(
         arrayValue: firestore_api.ArrayValue(
           values: (product.bogoFreeProductIds ?? [])
@@ -968,8 +1017,15 @@ class ProductEndpoint extends Endpoint {
                       'variantId': firestore_api.Value(
                         stringValue: variant.variantId,
                       ),
+                      'quantityValue': firestore_api.Value(
+                        doubleValue: variant.quantityValue,
+                      ),
+                      'quantityUnit': firestore_api.Value(
+                        stringValue: variant.quantityUnit,
+                      ),
                       'quantity': firestore_api.Value(
-                        stringValue: variant.quantity,
+                        stringValue:
+                            '${variant.quantityValue} ${variant.quantityUnit}',
                       ),
                       'price': firestore_api.Value(doubleValue: variant.price),
                       'realPrice': firestore_api.Value(
@@ -999,6 +1055,16 @@ class ProductEndpoint extends Endpoint {
       return double.tryParse(value.integerValue!) ?? 0.0;
     }
     return 0.0;
+  }
+
+  double? _getDoubleValueOrNull(
+    Map<String, firestore_api.Value> fields,
+    String key,
+  ) {
+    final value = fields[key];
+    if (value == null) return null;
+    final result = _getDoubleValue(fields, key);
+    return result > 0 ? result : null;
   }
 
   List<String> _stringListField(firestore_api.Value? value) {

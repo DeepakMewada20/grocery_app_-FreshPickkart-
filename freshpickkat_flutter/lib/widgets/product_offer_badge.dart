@@ -17,15 +17,39 @@ String buildProductOfferLabel(Product product) {
     return 'BUY 1 GET 1';
   }
 
+  final percentValue = _resolveOfferValue(product);
+  final flatValue = _resolveFlatOfferValue(product);
+
   if (product.discountType == 'flat') {
-    return '₹${_resolveFlatOfferValue(product).toStringAsFixed(0)} OFF';
+    return '₹${flatValue.toStringAsFixed(0)} OFF';
   }
 
-  final discountValue = _resolveOfferValue(product);
-  final formattedDiscount = discountValue % 1 == 0
-      ? discountValue.toStringAsFixed(0)
-      : discountValue.toStringAsFixed(1);
-  return '$formattedDiscount% OFF';
+  final formattedPercent = percentValue % 1 == 0
+      ? percentValue.toStringAsFixed(0)
+      : percentValue.toStringAsFixed(1);
+
+  if (flatValue > 0) {
+    return '$formattedPercent% OFF (₹${flatValue.toStringAsFixed(0)})';
+  }
+  return '$formattedPercent% OFF';
+}
+
+String buildProductOfferLabelCard(Product product) {
+  if (isBogoProduct(product)) {
+    return 'BUY 1 GET 1';
+  }
+
+  final percentValue = _resolveOfferValue(product);
+
+  if (product.discountType == 'flat') {
+    return 'OFF';
+  }
+
+  final formattedPercent = percentValue % 1 == 0
+      ? percentValue.toStringAsFixed(0)
+      : percentValue.toStringAsFixed(1);
+
+  return '$formattedPercent% OFF';
 }
 
 Color productOfferColor(BuildContext context) {
@@ -34,8 +58,10 @@ Color productOfferColor(BuildContext context) {
 }
 
 double _resolveOfferValue(Product product) {
-  if (product.discountType == 'flat') {
-    return _resolveFlatOfferValue(product);
+  if (product.realPrice > 0 &&
+      product.price > 0 &&
+      product.price < product.realPrice) {
+    return ((product.realPrice - product.price) / product.realPrice) * 100;
   }
 
   final discountValue = product.discountValue ?? 0;
@@ -44,11 +70,14 @@ double _resolveOfferValue(Product product) {
 }
 
 double _resolveFlatOfferValue(Product product) {
+  if (product.realPrice > 0 &&
+      product.price > 0 &&
+      product.price < product.realPrice) {
+    return product.realPrice - product.price;
+  }
+
   final discountValue = product.discountValue ?? 0;
   if (discountValue > 0) return discountValue;
-
-  final priceDifference = product.realPrice - product.price;
-  if (priceDifference > 0) return priceDifference;
   return product.discount;
 }
 
@@ -57,6 +86,7 @@ class ProductOfferBadge extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final double fontSize;
   final double borderRadius;
+  final bool showFullLabel;
 
   const ProductOfferBadge({
     super.key,
@@ -64,6 +94,7 @@ class ProductOfferBadge extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     this.fontSize = 10,
     this.borderRadius = 8,
+    this.showFullLabel = false,
   });
 
   @override
@@ -71,6 +102,10 @@ class ProductOfferBadge extends StatelessWidget {
     final offerTheme =
         Theme.of(context).extension<AppOfferTheme>() ??
         AppOfferTheme.fallback(Theme.of(context).brightness);
+
+    final label = showFullLabel
+        ? buildProductOfferLabel(product)
+        : buildProductOfferLabelCard(product);
 
     return Container(
       padding: padding,
@@ -85,7 +120,7 @@ class ProductOfferBadge extends StatelessWidget {
         ],
       ),
       child: Text(
-        buildProductOfferLabel(product),
+        label,
         style: TextStyle(
           color: offerTheme.onBadge,
           fontSize: fontSize,

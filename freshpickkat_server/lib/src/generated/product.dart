@@ -30,6 +30,8 @@ abstract class Product
     required this.addedAt,
     required this.subcategory,
     required this.quantity,
+    this.baseUnit,
+    this.baseQuantity,
     this.countryOfOrigin,
     this.searchKeywords,
     required this.mostSearch,
@@ -52,6 +54,8 @@ abstract class Product
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    String? baseUnit,
+    double? baseQuantity,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
@@ -77,6 +81,8 @@ abstract class Product
         jsonSerialization['subcategory'],
       ),
       quantity: jsonSerialization['quantity'] as String,
+      baseUnit: jsonSerialization['baseUnit'] as String?,
+      baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
       searchKeywords: jsonSerialization['searchKeywords'] == null
           ? null
@@ -124,6 +130,10 @@ abstract class Product
 
   String quantity;
 
+  String? baseUnit;
+
+  double? baseQuantity;
+
   String? countryOfOrigin;
 
   List<String>? searchKeywords;
@@ -153,6 +163,8 @@ abstract class Product
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    String? baseUnit,
+    double? baseQuantity,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     int? mostSearch,
@@ -177,6 +189,8 @@ abstract class Product
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
+      if (baseUnit != null) 'baseUnit': baseUnit,
+      if (baseQuantity != null) 'baseQuantity': baseQuantity,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
       'mostSearch': mostSearch,
@@ -205,6 +219,8 @@ abstract class Product
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
       'quantity': quantity,
+      if (baseUnit != null) 'baseUnit': baseUnit,
+      if (baseQuantity != null) 'baseQuantity': baseQuantity,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
       'mostSearch': mostSearch,
@@ -239,6 +255,8 @@ class _ProductImpl extends Product {
     required DateTime addedAt,
     required List<String> subcategory,
     required String quantity,
+    String? baseUnit,
+    double? baseQuantity,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
@@ -259,6 +277,8 @@ class _ProductImpl extends Product {
          addedAt: addedAt,
          subcategory: subcategory,
          quantity: quantity,
+         baseUnit: baseUnit,
+         baseQuantity: baseQuantity,
          countryOfOrigin: countryOfOrigin,
          searchKeywords: searchKeywords,
          mostSearch: mostSearch,
@@ -285,6 +305,8 @@ class _ProductImpl extends Product {
     DateTime? addedAt,
     List<String>? subcategory,
     String? quantity,
+    Object? baseUnit = _Undefined,
+    Object? baseQuantity = _Undefined,
     Object? countryOfOrigin = _Undefined,
     Object? searchKeywords = _Undefined,
     int? mostSearch,
@@ -308,6 +330,8 @@ class _ProductImpl extends Product {
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),
       quantity: quantity ?? this.quantity,
+      baseUnit: baseUnit is String? ? baseUnit : this.baseUnit,
+      baseQuantity: baseQuantity is double? ? baseQuantity : this.baseQuantity,
       countryOfOrigin: countryOfOrigin is String?
           ? countryOfOrigin
           : this.countryOfOrigin,

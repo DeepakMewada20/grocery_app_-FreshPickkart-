@@ -15,7 +15,8 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class ProductVariant implements _i1.SerializableModel {
   ProductVariant._({
     required this.variantId,
-    required this.quantity,
+    required this.quantityValue,
+    required this.quantityUnit,
     required this.price,
     required this.realPrice,
     required this.isAvailable,
@@ -24,7 +25,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
 
   factory ProductVariant({
     required String variantId,
-    required String quantity,
+    required double quantityValue,
+    required String quantityUnit,
     required double price,
     required double realPrice,
     required bool isAvailable,
@@ -34,7 +36,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
   factory ProductVariant.fromJson(Map<String, dynamic> jsonSerialization) {
     return ProductVariant(
       variantId: jsonSerialization['variantId'] as String,
-      quantity: jsonSerialization['quantity'] as String,
+      quantityValue: (jsonSerialization['quantityValue'] as num).toDouble(),
+      quantityUnit: jsonSerialization['quantityUnit'] as String,
       price: (jsonSerialization['price'] as num).toDouble(),
       realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
       isAvailable: jsonSerialization['isAvailable'] as bool,
@@ -44,7 +47,9 @@ abstract class ProductVariant implements _i1.SerializableModel {
 
   String variantId;
 
-  String quantity;
+  double quantityValue;
+
+  String quantityUnit;
 
   double price;
 
@@ -59,7 +64,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
   @_i1.useResult
   ProductVariant copyWith({
     String? variantId,
-    String? quantity,
+    double? quantityValue,
+    String? quantityUnit,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -70,7 +76,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
     return {
       '__className__': 'ProductVariant',
       'variantId': variantId,
-      'quantity': quantity,
+      'quantityValue': quantityValue,
+      'quantityUnit': quantityUnit,
       'price': price,
       'realPrice': realPrice,
       'isAvailable': isAvailable,
@@ -89,14 +96,16 @@ class _Undefined {}
 class _ProductVariantImpl extends ProductVariant {
   _ProductVariantImpl({
     required String variantId,
-    required String quantity,
+    required double quantityValue,
+    required String quantityUnit,
     required double price,
     required double realPrice,
     required bool isAvailable,
     int? sortOrder,
   }) : super._(
          variantId: variantId,
-         quantity: quantity,
+         quantityValue: quantityValue,
+         quantityUnit: quantityUnit,
          price: price,
          realPrice: realPrice,
          isAvailable: isAvailable,
@@ -109,7 +118,8 @@ class _ProductVariantImpl extends ProductVariant {
   @override
   ProductVariant copyWith({
     String? variantId,
-    String? quantity,
+    double? quantityValue,
+    String? quantityUnit,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -117,7 +127,8 @@ class _ProductVariantImpl extends ProductVariant {
   }) {
     return ProductVariant(
       variantId: variantId ?? this.variantId,
-      quantity: quantity ?? this.quantity,
+      quantityValue: quantityValue ?? this.quantityValue,
+      quantityUnit: quantityUnit ?? this.quantityUnit,
       price: price ?? this.price,
       realPrice: realPrice ?? this.realPrice,
       isAvailable: isAvailable ?? this.isAvailable,

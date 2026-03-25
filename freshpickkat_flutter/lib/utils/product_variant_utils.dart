@@ -11,7 +11,9 @@ List<ProductVariant> sortedProductVariants(Product product) {
   return [
     ProductVariant(
       variantId: 'default',
-      quantity: product.quantity,
+      quantityValue:
+          product.baseQuantity ?? _parseQuantityValue(product.quantity),
+      quantityUnit: product.baseUnit ?? _parseQuantityUnit(product.quantity),
       price: product.price,
       realPrice: product.realPrice,
       isAvailable: product.isAvailable,
@@ -20,11 +22,43 @@ List<ProductVariant> sortedProductVariants(Product product) {
   ];
 }
 
+double _parseQuantityValue(String text) {
+  final match = RegExp(r'^([0-9]+(\.[0-9]+)?)').firstMatch(text.trim());
+  if (match != null) {
+    return double.tryParse(match.group(1)!) ?? 1;
+  }
+  return 1;
+}
+
+String _parseQuantityUnit(String text) {
+  final lower = text.toLowerCase().trim();
+  if (lower.contains('kg')) return 'kg';
+  if (lower.contains('litre') || lower.contains('l')) return 'litre';
+  if (lower.contains('ml')) return 'ml';
+  if (lower.contains('pc') || lower.contains('piece') || lower.contains('pcs'))
+    return 'pc';
+  if (lower.contains('pack')) return 'pack';
+  return 'gm';
+}
+
+String formatQuantityString(double quantityValue, String quantityUnit) {
+  if (quantityUnit == 'kg' && quantityValue >= 1) {
+    return '${quantityValue.toStringAsFixed(quantityValue.truncateToDouble() == quantityValue ? 0 : 2)} $quantityUnit';
+  }
+  if (quantityValue == quantityValue.truncateToDouble()) {
+    return '${quantityValue.toInt()} $quantityUnit';
+  }
+  return '$quantityValue $quantityUnit';
+}
+
 String inferProductVariantId(Product product) {
   final variants = sortedProductVariants(product);
   final matched = variants.where(
     (variant) =>
-        variant.quantity == product.quantity &&
+        variant.quantityValue ==
+            (product.baseQuantity ?? _parseQuantityValue(product.quantity)) &&
+        variant.quantityUnit ==
+            (product.baseUnit ?? _parseQuantityUnit(product.quantity)) &&
         variant.price == product.price &&
         variant.realPrice == product.realPrice,
   );
@@ -48,7 +82,12 @@ ProductVariant resolveProductVariant(Product product, {String? variantId}) {
 Product applyVariantToProduct(Product product, {String? variantId}) {
   final selectedVariant = resolveProductVariant(product, variantId: variantId);
   return product.copyWith(
-    quantity: selectedVariant.quantity,
+    quantity: formatQuantityString(
+      selectedVariant.quantityValue,
+      selectedVariant.quantityUnit,
+    ),
+    baseQuantity: selectedVariant.quantityValue,
+    baseUnit: selectedVariant.quantityUnit,
     price: selectedVariant.price,
     realPrice: selectedVariant.realPrice,
     isAvailable: selectedVariant.isAvailable,
