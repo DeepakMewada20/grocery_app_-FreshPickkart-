@@ -43,6 +43,7 @@ class _ProductCardState extends State<ProductCard> {
   final CartController _cartController = CartController.instance;
   bool _isPressed = false;
   late String _selectedVariantId;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -50,15 +51,68 @@ class _ProductCardState extends State<ProductCard> {
     _selectedVariantId = inferProductVariantId(widget.product);
   }
 
+  @override
+  void didUpdateWidget(covariant ProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.product.productId != widget.product.productId) {
+      _selectedVariantId = inferProductVariantId(widget.product);
+    }
+  }
+
   Product get _displayProduct =>
       applyVariantToProduct(widget.product, variantId: _selectedVariantId);
 
-  void _increment() {
-    _cartController.addItem(widget.product, variantId: _selectedVariantId);
+  void _syncVariantFromCart() {
+    if (widget.product.productId == null) return;
+
+    final cartItem = _cartController.cartItems.firstWhereOrNull(
+      (item) => item.product.productId == widget.product.productId,
+    );
+
+    if (cartItem != null && cartItem.variantId != null) {
+      if (_selectedVariantId != cartItem.variantId) {
+        setState(() {
+          _selectedVariantId = cartItem.variantId!;
+        });
+      }
+    }
   }
 
-  void _decrement() {
-    _cartController.removeItem(widget.product, variantId: _selectedVariantId);
+  Future<void> _increment() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    final currentQuantity = _cartController.getProductQuantity(
+      widget.product.productId,
+      variantId: _selectedVariantId,
+    );
+
+    if (currentQuantity == 0) {
+      _cartController.addItem(widget.product, variantId: _selectedVariantId);
+    } else {
+      _cartController.incrementAndSwitchVariant(
+        widget.product,
+        _selectedVariantId,
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _decrement() async {
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    _cartController.decrementAndSwitchVariant(
+      widget.product,
+      _selectedVariantId,
+    );
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) setState(() => _isLoading = false);
   }
 
   void _handleAddToCart() {
@@ -237,106 +291,111 @@ class _ProductCardState extends State<ProductCard> {
                         const Spacer(),
 
                         // Bottom Section
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (variants.length > 1) ...[
-                              DropdownButton<String>(
-                                value: _selectedVariantId,
-                                isExpanded: true,
-                                isDense: true,
-                                iconSize: 14,
-                                style: GoogleFonts.inter(
-                                  color: cs.onSurface.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  fontSize: widget.quantityFontSize ?? 10,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                dropdownColor: cs.surface,
-                                items: variants.map(
-                                  (variant) {
-                                    return DropdownMenuItem(
-                                      value: variant.variantId,
-                                      child: Text(
-                                        formatQuantityString(
-                                          variant.quantityValue,
-                                          variant.quantityUnit,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  },
-                                ).toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _selectedVariantId = value;
-                                  });
-                                },
-                              ),
-                            ] else ...[
-                              Text(
-                                displayProduct.quantity,
-                                style: GoogleFonts.inter(
-                                  color: cs.onSurface.withValues(alpha: 0.5),
-                                  fontSize: widget.quantityFontSize ?? 10,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                            const SizedBox(height: 4),
-
-                            Row(
-                              children: [
-                                Text(
-                                  '₹${displayProduct.price.formatPrice}',
+                        Obx(() {
+                          _syncVariantFromCart();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (variants.length > 1) ...[
+                                DropdownButton<String>(
+                                  value: _selectedVariantId,
+                                  isExpanded: true,
+                                  isDense: true,
+                                  iconSize: 14,
                                   style: GoogleFonts.inter(
-                                    color: const Color(0xFF4CAF50),
-                                    fontSize: widget.priceFontSize ?? 14,
-                                    fontWeight: FontWeight.bold,
+                                    color: cs.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    fontSize: widget.quantityFontSize ?? 10,
+                                    fontWeight: FontWeight.w400,
                                   ),
+                                  dropdownColor: cs.surface,
+                                  items: variants.map(
+                                    (variant) {
+                                      return DropdownMenuItem(
+                                        value: variant.variantId,
+                                        child: Text(
+                                          formatQuantityString(
+                                            variant.quantityValue,
+                                            variant.quantityUnit,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      );
+                                    },
+                                  ).toList(),
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    setState(() {
+                                      _selectedVariantId = value;
+                                    });
+                                  },
                                 ),
-                                if (displayProduct.realPrice >
-                                    displayProduct.price) ...[
-                                  const SizedBox(width: 6),
+                              ] else ...[
+                                Text(
+                                  displayProduct.quantity,
+                                  style: GoogleFonts.inter(
+                                    color: cs.onSurface.withValues(alpha: 0.5),
+                                    fontSize: widget.quantityFontSize ?? 10,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                              const SizedBox(height: 4),
+
+                              Row(
+                                children: [
                                   Text(
-                                    '₹${displayProduct.realPrice.formatPrice}',
+                                    '₹${displayProduct.price.formatPrice}',
                                     style: GoogleFonts.inter(
-                                      color: cs.onSurface.withValues(
-                                        alpha: 0.35,
-                                      ),
-                                      fontSize: widget.realPriceFontSize ?? 10,
-                                      decoration: TextDecoration.lineThrough,
-                                      decorationColor: cs.onSurface.withValues(
-                                        alpha: 0.35,
-                                      ),
+                                      color: const Color(0xFF4CAF50),
+                                      fontSize: widget.priceFontSize ?? 14,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  if (displayProduct.realPrice >
+                                      displayProduct.price) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '₹${displayProduct.realPrice.formatPrice}',
+                                      style: GoogleFonts.inter(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.35,
+                                        ),
+                                        fontSize:
+                                            widget.realPriceFontSize ?? 10,
+                                        decoration: TextDecoration.lineThrough,
+                                        decorationColor: cs.onSurface
+                                            .withValues(
+                                              alpha: 0.35,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
-                            const SizedBox(height: 8),
+                              ),
+                              const SizedBox(height: 8),
 
-                            // Add button or Quantity selector
-                            SizedBox(
-                              width: double.infinity,
-                              height: 32,
-                              child: Obx(() {
-                                final quantity = _cartController
-                                    .getProductQuantity(
-                                      widget.product.productId,
-                                      variantId: _selectedVariantId,
-                                    );
-                                return quantity == 0
-                                    ? _buildAddButton(cs)
-                                    : _buildQuantitySelector(quantity);
-                              }),
-                            ),
-                          ],
-                        ),
+                              // Add button or Quantity selector
+                              SizedBox(
+                                width: double.infinity,
+                                height: 32,
+                                child: Obx(() {
+                                  final quantity = _cartController
+                                      .getProductQuantity(
+                                        widget.product.productId,
+                                        variantId: _selectedVariantId,
+                                      );
+                                  return quantity == 0
+                                      ? _buildAddButton(cs)
+                                      : _buildQuantitySelector(quantity);
+                                }),
+                              ),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -350,7 +409,24 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Widget _buildAddButton(ColorScheme cs) {
-    // White bg with dark text — works on both light and dark themes
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(
+          color: cs.inverseSurface.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
     return Material(
       color: cs.inverseSurface,
       borderRadius: BorderRadius.circular(8),
@@ -373,6 +449,24 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Widget _buildQuantitySelector(int quantity) {
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppTheme.primaryGreen.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,

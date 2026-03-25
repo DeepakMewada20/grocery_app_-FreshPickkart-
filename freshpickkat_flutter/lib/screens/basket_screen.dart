@@ -380,7 +380,10 @@ class BasketScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
-            onTap: () => cartController.removeItem(item.product),
+            onTap: () => cartController.decrementAndSwitchVariant(
+              item.product,
+              item.variantId ?? 'default',
+            ),
             borderRadius: BorderRadius.circular(4),
             child: Padding(
               padding: const EdgeInsets.all(10.0),
@@ -399,7 +402,10 @@ class BasketScreen extends StatelessWidget {
             ),
           ),
           InkWell(
-            onTap: () => cartController.addItem(item.product),
+            onTap: () => cartController.incrementAndSwitchVariant(
+              item.product,
+              item.variantId ?? 'default',
+            ),
             borderRadius: BorderRadius.circular(4),
             child: Padding(
               padding: const EdgeInsets.all(10.0),
