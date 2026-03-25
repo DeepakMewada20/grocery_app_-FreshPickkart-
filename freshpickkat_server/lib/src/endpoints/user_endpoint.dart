@@ -167,7 +167,9 @@ class UserEndpoint extends Endpoint {
   CartItem _cartItemFromFirestore(Map<String, firestore_api.Value> fields) {
     return CartItem(
       productId: fields['productId']?.stringValue ?? '',
+      variantId: fields['variantId']?.stringValue,
       quantity: int.tryParse(fields['quantity']?.integerValue ?? '0') ?? 0,
+      bogoFreeProductId: fields['bogoFreeProductId']?.stringValue,
     );
   }
 
@@ -177,9 +179,15 @@ class UserEndpoint extends Endpoint {
       mapValue: firestore_api.MapValue(
         fields: {
           'productId': firestore_api.Value(stringValue: item.productId),
+          if (item.variantId != null)
+            'variantId': firestore_api.Value(stringValue: item.variantId),
           'quantity': firestore_api.Value(
             integerValue: item.quantity.toString(),
           ),
+          if (item.bogoFreeProductId != null)
+            'bogoFreeProductId': firestore_api.Value(
+              stringValue: item.bogoFreeProductId,
+            ),
         },
       ),
     );

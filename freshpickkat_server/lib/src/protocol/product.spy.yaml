@@ -18,3 +18,4 @@ fields:
     mostSearch: int
     mostPurchases: int
     bogoFreeProductIds: List<String>?
+    variants: List<ProductVariant>?

@@ -5,16 +5,19 @@ import 'package:freshpickkat_client/freshpickkat_client.dart'
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class CartItem {
   final Product product;
+  final String? variantId;
   int quantity;
   String? bogoFreeProductId; // Selected free item ID
 
   CartItem({
     required this.product,
+    this.variantId,
     this.quantity = 1,
     this.bogoFreeProductId,
   });
@@ -23,11 +26,13 @@ class CartItem {
 class BogoCartSuggestion {
   final BogoOffer offer;
   final Product triggerProduct;
+  final String? triggerVariantId;
   final Product freeProduct;
 
   const BogoCartSuggestion({
     required this.offer,
     required this.triggerProduct,
+    this.triggerVariantId,
     required this.freeProduct,
   });
 }
@@ -69,6 +74,7 @@ class CartController extends GetxController {
             .map(
               (item) => protocol.CartItem(
                 productId: item.product.productId!,
+                variantId: item.variantId,
                 quantity: item.quantity,
                 bogoFreeProductId: item.bogoFreeProductId,
               ),
@@ -97,13 +103,20 @@ class CartController extends GetxController {
           final List<CartItem> newCartItems = [];
 
           for (var item in serverUser.cart!) {
-            final product = productController.allProducts.firstWhereOrNull(
+            final baseProduct = productController.allProducts.firstWhereOrNull(
               (p) => p.productId == item.productId,
             );
-            if (product != null) {
+            if (baseProduct != null) {
               newCartItems.add(
                 CartItem(
-                  product: product,
+                  product: applyVariantToProduct(
+                    baseProduct,
+                    variantId: item.variantId,
+                  ),
+                  variantId: resolveProductVariant(
+                    baseProduct,
+                    variantId: item.variantId,
+                  ).variantId,
                   quantity: item.quantity,
                   bogoFreeProductId: item.bogoFreeProductId,
                 ),
@@ -240,25 +253,47 @@ class CartController extends GetxController {
     couponError.value = '';
   }
 
-  void addItem(Product product, {bool triggerBogoSuggestion = true}) {
+  void addItem(
+    Product product, {
+    String? variantId,
+    bool triggerBogoSuggestion = true,
+  }) {
+    final selectedProduct = applyVariantToProduct(product, variantId: variantId);
+    final selectedVariantId = resolveProductVariant(
+      product,
+      variantId: variantId,
+    ).variantId;
     int index = cartItems.indexWhere(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == selectedVariantId,
     );
     if (index != -1) {
       cartItems[index].quantity++;
       cartItems.refresh();
     } else {
-      cartItems.add(CartItem(product: product));
+      cartItems.add(
+        CartItem(
+          product: selectedProduct,
+          variantId: selectedVariantId,
+        ),
+      );
     }
 
     if (triggerBogoSuggestion) {
-      _maybeSuggestBogoForFreeProduct(product);
+      _maybeSuggestBogoForFreeProduct(selectedProduct);
     }
   }
 
-  void removeItem(Product product) {
+  void removeItem(Product product, {String? variantId}) {
+    final selectedVariantId = resolveProductVariant(
+      product,
+      variantId: variantId,
+    ).variantId;
     int index = cartItems.indexWhere(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == selectedVariantId,
     );
     if (index != -1) {
       if (cartItems[index].quantity > 1) {
@@ -270,9 +305,16 @@ class CartController extends GetxController {
     }
   }
 
-  void updateQuantity(Product product, int quantity) {
+  void updateQuantity(Product product, int quantity, {String? variantId}) {
+    final selectedProduct = applyVariantToProduct(product, variantId: variantId);
+    final selectedVariantId = resolveProductVariant(
+      product,
+      variantId: variantId,
+    ).variantId;
     int index = cartItems.indexWhere(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == selectedVariantId,
     );
     if (index != -1) {
       if (quantity <= 0) {
@@ -282,14 +324,22 @@ class CartController extends GetxController {
         cartItems.refresh();
       }
     } else if (quantity > 0) {
-      cartItems.add(CartItem(product: product, quantity: quantity));
+      cartItems.add(
+        CartItem(
+          product: selectedProduct,
+          variantId: selectedVariantId,
+          quantity: quantity,
+        ),
+      );
     }
   }
 
-  int getProductQuantity(String? productId) {
+  int getProductQuantity(String? productId, {String? variantId}) {
     if (productId == null) return 0;
     int index = cartItems.indexWhere(
-      (item) => item.product.productId == productId,
+      (item) =>
+          item.product.productId == productId &&
+          (item.variantId ?? 'default') == (variantId ?? 'default'),
     );
     return index != -1 ? cartItems[index].quantity : 0;
   }
@@ -299,9 +349,15 @@ class CartController extends GetxController {
     bogoSuggestion.value = null;
   }
 
-  void setBogoSelection(String triggerProductId, String? freeProductId) {
+  void setBogoSelection(
+    String triggerProductId,
+    String? freeProductId, {
+    String? triggerVariantId,
+  }) {
     int index = cartItems.indexWhere(
-      (item) => item.product.productId == triggerProductId,
+      (item) =>
+          item.product.productId == triggerProductId &&
+          (item.variantId ?? 'default') == (triggerVariantId ?? 'default'),
     );
     if (index != -1) {
       cartItems[index].bogoFreeProductId = freeProductId;
@@ -322,13 +378,24 @@ class CartController extends GetxController {
     }
 
     final triggerItem = cartItems.firstWhereOrNull(
-      (item) => item.product.productId == triggerId,
+      (item) =>
+          item.product.productId == triggerId &&
+          (item.variantId ?? 'default') ==
+              (suggestion.triggerVariantId ?? 'default'),
     );
     if (triggerItem == null) {
-      addItem(suggestion.triggerProduct, triggerBogoSuggestion: false);
+      addItem(
+        suggestion.triggerProduct,
+        variantId: suggestion.triggerVariantId,
+        triggerBogoSuggestion: false,
+      );
     }
 
-    setBogoSelection(triggerId, freeId);
+    setBogoSelection(
+      triggerId,
+      freeId,
+      triggerVariantId: suggestion.triggerVariantId,
+    );
     removeItem(suggestion.freeProduct);
     bogoSuggestion.value = null;
   }
@@ -355,6 +422,7 @@ class CartController extends GetxController {
       bogoSuggestion.value = BogoCartSuggestion(
         offer: current.offer,
         triggerProduct: refreshedTrigger,
+        triggerVariantId: current.triggerVariantId,
         freeProduct: refreshedFree,
       );
       return;
@@ -381,7 +449,10 @@ class CartController extends GetxController {
     if (freeItem == null || freeItem.quantity <= 0) return false;
 
     final triggerItem = cartItems.firstWhereOrNull(
-      (item) => item.product.productId == triggerId,
+      (item) =>
+          item.product.productId == triggerId &&
+          (item.variantId ?? 'default') ==
+              (suggestion.triggerVariantId ?? 'default'),
     );
     if (triggerItem?.bogoFreeProductId == freeId) return false;
     if (triggerItem?.bogoFreeProductId != null &&
@@ -408,31 +479,45 @@ class CartController extends GetxController {
     if (triggerProduct == null) return null;
 
     final triggerItem = cartItems.firstWhereOrNull(
-      (item) => item.product.productId == offer.triggerProductId,
+      (item) =>
+          item.product.productId == offer.triggerProductId &&
+          item.bogoFreeProductId == null,
     );
-    if (triggerItem?.bogoFreeProductId == freeProductId) return null;
-    if (triggerItem?.bogoFreeProductId != null &&
-        triggerItem!.bogoFreeProductId != freeProductId) {
+    if (triggerItem == null) return null;
+    if (triggerItem.bogoFreeProductId == freeProductId) return null;
+    if (triggerItem.bogoFreeProductId != null &&
+        triggerItem.bogoFreeProductId != freeProductId) {
       return null;
     }
 
     return BogoCartSuggestion(
       offer: offer,
-      triggerProduct: triggerProduct,
+      triggerProduct: applyVariantToProduct(
+        triggerProduct,
+        variantId: triggerItem.variantId,
+      ),
+      triggerVariantId: triggerItem.variantId,
       freeProduct: freeProduct,
     );
   }
 
-  Product? _findProductById(String? productId) {
+  Product? _findProductById(String? productId, {String? variantId}) {
     if (productId == null) return null;
 
     final cartProduct = cartItems
-        .firstWhereOrNull((item) => item.product.productId == productId)
+        .firstWhereOrNull(
+          (item) =>
+              item.product.productId == productId &&
+              (variantId == null || item.variantId == variantId),
+        )
         ?.product;
     if (cartProduct != null) return cartProduct;
 
-    return ProductProviderController.instance.allProducts.firstWhereOrNull(
+    final baseProduct = ProductProviderController.instance.allProducts
+        .firstWhereOrNull(
       (product) => product.productId == productId,
     );
+    if (baseProduct == null) return null;
+    return applyVariantToProduct(baseProduct, variantId: variantId);
   }
 }

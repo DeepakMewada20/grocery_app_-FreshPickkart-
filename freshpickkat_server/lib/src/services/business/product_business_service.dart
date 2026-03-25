@@ -2,8 +2,10 @@ import '../../generated/protocol.dart';
 
 class ProductBusinessService {
   static Product normalizeForSave(Product product) {
-    final normalizedRealPrice = _nonNegative(product.realPrice);
-    final normalizedPrice = _nonNegative(product.price);
+    final normalizedVariants = _normalizeVariants(product);
+    final primaryVariant = normalizedVariants.first;
+    final normalizedRealPrice = _nonNegative(primaryVariant.realPrice);
+    final normalizedPrice = _nonNegative(primaryVariant.price);
 
     double resolvedDiscount = _resolveDiscount(
       realPrice: normalizedRealPrice,
@@ -17,17 +19,50 @@ class ProductBusinessService {
     );
 
     return product.copyWith(
+      quantity: primaryVariant.label,
       realPrice: normalizedRealPrice,
       price: normalizedPrice,
       discount: resolvedDiscount,
       discountType: product.discountType ?? 'percentage',
       discountValue: product.discountValue ?? resolvedDiscount,
-      isAvailable: resolvedAvailable,
+      isAvailable: primaryVariant.isAvailable && resolvedAvailable,
       countryOfOrigin: product.countryOfOrigin?.trim().isEmpty == true
           ? null
           : product.countryOfOrigin?.trim(),
       bogoFreeProductIds: product.bogoFreeProductIds,
+      variants: normalizedVariants,
     );
+  }
+
+  static List<ProductVariant> _normalizeVariants(Product product) {
+    final source = (product.variants == null || product.variants!.isEmpty)
+        ? <ProductVariant>[
+            ProductVariant(
+              variantId: 'default',
+              label: product.quantity.trim(),
+              price: product.price,
+              realPrice: product.realPrice,
+              isAvailable: product.isAvailable,
+              sortOrder: 0,
+            ),
+          ]
+        : product.variants!;
+
+    return source.asMap().entries.map((entry) {
+      final index = entry.key;
+      final variant = entry.value;
+      return variant.copyWith(
+        variantId: variant.variantId.trim().isEmpty
+            ? 'variant_$index'
+            : variant.variantId.trim(),
+        label: variant.label.trim(),
+        price: _nonNegative(variant.price),
+        realPrice: _nonNegative(variant.realPrice),
+        isAvailable: variant.isAvailable,
+        sortOrder: variant.sortOrder ?? index,
+      );
+    }).toList()
+      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
   }
 
   static double _nonNegative(double value) => value < 0 ? 0 : value;

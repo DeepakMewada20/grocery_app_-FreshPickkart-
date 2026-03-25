@@ -1,5 +1,6 @@
 class: CartItem
 fields:
   productId: String
+  variantId: String?
   quantity: int
   bogoFreeProductId: String?

@@ -324,6 +324,7 @@ class BasketScreen extends StatelessWidget {
                                 Get.bottomSheet(
                                   BogoSelectionBottomSheet(
                                     triggerProductId: item.product.productId!,
+                                    triggerVariantId: item.variantId,
                                     freeProductIds: bogoOffer.freeProductIds,
                                   ),
                                 );
@@ -339,6 +340,7 @@ class BasketScreen extends StatelessWidget {
                           Get.bottomSheet(
                             BogoSelectionBottomSheet(
                               triggerProductId: item.product.productId!,
+                              triggerVariantId: item.variantId,
                               freeProductIds: bogoOffer.freeProductIds,
                             ),
                           );

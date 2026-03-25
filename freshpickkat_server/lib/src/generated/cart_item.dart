@@ -16,12 +16,14 @@ abstract class CartItem
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   CartItem._({
     required this.productId,
+    this.variantId,
     required this.quantity,
     this.bogoFreeProductId,
   });
 
   factory CartItem({
     required String productId,
+    String? variantId,
     required int quantity,
     String? bogoFreeProductId,
   }) = _CartItemImpl;
@@ -29,12 +31,15 @@ abstract class CartItem
   factory CartItem.fromJson(Map<String, dynamic> jsonSerialization) {
     return CartItem(
       productId: jsonSerialization['productId'] as String,
+      variantId: jsonSerialization['variantId'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       bogoFreeProductId: jsonSerialization['bogoFreeProductId'] as String?,
     );
   }
 
   String productId;
+
+  String? variantId;
 
   int quantity;
 
@@ -45,6 +50,7 @@ abstract class CartItem
   @_i1.useResult
   CartItem copyWith({
     String? productId,
+    String? variantId,
     int? quantity,
     String? bogoFreeProductId,
   });
@@ -53,6 +59,7 @@ abstract class CartItem
     return {
       '__className__': 'CartItem',
       'productId': productId,
+      if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (bogoFreeProductId != null) 'bogoFreeProductId': bogoFreeProductId,
     };
@@ -63,6 +70,7 @@ abstract class CartItem
     return {
       '__className__': 'CartItem',
       'productId': productId,
+      if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (bogoFreeProductId != null) 'bogoFreeProductId': bogoFreeProductId,
     };
@@ -79,10 +87,12 @@ class _Undefined {}
 class _CartItemImpl extends CartItem {
   _CartItemImpl({
     required String productId,
+    String? variantId,
     required int quantity,
     String? bogoFreeProductId,
   }) : super._(
          productId: productId,
+         variantId: variantId,
          quantity: quantity,
          bogoFreeProductId: bogoFreeProductId,
        );
@@ -93,11 +103,13 @@ class _CartItemImpl extends CartItem {
   @override
   CartItem copyWith({
     String? productId,
+    Object? variantId = _Undefined,
     int? quantity,
     Object? bogoFreeProductId = _Undefined,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
+      variantId: variantId is String? ? variantId : this.variantId,
       quantity: quantity ?? this.quantity,
       bogoFreeProductId: bogoFreeProductId is String?
           ? bogoFreeProductId

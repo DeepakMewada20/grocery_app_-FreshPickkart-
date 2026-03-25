@@ -1,0 +1,8 @@
+class: ProductVariant
+fields:
+  variantId: String
+  label: String
+  price: double
+  realPrice: double
+  isAvailable: bool
+  sortOrder: int?

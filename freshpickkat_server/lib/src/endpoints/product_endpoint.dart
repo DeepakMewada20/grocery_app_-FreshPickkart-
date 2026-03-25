@@ -82,60 +82,9 @@ class ProductEndpoint extends Endpoint {
           .map((res) {
             final fields = res.document!.fields!;
 
-            // Helper to safely extract double/int values from Firestore
-            double getDoubleValue(
-              Map<String, firestore_api.Value> fields,
-              String key,
-            ) {
-              final value = fields[key];
-              if (value == null) return 0.0;
-
-              // Try doubleValue first
-              if (value.doubleValue != null) {
-                return value.doubleValue!;
-              }
-
-              // Try integerValue (as string)
-              if (value.integerValue != null &&
-                  value.integerValue!.isNotEmpty) {
-                return double.tryParse(value.integerValue!) ?? 0.0;
-              }
-
-              return 0.0;
-            }
-
-            return Product(
-              productId: res.document!.name!.split('/').last,
-              productName: fields['productName']?.stringValue ?? '',
-              category: fields['category']?.stringValue ?? '',
-              imageUrl: fields['imageUrl']?.stringValue ?? '',
-              price: getDoubleValue(fields, 'price'),
-              realPrice: getDoubleValue(fields, 'realPrice'),
-              discount: getDoubleValue(fields, 'discount'),
-              isAvailable: fields['isAvailable']?.booleanValue ?? false,
-              addedAt:
-                  DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
-                  DateTime.now(),
-              subcategory: (fields['subcategory']?.arrayValue?.values ?? [])
-                  .map((v) => v.stringValue ?? '')
-                  .toList(),
-              quantity: fields['quantity']?.stringValue ?? "",
-              countryOfOrigin: fields['countryOfOrigin']?.stringValue,
-              searchKeywords:
-                  (fields['searchKeywords']?.arrayValue?.values ?? [])
-                      .map((v) => v.stringValue ?? '')
-                      .toList(),
-              mostSearch:
-                  int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
-              mostPurchases:
-                  int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ??
-                  0,
-              discountType: fields['discountType']?.stringValue,
-              discountValue: getDoubleValue(fields, 'discountValue'),
-              bogoFreeProductIds:
-                  (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
-                      .map((v) => v.stringValue ?? '')
-                      .toList(),
+            return _productFromFirestore(
+              res.document!.name!.split('/').last,
+              fields,
             );
           })
           .toList();
@@ -224,65 +173,7 @@ class ProductEndpoint extends Endpoint {
 
     // Convert Product to Firestore Document fields
     final document = firestore_api.Document(
-      fields: {
-        'productName': firestore_api.Value(stringValue: normalized.productName),
-        'category': firestore_api.Value(stringValue: normalized.category),
-        'imageUrl': firestore_api.Value(stringValue: normalized.imageUrl),
-        'price': firestore_api.Value(
-          doubleValue: normalized.price,
-        ),
-        'realPrice': firestore_api.Value(
-          doubleValue: normalized.realPrice,
-        ),
-        'discount': firestore_api.Value(
-          doubleValue: normalized.discount,
-        ),
-        'isAvailable': firestore_api.Value(
-          booleanValue: normalized.isAvailable,
-        ),
-        'addedAt': firestore_api.Value(
-          timestampValue: normalized.addedAt.toUtc().toIso8601String(),
-        ),
-        'subcategory': firestore_api.Value(
-          arrayValue: firestore_api.ArrayValue(
-            values: normalized.subcategory
-                .map((s) => firestore_api.Value(stringValue: s))
-                .toList(),
-          ),
-        ),
-        'quantity': firestore_api.Value(stringValue: normalized.quantity),
-        'countryOfOrigin': normalized.countryOfOrigin != null
-            ? firestore_api.Value(stringValue: normalized.countryOfOrigin)
-            : firestore_api.Value(nullValue: 'NULL_VALUE'),
-        'searchKeywords': firestore_api.Value(
-          arrayValue: firestore_api.ArrayValue(
-            values: _generateSearchKeywords(
-              normalized.productName,
-              normalized.category,
-              normalized.subcategory,
-            ).map((s) => firestore_api.Value(stringValue: s)).toList(),
-          ),
-        ),
-        'mostSearch': firestore_api.Value(
-          integerValue: normalized.mostSearch.toString(),
-        ),
-        'mostPurchases': firestore_api.Value(
-          integerValue: normalized.mostPurchases.toString(),
-        ),
-        'discountType': firestore_api.Value(
-          stringValue: normalized.discountType,
-        ),
-        'discountValue': firestore_api.Value(
-          doubleValue: normalized.discountValue,
-        ),
-        'bogoFreeProductIds': firestore_api.Value(
-          arrayValue: firestore_api.ArrayValue(
-            values: (normalized.bogoFreeProductIds ?? [])
-                .map((id) => firestore_api.Value(stringValue: id))
-                .toList(),
-          ),
-        ),
-      },
+      fields: _productFieldsToFirestore(normalized),
     );
 
     try {
@@ -334,55 +225,7 @@ class ProductEndpoint extends Endpoint {
         'projects/freshpickkart-a6824/databases/(default)/documents';
     final docPath = '$database/Products/${product.productId}';
 
-    final fields = <String, firestore_api.Value>{
-      'productName': firestore_api.Value(stringValue: normalized.productName),
-      'category': firestore_api.Value(stringValue: normalized.category),
-      'imageUrl': firestore_api.Value(stringValue: normalized.imageUrl),
-      'price': firestore_api.Value(doubleValue: normalized.price),
-      'realPrice': firestore_api.Value(doubleValue: normalized.realPrice),
-      'discount': firestore_api.Value(doubleValue: normalized.discount),
-      'isAvailable': firestore_api.Value(booleanValue: normalized.isAvailable),
-      'addedAt': firestore_api.Value(
-        timestampValue: normalized.addedAt.toUtc().toIso8601String(),
-      ),
-      'subcategory': firestore_api.Value(
-        arrayValue: firestore_api.ArrayValue(
-          values: normalized.subcategory
-              .map((s) => firestore_api.Value(stringValue: s))
-              .toList(),
-        ),
-      ),
-      'quantity': firestore_api.Value(stringValue: normalized.quantity),
-      'countryOfOrigin': normalized.countryOfOrigin != null
-          ? firestore_api.Value(stringValue: normalized.countryOfOrigin)
-          : firestore_api.Value(nullValue: 'NULL_VALUE'),
-      'searchKeywords': firestore_api.Value(
-        arrayValue: firestore_api.ArrayValue(
-          values: _generateSearchKeywords(
-            normalized.productName,
-            normalized.category,
-            normalized.subcategory,
-          ).map((s) => firestore_api.Value(stringValue: s)).toList(),
-        ),
-      ),
-      'mostSearch': firestore_api.Value(
-        integerValue: normalized.mostSearch.toString(),
-      ),
-      'mostPurchases': firestore_api.Value(
-        integerValue: normalized.mostPurchases.toString(),
-      ),
-      'discountType': firestore_api.Value(stringValue: normalized.discountType),
-      'discountValue': firestore_api.Value(
-        doubleValue: normalized.discountValue,
-      ),
-      'bogoFreeProductIds': firestore_api.Value(
-        arrayValue: firestore_api.ArrayValue(
-          values: (normalized.bogoFreeProductIds ?? [])
-              .map((id) => firestore_api.Value(stringValue: id))
-              .toList(),
-        ),
-      ),
-    };
+    final fields = _productFieldsToFirestore(normalized);
 
     await firestore.projects.databases.documents.patch(
       firestore_api.Document(fields: fields),
@@ -509,58 +352,16 @@ class ProductEndpoint extends Endpoint {
         database,
       );
 
-      final products = response.where((res) => res.document != null).map((res) {
-        final fields = res.document!.fields!;
-        return Product(
-          productId: res.document!.name!.split('/').last,
-          productName: fields['productName']?.stringValue ?? '',
-          category: fields['category']?.stringValue ?? '',
-          imageUrl: fields['imageUrl']?.stringValue ?? '',
-          price:
-              double.tryParse(
-                fields['price']?.doubleValue?.toString() ??
-                    fields['price']?.integerValue ??
-                    '0',
-              ) ??
-              0.0,
-          realPrice:
-              double.tryParse(
-                fields['realPrice']?.doubleValue?.toString() ??
-                    fields['realPrice']?.integerValue ??
-                    '0',
-              ) ??
-              0.0,
-          discount:
-              double.tryParse(
-                fields['discount']?.doubleValue?.toString() ??
-                    fields['discount']?.integerValue ??
-                    '0',
-              ) ??
-              0.0,
-          isAvailable: fields['isAvailable']?.booleanValue ?? false,
-          addedAt:
-              DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
-              DateTime.now(),
-          subcategory: (fields['subcategory']?.arrayValue?.values ?? [])
-              .map((v) => v.stringValue ?? '')
-              .toList(),
-          quantity: fields['quantity']?.stringValue ?? "",
-          countryOfOrigin: fields['countryOfOrigin']?.stringValue,
-          searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
-              .map((v) => v.stringValue ?? '')
-              .toList(),
-          mostSearch:
-              int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
-          mostPurchases:
-              int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
-          discountType: fields['discountType']?.stringValue,
-          discountValue: _getDoubleValue(fields, 'discountValue'),
-          bogoFreeProductIds:
-              (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
-                  .map((v) => v.stringValue ?? '')
-                  .toList(),
-        );
-      }).toList();
+      final products = response
+          .where((res) => res.document != null)
+          .map((res) {
+            final fields = res.document!.fields!;
+            return _productFromFirestore(
+              res.document!.name!.split('/').last,
+              fields,
+            );
+          })
+          .toList();
 
       // If we found products, also fetch some related products from the same category (optional but requested)
       if (products.isNotEmpty) {
@@ -591,66 +392,7 @@ class ProductEndpoint extends Endpoint {
               // Avoid duplicates
               if (products.any((p) => p.productId == id)) return null;
 
-              return Product(
-                productId: id,
-                productName: fields['productName']?.stringValue ?? '',
-                category: fields['category']?.stringValue ?? '',
-                imageUrl: fields['imageUrl']?.stringValue ?? '',
-                price:
-                    double.tryParse(
-                      fields['price']?.doubleValue?.toString() ??
-                          fields['price']?.integerValue ??
-                          '0',
-                    ) ??
-                    0.0,
-                realPrice:
-                    double.tryParse(
-                      fields['realPrice']?.doubleValue?.toString() ??
-                          fields['realPrice']?.integerValue ??
-                          '0',
-                    ) ??
-                    0.0,
-                discount:
-                    double.tryParse(
-                      fields['discount']?.doubleValue?.toString() ??
-                          fields['discount']?.integerValue ??
-                          '0',
-                    ) ??
-                    0.0,
-                isAvailable: fields['isAvailable']?.booleanValue ?? false,
-                addedAt:
-                    DateTime.tryParse(
-                      fields['addedAt']?.timestampValue ?? '',
-                    ) ??
-                    DateTime.now(),
-                subcategory: (fields['subcategory']?.arrayValue?.values ?? [])
-                    .map((v) => v.stringValue ?? '')
-                    .toList(),
-                quantity: fields['quantity']?.stringValue ?? "",
-                countryOfOrigin: fields['countryOfOrigin']?.stringValue,
-                searchKeywords:
-                    (fields['searchKeywords']?.arrayValue?.values ?? [])
-                        .map((v) => v.stringValue ?? '')
-                        .toList(),
-                mostSearch:
-                    int.tryParse(fields['mostSearch']?.integerValue ?? '0') ??
-                    0,
-                mostPurchases:
-                    int.tryParse(
-                      fields['mostPurchases']?.integerValue ?? '0',
-                    ) ??
-                    0,
-                discountType: fields['discountType']?.stringValue,
-                discountValue: double.tryParse(
-                  fields['discountValue']?.doubleValue?.toString() ??
-                      fields['discountValue']?.integerValue ??
-                      '0',
-                ),
-                bogoFreeProductIds:
-                    (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
-                        .map((v) => v.stringValue ?? '')
-                        .toList(),
-              );
+              return _productFromFirestore(id, fields);
             })
             .whereType<Product>()
             .toList();
@@ -1105,6 +847,167 @@ class ProductEndpoint extends Endpoint {
     return 0.0;
   }
 
+  Product _productFromFirestore(
+    String productId,
+    Map<String, firestore_api.Value> fields,
+  ) {
+    final variants = _readVariants(fields);
+    final primaryVariant = variants.first;
+
+    return Product(
+      productId: productId,
+      productName: fields['productName']?.stringValue ?? '',
+      category: fields['category']?.stringValue ?? '',
+      imageUrl: fields['imageUrl']?.stringValue ?? '',
+      price: _getDoubleValue(fields, 'price'),
+      realPrice: _getDoubleValue(fields, 'realPrice'),
+      discount: _getDoubleValue(fields, 'discount'),
+      isAvailable: fields['isAvailable']?.booleanValue ?? false,
+      addedAt:
+          DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
+          DateTime.now(),
+      subcategory: _stringListField(fields['subcategory']),
+      quantity: fields['quantity']?.stringValue ?? primaryVariant.label,
+      countryOfOrigin: fields['countryOfOrigin']?.stringValue,
+      searchKeywords: _stringListField(fields['searchKeywords']),
+      mostSearch: int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
+      mostPurchases:
+          int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+      discountType: fields['discountType']?.stringValue,
+      discountValue: _getDoubleValue(fields, 'discountValue'),
+      bogoFreeProductIds: _stringListField(fields['bogoFreeProductIds']),
+      variants: variants,
+    );
+  }
+
+  List<ProductVariant> _readVariants(Map<String, firestore_api.Value> fields) {
+    final rawVariants = fields['variants']?.arrayValue?.values ?? const [];
+    if (rawVariants.isNotEmpty) {
+      return rawVariants.asMap().entries.map((entry) {
+        final index = entry.key;
+        final itemFields = entry.value.mapValue?.fields ?? const {};
+        return ProductVariant(
+          variantId:
+              itemFields['variantId']?.stringValue?.trim().isNotEmpty == true
+              ? itemFields['variantId']!.stringValue!
+              : 'variant_$index',
+          label: itemFields['label']?.stringValue ?? '',
+          price: _getValueAsDouble(itemFields['price']),
+          realPrice: _getValueAsDouble(itemFields['realPrice']),
+          isAvailable: itemFields['isAvailable']?.booleanValue ?? true,
+          sortOrder: int.tryParse(itemFields['sortOrder']?.integerValue ?? ''),
+        );
+      }).toList()
+        ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+    }
+
+    return [
+      ProductVariant(
+        variantId: 'default',
+        label: fields['quantity']?.stringValue ?? '',
+        price: _getDoubleValue(fields, 'price'),
+        realPrice: _getDoubleValue(fields, 'realPrice'),
+        isAvailable: fields['isAvailable']?.booleanValue ?? false,
+        sortOrder: 0,
+      ),
+    ];
+  }
+
+  Map<String, firestore_api.Value> _productFieldsToFirestore(Product product) {
+    return {
+      'productName': firestore_api.Value(stringValue: product.productName),
+      'category': firestore_api.Value(stringValue: product.category),
+      'imageUrl': firestore_api.Value(stringValue: product.imageUrl),
+      'price': firestore_api.Value(doubleValue: product.price),
+      'realPrice': firestore_api.Value(doubleValue: product.realPrice),
+      'discount': firestore_api.Value(doubleValue: product.discount),
+      'isAvailable': firestore_api.Value(booleanValue: product.isAvailable),
+      'addedAt': firestore_api.Value(
+        timestampValue: product.addedAt.toUtc().toIso8601String(),
+      ),
+      'subcategory': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: product.subcategory
+              .map((s) => firestore_api.Value(stringValue: s))
+              .toList(),
+        ),
+      ),
+      'quantity': firestore_api.Value(stringValue: product.quantity),
+      'countryOfOrigin': product.countryOfOrigin != null
+          ? firestore_api.Value(stringValue: product.countryOfOrigin)
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
+      'searchKeywords': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: _generateSearchKeywords(
+            product.productName,
+            product.category,
+            product.subcategory,
+          ).map((s) => firestore_api.Value(stringValue: s)).toList(),
+        ),
+      ),
+      'mostSearch': firestore_api.Value(
+        integerValue: product.mostSearch.toString(),
+      ),
+      'mostPurchases': firestore_api.Value(
+        integerValue: product.mostPurchases.toString(),
+      ),
+      'discountType': firestore_api.Value(stringValue: product.discountType),
+      'discountValue': firestore_api.Value(doubleValue: product.discountValue),
+      'bogoFreeProductIds': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: (product.bogoFreeProductIds ?? [])
+              .map((id) => firestore_api.Value(stringValue: id))
+              .toList(),
+        ),
+      ),
+      'variants': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: (product.variants ?? const <ProductVariant>[])
+              .map(
+                (variant) => firestore_api.Value(
+                  mapValue: firestore_api.MapValue(
+                    fields: {
+                      'variantId': firestore_api.Value(
+                        stringValue: variant.variantId,
+                      ),
+                      'label': firestore_api.Value(stringValue: variant.label),
+                      'price': firestore_api.Value(doubleValue: variant.price),
+                      'realPrice': firestore_api.Value(
+                        doubleValue: variant.realPrice,
+                      ),
+                      'isAvailable': firestore_api.Value(
+                        booleanValue: variant.isAvailable,
+                      ),
+                      if (variant.sortOrder != null)
+                        'sortOrder': firestore_api.Value(
+                          integerValue: variant.sortOrder.toString(),
+                        ),
+                    },
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    };
+  }
+
+  double _getValueAsDouble(firestore_api.Value? value) {
+    if (value == null) return 0.0;
+    if (value.doubleValue != null) return value.doubleValue!;
+    if (value.integerValue != null && value.integerValue!.isNotEmpty) {
+      return double.tryParse(value.integerValue!) ?? 0.0;
+    }
+    return 0.0;
+  }
+
+  List<String> _stringListField(firestore_api.Value? value) {
+    return (value?.arrayValue?.values ?? const [])
+        .map((v) => v.stringValue ?? '')
+        .where((v) => v.isNotEmpty)
+        .toList();
+  }
+
   Future<ProductPage> _fetchProductsPage(
     Session session, {
     required int limit,
@@ -1189,36 +1092,9 @@ class ProductEndpoint extends Endpoint {
       if (res.document?.fields == null) continue;
       final fields = res.document!.fields!;
       products.add(
-        Product(
-          productId: res.document!.name!.split('/').last,
-          productName: fields['productName']?.stringValue ?? '',
-          category: fields['category']?.stringValue ?? '',
-          imageUrl: fields['imageUrl']?.stringValue ?? '',
-          price: _getDoubleValue(fields, 'price'),
-          realPrice: _getDoubleValue(fields, 'realPrice'),
-          discount: _getDoubleValue(fields, 'discount'),
-          isAvailable: fields['isAvailable']?.booleanValue ?? false,
-          addedAt:
-              DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
-              DateTime.now(),
-          subcategory: (fields['subcategory']?.arrayValue?.values ?? [])
-              .map((v) => v.stringValue ?? '')
-              .toList(),
-          quantity: fields['quantity']?.stringValue ?? "",
-          countryOfOrigin: fields['countryOfOrigin']?.stringValue,
-          searchKeywords: (fields['searchKeywords']?.arrayValue?.values ?? [])
-              .map((v) => v.stringValue ?? '')
-              .toList(),
-          mostSearch:
-              int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
-          mostPurchases:
-              int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
-          discountType: fields['discountType']?.stringValue,
-          discountValue: _getDoubleValue(fields, 'discountValue'),
-          bogoFreeProductIds:
-              (fields['bogoFreeProductIds']?.arrayValue?.values ?? [])
-                  .map((v) => v.stringValue ?? '')
-                  .toList(),
+        _productFromFirestore(
+          res.document!.name!.split('/').last,
+          fields,
         ),
       );
       lastSortValue = _extractSortValue(sortBy, fields);

@@ -1,6 +1,8 @@
 class: OrderItem
 fields:
   productId: String
+  variantId: String?
+  variantLabel: String?
   productName: String
   productImage: String
   quantity: int

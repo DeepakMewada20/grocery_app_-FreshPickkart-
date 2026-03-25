@@ -942,6 +942,8 @@ class OrderEndpoint extends Endpoint {
   ) {
     return protocol.OrderItem(
       productId: fields['productId']?.stringValue ?? '',
+      variantId: fields['variantId']?.stringValue,
+      variantLabel: fields['variantLabel']?.stringValue,
       productName: fields['productName']?.stringValue ?? '',
       productImage: fields['productImage']?.stringValue ?? '',
       quantity: int.tryParse(fields['quantity']?.integerValue ?? '0') ?? 0,
@@ -958,6 +960,10 @@ class OrderEndpoint extends Endpoint {
       mapValue: firestore_api.MapValue(
         fields: {
           'productId': firestore_api.Value(stringValue: item.productId),
+          if (item.variantId != null)
+            'variantId': firestore_api.Value(stringValue: item.variantId!),
+          if (item.variantLabel != null)
+            'variantLabel': firestore_api.Value(stringValue: item.variantLabel!),
           'productName': firestore_api.Value(stringValue: item.productName),
           'productImage': firestore_api.Value(stringValue: item.productImage),
           'quantity': firestore_api.Value(

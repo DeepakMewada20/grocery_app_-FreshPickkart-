@@ -23,14 +23,23 @@ class ValidationService {
     if (product.imageUrl.trim().isEmpty) {
       throw InvalidParametersException('Product image URL is required');
     }
-    if (product.quantity.trim().isEmpty) {
-      throw InvalidParametersException('Quantity is required');
-    }
     if (product.subcategory.isEmpty) {
       throw InvalidParametersException('At least one subcategory is required');
     }
+    final variants = product.variants ?? const <protocol.ProductVariant>[];
+    if (variants.isEmpty && product.quantity.trim().isEmpty) {
+      throw InvalidParametersException('At least one variant is required');
+    }
     if (product.price < 0 || product.realPrice < 0) {
       throw InvalidParametersException('Price values cannot be negative');
+    }
+    for (final variant in variants) {
+      if (variant.label.trim().isEmpty) {
+        throw InvalidParametersException('Variant label is required');
+      }
+      if (variant.price < 0 || variant.realPrice < 0) {
+        throw InvalidParametersException('Variant price values cannot be negative');
+      }
     }
     final type = product.discountType?.toLowerCase().trim() ?? 'percentage';
     if (type == 'bogo') {

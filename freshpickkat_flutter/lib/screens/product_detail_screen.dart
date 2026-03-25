@@ -8,6 +8,7 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
@@ -32,6 +33,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final CartController _cartController = CartController.instance;
   late final ProductDetailController _controller;
   late final String _controllerTag;
+  late String _selectedVariantId;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // Initialize the controller with the initial product
     _controllerTag =
         'product_detail_${widget.product.productId}_${UniqueKey()}';
+    _selectedVariantId = inferProductVariantId(widget.product);
     _controller = Get.put(
       ProductDetailController(widget.product),
       tag: _controllerTag,
@@ -52,11 +55,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _incrementQuantity(Product product) {
-    _cartController.addItem(product);
+    _cartController.addItem(product, variantId: _selectedVariantId);
   }
 
   void _decrementQuantity(Product product) {
-    _cartController.removeItem(product);
+    _cartController.removeItem(product, variantId: _selectedVariantId);
   }
 
   void _handleAddToCart(Product product) {
@@ -74,7 +77,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (!isBogoProduct(product) || product.productId == null) return;
 
     final cartItem = _cartController.cartItems.firstWhereOrNull(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == _selectedVariantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
 
@@ -82,6 +87,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _cartController.setBogoSelection(
         product.productId!,
         freeProductIds.first,
+        triggerVariantId: _selectedVariantId,
       );
       return;
     }
@@ -91,6 +97,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       Get.bottomSheet(
         BogoSelectionBottomSheet(
           triggerProductId: product.productId!,
+          triggerVariantId: _selectedVariantId,
           freeProductIds: freeProductIds,
         ),
         isScrollControlled: true,
@@ -103,6 +110,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     Get.bottomSheet(
       BogoSelectionBottomSheet(
         triggerProductId: product.productId!,
+        triggerVariantId: _selectedVariantId,
         freeProductIds: product.bogoFreeProductIds ?? const <String>[],
       ),
       isScrollControlled: true,
@@ -111,7 +119,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   dynamic _cartItemForProduct(Product product) {
     return _cartController.cartItems.firstWhereOrNull(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == _selectedVariantId,
     );
   }
 
@@ -138,12 +148,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     return Obx(() {
       final product = _controller.product.value;
+      final displayProduct = applyVariantToProduct(
+        product,
+        variantId: _selectedVariantId,
+      );
+      final variants = sortedProductVariants(product);
       final cs = Theme.of(context).colorScheme;
       final offerTheme =
           Theme.of(context).extension<AppOfferTheme>() ??
           AppOfferTheme.fallback(Theme.of(context).brightness);
-      final selectedFreeProduct = _selectedBogoFreeProduct(product);
-      final cartItem = _cartItemForProduct(product);
+      final selectedFreeProduct = _selectedBogoFreeProduct(displayProduct);
+      final cartItem = _cartItemForProduct(displayProduct);
       final selectedQuantity = cartItem?.quantity ?? 0;
       return Scaffold(
         backgroundColor: Colors.black,
@@ -228,7 +243,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                product.productName,
+                                displayProduct.productName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
@@ -237,7 +252,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                product.quantity,
+                                displayProduct.quantity,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 16,
@@ -249,21 +264,54 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         // We need to pass the *current* product to the cart controller
                         Obx(
                           () => _buildAddButton(
-                            product,
+                            displayProduct,
                             _cartController.getProductQuantity(
                               product.productId,
+                              variantId: _selectedVariantId,
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
+                    if (variants.length > 1)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: variants
+                            .map(
+                              (variant) => ChoiceChip(
+                                label: Text(variant.label),
+                                selected: variant.variantId == _selectedVariantId,
+                                onSelected: (_) {
+                                  setState(() {
+                                    _selectedVariantId = variant.variantId;
+                                  });
+                                },
+                                selectedColor: const Color(0xFF1B8A4C),
+                                labelStyle: TextStyle(
+                                  color: variant.variantId == _selectedVariantId
+                                      ? Colors.white
+                                      : Colors.white70,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                backgroundColor: Colors.white10,
+                                side: BorderSide(
+                                  color: variant.variantId == _selectedVariantId
+                                      ? const Color(0xFF1B8A4C)
+                                      : Colors.white24,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    if (variants.length > 1) const SizedBox(height: 12),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           Text(
-                            '₹${product.price.formatPrice}',
+                            '₹${displayProduct.price.formatPrice}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -272,17 +320,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'M.R.P: ₹${product.realPrice.formatPrice}',
+                            'M.R.P: ₹${displayProduct.realPrice.formatPrice}',
                             style: const TextStyle(
                               color: Colors.white60,
                               fontSize: 14,
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          if (hasProductOffer(product)) ...[
+                          if (hasProductOffer(displayProduct)) ...[
                             const SizedBox(width: 12),
                             Text(
-                              buildProductOfferLabel(product),
+                              buildProductOfferLabel(displayProduct),
                               style: TextStyle(
                                 color: productOfferColor(context),
                                 fontSize: 14,
@@ -293,7 +341,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ],
                       ),
                     ),
-                    if (isBogoProduct(product))
+                    if (isBogoProduct(displayProduct))
                       Container(
                         margin: const EdgeInsets.only(top: 12),
                         padding: const EdgeInsets.all(14),
@@ -316,7 +364,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             const SizedBox(height: 6),
                             Text(
                               selectedQuantity == 0
-                                  ? 'Add this item to choose 1 free product from ${product.bogoFreeProductIds?.length ?? 0} options.'
+                                  ? 'Add this item to choose 1 free product from ${displayProduct.bogoFreeProductIds?.length ?? 0} options.'
                                   : selectedFreeProduct == null
                                   ? 'Choose your free product now.'
                                   : 'Selected free product for this offer.',
@@ -371,7 +419,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           const SizedBox(height: 4),
                                           Text(
                                             _selectedBogoFreeQuantity(
-                                              product,
+                                              displayProduct,
                                               selectedFreeProduct,
                                             ),
                                             style: TextStyle(
@@ -389,7 +437,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               const SizedBox(height: 12),
                               FilledButton.tonalIcon(
                                 onPressed: () =>
-                                    _openBogoSelectionSheet(product),
+                                    _openBogoSelectionSheet(displayProduct),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: offerTheme.badge,
                                   foregroundColor: offerTheme.onBadge,
@@ -423,7 +471,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildRelatedProducts(product),
+                    _buildRelatedProducts(displayProduct),
                   ],
                 ),
               ),
@@ -563,6 +611,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               enableHero: false,
               onTap: () {
                 _controller.updateProduct(p);
+                setState(() {
+                  _selectedVariantId = inferProductVariantId(p);
+                });
               },
               onAddPressed: () {},
             ),

@@ -5,6 +5,7 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -41,24 +42,34 @@ class _ProductCardState extends State<ProductCard> {
   final AuthController _authController = AuthController.instance;
   final CartController _cartController = CartController.instance;
   bool _isPressed = false;
+  late String _selectedVariantId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedVariantId = inferProductVariantId(widget.product);
+  }
+
+  Product get _displayProduct =>
+      applyVariantToProduct(widget.product, variantId: _selectedVariantId);
 
   void _increment() {
-    _cartController.addItem(widget.product);
+    _cartController.addItem(widget.product, variantId: _selectedVariantId);
   }
 
   void _decrement() {
-    _cartController.removeItem(widget.product);
+    _cartController.removeItem(widget.product, variantId: _selectedVariantId);
   }
 
   void _handleAddToCart() {
     if (_authController.isLoggedIn) {
       _increment();
-      _showBogoSelectionIfNeeded(widget.product);
+      _showBogoSelectionIfNeeded(_displayProduct);
       if (widget.onAddPressed != null) widget.onAddPressed!();
     } else {
       ProtectedNavigationHelper.navigateTo(
         routeName: Get.currentRoute,
-        productToAdd: widget.product,
+        productToAdd: _displayProduct,
       );
     }
   }
@@ -68,7 +79,9 @@ class _ProductCardState extends State<ProductCard> {
     if (!isBogoProduct(product) || product.productId == null) return;
 
     final cartItem = _cartController.cartItems.firstWhereOrNull(
-      (item) => item.product.productId == product.productId,
+      (item) =>
+          item.product.productId == product.productId &&
+          (item.variantId ?? 'default') == _selectedVariantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
 
@@ -76,6 +89,7 @@ class _ProductCardState extends State<ProductCard> {
       _cartController.setBogoSelection(
         product.productId!,
         freeProductIds.first,
+        triggerVariantId: _selectedVariantId,
       );
       return;
     }
@@ -85,6 +99,7 @@ class _ProductCardState extends State<ProductCard> {
       Get.bottomSheet(
         BogoSelectionBottomSheet(
           triggerProductId: product.productId!,
+          triggerVariantId: _selectedVariantId,
           freeProductIds: freeProductIds,
         ),
         isScrollControlled: true,
@@ -96,6 +111,8 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final displayProduct = _displayProduct;
+    final variants = sortedProductVariants(widget.product);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -110,7 +127,7 @@ class _ProductCardState extends State<ProductCard> {
             if (widget.onTap != null) {
               widget.onTap!();
             } else {
-              Get.to(() => ProductDetailScreen(product: widget.product));
+              Get.to(() => ProductDetailScreen(product: displayProduct));
             }
           },
           borderRadius: BorderRadius.circular(16),
@@ -156,7 +173,7 @@ class _ProductCardState extends State<ProductCard> {
                                   tag:
                                       'product_${widget.product.productId}_$hashCode',
                                   child: Image.network(
-                                    widget.product.imageUrl,
+                                    displayProduct.imageUrl,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Center(
@@ -170,7 +187,7 @@ class _ProductCardState extends State<ProductCard> {
                                   ),
                                 )
                               : Image.network(
-                                  widget.product.imageUrl,
+                                  displayProduct.imageUrl,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Center(
@@ -184,12 +201,12 @@ class _ProductCardState extends State<ProductCard> {
                                 ),
                         ),
                       ),
-                      if (hasProductOffer(widget.product))
+                      if (hasProductOffer(displayProduct))
                         Positioned(
                           top: 8,
                           left: 8,
                           child: ProductOfferBadge(
-                            product: widget.product,
+                            product: displayProduct,
                             fontSize: 10,
                           ),
                         ),
@@ -217,6 +234,46 @@ class _ProductCardState extends State<ProductCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
 
+                        if (variants.length > 1) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: cs.outlineVariant),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedVariantId,
+                                isExpanded: true,
+                                iconSize: 18,
+                                style: GoogleFonts.inter(
+                                  color: cs.onSurface,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                dropdownColor: cs.surface,
+                                items: variants
+                                    .map(
+                                      (variant) => DropdownMenuItem(
+                                        value: variant.variantId,
+                                        child: Text(
+                                          variant.label,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  setState(() {
+                                    _selectedVariantId = value;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
                         const Spacer(),
 
                         // Bottom Section
@@ -227,7 +284,7 @@ class _ProductCardState extends State<ProductCard> {
                             // Quantity (Truncated to 1 line)
                             // Product quantity
                             Text(
-                              widget.product.quantity,
+                              displayProduct.quantity,
                               style: GoogleFonts.inter(
                                 color: cs.onSurface.withValues(alpha: 0.5),
                                 fontSize: widget.quantityFontSize ?? 10,
@@ -240,18 +297,18 @@ class _ProductCardState extends State<ProductCard> {
                             Row(
                               children: [
                                 Text(
-                                  '₹${widget.product.price.formatPrice}',
+                                  '₹${displayProduct.price.formatPrice}',
                                   style: GoogleFonts.inter(
                                     color: const Color(0xFF4CAF50),
                                     fontSize: widget.priceFontSize ?? 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                if (widget.product.realPrice >
-                                    widget.product.price) ...[
+                                if (displayProduct.realPrice >
+                                    displayProduct.price) ...[
                                   const SizedBox(width: 6),
                                   Text(
-                                    '₹${widget.product.realPrice.formatPrice}',
+                                    '₹${displayProduct.realPrice.formatPrice}',
                                     style: GoogleFonts.inter(
                                       color: cs.onSurface.withValues(
                                         alpha: 0.35,
@@ -276,6 +333,7 @@ class _ProductCardState extends State<ProductCard> {
                                 final quantity = _cartController
                                     .getProductQuantity(
                                       widget.product.productId,
+                                      variantId: _selectedVariantId,
                                     );
                                 return quantity == 0
                                     ? _buildAddButton(cs)

@@ -73,6 +73,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final priceCtrl = TextEditingController();
     final mrpCtrl = TextEditingController();
     final discountCtrl = TextEditingController(text: '0');
+    final extraVariants = <_VariantDraft>[];
     var discountType = 'percentage'; // Default type
     final bogoFreeProductIds = <String>{}; // Selected free products
     final selectedBogoProducts = <String, Product>{};
@@ -528,6 +529,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.view_list_outlined,
+                              title: 'Additional Variants',
+                              child: _VariantListEditor(
+                                variants: extraVariants,
+                                onAddVariant: () {
+                                  setDialogState(() {
+                                    extraVariants.add(_VariantDraft());
+                                  });
+                                },
+                                onRemoveVariant: (draft) {
+                                  setDialogState(() {
+                                    extraVariants.remove(draft);
+                                  });
+                                  draft.dispose();
+                                },
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             AvailabilitySwitch(
                               value: isAvailable,
                               onChanged: (value) =>
@@ -574,6 +595,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     ),
                                     backgroundColor: Colors.red,
                                   ),
+                                );
+                                return;
+                              }
+                              final variantError = _validateVariantDrafts(
+                                extraVariants,
+                              );
+                              if (variantError != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(variantError)),
                                 );
                                 return;
                               }
@@ -624,6 +654,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
       mostSearch: 0,
       mostPurchases: 0,
       bogoFreeProductIds: bogoFreeProductIds.toList(),
+      variants: _buildVariants(
+        primaryLabel: quantityCtrl.text.trim(),
+        primaryPrice: double.parse(priceCtrl.text.trim()),
+        primaryMrp: double.parse(mrpCtrl.text.trim()),
+        primaryAvailability: isAvailable,
+        extraVariants: extraVariants,
+      ),
     );
 
     try {
@@ -665,6 +702,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final discountCtrl = TextEditingController(
       text: (product.discountValue ?? product.discount).toString(),
     );
+    final extraVariants = (product.variants ?? const <ProductVariant>[])
+        .skip(1)
+        .map(_VariantDraft.fromVariant)
+        .toList();
     var discountType = product.discountType ?? 'percentage';
     final bogoFreeProductIds = <String>{};
     final selectedBogoProducts = <String, Product>{};
@@ -1155,6 +1196,26 @@ class _ProductsScreenState extends State<ProductsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
+                            SectionCard(
+                              icon: Icons.view_list_outlined,
+                              title: 'Additional Variants',
+                              child: _VariantListEditor(
+                                variants: extraVariants,
+                                onAddVariant: () {
+                                  setDialogState(() {
+                                    extraVariants.add(_VariantDraft());
+                                  });
+                                },
+                                onRemoveVariant: (draft) {
+                                  setDialogState(() {
+                                    extraVariants.remove(draft);
+                                  });
+                                  draft.dispose();
+                                },
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             AvailabilitySwitch(
                               value: isAvailable,
                               onChanged: (value) =>
@@ -1204,6 +1265,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 );
                                 return;
                               }
+                              final variantError = _validateVariantDrafts(
+                                extraVariants,
+                              );
+                              if (variantError != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(variantError)),
+                                );
+                                return;
+                              }
                               if (selectedCategory != null) {
                                 Navigator.pop(context, true);
                               }
@@ -1248,6 +1318,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ? null
           : countryOfOriginCtrl.text.trim(),
       bogoFreeProductIds: bogoFreeProductIds.toList(),
+      variants: _buildVariants(
+        primaryLabel: quantityCtrl.text.trim(),
+        primaryPrice: double.parse(priceCtrl.text.trim()),
+        primaryMrp: double.parse(mrpCtrl.text.trim()),
+        primaryAvailability: isAvailable,
+        extraVariants: extraVariants,
+      ),
     );
 
     try {
@@ -1323,6 +1400,50 @@ class _ProductsScreenState extends State<ProductsScreen> {
       return 'Required';
     }
     return double.tryParse(value.trim()) == null ? 'Invalid number' : null;
+  }
+
+  String? _validateVariantDrafts(List<_VariantDraft> drafts) {
+    for (final draft in drafts) {
+      if (draft.labelCtrl.text.trim().isEmpty) {
+        return 'Each variant label is required';
+      }
+      if (_numberValidator(draft.priceCtrl.text) != null ||
+          _numberValidator(draft.mrpCtrl.text) != null) {
+        return 'Each variant price and MRP must be valid numbers';
+      }
+    }
+    return null;
+  }
+
+  List<ProductVariant> _buildVariants({
+    required String primaryLabel,
+    required double primaryPrice,
+    required double primaryMrp,
+    required bool primaryAvailability,
+    required List<_VariantDraft> extraVariants,
+  }) {
+    return [
+      ProductVariant(
+        variantId: 'default',
+        label: primaryLabel,
+        price: primaryPrice,
+        realPrice: primaryMrp,
+        isAvailable: primaryAvailability,
+        sortOrder: 0,
+      ),
+      ...extraVariants.asMap().entries.map(
+        (entry) => ProductVariant(
+          variantId: entry.value.variantId.trim().isEmpty
+              ? 'variant_${entry.key + 1}'
+              : entry.value.variantId.trim(),
+          label: entry.value.labelCtrl.text.trim(),
+          price: double.parse(entry.value.priceCtrl.text.trim()),
+          realPrice: double.parse(entry.value.mrpCtrl.text.trim()),
+          isAvailable: entry.value.isAvailable,
+          sortOrder: entry.key + 1,
+        ),
+      ),
+    ];
   }
 
   Future<String?> _pickAndUploadProductImage(ImageSource source) async {
@@ -1999,6 +2120,159 @@ class _BogoSelectorWidget extends StatelessWidget {
                 ),
             ],
           ),
+      ],
+    );
+  }
+}
+
+class _VariantDraft {
+  final String variantId;
+  final TextEditingController labelCtrl;
+  final TextEditingController priceCtrl;
+  final TextEditingController mrpCtrl;
+  bool isAvailable;
+
+  _VariantDraft({
+    String? variantId,
+    String label = '',
+    String price = '',
+    String mrp = '',
+    this.isAvailable = true,
+  }) : variantId = variantId ?? '',
+       labelCtrl = TextEditingController(text: label),
+       priceCtrl = TextEditingController(text: price),
+       mrpCtrl = TextEditingController(text: mrp);
+
+  factory _VariantDraft.fromVariant(ProductVariant variant) {
+    return _VariantDraft(
+      variantId: variant.variantId,
+      label: variant.label,
+      price: variant.price.toString(),
+      mrp: variant.realPrice.toString(),
+      isAvailable: variant.isAvailable,
+    );
+  }
+
+  void dispose() {
+    labelCtrl.dispose();
+    priceCtrl.dispose();
+    mrpCtrl.dispose();
+  }
+}
+
+class _VariantListEditor extends StatelessWidget {
+  final List<_VariantDraft> variants;
+  final VoidCallback onAddVariant;
+  final ValueChanged<_VariantDraft> onRemoveVariant;
+  final VoidCallback onChanged;
+
+  const _VariantListEditor({
+    required this.variants,
+    required this.onAddVariant,
+    required this.onRemoveVariant,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Primary pack uses the main quantity and pricing fields above. Add more packs here.',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        const SizedBox(height: 12),
+        if (variants.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: const Text('No additional variants added yet.'),
+          )
+        else
+          Column(
+            children: variants.map((draft) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Variant',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => onRemoveVariant(draft),
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ],
+                    ),
+                    ModernTextField(
+                      controller: draft.labelCtrl,
+                      labelText: 'Label',
+                      hintText: 'e.g. 500 gm, 1 kg, 2 kg',
+                      onChanged: (_) => onChanged(),
+                    ),
+                    const SizedBox(height: 12),
+                    CompactFieldRow(
+                      children: [
+                        ModernTextField(
+                          controller: draft.priceCtrl,
+                          labelText: 'Price',
+                          prefixText: '₹ ',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          onChanged: (_) => onChanged(),
+                        ),
+                        ModernTextField(
+                          controller: draft.mrpCtrl,
+                          labelText: 'MRP',
+                          prefixText: '₹ ',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          onChanged: (_) => onChanged(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      value: draft.isAvailable,
+                      onChanged: (value) {
+                        draft.isAvailable = value;
+                        onChanged();
+                      },
+                      title: const Text('Available'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: onAddVariant,
+            icon: const Icon(Icons.add),
+            label: const Text('Add Variant'),
+          ),
+        ),
       ],
     );
   }

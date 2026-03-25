@@ -150,6 +150,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       // Add main product
       items.add(OrderItem(
         productId: item.product.productId ?? '',
+        variantId: item.variantId,
+        variantLabel: item.product.quantity,
         productName: item.product.productName,
         productImage: item.product.imageUrl,
         quantity: item.quantity,
@@ -166,6 +168,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (freeProduct != null) {
           items.add(OrderItem(
             productId: freeProduct.productId!,
+            variantLabel: freeProduct.quantity,
             productName: freeProduct.productName,
             productImage: freeProduct.imageUrl,
             quantity: item.quantity, // 1 free for every 1 trigger
@@ -488,7 +491,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${item.product.productName} x${item.quantity}',
+                      '${item.product.productName} (${item.product.quantity}) x${item.quantity}',
                       style: TextStyle(color: cs.onSurface),
                       overflow: TextOverflow.ellipsis,
                     ),

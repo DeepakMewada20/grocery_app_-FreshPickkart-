@@ -38,18 +38,19 @@ import 'payment_order_result.dart' as _i23;
 import 'payment_verify_result.dart' as _i24;
 import 'product.dart' as _i25;
 import 'product_page.dart' as _i26;
-import 'sub_category.dart' as _i27;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i28;
+import 'product_variant.dart' as _i27;
+import 'sub_category.dart' as _i28;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i29;
 import 'package:freshpickkat_server/src/generated/admin_audit_log_entry.dart'
-    as _i29;
-import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i30;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i31;
-import 'package:freshpickkat_server/src/generated/coupon.dart' as _i32;
-import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i33;
-import 'package:freshpickkat_server/src/generated/order.dart' as _i34;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i35;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i36;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i37;
+    as _i30;
+import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i31;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i32;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i33;
+import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i34;
+import 'package:freshpickkat_server/src/generated/order.dart' as _i35;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i36;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i37;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i38;
 export 'address.dart';
 export 'admin_analytics.dart';
 export 'admin_audit_log_entry.dart';
@@ -72,6 +73,7 @@ export 'payment_order_result.dart';
 export 'payment_verify_result.dart';
 export 'product.dart';
 export 'product_page.dart';
+export 'product_variant.dart';
 export 'sub_category.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -180,8 +182,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i26.ProductPage) {
       return _i26.ProductPage.fromJson(data) as T;
     }
-    if (t == _i27.SubCategory) {
-      return _i27.SubCategory.fromJson(data) as T;
+    if (t == _i27.ProductVariant) {
+      return _i27.ProductVariant.fromJson(data) as T;
+    }
+    if (t == _i28.SubCategory) {
+      return _i28.SubCategory.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.Address?>()) {
       return (data != null ? _i5.Address.fromJson(data) : null) as T;
@@ -254,8 +259,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i26.ProductPage?>()) {
       return (data != null ? _i26.ProductPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i27.SubCategory?>()) {
-      return (data != null ? _i27.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i27.ProductVariant?>()) {
+      return (data != null ? _i27.ProductVariant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i28.SubCategory?>()) {
+      return (data != null ? _i28.SubCategory.fromJson(data) : null) as T;
     }
     if (t == List<_i10.AdminTopProduct>) {
       return (data as List)
@@ -312,40 +320,54 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
+    if (t == List<_i27.ProductVariant>) {
+      return (data as List)
+              .map((e) => deserialize<_i27.ProductVariant>(e))
+              .toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i27.ProductVariant>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i27.ProductVariant>(e))
+                    .toList()
+              : null)
+          as T;
+    }
     if (t == List<_i25.Product>) {
       return (data as List).map((e) => deserialize<_i25.Product>(e)).toList()
           as T;
     }
-    if (t == List<_i28.AppUser>) {
-      return (data as List).map((e) => deserialize<_i28.AppUser>(e)).toList()
+    if (t == List<_i29.AppUser>) {
+      return (data as List).map((e) => deserialize<_i29.AppUser>(e)).toList()
           as T;
     }
-    if (t == List<_i29.AdminAuditLogEntry>) {
+    if (t == List<_i30.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i29.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i30.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i30.BogoOffer>(e)).toList()
+    if (t == List<_i31.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i31.BogoOffer>(e)).toList()
           as T;
     }
-    if (t == List<_i31.Category>) {
-      return (data as List).map((e) => deserialize<_i31.Category>(e)).toList()
+    if (t == List<_i32.Category>) {
+      return (data as List).map((e) => deserialize<_i32.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i32.Coupon>) {
-      return (data as List).map((e) => deserialize<_i32.Coupon>(e)).toList()
+    if (t == List<_i33.Coupon>) {
+      return (data as List).map((e) => deserialize<_i33.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i33.CouponDisplay>) {
+    if (t == List<_i34.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i33.CouponDisplay>(e))
+              .map((e) => deserialize<_i34.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i34.Order>) {
-      return (data as List).map((e) => deserialize<_i34.Order>(e)).toList()
+    if (t == List<_i35.Order>) {
+      return (data as List).map((e) => deserialize<_i35.Order>(e)).toList()
           as T;
     }
     if (t == Map<String, dynamic>) {
@@ -354,8 +376,8 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
-    if (t == List<_i35.Product>) {
-      return (data as List).map((e) => deserialize<_i35.Product>(e)).toList()
+    if (t == List<_i36.Product>) {
+      return (data as List).map((e) => deserialize<_i36.Product>(e)).toList()
           as T;
     }
     if (t == List<String>) {
@@ -367,14 +389,14 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i36.SubCategory>) {
+    if (t == List<_i37.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i36.SubCategory>(e))
+              .map((e) => deserialize<_i37.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i37.CartItem>) {
-      return (data as List).map((e) => deserialize<_i37.CartItem>(e)).toList()
+    if (t == List<_i38.CartItem>) {
+      return (data as List).map((e) => deserialize<_i38.CartItem>(e)).toList()
           as T;
     }
     try {
@@ -413,7 +435,8 @@ class Protocol extends _i1.SerializationManagerServer {
       _i24.PaymentVerifyResult => 'PaymentVerifyResult',
       _i25.Product => 'Product',
       _i26.ProductPage => 'ProductPage',
-      _i27.SubCategory => 'SubCategory',
+      _i27.ProductVariant => 'ProductVariant',
+      _i28.SubCategory => 'SubCategory',
       _ => null,
     };
   }
@@ -475,7 +498,9 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'Product';
       case _i26.ProductPage():
         return 'ProductPage';
-      case _i27.SubCategory():
+      case _i27.ProductVariant():
+        return 'ProductVariant';
+      case _i28.SubCategory():
         return 'SubCategory';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -565,8 +590,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'ProductPage') {
       return deserialize<_i26.ProductPage>(data['data']);
     }
+    if (dataClassName == 'ProductVariant') {
+      return deserialize<_i27.ProductVariant>(data['data']);
+    }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i27.SubCategory>(data['data']);
+      return deserialize<_i28.SubCategory>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

@@ -193,7 +193,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${item.productName} x${item.quantity}',
+                      '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                       style: TextStyle(color: cs.onSurface),
                       overflow: TextOverflow.ellipsis,
                     ),

@@ -8,11 +8,13 @@ import 'package:get/get.dart';
 
 class BogoSelectionBottomSheet extends StatelessWidget {
   final String triggerProductId;
+  final String? triggerVariantId;
   final List<String> freeProductIds;
 
   const BogoSelectionBottomSheet({
     super.key,
     required this.triggerProductId,
+    this.triggerVariantId,
     required this.freeProductIds,
   });
 
@@ -36,7 +38,11 @@ class BogoSelectionBottomSheet extends StatelessWidget {
         .whereType<Product>()
         .toList();
     final selectedFreeProductId = cartController.cartItems
-        .firstWhereOrNull((item) => item.product.productId == triggerProductId)
+        .firstWhereOrNull(
+          (item) =>
+              item.product.productId == triggerProductId &&
+              (item.variantId ?? 'default') == (triggerVariantId ?? 'default'),
+        )
         ?.bogoFreeProductId;
 
     return SafeArea(
@@ -213,6 +219,7 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                               cartController.setBogoSelection(
                                 triggerProductId,
                                 product.productId,
+                                triggerVariantId: triggerVariantId,
                               );
                               Get.back();
                             },

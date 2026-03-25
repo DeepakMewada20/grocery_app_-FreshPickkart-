@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:freshpickkat_server/src/generated/protocol.dart' as _i2;
+import 'product_variant.dart' as _i2;
+import 'package:freshpickkat_server/src/generated/protocol.dart' as _i3;
 
 abstract class Product
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -34,6 +35,7 @@ abstract class Product
     required this.mostSearch,
     required this.mostPurchases,
     this.bogoFreeProductIds,
+    this.variants,
   });
 
   factory Product({
@@ -55,6 +57,7 @@ abstract class Product
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
+    List<_i2.ProductVariant>? variants,
   }) = _ProductImpl;
 
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -70,22 +73,27 @@ abstract class Product
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
       isAvailable: jsonSerialization['isAvailable'] as bool,
       addedAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['addedAt']),
-      subcategory: _i2.Protocol().deserialize<List<String>>(
+      subcategory: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['subcategory'],
       ),
       quantity: jsonSerialization['quantity'] as String,
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
       searchKeywords: jsonSerialization['searchKeywords'] == null
           ? null
-          : _i2.Protocol().deserialize<List<String>>(
+          : _i3.Protocol().deserialize<List<String>>(
               jsonSerialization['searchKeywords'],
             ),
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
       bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
           ? null
-          : _i2.Protocol().deserialize<List<String>>(
+          : _i3.Protocol().deserialize<List<String>>(
               jsonSerialization['bogoFreeProductIds'],
+            ),
+      variants: jsonSerialization['variants'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<_i2.ProductVariant>>(
+              jsonSerialization['variants'],
             ),
     );
   }
@@ -126,6 +134,8 @@ abstract class Product
 
   List<String>? bogoFreeProductIds;
 
+  List<_i2.ProductVariant>? variants;
+
   /// Returns a shallow copy of this [Product]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -148,6 +158,7 @@ abstract class Product
     int? mostSearch,
     int? mostPurchases,
     List<String>? bogoFreeProductIds,
+    List<_i2.ProductVariant>? variants,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -172,6 +183,8 @@ abstract class Product
       'mostPurchases': mostPurchases,
       if (bogoFreeProductIds != null)
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
+      if (variants != null)
+        'variants': variants?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -198,6 +211,8 @@ abstract class Product
       'mostPurchases': mostPurchases,
       if (bogoFreeProductIds != null)
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
+      if (variants != null)
+        'variants': variants?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
     };
   }
 
@@ -229,6 +244,7 @@ class _ProductImpl extends Product {
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
+    List<_i2.ProductVariant>? variants,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -248,6 +264,7 @@ class _ProductImpl extends Product {
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
          bogoFreeProductIds: bogoFreeProductIds,
+         variants: variants,
        );
 
   /// Returns a shallow copy of this [Product]
@@ -273,6 +290,7 @@ class _ProductImpl extends Product {
     int? mostSearch,
     int? mostPurchases,
     Object? bogoFreeProductIds = _Undefined,
+    Object? variants = _Undefined,
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
@@ -301,6 +319,9 @@ class _ProductImpl extends Product {
       bogoFreeProductIds: bogoFreeProductIds is List<String>?
           ? bogoFreeProductIds
           : this.bogoFreeProductIds?.map((e0) => e0).toList(),
+      variants: variants is List<_i2.ProductVariant>?
+          ? variants
+          : this.variants?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
