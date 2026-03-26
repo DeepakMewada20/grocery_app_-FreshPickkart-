@@ -1,0 +1,101 @@
+SERVERPOD version: 3.4.5, dart: 3.11.0 (stable) (Mon Feb 9 00:38:07 2026 -0800) on "linux_x64", time: 2026-03-26 10:59:19.944885Z
+runMode: development
+serverId: default
+role: monolith
+loggingMode: normal
+applyMigrations: false
+applyRepairMigration: false
+SERVERPOD initialized, time: 2026-03-26 10:59:20.170340Z
+2026-03-26 10:59:22.244186Z ERROR: Failed to bind socket, port 8081 may already be in use.
+2026-03-26 10:59:22.244186Z ERROR: SocketException: Failed to create server socket (OS Error: Address already in use, errno = 98), address = ::, port = 8081
+#0      _NativeSocket.bind (dart:io-patch/socket_patch.dart:1216:7)
+<asynchronous suspension>
+#1      _RawServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2163:12)
+<asynchronous suspension>
+#2      _ServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2483:12)
+<asynchronous suspension>
+#3      _HttpServer.bind.<anonymous closure> (dart:_http/http_impl.dart:3472:24)
+<asynchronous suspension>
+#4      bindHttpServer (package:relic_io/src/adapter/bind_http_server.dart:31:12)
+<asynchronous suspension>
+#5      IOAdapter.bind (package:relic_io/src/adapter/io_adapter.dart:53:7)
+<asynchronous suspension>
+#6      _RelicServer.mountAndStart (package:relic_core/src/relic_server.dart:67:16)
+<asynchronous suspension>
+#7      RelicApp._init (package:relic_core/src/router/relic_app.dart:113:5)
+<asynchronous suspension>
+#8      RelicApp.run (package:relic_core/src/router/relic_app.dart:101:5)
+<asynchronous suspension>
+#9      Server.start (package:serverpod/src/server/server.dart:169:22)
+<asynchronous suspension>
+#10     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:746:13)
+<asynchronous suspension>
+#11     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#12     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#13     run (package:freshpickkat_server/server.dart:70:3)
+<asynchronous suspension>
+
+2026-03-26 10:59:22.248268Z ERROR: Failed to bind socket, port 8080 may already be in use.
+2026-03-26 10:59:22.248268Z ERROR: SocketException: Failed to create server socket (OS Error: Address already in use, errno = 98), address = ::, port = 8080
+#0      _NativeSocket.bind (dart:io-patch/socket_patch.dart:1216:7)
+<asynchronous suspension>
+#1      _RawServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2163:12)
+<asynchronous suspension>
+#2      _ServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2483:12)
+<asynchronous suspension>
+#3      _HttpServer.bind.<anonymous closure> (dart:_http/http_impl.dart:3472:24)
+<asynchronous suspension>
+#4      bindHttpServer (package:relic_io/src/adapter/bind_http_server.dart:31:12)
+<asynchronous suspension>
+#5      IOAdapter.bind (package:relic_io/src/adapter/io_adapter.dart:53:7)
+<asynchronous suspension>
+#6      _RelicServer.mountAndStart (package:relic_core/src/relic_server.dart:67:16)
+<asynchronous suspension>
+#7      RelicApp._init (package:relic_core/src/router/relic_app.dart:113:5)
+<asynchronous suspension>
+#8      RelicApp.run (package:relic_core/src/router/relic_app.dart:101:5)
+<asynchronous suspension>
+#9      Server.start (package:serverpod/src/server/server.dart:169:22)
+<asynchronous suspension>
+#10     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:753:25)
+<asynchronous suspension>
+#11     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#12     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#13     run (package:freshpickkat_server/server.dart:70:3)
+<asynchronous suspension>
+
+2026-03-26 10:59:22.272191Z WebServer ERROR: Failed to bind socket, port 8082 may already be in use. SocketException: Failed to create server socket (OS Error: Address already in use, errno = 98), address = ::, port = 8082
+#0      _NativeSocket.bind (dart:io-patch/socket_patch.dart:1216:7)
+<asynchronous suspension>
+#1      _RawServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2163:12)
+<asynchronous suspension>
+#2      _ServerSocket.bind.<anonymous closure> (dart:io-patch/socket_patch.dart:2483:12)
+<asynchronous suspension>
+#3      _HttpServer.bind.<anonymous closure> (dart:_http/http_impl.dart:3472:24)
+<asynchronous suspension>
+#4      bindHttpServer (package:relic_io/src/adapter/bind_http_server.dart:31:12)
+<asynchronous suspension>
+#5      IOAdapter.bind (package:relic_io/src/adapter/io_adapter.dart:53:7)
+<asynchronous suspension>
+#6      _RelicServer.mountAndStart (package:relic_core/src/relic_server.dart:67:16)
+<asynchronous suspension>
+#7      RelicApp._init (package:relic_core/src/router/relic_app.dart:113:5)
+<asynchronous suspension>
+#8      RelicApp.run (package:relic_core/src/router/relic_app.dart:101:5)
+<asynchronous suspension>
+#9      WebServer.start (package:serverpod/src/web_server/web_server.dart:134:22)
+<asynchronous suspension>
+#10     Serverpod._unguardedStart (package:serverpod/src/server/serverpod.dart:761:27)
+<asynchronous suspension>
+#11     Serverpod.start.<anonymous closure> (package:serverpod/src/server/serverpod.dart:673:9)
+<asynchronous suspension>
+#12     Serverpod.start (package:serverpod/src/server/serverpod.dart:672:7)
+<asynchronous suspension>
+#13     run (package:freshpickkat_server/server.dart:70:3)
+<asynchronous suspension>
+
+Failed to start the Serverpod servers, see logs for details.

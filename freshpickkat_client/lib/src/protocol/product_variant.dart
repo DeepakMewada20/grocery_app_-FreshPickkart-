@@ -40,7 +40,9 @@ abstract class ProductVariant implements _i1.SerializableModel {
       quantityUnit: jsonSerialization['quantityUnit'] as String,
       price: (jsonSerialization['price'] as num).toDouble(),
       realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
-      isAvailable: jsonSerialization['isAvailable'] as bool,
+      isAvailable: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isAvailable'],
+      ),
       sortOrder: jsonSerialization['sortOrder'] as int?,
     );
   }

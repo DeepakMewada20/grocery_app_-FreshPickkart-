@@ -23,6 +23,8 @@ abstract class BogoOffer
     this.freeProducts,
     required this.offerTitle,
     required this.isActive,
+    required this.startDate,
+    required this.endDate,
     required this.createdAt,
   });
 
@@ -33,6 +35,8 @@ abstract class BogoOffer
     List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
     required bool isActive,
+    required DateTime startDate,
+    required DateTime endDate,
     required DateTime createdAt,
   }) = _BogoOfferImpl;
 
@@ -49,7 +53,11 @@ abstract class BogoOffer
               jsonSerialization['freeProducts'],
             ),
       offerTitle: jsonSerialization['offerTitle'] as String,
-      isActive: jsonSerialization['isActive'] as bool,
+      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
+      startDate: _i1.DateTimeJsonExtension.fromJson(
+        jsonSerialization['startDate'],
+      ),
+      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -68,6 +76,10 @@ abstract class BogoOffer
 
   bool isActive;
 
+  DateTime startDate;
+
+  DateTime endDate;
+
   DateTime createdAt;
 
   /// Returns a shallow copy of this [BogoOffer]
@@ -80,6 +92,8 @@ abstract class BogoOffer
     List<_i2.BogoFreeProduct>? freeProducts,
     String? offerTitle,
     bool? isActive,
+    DateTime? startDate,
+    DateTime? endDate,
     DateTime? createdAt,
   });
   @override
@@ -93,6 +107,8 @@ abstract class BogoOffer
         'freeProducts': freeProducts?.toJson(valueToJson: (v) => v.toJson()),
       'offerTitle': offerTitle,
       'isActive': isActive,
+      'startDate': startDate.toJson(),
+      'endDate': endDate.toJson(),
       'createdAt': createdAt.toJson(),
     };
   }
@@ -110,6 +126,8 @@ abstract class BogoOffer
         ),
       'offerTitle': offerTitle,
       'isActive': isActive,
+      'startDate': startDate.toJson(),
+      'endDate': endDate.toJson(),
       'createdAt': createdAt.toJson(),
     };
   }
@@ -130,6 +148,8 @@ class _BogoOfferImpl extends BogoOffer {
     List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
     required bool isActive,
+    required DateTime startDate,
+    required DateTime endDate,
     required DateTime createdAt,
   }) : super._(
          offerId: offerId,
@@ -138,6 +158,8 @@ class _BogoOfferImpl extends BogoOffer {
          freeProducts: freeProducts,
          offerTitle: offerTitle,
          isActive: isActive,
+         startDate: startDate,
+         endDate: endDate,
          createdAt: createdAt,
        );
 
@@ -152,6 +174,8 @@ class _BogoOfferImpl extends BogoOffer {
     Object? freeProducts = _Undefined,
     String? offerTitle,
     bool? isActive,
+    DateTime? startDate,
+    DateTime? endDate,
     DateTime? createdAt,
   }) {
     return BogoOffer(
@@ -164,6 +188,8 @@ class _BogoOfferImpl extends BogoOffer {
           : this.freeProducts?.map((e0) => e0.copyWith()).toList(),
       offerTitle: offerTitle ?? this.offerTitle,
       isActive: isActive ?? this.isActive,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
       createdAt: createdAt ?? this.createdAt,
     );
   }

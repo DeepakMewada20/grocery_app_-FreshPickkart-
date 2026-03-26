@@ -75,7 +75,9 @@ abstract class Product
       discount: (jsonSerialization['discount'] as num).toDouble(),
       discountType: jsonSerialization['discountType'] as String?,
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
-      isAvailable: jsonSerialization['isAvailable'] as bool,
+      isAvailable: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isAvailable'],
+      ),
       addedAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['addedAt']),
       subcategory: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['subcategory'],

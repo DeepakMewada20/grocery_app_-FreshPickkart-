@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/widgets/offer_banner.dart';
+import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
@@ -291,15 +292,26 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   Widget _buildOfferBanner() {
     return SizedBox(
       width: double.infinity,
-      child: OfferBanner(
-        height: 140,
-        banners: [
-          OfferBannerItem(
-            imagePath: 'lib/assets/images/discount.jpg',
-            onTap: () {},
-          ),
-        ],
-      ),
+      child: Obx(() {
+        final bannerController = BannerController.instance;
+        final banners = bannerController.categoryPageBanners.where((b) {
+          final bCatId = b.categoryId;
+          if (bCatId == null) return false;
+          return bCatId.trim().toLowerCase() ==
+              widget.categoryName.trim().toLowerCase();
+        }).toList();
+
+        if (banners.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return NetworkBannerWidget(
+          height: 140,
+          banners: banners,
+          autoScrollInterval: const Duration(seconds: 4),
+          autoScrollDuration: const Duration(milliseconds: 500),
+        );
+      }),
     );
   }
 

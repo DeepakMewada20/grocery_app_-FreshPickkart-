@@ -1,0 +1,5 @@
+class: PricingLineItem
+fields:
+  label: String
+  amount: double
+  type: String

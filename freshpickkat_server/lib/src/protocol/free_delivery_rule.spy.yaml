@@ -1,0 +1,15 @@
+class: FreeDeliveryRule
+fields:
+  ruleId: String?
+  name: String
+  description: String?
+  ruleType: String
+  minOrderAmount: double?
+  minItemsCount: int?
+  couponCode: String?
+  userId: String?
+  isActive: bool
+  startDate: DateTime
+  endDate: DateTime
+  deliveryFeeWaived: double
+  createdAt: DateTime

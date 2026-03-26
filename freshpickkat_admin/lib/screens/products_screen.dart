@@ -8,10 +8,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_tab.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -20,7 +21,9 @@ class ProductsScreen extends StatefulWidget {
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen> {
+class _ProductsScreenState extends State<ProductsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final AdminProductController _productController =
       AdminProductController.instance;
   final AdminCategoryController _categoryController =
@@ -33,12 +36,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_handleScroll);
     _loadData();
+    _categoryController.loadCategories();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -381,21 +387,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
-                                    onChanged: (v) {
-                                      final p = double.tryParse(v) ?? 0;
-                                      final d =
-                                          double.tryParse(discountCtrl.text) ??
-                                          0;
-                                      if (discountType == 'percentage' &&
-                                          d < 100) {
-                                        mrpCtrl.text = (p / (1 - (d / 100)))
-                                            .toStringAsFixed(0);
-                                      } else {
-                                        mrpCtrl.text = (p + d).toStringAsFixed(
-                                          0,
-                                        );
-                                      }
-                                    },
                                     validator: _numberValidator,
                                   ),
                                   const SizedBox(height: 12),
@@ -407,6 +398,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
+                                    onChanged: (v) {
+                                      final mrp = double.tryParse(v) ?? 0;
+                                      final p =
+                                          double.tryParse(priceCtrl.text) ?? 0;
+                                      if (mrp > 0 && p > 0 && mrp > p) {
+                                        final discount = mrp - p;
+                                        if (discountType == 'flat') {
+                                          discountCtrl.text = discount
+                                              .toStringAsFixed(0);
+                                        } else if (discountType ==
+                                            'percentage') {
+                                          final percent =
+                                              (discount / mrp * 100);
+                                          discountCtrl.text = percent
+                                              .toStringAsFixed(0);
+                                        }
+                                      }
+                                    },
                                     validator: _numberValidator,
                                   ),
                                   const SizedBox(height: 12),
@@ -438,9 +447,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                 discountCtrl.text = '0';
                                                 mrpCtrl.text = priceCtrl.text;
                                               } else {
-                                                final d =
+                                                final mrp =
                                                     double.tryParse(
-                                                      discountCtrl.text,
+                                                      mrpCtrl.text,
                                                     ) ??
                                                     0;
                                                 final p =
@@ -448,15 +457,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                       priceCtrl.text,
                                                     ) ??
                                                     0;
-                                                if (discountType ==
-                                                        'percentage' &&
-                                                    d < 100) {
-                                                  mrpCtrl.text =
-                                                      (p / (1 - (d / 100)))
-                                                          .toStringAsFixed(0);
-                                                } else {
-                                                  mrpCtrl.text = (p + d)
-                                                      .toStringAsFixed(0);
+                                                if (mrp > 0 &&
+                                                    p > 0 &&
+                                                    mrp > p) {
+                                                  final discount = mrp - p;
+                                                  if (discountType == 'flat') {
+                                                    discountCtrl.text = discount
+                                                        .toStringAsFixed(0);
+                                                  } else {
+                                                    final percent =
+                                                        (discount / mrp * 100);
+                                                    discountCtrl.text = percent
+                                                        .toStringAsFixed(0);
+                                                  }
                                                 }
                                               }
                                             });
@@ -720,6 +733,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     if (saved != true) return;
 
+    final variants = _buildVariants(
+      primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+      primaryPrice: double.parse(priceCtrl.text.trim()),
+      primaryMrp: double.parse(mrpCtrl.text.trim()),
+      primaryAvailability: isAvailable,
+      extraVariants: extraVariants,
+    );
+
     final product = Product(
       productName: nameCtrl.text.trim(),
       category: selectedCategory!.trim(),
@@ -743,13 +764,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       mostSearch: 0,
       mostPurchases: 0,
       bogoFreeProductIds: bogoFreeProductIds.toList(),
-      variants: _buildVariants(
-        primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
-        primaryPrice: double.parse(priceCtrl.text.trim()),
-        primaryMrp: double.parse(mrpCtrl.text.trim()),
-        primaryAvailability: isAvailable,
-        extraVariants: extraVariants,
-      ),
+      variants: variants,
     );
 
     try {
@@ -1177,21 +1192,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
-                                    onChanged: (v) {
-                                      final p = double.tryParse(v) ?? 0;
-                                      final d =
-                                          double.tryParse(discountCtrl.text) ??
-                                          0;
-                                      if (discountType == 'percentage' &&
-                                          d < 100) {
-                                        mrpCtrl.text = (p / (1 - (d / 100)))
-                                            .toStringAsFixed(0);
-                                      } else {
-                                        mrpCtrl.text = (p + d).toStringAsFixed(
-                                          0,
-                                        );
-                                      }
-                                    },
                                     validator: _numberValidator,
                                   ),
                                   const SizedBox(height: 12),
@@ -1203,6 +1203,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
+                                    onChanged: (v) {
+                                      final mrp = double.tryParse(v) ?? 0;
+                                      final p =
+                                          double.tryParse(priceCtrl.text) ?? 0;
+                                      if (mrp > 0 && p > 0 && mrp > p) {
+                                        final discount = mrp - p;
+                                        if (discountType == 'flat') {
+                                          discountCtrl.text = discount
+                                              .toStringAsFixed(0);
+                                        } else if (discountType ==
+                                            'percentage') {
+                                          final percent =
+                                              (discount / mrp * 100);
+                                          discountCtrl.text = percent
+                                              .toStringAsFixed(0);
+                                        }
+                                      }
+                                    },
                                     validator: _numberValidator,
                                   ),
                                   const SizedBox(height: 12),
@@ -1233,9 +1251,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                 discountCtrl.text = '0';
                                                 mrpCtrl.text = priceCtrl.text;
                                               } else {
-                                                final d =
+                                                final mrp =
                                                     double.tryParse(
-                                                      discountCtrl.text,
+                                                      mrpCtrl.text,
                                                     ) ??
                                                     0;
                                                 final p =
@@ -1243,15 +1261,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                       priceCtrl.text,
                                                     ) ??
                                                     0;
-                                                if (discountType ==
-                                                        'percentage' &&
-                                                    d < 100) {
-                                                  mrpCtrl.text =
-                                                      (p / (1 - (d / 100)))
-                                                          .toStringAsFixed(0);
-                                                } else {
-                                                  mrpCtrl.text = (p + d)
-                                                      .toStringAsFixed(0);
+                                                if (mrp > 0 &&
+                                                    p > 0 &&
+                                                    mrp > p) {
+                                                  final discount = mrp - p;
+                                                  if (discountType == 'flat') {
+                                                    discountCtrl.text = discount
+                                                        .toStringAsFixed(0);
+                                                  } else {
+                                                    final percent =
+                                                        (discount / mrp * 100);
+                                                    discountCtrl.text = percent
+                                                        .toStringAsFixed(0);
+                                                  }
                                                 }
                                               }
                                             });
@@ -1519,6 +1541,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
     if (saved != true) return;
 
+    final variants = _buildVariants(
+      primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+      primaryPrice: double.parse(priceCtrl.text.trim()),
+      primaryMrp: double.parse(mrpCtrl.text.trim()),
+      primaryAvailability: isAvailable,
+      extraVariants: extraVariants,
+    );
+
     final updated = product.copyWith(
       productName: nameCtrl.text.trim(),
       category: selectedCategory!.trim(),
@@ -1539,13 +1569,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ? null
           : countryOfOriginCtrl.text.trim(),
       bogoFreeProductIds: bogoFreeProductIds.toList(),
-      variants: _buildVariants(
-        primaryQuantity: '${quantityValueCtrl.text.trim()} $baseUnit',
-        primaryPrice: double.parse(priceCtrl.text.trim()),
-        primaryMrp: double.parse(mrpCtrl.text.trim()),
-        primaryAvailability: isAvailable,
-        extraVariants: extraVariants,
-      ),
+      variants: variants,
     );
 
     try {
@@ -1646,7 +1670,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     required bool primaryAvailability,
     required List<_VariantDraft> extraVariants,
   }) {
-    return [
+    final variants = <ProductVariant>[
       ProductVariant(
         variantId: 'default',
         quantityValue: _parseQuantityValue(primaryQuantity),
@@ -1672,6 +1696,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
       ),
     ];
+    return variants;
   }
 
   double _parseQuantityValue(String text) {
@@ -1959,6 +1984,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
         freeProducts: configuredFreeProducts,
         offerTitle: 'Buy 1 Get 1 Free',
         isActive: true,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 365)),
         createdAt: DateTime.now(),
       ),
     );
@@ -1982,30 +2009,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Search products...',
-                  hintStyle: TextStyle(color: Colors.white70),
-                  border: InputBorder.none,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              )
-            : Obx(
-                () => Text(
-                  _productController.totalCount.value > 0
-                      ? 'Products (${_productController.totalCount.value})'
-                      : 'Products',
-                ),
-              ),
+        title: Obx(
+          () => Text(
+            _productController.totalCount.value > 0
+                ? 'Catalog (${_productController.totalCount.value})'
+                : 'Catalog',
+          ),
+        ),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          tabs: const [
+            Tab(text: 'Products'),
+            Tab(text: 'Categories'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -2022,172 +2044,290 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
       ),
-      body: Obx(() {
-        final products = _productController.products;
-        final isLoading = _productController.isLoading.value;
-        final error = _productController.error.value;
-        final hasMore = _productController.hasMore.value;
-        final isLoadingMore = _productController.isLoadingMore.value;
-
-        final categoryItems = <DropdownMenuItem<String>>[
-          const DropdownMenuItem<String>(value: 'All', child: Text('All')),
-          ..._categoryController.categories.map<DropdownMenuItem<String>>(
-            (c) => DropdownMenuItem<String>(
-              value: c.categoryName,
-              child: Text(c.categoryName),
-            ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _ProductsListContent(
+            scrollController: _scrollController,
+            searchQuery: _searchQuery,
+            isSearching: _isSearching,
+            onSearchChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+            onSearchClose: () {
+              setState(() {
+                _isSearching = false;
+                _searchQuery = '';
+              });
+            },
+            onOpenAddProductDialog: _openAddProductDialog,
+            onOpenEditProductDialog: _openEditProductDialog,
+            onDeleteProduct: _deleteProduct,
+            visibleProducts: _visibleProducts,
+            loadData: _loadData,
           ),
-        ];
-
-        if (isLoading && products.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (error != null && products.isEmpty) {
-          return Center(child: Text('Error: $error'));
-        }
-
-        if (products.isEmpty) {
-          return const Center(child: Text('No products found'));
-        }
-
-        return Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: DropdownButtonFormField<String>(
-                initialValue: _productController.categoryFilter,
-                decoration: InputDecoration(
-                  labelText: 'Filter by category',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-                items: categoryItems,
-                onChanged: (value) {
-                  if (value == null) return;
-                  _productController.loadInitial(category: value);
-                },
-              ),
-            ),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _loadData,
-                child: (() {
-                  final visible = _visibleProducts();
-                  if (visible.isEmpty) {
-                    return ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        const SizedBox(height: 120),
-                        const Center(child: Text('No matching products')),
-                        if (hasMore) ...[
-                          const SizedBox(height: 16),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () => _productController.loadMore(),
-                              child: isLoadingMore
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Load More from Server'),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  }
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(12),
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount:
-                        visible.length +
-                        (hasMore || isLoadingMore || error != null ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= visible.length) {
-                        if (error != null) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Error: $error',
-                                  style: const TextStyle(color: Colors.red),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      _productController.loadMore(),
-                                  child: const Text('Retry'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      final product = visible[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          onTap: () => _openEditProductDialog(product),
-                          isThreeLine: true,
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(product.imageUrl),
-                            onBackgroundImageError: (_, _) {},
-                          ),
-                          title: Text(product.productName),
-                          subtitle: Text(
-                            '${product.category} • ${product.quantity}\n'
-                            '₹${product.price.toStringAsFixed(0)} | '
-                            '${product.isAvailable ? 'Available' : 'Out of stock'}',
-                          ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                _openEditProductDialog(product);
-                              } else if (value == 'delete') {
-                                _deleteProduct(product);
-                              }
-                            },
-                            itemBuilder: (context) => const [
-                              PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                })(),
-              ),
-            ),
-          ],
-        );
-      }),
+          const _CategoriesTabContent(),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
-        onPressed: _openAddProductDialog,
+        onPressed: () {
+          final currentIndex = _tabController.index;
+          if (currentIndex == 0) {
+            _openAddProductDialog();
+          }
+        },
         icon: const Icon(Icons.add),
         label: const Text('Add Product'),
+      ),
+    );
+  }
+}
+
+class _ProductsListContent extends StatelessWidget {
+  final ScrollController scrollController;
+  final String searchQuery;
+  final bool isSearching;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onSearchClose;
+  final VoidCallback onOpenAddProductDialog;
+  final void Function(Product) onOpenEditProductDialog;
+  final void Function(Product) onDeleteProduct;
+  final List<Product> Function() visibleProducts;
+  final Future<void> Function() loadData;
+
+  const _ProductsListContent({
+    required this.scrollController,
+    required this.searchQuery,
+    required this.isSearching,
+    required this.onSearchChanged,
+    required this.onSearchClose,
+    required this.onOpenAddProductDialog,
+    required this.onOpenEditProductDialog,
+    required this.onDeleteProduct,
+    required this.visibleProducts,
+    required this.loadData,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isSearching) {
+      return Column(
+        children: [
+          Container(
+            color: Colors.green,
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 8,
+              bottom: 8,
+              top: MediaQuery.of(context).padding.top + 8,
+            ),
+            child: TextField(
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search products...',
+                hintStyle: const TextStyle(color: Colors.white70),
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: onSearchClose,
+                ),
+              ),
+              onChanged: onSearchChanged,
+            ),
+          ),
+          Expanded(child: _buildProductList(context)),
+        ],
+      );
+    }
+
+    return _buildProductList(context);
+  }
+
+  Widget _buildProductList(BuildContext context) {
+    final productController = AdminProductController.instance;
+    final categoryController = AdminCategoryController.instance;
+
+    return Obx(() {
+      final products = productController.products;
+      final isLoading = productController.isLoading.value;
+      final error = productController.error.value;
+      final hasMore = productController.hasMore.value;
+      final isLoadingMore = productController.isLoadingMore.value;
+
+      final categoryItems = <DropdownMenuItem<String>>[
+        const DropdownMenuItem<String>(value: 'All', child: Text('All')),
+        ...categoryController.categories.map<DropdownMenuItem<String>>(
+          (c) => DropdownMenuItem<String>(
+            value: c.categoryName,
+            child: Text(c.categoryName),
+          ),
+        ),
+      ];
+
+      if (isLoading && products.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (error != null && products.isEmpty) {
+        return Center(child: Text('Error: $error'));
+      }
+
+      if (products.isEmpty) {
+        return const Center(child: Text('No products found'));
+      }
+
+      return Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: DropdownButtonFormField<String>(
+              initialValue: productController.categoryFilter,
+              decoration: InputDecoration(
+                labelText: 'Filter by category',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              items: categoryItems,
+              onChanged: (value) {
+                if (value == null) return;
+                productController.loadInitial(category: value);
+              },
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: loadData,
+              child: (() {
+                final visible = visibleProducts();
+                if (visible.isEmpty) {
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      const SizedBox(height: 120),
+                      const Center(child: Text('No matching products')),
+                      if (hasMore) ...[
+                        const SizedBox(height: 16),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () => productController.loadMore(),
+                            child: isLoadingMore
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Load More from Server'),
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                }
+                return ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(12),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount:
+                      visible.length +
+                      (hasMore || isLoadingMore || error != null ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= visible.length) {
+                      if (error != null) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Error: $error',
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: () => productController.loadMore(),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final product = visible[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        onTap: () => onOpenEditProductDialog(product),
+                        isThreeLine: true,
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(product.imageUrl),
+                          onBackgroundImageError: (_, _) {},
+                        ),
+                        title: Text(product.productName),
+                        subtitle: Text(
+                          '${product.category} • ${product.quantity}\n'
+                          '₹${product.price.toStringAsFixed(0)} | '
+                          '${product.isAvailable ? 'Available' : 'Out of stock'}',
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              onOpenEditProductDialog(product);
+                            } else if (value == 'delete') {
+                              onDeleteProduct(product);
+                            }
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              })(),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _CategoriesTabContent extends StatelessWidget {
+  const _CategoriesTabContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return CatalogCategoriesTab(
+      controller: AdminCategoryController.instance,
+      onAddCategory: () => showAddCategoryDialog(
+        context: context,
+        controller: AdminCategoryController.instance,
+      ),
+      onAddSubcategory: () => showAddSubcategoryDialog(
+        context: context,
+        controller: AdminCategoryController.instance,
       ),
     );
   }
@@ -2468,7 +2608,8 @@ class _VariantDraft {
     this.baseRealPrice = 0,
     this.baseQuantity = 1,
     this.baseUnit = 'gm',
-  }) : variantId = variantId ?? '',
+  }) : variantId =
+           variantId ?? 'variant_${DateTime.now().millisecondsSinceEpoch}',
        quantityValueCtrl = TextEditingController(
          text: quantityValue.toString(),
        ),

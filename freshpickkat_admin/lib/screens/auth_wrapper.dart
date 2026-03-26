@@ -53,6 +53,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _primeConnectionState() async {
+    await Future.delayed(const Duration(milliseconds: 500));
     final hasConnection = await NetworkStatusService.instance.hasConnection();
     if (!mounted) return;
     setState(() {
@@ -210,10 +211,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _message = null;
       });
     } catch (e) {
-      final isNetworkIssue =
-          NetworkStatusService.looksLikeNetworkError(e) ||
-          !await NetworkStatusService.instance.hasConnection();
-      if (isNetworkIssue) {
+      if (!mounted) return;
+
+      final hasActualConnection = await NetworkStatusService.instance
+          .hasConnection();
+      final isTrueNetworkError = NetworkStatusService.isTrueNetworkError(e);
+
+      if (!hasActualConnection || isTrueNetworkError) {
         if (!mounted) return;
         setState(() {
           _showConnectionScreen = true;
@@ -222,6 +226,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         });
         return;
       }
+
       await FirebaseAuth.instance.signOut();
       if (!mounted) return;
       setState(() {

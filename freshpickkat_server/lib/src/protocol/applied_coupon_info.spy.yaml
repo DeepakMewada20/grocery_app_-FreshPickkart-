@@ -1,0 +1,6 @@
+class: AppliedCouponInfo
+fields:
+  couponId: String
+  couponCode: String
+  discountAmount: double
+  isAutoApplied: bool

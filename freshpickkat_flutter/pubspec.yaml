@@ -32,16 +32,16 @@ dependencies:
     sdk: flutter
   freshpickkat_client:
     path: ../freshpickkat_client
-  serverpod_auth_idp_flutter: ^3.3.1
-  serverpod_flutter: ^3.3.1
-  serverpod_auth_client: ^3.3.1
+  serverpod_auth_idp_flutter: 3.4.5
+  serverpod_flutter: 3.4.5
+  serverpod_auth_client: 3.4.5
   firebase_auth: ^6.1.4
   firebase_messaging: ^16.1.1
   pinput: ^6.0.2
   google_fonts: ^6.3.3
   firebase_core: ^4.4.0
   flutter_dotenv: ^5.2.1
-  serverpod_auth_shared_flutter: ^3.3.1
+  serverpod_auth_shared_flutter: 3.4.5
   get: ^4.7.3
   get_storage: ^2.1.1
   device_info_plus: ^12.3.0

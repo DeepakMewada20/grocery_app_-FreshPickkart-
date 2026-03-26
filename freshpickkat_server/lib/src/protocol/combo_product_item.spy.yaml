@@ -1,0 +1,6 @@
+class: ComboProductItem
+fields:
+  productId: String
+  productName: String?
+  quantity: int
+  variantId: String?

@@ -31,10 +31,12 @@ abstract class CouponValidationResult implements _i1.SerializableModel {
     Map<String, dynamic> jsonSerialization,
   ) {
     return CouponValidationResult(
-      isValid: jsonSerialization['isValid'] as bool,
+      isValid: _i1.BoolJsonExtension.fromJson(jsonSerialization['isValid']),
       errorMessage: jsonSerialization['errorMessage'] as String?,
       discountAmount: (jsonSerialization['discountAmount'] as num).toDouble(),
-      isDeliveryDiscount: jsonSerialization['isDeliveryDiscount'] as bool,
+      isDeliveryDiscount: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isDeliveryDiscount'],
+      ),
     );
   }
 

@@ -1,0 +1,131 @@
+/* AUTOMATICALLY GENERATED CODE DO NOT MODIFY */
+/*   To generate run: "serverpod generate"    */
+
+// ignore_for_file: implementation_imports
+// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: public_member_api_docs
+// ignore_for_file: type_literal_in_constant_pattern
+// ignore_for_file: use_super_parameters
+// ignore_for_file: invalid_use_of_internal_member
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:serverpod/serverpod.dart' as _i1;
+
+abstract class FreeItemInfo
+    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+  FreeItemInfo._({
+    required this.productId,
+    required this.productName,
+    this.variantId,
+    required this.quantity,
+    this.triggerProductId,
+  });
+
+  factory FreeItemInfo({
+    required String productId,
+    required String productName,
+    String? variantId,
+    required int quantity,
+    String? triggerProductId,
+  }) = _FreeItemInfoImpl;
+
+  factory FreeItemInfo.fromJson(Map<String, dynamic> jsonSerialization) {
+    return FreeItemInfo(
+      productId: jsonSerialization['productId'] as String,
+      productName: jsonSerialization['productName'] as String,
+      variantId: jsonSerialization['variantId'] as String?,
+      quantity: jsonSerialization['quantity'] as int,
+      triggerProductId: jsonSerialization['triggerProductId'] as String?,
+    );
+  }
+
+  String productId;
+
+  String productName;
+
+  String? variantId;
+
+  int quantity;
+
+  String? triggerProductId;
+
+  /// Returns a shallow copy of this [FreeItemInfo]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  FreeItemInfo copyWith({
+    String? productId,
+    String? productName,
+    String? variantId,
+    int? quantity,
+    String? triggerProductId,
+  });
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__className__': 'FreeItemInfo',
+      'productId': productId,
+      'productName': productName,
+      if (variantId != null) 'variantId': variantId,
+      'quantity': quantity,
+      if (triggerProductId != null) 'triggerProductId': triggerProductId,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonForProtocol() {
+    return {
+      '__className__': 'FreeItemInfo',
+      'productId': productId,
+      'productName': productName,
+      if (variantId != null) 'variantId': variantId,
+      'quantity': quantity,
+      if (triggerProductId != null) 'triggerProductId': triggerProductId,
+    };
+  }
+
+  @override
+  String toString() {
+    return _i1.SerializationManager.encode(this);
+  }
+}
+
+class _Undefined {}
+
+class _FreeItemInfoImpl extends FreeItemInfo {
+  _FreeItemInfoImpl({
+    required String productId,
+    required String productName,
+    String? variantId,
+    required int quantity,
+    String? triggerProductId,
+  }) : super._(
+         productId: productId,
+         productName: productName,
+         variantId: variantId,
+         quantity: quantity,
+         triggerProductId: triggerProductId,
+       );
+
+  /// Returns a shallow copy of this [FreeItemInfo]
+  /// with some or all fields replaced by the given arguments.
+  @_i1.useResult
+  @override
+  FreeItemInfo copyWith({
+    String? productId,
+    String? productName,
+    Object? variantId = _Undefined,
+    int? quantity,
+    Object? triggerProductId = _Undefined,
+  }) {
+    return FreeItemInfo(
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      variantId: variantId is String? ? variantId : this.variantId,
+      quantity: quantity ?? this.quantity,
+      triggerProductId: triggerProductId is String?
+          ? triggerProductId
+          : this.triggerProductId,
+    );
+  }
+}

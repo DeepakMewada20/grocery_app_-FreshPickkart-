@@ -34,7 +34,7 @@ abstract class PaymentOrderResult
 
   factory PaymentOrderResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentOrderResult(
-      success: jsonSerialization['success'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       razorpayOrderId: jsonSerialization['razorpayOrderId'] as String?,
       amount: jsonSerialization['amount'] as int?,
       currency: jsonSerialization['currency'] as String?,

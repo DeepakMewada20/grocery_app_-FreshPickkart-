@@ -30,8 +30,8 @@ abstract class PaymentVerifyResult
 
   factory PaymentVerifyResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentVerifyResult(
-      success: jsonSerialization['success'] as bool,
-      verified: jsonSerialization['verified'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      verified: _i1.BoolJsonExtension.fromJson(jsonSerialization['verified']),
       message: jsonSerialization['message'] as String?,
       error: jsonSerialization['error'] as String?,
     );

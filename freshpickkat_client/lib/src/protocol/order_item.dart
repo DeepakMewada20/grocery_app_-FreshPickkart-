@@ -49,7 +49,9 @@ abstract class OrderItem implements _i1.SerializableModel {
       quantity: jsonSerialization['quantity'] as int,
       unitPrice: (jsonSerialization['unitPrice'] as num).toDouble(),
       totalPrice: (jsonSerialization['totalPrice'] as num).toDouble(),
-      isFreeItem: jsonSerialization['isFreeItem'] as bool,
+      isFreeItem: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isFreeItem'],
+      ),
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
     );
   }

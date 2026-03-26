@@ -1,0 +1,18 @@
+class: CategoryOffer
+fields:
+  offerId: String?
+  name: String
+  description: String?
+  categoryId: String
+  categoryName: String?
+  discountType: String
+  discountValue: double
+  maxDiscount: double?
+  minOrderAmount: double?
+  productIds: List<String>?
+  excludeProductIds: List<String>?
+  startDate: DateTime
+  endDate: DateTime
+  isActive: bool
+  priority: int
+  createdAt: DateTime

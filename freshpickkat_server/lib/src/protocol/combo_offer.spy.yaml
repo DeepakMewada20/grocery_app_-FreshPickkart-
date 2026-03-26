@@ -1,0 +1,17 @@
+class: ComboOffer
+fields:
+  comboId: String?
+  name: String
+  description: String?
+  comboProducts: List<ComboProductItem>
+  discountType: String
+  discountValue: double
+  minQuantityPerProduct: int
+  startDate: DateTime
+  endDate: DateTime
+  isActive: bool
+  priority: int
+  maxUsagePerUser: int
+  usageCount: int
+  maxTotalUsage: int?
+  createdAt: DateTime

@@ -57,7 +57,7 @@ abstract class Coupon implements _i1.SerializableModel {
       endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       usageLimit: jsonSerialization['usageLimit'] as int?,
       usedCount: jsonSerialization['usedCount'] as int,
-      isActive: jsonSerialization['isActive'] as bool,
+      isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       couponCategory: jsonSerialization['couponCategory'] as String,
     );
   }

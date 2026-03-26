@@ -117,6 +117,12 @@ class BogoEndpoint extends Endpoint {
       freeProducts: freeProducts.isEmpty ? null : freeProducts,
       offerTitle: fields['offerTitle']?.stringValue ?? 'Buy 1 Get 1',
       isActive: fields['isActive']?.booleanValue ?? false,
+      startDate:
+          DateTime.tryParse(fields['startDate']?.timestampValue ?? '') ??
+          DateTime.now(),
+      endDate:
+          DateTime.tryParse(fields['endDate']?.timestampValue ?? '') ??
+          DateTime.now().add(Duration(days: 365)),
       createdAt:
           DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
           DateTime.now(),
@@ -184,6 +190,12 @@ class BogoEndpoint extends Endpoint {
       ),
       'offerTitle': firestore_api.Value(stringValue: offer.offerTitle),
       'isActive': firestore_api.Value(booleanValue: offer.isActive),
+      'startDate': firestore_api.Value(
+        timestampValue: offer.startDate.toUtc().toIso8601String(),
+      ),
+      'endDate': firestore_api.Value(
+        timestampValue: offer.endDate.toUtc().toIso8601String(),
+      ),
       'createdAt': firestore_api.Value(
         timestampValue: offer.createdAt.toUtc().toIso8601String(),
       ),

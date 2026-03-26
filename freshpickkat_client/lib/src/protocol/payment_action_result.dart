@@ -35,7 +35,7 @@ abstract class PaymentActionResult implements _i1.SerializableModel {
 
   factory PaymentActionResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentActionResult(
-      success: jsonSerialization['success'] as bool,
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
       message: jsonSerialization['message'] as String?,
       error: jsonSerialization['error'] as String?,
       refundId: jsonSerialization['refundId'] as String?,

@@ -1,0 +1,19 @@
+class: Banner
+fields:
+  bannerId: String?
+  title: String
+  imageUrl: String
+  type: String # offer, category, product, combo, coupon, external_link
+  offerId: String?
+  categoryId: String?
+  productId: String?
+  comboId: String?
+  couponCode: String?
+  externalUrl: String?
+  screenPlacements: String # Comma-separated: home_top,home_middle,cart_page
+  priority: int
+  startDate: DateTime
+  endDate: DateTime
+  active: bool
+  createdAt: DateTime
+  updatedAt: DateTime?

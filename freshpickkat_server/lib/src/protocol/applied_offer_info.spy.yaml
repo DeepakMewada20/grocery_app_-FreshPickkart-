@@ -1,0 +1,6 @@
+class: AppliedOfferInfo
+fields:
+  offerId: String
+  offerName: String
+  offerType: String
+  discountAmount: double

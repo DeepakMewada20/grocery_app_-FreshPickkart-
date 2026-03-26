@@ -177,4 +177,100 @@ class ValidationService {
       );
     }
   }
+
+  static void validateComboOffer(protocol.ComboOffer combo) {
+    if (combo.name.trim().isEmpty) {
+      throw InvalidParametersException('Combo offer name is required');
+    }
+    if (combo.comboProducts.isEmpty) {
+      throw InvalidParametersException(
+        'At least one product is required for combo offer',
+      );
+    }
+    for (final product in combo.comboProducts) {
+      if (product.productId.trim().isEmpty) {
+        throw InvalidParametersException('Product ID is required in combo');
+      }
+      if (product.quantity <= 0) {
+        throw InvalidParametersException(
+          'Product quantity must be greater than 0',
+        );
+      }
+    }
+    if (combo.discountType != 'flat' && combo.discountType != 'percentage') {
+      throw InvalidParametersException(
+        'Discount type must be flat or percentage',
+      );
+    }
+    if (combo.discountValue <= 0) {
+      throw InvalidParametersException('Discount value must be greater than 0');
+    }
+    if (combo.discountType == 'percentage' && combo.discountValue > 100) {
+      throw InvalidParametersException('Percentage discount cannot exceed 100');
+    }
+    if (combo.endDate.isBefore(combo.startDate)) {
+      throw InvalidParametersException('End date must be after start date');
+    }
+  }
+
+  static void validateCategoryOffer(protocol.CategoryOffer offer) {
+    if (offer.name.trim().isEmpty) {
+      throw InvalidParametersException('Offer name is required');
+    }
+    if (offer.categoryId.trim().isEmpty) {
+      throw InvalidParametersException('Category ID is required');
+    }
+    if (offer.discountType != 'flat' && offer.discountType != 'percentage') {
+      throw InvalidParametersException(
+        'Discount type must be flat or percentage',
+      );
+    }
+    if (offer.discountValue <= 0) {
+      throw InvalidParametersException('Discount value must be greater than 0');
+    }
+    if (offer.discountType == 'percentage' && offer.discountValue > 100) {
+      throw InvalidParametersException('Percentage discount cannot exceed 100');
+    }
+    if (offer.maxDiscount != null && offer.maxDiscount! < 0) {
+      throw InvalidParametersException('Max discount cannot be negative');
+    }
+    if (offer.minOrderAmount != null && offer.minOrderAmount! < 0) {
+      throw InvalidParametersException('Min order amount cannot be negative');
+    }
+    if (offer.endDate.isBefore(offer.startDate)) {
+      throw InvalidParametersException('End date must be after start date');
+    }
+  }
+
+  static void validateFreeDeliveryRule(protocol.FreeDeliveryRule rule) {
+    if (rule.name.trim().isEmpty) {
+      throw InvalidParametersException('Rule name is required');
+    }
+    if (rule.ruleType != 'min_order_amount' &&
+        rule.ruleType != 'min_items' &&
+        rule.ruleType != 'coupon' &&
+        rule.ruleType != 'user_specific') {
+      throw InvalidParametersException('Invalid rule type');
+    }
+    if (rule.ruleType == 'min_order_amount' &&
+        (rule.minOrderAmount == null || rule.minOrderAmount! <= 0)) {
+      throw InvalidParametersException(
+        'Min order amount is required for min_order_amount type',
+      );
+    }
+    if (rule.ruleType == 'min_items' &&
+        (rule.minItemsCount == null || rule.minItemsCount! <= 0)) {
+      throw InvalidParametersException(
+        'Min items count is required for min_items type',
+      );
+    }
+    if (rule.deliveryFeeWaived < 0) {
+      throw InvalidParametersException(
+        'Delivery fee waived cannot be negative',
+      );
+    }
+    if (rule.endDate.isBefore(rule.startDate)) {
+      throw InvalidParametersException('End date must be after start date');
+    }
+  }
 }

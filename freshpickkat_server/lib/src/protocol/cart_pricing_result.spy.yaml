@@ -1,0 +1,18 @@
+class: CartPricingResult
+fields:
+  subtotal: double
+  itemDiscounts: double
+  productOfferDiscount: double
+  categoryOfferDiscount: double
+  bogoDiscount: double
+  comboDiscount: double
+  couponDiscount: double
+  deliveryFee: double
+  originalDeliveryFee: double
+  freeDeliveryApplied: bool
+  totalSavings: double
+  totalAmount: double
+  appliedOffers: List<AppliedOfferInfo>
+  appliedCoupon: AppliedCouponInfo?
+  freeItems: List<FreeItemInfo>
+  pricingBreakdown: List<PricingLineItem>

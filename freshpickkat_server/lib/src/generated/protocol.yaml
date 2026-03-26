@@ -8,6 +8,14 @@ admin:
   - getAuditLogs:
 auth:
   - signOut:
+banner:
+  - getBanners:
+  - getBannerById:
+  - createBanner:
+  - updateBanner:
+  - deleteBanner:
+  - toggleBannerActive:
+  - updateBannerPriority:
 bogo:
   - upsertOffer:
   - deleteOffer:
@@ -16,6 +24,19 @@ bogo:
 category:
   - getCategories:
   - uploadCategory:
+categoryOffer:
+  - upsertCategoryOffer:
+  - deleteCategoryOffer:
+  - getActiveCategoryOffers:
+  - getAllCategoryOffers:
+  - setCategoryOfferActive:
+comboOffer:
+  - upsertComboOffer:
+  - deleteComboOffer:
+  - getActiveComboOffers:
+  - getAllComboOffers:
+  - setComboOfferActive:
+  - checkApplicableCombos:
 coupon:
   - fetchCoupons:
   - uploadCoupon:
@@ -23,6 +44,13 @@ coupon:
   - updateCoupon:
   - fetchApplicableCoupons:
   - validateCoupon:
+freeDelivery:
+  - upsertFreeDeliveryRule:
+  - deleteFreeDeliveryRule:
+  - getActiveFreeDeliveryRules:
+  - getAllFreeDeliveryRules:
+  - setFreeDeliveryRuleActive:
+  - calculateDeliveryFee:
 order:
   - createOrder:
   - getOrders:
@@ -41,6 +69,7 @@ payment:
   - markPaymentFailed:
   - initiateRefund:
   - getPaymentStatus:
+pricing:
 product:
   - getProducts:
   - getProductsPage:

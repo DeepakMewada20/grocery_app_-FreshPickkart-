@@ -6,4 +6,6 @@ fields:
   freeProducts: List<BogoFreeProduct>?
   offerTitle: String
   isActive: bool
+  startDate: DateTime
+  endDate: DateTime
   createdAt: DateTime

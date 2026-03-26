@@ -16,19 +16,14 @@ class NetworkStatusService {
     return _connectionChecker.hasInternetAccess;
   }
 
-  static bool looksLikeNetworkError(Object error) {
+  static bool isTrueNetworkError(Object error) {
     final text = error.toString().toLowerCase();
     return text.contains('socketexception') ||
         text.contains('failed host lookup') ||
-        text.contains('clientexception') ||
         text.contains('network-request-failed') ||
-        text.contains('timed out') ||
-        text.contains('timeout') ||
-        text.contains('connection closed') ||
-        text.contains('connection error') ||
-        text.contains('handshake') ||
-        text.contains('dns') ||
         text.contains('no address associated with hostname') ||
-        text.contains('serverpodclientexception');
+        text.contains('connection refused') ||
+        text.contains('network is unreachable') ||
+        text.contains('nodename nor servname provided');
   }
 }

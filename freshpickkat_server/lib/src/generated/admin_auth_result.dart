@@ -26,7 +26,7 @@ abstract class AdminAuthResult
 
   factory AdminAuthResult.fromJson(Map<String, dynamic> jsonSerialization) {
     return AdminAuthResult(
-      ok: jsonSerialization['ok'] as bool,
+      ok: _i1.BoolJsonExtension.fromJson(jsonSerialization['ok']),
       message: jsonSerialization['message'] as String?,
     );
   }

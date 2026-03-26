@@ -46,8 +46,12 @@ abstract class CouponDisplay implements _i1.SerializableModel {
       maxDiscount: (jsonSerialization['maxDiscount'] as num?)?.toDouble(),
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
       discountType: jsonSerialization['discountType'] as String?,
-      isDeliveryDiscount: jsonSerialization['isDeliveryDiscount'] as bool,
-      isApplicable: jsonSerialization['isApplicable'] as bool,
+      isDeliveryDiscount: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isDeliveryDiscount'],
+      ),
+      isApplicable: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isApplicable'],
+      ),
     );
   }
 

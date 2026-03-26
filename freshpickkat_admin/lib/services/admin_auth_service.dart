@@ -127,7 +127,7 @@ class AdminAuthService {
     try {
       await _verifyAdminToken(idToken);
     } catch (e) {
-      if (NetworkStatusService.looksLikeNetworkError(e)) {
+      if (NetworkStatusService.isTrueNetworkError(e)) {
         rethrow;
       }
       await _firebaseAuth.signOut();
