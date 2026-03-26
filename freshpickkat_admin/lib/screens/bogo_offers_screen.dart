@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
-import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 
 class BogoOffersScreen extends StatefulWidget {
   const BogoOffersScreen({super.key});
