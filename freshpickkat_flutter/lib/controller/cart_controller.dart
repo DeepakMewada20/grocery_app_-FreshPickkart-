@@ -258,10 +258,7 @@ class CartController extends GetxController {
     String? variantId,
     bool triggerBogoSuggestion = true,
   }) {
-    final selectedProduct = applyVariantToProduct(
-      product,
-      variantId: variantId,
-    );
+    final selectedProduct = applyVariantToProduct(product, variantId: variantId);
     final selectedVariantId = resolveProductVariant(
       product,
       variantId: variantId,
@@ -309,10 +306,7 @@ class CartController extends GetxController {
   }
 
   void updateQuantity(Product product, int quantity, {String? variantId}) {
-    final selectedProduct = applyVariantToProduct(
-      product,
-      variantId: variantId,
-    );
+    final selectedProduct = applyVariantToProduct(product, variantId: variantId);
     final selectedVariantId = resolveProductVariant(
       product,
       variantId: variantId,
@@ -348,161 +342,6 @@ class CartController extends GetxController {
           (item.variantId ?? 'default') == (variantId ?? 'default'),
     );
     return index != -1 ? cartItems[index].quantity : 0;
-  }
-
-  String? getNextVariantId(
-    Product product,
-    String currentVariantId, {
-    bool increment = true,
-  }) {
-    final variants = sortedProductVariants(product);
-    if (variants.length <= 1) return null;
-
-    int currentIndex = variants.indexWhere(
-      (v) => v.variantId == currentVariantId,
-    );
-    if (currentIndex == -1) currentIndex = 0;
-
-    if (increment && currentIndex < variants.length - 1) {
-      return variants[currentIndex + 1].variantId;
-    } else if (!increment && currentIndex > 0) {
-      return variants[currentIndex - 1].variantId;
-    }
-    return null;
-  }
-
-  void switchToVariant(
-    Product product,
-    String newVariantId, {
-    String? oldVariantId,
-  }) {
-    final productId = product.productId;
-    if (productId == null) return;
-
-    if (oldVariantId != null) {
-      int oldIndex = cartItems.indexWhere(
-        (item) =>
-            item.product.productId == productId &&
-            (item.variantId ?? 'default') == oldVariantId,
-      );
-      if (oldIndex != -1) {
-        cartItems.removeAt(oldIndex);
-      }
-    }
-
-    cartItems.add(
-      CartItem(
-        product: applyVariantToProduct(product, variantId: newVariantId),
-        variantId: newVariantId,
-        quantity: 1,
-      ),
-    );
-    cartItems.refresh();
-  }
-
-  void incrementAndSwitchVariant(Product product, String currentVariantId) {
-    final productId = product.productId;
-    if (productId == null) return;
-
-    int index = cartItems.indexWhere(
-      (item) =>
-          item.product.productId == productId &&
-          (item.variantId ?? 'default') == currentVariantId,
-    );
-
-    if (index == -1) {
-      addItem(product, variantId: currentVariantId);
-      return;
-    }
-
-    final nextVariantId = getNextVariantId(
-      product,
-      currentVariantId,
-      increment: true,
-    );
-
-    if (nextVariantId != null) {
-      final newProduct = applyVariantToProduct(
-        product,
-        variantId: nextVariantId,
-      );
-      int nextIndex = cartItems.indexWhere(
-        (item) =>
-            item.product.productId == productId &&
-            (item.variantId ?? 'default') == nextVariantId,
-      );
-
-      if (nextIndex != -1) {
-        cartItems[nextIndex].quantity++;
-      } else {
-        cartItems.removeAt(index);
-        cartItems.add(
-          CartItem(
-            product: newProduct,
-            variantId: nextVariantId,
-            quantity: 1,
-          ),
-        );
-      }
-      cartItems.refresh();
-    } else {
-      cartItems[index].quantity++;
-      cartItems.refresh();
-    }
-  }
-
-  void decrementAndSwitchVariant(Product product, String currentVariantId) {
-    final productId = product.productId;
-    if (productId == null) return;
-
-    int index = cartItems.indexWhere(
-      (item) =>
-          item.product.productId == productId &&
-          (item.variantId ?? 'default') == currentVariantId,
-    );
-
-    if (index == -1) return;
-
-    if (cartItems[index].quantity > 1) {
-      cartItems[index].quantity--;
-      cartItems.refresh();
-    } else {
-      final prevVariantId = getNextVariantId(
-        product,
-        currentVariantId,
-        increment: false,
-      );
-
-      if (prevVariantId != null) {
-        final newProduct = applyVariantToProduct(
-          product,
-          variantId: prevVariantId,
-        );
-        int prevIndex = cartItems.indexWhere(
-          (item) =>
-              item.product.productId == productId &&
-              (item.variantId ?? 'default') == prevVariantId,
-        );
-
-        if (prevIndex != -1) {
-          cartItems[prevIndex].quantity++;
-          cartItems.removeAt(index);
-        } else {
-          cartItems.removeAt(index);
-          cartItems.add(
-            CartItem(
-              product: newProduct,
-              variantId: prevVariantId,
-              quantity: 1,
-            ),
-          );
-        }
-        cartItems.refresh();
-      } else {
-        cartItems.removeAt(index);
-        cartItems.refresh();
-      }
-    }
   }
 
   void clearCart() {
@@ -676,8 +515,8 @@ class CartController extends GetxController {
 
     final baseProduct = ProductProviderController.instance.allProducts
         .firstWhereOrNull(
-          (product) => product.productId == productId,
-        );
+      (product) => product.productId == productId,
+    );
     if (baseProduct == null) return null;
     return applyVariantToProduct(baseProduct, variantId: variantId);
   }

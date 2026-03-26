@@ -947,8 +947,9 @@ class ProductEndpoint extends Endpoint {
     if (lower.contains('ml')) return 'ml';
     if (lower.contains('pc') ||
         lower.contains('piece') ||
-        lower.contains('pcs'))
+        lower.contains('pcs')) {
       return 'pc';
+    }
     if (lower.contains('pack')) return 'pack';
     return 'gm';
   }

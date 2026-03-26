@@ -35,8 +35,9 @@ String _parseQuantityUnit(String text) {
   if (lower.contains('kg')) return 'kg';
   if (lower.contains('litre') || lower.contains('l')) return 'litre';
   if (lower.contains('ml')) return 'ml';
-  if (lower.contains('pc') || lower.contains('piece') || lower.contains('pcs'))
+  if (lower.contains('pc') || lower.contains('piece') || lower.contains('pcs')) {
     return 'pc';
+  }
   if (lower.contains('pack')) return 'pack';
   return 'gm';
 }

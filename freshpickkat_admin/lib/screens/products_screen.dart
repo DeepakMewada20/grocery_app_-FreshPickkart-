@@ -311,7 +311,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       SizedBox(
                                         width: 120,
                                         child: DropdownButtonFormField<String>(
-                                          value: baseUnit,
+                                          initialValue: baseUnit,
                                           decoration: const InputDecoration(
                                             labelText: 'Unit',
                                             contentPadding:
@@ -1089,7 +1089,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                       SizedBox(
                                         width: 120,
                                         child: DropdownButtonFormField<String>(
-                                          value: baseUnit,
+                                          initialValue: baseUnit,
                                           decoration: const InputDecoration(
                                             labelText: 'Unit',
                                             contentPadding:
@@ -1689,8 +1689,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if (lower.contains('ml')) return 'ml';
     if (lower.contains('pc') ||
         lower.contains('piece') ||
-        lower.contains('pcs'))
+        lower.contains('pcs')) {
       return 'pc';
+    }
     if (lower.contains('pack')) return 'pack';
     return 'gm';
   }
@@ -2668,7 +2669,7 @@ class _VariantItemEditorState extends State<_VariantItemEditor> {
               SizedBox(
                 width: 100,
                 child: DropdownButtonFormField<String>(
-                  value: _unit,
+                  initialValue: _unit,
                   decoration: const InputDecoration(
                     labelText: 'Unit',
                     contentPadding: EdgeInsets.symmetric(
