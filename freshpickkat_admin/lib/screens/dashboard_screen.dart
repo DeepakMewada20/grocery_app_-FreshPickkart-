@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:get/get.dart';
+import '../widgets/network_error_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -28,6 +29,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: Obx(() {
+        if (_controller.networkController.hasError.value) {
+          return NetworkErrorWidget(
+            onRetry: () => _controller.networkController.retryLastRequest(),
+          );
+        }
+
         final stats = _controller.stats.value;
         final analytics = _controller.analytics.value;
         final isLoading = _controller.isLoading.value;

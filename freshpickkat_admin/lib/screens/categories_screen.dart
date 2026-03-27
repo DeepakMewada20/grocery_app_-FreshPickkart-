@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/network_error_widget.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -28,6 +29,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ],
       ),
       body: Obx(() {
+        if (_controller.networkController.hasError.value) {
+          return NetworkErrorWidget(
+            onRetry: () => _controller.networkController.retryLastRequest(),
+          );
+        }
+
         final categories = _controller.categories;
         final subCategories = _controller.subCategories;
         final isLoading = _controller.isLoading.value;

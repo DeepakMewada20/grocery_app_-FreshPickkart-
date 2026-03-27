@@ -2,11 +2,15 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import '../services/api_client.dart';
+import '../core/exceptions.dart';
+import 'network_controller.dart';
 
 class AdminOfferController extends GetxController {
   static AdminOfferController get instance => Get.put(AdminOfferController());
 
   Client get client => ServerpodAdminClient().client;
+  final NetworkController networkController = Get.put(NetworkController());
 
   final _bogoOffers = <BogoOffer>[].obs;
   final _comboOffers = <ComboOffer>[].obs;
@@ -22,8 +26,17 @@ class AdminOfferController extends GetxController {
   Future<void> loadBogoOffers() async {
     try {
       isLoading.value = true;
-      final offers = await client.bogo.getActiveOffers();
+      networkController.hideError();
+      final offers = await ApiClient().request(() async {
+        return await client.bogo.getActiveOffers();
+      });
       _bogoOffers.assignAll(offers);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadBogoOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadBogoOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadBogoOffers);
     } catch (e) {
       print('Error loading BOGO offers: $e');
     } finally {
@@ -34,12 +47,21 @@ class AdminOfferController extends GetxController {
   Future<void> loadComboOffers() async {
     try {
       isLoading.value = true;
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final offers = await client.comboOffer.getAllComboOffers(uid, idToken);
+      networkController.hideError();
+      final offers = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        return await client.comboOffer.getAllComboOffers(uid, idToken);
+      });
       _comboOffers.assignAll(offers);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadComboOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadComboOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadComboOffers);
     } catch (e) {
       print('Error loading combo offers: $e');
     } finally {
@@ -50,15 +72,21 @@ class AdminOfferController extends GetxController {
   Future<void> loadCategoryOffers() async {
     try {
       isLoading.value = true;
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final offers = await client.categoryOffer.getAllCategoryOffers(
-        uid,
-        idToken,
-      );
+      networkController.hideError();
+      final offers = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        return await client.categoryOffer.getAllCategoryOffers(uid, idToken);
+      });
       _categoryOffers.assignAll(offers);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadCategoryOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadCategoryOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadCategoryOffers);
     } catch (e) {
       print('Error loading category offers: $e');
     } finally {
@@ -69,15 +97,21 @@ class AdminOfferController extends GetxController {
   Future<void> loadFreeDeliveryRules() async {
     try {
       isLoading.value = true;
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final rules = await client.freeDelivery.getAllFreeDeliveryRules(
-        uid,
-        idToken,
-      );
+      networkController.hideError();
+      final rules = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        return await client.freeDelivery.getAllFreeDeliveryRules(uid, idToken);
+      });
       _freeDeliveryRules.assignAll(rules);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadFreeDeliveryRules);
+    } on NetworkException {
+      networkController.showError(onRetry: loadFreeDeliveryRules);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadFreeDeliveryRules);
     } catch (e) {
       print('Error loading free delivery rules: $e');
     } finally {

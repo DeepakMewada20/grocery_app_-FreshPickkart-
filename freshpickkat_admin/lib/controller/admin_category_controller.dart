@@ -2,12 +2,16 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import '../services/api_client.dart';
+import '../core/exceptions.dart';
+import 'network_controller.dart';
 
 class AdminCategoryController extends GetxController {
   static AdminCategoryController get instance =>
       Get.find<AdminCategoryController>();
 
   final _client = ServerpodAdminClient().client;
+  final NetworkController networkController = Get.put(NetworkController());
 
   final RxList<Category> categories = <Category>[].obs;
   final RxList<SubCategory> subCategories = <SubCategory>[].obs;
@@ -23,13 +27,22 @@ class AdminCategoryController extends GetxController {
   Future<void> loadCategories() async {
     isLoading.value = true;
     error.value = null;
+    networkController.hideError();
     try {
-      final results = await Future.wait([
-        _client.category.getCategories(),
-        _client.subCategory.getSubCategories(),
-      ]);
+      final results = await ApiClient().request(() async {
+        return await Future.wait([
+          _client.category.getCategories(),
+          _client.subCategory.getSubCategories(),
+        ]);
+      });
       categories.assignAll(results[0] as List<Category>);
       subCategories.assignAll(results[1] as List<SubCategory>);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadCategories);
+    } on NetworkException {
+      networkController.showError(onRetry: loadCategories);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadCategories);
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -54,11 +67,13 @@ class AdminCategoryController extends GetxController {
 
   Future<void> uploadCategory(Category category) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.category.uploadCategory(category, uid, idToken);
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        await _client.category.uploadCategory(category, uid, idToken);
+      });
       await loadCategories();
     } catch (e) {
       rethrow;
@@ -67,11 +82,13 @@ class AdminCategoryController extends GetxController {
 
   Future<void> uploadSubCategory(SubCategory subCategory) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.subCategory.uploadSubCategory(subCategory, uid, idToken);
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        await _client.subCategory.uploadSubCategory(subCategory, uid, idToken);
+      });
       await loadCategories();
     } catch (e) {
       rethrow;

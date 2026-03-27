@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/network_error_widget.dart';
 
 class ComboOffersScreen extends StatefulWidget {
   const ComboOffersScreen({super.key});
@@ -71,7 +72,13 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
           ),
           Expanded(
             child: Obx(() {
-              if (_controller.isLoading.value) {
+              if (_controller.networkController.hasError.value) {
+                return NetworkErrorWidget(
+                  onRetry: () => _controller.networkController.retryLastRequest(),
+                );
+              }
+
+              if (_controller.isLoading.value && _controller.comboOffers.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 

@@ -2,11 +2,15 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import '../services/api_client.dart';
+import '../core/exceptions.dart';
+import 'network_controller.dart';
 
 class AdminOrderController extends GetxController {
   static AdminOrderController get instance => Get.find<AdminOrderController>();
 
   final _client = ServerpodAdminClient().client;
+  final NetworkController networkController = Get.put(NetworkController());
   final int pageSize = 20;
 
   final RxList<Order> orders = <Order>[].obs;
@@ -40,26 +44,44 @@ class AdminOrderController extends GetxController {
     } else {
       isLoadingMore.value = true;
     }
+    networkController.hideError();
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
+      final page = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
 
-      final page = await _client.order.getOrdersPage(
-        firebaseUid: uid,
-        idToken: idToken,
-        limit: pageSize,
-        pageToken: nextPageToken.value,
-        status: statusFilter == 'all' ? null : statusFilter,
-      );
+        await Future.delayed(Duration(seconds: 10));
 
+        return await _client.order.getOrdersPage(
+          firebaseUid: uid,
+          idToken: idToken,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+          status: statusFilter == 'all' ? null : statusFilter,
+        );
+      });
+
+      if (isInitial) orders.clear();
       orders.addAll(page.orders);
       nextPageToken.value = page.nextPageToken;
       totalCount.value = page.totalCount;
       hasMore.value = page.nextPageToken != null && page.orders.isNotEmpty;
       error.value = null;
+    } on NoInternetException {
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
+    } on NetworkException {
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
+    } on RequestTimeoutException {
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -74,17 +96,19 @@ class AdminOrderController extends GetxController {
     String? cancellationReason,
   }) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.order.updateOrderStatus(
-        order.orderId,
-        status,
-        cancellationReason: cancellationReason,
-        firebaseUid: uid,
-        idToken: idToken,
-      );
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        await _client.order.updateOrderStatus(
+          order.orderId,
+          status,
+          cancellationReason: cancellationReason,
+          firebaseUid: uid,
+          idToken: idToken,
+        );
+      });
 
       // Update local item
       final index = orders.indexWhere((o) => o.orderId == order.orderId);

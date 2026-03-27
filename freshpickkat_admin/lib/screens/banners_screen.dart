@@ -7,6 +7,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import '../widgets/network_error_widget.dart';
 
 typedef AppBanner = banner_pkg.Banner;
 
@@ -70,6 +71,12 @@ class _BannersScreenState extends State<BannersScreen> {
           ),
           Expanded(
             child: Obx(() {
+              if (_controller.networkController.hasError.value) {
+                return NetworkErrorWidget(
+                  onRetry: () => _controller.networkController.retryLastRequest(),
+                );
+              }
+
               if (_controller.isLoading.value && _controller.banners.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }

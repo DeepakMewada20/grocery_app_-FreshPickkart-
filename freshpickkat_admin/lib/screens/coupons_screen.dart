@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/network_error_widget.dart';
 
 class CouponsScreen extends StatefulWidget {
   const CouponsScreen({super.key});
@@ -29,6 +30,12 @@ class _CouponsScreenState extends State<CouponsScreen> {
         ],
       ),
       body: Obx(() {
+        if (_controller.networkController.hasError.value) {
+          return NetworkErrorWidget(
+            onRetry: () => _controller.networkController.retryLastRequest(),
+          );
+        }
+
         final coupons = _controller.coupons;
         final isLoading = _controller.isLoading.value;
         final error = _controller.error.value;

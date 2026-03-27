@@ -1,11 +1,15 @@
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import '../services/api_client.dart';
+import '../core/exceptions.dart';
+import 'network_controller.dart';
 
 class AdminBannerController extends GetxController {
   static AdminBannerController get instance => Get.put(AdminBannerController());
 
   sc.Client get _client => ServerpodAdminClient().client;
+  final NetworkController networkController = Get.put(NetworkController());
 
   final banners = <sc.Banner>[].obs;
   final isLoading = false.obs;
@@ -57,8 +61,17 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
-      final bannerList = await _client.banner.getBanners(activeOnly: false);
+      networkController.hideError();
+      final bannerList = await ApiClient().request(() async {
+        return await _client.banner.getBanners(activeOnly: false);
+      });
       banners.assignAll(bannerList);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadBanners);
+    } on NetworkException {
+      networkController.showError(onRetry: loadBanners);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadBanners);
     } catch (e) {
       error.value = e.toString();
       print('Error loading banners: $e');
@@ -71,7 +84,9 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
-      final created = await _client.banner.createBanner(banner);
+      final created = await ApiClient().request(() async {
+        return await _client.banner.createBanner(banner);
+      });
       banners.add(created);
       _sortBanners();
       return true;
@@ -88,7 +103,9 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
-      final updated = await _client.banner.updateBanner(banner);
+      final updated = await ApiClient().request(() async {
+        return await _client.banner.updateBanner(banner);
+      });
       final index = banners.indexWhere((b) => b.bannerId == banner.bannerId);
       if (index != -1) {
         banners[index] = updated;
@@ -108,7 +125,9 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
-      await _client.banner.deleteBanner(bannerId);
+      await ApiClient().request(() async {
+        await _client.banner.deleteBanner(bannerId);
+      });
       banners.removeWhere((b) => b.bannerId == bannerId);
       return true;
     } catch (e) {
@@ -122,7 +141,9 @@ class AdminBannerController extends GetxController {
 
   Future<bool> toggleBannerActive(String bannerId, bool active) async {
     try {
-      await _client.banner.toggleBannerActive(bannerId, active);
+      await ApiClient().request(() async {
+        await _client.banner.toggleBannerActive(bannerId, active);
+      });
       final index = banners.indexWhere((b) => b.bannerId == bannerId);
       if (index != -1) {
         final banner = banners[index];
@@ -156,7 +177,9 @@ class AdminBannerController extends GetxController {
 
   Future<bool> updateBannerPriority(String bannerId, int priority) async {
     try {
-      await _client.banner.updateBannerPriority(bannerId, priority);
+      await ApiClient().request(() async {
+        await _client.banner.updateBannerPriority(bannerId, priority);
+      });
       final index = banners.indexWhere((b) => b.bannerId == bannerId);
       if (index != -1) {
         final banner = banners[index];

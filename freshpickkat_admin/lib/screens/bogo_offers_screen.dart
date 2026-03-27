@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import '../widgets/network_error_widget.dart';
 
 class BogoOffersScreen extends StatefulWidget {
   const BogoOffersScreen({super.key});
@@ -67,7 +68,13 @@ class _BogoOffersScreenState extends State<BogoOffersScreen> {
           ),
           Expanded(
             child: Obx(() {
-              if (_controller.isLoading.value) {
+              if (_controller.networkController.hasError.value) {
+                return NetworkErrorWidget(
+                  onRetry: () => _controller.networkController.retryLastRequest(),
+                );
+              }
+
+              if (_controller.isLoading.value && _controller.bogoOffers.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 

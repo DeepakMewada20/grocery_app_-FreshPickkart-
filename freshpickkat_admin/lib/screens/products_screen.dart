@@ -13,6 +13,7 @@ import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_tab.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
+import '../widgets/network_error_widget.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -2168,6 +2169,12 @@ class _ProductsListContent extends StatelessWidget {
           ),
         ),
       ];
+
+      if (productController.networkController.hasError.value) {
+        return NetworkErrorWidget(
+          onRetry: () => productController.networkController.retryLastRequest(),
+        );
+      }
 
       if (isLoading && products.isEmpty) {
         return const Center(child: CircularProgressIndicator());

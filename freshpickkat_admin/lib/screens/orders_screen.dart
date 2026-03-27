@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/network_error_widget.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -180,6 +181,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ],
       ),
       body: Obx(() {
+        if (_orderController.networkController.hasError.value) {
+          return NetworkErrorWidget(
+            onRetry: () => _orderController.networkController.retryLastRequest(),
+          );
+        }
+
         final orders = _orderController.orders;
         final isLoading = _orderController.isLoading.value;
         final error = _orderController.error.value;

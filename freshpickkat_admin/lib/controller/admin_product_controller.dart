@@ -2,12 +2,16 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import '../services/api_client.dart';
+import '../core/exceptions.dart';
+import 'network_controller.dart';
 
 class AdminProductController extends GetxController {
   static AdminProductController get instance =>
       Get.find<AdminProductController>();
 
   final _client = ServerpodAdminClient().client;
+  final NetworkController networkController = Get.put(NetworkController());
   final int pageSize = 20;
 
   final RxList<Product> products = <Product>[].obs;
@@ -41,21 +45,24 @@ class AdminProductController extends GetxController {
     } else {
       isLoadingMore.value = true;
     }
+    networkController.hideError();
 
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
+      final page = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
 
-      final page = await _client.product.getProductsPage(
-        firebaseUid: uid,
-        idToken: idToken,
-        limit: pageSize,
-        pageToken: nextPageToken.value,
-        sortBy: 'name',
-        category: categoryFilter == 'All' ? null : categoryFilter,
-      );
+        return await _client.product.getProductsPage(
+          firebaseUid: uid,
+          idToken: idToken,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+          sortBy: 'name',
+          category: categoryFilter == 'All' ? null : categoryFilter,
+        );
+      });
 
       if (isInitial) {
         products.assignAll(page.products);
@@ -66,6 +73,12 @@ class AdminProductController extends GetxController {
       totalCount.value = page.totalCount;
       hasMore.value = page.nextPageToken != null && page.products.isNotEmpty;
       error.value = null;
+    } on NoInternetException {
+      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
+    } on NetworkException {
+      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -76,11 +89,13 @@ class AdminProductController extends GetxController {
 
   Future<String?> addProduct(Product product) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      final newId = await _client.product.uploadProduct(product, uid, idToken);
+      final newId = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        return await _client.product.uploadProduct(product, uid, idToken);
+      });
       // Refresh list
       await loadInitial(category: categoryFilter);
       return newId;
@@ -92,11 +107,13 @@ class AdminProductController extends GetxController {
 
   Future<void> updateProduct(Product product) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.product.updateProduct(product, uid, idToken);
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        await _client.product.updateProduct(product, uid, idToken);
+      });
 
       // Update local item to avoid full reload if possible,
       // but simpler is to just refresh the current page or specific item.
@@ -113,11 +130,13 @@ class AdminProductController extends GetxController {
 
   Future<void> deleteProduct(String productId) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
-      );
-      await _client.product.deleteProduct(productId, uid, idToken);
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        await _client.product.deleteProduct(productId, uid, idToken);
+      });
       products.removeWhere((p) => p.productId == productId);
       totalCount.value--;
     } catch (e) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/network_error_widget.dart';
 
 class FreeDeliveryScreen extends StatefulWidget {
   const FreeDeliveryScreen({super.key});
@@ -63,7 +64,13 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen> {
           ),
           Expanded(
             child: Obx(() {
-              if (_controller.isLoading.value) {
+              if (_controller.networkController.hasError.value) {
+                return NetworkErrorWidget(
+                  onRetry: () => _controller.networkController.retryLastRequest(),
+                );
+              }
+
+              if (_controller.isLoading.value && _controller.freeDeliveryRules.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
