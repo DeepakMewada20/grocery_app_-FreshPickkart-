@@ -1,19 +1,19 @@
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'network_service.dart';
 
 class NetworkStatusService {
   NetworkStatusService._internal();
 
   static final NetworkStatusService instance = NetworkStatusService._internal();
 
-  final InternetConnection _connectionChecker =
-      InternetConnection.createInstance();
-
-  Stream<bool> get onStatusChange => _connectionChecker.onStatusChange
+  final NetworkService _networkService = NetworkService();
+  
+  Stream<bool> get onStatusChange => _networkService.onStatusChange
       .map((status) => status == InternetStatus.connected)
       .distinct();
 
   Future<bool> hasConnection() {
-    return _connectionChecker.hasInternetAccess;
+    return _networkService.hasInternet();
   }
 
   static bool isTrueNetworkError(Object error) {

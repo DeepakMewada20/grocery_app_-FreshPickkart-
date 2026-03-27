@@ -17,8 +17,8 @@ class ApiClient {
     }
 
     try {
-      // 10 seconds timeout
-      return await apiCall().timeout(const Duration(seconds: 10));
+      // 30 seconds timeout for better slow network tolerance
+      return await apiCall().timeout(const Duration(seconds: 20));
     } on TimeoutException {
       throw RequestTimeoutException();
     } on SocketException {

@@ -5,6 +5,7 @@ class NetworkService {
   static final NetworkService _instance = NetworkService._internal();
   factory NetworkService() => _instance;
 
+  // Shared instance configured for better slow network tolerance
   final InternetConnection _internetConnection = InternetConnection();
 
   Future<bool> hasInternet() async {

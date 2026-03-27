@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:freshpickkat_admin/screens/check_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
@@ -27,7 +26,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   _AuthViewState _viewState = _AuthViewState.checking;
   bool _authorizing = false;
-  bool _showConnectionScreen = false;
   String? _message;
   String? _authorizedUid;
 
@@ -37,7 +35,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
     _networkSubscription = NetworkStatusService.instance.onStatusChange.listen(
       _handleConnectivityChange,
     );
-    _primeConnectionState();
     _userSubscription = FirebaseAuth.instance.userChanges().listen(
       (user) => _handleUserChange(user),
     );
@@ -52,75 +49,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
     super.dispose();
   }
 
-  Future<void> _primeConnectionState() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    final hasConnection = await NetworkStatusService.instance.hasConnection();
-    if (!mounted) return;
-    setState(() {
-      _showConnectionScreen = !hasConnection;
-      if (!hasConnection) {
-        _message =
-            'Internet connection unavailable. Please check your network and try again.';
-      }
-    });
-  }
-
   void _handleConnectivityChange(bool hasConnection) {
     if (!mounted) return;
-    if (!hasConnection) {
-      setState(() {
-        _showConnectionScreen = true;
-        _message =
-            'Internet connection unavailable. Please check your network and try again.';
-      });
-      return;
-    }
-
-    final shouldRetryAuthorization =
-        _showConnectionScreen &&
+    if (hasConnection &&
         FirebaseAuth.instance.currentUser != null &&
-        _viewState != _AuthViewState.authenticated;
-
-    setState(() {
-      _showConnectionScreen = false;
-      if (_message ==
-          'Internet connection unavailable. Please check your network and try again.') {
-        _message = null;
-      }
-    });
-
-    if (shouldRetryAuthorization) {
+        _viewState != _AuthViewState.authenticated) {
       _authorizeCurrentUser();
     }
-  }
-
-  Future<void> _retryAfterConnectionCheck() async {
-    final hasConnection = await NetworkStatusService.instance.hasConnection();
-    if (!mounted) return;
-
-    if (!hasConnection) {
-      setState(() {
-        _showConnectionScreen = true;
-        _message =
-            'Internet connection unavailable. Please check your network and try again.';
-      });
-      return;
-    }
-
-    setState(() {
-      _showConnectionScreen = false;
-      _message = null;
-    });
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() {
-        _viewState = _AuthViewState.login;
-      });
-      return;
-    }
-
-    await _authorizeCurrentUser();
   }
 
   Future<void> _handleUserChange(User? user) async {
@@ -175,22 +110,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _authorizeCurrentUser() async {
     if (_authorizing) return;
-    final hasConnection = await NetworkStatusService.instance.hasConnection();
-    if (!hasConnection) {
-      if (!mounted) return;
-      setState(() {
-        _showConnectionScreen = true;
-        _message =
-            'Internet connection unavailable. Please check your network and try again.';
-      });
-      return;
-    }
-
     _authorizing = true;
     if (mounted) {
       setState(() {
         _viewState = _AuthViewState.checking;
-        _showConnectionScreen = false;
       });
     }
 
@@ -220,9 +143,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
       if (!hasActualConnection || isTrueNetworkError) {
         if (!mounted) return;
         setState(() {
-          _showConnectionScreen = true;
-          _message =
-              'Internet connection unavailable. Please check your network and try again.';
+          _viewState = _AuthViewState.login;
+          _message = 'Network error. Please try again later.';
         });
         return;
       }
@@ -258,13 +180,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showConnectionScreen) {
-      return CheckConnectionScreen(
-        onRetry: _retryAfterConnectionCheck,
-        message: _message,
-      );
-    }
-
     switch (_viewState) {
       case _AuthViewState.authenticated:
         return const MainScreen();
