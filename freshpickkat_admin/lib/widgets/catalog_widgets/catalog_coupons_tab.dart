@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';

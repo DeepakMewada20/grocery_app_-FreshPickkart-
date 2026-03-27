@@ -1,10 +1,10 @@
+import 'package:freshpickkat_admin/controller/network_controller.dart';
+import 'package:freshpickkat_admin/core/exceptions.dart';
+import 'package:freshpickkat_admin/services/api_client.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import '../services/api_client.dart';
-import '../core/exceptions.dart';
-import 'network_controller.dart';
 
 class AdminCouponController extends GetxController {
   static AdminCouponController get instance =>
@@ -24,7 +24,9 @@ class AdminCouponController extends GetxController {
     loadCoupons();
   }
 
-  Future<void> loadCoupons() async {
+  Future<void> loadCoupons({bool force = false}) async {
+    if (!force && coupons.isNotEmpty) return;
+    if (isLoading.value) return;
     isLoading.value = true;
     error.value = null;
     networkController.hideError();

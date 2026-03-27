@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -13,8 +13,10 @@ class ComboOffersScreen extends StatefulWidget {
   State<ComboOffersScreen> createState() => _ComboOffersScreenState();
 }
 
-class _ComboOffersScreenState extends State<ComboOffersScreen> {
-  final AdminOfferController _controller = AdminOfferController.instance;
+class _ComboOffersScreenState extends State<ComboOffersScreen>
+    with AutomaticKeepAliveClientMixin {
+  final AdminComboOfferController _controller =
+      AdminComboOfferController.instance;
   final AdminProductController _productController =
       AdminProductController.instance;
   final AdminCategoryController _categoryController =
@@ -22,17 +24,24 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
   String _searchQuery = '';
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.loadComboOffers();
-      _productController.loadInitial();
-      _categoryController.loadCategories();
+      if (_productController.products.isEmpty) {
+        _productController.loadInitial();
+      }
+      if (_categoryController.categories.isEmpty) {
+        _categoryController.loadCategories();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Combo Offers'),

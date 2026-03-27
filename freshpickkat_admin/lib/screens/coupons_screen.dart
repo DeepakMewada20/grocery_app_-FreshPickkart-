@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_admin/controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/network_error_widget.dart';

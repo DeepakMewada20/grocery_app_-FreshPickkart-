@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -11,20 +11,23 @@ class FreeDeliveryScreen extends StatefulWidget {
   State<FreeDeliveryScreen> createState() => _FreeDeliveryScreenState();
 }
 
-class _FreeDeliveryScreenState extends State<FreeDeliveryScreen> {
-  final AdminOfferController _controller = AdminOfferController.instance;
+class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
+    with AutomaticKeepAliveClientMixin {
+  final AdminFreeDeliveryController _controller =
+      AdminFreeDeliveryController.instance;
   String _searchQuery = '';
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.loadFreeDeliveryRules();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Free Delivery Rules'),

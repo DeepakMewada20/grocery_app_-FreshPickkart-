@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -12,23 +12,29 @@ class BogoOffersScreen extends StatefulWidget {
   State<BogoOffersScreen> createState() => _BogoOffersScreenState();
 }
 
-class _BogoOffersScreenState extends State<BogoOffersScreen> {
-  final AdminOfferController _controller = AdminOfferController.instance;
+class _BogoOffersScreenState extends State<BogoOffersScreen>
+    with AutomaticKeepAliveClientMixin {
+  final AdminBogoController _controller = AdminBogoController.instance;
   final AdminProductController _productController =
       AdminProductController.instance;
   String _searchQuery = '';
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.loadBogoOffers();
-      _productController.loadInitial();
+      if (_productController.products.isEmpty) {
+        _productController.loadInitial();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('BOGO Offers'),
@@ -132,24 +138,19 @@ class _BogoOffersScreenState extends State<BogoOffersScreen> {
 
   Future<void> _toggleBogoOffer(BogoOffer offer, bool isActive) async {
     final updatedOffer = offer.copyWith(isActive: isActive);
-    try {
-      await _controller.client.bogo.upsertOffer(updatedOffer);
-      await _controller.loadBogoOffers();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'BOGO offer ${isActive ? 'activated' : 'deactivated'}',
-            ),
+    final success = await _controller.upsertOffer(updatedOffer);
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'BOGO offer ${isActive ? 'activated' : 'deactivated'}',
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+        ),
+      );
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error toggling BOGO offer')));
     }
   }
 
@@ -158,22 +159,17 @@ class _BogoOffersScreenState extends State<BogoOffersScreen> {
       context: context,
       builder: (context) => _BogoOfferDialog(
         onSave: (offer) async {
-          try {
-            await _controller.client.bogo.upsertOffer(offer);
-            await _controller.loadBogoOffers();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('BOGO offer created successfully'),
-                ),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Error: $e')));
-            }
+          final success = await _controller.upsertOffer(offer);
+          if (success && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('BOGO offer created successfully'),
+              ),
+            );
+          } else if (!success && mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Error creating BOGO offer')));
           }
         },
       ),
@@ -186,22 +182,17 @@ class _BogoOffersScreenState extends State<BogoOffersScreen> {
       builder: (context) => _BogoOfferDialog(
         offer: offer,
         onSave: (updated) async {
-          try {
-            await _controller.client.bogo.upsertOffer(updated);
-            await _controller.loadBogoOffers();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('BOGO offer updated successfully'),
-                ),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Error: $e')));
-            }
+          final success = await _controller.upsertOffer(updated);
+          if (success && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('BOGO offer updated successfully'),
+              ),
+            );
+          } else if (!success && mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Error updating BOGO offer')));
           }
         },
       ),
@@ -222,22 +213,17 @@ class _BogoOffersScreenState extends State<BogoOffersScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              try {
-                await _controller.client.bogo.deleteOffer(
-                  offer.triggerProductId,
+              final success = await _controller.deleteOffer(
+                offer.triggerProductId,
+              );
+              if (success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('BOGO offer deleted')),
                 );
-                await _controller.loadBogoOffers();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('BOGO offer deleted')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
+              } else if (!success && mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Error deleting BOGO offer')));
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),

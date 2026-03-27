@@ -1,9 +1,9 @@
+import 'package:freshpickkat_admin/controller/network_controller.dart';
+import 'package:freshpickkat_admin/core/exceptions.dart';
+import 'package:freshpickkat_admin/services/api_client.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
-import '../services/api_client.dart';
-import '../core/exceptions.dart';
-import 'network_controller.dart';
 
 class AdminBannerController extends GetxController {
   static AdminBannerController get instance => Get.put(AdminBannerController());
@@ -58,7 +58,9 @@ class AdminBannerController extends GetxController {
     loadBanners();
   }
 
-  Future<void> loadBanners() async {
+  Future<void> loadBanners({bool force = false}) async {
+    if (!force && banners.isNotEmpty) return;
+    if (isLoading.value) return;
     try {
       isLoading.value = true;
       error.value = null;

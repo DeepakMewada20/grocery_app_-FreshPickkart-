@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_client/src/protocol/banner.dart' as banner_pkg;
-import 'package:freshpickkat_admin/controller/admin_banner_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_banner_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -18,20 +18,22 @@ class BannersScreen extends StatefulWidget {
   State<BannersScreen> createState() => _BannersScreenState();
 }
 
-class _BannersScreenState extends State<BannersScreen> {
+class _BannersScreenState extends State<BannersScreen>
+    with AutomaticKeepAliveClientMixin {
   final AdminBannerController _controller = AdminBannerController.instance;
   String _searchQuery = '';
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.loadBanners();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Banners'),
@@ -73,7 +75,8 @@ class _BannersScreenState extends State<BannersScreen> {
             child: Obx(() {
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
-                  onRetry: () => _controller.networkController.retryLastRequest(),
+                  onRetry: () =>
+                      _controller.networkController.retryLastRequest(),
                 );
               }
 
@@ -759,7 +762,7 @@ class _BannerDialogState extends State<_BannerDialog> {
   }
 
   Widget _buildComboDropdown() {
-    final offerController = AdminOfferController.instance;
+    final offerController = AdminComboOfferController.instance;
     return Obx(() {
       final combos = offerController.comboOffers;
       return DropdownButtonFormField<String>(

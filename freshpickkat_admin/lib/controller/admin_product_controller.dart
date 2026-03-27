@@ -26,6 +26,7 @@ class AdminProductController extends GetxController {
   String categoryFilter = 'All';
 
   Future<void> loadInitial({String? category}) async {
+    if (isLoading.value) return;
     categoryFilter = category ?? 'All';
 
     products.clear();
