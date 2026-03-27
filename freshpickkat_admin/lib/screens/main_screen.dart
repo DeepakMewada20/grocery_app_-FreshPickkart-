@@ -38,22 +38,32 @@ class _MainScreenState extends State<MainScreen> {
     const SettingsScreen(),
   ];
 
+  final List<bool> _builtScreens = List.generate(5, (index) => index == 0);
+
   @override
   void initState() {
     super.initState();
-    // Initialize controllers
-    Get.put(AdminCategoryController());
-    Get.put(AdminProductController());
-    Get.put(AdminOrderController());
-    Get.put(AdminDashboardController());
-    Get.put(AdminCouponController());
-    Get.put(AdminOfferController());
+    // Initialize controllers lazily so data is only fetched when screens are visited
+    Get.lazyPut(() => AdminCategoryController());
+    Get.lazyPut(() => AdminProductController());
+    Get.lazyPut(() => AdminOrderController());
+    Get.lazyPut(() => AdminDashboardController());
+    Get.lazyPut(() => AdminCouponController());
+    Get.lazyPut(() => AdminOfferController());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: List.generate(_screens.length, (index) {
+          if (index == _selectedIndex) {
+            _builtScreens[index] = true;
+          }
+          return _builtScreens[index] ? _screens[index] : const SizedBox.shrink();
+        }),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,

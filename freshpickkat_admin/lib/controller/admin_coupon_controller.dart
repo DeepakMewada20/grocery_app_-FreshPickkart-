@@ -11,7 +11,8 @@ class AdminCouponController extends GetxController {
       Get.find<AdminCouponController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminCouponController');
 
   final RxList<Coupon> coupons = <Coupon>[].obs;
   final RxBool isLoading = false.obs;

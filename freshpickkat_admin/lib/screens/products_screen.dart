@@ -40,7 +40,6 @@ class _ProductsScreenState extends State<ProductsScreen>
     _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_handleScroll);
     _loadData();
-    _categoryController.loadCategories();
   }
 
   @override
@@ -52,8 +51,12 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   Future<void> _loadData() async {
     print('DEBUG: _loadData pulling refresh...');
-    await _categoryController.loadCategories();
-    await _productController.loadInitial();
+    // Parallelize to ensure productController.isLoading is set synchronously 
+    // before the first await in _loadData, which keeps the UI in loading state.
+    await Future.wait([
+      _categoryController.loadCategories(),
+      _productController.loadInitial(),
+    ]);
     print('DEBUG: _loadData refresh complete.');
   }
 

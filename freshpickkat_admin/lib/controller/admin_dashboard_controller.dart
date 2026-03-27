@@ -11,7 +11,8 @@ class AdminDashboardController extends GetxController {
       Get.find<AdminDashboardController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminDashboardController');
 
   final Rx<AdminDashboardStats?> stats = Rx<AdminDashboardStats?>(null);
   final Rx<AdminAnalytics?> analytics = Rx<AdminAnalytics?>(null);

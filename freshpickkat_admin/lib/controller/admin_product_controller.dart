@@ -11,7 +11,8 @@ class AdminProductController extends GetxController {
       Get.find<AdminProductController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminProductController');
   final int pageSize = 20;
 
   final RxList<Product> products = <Product>[].obs;

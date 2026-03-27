@@ -11,7 +11,8 @@ class AdminCategoryController extends GetxController {
       Get.find<AdminCategoryController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminCategoryController');
 
   final RxList<Category> categories = <Category>[].obs;
   final RxList<SubCategory> subCategories = <SubCategory>[].obs;

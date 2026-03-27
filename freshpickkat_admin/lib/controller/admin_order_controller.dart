@@ -10,7 +10,8 @@ class AdminOrderController extends GetxController {
   static AdminOrderController get instance => Get.find<AdminOrderController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminOrderController');
   final int pageSize = 20;
 
   final RxList<Order> orders = <Order>[].obs;
@@ -52,8 +53,6 @@ class AdminOrderController extends GetxController {
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
         );
-
-        await Future.delayed(Duration(seconds: 10));
 
         return await _client.order.getOrdersPage(
           firebaseUid: uid,

@@ -10,7 +10,8 @@ class AdminOfferController extends GetxController {
   static AdminOfferController get instance => Get.put(AdminOfferController());
 
   Client get client => ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminOfferController');
 
   final _bogoOffers = <BogoOffer>[].obs;
   final _comboOffers = <ComboOffer>[].obs;

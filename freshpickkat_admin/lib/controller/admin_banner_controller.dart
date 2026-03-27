@@ -9,7 +9,8 @@ class AdminBannerController extends GetxController {
   static AdminBannerController get instance => Get.put(AdminBannerController());
 
   sc.Client get _client => ServerpodAdminClient().client;
-  final NetworkController networkController = Get.put(NetworkController());
+  final NetworkController networkController =
+      Get.put(NetworkController(), tag: 'AdminBannerController');
 
   final banners = <sc.Banner>[].obs;
   final isLoading = false.obs;
