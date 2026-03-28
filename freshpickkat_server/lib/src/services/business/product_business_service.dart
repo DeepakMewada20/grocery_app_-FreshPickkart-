@@ -36,6 +36,9 @@ class ProductBusinessService {
     final primaryVariant = normalizedVariants.first;
     final normalizedRealPrice = _nonNegative(primaryVariant.realPrice);
     final normalizedPrice = _nonNegative(primaryVariant.price);
+    final normalizedQuantityDescription =
+        _normalizeOptionalText(product.quantityDescription) ??
+        _normalizeOptionalText(primaryVariant.quantityDescription);
 
     double resolvedDiscount = _resolveDiscount(
       realPrice: normalizedRealPrice,
@@ -55,6 +58,7 @@ class ProductBusinessService {
       ),
       baseUnit: primaryVariant.quantityUnit,
       baseQuantity: primaryVariant.quantityValue,
+      quantityDescription: normalizedQuantityDescription,
       realPrice: normalizedRealPrice,
       price: normalizedPrice,
       discount: resolvedDiscount,
@@ -72,6 +76,9 @@ class ProductBusinessService {
   static List<ProductVariant> _normalizeVariants(Product product) {
     final baseUnit = product.baseUnit ?? 'gm';
     final baseQuantity = product.baseQuantity ?? 1.0;
+    final productQuantityDescription = _normalizeOptionalText(
+      product.quantityDescription,
+    );
 
     final source = (product.variants == null || product.variants!.isEmpty)
         ? <ProductVariant>[
@@ -79,6 +86,7 @@ class ProductBusinessService {
               variantId: 'default',
               quantityValue: baseQuantity,
               quantityUnit: baseUnit,
+              quantityDescription: productQuantityDescription,
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,
@@ -116,6 +124,9 @@ class ProductBusinessService {
             : variant.variantId.trim(),
         quantityValue: variantQuantity,
         quantityUnit: variantUnit,
+        quantityDescription:
+            _normalizeOptionalText(variant.quantityDescription) ??
+            (index == 0 ? productQuantityDescription : null),
         price: _nonNegative(variant.price),
         realPrice: _nonNegative(realPrice),
         isAvailable: variant.isAvailable,
@@ -125,6 +136,12 @@ class ProductBusinessService {
   }
 
   static double _nonNegative(double value) => value < 0 ? 0 : value;
+
+  static String? _normalizeOptionalText(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
 
   static double _resolveDiscount({
     required double realPrice,

@@ -15,10 +15,10 @@ fields:
     quantity: String
     baseUnit: String?
     baseQuantity: double?
+    quantityDescription: String?
     countryOfOrigin: String?
     searchKeywords: List<String>?
     mostSearch: int
     mostPurchases: int
     bogoFreeProductIds: List<String>?
     variants: List<ProductVariant>?
-

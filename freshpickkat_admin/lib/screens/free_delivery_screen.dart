@@ -20,10 +20,6 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   @override
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,25 +143,49 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   }
 
   void _showDeleteConfirmation(FreeDeliveryRule rule) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Rule'),
-        content: Text('Are you sure you want to delete "${rule.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (context) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Delete Rule'),
+            content: Text('Are you sure you want to delete "${rule.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        setDialogState(() => isDeleting = true);
+                        await _controller.deleteFreeDeliveryRule(
+                          rule.ruleId ?? '',
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Rule deleted')),
+                        );
+                      },
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _controller.deleteFreeDeliveryRule(rule.ruleId ?? '');
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -339,6 +359,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
   String _ruleType = 'min_order_amount';
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 365));
+  bool _isSubmitting = false;
 
   bool get isEditing => widget.rule != null;
 
@@ -507,12 +528,18 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _save,
-          child: Text(isEditing ? 'Update' : 'Create'),
+          onPressed: _isSubmitting ? null : _save,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Update' : 'Create'),
         ),
       ],
     );
@@ -541,7 +568,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     double? minOrderAmount;
@@ -577,7 +604,12 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
       createdAt: widget.rule?.createdAt ?? DateTime.now(),
     );
 
-    await widget.onSave(rule);
-    if (mounted) Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSave(rule);
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }

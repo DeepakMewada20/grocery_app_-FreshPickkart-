@@ -17,6 +17,7 @@ abstract class ProductVariant implements _i1.SerializableModel {
     required this.variantId,
     required this.quantityValue,
     required this.quantityUnit,
+    this.quantityDescription,
     required this.price,
     required this.realPrice,
     required this.isAvailable,
@@ -27,6 +28,7 @@ abstract class ProductVariant implements _i1.SerializableModel {
     required String variantId,
     required double quantityValue,
     required String quantityUnit,
+    String? quantityDescription,
     required double price,
     required double realPrice,
     required bool isAvailable,
@@ -38,6 +40,7 @@ abstract class ProductVariant implements _i1.SerializableModel {
       variantId: jsonSerialization['variantId'] as String,
       quantityValue: (jsonSerialization['quantityValue'] as num).toDouble(),
       quantityUnit: jsonSerialization['quantityUnit'] as String,
+      quantityDescription: jsonSerialization['quantityDescription'] as String?,
       price: (jsonSerialization['price'] as num).toDouble(),
       realPrice: (jsonSerialization['realPrice'] as num).toDouble(),
       isAvailable: _i1.BoolJsonExtension.fromJson(
@@ -52,6 +55,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
   double quantityValue;
 
   String quantityUnit;
+
+  String? quantityDescription;
 
   double price;
 
@@ -68,6 +73,7 @@ abstract class ProductVariant implements _i1.SerializableModel {
     String? variantId,
     double? quantityValue,
     String? quantityUnit,
+    String? quantityDescription,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -80,6 +86,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
       'variantId': variantId,
       'quantityValue': quantityValue,
       'quantityUnit': quantityUnit,
+      if (quantityDescription != null)
+        'quantityDescription': quantityDescription,
       'price': price,
       'realPrice': realPrice,
       'isAvailable': isAvailable,
@@ -100,6 +108,7 @@ class _ProductVariantImpl extends ProductVariant {
     required String variantId,
     required double quantityValue,
     required String quantityUnit,
+    String? quantityDescription,
     required double price,
     required double realPrice,
     required bool isAvailable,
@@ -108,6 +117,7 @@ class _ProductVariantImpl extends ProductVariant {
          variantId: variantId,
          quantityValue: quantityValue,
          quantityUnit: quantityUnit,
+         quantityDescription: quantityDescription,
          price: price,
          realPrice: realPrice,
          isAvailable: isAvailable,
@@ -122,6 +132,7 @@ class _ProductVariantImpl extends ProductVariant {
     String? variantId,
     double? quantityValue,
     String? quantityUnit,
+    Object? quantityDescription = _Undefined,
     double? price,
     double? realPrice,
     bool? isAvailable,
@@ -131,6 +142,9 @@ class _ProductVariantImpl extends ProductVariant {
       variantId: variantId ?? this.variantId,
       quantityValue: quantityValue ?? this.quantityValue,
       quantityUnit: quantityUnit ?? this.quantityUnit,
+      quantityDescription: quantityDescription is String?
+          ? quantityDescription
+          : this.quantityDescription,
       price: price ?? this.price,
       realPrice: realPrice ?? this.realPrice,
       isAvailable: isAvailable ?? this.isAvailable,

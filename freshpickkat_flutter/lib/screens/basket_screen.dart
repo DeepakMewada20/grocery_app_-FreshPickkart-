@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
@@ -223,7 +224,7 @@ class BasketScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          item.product.quantity,
+                          productFullQuantityLabel(item.product),
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 14,
@@ -531,7 +532,7 @@ class BasketScreen extends StatelessWidget {
         border: Border(top: BorderSide(color: cs.outlineVariant)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

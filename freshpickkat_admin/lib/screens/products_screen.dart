@@ -45,12 +45,12 @@ class _ProductsScreenState extends State<ProductsScreen>
   }
 
   Future<void> _loadData() async {
-    print('DEBUG: _loadData pulling refresh...');
+    debugPrint('DEBUG: _loadData pulling refresh...');
     await Future.wait([
       _categoryController.loadCategories(),
       _productController.loadInitial(),
     ]);
-    print('DEBUG: _loadData refresh complete.');
+    debugPrint('DEBUG: _loadData refresh complete.');
   }
 
   void _handleScroll() {
@@ -59,7 +59,7 @@ class _ProductsScreenState extends State<ProductsScreen>
     if (position.pixels >= position.maxScrollExtent - 300) {
       if (_productController.hasMore.value &&
           !_productController.isLoadingMore.value) {
-        print('DEBUG: _handleScroll triggering loadMore...');
+        debugPrint('DEBUG: _handleScroll triggering loadMore...');
         _productController.loadMore();
       }
     }
@@ -70,23 +70,25 @@ class _ProductsScreenState extends State<ProductsScreen>
     _isOpeningDialog = true;
 
     try {
-      final result = await ProductFormDialog.show(
+      final saved = await ProductFormDialog.show(
         context: context,
         product: null,
         categories: _categoryController.categories,
+        onSubmit: (result) async {
+          final productId = await _productController.addProduct(result.product);
+          if (productId != null && result.bogoSelections != null) {
+            await _saveBogoOfferConfiguration(
+              triggerProductId: productId,
+              selections: result.bogoSelections!,
+            );
+          }
+          await _loadData();
+        },
         groupedSubcategoryOptionsFor:
             _categoryController.groupedSubcategoryOptionsFor,
       );
 
-      if (result == null) return;
-
-      final productId = await _productController.addProduct(result.product);
-      if (productId != null && result.bogoSelections != null) {
-        await _saveBogoOfferConfiguration(
-          triggerProductId: productId,
-          selections: result.bogoSelections!,
-        );
-      }
+      if (saved != true) return;
 
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -108,24 +110,26 @@ class _ProductsScreenState extends State<ProductsScreen>
     _isOpeningDialog = true;
 
     try {
-      final result = await ProductFormDialog.show(
+      final saved = await ProductFormDialog.show(
         context: context,
         product: product,
         categories: _categoryController.categories,
+        onSubmit: (result) async {
+          await _productController.updateProduct(result.product);
+
+          if (result.bogoSelections != null && product.productId != null) {
+            await _saveBogoOfferConfiguration(
+              triggerProductId: product.productId!,
+              selections: result.bogoSelections!,
+            );
+          }
+          await _loadData();
+        },
         groupedSubcategoryOptionsFor:
             _categoryController.groupedSubcategoryOptionsFor,
       );
 
-      if (result == null) return;
-
-      await _productController.updateProduct(result.product);
-
-      if (result.bogoSelections != null && product.productId != null) {
-        await _saveBogoOfferConfiguration(
-          triggerProductId: product.productId!,
-          selections: result.bogoSelections!,
-        );
-      }
+      if (saved != true) return;
 
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -182,37 +186,61 @@ class _ProductsScreenState extends State<ProductsScreen>
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Delete "${product.productName}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder: (context) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Delete Product'),
+            content: Text('Delete "${product.productName}"?'),
+            actions: [
+              TextButton(
+                onPressed: isDeleting
+                    ? null
+                    : () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        final messenger = ScaffoldMessenger.of(this.context);
+                        setDialogState(() => isDeleting = true);
+                        try {
+                          await _productController.deleteProduct(
+                            product.productId!,
+                          );
+                          if (!context.mounted) return;
+                          Navigator.pop(context, true);
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          Navigator.pop(context, false);
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to delete product: $e'),
+                            ),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Delete'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+        );
+      },
     );
 
     if (confirm != true) return;
-
-    try {
-      await _productController.deleteProduct(product.productId!);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Product deleted')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to delete product: $e')));
-    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Product deleted')));
   }
 
   List<Product> _visibleProducts() {

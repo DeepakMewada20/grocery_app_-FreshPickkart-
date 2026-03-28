@@ -131,71 +131,94 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
+    bool isSubmitting = false;
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Category'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Category name'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Category'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Category name',
+                      ),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: imageCtrl,
+                      decoration: const InputDecoration(labelText: 'Image URL'),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: imageCtrl,
-                  decoration: const InputDecoration(labelText: 'Image URL'),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() => isSubmitting = true);
+                          final messenger = ScaffoldMessenger.of(this.context);
+                          try {
+                            await _controller.uploadCategory(
+                              Category(
+                                categoryName: nameCtrl.text.trim(),
+                                categoryImageUrl: imageCtrl.text.trim(),
+                                subCategory: {},
+                              ),
+                            );
+                            if (!mounted || !context.mounted) return;
+                            Navigator.pop(context, true);
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Category added')),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to add category: $e'),
+                              ),
+                            );
+                          } finally {
+                            if (mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
 
     if (saved != true) return;
-
-    try {
-      await _controller.uploadCategory(
-        Category(
-          categoryName: nameCtrl.text.trim(),
-          categoryImageUrl: imageCtrl.text.trim(),
-          subCategory: {},
-        ),
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Category added')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to add category: $e')));
-    }
   }
 
   Future<void> _openAddSubcategoryDialog() async {
@@ -210,6 +233,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     String selectedCategory = _controller.categories.first.categoryName;
     final nameCtrl = TextEditingController();
     final imageCtrl = TextEditingController();
+    bool isSubmitting = false;
 
     final saved = await showDialog<bool>(
       context: context,
@@ -260,16 +284,53 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(context, false),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Save'),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() => isSubmitting = true);
+                          final messenger = ScaffoldMessenger.of(this.context);
+                          try {
+                            await _controller.uploadSubCategory(
+                              SubCategory(
+                                categoryId: selectedCategory,
+                                subCategoriesName: [nameCtrl.text.trim()],
+                                subCategoriesUrl: imageCtrl.text.trim(),
+                              ),
+                            );
+                            if (!mounted || !context.mounted) return;
+                            Navigator.pop(context, true);
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Subcategory added'),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to add subcategory: $e'),
+                              ),
+                            );
+                          } finally {
+                            if (mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
                 ),
               ],
             );
@@ -279,24 +340,5 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
 
     if (saved != true) return;
-
-    try {
-      await _controller.uploadSubCategory(
-        SubCategory(
-          categoryId: selectedCategory,
-          subCategoriesName: [nameCtrl.text.trim()],
-          subCategoriesUrl: imageCtrl.text.trim(),
-        ),
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Subcategory added')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to add subcategory: $e')));
-    }
   }
 }

@@ -183,6 +183,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     bool isActive = true;
     DateTime startDate = DateTime.now();
     DateTime endDate = DateTime.now().add(const Duration(days: 30));
+    bool isSubmitting = false;
 
     final saved = await showDialog<bool>(
       context: context,
@@ -359,16 +360,73 @@ class _CouponsScreenState extends State<CouponsScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(context, false),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Create'),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+
+                          final maxDiscount = maxDiscountCtrl.text.trim().isEmpty
+                              ? null
+                              : double.tryParse(maxDiscountCtrl.text.trim());
+
+                          final usageLimit = usageLimitCtrl.text.trim().isEmpty
+                              ? null
+                              : int.tryParse(usageLimitCtrl.text.trim());
+
+                          final coupon = Coupon(
+                            code: codeCtrl.text.trim().toUpperCase(),
+                            description: descCtrl.text.trim(),
+                            discountType:
+                                couponCategory == 'delivery' ? null : discountType,
+                            discountValue: couponCategory == 'delivery'
+                                ? null
+                                : double.parse(discountValueCtrl.text.trim()),
+                            minOrderAmount:
+                                double.parse(minOrderCtrl.text.trim()),
+                            maxDiscount: maxDiscount,
+                            startDate: startDate,
+                            endDate: endDate,
+                            usageLimit: usageLimit,
+                            usedCount: 0,
+                            isActive: isActive,
+                            couponCategory: couponCategory,
+                          );
+
+                          final messenger = ScaffoldMessenger.of(this.context);
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            await _controller.uploadCoupon(coupon);
+                            if (!mounted || !context.mounted) return;
+                            Navigator.pop(context, true);
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Coupon created')),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to create coupon: $e'),
+                              ),
+                            );
+                          } finally {
+                            if (mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Create'),
                 ),
               ],
             );
@@ -378,44 +436,6 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
 
     if (saved != true) return;
-
-    final maxDiscount = maxDiscountCtrl.text.trim().isEmpty
-        ? null
-        : double.tryParse(maxDiscountCtrl.text.trim());
-
-    final usageLimit = usageLimitCtrl.text.trim().isEmpty
-        ? null
-        : int.tryParse(usageLimitCtrl.text.trim());
-
-    final coupon = Coupon(
-      code: codeCtrl.text.trim().toUpperCase(),
-      description: descCtrl.text.trim(),
-      discountType: couponCategory == 'delivery' ? null : discountType,
-      discountValue: couponCategory == 'delivery'
-          ? null
-          : double.parse(discountValueCtrl.text.trim()),
-      minOrderAmount: double.parse(minOrderCtrl.text.trim()),
-      maxDiscount: maxDiscount,
-      startDate: startDate,
-      endDate: endDate,
-      usageLimit: usageLimit,
-      usedCount: 0,
-      isActive: isActive,
-      couponCategory: couponCategory,
-    );
-
-    try {
-      await _controller.uploadCoupon(coupon);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Coupon created')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to create coupon: $e')));
-    }
   }
 
   String? _numberValidator(String? value) {
@@ -442,6 +462,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     bool isActive = coupon.isActive;
     String? discountType = coupon.discountType;
     String couponCategory = coupon.couponCategory;
+    bool isSubmitting = false;
 
     final saved = await showDialog<bool>(
       context: context,
@@ -568,16 +589,64 @@ class _CouponsScreenState extends State<CouponsScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(context, false),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Update'),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          final updated = coupon.copyWith(
+                            description: descCtrl.text.trim(),
+                            minOrderAmount:
+                                double.parse(minOrderCtrl.text.trim()),
+                            discountType:
+                                couponCategory == 'delivery' ? null : discountType,
+                            discountValue: couponCategory == 'delivery'
+                                ? null
+                                : double.parse(discountValueCtrl.text.trim()),
+                            maxDiscount: maxDiscountCtrl.text.trim().isEmpty
+                                ? null
+                                : double.tryParse(maxDiscountCtrl.text.trim()),
+                            startDate: startDate,
+                            endDate: endDate,
+                            isActive: isActive,
+                          );
+
+                          final messenger = ScaffoldMessenger.of(this.context);
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            final ok = await _controller.updateCoupon(updated);
+                            if (!mounted) return;
+                            if (!ok) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('Update failed')),
+                              );
+                              return;
+                            }
+                            if (!context.mounted) return;
+                            Navigator.pop(context, true);
+                          } catch (e) {
+                            if (!mounted) return;
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Failed: $e')),
+                            );
+                          } finally {
+                            if (mounted) {
+                              setDialogState(() => isSubmitting = false);
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Update'),
                 ),
               ],
             );
@@ -587,35 +656,5 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
 
     if (saved != true) return;
-    final updated = coupon.copyWith(
-      description: descCtrl.text.trim(),
-      minOrderAmount: double.parse(minOrderCtrl.text.trim()),
-      discountType: couponCategory == 'delivery' ? null : discountType,
-      discountValue: couponCategory == 'delivery'
-          ? null
-          : double.parse(discountValueCtrl.text.trim()),
-      maxDiscount: maxDiscountCtrl.text.trim().isEmpty
-          ? null
-          : double.tryParse(maxDiscountCtrl.text.trim()),
-      startDate: startDate,
-      endDate: endDate,
-      isActive: isActive,
-    );
-
-    try {
-      final ok = await _controller.updateCoupon(updated);
-      if (!mounted) return;
-      if (!ok) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Update failed')));
-        return;
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed: $e')));
-    }
   }
 }

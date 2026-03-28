@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -151,7 +152,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       items.add(OrderItem(
         productId: item.product.productId ?? '',
         variantId: item.variantId,
-        variantLabel: item.product.quantity,
+        variantLabel: productFullQuantityLabel(item.product),
         productName: item.product.productName,
         productImage: item.product.imageUrl,
         quantity: item.quantity,
@@ -168,7 +169,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (freeProduct != null) {
           items.add(OrderItem(
             productId: freeProduct.productId!,
-            variantLabel: freeProduct.quantity,
+            variantLabel: productFullQuantityLabel(freeProduct),
             productName: freeProduct.productName,
             productImage: freeProduct.imageUrl,
             quantity: item.quantity, // 1 free for every 1 trigger
@@ -491,7 +492,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${item.product.productName} (${item.product.quantity}) x${item.quantity}',
+                      '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
                       style: TextStyle(color: cs.onSurface),
                       overflow: TextOverflow.ellipsis,
                     ),

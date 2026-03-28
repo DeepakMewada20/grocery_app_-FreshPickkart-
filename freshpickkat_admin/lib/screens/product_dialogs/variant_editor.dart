@@ -193,6 +193,13 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
             ],
           ),
           const SizedBox(height: 12),
+          ModernTextField(
+            controller: widget.draft.quantityDescriptionCtrl,
+            labelText: 'Quantity Description (Optional)',
+            hintText: 'e.g., 10-12 pieces',
+            onChanged: (_) => widget.onChanged(),
+          ),
+          const SizedBox(height: 12),
           CompactFieldRow(
             children: [
               ModernTextField(

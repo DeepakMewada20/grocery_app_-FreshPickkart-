@@ -48,7 +48,7 @@ class ExampleProductController extends GetxController {
 
 // Example Screen
 class ExampleUsageScreen extends StatelessWidget {
-  const ExampleUsageScreen({Key? key}) : super(key: key);
+  const ExampleUsageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

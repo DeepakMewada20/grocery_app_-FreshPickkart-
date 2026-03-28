@@ -26,10 +26,6 @@ class _BannersScreenState extends State<BannersScreen>
   @override
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,25 +155,47 @@ class _BannersScreenState extends State<BannersScreen>
   }
 
   void _showDeleteConfirmation(banner_pkg.Banner banner) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Banner'),
-        content: Text('Are you sure you want to delete "${banner.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (context) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Delete Banner'),
+            content: Text('Are you sure you want to delete "${banner.title}"?'),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        setDialogState(() => isDeleting = true);
+                        await _controller.deleteBanner(banner.bannerId ?? '');
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Banner deleted')),
+                        );
+                      },
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _controller.deleteBanner(banner.bannerId ?? '');
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -486,6 +504,7 @@ class _BannerDialogState extends State<_BannerDialog> {
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
   bool _active = true;
   bool _isUploading = false;
+  bool _isSubmitting = false;
 
   bool get isEditing => widget.banner != null;
 
@@ -659,12 +678,18 @@ class _BannerDialogState extends State<_BannerDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _save,
-          child: Text(isEditing ? 'Update' : 'Create'),
+          onPressed: _isSubmitting ? null : _save,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Update' : 'Create'),
         ),
       ],
     );
@@ -826,7 +851,7 @@ class _BannerDialogState extends State<_BannerDialog> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedPlacements.isEmpty) {
@@ -868,7 +893,12 @@ class _BannerDialogState extends State<_BannerDialog> {
       createdAt: widget.banner?.createdAt ?? DateTime.now(),
     );
 
-    await widget.onSave(banner);
-    if (mounted) Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSave(banner);
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }

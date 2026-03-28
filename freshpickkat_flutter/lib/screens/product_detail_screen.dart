@@ -252,11 +252,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                displayProduct.quantity,
+                                productFullQuantityLabel(displayProduct),
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 16,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),

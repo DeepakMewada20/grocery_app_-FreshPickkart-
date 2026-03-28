@@ -11,9 +11,9 @@ List<ProductVariant> sortedProductVariants(Product product) {
   return [
     ProductVariant(
       variantId: 'default',
-      quantityValue:
-          product.baseQuantity ?? _parseQuantityValue(product.quantity),
+      quantityValue: product.baseQuantity ?? _parseQuantityValue(product.quantity),
       quantityUnit: product.baseUnit ?? _parseQuantityUnit(product.quantity),
+      quantityDescription: product.quantityDescription,
       price: product.price,
       realPrice: product.realPrice,
       isAvailable: product.isAvailable,
@@ -50,6 +50,25 @@ String formatQuantityString(double quantityValue, String quantityUnit) {
     return '${quantityValue.toInt()} $quantityUnit';
   }
   return '$quantityValue $quantityUnit';
+}
+
+String productBaseQuantityLabel(Product product) {
+  final quantityValue = product.baseQuantity ?? _parseQuantityValue(product.quantity);
+  final quantityUnit = product.baseUnit ?? _parseQuantityUnit(product.quantity);
+  return formatQuantityString(quantityValue, quantityUnit);
+}
+
+String? productQuantityDescriptionLabel(Product product) {
+  final description = product.quantityDescription?.trim();
+  if (description == null || description.isEmpty) return null;
+  return description;
+}
+
+String productFullQuantityLabel(Product product) {
+  final base = productBaseQuantityLabel(product);
+  final description = productQuantityDescriptionLabel(product);
+  if (description == null) return base;
+  return '$base ($description)';
 }
 
 String inferProductVariantId(Product product) {
@@ -89,6 +108,8 @@ Product applyVariantToProduct(Product product, {String? variantId}) {
     ),
     baseQuantity: selectedVariant.quantityValue,
     baseUnit: selectedVariant.quantityUnit,
+    quantityDescription:
+        selectedVariant.quantityDescription ?? product.quantityDescription,
     price: selectedVariant.price,
     realPrice: selectedVariant.realPrice,
     isAvailable: selectedVariant.isAvailable,

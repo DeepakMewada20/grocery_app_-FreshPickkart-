@@ -155,21 +155,22 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   }
 
   void _showAddBogoDialog() {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (context) => _BogoOfferDialog(
         onSave: (offer) async {
           final success = await _controller.upsertOffer(offer);
           if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               const SnackBar(
                 content: Text('BOGO offer created successfully'),
               ),
             );
           } else if (!success && mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Error creating BOGO offer')));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Error creating BOGO offer')),
+            );
           }
         },
       ),
@@ -177,6 +178,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   }
 
   void _showEditBogoDialog(BogoOffer offer) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (context) => _BogoOfferDialog(
@@ -184,15 +186,15 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         onSave: (updated) async {
           final success = await _controller.upsertOffer(updated);
           if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               const SnackBar(
                 content: Text('BOGO offer updated successfully'),
               ),
             );
           } else if (!success && mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Error updating BOGO offer')));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Error updating BOGO offer')),
+            );
           }
         },
       ),
@@ -200,36 +202,59 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   }
 
   void _showDeleteConfirmation(BogoOffer offer) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete BOGO Offer'),
-        content: Text('Are you sure you want to delete "${offer.offerTitle}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (context) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Delete BOGO Offer'),
+            content: Text(
+              'Are you sure you want to delete "${offer.offerTitle}"?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        setDialogState(() => isDeleting = true);
+                        final success = await _controller.deleteOffer(
+                          offer.triggerProductId,
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        if (success && mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('BOGO offer deleted')),
+                          );
+                        } else if (!success && mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('Error deleting BOGO offer'),
+                            ),
+                          );
+                        }
+                      },
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await _controller.deleteOffer(
-                offer.triggerProductId,
-              );
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('BOGO offer deleted')),
-                );
-              } else if (!success && mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Error deleting BOGO offer')));
-              }
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -401,6 +426,7 @@ class _BogoOfferDialogState extends State<_BogoOfferDialog> {
   final List<_FreeProductSelection> _freeProducts = [];
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 365));
+  bool _isSubmitting = false;
 
   bool get isEditing => widget.offer != null;
 
@@ -607,12 +633,18 @@ class _BogoOfferDialogState extends State<_BogoOfferDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _save,
-          child: Text(isEditing ? 'Update' : 'Create'),
+          onPressed: _isSubmitting ? null : _save,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Update' : 'Create'),
         ),
       ],
     );
@@ -688,7 +720,7 @@ class _BogoOfferDialogState extends State<_BogoOfferDialog> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedTriggerProduct == null) {
@@ -728,8 +760,13 @@ class _BogoOfferDialogState extends State<_BogoOfferDialog> {
       createdAt: widget.offer?.createdAt ?? DateTime.now(),
     );
 
-    await widget.onSave(offer);
-    if (mounted) Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSave(offer);
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }
 

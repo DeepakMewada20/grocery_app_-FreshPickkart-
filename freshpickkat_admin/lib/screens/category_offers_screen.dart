@@ -155,25 +155,51 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   }
 
   void _showDeleteConfirmation(CategoryOffer offer) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Category Offer'),
-        content: Text('Are you sure you want to delete "${offer.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (context) {
+        var isDeleting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('Delete Category Offer'),
+            content: Text('Are you sure you want to delete "${offer.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        setDialogState(() => isDeleting = true);
+                        await _controller.deleteCategoryOffer(
+                          offer.offerId ?? '',
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Category offer deleted'),
+                          ),
+                        );
+                      },
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _controller.deleteCategoryOffer(offer.offerId ?? '');
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -346,6 +372,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   int _priority = 0;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  bool _isSubmitting = false;
 
   bool get isEditing => widget.offer != null;
 
@@ -520,12 +547,18 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _save,
-          child: Text(isEditing ? 'Update' : 'Create'),
+          onPressed: _isSubmitting ? null : _save,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Update' : 'Create'),
         ),
       ],
     );
@@ -554,7 +587,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategoryId == null) {
@@ -587,7 +620,12 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
       createdAt: widget.offer?.createdAt ?? DateTime.now(),
     );
 
-    await widget.onSave(offer);
-    if (mounted) Navigator.pop(context);
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSave(offer);
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 }

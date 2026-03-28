@@ -3,6 +3,7 @@ fields:
   variantId: String
   quantityValue: double
   quantityUnit: String
+  quantityDescription: String?
   price: double
   realPrice: double
   isAvailable: bool

@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -13,7 +17,6 @@ import 'package:image_picker/image_picker.dart';
 
 import 'variant_draft.dart';
 import 'variant_editor.dart';
-import 'bogo_selector_widget.dart';
 import 'subcategory_selector.dart';
 
 enum ProductFormMode { add, edit }
@@ -33,6 +36,7 @@ class ProductFormResult {
 class ProductFormDialog extends StatefulWidget {
   final Product? product;
   final List<Category> categories;
+  final Future<void> Function(ProductFormResult result) onSubmit;
   final List<List<String>> Function(String category)
   groupedSubcategoryOptionsFor;
 
@@ -40,28 +44,27 @@ class ProductFormDialog extends StatefulWidget {
     super.key,
     this.product,
     required this.categories,
+    required this.onSubmit,
     required this.groupedSubcategoryOptionsFor,
   });
 
-  static Future<ProductFormResult?> show({
+  static Future<bool?> show({
     required BuildContext context,
     Product? product,
     required List<Category> categories,
+    required Future<void> Function(ProductFormResult result) onSubmit,
     required List<List<String>> Function(String category)
     groupedSubcategoryOptionsFor,
   }) {
-    return showModalBottomSheet<ProductFormResult>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      isDismissible: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => ProductFormDialog(
-        product: product,
-        categories: categories,
-        groupedSubcategoryOptionsFor: groupedSubcategoryOptionsFor,
+    return Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => ProductFormDialog(
+          product: product,
+          categories: categories,
+          onSubmit: onSubmit,
+          groupedSubcategoryOptionsFor: groupedSubcategoryOptionsFor,
+        ),
       ),
     );
   }
@@ -76,10 +79,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late final TextEditingController nameCtrl;
   late final TextEditingController imageCtrl;
   late final TextEditingController quantityValueCtrl;
+  late final TextEditingController quantityDescriptionCtrl;
   late final TextEditingController countryOfOriginCtrl;
   late final TextEditingController priceCtrl;
   late final TextEditingController mrpCtrl;
-  late final TextEditingController discountCtrl;
 
   late List<VariantDraft> extraVariants;
   late String discountType;
@@ -89,11 +92,19 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   final bogoFreeProductQuantities = <String, String>{};
   late bool isAvailable;
   bool isUploadingImage = false;
+  bool _isSubmitting = false;
   String? imageError;
+  bool _didRequestOfferData = false;
 
   String? selectedCategory;
   final selectedSubcategories = <String>{};
   String? subcategoryError;
+
+  AdminCategoryOfferController get _categoryOfferController =>
+      AdminCategoryOfferController.instance;
+  AdminComboOfferController get _comboOfferController =>
+      AdminComboOfferController.instance;
+  AdminBogoController get _bogoController => AdminBogoController.instance;
 
   bool get isEditMode => widget.product != null;
   Product? get product => widget.product;
@@ -110,21 +121,22 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   _parseQuantityValue(product?.quantity ?? ''))
               .toString(),
     );
+    quantityDescriptionCtrl = TextEditingController(
+      text:
+          product?.quantityDescription ??
+          _parseQuantityDescription(product?.quantity ?? ''),
+    );
     countryOfOriginCtrl = TextEditingController(
-      text: product?.countryOfOrigin ?? '',
+      text: product?.countryOfOrigin ?? 'India',
     );
     priceCtrl = TextEditingController(text: product?.price.toString() ?? '');
     mrpCtrl = TextEditingController(text: product?.realPrice.toString() ?? '');
-    discountCtrl = TextEditingController(
-      text: (product?.discountValue ?? product?.discount ?? 0).toString(),
-    );
-
     extraVariants = (product?.variants ?? const <ProductVariant>[])
         .skip(1)
         .map(VariantDraft.fromVariant)
         .toList();
 
-    discountType = product?.discountType ?? 'percentage';
+    discountType = product?.discountType == 'flat' ? 'flat' : 'percentage';
     baseUnit = product?.baseUnit ?? _parseQuantityUnit(product?.quantity ?? '');
     isAvailable = product?.isAvailable ?? true;
 
@@ -133,9 +145,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       selectedSubcategories.addAll(product!.subcategory);
     }
 
-    if (isEditMode && discountType == 'bogo') {
+    if (isEditMode && product?.discountType == 'bogo') {
       _fetchBogoOffer();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureOfferDataLoaded();
+    });
   }
 
   Future<void> _fetchBogoOffer() async {
@@ -176,10 +192,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     nameCtrl.dispose();
     imageCtrl.dispose();
     quantityValueCtrl.dispose();
+    quantityDescriptionCtrl.dispose();
     countryOfOriginCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
-    discountCtrl.dispose();
     for (final variant in extraVariants) {
       variant.dispose();
     }
@@ -297,6 +313,27 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return resolved;
   }
 
+  Future<void> _ensureOfferDataLoaded() async {
+    if (_didRequestOfferData) return;
+    _didRequestOfferData = true;
+
+    final futures = <Future<void>>[];
+    if (_categoryOfferController.categoryOffers.isEmpty &&
+        !_categoryOfferController.isLoading.value) {
+      futures.add(_categoryOfferController.loadCategoryOffers());
+    }
+    if (_comboOfferController.comboOffers.isEmpty &&
+        !_comboOfferController.isLoading.value) {
+      futures.add(_comboOfferController.loadComboOffers());
+    }
+    if (_bogoController.bogoOffers.isEmpty && !_bogoController.isLoading.value) {
+      futures.add(_bogoController.loadBogoOffers());
+    }
+
+    if (futures.isEmpty) return;
+    await Future.wait(futures);
+  }
+
   Future<List<Product>> _fetchAllProductsForCategory(String category) async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
@@ -322,6 +359,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return products;
   }
 
+  // Preserved for the upcoming dedicated BOGO editing flow.
+  // ignore: unused_element
   void _syncBogoSelectionState({
     required List<BogoProductSelection> selections,
     required Set<String> selectedIds,
@@ -420,6 +459,17 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return 'gm';
   }
 
+  String _parseQuantityDescription(String text) {
+    final normalized = text.trim();
+    final separatorIndex = normalized.indexOf('•');
+    if (separatorIndex == -1) return '';
+    return normalized.substring(separatorIndex + 1).trim();
+  }
+
+  String _buildQuantityLabel() {
+    return '${quantityValueCtrl.text.trim()} $baseUnit';
+  }
+
   List<ProductVariant> _buildVariants() {
     final variants = <ProductVariant>[
       ProductVariant(
@@ -428,6 +478,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           '${quantityValueCtrl.text.trim()} $baseUnit',
         ),
         quantityUnit: baseUnit,
+        quantityDescription: quantityDescriptionCtrl.text.trim().isEmpty
+            ? null
+            : quantityDescriptionCtrl.text.trim(),
         price: double.parse(priceCtrl.text.trim()),
         realPrice: double.parse(mrpCtrl.text.trim()),
         isAvailable: isAvailable,
@@ -442,6 +495,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             entry.value.quantityValueCtrl.text.trim(),
           ),
           quantityUnit: entry.value.quantityUnit,
+          quantityDescription:
+              entry.value.quantityDescriptionCtrl.text.trim().isEmpty
+              ? null
+              : entry.value.quantityDescriptionCtrl.text.trim(),
           price: double.parse(entry.value.priceCtrl.text.trim()),
           realPrice: double.parse(entry.value.mrpCtrl.text.trim()),
           isAvailable: entry.value.isAvailable,
@@ -489,7 +546,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     final baseQuantity = double.parse(quantityValueCtrl.text.trim());
     final price = double.parse(priceCtrl.text.trim());
     final mrp = double.parse(mrpCtrl.text.trim());
-    final discount = double.parse(discountCtrl.text.trim());
+    final discount = _calculatedDiscountValue(price: price, mrp: mrp);
 
     if (isEditMode) {
       return product!.copyWith(
@@ -503,13 +560,17 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         discountValue: discount,
         isAvailable: isAvailable,
         subcategory: selectedSubcategories.toList(),
-        quantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+        quantity: _buildQuantityLabel(),
         baseUnit: baseUnit,
         baseQuantity: baseQuantity,
+        quantityDescription: quantityDescriptionCtrl.text.trim().isEmpty
+            ? null
+            : quantityDescriptionCtrl.text.trim(),
         countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
             ? null
             : countryOfOriginCtrl.text.trim(),
-        bogoFreeProductIds: bogoFreeProductIds.toList(),
+        bogoFreeProductIds:
+            product?.bogoFreeProductIds?.toList() ?? bogoFreeProductIds.toList(),
         variants: variants,
       );
     } else {
@@ -524,9 +585,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         discountValue: discount,
         isAvailable: isAvailable,
         subcategory: selectedSubcategories.toList(),
-        quantity: '${quantityValueCtrl.text.trim()} $baseUnit',
+        quantity: _buildQuantityLabel(),
         baseUnit: baseUnit,
         baseQuantity: baseQuantity,
+        quantityDescription: quantityDescriptionCtrl.text.trim().isEmpty
+            ? null
+            : quantityDescriptionCtrl.text.trim(),
         countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
             ? null
             : countryOfOriginCtrl.text.trim(),
@@ -541,76 +605,52 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEditMode ? 'Edit Product' : 'Add Product'),
       ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isEditMode ? 'Edit Product' : 'Add Product',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
+      body: SafeArea(
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildBasicInfoSection(),
+                      const SizedBox(height: 12),
+                      _buildImageSection(),
+                      const SizedBox(height: 12),
+                      _buildQuantitySection(),
+                      const SizedBox(height: 12),
+                      _buildPricingSection(),
+                      const SizedBox(height: 12),
+                      _buildVariantsSection(),
+                      const SizedBox(height: 12),
+                      _buildOffersSection(),
+                      const SizedBox(height: 12),
+                      AvailabilitySwitch(
+                        value: isAvailable,
+                        onChanged: (value) => setState(() => isAvailable = value),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.grey[100],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildBasicInfoSection(),
-                    const SizedBox(height: 12),
-                    _buildImageSection(),
-                    const SizedBox(height: 12),
-                    _buildQuantitySection(),
-                    const SizedBox(height: 12),
-                    _buildPricingSection(),
-                    const SizedBox(height: 12),
-                    _buildVariantsSection(),
-                    const SizedBox(height: 12),
-                    AvailabilitySwitch(
-                      value: isAvailable,
-                      onChanged: (value) => setState(() => isAvailable = value),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
               ),
-            ),
-            _buildActionButtons(),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: _buildActionButtons(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -739,34 +779,38 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       title: 'Quantity',
       child: Column(
         children: [
-          CompactFieldRow(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ModernTextField(
-                controller: quantityValueCtrl,
-                labelText: 'Quantity',
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+              Expanded(
+                flex: 2,
+                child: ModernTextField(
+                  controller: quantityValueCtrl,
+                  labelText: 'Quantity',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  onChanged: (_) {
+                    _recalculateMrpFromQuantity(
+                      quantityCtrl: quantityValueCtrl,
+                      newUnit: baseUnit,
+                      mrpCtrlRef: mrpCtrl,
+                      originalMrp: product?.realPrice ?? 0,
+                      originalQuantity:
+                          product?.baseQuantity ??
+                          _parseQuantityValue(product?.quantity ?? ''),
+                      originalUnit:
+                          product?.baseUnit ??
+                          _parseQuantityUnit(product?.quantity ?? ''),
+                    );
+                    setState(() {});
+                  },
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
-                onChanged: (_) {
-                  _recalculateMrpFromQuantity(
-                    quantityCtrl: quantityValueCtrl,
-                    newUnit: baseUnit,
-                    mrpCtrlRef: mrpCtrl,
-                    originalMrp: product?.realPrice ?? 0,
-                    originalQuantity:
-                        product?.baseQuantity ??
-                        _parseQuantityValue(product?.quantity ?? ''),
-                    originalUnit:
-                        product?.baseUnit ??
-                        _parseQuantityUnit(product?.quantity ?? ''),
-                  );
-                  setState(() {});
-                },
               ),
-              SizedBox(
-                width: 120,
+              const SizedBox(width: 12),
+              Expanded(
                 child: DropdownButtonFormField<String>(
                   initialValue: baseUnit,
                   decoration: const InputDecoration(
@@ -810,6 +854,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           ),
           const SizedBox(height: 12),
           ModernTextField(
+            controller: quantityDescriptionCtrl,
+            labelText: 'Quantity Description (Optional)',
+            hintText: 'e.g., 10-12 pieces',
+          ),
+          const SizedBox(height: 12),
+          ModernTextField(
             controller: countryOfOriginCtrl,
             labelText: 'Country of Origin (Optional)',
             hintText: 'e.g., India',
@@ -825,82 +875,80 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       title: 'Pricing',
       child: Column(
         children: [
-          ModernTextField(
-            controller: priceCtrl,
-            labelText: 'Selling Price',
-            prefixText: '₹ ',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: _numberValidator,
-          ),
-          const SizedBox(height: 12),
-          ModernTextField(
-            controller: mrpCtrl,
-            labelText: 'MRP',
-            prefixText: '₹ ',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (v) {
-              final mrp = double.tryParse(v) ?? 0;
-              final p = double.tryParse(priceCtrl.text) ?? 0;
-              if (mrp > 0 && p > 0 && mrp > p) {
-                final discount = mrp - p;
-                if (discountType == 'flat') {
-                  discountCtrl.text = discount.toStringAsFixed(0);
-                } else if (discountType == 'percentage') {
-                  final percent = (discount / mrp * 100);
-                  discountCtrl.text = percent.toStringAsFixed(0);
-                }
-              }
-              setState(() {});
-            },
-            validator: _numberValidator,
-          ),
-          const SizedBox(height: 12),
-          CompactFieldRow(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ModernDropdown<String>(
-                value: discountType,
-                labelText: 'Type',
-                items: const [
-                  DropdownMenuItem(
-                    value: 'percentage',
-                    child: Text('Percentage (%)'),
-                  ),
-                  DropdownMenuItem(value: 'flat', child: Text('Flat (₹)')),
-                  DropdownMenuItem(value: 'bogo', child: Text('🎁 BOGO')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      discountType = value;
-                      if (discountType == 'bogo') {
-                        discountCtrl.text = '0';
-                        mrpCtrl.text = priceCtrl.text;
-                      }
-                    });
-                  }
-                },
-              ),
-              if (discountType != 'bogo')
-                ModernTextField(
-                  controller: discountCtrl,
-                  labelText: 'Discount',
-                  prefixText: discountType == 'flat' ? '₹ ' : null,
-                  suffixText: discountType == 'percentage' ? '%' : null,
+              Expanded(
+                child: ModernTextField(
+                  controller: priceCtrl,
+                  labelText: 'Selling Price',
+                  prefixText: '₹ ',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  onChanged: (v) {
-                    final d = double.tryParse(v) ?? 0;
-                    final p = double.tryParse(priceCtrl.text) ?? 0;
-                    if (discountType == 'percentage' && d < 100) {
-                      mrpCtrl.text = (p / (1 - (d / 100))).toStringAsFixed(0);
-                    } else {
-                      mrpCtrl.text = (p + d).toStringAsFixed(0);
-                    }
-                    setState(() {});
-                  },
+                  validator: _numberValidator,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ModernTextField(
+                  controller: mrpCtrl,
+                  labelText: 'MRP',
+                  prefixText: '₹ ',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: (_) => setState(() {}),
                   validator: _numberValidator,
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ModernDropdown<String>(
+                  value: discountType,
+                  labelText: 'Type',
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'percentage',
+                      child: Text('Percentage (%)'),
+                    ),
+                    DropdownMenuItem(value: 'flat', child: Text('Flat (₹)')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        discountType = value;
+                      });
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: 'Discount',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 16,
+                    ),
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _discountValueLabel(),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           Builder(
@@ -914,66 +962,252 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               );
             },
           ),
-          if (discountType == 'bogo') ...[
-            const SizedBox(height: 12),
-            BogoSelectorWidget(
-              selectedProducts: selectedBogoProducts.values.toList(),
-              unresolvedIds: bogoFreeProductIds.difference(
-                selectedBogoProducts.keys.toSet(),
+        ],
+      ),
+    );
+  }
+
+  double _calculatedDiscountValue({
+    required double price,
+    required double mrp,
+  }) {
+    if (price <= 0 || mrp <= 0 || mrp <= price) return 0;
+    final flatDiscount = mrp - price;
+    if (discountType == 'percentage') {
+      return (flatDiscount / mrp) * 100;
+    }
+    return flatDiscount;
+  }
+
+  String _discountValueLabel() {
+    final price = double.tryParse(priceCtrl.text.trim()) ?? 0;
+    final mrp = double.tryParse(mrpCtrl.text.trim()) ?? 0;
+    final discount = _calculatedDiscountValue(price: price, mrp: mrp);
+    if (discount <= 0) {
+      return discountType == 'percentage' ? '0%' : '₹0';
+    }
+    if (discountType == 'percentage') {
+      return '${discount.toStringAsFixed(0)}%';
+    }
+    return '₹${discount.toStringAsFixed(0)}';
+  }
+
+  Widget _buildOffersSection() {
+    return SectionCard(
+      icon: Icons.local_activity_outlined,
+      title: 'Related Offers',
+      child: Obx(() {
+        final summaries = _relatedOfferSummaries();
+        final isLoading =
+            _categoryOfferController.isLoading.value ||
+            _comboOfferController.isLoading.value ||
+            _bogoController.isLoading.value;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blueGrey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blueGrey.shade100),
               ),
-              canBrowse:
-                  selectedCategory != null &&
-                  selectedCategory!.trim().isNotEmpty,
-              onBrowsePressed: () async {
-                if (selectedCategory == null ||
-                    selectedCategory!.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please select product category first'),
-                    ),
-                  );
-                  return;
-                }
-
-                final result = await Navigator.of(context)
-                    .push<List<BogoProductSelection>>(
-                      MaterialPageRoute(
-                        builder: (_) => BogoProductPickerScreen(
-                          initialCategory: selectedCategory!,
-                          initiallySelectedProducts: selectedBogoProducts.values
-                              .map(
-                                (p) => BogoProductSelection(
-                                  product: p,
-                                  freeQuantity:
-                                      bogoFreeProductQuantities[p.productId!] ??
-                                      p.quantity,
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    );
-
-                if (result == null) return;
-                setState(() {
-                  _syncBogoSelectionState(
-                    selections: result,
-                    selectedIds: bogoFreeProductIds,
-                    resolvedProducts: selectedBogoProducts,
-                    freeProductQuantities: bogoFreeProductQuantities,
-                  );
-                });
-              },
-              onRemove: (productId) {
-                setState(() {
-                  bogoFreeProductIds.remove(productId);
-                  selectedBogoProducts.remove(productId);
-                  bogoFreeProductQuantities.remove(productId);
-                });
-              },
-              freeProductQuantities: bogoFreeProductQuantities,
+              child: Text(
+                summaries.isEmpty
+                    ? 'No related offers found for this product yet.'
+                    : 'This product is currently linked to ${summaries.length} offer${summaries.length == 1 ? '' : 's'}.',
+                style: TextStyle(color: Colors.blueGrey.shade800),
+              ),
             ),
+            if (isLoading) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(minHeight: 3),
+            ],
+            if (summaries.isEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                isEditMode
+                    ? 'Direct product pricing will appear here along with category, combo, and BOGO mappings.'
+                    : 'Save the product first to see direct product, combo, and BOGO mappings. Category offers update from the selected category.',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              ...summaries.map(_buildOfferSummaryCard),
+            ],
           ],
+        );
+      }),
+    );
+  }
+
+  List<_ProductOfferSummary> _relatedOfferSummaries() {
+    final summaries = <_ProductOfferSummary>[];
+    final now = DateTime.now();
+    final productId = product?.productId;
+    final categoryName = selectedCategory?.trim();
+
+    final discountValue = _calculatedDiscountValue(
+      price: double.tryParse(priceCtrl.text.trim()) ?? 0,
+      mrp: double.tryParse(mrpCtrl.text.trim()) ?? 0,
+    );
+    if (discountValue > 0) {
+      final valueLabel = discountType == 'percentage'
+          ? '${discountValue.toStringAsFixed(0)}% OFF'
+          : 'FLAT ₹${discountValue.toStringAsFixed(0)} OFF';
+      summaries.add(
+        _ProductOfferSummary(
+          title: 'Direct Product Discount',
+          subtitle: 'Configured on this product form',
+          badge: valueLabel,
+          tone: Colors.green,
+        ),
+      );
+    }
+
+    if (categoryName != null && categoryName.isNotEmpty) {
+      final categoryOffers = _categoryOfferController.categoryOffers.where((
+        offer,
+      ) {
+        if (!_isOfferLive(offer.startDate, offer.endDate, offer.isActive, now)) {
+          return false;
+        }
+        final matchesCategory =
+            offer.categoryName == categoryName || offer.categoryId == categoryName;
+        if (!matchesCategory) return false;
+        if (productId != null &&
+            (offer.excludeProductIds ?? const <String>[]).contains(productId)) {
+          return false;
+        }
+        final productIds = offer.productIds ?? const <String>[];
+        if (productIds.isNotEmpty && productId != null) {
+          return productIds.contains(productId);
+        }
+        return productIds.isEmpty;
+      });
+
+      for (final offer in categoryOffers) {
+        summaries.add(
+          _ProductOfferSummary(
+            title: offer.name,
+            subtitle: 'Category offer • ${offer.categoryName ?? categoryName}',
+            badge: _discountBadge(offer.discountType, offer.discountValue),
+            tone: Colors.orange,
+          ),
+        );
+      }
+    }
+
+    if (productId != null) {
+      final comboOffers = _comboOfferController.comboOffers.where((offer) {
+        if (!_isOfferLive(offer.startDate, offer.endDate, offer.isActive, now)) {
+          return false;
+        }
+        return offer.comboProducts.any((item) => item.productId == productId);
+      });
+
+      for (final offer in comboOffers) {
+        summaries.add(
+          _ProductOfferSummary(
+            title: offer.name,
+            subtitle:
+                'Combo offer • part of ${offer.comboProducts.length} products',
+            badge: _discountBadge(offer.discountType, offer.discountValue),
+            tone: Colors.deepPurple,
+          ),
+        );
+      }
+
+      final bogoOffer = _bogoController.bogoOffers.cast<BogoOffer?>().firstWhere(
+        (offer) => offer?.triggerProductId == productId,
+        orElse: () => null,
+      );
+      if (bogoOffer != null &&
+          _isOfferLive(
+            bogoOffer.startDate,
+            bogoOffer.endDate,
+            bogoOffer.isActive,
+            now,
+          )) {
+        final freeCount = bogoOffer.freeProductIds.length;
+        summaries.add(
+          _ProductOfferSummary(
+            title: bogoOffer.offerTitle,
+            subtitle: 'BOGO offer • $freeCount free product option${freeCount == 1 ? '' : 's'}',
+            badge: 'BOGO',
+            tone: Colors.teal,
+          ),
+        );
+      }
+    }
+
+    return summaries;
+  }
+
+  bool _isOfferLive(
+    DateTime startDate,
+    DateTime endDate,
+    bool isActive,
+    DateTime now,
+  ) {
+    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
+  }
+
+  String _discountBadge(String discountType, double discountValue) {
+    if (discountType == 'percentage') {
+      return '${discountValue.toStringAsFixed(0)}% OFF';
+    }
+    return 'FLAT ₹${discountValue.toStringAsFixed(0)} OFF';
+  }
+
+  Widget _buildOfferSummaryCard(_ProductOfferSummary offer) {
+    final tone = offer.tone;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: tone.withAlpha(20),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tone.withAlpha(46)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: tone,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              offer.badge,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  offer.title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  offer.subtitle,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1022,7 +1256,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: _isSubmitting ? null : () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -1036,38 +1270,32 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         Expanded(
           flex: 2,
           child: FilledButton(
-            onPressed: _handleSave,
+            onPressed: _isSubmitting ? null : _handleSave,
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text(isEditMode ? 'Update Product' : 'Save Product'),
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(isEditMode ? 'Update Product' : 'Save Product'),
           ),
         ),
       ],
     );
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (!formKey.currentState!.validate()) return;
 
     if (selectedSubcategories.isEmpty) {
       setState(
         () => subcategoryError = 'Please select at least one subcategory',
-      );
-      return;
-    }
-
-    if (discountType == 'bogo' && bogoFreeProductIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please select at least one free product for BOGO offer',
-          ),
-          backgroundColor: Colors.red,
-        ),
       );
       return;
     }
@@ -1082,25 +1310,56 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     if (selectedCategory != null) {
       final product = _buildProduct();
-      final bogoSelections = bogoFreeProductIds.map((productId) {
-        final p = selectedBogoProducts[productId]!;
-        return BogoProductSelection(
-          product: p,
-          freeQuantity: bogoFreeProductQuantities[productId] ?? p.quantity,
-        );
-      }).toList();
+      final bogoSelections = bogoFreeProductIds
+          .map((productId) {
+            final p = selectedBogoProducts[productId];
+            if (p == null) return null;
+            return BogoProductSelection(
+              product: p,
+              freeQuantity: bogoFreeProductQuantities[productId] ?? p.quantity,
+            );
+          })
+          .whereType<BogoProductSelection>()
+          .toList();
 
-      Navigator.pop(
-        context,
-        ProductFormResult(
-          product: product,
-          bogoSelections:
-              discountType == 'bogo' && bogoFreeProductIds.isNotEmpty
-              ? bogoSelections
-              : null,
-          extraVariants: extraVariants,
-        ),
+      final result = ProductFormResult(
+        product: product,
+        bogoSelections:
+            discountType == 'bogo' && bogoFreeProductIds.isNotEmpty
+            ? bogoSelections
+            : null,
+        extraVariants: extraVariants,
       );
+
+      setState(() => _isSubmitting = true);
+      try {
+        await widget.onSubmit(result);
+        if (!mounted) return;
+        Navigator.pop(context, true);
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save product: $e')));
+      } finally {
+        if (mounted) {
+          setState(() => _isSubmitting = false);
+        }
+      }
     }
   }
+}
+
+class _ProductOfferSummary {
+  final String title;
+  final String subtitle;
+  final String badge;
+  final Color tone;
+
+  const _ProductOfferSummary({
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.tone,
+  });
 }

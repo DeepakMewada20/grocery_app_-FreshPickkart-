@@ -869,6 +869,9 @@ class ProductEndpoint extends Endpoint {
           primaryVariant.quantityValue.toString(),
       baseUnit: fields['baseUnit']?.stringValue,
       baseQuantity: _getDoubleValueOrNull(fields, 'baseQuantity'),
+      quantityDescription:
+          fields['quantityDescription']?.stringValue ??
+          _parseQuantityDescription(fields['quantity']?.stringValue),
       countryOfOrigin: fields['countryOfOrigin']?.stringValue,
       searchKeywords: _stringListField(fields['searchKeywords']),
       mostSearch: int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
@@ -908,6 +911,9 @@ class ProductEndpoint extends Endpoint {
               itemFields['quantityUnit']?.stringValue ??
               _parseUnitFromString(itemFields['quantity']?.stringValue) ??
               baseUnit,
+          quantityDescription:
+              itemFields['quantityDescription']?.stringValue ??
+              _parseQuantityDescription(itemFields['quantity']?.stringValue),
           price: _getValueAsDouble(itemFields['price']),
           realPrice: _getValueAsDouble(itemFields['realPrice']),
           isAvailable: itemFields['isAvailable']?.booleanValue ?? true,
@@ -923,6 +929,9 @@ class ProductEndpoint extends Endpoint {
         variantId: 'default',
         quantityValue: baseQuantity,
         quantityUnit: baseUnit,
+        quantityDescription:
+            fields['quantityDescription']?.stringValue ??
+            _parseQuantityDescription(fields['quantity']?.stringValue),
         price: _getDoubleValue(fields, 'price'),
         realPrice: _getDoubleValue(fields, 'realPrice'),
         isAvailable: fields['isAvailable']?.booleanValue ?? false,
@@ -954,6 +963,14 @@ class ProductEndpoint extends Endpoint {
     return 'gm';
   }
 
+  String? _parseQuantityDescription(String? text) {
+    if (text == null || text.trim().isEmpty) return null;
+    final separatorIndex = text.indexOf('•');
+    if (separatorIndex == -1) return null;
+    final description = text.substring(separatorIndex + 1).trim();
+    return description.isEmpty ? null : description;
+  }
+
   Map<String, firestore_api.Value> _productFieldsToFirestore(Product product) {
     final baseUnit = product.baseUnit ?? 'gm';
     final baseQuantity = product.baseQuantity ?? 1.0;
@@ -979,6 +996,12 @@ class ProductEndpoint extends Endpoint {
       'quantity': firestore_api.Value(stringValue: product.quantity),
       'baseUnit': firestore_api.Value(stringValue: baseUnit),
       'baseQuantity': firestore_api.Value(doubleValue: baseQuantity),
+      'quantityDescription': product.quantityDescription != null &&
+              product.quantityDescription!.trim().isNotEmpty
+          ? firestore_api.Value(
+              stringValue: product.quantityDescription!.trim(),
+            )
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
       'countryOfOrigin': product.countryOfOrigin != null
           ? firestore_api.Value(stringValue: product.countryOfOrigin)
           : firestore_api.Value(nullValue: 'NULL_VALUE'),
@@ -1024,6 +1047,11 @@ class ProductEndpoint extends Endpoint {
                       'quantityUnit': firestore_api.Value(
                         stringValue: variant.quantityUnit,
                       ),
+                      if (variant.quantityDescription != null &&
+                          variant.quantityDescription!.trim().isNotEmpty)
+                        'quantityDescription': firestore_api.Value(
+                          stringValue: variant.quantityDescription!.trim(),
+                        ),
                       'quantity': firestore_api.Value(
                         stringValue:
                             '${variant.quantityValue} ${variant.quantityUnit}',

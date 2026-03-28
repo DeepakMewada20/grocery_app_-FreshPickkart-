@@ -31,6 +31,7 @@ abstract class Product implements _i1.SerializableModel {
     required this.quantity,
     this.baseUnit,
     this.baseQuantity,
+    this.quantityDescription,
     this.countryOfOrigin,
     this.searchKeywords,
     required this.mostSearch,
@@ -55,6 +56,7 @@ abstract class Product implements _i1.SerializableModel {
     required String quantity,
     String? baseUnit,
     double? baseQuantity,
+    String? quantityDescription,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
@@ -84,6 +86,7 @@ abstract class Product implements _i1.SerializableModel {
       quantity: jsonSerialization['quantity'] as String,
       baseUnit: jsonSerialization['baseUnit'] as String?,
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
+      quantityDescription: jsonSerialization['quantityDescription'] as String?,
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
       searchKeywords: jsonSerialization['searchKeywords'] == null
           ? null
@@ -135,6 +138,8 @@ abstract class Product implements _i1.SerializableModel {
 
   double? baseQuantity;
 
+  String? quantityDescription;
+
   String? countryOfOrigin;
 
   List<String>? searchKeywords;
@@ -166,6 +171,7 @@ abstract class Product implements _i1.SerializableModel {
     String? quantity,
     String? baseUnit,
     double? baseQuantity,
+    String? quantityDescription,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     int? mostSearch,
@@ -192,6 +198,8 @@ abstract class Product implements _i1.SerializableModel {
       'quantity': quantity,
       if (baseUnit != null) 'baseUnit': baseUnit,
       if (baseQuantity != null) 'baseQuantity': baseQuantity,
+      if (quantityDescription != null)
+        'quantityDescription': quantityDescription,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
       if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
       'mostSearch': mostSearch,
@@ -228,6 +236,7 @@ class _ProductImpl extends Product {
     required String quantity,
     String? baseUnit,
     double? baseQuantity,
+    String? quantityDescription,
     String? countryOfOrigin,
     List<String>? searchKeywords,
     required int mostSearch,
@@ -250,6 +259,7 @@ class _ProductImpl extends Product {
          quantity: quantity,
          baseUnit: baseUnit,
          baseQuantity: baseQuantity,
+         quantityDescription: quantityDescription,
          countryOfOrigin: countryOfOrigin,
          searchKeywords: searchKeywords,
          mostSearch: mostSearch,
@@ -278,6 +288,7 @@ class _ProductImpl extends Product {
     String? quantity,
     Object? baseUnit = _Undefined,
     Object? baseQuantity = _Undefined,
+    Object? quantityDescription = _Undefined,
     Object? countryOfOrigin = _Undefined,
     Object? searchKeywords = _Undefined,
     int? mostSearch,
@@ -303,6 +314,9 @@ class _ProductImpl extends Product {
       quantity: quantity ?? this.quantity,
       baseUnit: baseUnit is String? ? baseUnit : this.baseUnit,
       baseQuantity: baseQuantity is double? ? baseQuantity : this.baseQuantity,
+      quantityDescription: quantityDescription is String?
+          ? quantityDescription
+          : this.quantityDescription,
       countryOfOrigin: countryOfOrigin is String?
           ? countryOfOrigin
           : this.countryOfOrigin,

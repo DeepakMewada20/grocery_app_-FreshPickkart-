@@ -278,7 +278,7 @@ class _ProductCardState extends State<ProductCard> {
                               ),
                             ] else ...[
                               Text(
-                                displayProduct.quantity,
+                                productFullQuantityLabel(displayProduct),
                                 style: GoogleFonts.inter(
                                   color: cs.onSurface.withValues(alpha: 0.5),
                                   fontSize: widget.quantityFontSize ?? 10,

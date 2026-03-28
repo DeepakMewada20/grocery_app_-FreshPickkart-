@@ -4,6 +4,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 class VariantDraft {
   final String variantId;
   final TextEditingController quantityValueCtrl;
+  final TextEditingController quantityDescriptionCtrl;
   String quantityUnit;
   final TextEditingController priceCtrl;
   final TextEditingController mrpCtrl;
@@ -16,7 +17,8 @@ class VariantDraft {
   VariantDraft({
     String? variantId,
     double quantityValue = 1,
-    String quantityUnit = 'gm',
+    this.quantityUnit = 'gm',
+    String quantityDescription = '',
     String price = '',
     String mrp = '',
     this.isAvailable = true,
@@ -28,7 +30,7 @@ class VariantDraft {
        quantityValueCtrl = TextEditingController(
          text: quantityValue.toString(),
        ),
-       quantityUnit = quantityUnit,
+       quantityDescriptionCtrl = TextEditingController(text: quantityDescription),
        priceCtrl = TextEditingController(text: price),
        mrpCtrl = TextEditingController(text: mrp);
 
@@ -42,6 +44,7 @@ class VariantDraft {
       variantId: variant.variantId,
       quantityValue: variant.quantityValue,
       quantityUnit: variant.quantityUnit,
+      quantityDescription: variant.quantityDescription ?? '',
       price: variant.price.toString(),
       mrp: variant.realPrice.toString(),
       isAvailable: variant.isAvailable,
@@ -53,6 +56,7 @@ class VariantDraft {
 
   void dispose() {
     quantityValueCtrl.dispose();
+    quantityDescriptionCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
   }
