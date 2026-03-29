@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import '../widgets/network_error_widget.dart';
 
 class ComboOffersScreen extends StatefulWidget {
@@ -552,46 +553,21 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
 
     if (!mounted) return;
 
-    final selected = await showDialog<_SelectedProduct>(
+    final selectedProduct = await ProductSelectionDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Product'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: productController.products.length,
-            itemBuilder: (context, index) {
-              final product = productController.products[index];
-              return ListTile(
-                leading: product.imageUrl.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      )
-                    : const CircleAvatar(child: Icon(Icons.shopping_basket)),
-                title: Text(product.productName),
-                subtitle: Text('₹${product.price}'),
-                onTap: () => Navigator.pop(
-                  context,
-                  _SelectedProduct(
-                    productId: product.productId ?? '',
-                    productName: product.productName,
-                    quantity: 1,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
+      title: 'Select Product',
+      excludedProductIds: _products.map((product) => product.productId).toSet(),
     );
 
-    if (selected != null) {
+    if (selectedProduct != null) {
       setState(() {
-        _products.add(selected);
+        _products.add(
+          _SelectedProduct(
+            productId: selectedProduct.productId ?? '',
+            productName: selectedProduct.productName,
+            quantity: 1,
+          ),
+        );
       });
     }
   }

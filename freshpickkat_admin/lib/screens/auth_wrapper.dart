@@ -17,7 +17,8 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthWrapperState extends State<AuthWrapper>
+    with WidgetsBindingObserver {
   final _authService = AdminAuthService();
 
   StreamSubscription<User?>? _userSubscription;
@@ -32,6 +33,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _networkSubscription = NetworkStatusService.instance.onStatusChange.listen(
       _handleConnectivityChange,
     );
@@ -43,10 +45,32 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _verificationPoller?.cancel();
     _userSubscription?.cancel();
     _networkSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _verificationPoller?.cancel();
+      _verificationPoller = null;
+      return;
+    }
+
+    if (state == AppLifecycleState.resumed &&
+        !user.emailVerified &&
+        _viewState == _AuthViewState.awaitingVerification) {
+      _startVerificationPolling();
+    }
   }
 
   void _handleConnectivityChange(bool hasConnection) {
@@ -60,6 +84,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _handleUserChange(User? user) async {
     _verificationPoller?.cancel();
+    _verificationPoller = null;
 
     if (!mounted) return;
     if (user == null) {
@@ -90,12 +115,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   void _startVerificationPolling() {
+    _verificationPoller?.cancel();
+    _verificationPoller = null;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.emailVerified) return;
+
     _verificationPoller = Timer.periodic(const Duration(seconds: 3), (
       timer,
     ) async {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         timer.cancel();
+        _verificationPoller = null;
         return;
       }
 
@@ -103,6 +135,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final refreshedUser = FirebaseAuth.instance.currentUser;
       if (refreshedUser?.emailVerified == true) {
         timer.cancel();
+        _verificationPoller = null;
         await _authorizeCurrentUser();
       }
     });
@@ -127,6 +160,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
       await _authService.authorizeCurrentUser();
       await AdminNotificationService.init();
+      _verificationPoller?.cancel();
+      _verificationPoller = null;
       if (!mounted) return;
       setState(() {
         _viewState = _AuthViewState.authenticated;
@@ -150,6 +185,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
       }
 
       await FirebaseAuth.instance.signOut();
+      _verificationPoller?.cancel();
+      _verificationPoller = null;
       if (!mounted) return;
       setState(() {
         _viewState = _AuthViewState.login;

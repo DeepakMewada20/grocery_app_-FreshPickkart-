@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -25,14 +24,19 @@ class _ProductsScreenState extends State<ProductsScreen>
       AdminCategoryController.instance;
 
   final ScrollController _scrollController = ScrollController();
-  bool _isSearching = false;
   String _searchQuery = '';
+  String _selectedCategory = 'All';
+  String _fetchedCategoryScope = 'All';
+  final Map<String, List<Product>> _categoryProductCache = {};
   bool _isOpeningDialog = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _scrollController.addListener(_handleScroll);
     _loadData();
   }
@@ -48,19 +52,52 @@ class _ProductsScreenState extends State<ProductsScreen>
     debugPrint('DEBUG: _loadData pulling refresh...');
     await Future.wait([
       _categoryController.loadCategories(),
-      _productController.loadInitial(),
+      _productController.loadInitial(
+        category: _selectedCategory == 'All' ? null : _selectedCategory,
+      ),
     ]);
+    _syncFetchedScopeCache(_selectedCategory);
     debugPrint('DEBUG: _loadData refresh complete.');
+  }
+
+  Future<void> _selectCategory(String value) async {
+    if (_selectedCategory == value) return;
+
+    setState(() {
+      _selectedCategory = value;
+    });
+
+    final hasCachedScope = _categoryProductCache.containsKey(value);
+    if (hasCachedScope) return;
+
+    await _productController.loadInitial(
+      category: value == 'All' ? null : value,
+    );
+    if (!mounted) return;
+    setState(() {
+      _syncFetchedScopeCache(value);
+    });
+  }
+
+  void _syncFetchedScopeCache(String scope) {
+    _fetchedCategoryScope = scope;
+    _categoryProductCache[scope] = List<Product>.from(_productController.products);
   }
 
   void _handleScroll() {
     if (!_scrollController.hasClients) return;
+    if (_selectedCategory != _fetchedCategoryScope) return;
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 300) {
       if (_productController.hasMore.value &&
           !_productController.isLoadingMore.value) {
         debugPrint('DEBUG: _handleScroll triggering loadMore...');
-        _productController.loadMore();
+        _productController.loadMore().then((_) {
+          if (!mounted) return;
+          setState(() {
+            _syncFetchedScopeCache(_fetchedCategoryScope);
+          });
+        });
       }
     }
   }
@@ -245,10 +282,10 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   List<Product> _visibleProducts() {
     final query = _searchQuery.toLowerCase().trim();
-    return _productController.products.where((p) {
+    final sourceProducts = _productsForSelectedCategory();
+    return sourceProducts.where((p) {
       final categoryMatch =
-          _productController.categoryFilter == 'All' ||
-          p.category == _productController.categoryFilter;
+          _selectedCategory == 'All' || p.category == _selectedCategory;
       if (!categoryMatch) return false;
       if (query.isEmpty) return true;
       return p.productName.toLowerCase().contains(query) ||
@@ -257,17 +294,24 @@ class _ProductsScreenState extends State<ProductsScreen>
     }).toList();
   }
 
+  List<Product> _productsForSelectedCategory() {
+    if (_selectedCategory == 'All') {
+      return _categoryProductCache['All'] ?? _productController.products;
+    }
+
+    if (_categoryProductCache.containsKey(_selectedCategory)) {
+      return _categoryProductCache[_selectedCategory]!;
+    }
+
+    final allProducts = _categoryProductCache['All'] ?? _productController.products;
+    return allProducts.where((product) => product.category == _selectedCategory).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Obx(
-          () => Text(
-            _productController.totalCount.value > 0
-                ? 'Catalog (${_productController.totalCount.value})'
-                : 'Catalog',
-          ),
-        ),
+        toolbarHeight: 0,
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         bottom: TabBar(
@@ -280,21 +324,6 @@ class _ProductsScreenState extends State<ProductsScreen>
             Tab(text: 'Categories'),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                if (_isSearching) {
-                  _isSearching = false;
-                  _searchQuery = '';
-                } else {
-                  _isSearching = true;
-                }
-              });
-            },
-          ),
-        ],
       ),
       body: TabBarView(
         controller: _tabController,
@@ -302,7 +331,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           ProductsListContent(
             scrollController: _scrollController,
             searchQuery: _searchQuery,
-            isSearching: _isSearching,
+            isSearching: false,
             onSearchChanged: (value) {
               setState(() {
                 _searchQuery = value;
@@ -310,15 +339,17 @@ class _ProductsScreenState extends State<ProductsScreen>
             },
             onSearchClose: () {
               setState(() {
-                _isSearching = false;
                 _searchQuery = '';
               });
             },
-            onOpenAddProductDialog: _openAddProductDialog,
             onOpenEditProductDialog: _openEditProductDialog,
             onDeleteProduct: _deleteProduct,
             visibleProducts: _visibleProducts,
             loadData: _loadData,
+            selectedCategory: _selectedCategory,
+            onCategorySelected: _selectCategory,
+            enablePagination:
+                _selectedCategory == _fetchedCategoryScope,
           ),
           CatalogCategoriesTab(
             controller: AdminCategoryController.instance,

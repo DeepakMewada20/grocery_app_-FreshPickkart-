@@ -7,42 +7,60 @@ class CatalogStatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.compact = false,
   });
 
   final String title;
   final String value;
   final IconData icon;
   final Color color;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final minWidth = compact ? 122.0 : 150.0;
+    final padding = compact ? 8.0 : 14.0;
+    final radius = compact ? 14.0 : 16.0;
+    final avatarRadius = compact ? 16.0 : 20.0;
+    final iconSize = compact ? 18.0 : 24.0;
+    final titleFontSize = compact ? 12.0 : 14.0;
+    final valueFontSize = compact ? 15.0 : 18.0;
+    final spacing = compact ? 7.0 : 12.0;
+
     return Container(
-      constraints: const BoxConstraints(minWidth: 150),
-      padding: const EdgeInsets.all(14),
+      constraints: BoxConstraints(minWidth: minWidth),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           CircleAvatar(
+            radius: avatarRadius,
             backgroundColor: color.withValues(alpha: 0.12),
             foregroundColor: color,
-            child: Icon(icon),
+            child: Icon(icon, size: iconSize),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: spacing),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, style: TextStyle(color: Colors.grey.shade700)),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontSize: titleFontSize,
+                ),
+              ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: valueFontSize,
                   fontWeight: FontWeight.w700,
                 ),
               ),

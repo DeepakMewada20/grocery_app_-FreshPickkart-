@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
@@ -27,6 +29,10 @@ class _OffersScreenState extends State<OffersScreen> {
       AdminCouponController.instance;
   final AdminProductController _productController =
       AdminProductController.instance;
+  final AdminCategoryOfferController _categoryOfferController =
+      AdminCategoryOfferController.instance;
+  final AdminComboOfferController _comboOfferController =
+      AdminComboOfferController.instance;
 
   String _couponSearchQuery = '';
   String _offerSearchQuery = '';
@@ -55,6 +61,14 @@ class _OffersScreenState extends State<OffersScreen> {
         !_productController.isLoading.value) {
       futures.add(_productController.loadInitial());
     }
+    if (_categoryOfferController.categoryOffers.isEmpty &&
+        !_categoryOfferController.isLoading.value) {
+      futures.add(_categoryOfferController.loadCategoryOffers());
+    }
+    if (_comboOfferController.comboOffers.isEmpty &&
+        !_comboOfferController.isLoading.value) {
+      futures.add(_comboOfferController.loadComboOffers());
+    }
     if (futures.isEmpty) return;
     await Future.wait(futures);
   }
@@ -64,6 +78,8 @@ class _OffersScreenState extends State<OffersScreen> {
       _categoryController.loadCategories(),
       _couponController.loadCoupons(),
       _productController.loadInitial(),
+      _categoryOfferController.loadCategoryOffers(force: true),
+      _comboOfferController.loadComboOffers(force: true),
     ]);
   }
 
@@ -121,6 +137,8 @@ class _OffersScreenState extends State<OffersScreen> {
               productController: _productController,
               categoryController: _categoryController,
               couponController: _couponController,
+              categoryOfferController: _categoryOfferController,
+              comboOfferController: _comboOfferController,
               offerSearchQuery: _offerSearchQuery,
               offerTypeFilter: _offerTypeFilter,
               offerCategoryFilter: _offerCategoryFilter,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import '../widgets/network_error_widget.dart';
 
 class BogoOffersScreen extends StatefulWidget {
@@ -48,7 +49,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddBogoDialog,
+        onPressed: _showAddBogoScreen,
         icon: const Icon(Icons.add),
         label: const Text('Add BOGO Offer'),
         backgroundColor: Colors.green,
@@ -124,7 +125,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                   return _BogoOfferCard(
                     offer: offer,
                     onToggle: (isActive) => _toggleBogoOffer(offer, isActive),
-                    onEdit: () => _showEditBogoDialog(offer),
+                    onEdit: () => _showEditBogoScreen(offer),
                     onDelete: () => _showDeleteConfirmation(offer),
                   );
                 },
@@ -154,50 +155,26 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
     }
   }
 
-  void _showAddBogoDialog() {
-    final messenger = ScaffoldMessenger.of(context);
-    showDialog(
+  Future<void> _showAddBogoScreen() async {
+    final saved = await BogoOfferEditorScreen.show(
       context: context,
-      builder: (context) => _BogoOfferDialog(
-        onSave: (offer) async {
-          final success = await _controller.upsertOffer(offer);
-          if (success && mounted) {
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('BOGO offer created successfully'),
-              ),
-            );
-          } else if (!success && mounted) {
-            messenger.showSnackBar(
-              const SnackBar(content: Text('Error creating BOGO offer')),
-            );
-          }
-        },
-      ),
+      onSave: (offer) => _controller.upsertOffer(offer),
+    );
+    if (saved != true || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('BOGO offer created successfully')),
     );
   }
 
-  void _showEditBogoDialog(BogoOffer offer) {
-    final messenger = ScaffoldMessenger.of(context);
-    showDialog(
+  Future<void> _showEditBogoScreen(BogoOffer offer) async {
+    final saved = await BogoOfferEditorScreen.show(
       context: context,
-      builder: (context) => _BogoOfferDialog(
-        offer: offer,
-        onSave: (updated) async {
-          final success = await _controller.upsertOffer(updated);
-          if (success && mounted) {
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('BOGO offer updated successfully'),
-              ),
-            );
-          } else if (!success && mounted) {
-            messenger.showSnackBar(
-              const SnackBar(content: Text('Error updating BOGO offer')),
-            );
-          }
-        },
-      ),
+      offer: offer,
+      onSave: (updated) => _controller.upsertOffer(updated),
+    );
+    if (saved != true || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('BOGO offer updated successfully')),
     );
   }
 
@@ -211,7 +188,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Delete BOGO Offer'),
             content: Text(
-              'Are you sure you want to delete "${offer.offerTitle}"?',
+              'Are you sure you want to delete this BOGO offer?',
             ),
             actions: [
               TextButton(
@@ -295,7 +272,7 @@ class _BogoOfferCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          offer.offerTitle,
+          'Buy 1 Get 1 Free',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -406,373 +383,4 @@ class _BogoOfferCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _BogoOfferDialog extends StatefulWidget {
-  final BogoOffer? offer;
-  final Function(BogoOffer) onSave;
-
-  const _BogoOfferDialog({this.offer, required this.onSave});
-
-  @override
-  State<_BogoOfferDialog> createState() => _BogoOfferDialogState();
-}
-
-class _BogoOfferDialogState extends State<_BogoOfferDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-
-  Product? _selectedTriggerProduct;
-  final List<_FreeProductSelection> _freeProducts = [];
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 365));
-  bool _isSubmitting = false;
-
-  bool get isEditing => widget.offer != null;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.offer != null) {
-      _titleController.text = widget.offer!.offerTitle;
-      _startDate = widget.offer!.startDate;
-      _endDate = widget.offer!.endDate;
-
-      try {
-        _selectedTriggerProduct = AdminProductController.instance.products
-            .firstWhere((p) => p.productId == widget.offer!.triggerProductId);
-      } catch (_) {}
-
-      for (final freeProductId in widget.offer!.freeProductIds) {
-        try {
-          final product = AdminProductController.instance.products.firstWhere(
-            (p) => p.productId == freeProductId,
-          );
-          _freeProducts.add(
-            _FreeProductSelection(
-              product: product,
-              quantity:
-                  widget.offer!.freeProducts
-                      ?.firstWhere(
-                        (fp) => fp.productId == freeProductId,
-                        orElse: () => BogoFreeProduct(productId: freeProductId),
-                      )
-                      .quantity ??
-                  '1',
-            ),
-          );
-        } catch (_) {
-          _freeProducts.add(
-            _FreeProductSelection(
-              product: Product(
-                productId: freeProductId,
-                productName: 'Unknown Product',
-                category: '',
-                imageUrl: '',
-                price: 0,
-                realPrice: 0,
-                discount: 0,
-                isAvailable: true,
-                addedAt: DateTime.now(),
-                subcategory: [],
-                quantity: '',
-                mostSearch: 0,
-                mostPurchases: 0,
-              ),
-              quantity: '1',
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final products = AdminProductController.instance.products;
-
-    return AlertDialog(
-      title: Text(isEditing ? 'Edit BOGO Offer' : 'Add BOGO Offer'),
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.95,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Offer Title',
-                    hintText: 'e.g., Buy 1 Get 1 Free',
-                  ),
-                  validator: (v) =>
-                      v?.trim().isEmpty == true ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Trigger Product (Buy this to get free item)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<Product>(
-                  initialValue: _selectedTriggerProduct,
-                  decoration: const InputDecoration(
-                    labelText: 'Select Trigger Product',
-                  ),
-                  items: products
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(
-                            p.productName,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(() => _selectedTriggerProduct = v),
-                  validator: (v) => v == null ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Text(
-                      'Free Products',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: _addFreeProduct,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Free Product'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (_freeProducts.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'No free products added yet.\nTap "Add Free Product" to add.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  )
-                else
-                  ..._freeProducts.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final product = entry.value;
-                    return Card(
-                      child: ListTile(
-                        leading: product.product.imageUrl.isNotEmpty
-                            ? Image.network(
-                                product.product.imageUrl,
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    const CircleAvatar(
-                                      child: Icon(Icons.shopping_basket),
-                                    ),
-                              )
-                            : const CircleAvatar(
-                                child: Icon(Icons.shopping_basket),
-                              ),
-                        title: Text(
-                          product.product.productName,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text('Qty: ${product.quantity}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            setState(() => _freeProducts.removeAt(index));
-                          },
-                        ),
-                      ),
-                    );
-                  }),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _selectDate(true),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text('Start: ${_formatDate(_startDate)}'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _selectDate(false),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text('End: ${_formatDate(_endDate)}'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _save,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(isEditing ? 'Update' : 'Create'),
-        ),
-      ],
-    );
-  }
-
-  void _addFreeProduct() async {
-    final products = AdminProductController.instance.products;
-
-    if (!mounted) return;
-
-    final selected = await showDialog<Product>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Free Product'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 400,
-          child: ListView.builder(
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              if (_selectedTriggerProduct?.productId == product.productId) {
-                return const SizedBox.shrink();
-              }
-              return ListTile(
-                leading: product.imageUrl.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      )
-                    : const CircleAvatar(child: Icon(Icons.shopping_basket)),
-                title: Text(product.productName),
-                subtitle: Text('₹${product.price}'),
-                onTap: () => Navigator.pop(context, product),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-
-    if (selected != null) {
-      setState(() {
-        _freeProducts.add(
-          _FreeProductSelection(product: selected, quantity: '1'),
-        );
-      });
-    }
-  }
-
-  Future<void> _selectDate(bool isStart) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: isStart ? _startDate : _endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-    );
-
-    if (date != null) {
-      setState(() {
-        if (isStart) {
-          _startDate = date;
-        } else {
-          _endDate = date;
-        }
-      });
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedTriggerProduct == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a trigger product')),
-      );
-      return;
-    }
-
-    if (_freeProducts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one free product')),
-      );
-      return;
-    }
-
-    final freeProducts = _freeProducts
-        .map(
-          (fp) => BogoFreeProduct(
-            productId: fp.product.productId ?? '',
-            quantity: fp.quantity,
-          ),
-        )
-        .toList();
-
-    final offer = BogoOffer(
-      offerId: widget.offer?.offerId,
-      triggerProductId: _selectedTriggerProduct!.productId ?? '',
-      freeProductIds: _freeProducts
-          .map((fp) => fp.product.productId ?? '')
-          .toList(),
-      freeProducts: freeProducts,
-      offerTitle: _titleController.text.trim(),
-      isActive: widget.offer?.isActive ?? true,
-      startDate: _startDate,
-      endDate: _endDate,
-      createdAt: widget.offer?.createdAt ?? DateTime.now(),
-    );
-
-    setState(() => _isSubmitting = true);
-    try {
-      await widget.onSave(offer);
-      if (mounted) Navigator.pop(context);
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
-  }
-}
-
-class _FreeProductSelection {
-  final Product product;
-  final String quantity;
-
-  _FreeProductSelection({required this.product, required this.quantity});
 }

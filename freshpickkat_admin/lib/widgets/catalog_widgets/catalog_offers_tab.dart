@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
@@ -12,6 +14,8 @@ class CatalogOffersTab extends StatelessWidget {
     required this.productController,
     required this.categoryController,
     required this.couponController,
+    required this.categoryOfferController,
+    required this.comboOfferController,
     required this.offerSearchQuery,
     required this.offerTypeFilter,
     required this.offerCategoryFilter,
@@ -24,6 +28,8 @@ class CatalogOffersTab extends StatelessWidget {
   final AdminProductController productController;
   final AdminCategoryController categoryController;
   final AdminCouponController couponController;
+  final AdminCategoryOfferController categoryOfferController;
+  final AdminComboOfferController comboOfferController;
   final String offerSearchQuery;
   final String offerTypeFilter;
   final String offerCategoryFilter;
@@ -38,8 +44,11 @@ class CatalogOffersTab extends StatelessWidget {
       final products = productController.products;
       final categories = categoryController.categories;
       final coupons = couponController.coupons;
+      final categoryOffers = categoryOfferController.categoryOffers;
+      final comboOffers = comboOfferController.comboOffers;
       final isLoading = productController.isLoading.value;
       final error = productController.error.value;
+      final now = DateTime.now();
 
       if (isLoading && products.isEmpty) {
         return const Center(child: CircularProgressIndicator());
@@ -62,6 +71,16 @@ class CatalogOffersTab extends StatelessWidget {
       final liveProductOfferCount = products
           .where(hasCatalogActiveOffer)
           .length;
+      final liveCategoryOfferCount = categoryOffers.where((offer) {
+        return offer.isActive &&
+            !offer.startDate.isAfter(now) &&
+            !offer.endDate.isBefore(now);
+      }).length;
+      final liveComboOfferCount = comboOffers.where((offer) {
+        return offer.isActive &&
+            !offer.startDate.isAfter(now) &&
+            !offer.endDate.isBefore(now);
+      }).length;
 
       final categoryItems = <DropdownMenuItem<String>>[
         const DropdownMenuItem<String>(value: 'All', child: Text('All')),
@@ -79,41 +98,68 @@ class CatalogOffersTab extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                CatalogStatCard(
-                  title: 'Live Product Offers',
-                  value: '$liveProductOfferCount',
-                  icon: Icons.local_offer,
-                  color: Colors.green,
-                ),
-                CatalogStatCard(
-                  title: 'BOGO',
-                  value: '$bogoCount',
-                  icon: Icons.card_giftcard,
-                  color: Colors.deepOrange,
-                ),
-                CatalogStatCard(
-                  title: 'Percentage',
-                  value: '$percentageCount',
-                  icon: Icons.percent,
-                  color: Colors.indigo,
-                ),
-                CatalogStatCard(
-                  title: 'Flat',
-                  value: '$flatCount',
-                  icon: Icons.currency_rupee,
-                  color: Colors.purple,
-                ),
-                CatalogStatCard(
-                  title: 'Live Coupons',
-                  value: '${liveCoupons.length}',
-                  icon: Icons.discount,
-                  color: Colors.teal,
-                ),
-              ],
+            SizedBox(
+              height: 76,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  CatalogStatCard(
+                    title: 'Live Product Offers',
+                    value: '$liveProductOfferCount',
+                    icon: Icons.local_offer,
+                    color: Colors.green,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'BOGO',
+                    value: '$bogoCount',
+                    icon: Icons.card_giftcard,
+                    color: Colors.deepOrange,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Category Offers',
+                    value: '$liveCategoryOfferCount',
+                    icon: Icons.category_outlined,
+                    color: Colors.blue,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Combo Offers',
+                    value: '$liveComboOfferCount',
+                    icon: Icons.widgets_outlined,
+                    color: Colors.orange,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Percentage',
+                    value: '$percentageCount',
+                    icon: Icons.percent,
+                    color: Colors.indigo,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Flat',
+                    value: '$flatCount',
+                    icon: Icons.currency_rupee,
+                    color: Colors.purple,
+                    compact: true,
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Live Coupons',
+                    value: '${liveCoupons.length}',
+                    icon: Icons.discount,
+                    color: Colors.teal,
+                    compact: true,
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 18),
             TextField(
@@ -269,40 +315,6 @@ class CatalogOffersTab extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-            const Text(
-              'Running Coupons',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
-            if (liveCoupons.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No live coupon is running right now'),
-                ),
-              )
-            else
-              ...liveCoupons.map(
-                (coupon) => Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: Color(0xFFE6F4EA),
-                      child: Icon(Icons.discount, color: Colors.green),
-                    ),
-                    title: Text(coupon.code),
-                    subtitle: Text(
-                      '${coupon.description}\n${coupon.couponCategory} • ${coupon.discountType ?? 'delivery'}',
-                    ),
-                    isThreeLine: true,
-                    trailing: Text(
-                      catalogCouponValueLabel(coupon),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
