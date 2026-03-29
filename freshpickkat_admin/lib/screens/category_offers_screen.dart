@@ -5,6 +5,20 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/network_error_widget.dart';
 
+Future<void> showAddCategoryOfferDialog({
+  required BuildContext context,
+  required AdminCategoryOfferController controller,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => _CategoryOfferDialog(
+      onSave: (offer) async {
+        await controller.createCategoryOffer(offer);
+      },
+    ),
+  );
+}
+
 class CategoryOffersScreen extends StatefulWidget {
   const CategoryOffersScreen({super.key});
 
@@ -132,13 +146,9 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   }
 
   void _showAddOfferDialog() {
-    showDialog(
+    showAddCategoryOfferDialog(
       context: context,
-      builder: (context) => _CategoryOfferDialog(
-        onSave: (offer) async {
-          await _controller.createCategoryOffer(offer);
-        },
-      ),
+      controller: _controller,
     );
   }
 

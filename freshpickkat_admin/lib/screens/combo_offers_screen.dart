@@ -7,6 +7,20 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import '../widgets/network_error_widget.dart';
 
+Future<void> showAddComboOfferDialog({
+  required BuildContext context,
+  required AdminComboOfferController controller,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => _ComboOfferDialog(
+      onSave: (offer) async {
+        await controller.createComboOffer(offer);
+      },
+    ),
+  );
+}
+
 class ComboOffersScreen extends StatefulWidget {
   const ComboOffersScreen({super.key});
 
@@ -139,13 +153,9 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
   }
 
   void _showAddComboDialog() {
-    showDialog(
+    showAddComboOfferDialog(
       context: context,
-      builder: (context) => _ComboOfferDialog(
-        onSave: (offer) async {
-          await _controller.createComboOffer(offer);
-        },
-      ),
+      controller: _controller,
     );
   }
 

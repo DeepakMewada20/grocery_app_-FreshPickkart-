@@ -8,6 +8,8 @@ class CatalogStatCard extends StatelessWidget {
     required this.icon,
     required this.color,
     this.compact = false,
+    this.selected = false,
+    this.onTap,
   });
 
   final String title;
@@ -15,6 +17,8 @@ class CatalogStatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final bool compact;
+  final bool selected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,46 +31,60 @@ class CatalogStatCard extends StatelessWidget {
     final valueFontSize = compact ? 15.0 : 18.0;
     final spacing = compact ? 7.0 : 12.0;
 
-    return Container(
-      constraints: BoxConstraints(minWidth: minWidth),
-      padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: avatarRadius,
-            backgroundColor: color.withValues(alpha: 0.12),
-            foregroundColor: color,
-            child: Icon(icon, size: iconSize),
-          ),
-          SizedBox(width: spacing),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: titleFontSize,
-                ),
+        child: Container(
+          constraints: BoxConstraints(minWidth: minWidth),
+          child: Ink(
+            padding: EdgeInsets.all(padding),
+            decoration: BoxDecoration(
+              color: selected
+                  ? color.withValues(alpha: 0.16)
+                  : color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(
+                color: selected ? color : color.withValues(alpha: 0.18),
+                width: selected ? 1.4 : 1,
               ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: valueFontSize,
-                  fontWeight: FontWeight.w700,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundColor: color.withValues(alpha: selected ? 0.18 : 0.12),
+                  foregroundColor: color,
+                  child: Icon(icon, size: iconSize),
                 ),
-              ),
-            ],
+                SizedBox(width: spacing),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: titleFontSize,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: valueFontSize,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

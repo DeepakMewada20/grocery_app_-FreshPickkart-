@@ -15,6 +15,8 @@ List<Coupon> filterCatalogCoupons(List<Coupon> coupons, String query) {
 
 List<Product> filterCatalogOfferProducts({
   required List<Product> products,
+  required List<CategoryOffer> categoryOffers,
+  required List<ComboOffer> comboOffers,
   required String query,
   required String offerTypeFilter,
   required String categoryFilter,
@@ -26,11 +28,27 @@ List<Product> filterCatalogOfferProducts({
     if (!categoryMatch) return false;
 
     final offerTypeMatch = switch (offerTypeFilter) {
-      'live' => hasCatalogActiveOffer(product),
+      'live' => hasCatalogAnyLiveOffer(
+        product,
+        categoryOffers: categoryOffers,
+        comboOffers: comboOffers,
+      ),
       'bogo' => isCatalogBogoOffer(product),
+      'category_offer' => hasCatalogLiveCategoryOffer(
+        product,
+        categoryOffers: categoryOffers,
+      ),
+      'combo_offer' => hasCatalogLiveComboOffer(
+        product,
+        comboOffers: comboOffers,
+      ),
       'percentage' => isCatalogPercentageOffer(product),
       'flat' => isCatalogFlatOffer(product),
-      'none' => !hasCatalogActiveOffer(product),
+      'none' => !hasCatalogAnyLiveOffer(
+        product,
+        categoryOffers: categoryOffers,
+        comboOffers: comboOffers,
+      ),
       _ => true,
     };
     if (!offerTypeMatch) return false;
@@ -44,8 +62,16 @@ List<Product> filterCatalogOfferProducts({
   }).toList();
 
   filtered.sort((a, b) {
-    final aHasOffer = hasCatalogActiveOffer(a);
-    final bHasOffer = hasCatalogActiveOffer(b);
+    final aHasOffer = hasCatalogAnyLiveOffer(
+      a,
+      categoryOffers: categoryOffers,
+      comboOffers: comboOffers,
+    );
+    final bHasOffer = hasCatalogAnyLiveOffer(
+      b,
+      categoryOffers: categoryOffers,
+      comboOffers: comboOffers,
+    );
     if (aHasOffer != bHasOffer) {
       return aHasOffer ? -1 : 1;
     }
@@ -85,6 +111,64 @@ bool hasCatalogActiveOffer(Product product) {
       isCatalogFlatOffer(product);
 }
 
+bool hasCatalogAnyLiveOffer(
+  Product product, {
+  required List<CategoryOffer> categoryOffers,
+  required List<ComboOffer> comboOffers,
+}) {
+  return hasCatalogActiveOffer(product) ||
+      hasCatalogLiveCategoryOffer(
+        product,
+        categoryOffers: categoryOffers,
+      ) ||
+      hasCatalogLiveComboOffer(
+        product,
+        comboOffers: comboOffers,
+      );
+}
+
+bool hasCatalogLiveCategoryOffer(
+  Product product, {
+  required List<CategoryOffer> categoryOffers,
+}) {
+  final productId = product.productId;
+  final now = DateTime.now();
+  return categoryOffers.any((offer) {
+    if (!offer.isActive ||
+        offer.startDate.isAfter(now) ||
+        offer.endDate.isBefore(now)) {
+      return false;
+    }
+    if (productId != null &&
+        (offer.excludeProductIds ?? const <String>[]).contains(productId)) {
+      return false;
+    }
+    final productIds = offer.productIds ?? const <String>[];
+    if (productIds.isNotEmpty && productId != null) {
+      return productIds.contains(productId);
+    }
+    return offer.categoryName == product.category ||
+        offer.categoryId == product.category;
+  });
+}
+
+bool hasCatalogLiveComboOffer(
+  Product product, {
+  required List<ComboOffer> comboOffers,
+}) {
+  final productId = product.productId;
+  if (productId == null) return false;
+  final now = DateTime.now();
+  return comboOffers.any((offer) {
+    if (!offer.isActive ||
+        offer.startDate.isAfter(now) ||
+        offer.endDate.isBefore(now)) {
+      return false;
+    }
+    return offer.comboProducts.any((item) => item.productId == productId);
+  });
+}
+
 double catalogFlatDiscountValue(Product product) {
   final directValue = product.discountValue ?? 0;
   if (directValue > 0) return directValue;
@@ -105,6 +189,33 @@ String catalogProductOfferLabel(Product product) {
     if (value > 0) {
       return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
     }
+  }
+  return 'No active offer';
+}
+
+String catalogProductOfferLabelWithLinkedOffers(
+  Product product, {
+  required List<CategoryOffer> categoryOffers,
+  required List<ComboOffer> comboOffers,
+}) {
+  if (isCatalogBogoOffer(product)) {
+    final freeCount = (product.bogoFreeProductIds ?? const <String>[]).length;
+    return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
+  }
+  if (isCatalogPercentageOffer(product)) {
+    return '${product.discount.toStringAsFixed(0)}% OFF';
+  }
+  if (isCatalogFlatOffer(product)) {
+    final value = catalogFlatDiscountValue(product);
+    if (value > 0) {
+      return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
+    }
+  }
+  if (hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers)) {
+    return 'Category Offer';
+  }
+  if (hasCatalogLiveComboOffer(product, comboOffers: comboOffers)) {
+    return 'Combo Offer';
   }
   return 'No active offer';
 }

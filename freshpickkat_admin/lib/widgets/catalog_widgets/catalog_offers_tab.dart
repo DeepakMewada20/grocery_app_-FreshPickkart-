@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_categ
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:get/get.dart';
@@ -43,7 +44,6 @@ class CatalogOffersTab extends StatelessWidget {
     return Obx(() {
       final products = productController.products;
       final categories = categoryController.categories;
-      final coupons = couponController.coupons;
       final categoryOffers = categoryOfferController.categoryOffers;
       final comboOffers = comboOfferController.comboOffers;
       final isLoading = productController.isLoading.value;
@@ -60,16 +60,30 @@ class CatalogOffersTab extends StatelessWidget {
 
       final visibleProducts = filterCatalogOfferProducts(
         products: products,
+        categoryOffers: categoryOffers,
+        comboOffers: comboOffers,
         query: offerSearchQuery,
         offerTypeFilter: offerTypeFilter,
         categoryFilter: offerCategoryFilter,
       );
-      final liveCoupons = coupons.where(isCatalogCouponLive).toList();
       final bogoCount = products.where(isCatalogBogoOffer).length;
+      final noOfferCount = products.where((product) {
+        return !hasCatalogAnyLiveOffer(
+          product,
+          categoryOffers: categoryOffers,
+          comboOffers: comboOffers,
+        );
+      }).length;
       final percentageCount = products.where(isCatalogPercentageOffer).length;
       final flatCount = products.where(isCatalogFlatOffer).length;
       final liveProductOfferCount = products
-          .where(hasCatalogActiveOffer)
+          .where(
+            (product) => hasCatalogAnyLiveOffer(
+              product,
+              categoryOffers: categoryOffers,
+              comboOffers: comboOffers,
+            ),
+          )
           .length;
       final liveCategoryOfferCount = categoryOffers.where((offer) {
         return offer.isActive &&
@@ -82,12 +96,12 @@ class CatalogOffersTab extends StatelessWidget {
             !offer.endDate.isBefore(now);
       }).length;
 
-      final categoryItems = <DropdownMenuItem<String>>[
-        const DropdownMenuItem<String>(value: 'All', child: Text('All')),
+      final categoryOptions = <ProductFilterOption>[
+        const ProductFilterOption(value: 'All', label: 'All'),
         ...categories.map(
-          (category) => DropdownMenuItem<String>(
+          (category) => ProductFilterOption(
             value: category.categoryName,
-            child: Text(category.categoryName),
+            label: category.categoryName,
           ),
         ),
       ];
@@ -96,7 +110,7 @@ class CatalogOffersTab extends StatelessWidget {
         onRefresh: onRefresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           children: [
             SizedBox(
               height: 76,
@@ -104,124 +118,96 @@ class CatalogOffersTab extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 children: [
                   CatalogStatCard(
-                    title: 'Live Product Offers',
+                    title: 'All',
+                    value: '${products.length}',
+                    icon: Icons.grid_view_rounded,
+                    color: const Color(0xFF335C4B),
+                    compact: true,
+                    selected: offerTypeFilter == 'all',
+                    onTap: () => onOfferTypeChanged('all'),
+                  ),
+                  const SizedBox(width: 10),
+                  CatalogStatCard(
+                    title: 'Live',
                     value: '$liveProductOfferCount',
                     icon: Icons.local_offer,
-                    color: Colors.green,
+                    color: const Color(0xFF1F6B4F),
                     compact: true,
+                    selected: offerTypeFilter == 'live',
+                    onTap: () => onOfferTypeChanged('live'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'BOGO',
                     value: '$bogoCount',
                     icon: Icons.card_giftcard,
-                    color: Colors.deepOrange,
+                    color: const Color(0xFF2B7A78),
                     compact: true,
+                    selected: offerTypeFilter == 'bogo',
+                    onTap: () => onOfferTypeChanged('bogo'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Category Offers',
                     value: '$liveCategoryOfferCount',
                     icon: Icons.category_outlined,
-                    color: Colors.blue,
+                    color: const Color(0xFF3A5F6F),
                     compact: true,
+                    selected: offerTypeFilter == 'category_offer',
+                    onTap: () => onOfferTypeChanged('category_offer'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Combo Offers',
                     value: '$liveComboOfferCount',
                     icon: Icons.widgets_outlined,
-                    color: Colors.orange,
+                    color: const Color(0xFF4F7D63),
                     compact: true,
+                    selected: offerTypeFilter == 'combo_offer',
+                    onTap: () => onOfferTypeChanged('combo_offer'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Percentage',
                     value: '$percentageCount',
                     icon: Icons.percent,
-                    color: Colors.indigo,
+                    color: const Color(0xFF46627A),
                     compact: true,
+                    selected: offerTypeFilter == 'percentage',
+                    onTap: () => onOfferTypeChanged('percentage'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Flat',
                     value: '$flatCount',
                     icon: Icons.currency_rupee,
-                    color: Colors.purple,
+                    color: const Color(0xFF5B6B5F),
                     compact: true,
+                    selected: offerTypeFilter == 'flat',
+                    onTap: () => onOfferTypeChanged('flat'),
                   ),
                   const SizedBox(width: 10),
                   CatalogStatCard(
-                    title: 'Live Coupons',
-                    value: '${liveCoupons.length}',
-                    icon: Icons.discount,
-                    color: Colors.teal,
+                    title: 'No Offer',
+                    value: '$noOfferCount',
+                    icon: Icons.remove_circle_outline,
+                    color: const Color(0xFF66706C),
                     compact: true,
+                    selected: offerTypeFilter == 'none',
+                    onTap: () => onOfferTypeChanged('none'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search product or offer',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: onOfferSearchChanged,
+            const SizedBox(height: 10),
+            ProductSearchAndCategoryControls(
+              searchHintText: 'Search product or offer',
+              onSearchChanged: onOfferSearchChanged,
+              categoryOptions: categoryOptions,
+              selectedCategory: offerCategoryFilter,
+              onCategorySelected: onOfferCategoryChanged,
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: offerCategoryFilter,
-              decoration: const InputDecoration(
-                labelText: 'Filter by category',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              items: categoryItems,
-              onChanged: (value) {
-                if (value == null) return;
-                onOfferCategoryChanged(value);
-              },
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                CatalogOfferFilterChip(
-                  label: 'Live',
-                  selected: offerTypeFilter == 'live',
-                  onSelected: () => onOfferTypeChanged('live'),
-                ),
-                CatalogOfferFilterChip(
-                  label: 'All',
-                  selected: offerTypeFilter == 'all',
-                  onSelected: () => onOfferTypeChanged('all'),
-                ),
-                CatalogOfferFilterChip(
-                  label: 'BOGO',
-                  selected: offerTypeFilter == 'bogo',
-                  onSelected: () => onOfferTypeChanged('bogo'),
-                ),
-                CatalogOfferFilterChip(
-                  label: 'Percentage',
-                  selected: offerTypeFilter == 'percentage',
-                  onSelected: () => onOfferTypeChanged('percentage'),
-                ),
-                CatalogOfferFilterChip(
-                  label: 'Flat',
-                  selected: offerTypeFilter == 'flat',
-                  onSelected: () => onOfferTypeChanged('flat'),
-                ),
-                CatalogOfferFilterChip(
-                  label: 'No Offer',
-                  selected: offerTypeFilter == 'none',
-                  onSelected: () => onOfferTypeChanged('none'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
             Row(
               children: [
                 const Expanded(
@@ -292,8 +278,16 @@ class CatalogOffersTab extends StatelessWidget {
                                 runSpacing: 6,
                                 children: [
                                   CatalogInlineBadge(
-                                    label: catalogProductOfferLabel(product),
-                                    color: hasCatalogActiveOffer(product)
+                                    label: catalogProductOfferLabelWithLinkedOffers(
+                                      product,
+                                      categoryOffers: categoryOffers,
+                                      comboOffers: comboOffers,
+                                    ),
+                                    color: hasCatalogAnyLiveOffer(
+                                      product,
+                                      categoryOffers: categoryOffers,
+                                      comboOffers: comboOffers,
+                                    )
                                         ? Colors.green
                                         : Colors.grey,
                                   ),
