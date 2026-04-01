@@ -399,6 +399,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final generatedRuleName = _buildRuleName();
     return AlertDialog(
       title: Text(
         isEditing ? 'Edit Free Delivery Rule' : 'Add Free Delivery Rule',
@@ -412,20 +413,35 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Rule Name',
-                    hintText: 'e.g., Free Delivery on ₹299+',
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.green.shade100),
                   ),
-                  validator: (v) =>
-                      v?.trim().isEmpty == true ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Rule Name',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        generatedRuleName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -456,6 +472,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
                 if (_ruleType == 'min_order_amount')
                   TextFormField(
                     controller: _minOrderController,
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: 'Min Order Amount (₹)',
                     ),
@@ -469,6 +486,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
                 if (_ruleType == 'min_items')
                   TextFormField(
                     controller: _minItemsController,
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       labelText: 'Min Items Count',
                     ),
@@ -482,6 +500,7 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
                 if (_ruleType == 'coupon')
                   TextFormField(
                     controller: _couponCodeController,
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(labelText: 'Coupon Code'),
                     validator: (v) =>
                         v?.trim().isEmpty == true ? 'Required' : null,
@@ -568,6 +587,33 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  String _buildRuleName() {
+    switch (_ruleType) {
+      case 'min_order_amount':
+        final amount = double.tryParse(_minOrderController.text.trim());
+        if (amount != null && amount > 0) {
+          return 'Free Delivery on \u20b9${amount.toInt()}+';
+        }
+        return 'Free Delivery on Minimum Order';
+      case 'min_items':
+        final count = int.tryParse(_minItemsController.text.trim());
+        if (count != null && count > 0) {
+          return 'Free Delivery on $count+ Items';
+        }
+        return 'Free Delivery on Minimum Items';
+      case 'coupon':
+        final coupon = _couponCodeController.text.trim();
+        if (coupon.isNotEmpty) {
+          return 'Free Delivery with $coupon';
+        }
+        return 'Free Delivery with Coupon';
+      case 'user_specific':
+        return 'Free Delivery for Selected Users';
+      default:
+        return 'Free Delivery Rule';
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -589,10 +635,8 @@ class _FreeDeliveryDialogState extends State<_FreeDeliveryDialog> {
 
     final rule = FreeDeliveryRule(
       ruleId: widget.rule?.ruleId,
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
+      name: _buildRuleName(),
+      description: widget.rule?.description,
       ruleType: _ruleType,
       minOrderAmount: minOrderAmount,
       minItemsCount: minItemsCount,

@@ -505,6 +505,7 @@ class _BannerDialogState extends State<_BannerDialog> {
   bool _active = true;
   bool _isUploading = false;
   bool _isSubmitting = false;
+  String? _lastAutoTitle;
 
   bool get isEditing => widget.banner != null;
 
@@ -529,6 +530,9 @@ class _BannerDialogState extends State<_BannerDialog> {
       _startDate = widget.banner!.startDate;
       _endDate = widget.banner!.endDate;
       _active = widget.banner!.active;
+    } else {
+      _lastAutoTitle = _buildDefaultTitle();
+      _titleController.text = _lastAutoTitle!;
     }
   }
 
@@ -608,7 +612,10 @@ class _BannerDialogState extends State<_BannerDialog> {
                       child: Text('External Link'),
                     ),
                   ],
-                  onChanged: (v) => setState(() => _type = v ?? 'offer'),
+                  onChanged: (v) => setState(() {
+                    _type = v ?? 'offer';
+                    _applyAutoTitleIfEmpty();
+                  }),
                 ),
                 const SizedBox(height: 16),
                 _buildTargetField(),
@@ -706,9 +713,45 @@ class _BannerDialogState extends State<_BannerDialog> {
           } else {
             _selectedPlacements.remove(value);
           }
+          _applyAutoTitleIfEmpty();
         });
       },
     );
+  }
+
+  void _applyAutoTitleIfEmpty() {
+    if (isEditing) return;
+    final currentTitle = _titleController.text.trim();
+    if (currentTitle.isNotEmpty &&
+        _lastAutoTitle != null &&
+        currentTitle != _lastAutoTitle) {
+      return;
+    }
+    final nextTitle = _buildDefaultTitle();
+    _lastAutoTitle = nextTitle;
+    _titleController.text = nextTitle;
+  }
+
+  String _buildDefaultTitle() {
+    final typeLabel = switch (_type) {
+      'category' => 'Category',
+      'product' => 'Product',
+      'combo' => 'Combo',
+      'coupon' => 'Coupon',
+      'external_link' => 'Promo',
+      _ => 'Offer',
+    };
+    final placement = _selectedPlacements.isEmpty
+        ? 'Home'
+        : _selectedPlacements.first
+              .split('_')
+              .map(
+                (part) => part.isEmpty
+                    ? part
+                    : '${part[0].toUpperCase()}${part.substring(1)}',
+              )
+              .join(' ');
+    return '$placement $typeLabel Banner';
   }
 
   Widget _buildTargetField() {
@@ -863,7 +906,9 @@ class _BannerDialogState extends State<_BannerDialog> {
 
     final banner = banner_pkg.Banner(
       bannerId: widget.banner?.bannerId,
-      title: _titleController.text.trim(),
+      title: _titleController.text.trim().isEmpty
+          ? _buildDefaultTitle()
+          : _titleController.text.trim(),
       imageUrl: _imageUrlController.text.trim(),
       type: _type,
       offerId: _type == 'offer' && _offerIdController.text.isNotEmpty

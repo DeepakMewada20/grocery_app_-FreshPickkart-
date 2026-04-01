@@ -22,6 +22,9 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
   final List<ProductFilterOption> categoryOptions;
   final String selectedCategory;
   final ValueChanged<String> onCategorySelected;
+  final EdgeInsetsGeometry padding;
+  final double searchToCategorySpacing;
+  final double categoryHeight;
 
   const ProductSearchAndCategoryControls({
     super.key,
@@ -30,13 +33,17 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
     required this.categoryOptions,
     required this.selectedCategory,
     required this.onCategorySelected,
+    this.padding = const EdgeInsets.fromLTRB(16, 12, 16, 8),
+    this.searchToCategorySpacing = 10,
+    this.categoryHeight = 34,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: padding,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             decoration: InputDecoration(
@@ -64,9 +71,9 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
             ),
             onChanged: onSearchChanged,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: searchToCategorySpacing),
           SizedBox(
-            height: 34,
+            height: categoryHeight,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: categoryOptions.length,

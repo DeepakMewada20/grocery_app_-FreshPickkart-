@@ -9,12 +9,48 @@ Future<void> showAddCategoryOfferDialog({
   required BuildContext context,
   required AdminCategoryOfferController controller,
 }) {
-  return showDialog<void>(
+  return showModalBottomSheet<void>(
     context: context,
-    builder: (context) => _CategoryOfferDialog(
-      onSave: (offer) async {
-        await controller.createCategoryOffer(offer);
-      },
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(
+        left: 12,
+        right: 12,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      ),
+      child: _CategoryOfferDialog(
+        onSave: (offer) async {
+          await controller.createCategoryOffer(offer);
+        },
+      ),
+    ),
+  );
+}
+
+Future<void> showEditCategoryOfferDialog({
+  required BuildContext context,
+  required AdminCategoryOfferController controller,
+  required CategoryOffer offer,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(
+        left: 12,
+        right: 12,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      ),
+      child: _CategoryOfferDialog(
+        offer: offer,
+        onSave: (updated) async {
+          await controller.updateCategoryOffer(updated);
+        },
+      ),
     ),
   );
 }
@@ -153,14 +189,10 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   }
 
   void _showEditOfferDialog(CategoryOffer offer) {
-    showDialog(
+    showEditCategoryOfferDialog(
       context: context,
-      builder: (context) => _CategoryOfferDialog(
-        offer: offer,
-        onSave: (updated) async {
-          await _controller.updateCategoryOffer(updated);
-        },
-      ),
+      controller: _controller,
+      offer: offer,
     );
   }
 
@@ -371,7 +403,6 @@ class _CategoryOfferDialog extends StatefulWidget {
 
 class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _discountValueController = TextEditingController();
   final _maxDiscountController = TextEditingController();
@@ -390,7 +421,6 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   void initState() {
     super.initState();
     if (widget.offer != null) {
-      _nameController.text = widget.offer!.name;
       _descriptionController.text = widget.offer!.description ?? '';
       _discountValueController.text = widget.offer!.discountValue.toString();
       _discountType = widget.offer!.discountType;
@@ -409,7 +439,6 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _descriptionController.dispose();
     _discountValueController.dispose();
     _maxDiscountController.dispose();
@@ -417,160 +446,312 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
     super.dispose();
   }
 
+  Widget _buildSheetHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEditing ? 'Edit Category Offer' : 'Add Category Offer',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Apply a percentage or flat discount to a category.',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          icon: const Icon(Icons.close),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateCard({
+    required String label,
+    required DateTime value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: _isSubmitting ? null : onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.calendar_today, size: 18, color: Colors.green),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _formatDate(value),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _buildOfferName() {
+    final category = _selectedCategoryId?.trim();
+    final discountValue = double.tryParse(_discountValueController.text.trim());
+    final categoryLabel = (category == null || category.isEmpty)
+        ? 'Category'
+        : category;
+    if (discountValue == null || discountValue <= 0) {
+      return '$categoryLabel Offer';
+    }
+    final discountLabel = _discountType == 'percentage'
+        ? '${discountValue.toInt()}% OFF'
+        : '\u20b9${discountValue.toInt()} OFF';
+    return '$categoryLabel $discountLabel';
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = AdminCategoryController.instance.categories;
 
-    return AlertDialog(
-      title: Text(isEditing ? 'Edit Category Offer' : 'Add Category Offer'),
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9,
+    final sheetHeight = MediaQuery.sizeOf(context).height * 0.82;
+    return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: sheetHeight,
         child: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Offer Name',
-                    hintText: 'e.g., Fruits Festival',
-                  ),
-                  validator: (v) =>
-                      v?.trim().isEmpty == true ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedCategoryId,
-                  decoration: const InputDecoration(labelText: 'Category'),
-                  items: categories
-                      .map(
-                        (c) => DropdownMenuItem(
-                          value: c.categoryName,
-                          child: Text(c.categoryName),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: _buildSheetHeader(),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.green.shade100),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(() => _selectedCategoryId = v),
-                  validator: (v) => v == null ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _discountValueController,
-                        decoration: InputDecoration(
-                          labelText: _discountType == 'percentage'
-                              ? 'Discount %'
-                              : 'Discount (₹)',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Offer Name',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _buildOfferName(),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                        keyboardType: TextInputType.number,
-                        validator: (v) {
-                          if (v?.trim().isEmpty == true) return 'Required';
-                          if (double.tryParse(v!) == null) {
-                            return 'Invalid number';
-                          }
-                          return null;
-                        },
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _discountType,
-                        decoration: const InputDecoration(labelText: 'Type'),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'percentage',
-                            child: Text('Percentage (%)'),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedCategoryId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Category'),
+                        items: categories
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.categoryName,
+                                child: Text(
+                                  c.categoryName,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => _selectedCategoryId = v),
+                        validator: (v) => v == null ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _discountValueController,
+                              onChanged: (_) => setState(() {}),
+                              decoration: InputDecoration(
+                                labelText: _discountType == 'percentage'
+                                    ? 'Discount %'
+                                    : 'Discount (₹)',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (v) {
+                                if (v?.trim().isEmpty == true) return 'Required';
+                                if (double.tryParse(v!) == null) {
+                                  return 'Invalid number';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
-                          DropdownMenuItem(
-                            value: 'flat',
-                            child: Text('Flat (₹)'),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _discountType,
+                              isExpanded: true,
+                              decoration: const InputDecoration(labelText: 'Type'),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'percentage',
+                                  child: Text('Percentage'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'flat',
+                                  child: Text('Flat'),
+                                ),
+                              ],
+                              onChanged: (v) => setState(
+                                () => _discountType = v ?? 'percentage',
+                              ),
+                            ),
                           ),
                         ],
-                        onChanged: (v) =>
-                            setState(() => _discountType = v ?? 'percentage'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _maxDiscountController,
+                              decoration: const InputDecoration(
+                                labelText: 'Max Discount (₹)',
+                                hintText: 'Optional',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _minOrderController,
+                              decoration: const InputDecoration(
+                                labelText: 'Min Order (₹)',
+                                hintText: 'Optional',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDateCard(
+                              label: 'Start Date',
+                              value: _startDate,
+                              onTap: () => _selectDate(true),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildDateCard(
+                              label: 'End Date',
+                              value: _endDate,
+                              onTap: () => _selectDate(false),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _maxDiscountController,
-                        decoration: const InputDecoration(
-                          labelText: 'Max Discount (₹)',
-                          hintText: 'Optional',
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          child: const Text('Cancel'),
                         ),
-                        keyboardType: TextInputType.number,
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _minOrderController,
-                        decoration: const InputDecoration(
-                          labelText: 'Min Order (₹)',
-                          hintText: 'Optional',
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: _isSubmitting ? null : _save,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(isEditing ? 'Update' : 'Create'),
                         ),
-                        keyboardType: TextInputType.number,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _selectDate(true),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text('Start: ${_formatDate(_startDate)}'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _selectDate(false),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text('End: ${_formatDate(_endDate)}'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _save,
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(isEditing ? 'Update' : 'Create'),
-        ),
-      ],
     );
   }
 
@@ -609,10 +790,8 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
 
     final offer = CategoryOffer(
       offerId: widget.offer?.offerId,
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
+      name: _buildOfferName(),
+      description: widget.offer?.description,
       categoryId: _selectedCategoryId!,
       categoryName: _selectedCategoryId,
       discountType: _discountType,

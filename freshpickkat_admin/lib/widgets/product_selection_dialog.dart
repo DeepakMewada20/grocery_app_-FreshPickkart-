@@ -4,16 +4,45 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
+class ProductSelectionResult {
+  final Product product;
+  final ProductVariant? variant;
+
+  const ProductSelectionResult({
+    required this.product,
+    this.variant,
+  });
+
+  String get productId => product.productId ?? '';
+  String get selectionKey => '$productId::${variant?.variantId ?? 'default'}';
+}
+
+class _VariantSelectionOutcome {
+  final ProductVariant? variant;
+  final bool wasCancelled;
+
+  const _VariantSelectionOutcome({
+    this.variant,
+    this.wasCancelled = false,
+  });
+}
+
 class ProductSelectionDialog extends StatefulWidget {
   final String title;
   final Set<String> excludedProductIds;
   final String? initialCategory;
+  final bool useBottomSheetPresentation;
+  final bool allowMultiSelect;
+  final List<ProductSelectionResult> initialSelections;
 
   const ProductSelectionDialog({
     super.key,
     this.title = 'Select Product',
     this.excludedProductIds = const <String>{},
     this.initialCategory,
+    this.useBottomSheetPresentation = false,
+    this.allowMultiSelect = false,
+    this.initialSelections = const <ProductSelectionResult>[],
   });
 
   static Future<Product?> show({
@@ -32,6 +61,50 @@ class ProductSelectionDialog extends StatefulWidget {
     );
   }
 
+  static Future<Product?> showBottomSheet({
+    required BuildContext context,
+    String title = 'Select Product',
+    Set<String> excludedProductIds = const <String>{},
+    String? initialCategory,
+  }) {
+    return showModalBottomSheet<Product>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => ProductSelectionDialog(
+        title: title,
+        excludedProductIds: excludedProductIds,
+        initialCategory: initialCategory,
+        useBottomSheetPresentation: true,
+      ),
+    );
+  }
+
+  static Future<List<ProductSelectionResult>?> showMultiSelectBottomSheet({
+    required BuildContext context,
+    String title = 'Select Products',
+    Set<String> excludedProductIds = const <String>{},
+    String? initialCategory,
+    List<ProductSelectionResult> initialSelections =
+        const <ProductSelectionResult>[],
+  }) {
+    return showModalBottomSheet<List<ProductSelectionResult>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => ProductSelectionDialog(
+        title: title,
+        excludedProductIds: excludedProductIds,
+        initialCategory: initialCategory,
+        useBottomSheetPresentation: true,
+        allowMultiSelect: true,
+        initialSelections: initialSelections,
+      ),
+    );
+  }
+
   @override
   State<ProductSelectionDialog> createState() => _ProductSelectionDialogState();
 }
@@ -44,11 +117,16 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
   String? _selectedCategory;
   String _fetchedCategoryScope = 'All';
   final Map<String, List<Product>> _categoryProductCache = {};
+  late final Map<String, ProductSelectionResult> _selectedResults;
 
   @override
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
+    _selectedResults = {
+      for (final selection in widget.initialSelections)
+        selection.productId: selection,
+    };
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureDataLoaded();
     });
@@ -156,6 +234,113 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
         .toList();
   }
 
+  Future<void> _handleProductTap(Product product) async {
+    if (!widget.allowMultiSelect) {
+      Navigator.pop(context, product);
+      return;
+    }
+
+    final productId = product.productId ?? '';
+    if (productId.isEmpty) return;
+
+    if (_selectedResults.containsKey(productId)) {
+      setState(() {
+        _selectedResults.remove(productId);
+      });
+      return;
+    }
+
+    final selectedVariantOutcome = await _pickVariantIfNeeded(product);
+    if (!mounted) return;
+    if (selectedVariantOutcome.wasCancelled) return;
+
+    setState(() {
+      _selectedResults[productId] = ProductSelectionResult(
+        product: product,
+        variant: selectedVariantOutcome.variant,
+      );
+    });
+  }
+
+  Future<_VariantSelectionOutcome> _pickVariantIfNeeded(Product product) async {
+    final variants = (product.variants ?? const <ProductVariant>[])
+        .where((variant) => variant.isAvailable)
+        .toList()
+      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+
+    if (variants.length <= 1) {
+      return _VariantSelectionOutcome(
+        variant: variants.isEmpty ? null : variants.first,
+      );
+    }
+
+    final selectedVariant = await showModalBottomSheet<ProductVariant>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select Variant',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                product.productName,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: variants.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final variant = variants[index];
+                    return ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      title: Text(_variantLabel(variant)),
+                      subtitle: Text(
+                        '₹${variant.price.toStringAsFixed(0)} • MRP ₹${variant.realPrice.toStringAsFixed(0)}',
+                      ),
+                      onTap: () => Navigator.pop(context, variant),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selectedVariant == null) {
+      return const _VariantSelectionOutcome(wasCancelled: true);
+    }
+    return _VariantSelectionOutcome(variant: selectedVariant);
+  }
+
+  String _variantLabel(ProductVariant variant) {
+    final quantity = variant.quantityValue % 1 == 0
+        ? variant.quantityValue.toInt().toString()
+        : variant.quantityValue.toString();
+    final description = variant.quantityDescription?.trim();
+    if (description == null || description.isEmpty) {
+      return '$quantity ${variant.quantityUnit}';
+    }
+    return '$quantity ${variant.quantityUnit} ($description)';
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoryOptions = <ProductFilterOption>[
@@ -168,40 +353,107 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
       ),
     ];
 
+    final content = Column(
+      children: [
+        ProductSearchAndCategoryControls(
+          searchHintText: 'Search product by name, category, quantity...',
+          onSearchChanged: (value) {
+            setState(() {
+              _searchQuery = value;
+            });
+          },
+          categoryOptions: categoryOptions,
+          selectedCategory: _selectedCategory ?? '',
+          onCategorySelected: _selectCategory,
+        ),
+        Expanded(
+          child: ProductsListArea(
+            scrollController: _scrollController,
+            onSelectProduct: _handleProductTap,
+            visibleProducts: _visibleProducts,
+            loadData: _refreshData,
+            showActionMenu: false,
+            selectedProductIds: _selectedResults.keys.toSet(),
+            enablePagination:
+                (_selectedCategory == null || _selectedCategory!.isEmpty
+                    ? 'All'
+                    : _selectedCategory!) ==
+                _fetchedCategoryScope,
+          ),
+        ),
+      ],
+    );
+
+    if (widget.useBottomSheetPresentation) {
+      final screenHeight = MediaQuery.sizeOf(context).height;
+      return SizedBox(
+        height: screenHeight * 0.86,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(child: content),
+              if (widget.allowMultiSelect)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${_selectedResults.length} selected',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        FilledButton(
+                          onPressed: _selectedResults.isEmpty
+                              ? null
+                              : () => Navigator.pop(
+                                  context,
+                                  _selectedResults.values.toList(),
+                                ),
+                          child: const Text('Add Selected'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return AlertDialog(
       title: Text(widget.title),
       content: SizedBox(
         width: 640,
         height: 520,
-        child: Column(
-          children: [
-            ProductSearchAndCategoryControls(
-              searchHintText: 'Search product by name, category, quantity...',
-              onSearchChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              categoryOptions: categoryOptions,
-              selectedCategory: _selectedCategory ?? '',
-              onCategorySelected: _selectCategory,
-            ),
-            Expanded(
-              child: ProductsListArea(
-                scrollController: _scrollController,
-                onSelectProduct: (product) => Navigator.pop(context, product),
-                visibleProducts: _visibleProducts,
-                loadData: _refreshData,
-                showActionMenu: false,
-                enablePagination:
-                    (_selectedCategory == null || _selectedCategory!.isEmpty
-                        ? 'All'
-                        : _selectedCategory!) ==
-                    _fetchedCategoryScope,
-              ),
-            ),
-          ],
-        ),
+        child: content,
       ),
       actions: [
         TextButton(

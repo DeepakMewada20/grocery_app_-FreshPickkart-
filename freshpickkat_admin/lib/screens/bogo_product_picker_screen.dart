@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
@@ -71,6 +72,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
   List<Product> _categoryProducts = [];
   bool _isLoading = false;
+  bool _isRefreshingProducts = false;
   bool _isBootstrapping = true;
   bool _isSubmitting = false;
   String? _errorMessage;
@@ -84,6 +86,10 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      FocusManager.instance.primaryFocus?.unfocus();
+    });
     _bootstrap();
   }
 
@@ -177,9 +183,13 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     super.dispose();
   }
 
-  Future<void> _loadProductsForCategory(String category) async {
+  Future<void> _loadProductsForCategory(
+    String category, {
+    bool showLoader = true,
+  }) async {
     setState(() {
-      _isLoading = true;
+      _isLoading = showLoader;
+      _isRefreshingProducts = !showLoader;
       _errorMessage = null;
       _selectedCategory = category;
     });
@@ -217,7 +227,10 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       });
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isRefreshingProducts = false;
+        });
       }
     }
   }
@@ -313,6 +326,189 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  Widget _buildDateCard({
+    required String label,
+    required DateTime value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: _isSubmitting ? null : onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.calendar_today, size: 18, color: Colors.green),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    _formatDate(value),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTriggerSection(BuildContext context) {
+    final trigger = _selectedTriggerProduct;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Trigger Product',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      trigger?.productName ?? 'Select the product customers must buy',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: trigger == null ? Colors.grey.shade700 : Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              FilledButton.tonalIcon(
+                onPressed: _isSubmitting
+                    ? null
+                    : () async {
+                                  final selected = await ProductSelectionDialog.showBottomSheet(
+                                    context: context,
+                                    title: 'Select Trigger Product',
+                                    initialCategory: _selectedCategory,
+                                  );
+                        if (selected != null) {
+                          _selectTriggerProduct(selected);
+                        }
+                      },
+                icon: Icon(trigger == null ? Icons.add : Icons.edit_outlined),
+                label: Text(trigger == null ? 'Select' : 'Change'),
+              ),
+            ],
+          ),
+          if (trigger != null) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    color: Colors.grey.shade100,
+                    child: trigger.imageUrl.isEmpty
+                        ? const Icon(Icons.image_outlined)
+                        : Image.network(
+                            trigger.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const Icon(Icons.broken_image_outlined),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        trigger.category,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        trigger.quantity,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '₹${trigger.price.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (_selectedTriggerProduct == null ||
         _selectedTriggerProduct?.productId?.trim().isEmpty != false) {
@@ -384,10 +580,15 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = _categoryController.categories
-        .map((category) => category.categoryName)
-        .toList()
-      ..sort();
+    final categoryOptions = <ProductFilterOption>[
+      ..._categoryController.categories
+          .map((category) => ProductFilterOption(
+                value: category.categoryName,
+                label: category.categoryName,
+              ))
+          .toList()
+        ..sort((a, b) => a.label.compareTo(b.label)),
+    ];
     final query = _searchCtrl.text.toLowerCase().trim();
     final filteredProducts = _categoryProducts.where((product) {
       if (_selectedTriggerProduct?.productId == product.productId) return false;
@@ -420,278 +621,114 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       body: SafeArea(
         child: _isBootstrapping
             ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _isSubmitting
-                          ? null
-                          : () async {
-                              final selected = await ProductSelectionDialog.show(
-                                context: context,
-                                title: 'Select Trigger Product',
-                                initialCategory: _selectedCategory,
-                              );
-                              if (selected != null) {
-                                _selectTriggerProduct(selected);
-                              }
-                            },
-                      icon: const Icon(Icons.search),
-                      label: Text(
-                        _selectedTriggerProduct == null
-                            ? 'Select Trigger Product'
-                            : 'Change Trigger Product',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                        color: Colors.white,
-                      ),
-                      child: _selectedTriggerProduct == null
-                          ? const Text(
-                              'No trigger product selected yet.',
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            )
-                          : Row(
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 680;
+                  return NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) {
+                      return [
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Container(
-                                    width: 56,
-                                    height: 56,
-                                    color: Colors.grey.shade100,
-                                    child: _selectedTriggerProduct!.imageUrl.isEmpty
-                                        ? const Icon(Icons.image_outlined)
-                                        : Image.network(
-                                            _selectedTriggerProduct!.imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                const Icon(
-                                                  Icons.broken_image_outlined,
-                                                ),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _selectedTriggerProduct!.productName,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${_selectedTriggerProduct!.category} • ${_selectedTriggerProduct!.quantity}',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _isSubmitting ? null : () => _selectDate(true),
-                            icon: const Icon(Icons.calendar_today),
-                            label: Text('Start: ${_formatDate(_startDate)}'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _isSubmitting ? null : () => _selectDate(false),
-                            icon: const Icon(Icons.calendar_today),
-                            label: Text('End: ${_formatDate(_endDate)}'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.red.shade100),
-                      ),
-                      child: const Text(
-                        'Offer title is fixed as "Buy 1 Get 1 Free". Select the trigger product and then choose which free products should be available for this offer.',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isNarrow = constraints.maxWidth < 680;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (isNarrow)
-                                Column(
-                                  children: [
-                                    DropdownButtonFormField<String>(
-                                      initialValue: categories.contains(
-                                        _selectedCategory,
-                                      )
-                                          ? _selectedCategory
-                                          : null,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Free Product Category',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      items: categories
-                                          .map(
-                                            (category) => DropdownMenuItem<String>(
-                                              value: category,
-                                              child: Text(
-                                                category,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (value) {
-                                        if (value != null) {
-                                          _loadProductsForCategory(value);
-                                        }
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    FilledButton.tonalIcon(
-                                      onPressed: _selectedCategory == null || _isSubmitting
-                                          ? null
-                                          : () => _loadProductsForCategory(
-                                                _selectedCategory!,
-                                              ),
-                                      icon: const Icon(Icons.refresh),
-                                      label: const Text('Refresh'),
-                                    ),
-                                  ],
-                                )
-                              else
+                                _buildTriggerSection(context),
+                                const SizedBox(height: 12),
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: DropdownButtonFormField<String>(
-                                        initialValue: categories.contains(
-                                          _selectedCategory,
-                                        )
-                                            ? _selectedCategory
-                                            : null,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Free Product Category',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        items: categories
-                                            .map(
-                                              (category) =>
-                                                  DropdownMenuItem<String>(
-                                                    value: category,
-                                                    child: Text(
-                                                      category,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                            )
-                                            .toList(),
-                                        onChanged: (value) {
-                                          if (value != null) {
-                                            _loadProductsForCategory(value);
-                                          }
-                                        },
+                                      child: _buildDateCard(
+                                        label: 'Start Date',
+                                        value: _startDate,
+                                        onTap: () => _selectDate(true),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    FilledButton.tonalIcon(
-                                      onPressed: _selectedCategory == null || _isSubmitting
-                                          ? null
-                                          : () => _loadProductsForCategory(
-                                                _selectedCategory!,
-                                              ),
-                                      icon: const Icon(Icons.refresh),
-                                      label: const Text('Refresh'),
+                                    Expanded(
+                                      child: _buildDateCard(
+                                        label: 'End Date',
+                                        value: _endDate,
+                                        onTap: () => _selectDate(false),
+                                      ),
                                     ),
                                   ],
                                 ),
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: _searchCtrl,
-                                focusNode: _searchFocusNode,
-                                decoration: InputDecoration(
-                                  hintText: 'Search free products...',
-                                  prefixIcon: const Icon(Icons.search),
-                                  suffixIcon: _searchCtrl.text.isEmpty
-                                      ? null
-                                      : IconButton(
-                                          onPressed: () {
-                                            _searchCtrl.clear();
-                                            setState(() {});
-                                          },
-                                          icon: const Icon(Icons.close),
-                                        ),
-                                  border: const OutlineInputBorder(),
+                                const SizedBox(height: 16),
+                                _SelectedProductsSummary(
+                                  selectedProducts: _buildSelections(),
+                                  onRemove: (id) {
+                                    setState(() {
+                                      _selectedProductsById.remove(id);
+                                      _selectedFreeQuantitiesById.remove(id);
+                                    });
+                                  },
                                 ),
-                                onChanged: (_) => setState(() {}),
-                              ),
-                              const SizedBox(height: 16),
-                              _SelectedProductsSummary(
-                                selectedProducts: _buildSelections(),
-                                onRemove: (id) {
-                                  setState(() {
-                                    _selectedProductsById.remove(id);
-                                    _selectedFreeQuantitiesById.remove(id);
-                                  });
+                                const SizedBox(height: 12),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _PinnedControlsHeaderDelegate(
+                            minExtentValue: 104,
+                            maxExtentValue: 104,
+                            child: Container(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              child: ProductSearchAndCategoryControls(
+                                searchHintText: 'Search free products...',
+                                onSearchChanged: (value) {
+                                  _searchCtrl.text = value;
+                                  setState(() {});
                                 },
+                                categoryOptions: categoryOptions,
+                                selectedCategory: _selectedCategory ?? '',
+                                onCategorySelected: (value) {
+                                  _searchFocusNode.unfocus();
+                                  _loadProductsForCategory(value);
+                                },
+                                padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                                searchToCategorySpacing: 8,
+                                categoryHeight: 32,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _selectedCategory == null
-                                    ? 'Select a category to load free products'
-                                    : 'Free products in $_selectedCategory (${filteredProducts.length})',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            ),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                          sliver: SliverToBoxAdapter(
+                            child: Text(
+                              _selectedCategory == null
+                                  ? 'Select a category to load free products'
+                                  : 'Free products in $_selectedCategory (${filteredProducts.length})',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(height: 12),
-                              Expanded(
-                                child: _buildContent(
-                                  filteredProducts,
-                                  isNarrow,
-                                ),
-                              ),
-                            ],
+                            ),
+                          ),
+                        ),
+                      ];
+                    },
+                    body: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          final category = _selectedCategory;
+                          if (category == null || category.trim().isEmpty) {
+                            return;
+                          }
+                          await _loadProductsForCategory(
+                            category,
+                            showLoader: false,
                           );
                         },
+                        child: _buildContent(filteredProducts, isNarrow),
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
       ),
     );
@@ -699,43 +736,68 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
   Widget _buildContent(List<Product> filteredProducts, bool isNarrow) {
     if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
-      return const Center(
-        child: Text('Select a category first to browse free products.'),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          Center(
+            child: Text('Select a category first to browse free products.'),
+          ),
+        ],
       );
     }
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (_isLoading && !_isRefreshingProducts) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          Center(child: CircularProgressIndicator()),
+        ],
+      );
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Failed to load products.\n$_errorMessage',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 120),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Failed to load products.\n$_errorMessage',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () => _loadProductsForCategory(_selectedCategory!),
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _loadProductsForCategory(_selectedCategory!),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     }
 
     if (filteredProducts.isEmpty) {
-      return const Center(
-        child: Text('No products found for this category/search.'),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(height: 120),
+          Center(
+            child: Text('No products found for this category/search.'),
+          ),
+        ],
       );
     }
 
     if (isNarrow) {
       return ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: filteredProducts.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
@@ -760,6 +822,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     }
 
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 280,
         mainAxisExtent: 214,
@@ -1290,6 +1353,7 @@ class _ProductSelectionTile extends StatelessWidget {
                   'picker_free_quantity_${product.productId ?? ''}',
                 ),
                 initialValue: freeQuantity,
+                autofocus: false,
                 onChanged: onFreeQuantityChanged,
                 decoration: InputDecoration(
                   labelText: 'Free quantity',
@@ -1306,6 +1370,47 @@ class _ProductSelectionTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PinnedControlsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _PinnedControlsHeaderDelegate({
+    required this.minExtentValue,
+    required this.maxExtentValue,
+    required this.child,
+  });
+
+  final double minExtentValue;
+  final double maxExtentValue;
+  final Widget child;
+
+  @override
+  double get minExtent => minExtentValue;
+
+  @override
+  double get maxExtent => maxExtentValue;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ClipRect(
+      child: SizedBox.expand(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _PinnedControlsHeaderDelegate oldDelegate) {
+    return minExtentValue != oldDelegate.minExtentValue ||
+        maxExtentValue != oldDelegate.maxExtentValue ||
+        child != oldDelegate.child;
   }
 }
 

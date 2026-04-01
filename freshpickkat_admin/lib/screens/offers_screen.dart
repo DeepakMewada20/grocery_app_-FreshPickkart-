@@ -10,7 +10,6 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
-import 'bogo_offers_screen.dart';
 import 'bogo_product_picker_screen.dart';
 import 'combo_offers_screen.dart';
 import 'category_offers_screen.dart';
@@ -42,6 +41,7 @@ class _OffersScreenState extends State<OffersScreen> {
   String _offerTypeFilter = 'live';
   String _offerCategoryFilter = 'All';
   bool _isOfferFabExpanded = false;
+  final GlobalKey _offersTabFabKey = GlobalKey();
 
   @override
   void initState() {
@@ -65,6 +65,9 @@ class _OffersScreenState extends State<OffersScreen> {
         !_productController.isLoading.value) {
       futures.add(_productController.loadInitial());
     }
+    if (_bogoController.bogoOffers.isEmpty && !_bogoController.isLoading.value) {
+      futures.add(_bogoController.loadBogoOffers());
+    }
     if (_categoryOfferController.categoryOffers.isEmpty &&
         !_categoryOfferController.isLoading.value) {
       futures.add(_categoryOfferController.loadCategoryOffers());
@@ -82,6 +85,7 @@ class _OffersScreenState extends State<OffersScreen> {
       _categoryController.loadCategories(),
       _couponController.loadCoupons(),
       _productController.loadInitial(),
+      _bogoController.loadBogoOffers(force: true),
       _categoryOfferController.loadCategoryOffers(force: true),
       _comboOfferController.loadComboOffers(force: true),
     ]);
@@ -104,31 +108,36 @@ class _OffersScreenState extends State<OffersScreen> {
       _isOfferFabExpanded = false;
     });
 
-    switch (action) {
-      case 'bogo':
-        final saved = await BogoOfferEditorScreen.show(
-          context: context,
-          onSave: (offer) => _bogoController.upsertOffer(offer),
-        );
-        if (saved == true && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('BOGO offer created successfully')),
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final overlayContext = _offersTabFabKey.currentContext ?? context;
+
+      switch (action) {
+        case 'bogo':
+          final saved = await BogoOfferEditorScreen.show(
+            context: overlayContext,
+            onSave: (offer) => _bogoController.upsertOffer(offer),
           );
-        }
-        break;
-      case 'combo':
-        await showAddComboOfferDialog(
-          context: context,
-          controller: _comboOfferController,
-        );
-        break;
-      case 'category':
-        await showAddCategoryOfferDialog(
-          context: context,
-          controller: _categoryOfferController,
-        );
-        break;
-    }
+          if (saved == true && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('BOGO offer created successfully')),
+            );
+          }
+          break;
+        case 'combo':
+          await showAddComboOfferDialog(
+            context: overlayContext,
+            controller: _comboOfferController,
+          );
+          break;
+        case 'category':
+          await showAddCategoryOfferDialog(
+            context: overlayContext,
+            controller: _categoryOfferController,
+          );
+          break;
+      }
+    });
   }
 
   void _toggleOfferFab() {
@@ -140,15 +149,13 @@ class _OffersScreenState extends State<OffersScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 7,
+      length: 4,
       child: Builder(
         builder: (context) {
           final tabController = DefaultTabController.of(context);
           return AnimatedBuilder(
             animation: tabController,
             builder: (context, _) {
-              final showOffersFab =
-                  !tabController.indexIsChanging && tabController.index == 1;
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('Offers & Promotions'),
@@ -165,21 +172,11 @@ class _OffersScreenState extends State<OffersScreen> {
                     tabs: [
                       Tab(text: 'Coupons'),
                       Tab(text: 'Offers'),
-                      Tab(text: 'BOGO'),
-                      Tab(text: 'Combos'),
-                      Tab(text: 'Category Offer'),
                       Tab(text: 'Delivery'),
                       Tab(text: 'Banners'),
                     ],
                   ),
                 ),
-                floatingActionButton: showOffersFab
-                    ? _OfferFabMenu(
-                        isExpanded: _isOfferFabExpanded,
-                        onToggle: _toggleOfferFab,
-                        onSelected: _handleOfferCreationAction,
-                      )
-                    : null,
                 body: TabBarView(
                   children: [
                     CatalogCouponsTab(
@@ -193,35 +190,59 @@ class _OffersScreenState extends State<OffersScreen> {
                       onCreateCoupon: _openAddCouponDialog,
                       onEditCoupon: _openEditCouponDialog,
                     ),
-                    CatalogOffersTab(
-                      productController: _productController,
-                      categoryController: _categoryController,
-                      couponController: _couponController,
-                      categoryOfferController: _categoryOfferController,
-                      comboOfferController: _comboOfferController,
-                      offerSearchQuery: _offerSearchQuery,
-                      offerTypeFilter: _offerTypeFilter,
-                      offerCategoryFilter: _offerCategoryFilter,
-                      onOfferSearchChanged: (value) {
-                        setState(() {
-                          _offerSearchQuery = value;
-                        });
-                      },
-                      onOfferCategoryChanged: (value) {
-                        setState(() {
-                          _offerCategoryFilter = value;
-                        });
-                      },
-                      onOfferTypeChanged: (value) {
-                        setState(() {
-                          _offerTypeFilter = value;
-                        });
-                      },
-                      onRefresh: _refreshAll,
+                    Scaffold(
+                      key: _offersTabFabKey,
+                      backgroundColor: Colors.transparent,
+                      body: Stack(
+                        children: [
+                          CatalogOffersTab(
+                            productController: _productController,
+                            categoryController: _categoryController,
+                            couponController: _couponController,
+                            categoryOfferController: _categoryOfferController,
+                            comboOfferController: _comboOfferController,
+                            offerSearchQuery: _offerSearchQuery,
+                            offerTypeFilter: _offerTypeFilter,
+                            offerCategoryFilter: _offerCategoryFilter,
+                            onOfferSearchChanged: (value) {
+                              setState(() {
+                                _offerSearchQuery = value;
+                              });
+                            },
+                            onOfferCategoryChanged: (value) {
+                              setState(() {
+                                _offerCategoryFilter = value;
+                              });
+                            },
+                            onOfferTypeChanged: (value) {
+                              setState(() {
+                                _offerTypeFilter = value;
+                              });
+                            },
+                            onRefresh: _refreshAll,
+                          ),
+                          if (_isOfferFabExpanded)
+                            Positioned.fill(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: _toggleOfferFab,
+                                child: Container(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                ),
+                              ),
+                            ),
+                          Positioned(
+                            right: 16,
+                            bottom: 16,
+                            child: _OfferFabMenu(
+                              isExpanded: _isOfferFabExpanded,
+                              onToggle: _toggleOfferFab,
+                              onSelected: _handleOfferCreationAction,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const BogoOffersScreen(),
-                    const ComboOffersScreen(),
-                    const CategoryOffersScreen(),
                     const FreeDeliveryScreen(),
                     const BannersScreen(),
                   ],
@@ -421,15 +442,15 @@ class _OfferFabAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 3,
-      shadowColor: Colors.black.withValues(alpha: 0.12),
-      shape: const StadiumBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: onTap,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Material(
+        color: Colors.white,
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.12),
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
@@ -444,9 +465,7 @@ class _OfferFabAction extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
           ),

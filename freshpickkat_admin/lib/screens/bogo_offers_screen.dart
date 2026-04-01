@@ -4,6 +4,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
+import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import '../widgets/network_error_widget.dart';
 
 class BogoOffersScreen extends StatefulWidget {
@@ -18,7 +20,9 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   final AdminBogoController _controller = AdminBogoController.instance;
   final AdminProductController _productController =
       AdminProductController.instance;
+  final Map<String, Product> _resolvedTriggerProductsById = {};
   String _searchQuery = '';
+  bool _isResolvingTriggerProducts = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -85,6 +89,8 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                 return const Center(child: CircularProgressIndicator());
               }
 
+              _scheduleTriggerProductResolution(_controller.bogoOffers);
+
               final bogoOffers = _controller.bogoOffers
                   .where(
                     (o) =>
@@ -124,6 +130,8 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                   final offer = bogoOffers[index];
                   return _BogoOfferCard(
                     offer: offer,
+                    resolvedTriggerProduct:
+                        _resolvedTriggerProductsById[offer.triggerProductId],
                     onToggle: (isActive) => _toggleBogoOffer(offer, isActive),
                     onEdit: () => _showEditBogoScreen(offer),
                     onDelete: () => _showDeleteConfirmation(offer),
@@ -135,6 +143,71 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         ],
       ),
     );
+  }
+
+  void _scheduleTriggerProductResolution(List<BogoOffer> offers) {
+    if (_isResolvingTriggerProducts || offers.isEmpty) return;
+
+    final knownIds = {
+      for (final product in _productController.products)
+        if (product.productId != null) product.productId!,
+      ..._resolvedTriggerProductsById.keys,
+    };
+    final missingIds = offers
+        .map((offer) => offer.triggerProductId.trim())
+        .where((id) => id.isNotEmpty && !knownIds.contains(id))
+        .toSet();
+
+    if (missingIds.isEmpty) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _resolveMissingTriggerProducts(missingIds);
+    });
+  }
+
+  Future<void> _resolveMissingTriggerProducts(Set<String> missingIds) async {
+    if (_isResolvingTriggerProducts || missingIds.isEmpty) return;
+
+    _isResolvingTriggerProducts = true;
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+
+      final resolved = <String, Product>{};
+      String? pageToken;
+
+      do {
+        final page = await ServerpodAdminClient().client.product.getProductsPage(
+          firebaseUid: uid,
+          idToken: idToken,
+          sortBy: 'name',
+          limit: 100,
+          pageToken: pageToken,
+        );
+
+        for (final product in page.products) {
+          final productId = product.productId;
+          if (productId != null && missingIds.contains(productId)) {
+            resolved[productId] = product;
+          }
+        }
+
+        if (resolved.length == missingIds.length) break;
+        pageToken = page.nextPageToken;
+      } while (pageToken != null);
+
+      if (!mounted || resolved.isEmpty) return;
+      setState(() {
+        _resolvedTriggerProductsById.addAll(resolved);
+      });
+    } catch (_) {
+      // Keep the fallback ID display when product resolution fails.
+    } finally {
+      _isResolvingTriggerProducts = false;
+    }
   }
 
   Future<void> _toggleBogoOffer(BogoOffer offer, bool isActive) async {
@@ -238,12 +311,14 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
 
 class _BogoOfferCard extends StatelessWidget {
   final BogoOffer offer;
+  final Product? resolvedTriggerProduct;
   final Function(bool) onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _BogoOfferCard({
     required this.offer,
+    this.resolvedTriggerProduct,
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
@@ -254,9 +329,9 @@ class _BogoOfferCard extends StatelessWidget {
     final now = DateTime.now();
     final isValid = offer.startDate.isBefore(now) && offer.endDate.isAfter(now);
 
-    Product? triggerProduct;
+    Product? triggerProduct = resolvedTriggerProduct;
     try {
-      triggerProduct = AdminProductController.instance.products.firstWhere(
+      triggerProduct ??= AdminProductController.instance.products.firstWhere(
         (p) => p.productId == offer.triggerProductId,
       );
     } catch (_) {}
