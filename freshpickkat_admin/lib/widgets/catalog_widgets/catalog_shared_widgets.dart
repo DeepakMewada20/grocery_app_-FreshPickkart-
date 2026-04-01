@@ -7,6 +7,7 @@ class CatalogStatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.breakdown = const [],
     this.compact = false,
     this.selected = false,
     this.onTap,
@@ -16,6 +17,7 @@ class CatalogStatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final List<CatalogStatBreakdown> breakdown;
   final bool compact;
   final bool selected;
   final VoidCallback? onTap;
@@ -30,6 +32,7 @@ class CatalogStatCard extends StatelessWidget {
     final titleFontSize = compact ? 12.0 : 14.0;
     final valueFontSize = compact ? 15.0 : 18.0;
     final spacing = compact ? 7.0 : 12.0;
+    final breakdownSpacing = compact ? 6.0 : 8.0;
 
     return Material(
       color: Colors.transparent,
@@ -50,37 +53,85 @@ class CatalogStatCard extends StatelessWidget {
                 width: selected ? 1.4 : 1,
               ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: color.withValues(alpha: selected ? 0.18 : 0.12),
-                  foregroundColor: color,
-                  child: Icon(icon, size: iconSize),
-                ),
-                SizedBox(width: spacing),
-                Column(
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: titleFontSize,
+                    CircleAvatar(
+                      radius: avatarRadius,
+                      backgroundColor: color.withValues(
+                        alpha: selected ? 0.18 : 0.12,
                       ),
+                      foregroundColor: color,
+                      child: Icon(icon, size: iconSize),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: valueFontSize,
-                        fontWeight: FontWeight.w700,
+                    SizedBox(width: spacing),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: titleFontSize,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: valueFontSize,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+                if (breakdown.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: breakdownSpacing,
+                    runSpacing: breakdownSpacing,
+                    children: breakdown
+                        .map(
+                          (item) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: item.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              '${item.label} ${item.value}',
+                              style: TextStyle(
+                                color: item.color,
+                                fontSize: compact ? 10 : 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ],
               ],
             ),
           ),
@@ -88,6 +139,18 @@ class CatalogStatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class CatalogStatBreakdown {
+  const CatalogStatBreakdown({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
 }
 
 class CatalogOfferFilterChip extends StatelessWidget {

@@ -28,7 +28,7 @@ class AdminBogoController extends GetxController {
       isLoading.value = true;
       networkController.hideError();
       final offers = await ApiClient().request(() async {
-        return await client.bogo.getActiveOffers();
+        return await client.bogo.getAllOffers();
       });
       bogoOffers.assignAll(offers);
     } on NoInternetException {

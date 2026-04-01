@@ -6,6 +6,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import '../widgets/network_error_widget.dart';
 
 class BogoOffersScreen extends StatefulWidget {
@@ -98,6 +99,14 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                         o.triggerProductId.toLowerCase().contains(_searchQuery),
                   )
                   .toList();
+              final activeCount = bogoOffers.where((offer) => offer.isActive).length;
+              final inactiveCount = bogoOffers.length - activeCount;
+              final liveCount = bogoOffers.where((offer) {
+                final now = DateTime.now();
+                return offer.isActive &&
+                    !offer.startDate.isAfter(now) &&
+                    !offer.endDate.isBefore(now);
+              }).length;
 
               if (bogoOffers.isEmpty) {
                 return Center(
@@ -124,19 +133,58 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                 );
               }
 
-              return ListView.builder(
-                itemCount: bogoOffers.length,
-                itemBuilder: (context, index) {
-                  final offer = bogoOffers[index];
-                  return _BogoOfferCard(
-                    offer: offer,
-                    resolvedTriggerProduct:
-                        _resolvedTriggerProductsById[offer.triggerProductId],
-                    onToggle: (isActive) => _toggleBogoOffer(offer, isActive),
-                    onEdit: () => _showEditBogoScreen(offer),
-                    onDelete: () => _showDeleteConfirmation(offer),
-                  );
-                },
+              return ListView(
+                padding: const EdgeInsets.only(bottom: 88),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+                    child: SizedBox(
+                      height: 96,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          CatalogStatCard(
+                            title: 'All BOGO',
+                            value: '${bogoOffers.length}',
+                            icon: Icons.card_giftcard,
+                            color: const Color(0xFFB45309),
+                            breakdown: [
+                              CatalogStatBreakdown(
+                                label: 'Active',
+                                value: '$activeCount',
+                                color: Colors.green.shade700,
+                              ),
+                              CatalogStatBreakdown(
+                                label: 'Inactive',
+                                value: '$inactiveCount',
+                                color: Colors.redAccent.shade200,
+                              ),
+                            ],
+                            compact: true,
+                          ),
+                          const SizedBox(width: 10),
+                          CatalogStatCard(
+                            title: 'Live Now',
+                            value: '$liveCount',
+                            icon: Icons.bolt_rounded,
+                            color: const Color(0xFF0F766E),
+                            compact: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  ...bogoOffers.map((offer) {
+                    return _BogoOfferCard(
+                      offer: offer,
+                      resolvedTriggerProduct:
+                          _resolvedTriggerProductsById[offer.triggerProductId],
+                      onToggle: (isActive) => _toggleBogoOffer(offer, isActive),
+                      onEdit: () => _showEditBogoScreen(offer),
+                      onDelete: () => _showDeleteConfirmation(offer),
+                    );
+                  }),
+                ],
               );
             }),
           ),

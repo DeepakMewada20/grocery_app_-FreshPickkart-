@@ -25,17 +25,6 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Free Delivery Rules'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.loadFreeDeliveryRules(),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddRuleDialog,
         icon: const Icon(Icons.add),

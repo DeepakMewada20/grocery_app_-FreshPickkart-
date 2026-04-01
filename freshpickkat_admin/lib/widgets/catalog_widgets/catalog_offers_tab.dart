@@ -151,6 +151,85 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
   String _formatMoney(double value) => '₹${value.toStringAsFixed(0)}';
 
+  BogoOffer? _linkedBogoOffer(Product product, List<BogoOffer> bogoOffers) {
+    final productId = product.productId;
+    if (productId == null) return null;
+    return bogoOffers.firstWhereOrNull(
+      (offer) => offer.triggerProductId == productId,
+    );
+  }
+
+  bool _isBogoOfferActive(Product product, List<BogoOffer> bogoOffers) {
+    final offer = _linkedBogoOffer(product, bogoOffers);
+    return offer?.isActive ?? false;
+  }
+
+  bool _isDirectOfferActive(Product product) {
+    return (hasCatalogConfiguredPercentageOffer(product) ||
+            hasCatalogConfiguredFlatOffer(product)) &&
+        product.realPrice > 0 &&
+        product.price < product.realPrice;
+  }
+
+  double _priceForDirectOffer({
+    required double realPrice,
+    required String? discountType,
+    required double discountValue,
+  }) {
+    if (realPrice <= 0 || discountValue <= 0) return realPrice;
+    if (discountType == 'flat') {
+      return (realPrice - discountValue).clamp(0, double.infinity);
+    }
+    return (realPrice * (1 - (discountValue / 100))).clamp(0, double.infinity);
+  }
+
+  Product _buildDirectDiscountProduct(
+    Product product, {
+    required bool isActive,
+    bool clearOffer = false,
+  }) {
+    final discountType = product.discountType;
+    final configuredDiscountValue = discountType == 'flat'
+        ? (product.discountValue ?? catalogFlatDiscountValue(product))
+        : (product.discountValue ?? product.discount);
+    final discountValue = clearOffer ? 0.0 : configuredDiscountValue;
+
+    final updatedVariants = product.variants?.map((variant) {
+      final nextPrice = clearOffer || !isActive
+          ? variant.realPrice
+          : _priceForDirectOffer(
+              realPrice: variant.realPrice,
+              discountType: discountType,
+              discountValue: discountValue,
+            );
+      return variant.copyWith(price: nextPrice);
+    }).toList();
+
+    final primaryVariant = updatedVariants?.firstOrNull;
+    final nextRealPrice = primaryVariant?.realPrice ?? product.realPrice;
+    final nextPrice = primaryVariant?.price ??
+        (clearOffer || !isActive
+            ? product.realPrice
+            : _priceForDirectOffer(
+                realPrice: product.realPrice,
+                discountType: discountType,
+                discountValue: discountValue,
+              ));
+
+    return product.copyWith(
+      price: nextPrice,
+      realPrice: nextRealPrice,
+      discount: isActive && !clearOffer && discountType == 'percentage'
+          ? discountValue
+          : 0,
+      discountType: clearOffer
+          ? (discountType == 'flat' ? 'flat' : 'percentage')
+          : discountType,
+      discountValue: clearOffer ? 0 : discountValue,
+      variants: updatedVariants,
+    );
+  }
+
   Future<void> _editComboOffer(ComboOffer offer) async {
     await showEditComboOfferDialog(
       context: context,
@@ -731,11 +810,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
   _OfferCardActionType _primaryActionTypeFor(
     Product product,
+    List<BogoOffer> bogoOffers,
     List<CategoryOffer> categoryOffers,
     List<ComboOffer> comboOffers,
   ) {
-    if (isCatalogBogoOffer(product)) return _OfferCardActionType.bogo;
-    if (isCatalogPercentageOffer(product) || isCatalogFlatOffer(product)) {
+    if (hasCatalogConfiguredBogoOffer(product, bogoOffers: bogoOffers)) {
+      return _OfferCardActionType.bogo;
+    }
+    if (hasCatalogConfiguredPercentageOffer(product) ||
+        hasCatalogConfiguredFlatOffer(product)) {
       return _OfferCardActionType.directDiscount;
     }
     if (_linkedCategoryOffer(product, categoryOffers) != null) {
@@ -745,6 +828,74 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       return _OfferCardActionType.comboOffer;
     }
     return _OfferCardActionType.none;
+  }
+
+  _OfferCardActionType _actionTypeForCurrentFilter(
+    Product product,
+    List<BogoOffer> bogoOffers,
+    List<CategoryOffer> categoryOffers,
+    List<ComboOffer> comboOffers,
+  ) {
+    switch (widget.offerTypeFilter) {
+      case 'bogo':
+        return hasCatalogConfiguredBogoOffer(product, bogoOffers: bogoOffers)
+            ? _OfferCardActionType.bogo
+            : _OfferCardActionType.none;
+      case 'percentage':
+      case 'flat':
+        return hasCatalogConfiguredPercentageOffer(product) ||
+                hasCatalogConfiguredFlatOffer(product)
+            ? _OfferCardActionType.directDiscount
+            : _OfferCardActionType.none;
+      case 'category_offer':
+        return _linkedCategoryOffer(product, categoryOffers) != null
+            ? _OfferCardActionType.categoryOffer
+            : _OfferCardActionType.none;
+      case 'combo_offer':
+        return _linkedComboOffer(product, comboOffers) != null
+            ? _OfferCardActionType.comboOffer
+            : _OfferCardActionType.none;
+      default:
+        return _primaryActionTypeFor(
+          product,
+          bogoOffers,
+          categoryOffers,
+          comboOffers,
+        );
+    }
+  }
+
+  String _offerBadgeLabelForCurrentFilter(
+    Product product,
+    List<BogoOffer> bogoOffers,
+    List<CategoryOffer> categoryOffers,
+    List<ComboOffer> comboOffers,
+  ) {
+    switch (_actionTypeForCurrentFilter(
+      product,
+      bogoOffers,
+      categoryOffers,
+      comboOffers,
+    )) {
+      case _OfferCardActionType.bogo:
+        final offer = _linkedBogoOffer(product, bogoOffers);
+        final freeCount = offer?.freeProductIds.length ??
+            (product.bogoFreeProductIds ?? const <String>[]).length;
+        return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
+      case _OfferCardActionType.directDiscount:
+        return catalogProductOfferLabel(product);
+      case _OfferCardActionType.categoryOffer:
+        return 'Category Offer';
+      case _OfferCardActionType.comboOffer:
+        return 'Combo Offer';
+      case _OfferCardActionType.none:
+        return catalogProductOfferLabelWithLinkedOffers(
+          product,
+          bogoOffers: bogoOffers,
+          categoryOffers: categoryOffers,
+          comboOffers: comboOffers,
+        );
+    }
   }
 
   CategoryOffer? _linkedCategoryOffer(
@@ -798,14 +949,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
   Future<void> _editOfferForProduct(
     Product product,
+    List<BogoOffer> bogoOffers,
     List<CategoryOffer> categoryOffers,
     List<ComboOffer> comboOffers,
   ) async {
-    switch (_primaryActionTypeFor(product, categoryOffers, comboOffers)) {
+    switch (_actionTypeForCurrentFilter(
+      product,
+      bogoOffers,
+      categoryOffers,
+      comboOffers,
+    )) {
       case _OfferCardActionType.bogo:
-        final offer = _bogoController.bogoOffers.firstWhereOrNull(
-          (item) => item.triggerProductId == product.productId,
-        );
+        final offer = _linkedBogoOffer(product, bogoOffers);
         if (offer == null) return;
         final saved = await BogoOfferEditorScreen.show(
           context: context,
@@ -904,15 +1059,22 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
   Future<void> _removeOfferForProduct(
     Product product,
+    List<BogoOffer> bogoOffers,
     List<CategoryOffer> categoryOffers,
     List<ComboOffer> comboOffers,
   ) async {
-    final actionType = _primaryActionTypeFor(product, categoryOffers, comboOffers);
+    final actionType = _actionTypeForCurrentFilter(
+      product,
+      bogoOffers,
+      categoryOffers,
+      comboOffers,
+    );
     if (actionType == _OfferCardActionType.none) return;
 
     final confirmed = await _showRemoveConfirmation(
       actionType: actionType,
       product: product,
+      bogoOffers: bogoOffers,
       categoryOffers: categoryOffers,
       comboOffers: comboOffers,
     );
@@ -924,10 +1086,10 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   bool _supportsToggle(_OfferCardActionType actionType) {
     switch (actionType) {
       case _OfferCardActionType.bogo:
+      case _OfferCardActionType.directDiscount:
       case _OfferCardActionType.categoryOffer:
       case _OfferCardActionType.comboOffer:
         return true;
-      case _OfferCardActionType.directDiscount:
       case _OfferCardActionType.none:
         return false;
     }
@@ -935,19 +1097,23 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
   Future<void> _toggleOfferForProduct(
     Product product,
+    List<BogoOffer> bogoOffers,
     List<CategoryOffer> categoryOffers,
     List<ComboOffer> comboOffers,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
-    final actionType = _primaryActionTypeFor(product, categoryOffers, comboOffers);
+    final actionType = _actionTypeForCurrentFilter(
+      product,
+      bogoOffers,
+      categoryOffers,
+      comboOffers,
+    );
     bool success = false;
     String? statusLabel;
 
     switch (actionType) {
       case _OfferCardActionType.bogo:
-        final offer = _bogoController.bogoOffers.firstWhereOrNull(
-          (item) => item.triggerProductId == product.productId,
-        );
+        final offer = _linkedBogoOffer(product, bogoOffers);
         if (offer == null) break;
         final nextActive = !offer.isActive;
         success = await _bogoController.upsertOffer(
@@ -978,6 +1144,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         statusLabel = nextActive ? 'activated' : 'deactivated';
         break;
       case _OfferCardActionType.directDiscount:
+        final nextActive = !_isDirectOfferActive(product);
+        await widget.productController.updateProduct(
+          _buildDirectDiscountProduct(
+            product,
+            isActive: nextActive,
+          ),
+        );
+        success = true;
+        statusLabel = nextActive ? 'activated' : 'deactivated';
+        break;
       case _OfferCardActionType.none:
         return;
     }
@@ -1000,6 +1176,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   Future<bool?> _showRemoveConfirmation({
     required _OfferCardActionType actionType,
     required Product product,
+    required List<BogoOffer> bogoOffers,
     required List<CategoryOffer> categoryOffers,
     required List<ComboOffer> comboOffers,
   }) {
@@ -1035,6 +1212,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         final success = await _performRemoveOffer(
                           actionType: actionType,
                           product: product,
+                          bogoOffers: bogoOffers,
                           categoryOffers: categoryOffers,
                           comboOffers: comboOffers,
                         );
@@ -1071,6 +1249,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   Future<bool> _performRemoveOffer({
     required _OfferCardActionType actionType,
     required Product product,
+    required List<BogoOffer> bogoOffers,
     required List<CategoryOffer> categoryOffers,
     required List<ComboOffer> comboOffers,
   }) async {
@@ -1082,10 +1261,10 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           return _bogoController.deleteOffer(productId);
         case _OfferCardActionType.directDiscount:
           await widget.productController.updateProduct(
-            product.copyWith(
-              discount: 0,
-              discountValue: 0,
-              discountType: 'percentage',
+            _buildDirectDiscountProduct(
+              product,
+              isActive: false,
+              clearOffer: true,
             ),
           );
           return true;
@@ -1128,6 +1307,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
       final visibleProducts = filterCatalogOfferProducts(
         products: products,
+        bogoOffers: bogoOffers,
         categoryOffers: categoryOffers,
         comboOffers: comboOffers,
         query: widget.offerSearchQuery,
@@ -1141,15 +1321,27 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           .where((offer) => _categoryOfferMatchesFilters(offer, products))
           .toList();
       final bogoCount = bogoOffers.length;
+      final activeBogoOfferCount =
+          bogoOffers.where((offer) => offer.isActive).length;
+      final inactiveBogoOfferCount = bogoCount - activeBogoOfferCount;
       final noOfferCount = products.where((product) {
         return !hasCatalogAnyLiveOffer(
           product,
+          bogoOffers: bogoOffers,
           categoryOffers: categoryOffers,
           comboOffers: comboOffers,
         );
       }).length;
-      final percentageCount = products.where(isCatalogPercentageOffer).length;
-      final flatCount = products.where(isCatalogFlatOffer).length;
+      final percentageCount = products
+          .where(hasCatalogConfiguredPercentageOffer)
+          .length;
+      final activePercentageCount = products
+          .where(hasCatalogActivePercentageOffer)
+          .length;
+      final inactivePercentageCount = percentageCount - activePercentageCount;
+      final flatCount = products.where(hasCatalogConfiguredFlatOffer).length;
+      final activeFlatCount = products.where(hasCatalogActiveFlatOffer).length;
+      final inactiveFlatCount = flatCount - activeFlatCount;
       final directOfferCount = percentageCount + flatCount;
       final liveDirectOfferCount = products.where((product) {
         return isCatalogPercentageOffer(product) || isCatalogFlatOffer(product);
@@ -1157,12 +1349,21 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       final liveBogoOfferCount = bogoOffers.where((offer) {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
+      final totalCategoryOfferCount = categoryOffers.length;
+      final activeCategoryOfferCount =
+          categoryOffers.where((offer) => offer.isActive).length;
       final liveCategoryOfferCount = categoryOffers.where((offer) {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
+      final inactiveCategoryOfferCount =
+          totalCategoryOfferCount - activeCategoryOfferCount;
+      final totalComboOfferCount = comboOffers.length;
+      final activeComboOfferCount =
+          comboOffers.where((offer) => offer.isActive).length;
       final liveComboOfferCount = comboOffers.where((offer) {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
+      final inactiveComboOfferCount = totalComboOfferCount - activeComboOfferCount;
       final allOfferCount =
           directOfferCount +
           bogoOffers.length +
@@ -1191,7 +1392,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           children: [
             SizedBox(
-              height: 76,
+              height: 96,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
@@ -1220,6 +1421,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     value: '$bogoCount',
                     icon: Icons.card_giftcard,
                     color: const Color(0xFF2B7A78),
+                    breakdown: [
+                      CatalogStatBreakdown(
+                        label: 'Active',
+                        value: '$activeBogoOfferCount',
+                        color: Colors.green.shade700,
+                      ),
+                      CatalogStatBreakdown(
+                        label: 'Inactive',
+                        value: '$inactiveBogoOfferCount',
+                        color: Colors.redAccent.shade200,
+                      ),
+                    ],
                     compact: true,
                     selected: widget.offerTypeFilter == 'bogo',
                     onTap: () => widget.onOfferTypeChanged('bogo'),
@@ -1227,9 +1440,21 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Category Offers',
-                    value: '$liveCategoryOfferCount',
+                    value: '$totalCategoryOfferCount',
                     icon: Icons.category_outlined,
                     color: const Color(0xFF3A5F6F),
+                    breakdown: [
+                      CatalogStatBreakdown(
+                        label: 'Active',
+                        value: '$activeCategoryOfferCount',
+                        color: Colors.green.shade700,
+                      ),
+                      CatalogStatBreakdown(
+                        label: 'Inactive',
+                        value: '$inactiveCategoryOfferCount',
+                        color: Colors.redAccent.shade200,
+                      ),
+                    ],
                     compact: true,
                     selected: widget.offerTypeFilter == 'category_offer',
                     onTap: () => widget.onOfferTypeChanged('category_offer'),
@@ -1237,9 +1462,21 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   const SizedBox(width: 10),
                   CatalogStatCard(
                     title: 'Combo Offers',
-                    value: '$liveComboOfferCount',
+                    value: '$totalComboOfferCount',
                     icon: Icons.widgets_outlined,
                     color: const Color(0xFF4F7D63),
+                    breakdown: [
+                      CatalogStatBreakdown(
+                        label: 'Active',
+                        value: '$activeComboOfferCount',
+                        color: Colors.green.shade700,
+                      ),
+                      CatalogStatBreakdown(
+                        label: 'Inactive',
+                        value: '$inactiveComboOfferCount',
+                        color: Colors.redAccent.shade200,
+                      ),
+                    ],
                     compact: true,
                     selected: widget.offerTypeFilter == 'combo_offer',
                     onTap: () => widget.onOfferTypeChanged('combo_offer'),
@@ -1250,6 +1487,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     value: '$percentageCount',
                     icon: Icons.percent,
                     color: const Color(0xFF46627A),
+                    breakdown: [
+                      CatalogStatBreakdown(
+                        label: 'Active',
+                        value: '$activePercentageCount',
+                        color: Colors.green.shade700,
+                      ),
+                      CatalogStatBreakdown(
+                        label: 'Inactive',
+                        value: '$inactivePercentageCount',
+                        color: Colors.redAccent.shade200,
+                      ),
+                    ],
                     compact: true,
                     selected: widget.offerTypeFilter == 'percentage',
                     onTap: () => widget.onOfferTypeChanged('percentage'),
@@ -1260,6 +1509,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     value: '$flatCount',
                     icon: Icons.currency_rupee,
                     color: const Color(0xFF5B6B5F),
+                    breakdown: [
+                      CatalogStatBreakdown(
+                        label: 'Active',
+                        value: '$activeFlatCount',
+                        color: Colors.green.shade700,
+                      ),
+                      CatalogStatBreakdown(
+                        label: 'Inactive',
+                        value: '$inactiveFlatCount',
+                        color: Colors.redAccent.shade200,
+                      ),
+                    ],
                     compact: true,
                     selected: widget.offerTypeFilter == 'flat',
                     onTap: () => widget.onOfferTypeChanged('flat'),
@@ -1345,13 +1606,26 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               )
             else
               ...visibleProducts.map((product) {
-                final actionType = _primaryActionTypeFor(
+                final actionType = _actionTypeForCurrentFilter(
                   product,
+                  bogoOffers,
                   categoryOffers,
                   comboOffers,
                 );
                 final hasActions = actionType != _OfferCardActionType.none;
                 final supportsToggle = _supportsToggle(actionType);
+                final isOfferActive = switch (actionType) {
+                  _OfferCardActionType.bogo => _isBogoOfferActive(
+                    product,
+                    bogoOffers,
+                  ),
+                  _OfferCardActionType.directDiscount => _isDirectOfferActive(
+                    product,
+                  ),
+                  _OfferCardActionType.categoryOffer ||
+                  _OfferCardActionType.comboOffer => true,
+                  _OfferCardActionType.none => false,
+                };
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -1399,19 +1673,28 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 runSpacing: 6,
                                 children: [
                                   CatalogInlineBadge(
-                                    label: catalogProductOfferLabelWithLinkedOffers(
+                                    label: _offerBadgeLabelForCurrentFilter(
                                       product,
-                                      categoryOffers: categoryOffers,
-                                      comboOffers: comboOffers,
+                                      bogoOffers,
+                                      categoryOffers,
+                                      comboOffers,
                                     ),
                                     color: hasCatalogAnyLiveOffer(
                                       product,
+                                      bogoOffers: bogoOffers,
                                       categoryOffers: categoryOffers,
                                       comboOffers: comboOffers,
                                     )
                                         ? Colors.green
                                         : Colors.grey,
                                   ),
+                                  if (hasActions)
+                                    CatalogInlineBadge(
+                                      label: isOfferActive ? 'Active' : 'Inactive',
+                                      color: isOfferActive
+                                          ? Colors.green.shade700
+                                          : Colors.redAccent.shade200,
+                                    ),
                                   CatalogInlineBadge(
                                     label: product.isAvailable
                                         ? 'Available'
@@ -1444,6 +1727,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 case 'toggle':
                                   await _toggleOfferForProduct(
                                     product,
+                                    bogoOffers,
                                     categoryOffers,
                                     comboOffers,
                                   );
@@ -1451,6 +1735,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 case 'edit':
                                   await _editOfferForProduct(
                                     product,
+                                    bogoOffers,
                                     categoryOffers,
                                     comboOffers,
                                   );
@@ -1458,6 +1743,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 case 'remove':
                                   await _removeOfferForProduct(
                                     product,
+                                    bogoOffers,
                                     categoryOffers,
                                     comboOffers,
                                   );

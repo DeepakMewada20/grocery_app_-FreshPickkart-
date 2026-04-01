@@ -15,6 +15,7 @@ List<Coupon> filterCatalogCoupons(List<Coupon> coupons, String query) {
 
 List<Product> filterCatalogOfferProducts({
   required List<Product> products,
+  required List<BogoOffer> bogoOffers,
   required List<CategoryOffer> categoryOffers,
   required List<ComboOffer> comboOffers,
   required String query,
@@ -30,10 +31,14 @@ List<Product> filterCatalogOfferProducts({
     final offerTypeMatch = switch (offerTypeFilter) {
       'live' => hasCatalogAnyLiveOffer(
         product,
+        bogoOffers: bogoOffers,
         categoryOffers: categoryOffers,
         comboOffers: comboOffers,
       ),
-      'bogo' => isCatalogBogoOffer(product),
+      'bogo' => hasCatalogConfiguredBogoOffer(
+        product,
+        bogoOffers: bogoOffers,
+      ),
       'category_offer' => hasCatalogLiveCategoryOffer(
         product,
         categoryOffers: categoryOffers,
@@ -42,10 +47,11 @@ List<Product> filterCatalogOfferProducts({
         product,
         comboOffers: comboOffers,
       ),
-      'percentage' => isCatalogPercentageOffer(product),
-      'flat' => isCatalogFlatOffer(product),
+      'percentage' => hasCatalogConfiguredPercentageOffer(product),
+      'flat' => hasCatalogConfiguredFlatOffer(product),
       'none' => !hasCatalogAnyLiveOffer(
         product,
+        bogoOffers: bogoOffers,
         categoryOffers: categoryOffers,
         comboOffers: comboOffers,
       ),
@@ -64,11 +70,13 @@ List<Product> filterCatalogOfferProducts({
   filtered.sort((a, b) {
     final aHasOffer = hasCatalogAnyLiveOffer(
       a,
+      bogoOffers: bogoOffers,
       categoryOffers: categoryOffers,
       comboOffers: comboOffers,
     );
     final bHasOffer = hasCatalogAnyLiveOffer(
       b,
+      bogoOffers: bogoOffers,
       categoryOffers: categoryOffers,
       comboOffers: comboOffers,
     );
@@ -85,38 +93,84 @@ bool isCatalogBogoOffer(Product product) {
   return product.discountType == 'bogo' || freeIds.isNotEmpty;
 }
 
-bool isCatalogPercentageOffer(Product product) {
+bool hasCatalogConfiguredBogoOffer(
+  Product product, {
+  required List<BogoOffer> bogoOffers,
+}) {
+  final productId = product.productId;
+  if (productId == null) return isCatalogBogoOffer(product);
+  return bogoOffers.any((offer) => offer.triggerProductId == productId) ||
+      isCatalogBogoOffer(product);
+}
+
+bool hasCatalogLiveBogoOffer(
+  Product product, {
+  required List<BogoOffer> bogoOffers,
+}) {
+  final productId = product.productId;
+  if (productId == null) return false;
+  final now = DateTime.now();
+  return bogoOffers.any((offer) {
+    return offer.triggerProductId == productId &&
+        offer.isActive &&
+        !offer.startDate.isAfter(now) &&
+        !offer.endDate.isBefore(now);
+  });
+}
+
+bool hasCatalogConfiguredPercentageOffer(Product product) {
   if (isCatalogBogoOffer(product)) return false;
+  final configuredValue = product.discountValue ?? product.discount;
   if (product.discountType == 'percentage') {
-    return product.discount > 0;
+    return configuredValue > 0;
   }
   if (product.discountType == 'flat') return false;
   return product.discount > 0;
 }
 
-bool isCatalogFlatOffer(Product product) {
-  if (isCatalogBogoOffer(product) || isCatalogPercentageOffer(product)) {
+bool hasCatalogActivePercentageOffer(Product product) {
+  return hasCatalogConfiguredPercentageOffer(product) &&
+      product.realPrice > 0 &&
+      product.price < product.realPrice;
+}
+
+bool hasCatalogConfiguredFlatOffer(Product product) {
+  if (isCatalogBogoOffer(product) || hasCatalogConfiguredPercentageOffer(product)) {
     return false;
   }
   if (product.discountType == 'flat') {
-    return catalogFlatDiscountValue(product) > 0;
+    return (product.discountValue ?? 0) > 0 || catalogFlatDiscountValue(product) > 0;
   }
   if (product.discountType == 'percentage') return false;
   return catalogFlatDiscountValue(product) > 0;
 }
 
-bool hasCatalogActiveOffer(Product product) {
-  return isCatalogBogoOffer(product) ||
-      isCatalogPercentageOffer(product) ||
-      isCatalogFlatOffer(product);
+bool hasCatalogActiveFlatOffer(Product product) {
+  return hasCatalogConfiguredFlatOffer(product) &&
+      product.realPrice > 0 &&
+      product.price < product.realPrice;
+}
+
+bool isCatalogPercentageOffer(Product product) {
+  return hasCatalogActivePercentageOffer(product);
+}
+
+bool isCatalogFlatOffer(Product product) {
+  return hasCatalogActiveFlatOffer(product);
 }
 
 bool hasCatalogAnyLiveOffer(
   Product product, {
+  required List<BogoOffer> bogoOffers,
   required List<CategoryOffer> categoryOffers,
   required List<ComboOffer> comboOffers,
 }) {
-  return hasCatalogActiveOffer(product) ||
+  return hasCatalogLiveBogoOffer(
+        product,
+        bogoOffers: bogoOffers,
+      ) ||
+      hasCatalogActivePercentageOffer(product) ||
+      hasCatalogActiveFlatOffer(product) ||
       hasCatalogLiveCategoryOffer(
         product,
         categoryOffers: categoryOffers,
@@ -181,10 +235,11 @@ String catalogProductOfferLabel(Product product) {
     final freeCount = (product.bogoFreeProductIds ?? const <String>[]).length;
     return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
   }
-  if (isCatalogPercentageOffer(product)) {
-    return '${product.discount.toStringAsFixed(0)}% OFF';
+  if (hasCatalogConfiguredPercentageOffer(product)) {
+    final percent = product.discountValue ?? product.discount;
+    return '${percent.toStringAsFixed(0)}% OFF';
   }
-  if (isCatalogFlatOffer(product)) {
+  if (hasCatalogConfiguredFlatOffer(product)) {
     final value = catalogFlatDiscountValue(product);
     if (value > 0) {
       return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
@@ -195,17 +250,19 @@ String catalogProductOfferLabel(Product product) {
 
 String catalogProductOfferLabelWithLinkedOffers(
   Product product, {
+  required List<BogoOffer> bogoOffers,
   required List<CategoryOffer> categoryOffers,
   required List<ComboOffer> comboOffers,
 }) {
-  if (isCatalogBogoOffer(product)) {
+  if (hasCatalogConfiguredBogoOffer(product, bogoOffers: bogoOffers)) {
     final freeCount = (product.bogoFreeProductIds ?? const <String>[]).length;
     return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
   }
-  if (isCatalogPercentageOffer(product)) {
-    return '${product.discount.toStringAsFixed(0)}% OFF';
+  if (hasCatalogConfiguredPercentageOffer(product)) {
+    final percent = product.discountValue ?? product.discount;
+    return '${percent.toStringAsFixed(0)}% OFF';
   }
-  if (isCatalogFlatOffer(product)) {
+  if (hasCatalogConfiguredFlatOffer(product)) {
     final value = catalogFlatDiscountValue(product);
     if (value > 0) {
       return 'FLAT ₹${value.toStringAsFixed(0)} OFF';

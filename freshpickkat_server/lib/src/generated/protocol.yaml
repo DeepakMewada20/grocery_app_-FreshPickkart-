@@ -19,6 +19,7 @@ banner:
 bogo:
   - upsertOffer:
   - deleteOffer:
+  - getAllOffers:
   - getActiveOffers:
   - getOfferForProduct:
 category:

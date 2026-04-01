@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -6,10 +7,13 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupo
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_banner_controller.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'bogo_product_picker_screen.dart';
 import 'combo_offers_screen.dart';
 import 'category_offers_screen.dart';
@@ -35,6 +39,10 @@ class _OffersScreenState extends State<OffersScreen> {
       AdminCategoryOfferController.instance;
   final AdminComboOfferController _comboOfferController =
       AdminComboOfferController.instance;
+  final AdminFreeDeliveryController _freeDeliveryController =
+      AdminFreeDeliveryController.instance;
+  final AdminBannerController _bannerController =
+      AdminBannerController.instance;
 
   String _couponSearchQuery = '';
   String _offerSearchQuery = '';
@@ -76,6 +84,13 @@ class _OffersScreenState extends State<OffersScreen> {
         !_comboOfferController.isLoading.value) {
       futures.add(_comboOfferController.loadComboOffers());
     }
+    if (_freeDeliveryController.freeDeliveryRules.isEmpty &&
+        !_freeDeliveryController.isLoading.value) {
+      futures.add(_freeDeliveryController.loadFreeDeliveryRules());
+    }
+    if (_bannerController.banners.isEmpty && !_bannerController.isLoading.value) {
+      futures.add(_bannerController.loadBanners());
+    }
     if (futures.isEmpty) return;
     await Future.wait(futures);
   }
@@ -88,6 +103,8 @@ class _OffersScreenState extends State<OffersScreen> {
       _bogoController.loadBogoOffers(force: true),
       _categoryOfferController.loadCategoryOffers(force: true),
       _comboOfferController.loadComboOffers(force: true),
+      _freeDeliveryController.loadFreeDeliveryRules(force: true),
+      _bannerController.loadBanners(force: true),
     ]);
   }
 
@@ -149,7 +166,7 @@ class _OffersScreenState extends State<OffersScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Builder(
         builder: (context) {
           final tabController = DefaultTabController.of(context);
@@ -158,20 +175,15 @@ class _OffersScreenState extends State<OffersScreen> {
             builder: (context, _) {
               return Scaffold(
                 appBar: AppBar(
-                  title: const Text('Offers & Promotions'),
+                  toolbarHeight: 0,
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
-                  actions: [
-                    IconButton(
-                      onPressed: _refreshAll,
-                      icon: const Icon(Icons.refresh),
-                    ),
-                  ],
                   bottom: const TabBar(
                     isScrollable: true,
                     tabs: [
-                      Tab(text: 'Coupons'),
+                      Tab(text: 'Dashboard'),
                       Tab(text: 'Offers'),
+                      Tab(text: 'Coupons'),
                       Tab(text: 'Delivery'),
                       Tab(text: 'Banners'),
                     ],
@@ -179,16 +191,13 @@ class _OffersScreenState extends State<OffersScreen> {
                 ),
                 body: TabBarView(
                   children: [
-                    CatalogCouponsTab(
-                      controller: _couponController,
-                      searchQuery: _couponSearchQuery,
-                      onSearchChanged: (value) {
-                        setState(() {
-                          _couponSearchQuery = value;
-                        });
-                      },
-                      onCreateCoupon: _openAddCouponDialog,
-                      onEditCoupon: _openEditCouponDialog,
+                    _OffersDashboardTab(
+                      couponController: _couponController,
+                      bogoController: _bogoController,
+                      categoryOfferController: _categoryOfferController,
+                      comboOfferController: _comboOfferController,
+                      freeDeliveryController: _freeDeliveryController,
+                      bannerController: _bannerController,
                     ),
                     Scaffold(
                       key: _offersTabFabKey,
@@ -243,6 +252,17 @@ class _OffersScreenState extends State<OffersScreen> {
                         ],
                       ),
                     ),
+                    CatalogCouponsTab(
+                      controller: _couponController,
+                      searchQuery: _couponSearchQuery,
+                      onSearchChanged: (value) {
+                        setState(() {
+                          _couponSearchQuery = value;
+                        });
+                      },
+                      onCreateCoupon: _openAddCouponDialog,
+                      onEditCoupon: _openEditCouponDialog,
+                    ),
                     const FreeDeliveryScreen(),
                     const BannersScreen(),
                   ],
@@ -252,6 +272,250 @@ class _OffersScreenState extends State<OffersScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _OffersDashboardTab extends StatelessWidget {
+  const _OffersDashboardTab({
+    required this.couponController,
+    required this.bogoController,
+    required this.categoryOfferController,
+    required this.comboOfferController,
+    required this.freeDeliveryController,
+    required this.bannerController,
+  });
+
+  final AdminCouponController couponController;
+  final AdminBogoController bogoController;
+  final AdminCategoryOfferController categoryOfferController;
+  final AdminComboOfferController comboOfferController;
+  final AdminFreeDeliveryController freeDeliveryController;
+  final AdminBannerController bannerController;
+
+  bool _isLive(DateTime startDate, DateTime endDate, bool isActive) {
+    final now = DateTime.now();
+    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final coupons = couponController.coupons;
+      final bogoOffers = bogoController.bogoOffers;
+      final categoryOffers = categoryOfferController.categoryOffers;
+      final comboOffers = comboOfferController.comboOffers;
+      final freeDeliveryRules = freeDeliveryController.freeDeliveryRules;
+      final banners = bannerController.banners;
+
+      final liveCoupons = coupons.where((coupon) {
+        return _isLive(coupon.startDate, coupon.endDate, coupon.isActive);
+      }).length;
+      final liveBogo = bogoOffers.where((offer) {
+        return _isLive(offer.startDate, offer.endDate, offer.isActive);
+      }).length;
+      final liveCategory = categoryOffers.where((offer) {
+        return _isLive(offer.startDate, offer.endDate, offer.isActive);
+      }).length;
+      final liveCombo = comboOffers.where((offer) {
+        return _isLive(offer.startDate, offer.endDate, offer.isActive);
+      }).length;
+      final liveDelivery = freeDeliveryRules.where((rule) {
+        return _isLive(rule.startDate, rule.endDate, rule.isActive);
+      }).length;
+      final activeBanners = banners.where((banner) => banner.active).length;
+      final liveOfferPrograms = liveBogo + liveCategory + liveCombo;
+
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          const Text(
+            'Offers Dashboard',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Offers, banners, and delivery rules ka quick summary',
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _DashboardCardGrid(
+            cards: [
+              CatalogStatCard(
+                title: 'Coupons',
+                value: '${coupons.length}',
+                icon: Icons.sell_outlined,
+                color: const Color(0xFF315C73),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveCoupons',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+              CatalogStatCard(
+                title: 'Offers',
+                value: '${bogoOffers.length + categoryOffers.length + comboOffers.length}',
+                icon: Icons.local_offer_outlined,
+                color: const Color(0xFF2F6F4F),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveOfferPrograms',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+              CatalogStatCard(
+                title: 'Delivery Rules',
+                value: '${freeDeliveryRules.length}',
+                icon: Icons.local_shipping_outlined,
+                color: const Color(0xFF7C4D12),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveDelivery',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+              CatalogStatCard(
+                title: 'Banners',
+                value: '${banners.length}',
+                icon: Icons.image_outlined,
+                color: const Color(0xFF6A4C93),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Active',
+                    value: '$activeBanners',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _DashboardSection(
+            title: 'Offer Programs',
+            subtitle: 'BOGO, category, aur combo offers ka breakdown',
+            cards: [
+              CatalogStatCard(
+                title: 'BOGO',
+                value: '${bogoOffers.length}',
+                icon: Icons.card_giftcard,
+                color: const Color(0xFF2B7A78),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveBogo',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+              CatalogStatCard(
+                title: 'Category',
+                value: '${categoryOffers.length}',
+                icon: Icons.category_outlined,
+                color: const Color(0xFF3A5F6F),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveCategory',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+              CatalogStatCard(
+                title: 'Combo',
+                value: '${comboOffers.length}',
+                icon: Icons.widgets_outlined,
+                color: const Color(0xFF4F7D63),
+                breakdown: [
+                  CatalogStatBreakdown(
+                    label: 'Live',
+                    value: '$liveCombo',
+                    color: Colors.green.shade700,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _DashboardSection extends StatelessWidget {
+  const _DashboardSection({
+    required this.title,
+    required this.subtitle,
+    required this.cards,
+  });
+
+  final String title;
+  final String subtitle;
+  final List<Widget> cards;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _DashboardCardGrid(cards: cards),
+      ],
+    );
+  }
+}
+
+class _DashboardCardGrid extends StatelessWidget {
+  const _DashboardCardGrid({required this.cards});
+
+  final List<Widget> cards;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const crossAxisCount = 2;
+        final itemWidth =
+            (constraints.maxWidth - ((crossAxisCount - 1) * 12)) / crossAxisCount;
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: cards
+              .map(
+                (card) => SizedBox(
+                  width: itemWidth,
+                  child: card,
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }

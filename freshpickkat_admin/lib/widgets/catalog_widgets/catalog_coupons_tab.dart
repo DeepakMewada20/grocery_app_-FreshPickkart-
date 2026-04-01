@@ -29,6 +29,10 @@ class CatalogCouponsTab extends StatelessWidget {
       final isLoading = controller.isLoading.value;
       final error = controller.error.value;
       final liveCoupons = coupons.where(isCatalogCouponLive).length;
+      final inactiveCoupons = coupons.where((coupon) => !coupon.isActive).length;
+      final deliveryCoupons = coupons
+          .where((coupon) => coupon.couponCategory == 'delivery')
+          .length;
 
       if (isLoading && coupons.isEmpty) {
         return const Center(child: CircularProgressIndicator());
@@ -38,161 +42,228 @@ class CatalogCouponsTab extends StatelessWidget {
         return Center(child: Text('Error: $error'));
       }
 
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: Column(
+      return RefreshIndicator(
+        onRefresh: controller.loadCoupons,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+          children: [
+            const Text(
+              'Coupons',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Coupon codes, delivery coupons, and active campaign summary',
+              style: TextStyle(
+                color: Colors.grey.shade700,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    CatalogStatCard(
-                      title: 'Total Coupons',
-                      value: '${coupons.length}',
-                      icon: Icons.discount,
-                      color: Colors.green,
-                    ),
-                    CatalogStatCard(
-                      title: 'Live Coupons',
+                CatalogStatCard(
+                  title: 'All Coupons',
+                  value: '${coupons.length}',
+                  icon: Icons.sell_outlined,
+                  color: const Color(0xFF315C73),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
                       value: '$liveCoupons',
-                      icon: Icons.flash_on_outlined,
-                      color: Colors.orange,
+                      color: Colors.green.shade700,
+                    ),
+                    CatalogStatBreakdown(
+                      label: 'Inactive',
+                      value: '$inactiveCoupons',
+                      color: Colors.redAccent.shade200,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.search),
-                          hintText: 'Search coupon',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: onSearchChanged,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: onCreateCoupon,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Create'),
+                CatalogStatCard(
+                  title: 'Delivery',
+                  value: '$deliveryCoupons',
+                  icon: Icons.local_shipping_outlined,
+                  color: const Color(0xFF7C4D12),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Visible',
+                      value: '${visibleCoupons.length}',
+                      color: Colors.blueGrey.shade700,
                     ),
                   ],
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: controller.loadCoupons,
-              child: visibleCoupons.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(24),
-                      children: const [
-                        SizedBox(height: 120),
-                        Center(child: Text('No matching coupons')),
-                      ],
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: visibleCoupons.length,
-                      itemBuilder: (context, index) {
-                        final coupon = visibleCoupons[index];
-                        final statusColor = catalogCouponStatusColor(coupon);
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              coupon.code,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: statusColor.withValues(
-                                                alpha: 0.12,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(999),
-                                            ),
-                                            child: Text(
-                                              catalogCouponStatusLabel(coupon),
-                                              style: TextStyle(
-                                                color: statusColor,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(coupon.description),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Category: ${coupon.couponCategory} • Type: ${coupon.discountType ?? 'delivery'}',
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Min order: ₹${coupon.minOrderAmount.toStringAsFixed(0)} • Used: ${coupon.usedCount}',
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Switch(
-                                      value: coupon.isActive,
-                                      onChanged: (value) => controller
-                                          .setCouponActive(coupon.code, value),
-                                    ),
-                                    IconButton(
-                                      onPressed: () => onEditCoupon(coupon),
-                                      icon: const Icon(Icons.edit_outlined),
-                                      tooltip: 'Edit',
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Search coupon code or description',
+                      border: OutlineInputBorder(),
+                      isDense: true,
                     ),
+                    onChanged: onSearchChanged,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: onCreateCoupon,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create'),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Coupon List',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${visibleCoupons.length} items',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (visibleCoupons.isEmpty)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(18),
+                  child: Text('No matching coupons'),
+                ),
+              )
+            else
+              ...visibleCoupons.map((coupon) {
+                final statusColor = catalogCouponStatusColor(coupon);
+                final valueLabel = catalogCouponValueLabel(coupon);
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    coupon.code,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    coupon.description,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Switch(
+                              value: coupon.isActive,
+                              onChanged: (value) =>
+                                  controller.setCouponActive(coupon.code, value),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            CatalogInlineBadge(
+                              label: catalogCouponStatusLabel(coupon),
+                              color: statusColor,
+                            ),
+                            CatalogInlineBadge(
+                              label: coupon.couponCategory == 'delivery'
+                                  ? 'Delivery'
+                                  : (coupon.discountType ?? 'flat')
+                                        .toUpperCase(),
+                              color: const Color(0xFF4E5D6C),
+                            ),
+                            CatalogInlineBadge(
+                              label: valueLabel,
+                              color: const Color(0xFF8B5E34),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Wrap(
+                            spacing: 14,
+                            runSpacing: 8,
+                            children: [
+                              Text(
+                                'Min order ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                              ),
+                              Text('Used ${coupon.usedCount}'),
+                              if (coupon.maxDiscount != null)
+                                Text(
+                                  'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                                ),
+                              if (coupon.usageLimit != null)
+                                Text('Limit ${coupon.usageLimit}'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
+                                style: TextStyle(color: Colors.grey.shade700),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => onEditCoupon(coupon),
+                              icon: const Icon(Icons.edit_outlined),
+                              tooltip: 'Edit',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
       );
     });
   }

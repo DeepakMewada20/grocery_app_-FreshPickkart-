@@ -234,6 +234,13 @@ class EndpointBogo extends _i1.EndpointRef {
         {'triggerProductId': triggerProductId},
       );
 
+  _i2.Future<List<_i9.BogoOffer>> getAllOffers() =>
+      caller.callServerEndpoint<List<_i9.BogoOffer>>(
+        'bogo',
+        'getAllOffers',
+        {},
+      );
+
   _i2.Future<List<_i9.BogoOffer>> getActiveOffers() =>
       caller.callServerEndpoint<List<_i9.BogoOffer>>(
         'bogo',

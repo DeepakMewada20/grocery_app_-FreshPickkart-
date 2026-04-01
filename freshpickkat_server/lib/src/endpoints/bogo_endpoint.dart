@@ -24,6 +24,12 @@ class BogoEndpoint extends Endpoint {
       docPath,
       updateMask_fieldPaths: fields.keys.toList(),
     );
+    await _syncTriggerProductBogoState(
+      firestore: firestore,
+      triggerProductId: offer.triggerProductId,
+      freeProductIds: offer.freeProductIds,
+      clear: false,
+    );
     return true;
   }
 
@@ -34,10 +40,43 @@ class BogoEndpoint extends Endpoint {
     final docPath = '$database/$bogoCollection/$triggerProductId';
     try {
       await firestore.projects.databases.documents.delete(docPath);
+      await _syncTriggerProductBogoState(
+        firestore: firestore,
+        triggerProductId: triggerProductId,
+        freeProductIds: const <String>[],
+        clear: true,
+      );
       return true;
     } catch (_) {
       return false;
     }
+  }
+
+  Future<List<protocol.BogoOffer>> getAllOffers(Session session) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+
+    final query = firestore_api.StructuredQuery(
+      from: [firestore_api.CollectionSelector(collectionId: bogoCollection)],
+    );
+
+    final response = await firestore.projects.databases.documents.runQuery(
+      firestore_api.RunQueryRequest(structuredQuery: query),
+      database,
+    );
+
+    final offers = <protocol.BogoOffer>[];
+    for (final res in response) {
+      if (res.document?.fields != null) {
+        offers.add(
+          _bogoOfferFromFirestore(
+            res.document!.fields!,
+            res.document!.name!.split('/').last,
+          ),
+        );
+      }
+    }
+    return offers;
   }
 
   // ── User App: Get all active BOGO offers ───────────────────────────────────
@@ -216,5 +255,43 @@ class BogoEndpoint extends Endpoint {
             .where((freeProduct) => freeProduct.productId.trim().isNotEmpty)
             .toList() ??
         const <protocol.BogoFreeProduct>[];
+  }
+
+  Future<void> _syncTriggerProductBogoState({
+    required firestore_api.FirestoreApi firestore,
+    required String triggerProductId,
+    required List<String> freeProductIds,
+    required bool clear,
+  }) async {
+    final database = 'projects/$projectId/databases/(default)/documents';
+    final productPath = '$database/Products/$triggerProductId';
+    final normalizedFreeIds = freeProductIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+
+    final fields = <String, firestore_api.Value>{
+      'discountType': clear
+          ? firestore_api.Value(nullValue: 'NULL_VALUE')
+          : firestore_api.Value(stringValue: 'bogo'),
+      'bogoFreeProductIds': firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: normalizedFreeIds
+              .map((id) => firestore_api.Value(stringValue: id))
+              .toList(),
+        ),
+      ),
+    };
+
+    try {
+      await firestore.projects.databases.documents.patch(
+        firestore_api.Document(fields: fields),
+        productPath,
+        updateMask_fieldPaths: fields.keys.toList(),
+      );
+    } catch (_) {
+      // Ignore if linked product document is missing.
+    }
   }
 }
