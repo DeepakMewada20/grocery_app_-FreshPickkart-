@@ -26,48 +26,53 @@ import 'app_user.dart' as _i11;
 import 'applied_coupon_info.dart' as _i12;
 import 'applied_offer_info.dart' as _i13;
 import 'banner.dart' as _i14;
-import 'bogo_free_product.dart' as _i15;
-import 'bogo_offer.dart' as _i16;
-import 'cart_item.dart' as _i17;
-import 'cart_item_input.dart' as _i18;
-import 'cart_pricing_result.dart' as _i19;
-import 'category.dart' as _i20;
-import 'category_offer.dart' as _i21;
-import 'combo_offer.dart' as _i22;
-import 'combo_product_item.dart' as _i23;
-import 'coupon.dart' as _i24;
-import 'coupon_display.dart' as _i25;
-import 'coupon_validation_result.dart' as _i26;
-import 'free_delivery_rule.dart' as _i27;
-import 'free_item_info.dart' as _i28;
-import 'order.dart' as _i29;
-import 'order_item.dart' as _i30;
-import 'order_page.dart' as _i31;
-import 'payment_action_result.dart' as _i32;
-import 'payment_order_result.dart' as _i33;
-import 'payment_verify_result.dart' as _i34;
-import 'pricing_line_item.dart' as _i35;
-import 'product.dart' as _i36;
-import 'product_page.dart' as _i37;
-import 'product_variant.dart' as _i38;
-import 'sub_category.dart' as _i39;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i40;
+import 'banner_page.dart' as _i15;
+import 'bogo_free_product.dart' as _i16;
+import 'bogo_offer.dart' as _i17;
+import 'bogo_offer_page.dart' as _i18;
+import 'cart_item.dart' as _i19;
+import 'cart_item_input.dart' as _i20;
+import 'cart_pricing_result.dart' as _i21;
+import 'category.dart' as _i22;
+import 'category_offer.dart' as _i23;
+import 'category_offer_page.dart' as _i24;
+import 'combo_offer.dart' as _i25;
+import 'combo_offer_page.dart' as _i26;
+import 'combo_product_item.dart' as _i27;
+import 'coupon.dart' as _i28;
+import 'coupon_display.dart' as _i29;
+import 'coupon_validation_result.dart' as _i30;
+import 'free_delivery_rule.dart' as _i31;
+import 'free_delivery_rule_page.dart' as _i32;
+import 'free_item_info.dart' as _i33;
+import 'order.dart' as _i34;
+import 'order_item.dart' as _i35;
+import 'order_page.dart' as _i36;
+import 'payment_action_result.dart' as _i37;
+import 'payment_order_result.dart' as _i38;
+import 'payment_verify_result.dart' as _i39;
+import 'pricing_line_item.dart' as _i40;
+import 'product.dart' as _i41;
+import 'product_page.dart' as _i42;
+import 'product_variant.dart' as _i43;
+import 'sub_category.dart' as _i44;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i45;
 import 'package:freshpickkat_server/src/generated/admin_audit_log_entry.dart'
-    as _i41;
-import 'package:freshpickkat_server/src/generated/banner.dart' as _i42;
-import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i43;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i44;
-import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i45;
-import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i46;
-import 'package:freshpickkat_server/src/generated/cart_item_input.dart' as _i47;
-import 'package:freshpickkat_server/src/generated/coupon.dart' as _i48;
-import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i49;
+    as _i46;
+import 'package:freshpickkat_server/src/generated/banner.dart' as _i47;
+import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i48;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i49;
+import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i50;
+import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i51;
+import 'package:freshpickkat_server/src/generated/cart_item_input.dart' as _i52;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i53;
+import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i54;
 import 'package:freshpickkat_server/src/generated/free_delivery_rule.dart'
-    as _i50;
-import 'package:freshpickkat_server/src/generated/order.dart' as _i51;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i52;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i53;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i54;
+    as _i55;
+import 'package:freshpickkat_server/src/generated/order.dart' as _i56;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i57;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i58;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i59;
 export 'address.dart';
 export 'admin_analytics.dart';
 export 'admin_audit_log_entry.dart';
@@ -78,19 +83,24 @@ export 'app_user.dart';
 export 'applied_coupon_info.dart';
 export 'applied_offer_info.dart';
 export 'banner.dart';
+export 'banner_page.dart';
 export 'bogo_free_product.dart';
 export 'bogo_offer.dart';
+export 'bogo_offer_page.dart';
 export 'cart_item.dart';
 export 'cart_item_input.dart';
 export 'cart_pricing_result.dart';
 export 'category.dart';
 export 'category_offer.dart';
+export 'category_offer_page.dart';
 export 'combo_offer.dart';
+export 'combo_offer_page.dart';
 export 'combo_product_item.dart';
 export 'coupon.dart';
 export 'coupon_display.dart';
 export 'coupon_validation_result.dart';
 export 'free_delivery_rule.dart';
+export 'free_delivery_rule_page.dart';
 export 'free_item_info.dart';
 export 'order.dart';
 export 'order_item.dart';
@@ -174,80 +184,95 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i14.Banner) {
       return _i14.Banner.fromJson(data) as T;
     }
-    if (t == _i15.BogoFreeProduct) {
-      return _i15.BogoFreeProduct.fromJson(data) as T;
+    if (t == _i15.BannerPage) {
+      return _i15.BannerPage.fromJson(data) as T;
     }
-    if (t == _i16.BogoOffer) {
-      return _i16.BogoOffer.fromJson(data) as T;
+    if (t == _i16.BogoFreeProduct) {
+      return _i16.BogoFreeProduct.fromJson(data) as T;
     }
-    if (t == _i17.CartItem) {
-      return _i17.CartItem.fromJson(data) as T;
+    if (t == _i17.BogoOffer) {
+      return _i17.BogoOffer.fromJson(data) as T;
     }
-    if (t == _i18.CartItemInput) {
-      return _i18.CartItemInput.fromJson(data) as T;
+    if (t == _i18.BogoOfferPage) {
+      return _i18.BogoOfferPage.fromJson(data) as T;
     }
-    if (t == _i19.CartPricingResult) {
-      return _i19.CartPricingResult.fromJson(data) as T;
+    if (t == _i19.CartItem) {
+      return _i19.CartItem.fromJson(data) as T;
     }
-    if (t == _i20.Category) {
-      return _i20.Category.fromJson(data) as T;
+    if (t == _i20.CartItemInput) {
+      return _i20.CartItemInput.fromJson(data) as T;
     }
-    if (t == _i21.CategoryOffer) {
-      return _i21.CategoryOffer.fromJson(data) as T;
+    if (t == _i21.CartPricingResult) {
+      return _i21.CartPricingResult.fromJson(data) as T;
     }
-    if (t == _i22.ComboOffer) {
-      return _i22.ComboOffer.fromJson(data) as T;
+    if (t == _i22.Category) {
+      return _i22.Category.fromJson(data) as T;
     }
-    if (t == _i23.ComboProductItem) {
-      return _i23.ComboProductItem.fromJson(data) as T;
+    if (t == _i23.CategoryOffer) {
+      return _i23.CategoryOffer.fromJson(data) as T;
     }
-    if (t == _i24.Coupon) {
-      return _i24.Coupon.fromJson(data) as T;
+    if (t == _i24.CategoryOfferPage) {
+      return _i24.CategoryOfferPage.fromJson(data) as T;
     }
-    if (t == _i25.CouponDisplay) {
-      return _i25.CouponDisplay.fromJson(data) as T;
+    if (t == _i25.ComboOffer) {
+      return _i25.ComboOffer.fromJson(data) as T;
     }
-    if (t == _i26.CouponValidationResult) {
-      return _i26.CouponValidationResult.fromJson(data) as T;
+    if (t == _i26.ComboOfferPage) {
+      return _i26.ComboOfferPage.fromJson(data) as T;
     }
-    if (t == _i27.FreeDeliveryRule) {
-      return _i27.FreeDeliveryRule.fromJson(data) as T;
+    if (t == _i27.ComboProductItem) {
+      return _i27.ComboProductItem.fromJson(data) as T;
     }
-    if (t == _i28.FreeItemInfo) {
-      return _i28.FreeItemInfo.fromJson(data) as T;
+    if (t == _i28.Coupon) {
+      return _i28.Coupon.fromJson(data) as T;
     }
-    if (t == _i29.Order) {
-      return _i29.Order.fromJson(data) as T;
+    if (t == _i29.CouponDisplay) {
+      return _i29.CouponDisplay.fromJson(data) as T;
     }
-    if (t == _i30.OrderItem) {
-      return _i30.OrderItem.fromJson(data) as T;
+    if (t == _i30.CouponValidationResult) {
+      return _i30.CouponValidationResult.fromJson(data) as T;
     }
-    if (t == _i31.OrderPage) {
-      return _i31.OrderPage.fromJson(data) as T;
+    if (t == _i31.FreeDeliveryRule) {
+      return _i31.FreeDeliveryRule.fromJson(data) as T;
     }
-    if (t == _i32.PaymentActionResult) {
-      return _i32.PaymentActionResult.fromJson(data) as T;
+    if (t == _i32.FreeDeliveryRulePage) {
+      return _i32.FreeDeliveryRulePage.fromJson(data) as T;
     }
-    if (t == _i33.PaymentOrderResult) {
-      return _i33.PaymentOrderResult.fromJson(data) as T;
+    if (t == _i33.FreeItemInfo) {
+      return _i33.FreeItemInfo.fromJson(data) as T;
     }
-    if (t == _i34.PaymentVerifyResult) {
-      return _i34.PaymentVerifyResult.fromJson(data) as T;
+    if (t == _i34.Order) {
+      return _i34.Order.fromJson(data) as T;
     }
-    if (t == _i35.PricingLineItem) {
-      return _i35.PricingLineItem.fromJson(data) as T;
+    if (t == _i35.OrderItem) {
+      return _i35.OrderItem.fromJson(data) as T;
     }
-    if (t == _i36.Product) {
-      return _i36.Product.fromJson(data) as T;
+    if (t == _i36.OrderPage) {
+      return _i36.OrderPage.fromJson(data) as T;
     }
-    if (t == _i37.ProductPage) {
-      return _i37.ProductPage.fromJson(data) as T;
+    if (t == _i37.PaymentActionResult) {
+      return _i37.PaymentActionResult.fromJson(data) as T;
     }
-    if (t == _i38.ProductVariant) {
-      return _i38.ProductVariant.fromJson(data) as T;
+    if (t == _i38.PaymentOrderResult) {
+      return _i38.PaymentOrderResult.fromJson(data) as T;
     }
-    if (t == _i39.SubCategory) {
-      return _i39.SubCategory.fromJson(data) as T;
+    if (t == _i39.PaymentVerifyResult) {
+      return _i39.PaymentVerifyResult.fromJson(data) as T;
+    }
+    if (t == _i40.PricingLineItem) {
+      return _i40.PricingLineItem.fromJson(data) as T;
+    }
+    if (t == _i41.Product) {
+      return _i41.Product.fromJson(data) as T;
+    }
+    if (t == _i42.ProductPage) {
+      return _i42.ProductPage.fromJson(data) as T;
+    }
+    if (t == _i43.ProductVariant) {
+      return _i43.ProductVariant.fromJson(data) as T;
+    }
+    if (t == _i44.SubCategory) {
+      return _i44.SubCategory.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.Address?>()) {
       return (data != null ? _i5.Address.fromJson(data) : null) as T;
@@ -280,84 +305,100 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i14.Banner?>()) {
       return (data != null ? _i14.Banner.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.BogoFreeProduct?>()) {
-      return (data != null ? _i15.BogoFreeProduct.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i15.BannerPage?>()) {
+      return (data != null ? _i15.BannerPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i16.BogoOffer?>()) {
-      return (data != null ? _i16.BogoOffer.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i16.BogoFreeProduct?>()) {
+      return (data != null ? _i16.BogoFreeProduct.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.CartItem?>()) {
-      return (data != null ? _i17.CartItem.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i17.BogoOffer?>()) {
+      return (data != null ? _i17.BogoOffer.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i18.CartItemInput?>()) {
-      return (data != null ? _i18.CartItemInput.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i18.BogoOfferPage?>()) {
+      return (data != null ? _i18.BogoOfferPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i19.CartPricingResult?>()) {
-      return (data != null ? _i19.CartPricingResult.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i19.CartItem?>()) {
+      return (data != null ? _i19.CartItem.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i20.Category?>()) {
-      return (data != null ? _i20.Category.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i20.CartItemInput?>()) {
+      return (data != null ? _i20.CartItemInput.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i21.CategoryOffer?>()) {
-      return (data != null ? _i21.CategoryOffer.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i21.CartPricingResult?>()) {
+      return (data != null ? _i21.CartPricingResult.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i22.ComboOffer?>()) {
-      return (data != null ? _i22.ComboOffer.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i22.Category?>()) {
+      return (data != null ? _i22.Category.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i23.ComboProductItem?>()) {
-      return (data != null ? _i23.ComboProductItem.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i23.CategoryOffer?>()) {
+      return (data != null ? _i23.CategoryOffer.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i24.Coupon?>()) {
-      return (data != null ? _i24.Coupon.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i24.CategoryOfferPage?>()) {
+      return (data != null ? _i24.CategoryOfferPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i25.CouponDisplay?>()) {
-      return (data != null ? _i25.CouponDisplay.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i25.ComboOffer?>()) {
+      return (data != null ? _i25.ComboOffer.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i26.CouponValidationResult?>()) {
-      return (data != null ? _i26.CouponValidationResult.fromJson(data) : null)
+    if (t == _i1.getType<_i26.ComboOfferPage?>()) {
+      return (data != null ? _i26.ComboOfferPage.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i27.ComboProductItem?>()) {
+      return (data != null ? _i27.ComboProductItem.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i28.Coupon?>()) {
+      return (data != null ? _i28.Coupon.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i29.CouponDisplay?>()) {
+      return (data != null ? _i29.CouponDisplay.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i30.CouponValidationResult?>()) {
+      return (data != null ? _i30.CouponValidationResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i27.FreeDeliveryRule?>()) {
-      return (data != null ? _i27.FreeDeliveryRule.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i31.FreeDeliveryRule?>()) {
+      return (data != null ? _i31.FreeDeliveryRule.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i28.FreeItemInfo?>()) {
-      return (data != null ? _i28.FreeItemInfo.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i29.Order?>()) {
-      return (data != null ? _i29.Order.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i30.OrderItem?>()) {
-      return (data != null ? _i30.OrderItem.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i31.OrderPage?>()) {
-      return (data != null ? _i31.OrderPage.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i32.PaymentActionResult?>()) {
-      return (data != null ? _i32.PaymentActionResult.fromJson(data) : null)
+    if (t == _i1.getType<_i32.FreeDeliveryRulePage?>()) {
+      return (data != null ? _i32.FreeDeliveryRulePage.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i33.PaymentOrderResult?>()) {
-      return (data != null ? _i33.PaymentOrderResult.fromJson(data) : null)
+    if (t == _i1.getType<_i33.FreeItemInfo?>()) {
+      return (data != null ? _i33.FreeItemInfo.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i34.Order?>()) {
+      return (data != null ? _i34.Order.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i35.OrderItem?>()) {
+      return (data != null ? _i35.OrderItem.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i36.OrderPage?>()) {
+      return (data != null ? _i36.OrderPage.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i37.PaymentActionResult?>()) {
+      return (data != null ? _i37.PaymentActionResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i34.PaymentVerifyResult?>()) {
-      return (data != null ? _i34.PaymentVerifyResult.fromJson(data) : null)
+    if (t == _i1.getType<_i38.PaymentOrderResult?>()) {
+      return (data != null ? _i38.PaymentOrderResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i35.PricingLineItem?>()) {
-      return (data != null ? _i35.PricingLineItem.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i39.PaymentVerifyResult?>()) {
+      return (data != null ? _i39.PaymentVerifyResult.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i36.Product?>()) {
-      return (data != null ? _i36.Product.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i40.PricingLineItem?>()) {
+      return (data != null ? _i40.PricingLineItem.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i37.ProductPage?>()) {
-      return (data != null ? _i37.ProductPage.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i41.Product?>()) {
+      return (data != null ? _i41.Product.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i38.ProductVariant?>()) {
-      return (data != null ? _i38.ProductVariant.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i42.ProductPage?>()) {
+      return (data != null ? _i42.ProductPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i39.SubCategory?>()) {
-      return (data != null ? _i39.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i43.ProductVariant?>()) {
+      return (data != null ? _i43.ProductVariant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i44.SubCategory?>()) {
+      return (data != null ? _i44.SubCategory.fromJson(data) : null) as T;
     }
     if (t == List<_i10.AdminTopProduct>) {
       return (data as List)
@@ -365,33 +406,41 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i17.CartItem>) {
-      return (data as List).map((e) => deserialize<_i17.CartItem>(e)).toList()
+    if (t == List<_i19.CartItem>) {
+      return (data as List).map((e) => deserialize<_i19.CartItem>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i17.CartItem>?>()) {
+    if (t == _i1.getType<List<_i19.CartItem>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i17.CartItem>(e))
+                    .map((e) => deserialize<_i19.CartItem>(e))
                     .toList()
               : null)
+          as T;
+    }
+    if (t == List<_i14.Banner>) {
+      return (data as List).map((e) => deserialize<_i14.Banner>(e)).toList()
           as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i15.BogoFreeProduct>) {
+    if (t == List<_i16.BogoFreeProduct>) {
       return (data as List)
-              .map((e) => deserialize<_i15.BogoFreeProduct>(e))
+              .map((e) => deserialize<_i16.BogoFreeProduct>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i15.BogoFreeProduct>?>()) {
+    if (t == _i1.getType<List<_i16.BogoFreeProduct>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i15.BogoFreeProduct>(e))
+                    .map((e) => deserialize<_i16.BogoFreeProduct>(e))
                     .toList()
               : null)
+          as T;
+    }
+    if (t == List<_i17.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i17.BogoOffer>(e)).toList()
           as T;
     }
     if (t == List<_i13.AppliedOfferInfo>) {
@@ -400,15 +449,15 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i28.FreeItemInfo>) {
+    if (t == List<_i33.FreeItemInfo>) {
       return (data as List)
-              .map((e) => deserialize<_i28.FreeItemInfo>(e))
+              .map((e) => deserialize<_i33.FreeItemInfo>(e))
               .toList()
           as T;
     }
-    if (t == List<_i35.PricingLineItem>) {
+    if (t == List<_i40.PricingLineItem>) {
       return (data as List)
-              .map((e) => deserialize<_i35.PricingLineItem>(e))
+              .map((e) => deserialize<_i40.PricingLineItem>(e))
               .toList()
           as T;
     }
@@ -424,94 +473,110 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i23.ComboProductItem>) {
+    if (t == List<_i23.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i23.ComboProductItem>(e))
+              .map((e) => deserialize<_i23.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i30.OrderItem>) {
-      return (data as List).map((e) => deserialize<_i30.OrderItem>(e)).toList()
-          as T;
-    }
-    if (t == List<_i29.Order>) {
-      return (data as List).map((e) => deserialize<_i29.Order>(e)).toList()
-          as T;
-    }
-    if (t == List<_i38.ProductVariant>) {
+    if (t == List<_i27.ComboProductItem>) {
       return (data as List)
-              .map((e) => deserialize<_i38.ProductVariant>(e))
+              .map((e) => deserialize<_i27.ComboProductItem>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i38.ProductVariant>?>()) {
+    if (t == List<_i25.ComboOffer>) {
+      return (data as List).map((e) => deserialize<_i25.ComboOffer>(e)).toList()
+          as T;
+    }
+    if (t == List<_i31.FreeDeliveryRule>) {
+      return (data as List)
+              .map((e) => deserialize<_i31.FreeDeliveryRule>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i35.OrderItem>) {
+      return (data as List).map((e) => deserialize<_i35.OrderItem>(e)).toList()
+          as T;
+    }
+    if (t == List<_i34.Order>) {
+      return (data as List).map((e) => deserialize<_i34.Order>(e)).toList()
+          as T;
+    }
+    if (t == List<_i43.ProductVariant>) {
+      return (data as List)
+              .map((e) => deserialize<_i43.ProductVariant>(e))
+              .toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i43.ProductVariant>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i38.ProductVariant>(e))
+                    .map((e) => deserialize<_i43.ProductVariant>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i36.Product>) {
-      return (data as List).map((e) => deserialize<_i36.Product>(e)).toList()
+    if (t == List<_i41.Product>) {
+      return (data as List).map((e) => deserialize<_i41.Product>(e)).toList()
           as T;
     }
-    if (t == List<_i40.AppUser>) {
-      return (data as List).map((e) => deserialize<_i40.AppUser>(e)).toList()
+    if (t == List<_i45.AppUser>) {
+      return (data as List).map((e) => deserialize<_i45.AppUser>(e)).toList()
           as T;
     }
-    if (t == List<_i41.AdminAuditLogEntry>) {
+    if (t == List<_i46.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i41.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i46.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i42.Banner>) {
-      return (data as List).map((e) => deserialize<_i42.Banner>(e)).toList()
+    if (t == List<_i47.Banner>) {
+      return (data as List).map((e) => deserialize<_i47.Banner>(e)).toList()
           as T;
     }
-    if (t == List<_i43.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i43.BogoOffer>(e)).toList()
+    if (t == List<_i48.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i48.BogoOffer>(e)).toList()
           as T;
     }
-    if (t == List<_i44.Category>) {
-      return (data as List).map((e) => deserialize<_i44.Category>(e)).toList()
+    if (t == List<_i49.Category>) {
+      return (data as List).map((e) => deserialize<_i49.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i45.CategoryOffer>) {
+    if (t == List<_i50.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i45.CategoryOffer>(e))
+              .map((e) => deserialize<_i50.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i46.ComboOffer>) {
-      return (data as List).map((e) => deserialize<_i46.ComboOffer>(e)).toList()
+    if (t == List<_i51.ComboOffer>) {
+      return (data as List).map((e) => deserialize<_i51.ComboOffer>(e)).toList()
           as T;
     }
-    if (t == List<_i47.CartItemInput>) {
+    if (t == List<_i52.CartItemInput>) {
       return (data as List)
-              .map((e) => deserialize<_i47.CartItemInput>(e))
+              .map((e) => deserialize<_i52.CartItemInput>(e))
               .toList()
           as T;
     }
-    if (t == List<_i48.Coupon>) {
-      return (data as List).map((e) => deserialize<_i48.Coupon>(e)).toList()
+    if (t == List<_i53.Coupon>) {
+      return (data as List).map((e) => deserialize<_i53.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i49.CouponDisplay>) {
+    if (t == List<_i54.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i49.CouponDisplay>(e))
+              .map((e) => deserialize<_i54.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i50.FreeDeliveryRule>) {
+    if (t == List<_i55.FreeDeliveryRule>) {
       return (data as List)
-              .map((e) => deserialize<_i50.FreeDeliveryRule>(e))
+              .map((e) => deserialize<_i55.FreeDeliveryRule>(e))
               .toList()
           as T;
     }
-    if (t == List<_i51.Order>) {
-      return (data as List).map((e) => deserialize<_i51.Order>(e)).toList()
+    if (t == List<_i56.Order>) {
+      return (data as List).map((e) => deserialize<_i56.Order>(e)).toList()
           as T;
     }
     if (t == Map<String, dynamic>) {
@@ -520,8 +585,8 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
-    if (t == List<_i52.Product>) {
-      return (data as List).map((e) => deserialize<_i52.Product>(e)).toList()
+    if (t == List<_i57.Product>) {
+      return (data as List).map((e) => deserialize<_i57.Product>(e)).toList()
           as T;
     }
     if (t == List<String>) {
@@ -533,14 +598,14 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i53.SubCategory>) {
+    if (t == List<_i58.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i53.SubCategory>(e))
+              .map((e) => deserialize<_i58.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i54.CartItem>) {
-      return (data as List).map((e) => deserialize<_i54.CartItem>(e)).toList()
+    if (t == List<_i59.CartItem>) {
+      return (data as List).map((e) => deserialize<_i59.CartItem>(e)).toList()
           as T;
     }
     try {
@@ -567,31 +632,36 @@ class Protocol extends _i1.SerializationManagerServer {
       _i12.AppliedCouponInfo => 'AppliedCouponInfo',
       _i13.AppliedOfferInfo => 'AppliedOfferInfo',
       _i14.Banner => 'Banner',
-      _i15.BogoFreeProduct => 'BogoFreeProduct',
-      _i16.BogoOffer => 'BogoOffer',
-      _i17.CartItem => 'CartItem',
-      _i18.CartItemInput => 'CartItemInput',
-      _i19.CartPricingResult => 'CartPricingResult',
-      _i20.Category => 'Category',
-      _i21.CategoryOffer => 'CategoryOffer',
-      _i22.ComboOffer => 'ComboOffer',
-      _i23.ComboProductItem => 'ComboProductItem',
-      _i24.Coupon => 'Coupon',
-      _i25.CouponDisplay => 'CouponDisplay',
-      _i26.CouponValidationResult => 'CouponValidationResult',
-      _i27.FreeDeliveryRule => 'FreeDeliveryRule',
-      _i28.FreeItemInfo => 'FreeItemInfo',
-      _i29.Order => 'Order',
-      _i30.OrderItem => 'OrderItem',
-      _i31.OrderPage => 'OrderPage',
-      _i32.PaymentActionResult => 'PaymentActionResult',
-      _i33.PaymentOrderResult => 'PaymentOrderResult',
-      _i34.PaymentVerifyResult => 'PaymentVerifyResult',
-      _i35.PricingLineItem => 'PricingLineItem',
-      _i36.Product => 'Product',
-      _i37.ProductPage => 'ProductPage',
-      _i38.ProductVariant => 'ProductVariant',
-      _i39.SubCategory => 'SubCategory',
+      _i15.BannerPage => 'BannerPage',
+      _i16.BogoFreeProduct => 'BogoFreeProduct',
+      _i17.BogoOffer => 'BogoOffer',
+      _i18.BogoOfferPage => 'BogoOfferPage',
+      _i19.CartItem => 'CartItem',
+      _i20.CartItemInput => 'CartItemInput',
+      _i21.CartPricingResult => 'CartPricingResult',
+      _i22.Category => 'Category',
+      _i23.CategoryOffer => 'CategoryOffer',
+      _i24.CategoryOfferPage => 'CategoryOfferPage',
+      _i25.ComboOffer => 'ComboOffer',
+      _i26.ComboOfferPage => 'ComboOfferPage',
+      _i27.ComboProductItem => 'ComboProductItem',
+      _i28.Coupon => 'Coupon',
+      _i29.CouponDisplay => 'CouponDisplay',
+      _i30.CouponValidationResult => 'CouponValidationResult',
+      _i31.FreeDeliveryRule => 'FreeDeliveryRule',
+      _i32.FreeDeliveryRulePage => 'FreeDeliveryRulePage',
+      _i33.FreeItemInfo => 'FreeItemInfo',
+      _i34.Order => 'Order',
+      _i35.OrderItem => 'OrderItem',
+      _i36.OrderPage => 'OrderPage',
+      _i37.PaymentActionResult => 'PaymentActionResult',
+      _i38.PaymentOrderResult => 'PaymentOrderResult',
+      _i39.PaymentVerifyResult => 'PaymentVerifyResult',
+      _i40.PricingLineItem => 'PricingLineItem',
+      _i41.Product => 'Product',
+      _i42.ProductPage => 'ProductPage',
+      _i43.ProductVariant => 'ProductVariant',
+      _i44.SubCategory => 'SubCategory',
       _ => null,
     };
   }
@@ -629,55 +699,65 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'AppliedOfferInfo';
       case _i14.Banner():
         return 'Banner';
-      case _i15.BogoFreeProduct():
+      case _i15.BannerPage():
+        return 'BannerPage';
+      case _i16.BogoFreeProduct():
         return 'BogoFreeProduct';
-      case _i16.BogoOffer():
+      case _i17.BogoOffer():
         return 'BogoOffer';
-      case _i17.CartItem():
+      case _i18.BogoOfferPage():
+        return 'BogoOfferPage';
+      case _i19.CartItem():
         return 'CartItem';
-      case _i18.CartItemInput():
+      case _i20.CartItemInput():
         return 'CartItemInput';
-      case _i19.CartPricingResult():
+      case _i21.CartPricingResult():
         return 'CartPricingResult';
-      case _i20.Category():
+      case _i22.Category():
         return 'Category';
-      case _i21.CategoryOffer():
+      case _i23.CategoryOffer():
         return 'CategoryOffer';
-      case _i22.ComboOffer():
+      case _i24.CategoryOfferPage():
+        return 'CategoryOfferPage';
+      case _i25.ComboOffer():
         return 'ComboOffer';
-      case _i23.ComboProductItem():
+      case _i26.ComboOfferPage():
+        return 'ComboOfferPage';
+      case _i27.ComboProductItem():
         return 'ComboProductItem';
-      case _i24.Coupon():
+      case _i28.Coupon():
         return 'Coupon';
-      case _i25.CouponDisplay():
+      case _i29.CouponDisplay():
         return 'CouponDisplay';
-      case _i26.CouponValidationResult():
+      case _i30.CouponValidationResult():
         return 'CouponValidationResult';
-      case _i27.FreeDeliveryRule():
+      case _i31.FreeDeliveryRule():
         return 'FreeDeliveryRule';
-      case _i28.FreeItemInfo():
+      case _i32.FreeDeliveryRulePage():
+        return 'FreeDeliveryRulePage';
+      case _i33.FreeItemInfo():
         return 'FreeItemInfo';
-      case _i29.Order():
+      case _i34.Order():
         return 'Order';
-      case _i30.OrderItem():
+      case _i35.OrderItem():
         return 'OrderItem';
-      case _i31.OrderPage():
+      case _i36.OrderPage():
         return 'OrderPage';
-      case _i32.PaymentActionResult():
+      case _i37.PaymentActionResult():
         return 'PaymentActionResult';
-      case _i33.PaymentOrderResult():
+      case _i38.PaymentOrderResult():
         return 'PaymentOrderResult';
-      case _i34.PaymentVerifyResult():
+      case _i39.PaymentVerifyResult():
         return 'PaymentVerifyResult';
-      case _i35.PricingLineItem():
+      case _i40.PricingLineItem():
         return 'PricingLineItem';
-      case _i36.Product():
+      case _i41.Product():
         return 'Product';
-      case _i37.ProductPage():
+      case _i42.ProductPage():
         return 'ProductPage';
-      case _i38.ProductVariant():
+      case _i43.ProductVariant():
         return 'ProductVariant';
-      case _i39.SubCategory():
+      case _i44.SubCategory():
         return 'SubCategory';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -731,80 +811,95 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'Banner') {
       return deserialize<_i14.Banner>(data['data']);
     }
+    if (dataClassName == 'BannerPage') {
+      return deserialize<_i15.BannerPage>(data['data']);
+    }
     if (dataClassName == 'BogoFreeProduct') {
-      return deserialize<_i15.BogoFreeProduct>(data['data']);
+      return deserialize<_i16.BogoFreeProduct>(data['data']);
     }
     if (dataClassName == 'BogoOffer') {
-      return deserialize<_i16.BogoOffer>(data['data']);
+      return deserialize<_i17.BogoOffer>(data['data']);
+    }
+    if (dataClassName == 'BogoOfferPage') {
+      return deserialize<_i18.BogoOfferPage>(data['data']);
     }
     if (dataClassName == 'CartItem') {
-      return deserialize<_i17.CartItem>(data['data']);
+      return deserialize<_i19.CartItem>(data['data']);
     }
     if (dataClassName == 'CartItemInput') {
-      return deserialize<_i18.CartItemInput>(data['data']);
+      return deserialize<_i20.CartItemInput>(data['data']);
     }
     if (dataClassName == 'CartPricingResult') {
-      return deserialize<_i19.CartPricingResult>(data['data']);
+      return deserialize<_i21.CartPricingResult>(data['data']);
     }
     if (dataClassName == 'Category') {
-      return deserialize<_i20.Category>(data['data']);
+      return deserialize<_i22.Category>(data['data']);
     }
     if (dataClassName == 'CategoryOffer') {
-      return deserialize<_i21.CategoryOffer>(data['data']);
+      return deserialize<_i23.CategoryOffer>(data['data']);
+    }
+    if (dataClassName == 'CategoryOfferPage') {
+      return deserialize<_i24.CategoryOfferPage>(data['data']);
     }
     if (dataClassName == 'ComboOffer') {
-      return deserialize<_i22.ComboOffer>(data['data']);
+      return deserialize<_i25.ComboOffer>(data['data']);
+    }
+    if (dataClassName == 'ComboOfferPage') {
+      return deserialize<_i26.ComboOfferPage>(data['data']);
     }
     if (dataClassName == 'ComboProductItem') {
-      return deserialize<_i23.ComboProductItem>(data['data']);
+      return deserialize<_i27.ComboProductItem>(data['data']);
     }
     if (dataClassName == 'Coupon') {
-      return deserialize<_i24.Coupon>(data['data']);
+      return deserialize<_i28.Coupon>(data['data']);
     }
     if (dataClassName == 'CouponDisplay') {
-      return deserialize<_i25.CouponDisplay>(data['data']);
+      return deserialize<_i29.CouponDisplay>(data['data']);
     }
     if (dataClassName == 'CouponValidationResult') {
-      return deserialize<_i26.CouponValidationResult>(data['data']);
+      return deserialize<_i30.CouponValidationResult>(data['data']);
     }
     if (dataClassName == 'FreeDeliveryRule') {
-      return deserialize<_i27.FreeDeliveryRule>(data['data']);
+      return deserialize<_i31.FreeDeliveryRule>(data['data']);
+    }
+    if (dataClassName == 'FreeDeliveryRulePage') {
+      return deserialize<_i32.FreeDeliveryRulePage>(data['data']);
     }
     if (dataClassName == 'FreeItemInfo') {
-      return deserialize<_i28.FreeItemInfo>(data['data']);
+      return deserialize<_i33.FreeItemInfo>(data['data']);
     }
     if (dataClassName == 'Order') {
-      return deserialize<_i29.Order>(data['data']);
+      return deserialize<_i34.Order>(data['data']);
     }
     if (dataClassName == 'OrderItem') {
-      return deserialize<_i30.OrderItem>(data['data']);
+      return deserialize<_i35.OrderItem>(data['data']);
     }
     if (dataClassName == 'OrderPage') {
-      return deserialize<_i31.OrderPage>(data['data']);
+      return deserialize<_i36.OrderPage>(data['data']);
     }
     if (dataClassName == 'PaymentActionResult') {
-      return deserialize<_i32.PaymentActionResult>(data['data']);
+      return deserialize<_i37.PaymentActionResult>(data['data']);
     }
     if (dataClassName == 'PaymentOrderResult') {
-      return deserialize<_i33.PaymentOrderResult>(data['data']);
+      return deserialize<_i38.PaymentOrderResult>(data['data']);
     }
     if (dataClassName == 'PaymentVerifyResult') {
-      return deserialize<_i34.PaymentVerifyResult>(data['data']);
+      return deserialize<_i39.PaymentVerifyResult>(data['data']);
     }
     if (dataClassName == 'PricingLineItem') {
-      return deserialize<_i35.PricingLineItem>(data['data']);
+      return deserialize<_i40.PricingLineItem>(data['data']);
     }
     if (dataClassName == 'Product') {
-      return deserialize<_i36.Product>(data['data']);
+      return deserialize<_i41.Product>(data['data']);
     }
     if (dataClassName == 'ProductPage') {
-      return deserialize<_i37.ProductPage>(data['data']);
+      return deserialize<_i42.ProductPage>(data['data']);
     }
     if (dataClassName == 'ProductVariant') {
-      return deserialize<_i38.ProductVariant>(data['data']);
+      return deserialize<_i43.ProductVariant>(data['data']);
     }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i39.SubCategory>(data['data']);
+      return deserialize<_i44.SubCategory>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

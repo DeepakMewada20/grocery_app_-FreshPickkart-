@@ -25,6 +25,37 @@ class AdminProductController extends GetxController {
 
   String categoryFilter = 'All';
 
+  bool _matchesCurrentFilter(Product product) {
+    return categoryFilter == 'All' || product.category == categoryFilter;
+  }
+
+  void _sortProducts() {
+    products.sort(
+      (a, b) => a.productName.toLowerCase().compareTo(b.productName.toLowerCase()),
+    );
+  }
+
+  void _upsertLocalProduct(Product product) {
+    final index = products.indexWhere((p) => p.productId == product.productId);
+    final matchesFilter = _matchesCurrentFilter(product);
+
+    if (!matchesFilter) {
+      if (index != -1) {
+        products.removeAt(index);
+        if (totalCount.value > 0) totalCount.value--;
+      }
+      return;
+    }
+
+    if (index != -1) {
+      products[index] = product;
+    } else {
+      products.add(product);
+      totalCount.value++;
+    }
+    _sortProducts();
+  }
+
   Future<void> loadInitial({String? category}) async {
     if (isLoading.value) return;
     categoryFilter = category ?? 'All';
@@ -89,7 +120,7 @@ class AdminProductController extends GetxController {
     }
   }
 
-  Future<String?> addProduct(Product product) async {
+  Future<Product?> addProduct(Product product) async {
     try {
       final newId = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -98,9 +129,10 @@ class AdminProductController extends GetxController {
         );
         return await _client.product.uploadProduct(product, uid, idToken);
       });
-      // Refresh list
-      await loadInitial(category: categoryFilter);
-      return newId;
+      if (newId == null || newId.trim().isEmpty) return null;
+      final createdProduct = product.copyWith(productId: newId);
+      _upsertLocalProduct(createdProduct);
+      return createdProduct;
     } catch (e) {
       rethrow;
     }
@@ -119,12 +151,7 @@ class AdminProductController extends GetxController {
 
       // Update local item to avoid full reload if possible,
       // but simpler is to just refresh the current page or specific item.
-      final index = products.indexWhere(
-        (p) => p.productId == product.productId,
-      );
-      if (index != -1) {
-        products[index] = product;
-      }
+      _upsertLocalProduct(product);
     } catch (e) {
       rethrow;
     }

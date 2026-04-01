@@ -73,23 +73,25 @@ class _OffersScreenState extends State<OffersScreen> {
         !_productController.isLoading.value) {
       futures.add(_productController.loadInitial());
     }
-    if (_bogoController.bogoOffers.isEmpty && !_bogoController.isLoading.value) {
-      futures.add(_bogoController.loadBogoOffers());
+    if (_bogoController.bogoOffers.isEmpty &&
+        !_bogoController.isLoading.value) {
+      futures.add(_bogoController.loadBogoOffers(loadAll: true));
     }
     if (_categoryOfferController.categoryOffers.isEmpty &&
         !_categoryOfferController.isLoading.value) {
-      futures.add(_categoryOfferController.loadCategoryOffers());
+      futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
     }
     if (_comboOfferController.comboOffers.isEmpty &&
         !_comboOfferController.isLoading.value) {
-      futures.add(_comboOfferController.loadComboOffers());
+      futures.add(_comboOfferController.loadComboOffers(loadAll: true));
     }
     if (_freeDeliveryController.freeDeliveryRules.isEmpty &&
         !_freeDeliveryController.isLoading.value) {
-      futures.add(_freeDeliveryController.loadFreeDeliveryRules());
+      futures.add(_freeDeliveryController.loadFreeDeliveryRules(loadAll: true));
     }
-    if (_bannerController.banners.isEmpty && !_bannerController.isLoading.value) {
-      futures.add(_bannerController.loadBanners());
+    if (_bannerController.banners.isEmpty &&
+        !_bannerController.isLoading.value) {
+      futures.add(_bannerController.loadBanners(loadAll: true));
     }
     if (futures.isEmpty) return;
     await Future.wait(futures);
@@ -100,11 +102,11 @@ class _OffersScreenState extends State<OffersScreen> {
       _categoryController.loadCategories(),
       _couponController.loadCoupons(),
       _productController.loadInitial(),
-      _bogoController.loadBogoOffers(force: true),
-      _categoryOfferController.loadCategoryOffers(force: true),
-      _comboOfferController.loadComboOffers(force: true),
-      _freeDeliveryController.loadFreeDeliveryRules(force: true),
-      _bannerController.loadBanners(force: true),
+      _bogoController.loadBogoOffers(force: true, loadAll: true),
+      _categoryOfferController.loadCategoryOffers(force: true, loadAll: true),
+      _comboOfferController.loadComboOffers(force: true, loadAll: true),
+      _freeDeliveryController.loadFreeDeliveryRules(force: true, loadAll: true),
+      _bannerController.loadBanners(force: true, loadAll: true),
     ]);
   }
 
@@ -307,6 +309,11 @@ class _OffersDashboardTab extends StatelessWidget {
       final comboOffers = comboOfferController.comboOffers;
       final freeDeliveryRules = freeDeliveryController.freeDeliveryRules;
       final banners = bannerController.banners;
+      final totalBogo = bogoController.totalCount.value;
+      final totalCategoryOffers = categoryOfferController.totalCount.value;
+      final totalComboOffers = comboOfferController.totalCount.value;
+      final totalDeliveryRules = freeDeliveryController.totalCount.value;
+      final totalBanners = bannerController.totalCount.value;
 
       final liveCoupons = coupons.where((coupon) {
         return _isLive(coupon.startDate, coupon.endDate, coupon.isActive);
@@ -331,18 +338,12 @@ class _OffersDashboardTab extends StatelessWidget {
         children: [
           const Text(
             'Offers Dashboard',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           Text(
             'Offers, banners, and delivery rules ka quick summary',
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
           ),
           const SizedBox(height: 16),
           _DashboardCardGrid(
@@ -362,7 +363,7 @@ class _OffersDashboardTab extends StatelessWidget {
               ),
               CatalogStatCard(
                 title: 'Offers',
-                value: '${bogoOffers.length + categoryOffers.length + comboOffers.length}',
+                value: '${totalBogo + totalCategoryOffers + totalComboOffers}',
                 icon: Icons.local_offer_outlined,
                 color: const Color(0xFF2F6F4F),
                 breakdown: [
@@ -375,7 +376,7 @@ class _OffersDashboardTab extends StatelessWidget {
               ),
               CatalogStatCard(
                 title: 'Delivery Rules',
-                value: '${freeDeliveryRules.length}',
+                value: '$totalDeliveryRules',
                 icon: Icons.local_shipping_outlined,
                 color: const Color(0xFF7C4D12),
                 breakdown: [
@@ -388,7 +389,7 @@ class _OffersDashboardTab extends StatelessWidget {
               ),
               CatalogStatCard(
                 title: 'Banners',
-                value: '${banners.length}',
+                value: '$totalBanners',
                 icon: Icons.image_outlined,
                 color: const Color(0xFF6A4C93),
                 breakdown: [
@@ -408,7 +409,7 @@ class _OffersDashboardTab extends StatelessWidget {
             cards: [
               CatalogStatCard(
                 title: 'BOGO',
-                value: '${bogoOffers.length}',
+                value: '$totalBogo',
                 icon: Icons.card_giftcard,
                 color: const Color(0xFF2B7A78),
                 breakdown: [
@@ -421,7 +422,7 @@ class _OffersDashboardTab extends StatelessWidget {
               ),
               CatalogStatCard(
                 title: 'Category',
-                value: '${categoryOffers.length}',
+                value: '$totalCategoryOffers',
                 icon: Icons.category_outlined,
                 color: const Color(0xFF3A5F6F),
                 breakdown: [
@@ -434,7 +435,7 @@ class _OffersDashboardTab extends StatelessWidget {
               ),
               CatalogStatCard(
                 title: 'Combo',
-                value: '${comboOffers.length}',
+                value: '$totalComboOffers',
                 icon: Icons.widgets_outlined,
                 color: const Color(0xFF4F7D63),
                 breakdown: [
@@ -471,18 +472,10 @@ class _DashboardSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: TextStyle(
-            color: Colors.grey.shade700,
-          ),
-        ),
+        Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
         const SizedBox(height: 12),
         _DashboardCardGrid(cards: cards),
       ],
@@ -501,18 +494,14 @@ class _DashboardCardGrid extends StatelessWidget {
       builder: (context, constraints) {
         const crossAxisCount = 2;
         final itemWidth =
-            (constraints.maxWidth - ((crossAxisCount - 1) * 12)) / crossAxisCount;
+            (constraints.maxWidth - ((crossAxisCount - 1) * 12)) /
+            crossAxisCount;
 
         return Wrap(
           spacing: 12,
           runSpacing: 12,
           children: cards
-              .map(
-                (card) => SizedBox(
-                  width: itemWidth,
-                  child: card,
-                ),
-              )
+              .map((card) => SizedBox(width: itemWidth, child: card))
               .toList(),
         );
       },
@@ -658,10 +647,7 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
 }
 
 class _OfferFabAnimatedAction extends StatelessWidget {
-  const _OfferFabAnimatedAction({
-    required this.animation,
-    required this.child,
-  });
+  const _OfferFabAnimatedAction({required this.animation, required this.child});
 
   final Animation<double> animation;
   final Widget child;
@@ -681,10 +667,7 @@ class _OfferFabAnimatedAction extends StatelessWidget {
         child: SizeTransition(
           sizeFactor: animation,
           axisAlignment: 1,
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: child,
-          ),
+          child: Align(alignment: Alignment.centerRight, child: child),
         ),
       ),
     );
@@ -727,10 +710,7 @@ class _OfferFabAction extends StatelessWidget {
                 child: Icon(icon, size: 18),
               ),
               const SizedBox(width: 10),
-              Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
             ],
           ),
         ),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_tab.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -84,6 +84,18 @@ class _ProductsScreenState extends State<ProductsScreen>
     _categoryProductCache[scope] = List<Product>.from(_productController.products);
   }
 
+  void _syncAllKnownProductCaches() {
+    final allProducts = List<Product>.from(_productController.products);
+    _categoryProductCache['All'] = allProducts;
+    for (final category in _categoryProductCache.keys.toList()) {
+      if (category == 'All') continue;
+      _categoryProductCache[category] = allProducts
+          .where((product) => product.category == category)
+          .toList();
+    }
+    _fetchedCategoryScope = _selectedCategory;
+  }
+
   void _handleScroll() {
     if (!_scrollController.hasClients) return;
     if (_selectedCategory != _fetchedCategoryScope) return;
@@ -112,14 +124,15 @@ class _ProductsScreenState extends State<ProductsScreen>
         product: null,
         categories: _categoryController.categories,
         onSubmit: (result) async {
-          final productId = await _productController.addProduct(result.product);
-          if (productId != null && result.bogoSelections != null) {
+          final createdProduct = await _productController.addProduct(result.product);
+          if (createdProduct?.productId != null && result.bogoSelections != null) {
             await _saveBogoOfferConfiguration(
-              triggerProductId: productId,
+              triggerProductId: createdProduct!.productId!,
               selections: result.bogoSelections!,
             );
           }
-          await _loadData();
+          if (!mounted) return;
+          setState(_syncAllKnownProductCaches);
         },
         groupedSubcategoryOptionsFor:
             _categoryController.groupedSubcategoryOptionsFor,
@@ -131,7 +144,6 @@ class _ProductsScreenState extends State<ProductsScreen>
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Product added')));
-      await _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -160,7 +172,8 @@ class _ProductsScreenState extends State<ProductsScreen>
               selections: result.bogoSelections!,
             );
           }
-          await _loadData();
+          if (!mounted) return;
+          setState(_syncAllKnownProductCaches);
         },
         groupedSubcategoryOptionsFor:
             _categoryController.groupedSubcategoryOptionsFor,
@@ -172,7 +185,6 @@ class _ProductsScreenState extends State<ProductsScreen>
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Product updated')));
-      await _loadData();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -199,7 +211,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
     if (configuredFreeProducts.isEmpty) return;
 
-    await ServerpodAdminClient().client.bogo.upsertOffer(
+    await AdminBogoController.instance.upsertOffer(
       BogoOffer(
         triggerProductId: triggerProductId,
         freeProductIds: configuredFreeProducts.map((f) => f.productId).toList(),

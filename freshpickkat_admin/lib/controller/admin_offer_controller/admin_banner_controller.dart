@@ -9,11 +9,18 @@ class AdminBannerController extends GetxController {
   static AdminBannerController get instance => Get.put(AdminBannerController());
 
   sc.Client get _client => ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminBannerController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminBannerController',
+  );
+  final int pageSize = 20;
 
   final banners = <sc.Banner>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
+  final nextPageToken = Rx<String?>(null);
+  final totalCount = 0.obs;
   final error = Rx<String?>(null);
 
   static const List<String> bannerTypes = [
@@ -58,17 +65,51 @@ class AdminBannerController extends GetxController {
     loadBanners();
   }
 
-  Future<void> loadBanners({bool force = false}) async {
-    if (!force && banners.isNotEmpty) return;
-    if (isLoading.value) return;
+  Future<void> loadBanners({bool force = false, bool loadAll = false}) async {
+    if (force) {
+      banners.clear();
+      nextPageToken.value = null;
+      hasMore.value = true;
+      totalCount.value = 0;
+    }
+    if (!force && banners.isNotEmpty) {
+      if (loadAll) {
+        await ensureAllLoaded();
+      }
+      return;
+    }
+    await loadMore(isInitial: true);
+    if (loadAll) {
+      await ensureAllLoaded();
+    }
+  }
+
+  Future<void> loadMore({bool isInitial = false}) async {
+    if (isLoadingMore.value) return;
+    if (!hasMore.value && !isInitial) return;
     try {
-      isLoading.value = true;
+      if (isInitial || banners.isEmpty) {
+        isLoading.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
       error.value = null;
       networkController.hideError();
-      final bannerList = await ApiClient().request(() async {
-        return await _client.banner.getBanners(activeOnly: false);
+      final page = await ApiClient().request(() async {
+        return await _client.banner.getBannersPage(
+          activeOnly: false,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+        );
       });
-      banners.assignAll(bannerList);
+      if (isInitial) {
+        banners.assignAll(page.banners);
+      } else {
+        banners.addAll(page.banners);
+      }
+      nextPageToken.value = page.nextPageToken;
+      totalCount.value = page.totalCount;
+      hasMore.value = page.nextPageToken != null && page.banners.isNotEmpty;
     } on NoInternetException {
       networkController.showError(onRetry: loadBanners);
     } on NetworkException {
@@ -80,6 +121,13 @@ class AdminBannerController extends GetxController {
       print('Error loading banners: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    while (hasMore.value && !isLoadingMore.value) {
+      await loadMore();
     }
   }
 
@@ -91,6 +139,7 @@ class AdminBannerController extends GetxController {
         return await _client.banner.createBanner(banner);
       });
       banners.add(created);
+      totalCount.value++;
       _sortBanners();
       return true;
     } catch (e) {
@@ -132,6 +181,7 @@ class AdminBannerController extends GetxController {
         await _client.banner.deleteBanner(bannerId);
       });
       banners.removeWhere((b) => b.bannerId == bannerId);
+      if (totalCount.value > 0) totalCount.value--;
       return true;
     } catch (e) {
       error.value = e.toString();

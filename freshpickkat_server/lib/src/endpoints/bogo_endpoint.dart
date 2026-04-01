@@ -79,6 +79,33 @@ class BogoEndpoint extends Endpoint {
     return offers;
   }
 
+  Future<protocol.BogoOfferPage> getOffersPage(
+    Session session, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final offers = await getAllOffers(session);
+    offers.sort((a, b) {
+      final titleCompare = a.offerTitle.toLowerCase().compareTo(
+        b.offerTitle.toLowerCase(),
+      );
+      if (titleCompare != 0) return titleCompare;
+      return a.triggerProductId.compareTo(b.triggerProductId);
+    });
+
+    final offset = int.tryParse(pageToken ?? '') ?? 0;
+    final safeOffset = offset.clamp(0, offers.length);
+    final end = (safeOffset + limit).clamp(0, offers.length);
+    final pageItems = offers.sublist(safeOffset, end);
+    final nextOffset = end < offers.length ? '$end' : null;
+
+    return protocol.BogoOfferPage(
+      offers: pageItems,
+      nextPageToken: nextOffset,
+      totalCount: offers.length,
+    );
+  }
+
   // ── User App: Get all active BOGO offers ───────────────────────────────────
   Future<List<protocol.BogoOffer>> getActiveOffers(Session session) async {
     final firestore = await FirebaseService.getFirestoreClient();
@@ -152,6 +179,16 @@ class BogoEndpoint extends Endpoint {
     return protocol.BogoOffer(
       offerId: docId,
       triggerProductId: fields['triggerProductId']?.stringValue ?? docId,
+      triggerVariantId: fields['triggerVariantId']?.stringValue,
+      minTriggerQuantity: int.tryParse(
+        fields['minTriggerQuantity']?.integerValue?.toString() ?? '1',
+      ),
+      triggerBaseQuantity: double.tryParse(
+        fields['triggerBaseQuantity']?.doubleValue?.toString() ??
+            fields['triggerBaseQuantity']?.integerValue?.toString() ??
+            '',
+      ),
+      triggerBaseUnit: fields['triggerBaseUnit']?.stringValue,
       freeProductIds: normalizedFreeProductIds,
       freeProducts: freeProducts.isEmpty ? null : freeProducts,
       offerTitle: fields['offerTitle']?.stringValue ?? 'Buy 1 Get 1',
@@ -199,6 +236,22 @@ class BogoEndpoint extends Endpoint {
       'triggerProductId': firestore_api.Value(
         stringValue: offer.triggerProductId,
       ),
+      'triggerVariantId':
+          offer.triggerVariantId != null &&
+              offer.triggerVariantId!.trim().isNotEmpty
+          ? firestore_api.Value(stringValue: offer.triggerVariantId!.trim())
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
+      'minTriggerQuantity': firestore_api.Value(
+        integerValue: (offer.minTriggerQuantity ?? 1).toString(),
+      ),
+      'triggerBaseQuantity': offer.triggerBaseQuantity != null
+          ? firestore_api.Value(doubleValue: offer.triggerBaseQuantity!)
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
+      'triggerBaseUnit':
+          offer.triggerBaseUnit != null &&
+              offer.triggerBaseUnit!.trim().isNotEmpty
+          ? firestore_api.Value(stringValue: offer.triggerBaseUnit!.trim())
+          : firestore_api.Value(nullValue: 'NULL_VALUE'),
       'freeProductIds': firestore_api.Value(
         arrayValue: firestore_api.ArrayValue(
           values: freeProductIds

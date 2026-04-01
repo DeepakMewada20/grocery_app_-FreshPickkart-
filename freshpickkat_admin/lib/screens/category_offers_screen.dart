@@ -68,6 +68,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
       AdminCategoryOfferController.instance;
   final AdminCategoryController _categoryController =
       AdminCategoryController.instance;
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
@@ -76,11 +77,28 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_categoryController.categories.isEmpty) {
         _categoryController.loadCategories();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients || _searchQuery.isNotEmpty) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
   }
 
   @override
@@ -94,7 +112,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.loadCategoryOffers(),
+            onPressed: () => _controller.loadCategoryOffers(force: true),
           ),
         ],
       ),
@@ -127,11 +145,13 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
             child: Obx(() {
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
-                  onRetry: () => _controller.networkController.retryLastRequest(),
+                  onRetry: () =>
+                      _controller.networkController.retryLastRequest(),
                 );
               }
 
-              if (_controller.isLoading.value && _controller.categoryOffers.isEmpty) {
+              if (_controller.isLoading.value &&
+                  _controller.categoryOffers.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -160,8 +180,16 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
               }
 
               return ListView.builder(
-                itemCount: offers.length,
+                controller: _scrollController,
+                itemCount:
+                    offers.length + (_controller.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index >= offers.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
                   final offer = offers[index];
                   return _CategoryOfferCard(
                     offer: offer,
@@ -182,10 +210,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   }
 
   void _showAddOfferDialog() {
-    showAddCategoryOfferDialog(
-      context: context,
-      controller: _controller,
-    );
+    showAddCategoryOfferDialog(context: context, controller: _controller);
   }
 
   void _showEditOfferDialog(CategoryOffer offer) {
@@ -233,10 +258,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    : const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -500,7 +522,11 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                 color: Colors.green.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.calendar_today, size: 18, color: Colors.green),
+              child: const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -608,7 +634,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCategoryId,
                         isExpanded: true,
-                        decoration: const InputDecoration(labelText: 'Category'),
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                        ),
                         items: categories
                             .map(
                               (c) => DropdownMenuItem(
@@ -638,7 +666,8 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                               ),
                               keyboardType: TextInputType.number,
                               validator: (v) {
-                                if (v?.trim().isEmpty == true) return 'Required';
+                                if (v?.trim().isEmpty == true)
+                                  return 'Required';
                                 if (double.tryParse(v!) == null) {
                                   return 'Invalid number';
                                 }
@@ -651,7 +680,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _discountType,
                               isExpanded: true,
-                              decoration: const InputDecoration(labelText: 'Type'),
+                              decoration: const InputDecoration(
+                                labelText: 'Type',
+                              ),
                               items: const [
                                 DropdownMenuItem(
                                   value: 'percentage',
@@ -727,7 +758,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.pop(context),
                           child: const Text('Cancel'),
                         ),
                       ),
@@ -739,7 +772,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : Text(isEditing ? 'Update' : 'Create'),
                         ),

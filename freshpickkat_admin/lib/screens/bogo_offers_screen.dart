@@ -21,6 +21,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   final AdminBogoController _controller = AdminBogoController.instance;
   final AdminProductController _productController =
       AdminProductController.instance;
+  final ScrollController _scrollController = ScrollController();
   final Map<String, Product> _resolvedTriggerProductsById = {};
   String _searchQuery = '';
   bool _isResolvingTriggerProducts = false;
@@ -31,11 +32,28 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_productController.products.isEmpty) {
         _productController.loadInitial();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients || _searchQuery.isNotEmpty) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
   }
 
   @override
@@ -49,7 +67,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.loadBogoOffers(),
+            onPressed: () => _controller.loadBogoOffers(force: true),
           ),
         ],
       ),
@@ -82,11 +100,13 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
             child: Obx(() {
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
-                  onRetry: () => _controller.networkController.retryLastRequest(),
+                  onRetry: () =>
+                      _controller.networkController.retryLastRequest(),
                 );
               }
 
-              if (_controller.isLoading.value && _controller.bogoOffers.isEmpty) {
+              if (_controller.isLoading.value &&
+                  _controller.bogoOffers.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -99,8 +119,11 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                         o.triggerProductId.toLowerCase().contains(_searchQuery),
                   )
                   .toList();
-              final activeCount = bogoOffers.where((offer) => offer.isActive).length;
-              final inactiveCount = bogoOffers.length - activeCount;
+              final activeCount = bogoOffers
+                  .where((offer) => offer.isActive)
+                  .length;
+              final totalBogoCount = bogoOffers.length;
+              final inactiveCount = totalBogoCount - activeCount;
               final liveCount = bogoOffers.where((offer) {
                 final now = DateTime.now();
                 return offer.isActive &&
@@ -134,6 +157,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
               }
 
               return ListView(
+                controller: _scrollController,
                 padding: const EdgeInsets.only(bottom: 88),
                 children: [
                   Padding(
@@ -145,7 +169,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                         children: [
                           CatalogStatCard(
                             title: 'All BOGO',
-                            value: '${bogoOffers.length}',
+                            value: '$totalBogoCount',
                             icon: Icons.card_giftcard,
                             color: const Color(0xFFB45309),
                             breakdown: [
@@ -184,6 +208,11 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                       onDelete: () => _showDeleteConfirmation(offer),
                     );
                   }),
+                  if (_controller.isLoadingMore.value)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                 ],
               );
             }),
@@ -228,13 +257,14 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
       String? pageToken;
 
       do {
-        final page = await ServerpodAdminClient().client.product.getProductsPage(
-          firebaseUid: uid,
-          idToken: idToken,
-          sortBy: 'name',
-          limit: 100,
-          pageToken: pageToken,
-        );
+        final page = await ServerpodAdminClient().client.product
+            .getProductsPage(
+              firebaseUid: uid,
+              idToken: idToken,
+              sortBy: 'name',
+              limit: 100,
+              pageToken: pageToken,
+            );
 
         for (final product in page.products) {
           final productId = product.productId;
@@ -264,15 +294,13 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'BOGO offer ${isActive ? 'activated' : 'deactivated'}',
-          ),
+          content: Text('BOGO offer ${isActive ? 'activated' : 'deactivated'}'),
         ),
       );
     } else if (!success && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Error toggling BOGO offer')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error toggling BOGO offer')),
+      );
     }
   }
 
@@ -308,9 +336,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Delete BOGO Offer'),
-            content: Text(
-              'Are you sure you want to delete this BOGO offer?',
-            ),
+            content: Text('Are you sure you want to delete this BOGO offer?'),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
@@ -344,10 +370,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    : const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -383,6 +406,17 @@ class _BogoOfferCard extends StatelessWidget {
         (p) => p.productId == offer.triggerProductId,
       );
     } catch (_) {}
+    ProductVariant? triggerVariant;
+    if (triggerProduct != null &&
+        offer.triggerVariantId != null &&
+        offer.triggerVariantId!.trim().isNotEmpty) {
+      try {
+        triggerVariant = (triggerProduct.variants ?? const <ProductVariant>[])
+            .firstWhere(
+              (variant) => variant.variantId == offer.triggerVariantId,
+            );
+      } catch (_) {}
+    }
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -428,7 +462,7 @@ class _BogoOfferCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Buy 1 Get ${offer.freeProductIds.length} Free',
+                    'Buy ${offer.minTriggerQuantity ?? 1} Get ${offer.freeProductIds.length} Free',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -436,6 +470,29 @@ class _BogoOfferCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (triggerVariant != null ||
+                    (offer.triggerBaseQuantity != null &&
+                        offer.triggerBaseUnit != null))
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      triggerVariant != null
+                          ? 'Variant: ${triggerVariant.quantityValue == triggerVariant.quantityValue.truncateToDouble() ? triggerVariant.quantityValue.toInt() : triggerVariant.quantityValue} ${triggerVariant.quantityUnit}'
+                          : 'Variant: ${offer.triggerBaseQuantity} ${offer.triggerBaseUnit}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ),
                 if (isValid && offer.isActive)
                   Container(
                     padding: const EdgeInsets.symmetric(

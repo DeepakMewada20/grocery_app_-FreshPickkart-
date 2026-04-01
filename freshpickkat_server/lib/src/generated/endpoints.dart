@@ -349,6 +349,43 @@ class Endpoints extends _i1.EndpointDispatch {
                 activeOnly: params['activeOnly'],
               ),
         ),
+        'getBannersPage': _i1.MethodConnector(
+          name: 'getBannersPage',
+          params: {
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'activeOnly': _i1.ParameterDescription(
+              name: 'activeOnly',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'screen': _i1.ParameterDescription(
+              name: 'screen',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['banner'] as _i4.BannerEndpoint).getBannersPage(
+                    session,
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                    activeOnly: params['activeOnly'],
+                    screen: params['screen'],
+                  ),
+        ),
         'getBannerById': _i1.MethodConnector(
           name: 'getBannerById',
           params: {
@@ -526,6 +563,30 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['bogo'] as _i5.BogoEndpoint).getAllOffers(session),
+        ),
+        'getOffersPage': _i1.MethodConnector(
+          name: 'getOffersPage',
+          params: {
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint).getOffersPage(
+                session,
+                limit: params['limit'],
+                pageToken: params['pageToken'],
+              ),
         ),
         'getActiveOffers': _i1.MethodConnector(
           name: 'getActiveOffers',
@@ -710,6 +771,44 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'getCategoryOffersPage': _i1.MethodConnector(
+          name: 'getCategoryOffersPage',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['categoryOffer'] as _i7.CategoryOfferEndpoint)
+                      .getCategoryOffersPage(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        limit: params['limit'],
+                        pageToken: params['pageToken'],
+                      ),
+        ),
         'setCategoryOfferActive': _i1.MethodConnector(
           name: 'setCategoryOfferActive',
           params: {
@@ -849,6 +948,43 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['firebaseUid'],
                     params['idToken'],
+                  ),
+        ),
+        'getComboOffersPage': _i1.MethodConnector(
+          name: 'getComboOffersPage',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i8.ComboOfferEndpoint)
+                  .getComboOffersPage(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
                   ),
         ),
         'setComboOfferActive': _i1.MethodConnector(
@@ -1186,6 +1322,44 @@ class Endpoints extends _i1.EndpointDispatch {
                         session,
                         params['firebaseUid'],
                         params['idToken'],
+                      ),
+        ),
+        'getFreeDeliveryRulesPage': _i1.MethodConnector(
+          name: 'getFreeDeliveryRulesPage',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
+                      .getFreeDeliveryRulesPage(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        limit: params['limit'],
+                        pageToken: params['pageToken'],
                       ),
         ),
         'setFreeDeliveryRuleActive': _i1.MethodConnector(

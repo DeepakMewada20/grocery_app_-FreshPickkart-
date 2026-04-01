@@ -101,6 +101,31 @@ class BannerEndpoint extends Endpoint {
     return filteredBanners;
   }
 
+  Future<BannerPage> getBannersPage(
+    Session session, {
+    int limit = 20,
+    String? pageToken,
+    bool activeOnly = false,
+    String? screen,
+  }) async {
+    final allBanners = await getBanners(
+      session,
+      activeOnly: activeOnly,
+      screen: screen,
+    );
+    final offset = int.tryParse(pageToken ?? '') ?? 0;
+    final safeOffset = offset.clamp(0, allBanners.length);
+    final end = (safeOffset + limit).clamp(0, allBanners.length);
+    final pageItems = allBanners.sublist(safeOffset, end);
+    final nextOffset = end < allBanners.length ? '$end' : null;
+
+    return BannerPage(
+      banners: pageItems,
+      nextPageToken: nextOffset,
+      totalCount: allBanners.length,
+    );
+  }
+
   Future<Banner?> getBannerById(Session session, String bannerId) async {
     final firestore = await FirebaseService.getFirestoreClient();
 

@@ -1,0 +1,5 @@
+class: BogoOfferPage
+fields:
+  offers: List<BogoOffer>
+  nextPageToken: String?
+  totalCount: int

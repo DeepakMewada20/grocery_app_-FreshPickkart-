@@ -1,0 +1,5 @@
+class: FreeDeliveryRulePage
+fields:
+  rules: List<FreeDeliveryRule>
+  nextPageToken: String?
+  totalCount: int

@@ -2,6 +2,10 @@ class: BogoOffer
 fields:
   offerId: String?
   triggerProductId: String
+  triggerVariantId: String?
+  minTriggerQuantity: int?
+  triggerBaseQuantity: double?
+  triggerBaseUnit: String?
   freeProductIds: List<String>
   freeProducts: List<BogoFreeProduct>?
   offerTitle: String

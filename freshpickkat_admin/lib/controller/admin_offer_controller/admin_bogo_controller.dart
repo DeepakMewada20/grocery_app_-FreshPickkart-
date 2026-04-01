@@ -9,11 +9,30 @@ class AdminBogoController extends GetxController {
   static AdminBogoController get instance => Get.put(AdminBogoController());
 
   Client get client => ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminBogoController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminBogoController',
+  );
+  final int pageSize = 20;
 
   final bogoOffers = <BogoOffer>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
+  final nextPageToken = RxnString();
+  final totalCount = 0.obs;
+
+  void _upsertLocal(BogoOffer offer) {
+    final index = bogoOffers.indexWhere(
+      (item) => item.triggerProductId == offer.triggerProductId,
+    );
+    if (index == -1) {
+      bogoOffers.add(offer);
+      totalCount.value++;
+    } else {
+      bogoOffers[index] = offer;
+    }
+  }
 
   @override
   void onInit() {
@@ -21,16 +40,53 @@ class AdminBogoController extends GetxController {
     loadBogoOffers();
   }
 
-  Future<void> loadBogoOffers({bool force = false}) async {
-    if (!force && bogoOffers.isNotEmpty) return;
-    if (isLoading.value) return;
+  Future<void> loadBogoOffers({
+    bool force = false,
+    bool loadAll = false,
+  }) async {
+    if (force) {
+      bogoOffers.clear();
+      nextPageToken.value = null;
+      hasMore.value = true;
+      totalCount.value = 0;
+    }
+    if (!force && bogoOffers.isNotEmpty) {
+      if (loadAll) {
+        await ensureAllLoaded();
+      }
+      return;
+    }
+
+    await loadMore(isInitial: true);
+    if (loadAll) {
+      await ensureAllLoaded();
+    }
+  }
+
+  Future<void> loadMore({bool isInitial = false}) async {
+    if (isLoadingMore.value) return;
+    if (!hasMore.value && !isInitial) return;
     try {
-      isLoading.value = true;
+      if (isInitial || bogoOffers.isEmpty) {
+        isLoading.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
       networkController.hideError();
-      final offers = await ApiClient().request(() async {
-        return await client.bogo.getAllOffers();
+      final page = await ApiClient().request(() async {
+        return await client.bogo.getOffersPage(
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+        );
       });
-      bogoOffers.assignAll(offers);
+      if (isInitial) {
+        bogoOffers.assignAll(page.offers);
+      } else {
+        bogoOffers.addAll(page.offers);
+      }
+      nextPageToken.value = page.nextPageToken;
+      totalCount.value = page.totalCount;
+      hasMore.value = page.nextPageToken != null && page.offers.isNotEmpty;
     } on NoInternetException {
       networkController.showError(onRetry: loadBogoOffers);
     } on NetworkException {
@@ -41,13 +97,23 @@ class AdminBogoController extends GetxController {
       print('Error loading BOGO offers: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    while (hasMore.value && !isLoadingMore.value) {
+      await loadMore();
     }
   }
 
   Future<bool> deleteOffer(String triggerProductId) async {
     try {
       await client.bogo.deleteOffer(triggerProductId);
-      await loadBogoOffers();
+      bogoOffers.removeWhere(
+        (offer) => offer.triggerProductId == triggerProductId,
+      );
+      if (totalCount.value > 0) totalCount.value--;
       return true;
     } catch (e) {
       print('Error deleting BOGO offer: $e');
@@ -58,7 +124,7 @@ class AdminBogoController extends GetxController {
   Future<bool> upsertOffer(BogoOffer offer) async {
     try {
       await client.bogo.upsertOffer(offer);
-      await loadBogoOffers();
+      _upsertLocal(offer);
       return true;
     } catch (e) {
       print('Error upserting BOGO offer: $e');

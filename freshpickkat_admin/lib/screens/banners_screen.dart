@@ -21,11 +21,33 @@ class BannersScreen extends StatefulWidget {
 class _BannersScreenState extends State<BannersScreen>
     with AutomaticKeepAliveClientMixin {
   final AdminBannerController _controller = AdminBannerController.instance;
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients || _searchQuery.isNotEmpty) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +119,16 @@ class _BannersScreenState extends State<BannersScreen>
               }
 
               return ListView.builder(
-                itemCount: banners.length,
+                controller: _scrollController,
+                itemCount:
+                    banners.length + (_controller.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index >= banners.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
                   final banner = banners[index];
                   return _BannerCard(
                     banner: banner,
@@ -176,10 +206,7 @@ class _BannersScreenState extends State<BannersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    : const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),

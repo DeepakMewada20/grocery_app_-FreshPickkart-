@@ -24,7 +24,8 @@ class CatalogStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minWidth = compact ? 122.0 : 150.0;
+    final minWidth = compact ? 160.0 : 150.0;
+    final maxWidth = compact ? 160.0 : double.infinity;
     final padding = compact ? 8.0 : 14.0;
     final radius = compact ? 14.0 : 16.0;
     final avatarRadius = compact ? 16.0 : 20.0;
@@ -40,7 +41,7 @@ class CatalogStatCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
         child: Container(
-          constraints: BoxConstraints(minWidth: minWidth),
+          constraints: BoxConstraints(minWidth: minWidth, maxWidth: maxWidth),
           child: Ink(
             padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(

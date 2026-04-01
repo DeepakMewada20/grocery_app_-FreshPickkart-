@@ -29,3 +29,11 @@ class UnknownException implements Exception {
   @override
   String toString() => message;
 }
+
+class AuthFailureException implements Exception {
+  final String message;
+  AuthFailureException([this.message = 'Login expired. Please login again.']);
+
+  @override
+  String toString() => message;
+}

@@ -628,12 +628,32 @@ class ProductEndpoint extends Endpoint {
           .toSet()
           .toList();
       final existingFreeProductQuantities = <String, String?>{};
+      String? existingTriggerVariantId;
+      int? existingMinTriggerQuantity;
+      double? existingTriggerBaseQuantity;
+      String? existingTriggerBaseUnit;
 
       try {
         final existingDoc = await firestore.projects.databases.documents.get(
           docPath,
         );
         if (existingDoc.fields != null) {
+          existingTriggerVariantId =
+              existingDoc.fields!['triggerVariantId']?.stringValue;
+          existingMinTriggerQuantity = int.tryParse(
+            existingDoc.fields!['minTriggerQuantity']?.integerValue
+                    ?.toString() ??
+                '1',
+          );
+          existingTriggerBaseQuantity = double.tryParse(
+            existingDoc.fields!['triggerBaseQuantity']?.doubleValue
+                    ?.toString() ??
+                existingDoc.fields!['triggerBaseQuantity']?.integerValue
+                    ?.toString() ??
+                '',
+          );
+          existingTriggerBaseUnit =
+              existingDoc.fields!['triggerBaseUnit']?.stringValue;
           for (final freeProduct in _parseBogoFreeProducts(
             existingDoc.fields!,
           )) {
@@ -656,6 +676,23 @@ class ProductEndpoint extends Endpoint {
       final fields = {
         'offerId': firestore_api.Value(stringValue: triggerProductId),
         'triggerProductId': firestore_api.Value(stringValue: triggerProductId),
+        if (existingTriggerVariantId != null &&
+            existingTriggerVariantId.trim().isNotEmpty)
+          'triggerVariantId': firestore_api.Value(
+            stringValue: existingTriggerVariantId.trim(),
+          ),
+        'minTriggerQuantity': firestore_api.Value(
+          integerValue: (existingMinTriggerQuantity ?? 1).toString(),
+        ),
+        if (existingTriggerBaseQuantity != null)
+          'triggerBaseQuantity': firestore_api.Value(
+            doubleValue: existingTriggerBaseQuantity,
+          ),
+        if (existingTriggerBaseUnit != null &&
+            existingTriggerBaseUnit.trim().isNotEmpty)
+          'triggerBaseUnit': firestore_api.Value(
+            stringValue: existingTriggerBaseUnit.trim(),
+          ),
         'freeProductIds': firestore_api.Value(
           arrayValue: firestore_api.ArrayValue(
             values: normalizedFreeProductIds
@@ -996,7 +1033,8 @@ class ProductEndpoint extends Endpoint {
       'quantity': firestore_api.Value(stringValue: product.quantity),
       'baseUnit': firestore_api.Value(stringValue: baseUnit),
       'baseQuantity': firestore_api.Value(doubleValue: baseQuantity),
-      'quantityDescription': product.quantityDescription != null &&
+      'quantityDescription':
+          product.quantityDescription != null &&
               product.quantityDescription!.trim().isNotEmpty
           ? firestore_api.Value(
               stringValue: product.quantityDescription!.trim(),

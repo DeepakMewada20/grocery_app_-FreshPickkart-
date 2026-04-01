@@ -1,0 +1,5 @@
+class: CategoryOfferPage
+fields:
+  offers: List<CategoryOffer>
+  nextPageToken: String?
+  totalCount: int

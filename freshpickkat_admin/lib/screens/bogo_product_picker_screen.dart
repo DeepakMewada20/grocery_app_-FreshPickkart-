@@ -36,11 +36,7 @@ class BogoOfferEditorScreen extends StatefulWidget {
   final BogoOffer? offer;
   final Future<bool> Function(BogoOffer offer) onSave;
 
-  const BogoOfferEditorScreen({
-    super.key,
-    this.offer,
-    required this.onSave,
-  });
+  const BogoOfferEditorScreen({super.key, this.offer, required this.onSave});
 
   static Future<bool?> show({
     required BuildContext context,
@@ -50,10 +46,8 @@ class BogoOfferEditorScreen extends StatefulWidget {
     return Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (context) => BogoOfferEditorScreen(
-          offer: offer,
-          onSave: onSave,
-        ),
+        builder: (context) =>
+            BogoOfferEditorScreen(offer: offer, onSave: onSave),
       ),
     );
   }
@@ -78,6 +72,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   String? _errorMessage;
   String? _selectedCategory;
   Product? _selectedTriggerProduct;
+  String? _selectedTriggerVariantId;
+  int _minimumTriggerQuantity = 1;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 365));
 
@@ -106,6 +102,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       if (offer != null) {
         _startDate = offer.startDate;
         _endDate = offer.endDate;
+        _selectedTriggerVariantId = offer.triggerVariantId;
+        _minimumTriggerQuantity =
+            offer.minTriggerQuantity == null || offer.minTriggerQuantity! <= 0
+            ? 1
+            : offer.minTriggerQuantity!;
 
         _selectedTriggerProduct = _productController.products.firstWhere(
           (p) => p.productId == offer.triggerProductId,
@@ -150,10 +151,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
           final configured = freeProducts
               .where((item) => item.productId == freeProductId)
               .cast<BogoFreeProduct?>()
-              .firstWhere(
-                (_) => true,
-                orElse: () => null,
-              );
+              .firstWhere((_) => true, orElse: () => null);
           _selectedFreeQuantitiesById[freeProductId] = _normalizeFreeQuantity(
             configured?.quantity,
             fallback: product.quantity,
@@ -204,14 +202,15 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       String? pageToken;
 
       do {
-        final page = await ServerpodAdminClient().client.product.getProductsPage(
-          firebaseUid: uid,
-          idToken: idToken,
-          category: category,
-          sortBy: 'name',
-          limit: 100,
-          pageToken: pageToken,
-        );
+        final page = await ServerpodAdminClient().client.product
+            .getProductsPage(
+              firebaseUid: uid,
+              idToken: idToken,
+              category: category,
+              sortBy: 'name',
+              limit: 100,
+              pageToken: pageToken,
+            );
         products.addAll(page.products);
         pageToken = page.nextPageToken;
       } while (pageToken != null);
@@ -239,7 +238,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     if (product == null) return;
     setState(() {
       _selectedTriggerProduct = product;
-      if (product.category.trim().isNotEmpty && _selectedCategory != product.category) {
+      _selectedTriggerVariantId = _defaultTriggerVariantId(product);
+      if (product.category.trim().isNotEmpty &&
+          _selectedCategory != product.category) {
         _selectedCategory = product.category;
       }
       final triggerId = product.productId;
@@ -251,6 +252,51 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     if (product.category.trim().isNotEmpty) {
       _loadProductsForCategory(product.category);
     }
+  }
+
+  List<ProductVariant> _triggerVariants(Product? product) {
+    if (product == null) return const <ProductVariant>[];
+    final variants = product.variants ?? const <ProductVariant>[];
+    if (variants.isNotEmpty) return variants;
+    return <ProductVariant>[
+      ProductVariant(
+        variantId: 'default',
+        quantityValue: product.baseQuantity ?? 1,
+        quantityUnit: product.baseUnit ?? 'pc',
+        quantityDescription: product.quantityDescription,
+        price: product.price,
+        realPrice: product.realPrice,
+        isAvailable: product.isAvailable,
+        sortOrder: 0,
+      ),
+    ];
+  }
+
+  String? _defaultTriggerVariantId(Product product) {
+    final variants = _triggerVariants(product);
+    if (variants.isEmpty) return null;
+    final existing = _selectedTriggerVariantId;
+    final match = variants.any((variant) => variant.variantId == existing);
+    return match ? existing : variants.first.variantId;
+  }
+
+  ProductVariant? _selectedTriggerVariant() {
+    final trigger = _selectedTriggerProduct;
+    if (trigger == null) return null;
+    final variants = _triggerVariants(trigger);
+    if (variants.isEmpty) return null;
+    return variants.firstWhere(
+      (variant) => variant.variantId == _selectedTriggerVariantId,
+      orElse: () => variants.first,
+    );
+  }
+
+  String _variantLabel(ProductVariant variant) {
+    final quantity =
+        variant.quantityValue == variant.quantityValue.truncateToDouble()
+        ? variant.quantityValue.toInt().toString()
+        : variant.quantityValue.toString();
+    return '$quantity ${variant.quantityUnit}';
   }
 
   void _toggleSelection(Product product) {
@@ -350,7 +396,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                 color: Colors.green.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.calendar_today, size: 18, color: Colors.green),
+              child: const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -413,13 +463,16 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      trigger?.productName ?? 'Select the product customers must buy',
+                      trigger?.productName ??
+                          'Select the product customers must buy',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: trigger == null ? Colors.grey.shade700 : Colors.black,
+                        color: trigger == null
+                            ? Colors.grey.shade700
+                            : Colors.black,
                       ),
                     ),
                   ],
@@ -430,11 +483,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                 onPressed: _isSubmitting
                     ? null
                     : () async {
-                                  final selected = await ProductSelectionDialog.showBottomSheet(
-                                    context: context,
-                                    title: 'Select Trigger Product',
-                                    initialCategory: _selectedCategory,
-                                  );
+                        final selected =
+                            await ProductSelectionDialog.showBottomSheet(
+                              context: context,
+                              title: 'Select Trigger Product',
+                              initialCategory: _selectedCategory,
+                            );
                         if (selected != null) {
                           _selectTriggerProduct(selected);
                         }
@@ -503,6 +557,53 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            DropdownButtonFormField<String>(
+              initialValue: _defaultTriggerVariantId(trigger),
+              decoration: const InputDecoration(
+                labelText: 'Trigger Variant',
+                border: OutlineInputBorder(),
+              ),
+              items: _triggerVariants(trigger)
+                  .map(
+                    (variant) => DropdownMenuItem(
+                      value: variant.variantId,
+                      child: Text(
+                        '${_variantLabel(variant)} | MRP ₹${variant.realPrice.toStringAsFixed(0)}',
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _selectedTriggerVariantId = value;
+                      });
+                    },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              initialValue: '$_minimumTriggerQuantity',
+              enabled: !_isSubmitting,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Minimum Trigger Quantity',
+                hintText: 'e.g. 1, 2, 3',
+                helperText:
+                    'Selected trigger pack: ${_variantLabel(_selectedTriggerVariant() ?? _triggerVariants(trigger).first)}',
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _minimumTriggerQuantity =
+                      int.tryParse(value.trim()) == null ||
+                          int.parse(value.trim()) <= 0
+                      ? 1
+                      : int.parse(value.trim());
+                });
+              },
+            ),
           ],
         ],
       ),
@@ -520,7 +621,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
     if (_selectedProductsById.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one free product')),
+        const SnackBar(
+          content: Text('Please select at least one free product'),
+        ),
       );
       return;
     }
@@ -533,9 +636,14 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     }
 
     final selections = _buildSelections();
+    final selectedVariant = _selectedTriggerVariant();
     final offer = BogoOffer(
       offerId: widget.offer?.offerId,
       triggerProductId: _selectedTriggerProduct!.productId!,
+      triggerVariantId: _selectedTriggerVariantId,
+      minTriggerQuantity: _minimumTriggerQuantity,
+      triggerBaseQuantity: selectedVariant?.quantityValue,
+      triggerBaseUnit: selectedVariant?.quantityUnit,
       freeProductIds: selections
           .map((selection) => selection.product.productId!)
           .toList(),
@@ -582,10 +690,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   Widget build(BuildContext context) {
     final categoryOptions = <ProductFilterOption>[
       ..._categoryController.categories
-          .map((category) => ProductFilterOption(
-                value: category.categoryName,
-                label: category.categoryName,
-              ))
+          .map(
+            (category) => ProductFilterOption(
+              value: category.categoryName,
+              label: category.categoryName,
+            ),
+          )
           .toList()
         ..sort((a, b) => a.label.compareTo(b.label)),
     ];
@@ -688,7 +798,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                                   _searchFocusNode.unfocus();
                                   _loadProductsForCategory(value);
                                 },
-                                padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  6,
+                                  16,
+                                  6,
+                                ),
                                 searchToCategorySpacing: 8,
                                 categoryHeight: 32,
                               ),
@@ -788,9 +903,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
           SizedBox(height: 120),
-          Center(
-            child: Text('No products found for this category/search.'),
-          ),
+          Center(child: Text('No products found for this category/search.')),
         ],
       );
     }
@@ -1398,10 +1511,7 @@ class _PinnedControlsHeaderDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return ClipRect(
       child: SizedBox.expand(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: child,
-        ),
+        child: Align(alignment: Alignment.topCenter, child: child),
       ),
     );
   }

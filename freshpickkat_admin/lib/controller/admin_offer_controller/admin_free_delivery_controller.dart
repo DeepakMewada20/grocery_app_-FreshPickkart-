@@ -7,14 +7,22 @@ import '../../core/exceptions.dart';
 import '../../controller/network_controller.dart';
 
 class AdminFreeDeliveryController extends GetxController {
-  static AdminFreeDeliveryController get instance => Get.put(AdminFreeDeliveryController());
+  static AdminFreeDeliveryController get instance =>
+      Get.put(AdminFreeDeliveryController());
 
   Client get client => ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminFreeDeliveryController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminFreeDeliveryController',
+  );
+  final int pageSize = 20;
 
   final freeDeliveryRules = <FreeDeliveryRule>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
+  final nextPageToken = RxnString();
+  final totalCount = 0.obs;
 
   @override
   void onInit() {
@@ -22,20 +30,58 @@ class AdminFreeDeliveryController extends GetxController {
     loadFreeDeliveryRules();
   }
 
-  Future<void> loadFreeDeliveryRules({bool force = false}) async {
-    if (!force && freeDeliveryRules.isNotEmpty) return;
-    if (isLoading.value) return;
+  Future<void> loadFreeDeliveryRules({
+    bool force = false,
+    bool loadAll = false,
+  }) async {
+    if (force) {
+      freeDeliveryRules.clear();
+      nextPageToken.value = null;
+      hasMore.value = true;
+      totalCount.value = 0;
+    }
+    if (!force && freeDeliveryRules.isNotEmpty) {
+      if (loadAll) {
+        await ensureAllLoaded();
+      }
+      return;
+    }
+    await loadMore(isInitial: true);
+    if (loadAll) {
+      await ensureAllLoaded();
+    }
+  }
+
+  Future<void> loadMore({bool isInitial = false}) async {
+    if (isLoadingMore.value) return;
+    if (!hasMore.value && !isInitial) return;
     try {
-      isLoading.value = true;
+      if (isInitial || freeDeliveryRules.isEmpty) {
+        isLoading.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
       networkController.hideError();
-      final rules = await ApiClient().request(() async {
+      final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
         );
-        return await client.freeDelivery.getAllFreeDeliveryRules(uid, idToken);
+        return await client.freeDelivery.getFreeDeliveryRulesPage(
+          uid,
+          idToken,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+        );
       });
-      freeDeliveryRules.assignAll(rules);
+      if (isInitial) {
+        freeDeliveryRules.assignAll(page.rules);
+      } else {
+        freeDeliveryRules.addAll(page.rules);
+      }
+      nextPageToken.value = page.nextPageToken;
+      totalCount.value = page.totalCount;
+      hasMore.value = page.nextPageToken != null && page.rules.isNotEmpty;
     } on NoInternetException {
       networkController.showError(onRetry: loadFreeDeliveryRules);
     } on NetworkException {
@@ -46,6 +92,13 @@ class AdminFreeDeliveryController extends GetxController {
       print('Error loading free delivery rules: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    while (hasMore.value && !isLoadingMore.value) {
+      await loadMore();
     }
   }
 
@@ -61,7 +114,18 @@ class AdminFreeDeliveryController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadFreeDeliveryRules();
+        final index = freeDeliveryRules.indexWhere(
+          (item) => item.ruleId == rule.ruleId,
+        );
+        if (index == -1) {
+          freeDeliveryRules.add(rule);
+          totalCount.value++;
+        } else {
+          freeDeliveryRules[index] = rule;
+        }
+        freeDeliveryRules.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
       }
       return result;
     } catch (e) {
@@ -86,7 +150,8 @@ class AdminFreeDeliveryController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadFreeDeliveryRules();
+        freeDeliveryRules.removeWhere((rule) => rule.ruleId == ruleId);
+        if (totalCount.value > 0) totalCount.value--;
       }
       return result;
     } catch (e) {
@@ -108,7 +173,14 @@ class AdminFreeDeliveryController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadFreeDeliveryRules();
+        final index = freeDeliveryRules.indexWhere(
+          (rule) => rule.ruleId == ruleId,
+        );
+        if (index != -1) {
+          freeDeliveryRules[index] = freeDeliveryRules[index].copyWith(
+            isActive: isActive,
+          );
+        }
       }
       return result;
     } catch (e) {

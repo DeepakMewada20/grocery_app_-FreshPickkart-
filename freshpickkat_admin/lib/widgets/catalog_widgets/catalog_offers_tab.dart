@@ -10,7 +10,6 @@ import 'package:freshpickkat_admin/screens/category_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -52,6 +51,19 @@ class CatalogOffersTab extends StatefulWidget {
 
 class _CatalogOffersTabState extends State<CatalogOffersTab> {
   AdminBogoController get _bogoController => AdminBogoController.instance;
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    final isProductBackedFilter =
+        widget.offerTypeFilter != 'combo_offer' &&
+        widget.offerTypeFilter != 'category_offer';
+    if (!isProductBackedFilter) return false;
+    if (notification.metrics.pixels <
+        notification.metrics.maxScrollExtent - 240) {
+      return false;
+    }
+    widget.productController.loadMore();
+    return false;
+  }
 
   bool _isOfferLive(DateTime startDate, DateTime endDate, bool isActive) {
     final now = DateTime.now();
@@ -236,8 +248,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       controller: widget.comboOfferController,
       offer: offer,
     );
-    if (!mounted) return;
-    await widget.onRefresh();
   }
 
   Future<void> _toggleComboOffer(ComboOffer offer) async {
@@ -257,9 +267,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         ),
       ),
     );
-    if (success) {
-      await widget.onRefresh();
-    }
   }
 
   Future<void> _removeComboOffer(ComboOffer offer) async {
@@ -295,9 +302,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         ),
       ),
     );
-    if (success) {
-      await widget.onRefresh();
-    }
   }
 
   Widget _buildComboOfferCard(
@@ -540,8 +544,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       controller: widget.categoryOfferController,
       offer: offer,
     );
-    if (!mounted) return;
-    await widget.onRefresh();
   }
 
   Future<void> _toggleCategoryOffer(CategoryOffer offer) async {
@@ -561,9 +563,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         ),
       ),
     );
-    if (success) {
-      await widget.onRefresh();
-    }
   }
 
   Future<void> _removeCategoryOffer(CategoryOffer offer) async {
@@ -601,9 +600,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         ),
       ),
     );
-    if (success) {
-      await widget.onRefresh();
-    }
   }
 
   Widget _buildCategoryOfferCard(
@@ -980,16 +976,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           product: product,
           categories: widget.categoryController.categories,
           onSubmit: (result) async {
-            await widget.productController.updateProduct(result.product);
-            final productId = product.productId;
-            if (result.bogoSelections != null && productId != null) {
-              await _saveBogoOfferConfiguration(
-                triggerProductId: productId,
-                selections: result.bogoSelections!,
-              );
-            }
-            await widget.onRefresh();
-          },
+          await widget.productController.updateProduct(result.product);
+          final productId = product.productId;
+          if (result.bogoSelections != null && productId != null) {
+            await _saveBogoOfferConfiguration(
+              triggerProductId: productId,
+              selections: result.bogoSelections!,
+            );
+          }
+        },
           groupedSubcategoryOptionsFor:
               widget.categoryController.groupedSubcategoryOptionsFor,
         );
@@ -997,7 +992,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Product offer updated')),
           );
-          await widget.onRefresh();
         }
         break;
       case _OfferCardActionType.categoryOffer:
@@ -1008,8 +1002,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           controller: widget.categoryOfferController,
           offer: offer,
         );
-        if (!mounted) return;
-        await widget.onRefresh();
         break;
       case _OfferCardActionType.comboOffer:
         final offer = _linkedComboOffer(product, comboOffers);
@@ -1019,8 +1011,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           controller: widget.comboOfferController,
           offer: offer,
         );
-        if (!mounted) return;
-        await widget.onRefresh();
         break;
       case _OfferCardActionType.none:
         break;
@@ -1043,7 +1033,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
     if (configuredFreeProducts.isEmpty) return;
 
-    await ServerpodAdminClient().client.bogo.upsertOffer(
+    await _bogoController.upsertOffer(
       BogoOffer(
         triggerProductId: triggerProductId,
         freeProductIds: configuredFreeProducts.map((f) => f.productId).toList(),
@@ -1078,9 +1068,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       categoryOffers: categoryOffers,
       comboOffers: comboOffers,
     );
-
     if (confirmed != true || !mounted) return;
-    await widget.onRefresh();
   }
 
   bool _supportsToggle(_OfferCardActionType actionType) {
@@ -1165,7 +1153,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           content: Text('${product.productName} offer ${statusLabel ?? 'updated'}'),
         ),
       );
-      await widget.onRefresh();
     } else {
       messenger.showSnackBar(
         const SnackBar(content: Text('Failed to update offer status')),
@@ -1385,12 +1372,14 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         ),
       ];
 
-      return RefreshIndicator(
-        onRefresh: widget.onRefresh,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          children: [
+      return NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: RefreshIndicator(
+          onRefresh: widget.onRefresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            children: [
             SizedBox(
               height: 96,
               child: ListView(
@@ -1796,7 +1785,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   ),
                 );
               }),
+            if (widget.offerTypeFilter != 'combo_offer' &&
+                widget.offerTypeFilter != 'category_offer' &&
+                widget.productController.isLoadingMore.value)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
           ],
+          ),
         ),
       );
     });

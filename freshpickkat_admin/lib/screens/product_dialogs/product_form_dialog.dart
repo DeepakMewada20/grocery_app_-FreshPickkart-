@@ -108,6 +108,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
   bool get isEditMode => widget.product != null;
   Product? get product => widget.product;
+  double get _currentBaseQuantity =>
+      double.tryParse(quantityValueCtrl.text.trim()) ?? 0;
+  double get _currentBaseMrp => double.tryParse(mrpCtrl.text.trim()) ?? 0;
 
   @override
   void initState() {
@@ -152,6 +155,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _ensureOfferDataLoaded();
     });
+
+    quantityValueCtrl.addListener(_syncVariantBasePricing);
+    mrpCtrl.addListener(_syncVariantBasePricing);
+    _syncVariantBasePricing();
   }
 
   Future<void> _fetchBogoOffer() async {
@@ -189,6 +196,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
   @override
   void dispose() {
+    quantityValueCtrl.removeListener(_syncVariantBasePricing);
+    mrpCtrl.removeListener(_syncVariantBasePricing);
     nameCtrl.dispose();
     imageCtrl.dispose();
     quantityValueCtrl.dispose();
@@ -320,14 +329,15 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     final futures = <Future<void>>[];
     if (_categoryOfferController.categoryOffers.isEmpty &&
         !_categoryOfferController.isLoading.value) {
-      futures.add(_categoryOfferController.loadCategoryOffers());
+      futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
     }
     if (_comboOfferController.comboOffers.isEmpty &&
         !_comboOfferController.isLoading.value) {
-      futures.add(_comboOfferController.loadComboOffers());
+      futures.add(_comboOfferController.loadComboOffers(loadAll: true));
     }
-    if (_bogoController.bogoOffers.isEmpty && !_bogoController.isLoading.value) {
-      futures.add(_bogoController.loadBogoOffers());
+    if (_bogoController.bogoOffers.isEmpty &&
+        !_bogoController.isLoading.value) {
+      futures.add(_bogoController.loadBogoOffers(loadAll: true));
     }
 
     if (futures.isEmpty) return;
@@ -509,6 +519,33 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return variants;
   }
 
+  void _syncVariantBasePricing() {
+    final baseQuantity = _currentBaseQuantity;
+    final baseMrp = _currentBaseMrp;
+
+    for (final draft in extraVariants) {
+      draft.baseQuantity = baseQuantity;
+      draft.baseUnit = baseUnit;
+      draft.baseRealPrice = baseMrp;
+      _recalculateMrpForDraft(draft);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _recalculateMrpForDraft(VariantDraft draft) {
+    _recalculateMrpFromQuantity(
+      quantityCtrl: draft.quantityValueCtrl,
+      newUnit: draft.quantityUnit,
+      mrpCtrlRef: draft.mrpCtrl,
+      originalMrp: draft.baseRealPrice,
+      originalQuantity: draft.baseQuantity,
+      originalUnit: draft.baseUnit,
+    );
+  }
+
   void _recalculateMrpFromQuantity({
     required TextEditingController quantityCtrl,
     required String newUnit,
@@ -570,7 +607,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             ? null
             : countryOfOriginCtrl.text.trim(),
         bogoFreeProductIds:
-            product?.bogoFreeProductIds?.toList() ?? bogoFreeProductIds.toList(),
+            product?.bogoFreeProductIds?.toList() ??
+            bogoFreeProductIds.toList(),
         variants: variants,
       );
     } else {
@@ -606,9 +644,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Product' : 'Add Product'),
-      ),
+      appBar: AppBar(title: Text(isEditMode ? 'Edit Product' : 'Add Product')),
       body: SafeArea(
         child: Form(
           key: formKey,
@@ -638,7 +674,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                       const SizedBox(height: 12),
                       AvailabilitySwitch(
                         value: isAvailable,
-                        onChanged: (value) => setState(() => isAvailable = value),
+                        onChanged: (value) =>
+                            setState(() => isAvailable = value),
                       ),
                       const SizedBox(height: 20),
                     ],
@@ -805,6 +842,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                           product?.baseUnit ??
                           _parseQuantityUnit(product?.quantity ?? ''),
                     );
+                    _syncVariantBasePricing();
                     setState(() {});
                   },
                 ),
@@ -845,6 +883,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                               product?.baseUnit ??
                               _parseQuantityUnit(product?.quantity ?? ''),
                         );
+                        _syncVariantBasePricing();
                       });
                     }
                   },
@@ -899,7 +938,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) {
+                    _syncVariantBasePricing();
+                    setState(() {});
+                  },
                   validator: _numberValidator,
                 ),
               ),
@@ -1071,11 +1113,17 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       final categoryOffers = _categoryOfferController.categoryOffers.where((
         offer,
       ) {
-        if (!_isOfferLive(offer.startDate, offer.endDate, offer.isActive, now)) {
+        if (!_isOfferLive(
+          offer.startDate,
+          offer.endDate,
+          offer.isActive,
+          now,
+        )) {
           return false;
         }
         final matchesCategory =
-            offer.categoryName == categoryName || offer.categoryId == categoryName;
+            offer.categoryName == categoryName ||
+            offer.categoryId == categoryName;
         if (!matchesCategory) return false;
         if (productId != null &&
             (offer.excludeProductIds ?? const <String>[]).contains(productId)) {
@@ -1102,7 +1150,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     if (productId != null) {
       final comboOffers = _comboOfferController.comboOffers.where((offer) {
-        if (!_isOfferLive(offer.startDate, offer.endDate, offer.isActive, now)) {
+        if (!_isOfferLive(
+          offer.startDate,
+          offer.endDate,
+          offer.isActive,
+          now,
+        )) {
           return false;
         }
         return offer.comboProducts.any((item) => item.productId == productId);
@@ -1120,10 +1173,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         );
       }
 
-      final bogoOffer = _bogoController.bogoOffers.cast<BogoOffer?>().firstWhere(
-        (offer) => offer?.triggerProductId == productId,
-        orElse: () => null,
-      );
+      final bogoOffer = _bogoController.bogoOffers
+          .cast<BogoOffer?>()
+          .firstWhere(
+            (offer) => offer?.triggerProductId == productId,
+            orElse: () => null,
+          );
       if (bogoOffer != null &&
           _isOfferLive(
             bogoOffer.startDate,
@@ -1135,7 +1190,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         summaries.add(
           _ProductOfferSummary(
             title: bogoOffer.offerTitle,
-            subtitle: 'BOGO offer • $freeCount free product option${freeCount == 1 ? '' : 's'}',
+            subtitle:
+                'BOGO offer • $freeCount free product option${freeCount == 1 ? '' : 's'}',
             badge: 'BOGO',
             tone: Colors.teal,
           ),
@@ -1223,15 +1279,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           setState(() {
             extraVariants.add(
               VariantDraft(
-                baseRealPrice: product?.realPrice ?? 0,
-                baseQuantity:
-                    product?.baseQuantity ??
-                    _parseQuantityValue(product?.quantity ?? ''),
-                baseUnit:
-                    product?.baseUnit ??
-                    _parseQuantityUnit(product?.quantity ?? ''),
+                baseRealPrice: _currentBaseMrp,
+                baseQuantity: _currentBaseQuantity,
+                baseUnit: baseUnit,
               ),
             );
+            _syncVariantBasePricing();
           });
         },
         onRemoveVariant: (draft) {
@@ -1241,12 +1294,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           draft.dispose();
         },
         onChanged: () => setState(() {}),
-        baseRealPrice: product?.realPrice ?? 0,
-        baseQuantity:
-            product?.baseQuantity ??
-            _parseQuantityValue(product?.quantity ?? ''),
-        baseUnit:
-            product?.baseUnit ?? _parseQuantityUnit(product?.quantity ?? ''),
+        baseRealPrice: _currentBaseMrp,
+        baseQuantity: _currentBaseQuantity,
+        baseUnit: baseUnit,
       ),
     );
   }
@@ -1324,8 +1374,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
       final result = ProductFormResult(
         product: product,
-        bogoSelections:
-            discountType == 'bogo' && bogoFreeProductIds.isNotEmpty
+        bogoSelections: discountType == 'bogo' && bogoFreeProductIds.isNotEmpty
             ? bogoSelections
             : null,
         extraVariants: extraVariants,

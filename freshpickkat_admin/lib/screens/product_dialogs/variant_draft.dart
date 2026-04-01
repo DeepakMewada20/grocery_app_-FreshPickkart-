@@ -10,9 +10,9 @@ class VariantDraft {
   final TextEditingController mrpCtrl;
   bool isAvailable;
 
-  final double baseRealPrice;
-  final double baseQuantity;
-  final String baseUnit;
+  double baseRealPrice;
+  double baseQuantity;
+  String baseUnit;
 
   VariantDraft({
     String? variantId,
@@ -30,7 +30,9 @@ class VariantDraft {
        quantityValueCtrl = TextEditingController(
          text: quantityValue.toString(),
        ),
-       quantityDescriptionCtrl = TextEditingController(text: quantityDescription),
+       quantityDescriptionCtrl = TextEditingController(
+         text: quantityDescription,
+       ),
        priceCtrl = TextEditingController(text: price),
        mrpCtrl = TextEditingController(text: mrp);
 

@@ -72,6 +72,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
       AdminProductController.instance;
   final AdminCategoryController _categoryController =
       AdminCategoryController.instance;
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
@@ -80,6 +81,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_productController.products.isEmpty) {
         _productController.loadInitial();
@@ -88,6 +90,22 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
         _categoryController.loadCategories();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients || _searchQuery.isNotEmpty) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
   }
 
   @override
@@ -101,7 +119,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => _controller.loadComboOffers(),
+            onPressed: () => _controller.loadComboOffers(force: true),
           ),
         ],
       ),
@@ -134,11 +152,13 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
             child: Obx(() {
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
-                  onRetry: () => _controller.networkController.retryLastRequest(),
+                  onRetry: () =>
+                      _controller.networkController.retryLastRequest(),
                 );
               }
 
-              if (_controller.isLoading.value && _controller.comboOffers.isEmpty) {
+              if (_controller.isLoading.value &&
+                  _controller.comboOffers.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -167,8 +187,16 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
               }
 
               return ListView.builder(
-                itemCount: offers.length,
+                controller: _scrollController,
+                itemCount:
+                    offers.length + (_controller.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index >= offers.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
                   final offer = offers[index];
                   return _ComboOfferCard(
                     offer: offer,
@@ -189,10 +217,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
   }
 
   void _showAddComboDialog() {
-    showAddComboOfferDialog(
-      context: context,
-      controller: _controller,
-    );
+    showAddComboOfferDialog(context: context, controller: _controller);
   }
 
   void _showEditComboDialog(ComboOffer offer) {
@@ -236,10 +261,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    : const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -504,7 +526,11 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                 color: Colors.green.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.calendar_today, size: 18, color: Colors.green),
+              child: const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -587,10 +613,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
       variant.quantityValue,
       variant.quantityUnit,
     );
-    final totalLabel = _formatQuantityValue(
-      normalized.value,
-      normalized.unit,
-    );
+    final totalLabel = _formatQuantityValue(normalized.value, normalized.unit);
     return '$singleLabel × ${product.quantity} = $totalLabel';
   }
 
@@ -606,7 +629,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
   }
 
   String _formatQuantityValue(double value, String unit) {
-    final formatted = value % 1 == 0 ? value.toInt().toString() : value.toString();
+    final formatted = value % 1 == 0
+        ? value.toInt().toString()
+        : value.toString();
     return '$formatted $unit';
   }
 
@@ -625,11 +650,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
     if (imageUrl == null || imageUrl.trim().isEmpty) return null;
     return _imageProviders.putIfAbsent(
       imageUrl,
-      () => ResizeImage(
-        NetworkImage(imageUrl),
-        width: 160,
-        height: 160,
-      ),
+      () => ResizeImage(NetworkImage(imageUrl), width: 160, height: 160),
     );
   }
 
@@ -719,10 +740,14 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
 
   double get _comboFinalTotal {
     final baseTotal = _productsCurrentTotal;
-    final discountValue = double.tryParse(_discountValueController.text.trim()) ?? 0;
+    final discountValue =
+        double.tryParse(_discountValueController.text.trim()) ?? 0;
     if (discountValue <= 0) return baseTotal;
     if (_discountType == 'percentage') {
-      return (baseTotal * (1 - (discountValue / 100))).clamp(0, double.infinity);
+      return (baseTotal * (1 - (discountValue / 100))).clamp(
+        0,
+        double.infinity,
+      );
     }
     return (baseTotal - discountValue).clamp(0, double.infinity);
   }
@@ -842,21 +867,22 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                    child: SizedBox(
-                                      width: 58,
-                                      height: 58,
+                  child: SizedBox(
+                    width: 58,
+                    height: 58,
                     child: _imageProviderFor(product.imageUrl) != null
                         ? Image(
                             image: _imageProviderFor(product.imageUrl)!,
                             fit: BoxFit.cover,
                             gaplessPlayback: true,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: Colors.grey.shade200,
-                              child: const Icon(
-                                Icons.image_not_supported,
-                                color: Colors.grey,
-                              ),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                           )
                         : Container(
                             color: Colors.grey.shade200,
@@ -1091,7 +1117,8 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                               ),
                               keyboardType: TextInputType.number,
                               validator: (v) {
-                                if (v?.trim().isEmpty == true) return 'Required';
+                                if (v?.trim().isEmpty == true)
+                                  return 'Required';
                                 if (double.tryParse(v!) == null) {
                                   return 'Invalid number';
                                 }
@@ -1104,7 +1131,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _discountType,
                               isExpanded: true,
-                              decoration: const InputDecoration(labelText: 'Type'),
+                              decoration: const InputDecoration(
+                                labelText: 'Type',
+                              ),
                               items: const [
                                 DropdownMenuItem(
                                   value: 'flat',
@@ -1115,9 +1144,8 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                                   child: Text('Percentage'),
                                 ),
                               ],
-                              onChanged: (v) => setState(
-                                () => _discountType = v ?? 'flat',
-                              ),
+                              onChanged: (v) =>
+                                  setState(() => _discountType = v ?? 'flat'),
                             ),
                           ),
                         ],
@@ -1154,7 +1182,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.pop(context),
                           child: const Text('Cancel'),
                         ),
                       ),
@@ -1166,7 +1196,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : Text(isEditing ? 'Update' : 'Create'),
                         ),
@@ -1190,18 +1222,21 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
 
     if (!mounted) return;
 
-    final selectedProducts = await ProductSelectionDialog.showMultiSelectBottomSheet(
-      context: context,
-      title: 'Select Products',
-      initialSelections: _products
-          .map(
-            (selected) => ProductSelectionResult(
-              product: _buildSelectionProduct(selected),
-              variant: _buildSelectionProduct(selected).variants?.firstOrNull,
-            ),
-          )
-          .toList(),
-    );
+    final selectedProducts =
+        await ProductSelectionDialog.showMultiSelectBottomSheet(
+          context: context,
+          title: 'Select Products',
+          initialSelections: _products
+              .map(
+                (selected) => ProductSelectionResult(
+                  product: _buildSelectionProduct(selected),
+                  variant: _buildSelectionProduct(
+                    selected,
+                  ).variants?.firstOrNull,
+                ),
+              )
+              .toList(),
+        );
 
     if (selectedProducts != null) {
       for (final selection in selectedProducts) {
@@ -1215,25 +1250,26 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
         _products
           ..clear()
           ..addAll(
-          selectedProducts.map((selection) {
-            final variant = selection.variant ?? _resolveVariant(selection.product, null);
-            final key =
-                '${selection.product.productId ?? ''}::${variant?.variantId ?? 'default'}';
-            final existing = existingByKey[key];
-            return _SelectedProduct(
-              productId: selection.product.productId ?? '',
-              productName: selection.product.productName,
-              imageUrl: selection.product.imageUrl,
-              variantId: variant?.variantId,
-              variantLabel: variant == null
-                  ? selection.product.quantity
-                  : _formatVariantLabel(variant),
-              unitPrice: variant?.price ?? selection.product.price,
-              unitMrp: variant?.realPrice ?? selection.product.realPrice,
-              quantity: existing?.quantity ?? 1,
-            );
-          }),
-        );
+            selectedProducts.map((selection) {
+              final variant =
+                  selection.variant ?? _resolveVariant(selection.product, null);
+              final key =
+                  '${selection.product.productId ?? ''}::${variant?.variantId ?? 'default'}';
+              final existing = existingByKey[key];
+              return _SelectedProduct(
+                productId: selection.product.productId ?? '',
+                productName: selection.product.productName,
+                imageUrl: selection.product.imageUrl,
+                variantId: variant?.variantId,
+                variantLabel: variant == null
+                    ? selection.product.quantity
+                    : _formatVariantLabel(variant),
+                unitPrice: variant?.price ?? selection.product.price,
+                unitMrp: variant?.realPrice ?? selection.product.realPrice,
+                quantity: existing?.quantity ?? 1,
+              );
+            }),
+          );
       });
     }
   }

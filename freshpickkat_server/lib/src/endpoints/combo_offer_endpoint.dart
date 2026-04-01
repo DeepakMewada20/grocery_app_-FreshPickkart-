@@ -141,6 +141,33 @@ class ComboOfferEndpoint extends Endpoint {
     return offers;
   }
 
+  Future<ComboOfferPage> getComboOffersPage(
+    Session session,
+    String firebaseUid,
+    String idToken, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final offers = await getAllComboOffers(session, firebaseUid, idToken);
+    offers.sort((a, b) {
+      final priorityCompare = b.priority.compareTo(a.priority);
+      if (priorityCompare != 0) return priorityCompare;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+
+    final offset = int.tryParse(pageToken ?? '') ?? 0;
+    final safeOffset = offset.clamp(0, offers.length);
+    final end = (safeOffset + limit).clamp(0, offers.length);
+    final pageItems = offers.sublist(safeOffset, end);
+    final nextOffset = end < offers.length ? '$end' : null;
+
+    return ComboOfferPage(
+      offers: pageItems,
+      nextPageToken: nextOffset,
+      totalCount: offers.length,
+    );
+  }
+
   Future<bool> setComboOfferActive(
     Session session,
     String comboId,

@@ -143,6 +143,29 @@ class FreeDeliveryEndpoint extends Endpoint {
     return rules;
   }
 
+  Future<FreeDeliveryRulePage> getFreeDeliveryRulesPage(
+    Session session,
+    String firebaseUid,
+    String idToken, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final rules = await getAllFreeDeliveryRules(session, firebaseUid, idToken);
+    rules.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    final offset = int.tryParse(pageToken ?? '') ?? 0;
+    final safeOffset = offset.clamp(0, rules.length);
+    final end = (safeOffset + limit).clamp(0, rules.length);
+    final pageItems = rules.sublist(safeOffset, end);
+    final nextOffset = end < rules.length ? '$end' : null;
+
+    return FreeDeliveryRulePage(
+      rules: pageItems,
+      nextPageToken: nextOffset,
+      totalCount: rules.length,
+    );
+  }
+
   Future<bool> setFreeDeliveryRuleActive(
     Session session,
     String ruleId,

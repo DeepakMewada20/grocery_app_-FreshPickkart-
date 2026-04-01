@@ -114,15 +114,35 @@ class PricingEngine {
 
       final triggerItem = _firstWhereOrNull(
         items,
-        (i) => i.productId == offer.triggerProductId,
+        (i) =>
+            i.productId == offer.triggerProductId &&
+            (offer.triggerVariantId == null ||
+                offer.triggerVariantId!.trim().isEmpty ||
+                i.variantId == offer.triggerVariantId),
       );
       if (triggerItem == null) continue;
 
       final product = productMap[offer.triggerProductId];
       if (product == null) continue;
+      ProductVariant? triggerVariant;
+      if (offer.triggerVariantId != null &&
+          offer.triggerVariantId!.trim().isNotEmpty) {
+        try {
+          triggerVariant = (product.variants ?? const <ProductVariant>[])
+              .firstWhere(
+                (variant) => variant.variantId == offer.triggerVariantId,
+              );
+        } catch (_) {}
+      }
 
-      final price = product.price;
-      final freeQty = triggerItem.quantity ~/ 2;
+      final minimumTriggerQuantity = offer.minTriggerQuantity ?? 1;
+      if (minimumTriggerQuantity <= 0 ||
+          triggerItem.quantity < minimumTriggerQuantity) {
+        continue;
+      }
+
+      final price = triggerVariant?.price ?? product.price;
+      final freeQty = triggerItem.quantity ~/ minimumTriggerQuantity;
       if (freeQty > 0) {
         final discount = price * freeQty;
         result.bogoDiscount += discount;
@@ -634,6 +654,16 @@ class PricingEngine {
               triggerProductId:
                   fields['triggerProductId']?.stringValue ??
                   res.document!.name!.split('/').last,
+              triggerVariantId: fields['triggerVariantId']?.stringValue,
+              minTriggerQuantity: int.tryParse(
+                fields['minTriggerQuantity']?.integerValue?.toString() ?? '1',
+              ),
+              triggerBaseQuantity: double.tryParse(
+                fields['triggerBaseQuantity']?.doubleValue?.toString() ??
+                    fields['triggerBaseQuantity']?.integerValue?.toString() ??
+                    '',
+              ),
+              triggerBaseUnit: fields['triggerBaseUnit']?.stringValue,
               freeProductIds: freeProductIds,
               freeProducts: freeProducts.isNotEmpty ? freeProducts : null,
               offerTitle: fields['offerTitle']?.stringValue ?? 'Buy 1 Get 1',

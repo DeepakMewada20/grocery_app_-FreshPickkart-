@@ -7,14 +7,43 @@ import '../../core/exceptions.dart';
 import '../../controller/network_controller.dart';
 
 class AdminComboOfferController extends GetxController {
-  static AdminComboOfferController get instance => Get.put(AdminComboOfferController());
+  static AdminComboOfferController get instance =>
+      Get.put(AdminComboOfferController());
 
   Client get client => ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminComboOfferController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminComboOfferController',
+  );
+  final int pageSize = 20;
 
   final comboOffers = <ComboOffer>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
+  final nextPageToken = RxnString();
+  final totalCount = 0.obs;
+
+  String _ensureComboId(ComboOffer offer) {
+    if (offer.comboId != null && offer.comboId!.isNotEmpty) {
+      return offer.comboId!;
+    }
+    final productIds = offer.comboProducts.map((cp) => cp.productId).join('_');
+    return '${productIds}_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  void _upsertLocal(ComboOffer offer) {
+    final normalized = offer.copyWith(comboId: _ensureComboId(offer));
+    final index = comboOffers.indexWhere(
+      (item) => item.comboId == normalized.comboId,
+    );
+    if (index == -1) {
+      comboOffers.add(normalized);
+      totalCount.value++;
+    } else {
+      comboOffers[index] = normalized;
+    }
+  }
 
   @override
   void onInit() {
@@ -22,20 +51,59 @@ class AdminComboOfferController extends GetxController {
     loadComboOffers();
   }
 
-  Future<void> loadComboOffers({bool force = false}) async {
-    if (!force && comboOffers.isNotEmpty) return;
-    if (isLoading.value) return;
+  Future<void> loadComboOffers({
+    bool force = false,
+    bool loadAll = false,
+  }) async {
+    if (force) {
+      comboOffers.clear();
+      nextPageToken.value = null;
+      hasMore.value = true;
+      totalCount.value = 0;
+    }
+    if (!force && comboOffers.isNotEmpty) {
+      if (loadAll) {
+        await ensureAllLoaded();
+      }
+      return;
+    }
+
+    await loadMore(isInitial: true);
+    if (loadAll) {
+      await ensureAllLoaded();
+    }
+  }
+
+  Future<void> loadMore({bool isInitial = false}) async {
+    if (isLoadingMore.value) return;
+    if (!hasMore.value && !isInitial) return;
     try {
-      isLoading.value = true;
+      if (isInitial || comboOffers.isEmpty) {
+        isLoading.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
       networkController.hideError();
-      final offers = await ApiClient().request(() async {
+      final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
         );
-        return await client.comboOffer.getAllComboOffers(uid, idToken);
+        return await client.comboOffer.getComboOffersPage(
+          uid,
+          idToken,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+        );
       });
-      comboOffers.assignAll(offers);
+      if (isInitial) {
+        comboOffers.assignAll(page.offers);
+      } else {
+        comboOffers.addAll(page.offers);
+      }
+      nextPageToken.value = page.nextPageToken;
+      totalCount.value = page.totalCount;
+      hasMore.value = page.nextPageToken != null && page.offers.isNotEmpty;
     } on NoInternetException {
       networkController.showError(onRetry: loadComboOffers);
     } on NetworkException {
@@ -46,22 +114,30 @@ class AdminComboOfferController extends GetxController {
       print('Error loading combo offers: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    while (hasMore.value && !isLoadingMore.value) {
+      await loadMore();
     }
   }
 
   Future<bool> createComboOffer(ComboOffer offer) async {
     try {
+      final normalizedOffer = offer.copyWith(comboId: _ensureComboId(offer));
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
       final result = await client.comboOffer.upsertComboOffer(
-        offer,
+        normalizedOffer,
         uid,
         idToken,
       );
       if (result) {
-        await loadComboOffers();
+        _upsertLocal(normalizedOffer);
       }
       return result;
     } catch (e) {
@@ -86,7 +162,8 @@ class AdminComboOfferController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadComboOffers();
+        comboOffers.removeWhere((offer) => offer.comboId == comboId);
+        if (totalCount.value > 0) totalCount.value--;
       }
       return result;
     } catch (e) {
@@ -108,7 +185,12 @@ class AdminComboOfferController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadComboOffers();
+        final index = comboOffers.indexWhere(
+          (offer) => offer.comboId == comboId,
+        );
+        if (index != -1) {
+          comboOffers[index] = comboOffers[index].copyWith(isActive: isActive);
+        }
       }
       return result;
     } catch (e) {

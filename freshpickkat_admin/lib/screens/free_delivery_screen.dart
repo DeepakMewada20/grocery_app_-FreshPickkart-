@@ -15,11 +15,33 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
     with AutomaticKeepAliveClientMixin {
   final AdminFreeDeliveryController _controller =
       AdminFreeDeliveryController.instance;
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
 
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients || _searchQuery.isNotEmpty) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _controller.loadMore();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +76,13 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
             child: Obx(() {
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
-                  onRetry: () => _controller.networkController.retryLastRequest(),
+                  onRetry: () =>
+                      _controller.networkController.retryLastRequest(),
                 );
               }
 
-              if (_controller.isLoading.value && _controller.freeDeliveryRules.isEmpty) {
+              if (_controller.isLoading.value &&
+                  _controller.freeDeliveryRules.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -87,8 +111,16 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
               }
 
               return ListView.builder(
-                itemCount: rules.length,
+                controller: _scrollController,
+                itemCount:
+                    rules.length + (_controller.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index >= rules.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
                   final rule = rules[index];
                   return _FreeDeliveryCard(
                     rule: rule,
@@ -166,10 +198,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    : const Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),

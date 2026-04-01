@@ -1,0 +1,5 @@
+class: ComboOfferPage
+fields:
+  offers: List<ComboOffer>
+  nextPageToken: String?
+  totalCount: int

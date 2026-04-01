@@ -1,0 +1,5 @@
+class: BannerPage
+fields:
+  banners: List<Banner>
+  nextPageToken: String?
+  totalCount: int

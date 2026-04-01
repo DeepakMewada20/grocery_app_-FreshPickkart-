@@ -7,14 +7,42 @@ import '../../core/exceptions.dart';
 import '../../controller/network_controller.dart';
 
 class AdminCategoryOfferController extends GetxController {
-  static AdminCategoryOfferController get instance => Get.put(AdminCategoryOfferController());
+  static AdminCategoryOfferController get instance =>
+      Get.put(AdminCategoryOfferController());
 
   Client get client => ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminCategoryOfferController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminCategoryOfferController',
+  );
+  final int pageSize = 20;
 
   final categoryOffers = <CategoryOffer>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
+  final hasMore = true.obs;
+  final nextPageToken = RxnString();
+  final totalCount = 0.obs;
+
+  String _ensureOfferId(CategoryOffer offer) {
+    if (offer.offerId != null && offer.offerId!.isNotEmpty) {
+      return offer.offerId!;
+    }
+    return '${offer.categoryId}_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  void _upsertLocal(CategoryOffer offer) {
+    final normalized = offer.copyWith(offerId: _ensureOfferId(offer));
+    final index = categoryOffers.indexWhere(
+      (item) => item.offerId == normalized.offerId,
+    );
+    if (index == -1) {
+      categoryOffers.add(normalized);
+      totalCount.value++;
+    } else {
+      categoryOffers[index] = normalized;
+    }
+  }
 
   @override
   void onInit() {
@@ -22,20 +50,59 @@ class AdminCategoryOfferController extends GetxController {
     loadCategoryOffers();
   }
 
-  Future<void> loadCategoryOffers({bool force = false}) async {
-    if (!force && categoryOffers.isNotEmpty) return;
-    if (isLoading.value) return;
+  Future<void> loadCategoryOffers({
+    bool force = false,
+    bool loadAll = false,
+  }) async {
+    if (force) {
+      categoryOffers.clear();
+      nextPageToken.value = null;
+      hasMore.value = true;
+      totalCount.value = 0;
+    }
+    if (!force && categoryOffers.isNotEmpty) {
+      if (loadAll) {
+        await ensureAllLoaded();
+      }
+      return;
+    }
+
+    await loadMore(isInitial: true);
+    if (loadAll) {
+      await ensureAllLoaded();
+    }
+  }
+
+  Future<void> loadMore({bool isInitial = false}) async {
+    if (isLoadingMore.value) return;
+    if (!hasMore.value && !isInitial) return;
     try {
-      isLoading.value = true;
+      if (isInitial || categoryOffers.isEmpty) {
+        isLoading.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
       networkController.hideError();
-      final offers = await ApiClient().request(() async {
+      final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
         );
-        return await client.categoryOffer.getAllCategoryOffers(uid, idToken);
+        return await client.categoryOffer.getCategoryOffersPage(
+          uid,
+          idToken,
+          limit: pageSize,
+          pageToken: nextPageToken.value,
+        );
       });
-      categoryOffers.assignAll(offers);
+      if (isInitial) {
+        categoryOffers.assignAll(page.offers);
+      } else {
+        categoryOffers.addAll(page.offers);
+      }
+      nextPageToken.value = page.nextPageToken;
+      totalCount.value = page.totalCount;
+      hasMore.value = page.nextPageToken != null && page.offers.isNotEmpty;
     } on NoInternetException {
       networkController.showError(onRetry: loadCategoryOffers);
     } on NetworkException {
@@ -46,22 +113,30 @@ class AdminCategoryOfferController extends GetxController {
       print('Error loading category offers: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    while (hasMore.value && !isLoadingMore.value) {
+      await loadMore();
     }
   }
 
   Future<bool> createCategoryOffer(CategoryOffer offer) async {
     try {
+      final normalizedOffer = offer.copyWith(offerId: _ensureOfferId(offer));
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
       final result = await client.categoryOffer.upsertCategoryOffer(
-        offer,
+        normalizedOffer,
         uid,
         idToken,
       );
       if (result) {
-        await loadCategoryOffers();
+        _upsertLocal(normalizedOffer);
       }
       return result;
     } catch (e) {
@@ -86,7 +161,8 @@ class AdminCategoryOfferController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadCategoryOffers();
+        categoryOffers.removeWhere((offer) => offer.offerId == offerId);
+        if (totalCount.value > 0) totalCount.value--;
       }
       return result;
     } catch (e) {
@@ -108,7 +184,14 @@ class AdminCategoryOfferController extends GetxController {
         idToken,
       );
       if (result) {
-        await loadCategoryOffers();
+        final index = categoryOffers.indexWhere(
+          (offer) => offer.offerId == offerId,
+        );
+        if (index != -1) {
+          categoryOffers[index] = categoryOffers[index].copyWith(
+            isActive: isActive,
+          );
+        }
       }
       return result;
     } catch (e) {

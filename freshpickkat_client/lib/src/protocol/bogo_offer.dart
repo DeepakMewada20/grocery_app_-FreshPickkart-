@@ -18,6 +18,10 @@ abstract class BogoOffer implements _i1.SerializableModel {
   BogoOffer._({
     this.offerId,
     required this.triggerProductId,
+    this.triggerVariantId,
+    this.minTriggerQuantity,
+    this.triggerBaseQuantity,
+    this.triggerBaseUnit,
     required this.freeProductIds,
     this.freeProducts,
     required this.offerTitle,
@@ -30,6 +34,10 @@ abstract class BogoOffer implements _i1.SerializableModel {
   factory BogoOffer({
     String? offerId,
     required String triggerProductId,
+    String? triggerVariantId,
+    int? minTriggerQuantity,
+    double? triggerBaseQuantity,
+    String? triggerBaseUnit,
     required List<String> freeProductIds,
     List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
@@ -43,6 +51,11 @@ abstract class BogoOffer implements _i1.SerializableModel {
     return BogoOffer(
       offerId: jsonSerialization['offerId'] as String?,
       triggerProductId: jsonSerialization['triggerProductId'] as String,
+      triggerVariantId: jsonSerialization['triggerVariantId'] as String?,
+      minTriggerQuantity: jsonSerialization['minTriggerQuantity'] as int?,
+      triggerBaseQuantity: (jsonSerialization['triggerBaseQuantity'] as num?)
+          ?.toDouble(),
+      triggerBaseUnit: jsonSerialization['triggerBaseUnit'] as String?,
       freeProductIds: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['freeProductIds'],
       ),
@@ -67,6 +80,14 @@ abstract class BogoOffer implements _i1.SerializableModel {
 
   String triggerProductId;
 
+  String? triggerVariantId;
+
+  int? minTriggerQuantity;
+
+  double? triggerBaseQuantity;
+
+  String? triggerBaseUnit;
+
   List<String> freeProductIds;
 
   List<_i2.BogoFreeProduct>? freeProducts;
@@ -87,6 +108,10 @@ abstract class BogoOffer implements _i1.SerializableModel {
   BogoOffer copyWith({
     String? offerId,
     String? triggerProductId,
+    String? triggerVariantId,
+    int? minTriggerQuantity,
+    double? triggerBaseQuantity,
+    String? triggerBaseUnit,
     List<String>? freeProductIds,
     List<_i2.BogoFreeProduct>? freeProducts,
     String? offerTitle,
@@ -101,6 +126,11 @@ abstract class BogoOffer implements _i1.SerializableModel {
       '__className__': 'BogoOffer',
       if (offerId != null) 'offerId': offerId,
       'triggerProductId': triggerProductId,
+      if (triggerVariantId != null) 'triggerVariantId': triggerVariantId,
+      if (minTriggerQuantity != null) 'minTriggerQuantity': minTriggerQuantity,
+      if (triggerBaseQuantity != null)
+        'triggerBaseQuantity': triggerBaseQuantity,
+      if (triggerBaseUnit != null) 'triggerBaseUnit': triggerBaseUnit,
       'freeProductIds': freeProductIds.toJson(),
       if (freeProducts != null)
         'freeProducts': freeProducts?.toJson(valueToJson: (v) => v.toJson()),
@@ -124,6 +154,10 @@ class _BogoOfferImpl extends BogoOffer {
   _BogoOfferImpl({
     String? offerId,
     required String triggerProductId,
+    String? triggerVariantId,
+    int? minTriggerQuantity,
+    double? triggerBaseQuantity,
+    String? triggerBaseUnit,
     required List<String> freeProductIds,
     List<_i2.BogoFreeProduct>? freeProducts,
     required String offerTitle,
@@ -134,6 +168,10 @@ class _BogoOfferImpl extends BogoOffer {
   }) : super._(
          offerId: offerId,
          triggerProductId: triggerProductId,
+         triggerVariantId: triggerVariantId,
+         minTriggerQuantity: minTriggerQuantity,
+         triggerBaseQuantity: triggerBaseQuantity,
+         triggerBaseUnit: triggerBaseUnit,
          freeProductIds: freeProductIds,
          freeProducts: freeProducts,
          offerTitle: offerTitle,
@@ -150,6 +188,10 @@ class _BogoOfferImpl extends BogoOffer {
   BogoOffer copyWith({
     Object? offerId = _Undefined,
     String? triggerProductId,
+    Object? triggerVariantId = _Undefined,
+    Object? minTriggerQuantity = _Undefined,
+    Object? triggerBaseQuantity = _Undefined,
+    Object? triggerBaseUnit = _Undefined,
     List<String>? freeProductIds,
     Object? freeProducts = _Undefined,
     String? offerTitle,
@@ -161,6 +203,18 @@ class _BogoOfferImpl extends BogoOffer {
     return BogoOffer(
       offerId: offerId is String? ? offerId : this.offerId,
       triggerProductId: triggerProductId ?? this.triggerProductId,
+      triggerVariantId: triggerVariantId is String?
+          ? triggerVariantId
+          : this.triggerVariantId,
+      minTriggerQuantity: minTriggerQuantity is int?
+          ? minTriggerQuantity
+          : this.minTriggerQuantity,
+      triggerBaseQuantity: triggerBaseQuantity is double?
+          ? triggerBaseQuantity
+          : this.triggerBaseQuantity,
+      triggerBaseUnit: triggerBaseUnit is String?
+          ? triggerBaseUnit
+          : this.triggerBaseUnit,
       freeProductIds:
           freeProductIds ?? this.freeProductIds.map((e0) => e0).toList(),
       freeProducts: freeProducts is List<_i2.BogoFreeProduct>?
