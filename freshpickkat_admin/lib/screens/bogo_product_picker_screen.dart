@@ -152,10 +152,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               .where((item) => item.productId == freeProductId)
               .cast<BogoFreeProduct?>()
               .firstWhere((_) => true, orElse: () => null);
-          _selectedFreeQuantitiesById[freeProductId] = _normalizeFreeQuantity(
-            configured?.quantity,
-            fallback: product.quantity,
-          );
+          _selectedFreeQuantitiesById[freeProductId] =
+              _normalizeFreeQuantityCount(configured?.quantity);
         }
 
         _selectedCategory =
@@ -299,6 +297,51 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     return '$quantity ${variant.quantityUnit}';
   }
 
+  String _basePackLabel(Product product) {
+    final baseQuantity = product.baseQuantity;
+    final baseUnit = product.baseUnit;
+    if (baseQuantity != null &&
+        baseQuantity > 0 &&
+        baseUnit != null &&
+        baseUnit.trim().isNotEmpty) {
+      final formattedQuantity = baseQuantity == baseQuantity.truncateToDouble()
+          ? baseQuantity.toInt().toString()
+          : baseQuantity.toString();
+      return '$formattedQuantity ${baseUnit.trim()}';
+    }
+
+    final fallback = product.quantity.trim();
+    return fallback.isEmpty ? '1 item' : fallback;
+  }
+
+  int _parseFreeQuantityCount(String? value) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isEmpty) return 1;
+
+    final multiplierMatch = RegExp(r'^(\d+)\s*x\b').firstMatch(normalized);
+    if (multiplierMatch != null) {
+      return int.tryParse(multiplierMatch.group(1)!) ?? 1;
+    }
+
+    final directNumber = int.tryParse(normalized);
+    if (directNumber != null && directNumber > 0) {
+      return directNumber;
+    }
+
+    return 1;
+  }
+
+  String _buildOfferTitle({
+    required int minimumTriggerQuantity,
+    required ProductVariant? triggerVariant,
+    required int freeProductCount,
+  }) {
+    final buyLabel = triggerVariant == null
+        ? 'Buy $minimumTriggerQuantity'
+        : 'Buy $minimumTriggerQuantity of ${_variantLabel(triggerVariant)}';
+    return '$buyLabel, Get $freeProductCount Free';
+  }
+
   void _toggleSelection(Product product) {
     final id = product.productId;
     if (id == null) return;
@@ -310,9 +353,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         _selectedFreeQuantitiesById.remove(id);
       } else {
         _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantity(
+        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
           _selectedFreeQuantitiesById[id],
-          fallback: product.quantity,
         );
       }
     });
@@ -322,16 +364,19 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     final id = product.productId;
     if (id == null) return;
     setState(() {
-      _selectedFreeQuantitiesById[id] = quantity;
+      _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(quantity);
     });
   }
 
-  String _normalizeFreeQuantity(String? value, {required String fallback}) {
-    final normalized = value?.trim() ?? '';
-    if (normalized.isNotEmpty) return normalized;
+  String _normalizeFreeQuantityCount(String? value) {
+    return _parseFreeQuantityCount(value).toString();
+  }
 
-    final normalizedFallback = fallback.trim();
-    return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
+  String _buildFreeQuantityLabel(Product product, String? countValue) {
+    final count = _parseFreeQuantityCount(countValue);
+    final packLabel = _basePackLabel(product);
+    if (count <= 1) return packLabel;
+    return '$count x $packLabel';
   }
 
   List<BogoProductSelection> _buildSelections() {
@@ -339,9 +384,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       final product = entry.value;
       return BogoProductSelection(
         product: product,
-        freeQuantity: _normalizeFreeQuantity(
+        freeQuantity: _buildFreeQuantityLabel(
+          product,
           _selectedFreeQuantitiesById[entry.key],
-          fallback: product.quantity,
         ),
       );
     }).toList();
@@ -558,51 +603,57 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            DropdownButtonFormField<String>(
-              initialValue: _defaultTriggerVariantId(trigger),
-              decoration: const InputDecoration(
-                labelText: 'Trigger Variant',
-                border: OutlineInputBorder(),
-              ),
-              items: _triggerVariants(trigger)
-                  .map(
-                    (variant) => DropdownMenuItem(
-                      value: variant.variantId,
-                      child: Text(
-                        '${_variantLabel(variant)} | MRP ₹${variant.realPrice.toStringAsFixed(0)}',
-                      ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _defaultTriggerVariantId(trigger),
+                    decoration: const InputDecoration(
+                      labelText: 'Trigger Pack',
+                      border: OutlineInputBorder(),
                     ),
-                  )
-                  .toList(),
-              onChanged: _isSubmitting
-                  ? null
-                  : (value) {
+                    items: _triggerVariants(trigger)
+                        .map(
+                          (variant) => DropdownMenuItem(
+                            value: variant.variantId,
+                            child: Text(_variantLabel(variant)),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _isSubmitting
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedTriggerVariantId = value;
+                            });
+                          },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 140,
+                  child: TextFormField(
+                    initialValue: '$_minimumTriggerQuantity',
+                    enabled: !_isSubmitting,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Min Qty',
+                      hintText: '1',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
                       setState(() {
-                        _selectedTriggerVariantId = value;
+                        _minimumTriggerQuantity =
+                            int.tryParse(value.trim()) == null ||
+                                int.parse(value.trim()) <= 0
+                            ? 1
+                            : int.parse(value.trim());
                       });
                     },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              initialValue: '$_minimumTriggerQuantity',
-              enabled: !_isSubmitting,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Minimum Trigger Quantity',
-                hintText: 'e.g. 1, 2, 3',
-                helperText:
-                    'Selected trigger pack: ${_variantLabel(_selectedTriggerVariant() ?? _triggerVariants(trigger).first)}',
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _minimumTriggerQuantity =
-                      int.tryParse(value.trim()) == null ||
-                          int.parse(value.trim()) <= 0
-                      ? 1
-                      : int.parse(value.trim());
-                });
-              },
+                  ),
+                ),
+              ],
             ),
           ],
         ],
@@ -655,7 +706,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             ),
           )
           .toList(),
-      offerTitle: 'Buy 1 Get 1 Free',
+      offerTitle: _buildOfferTitle(
+        minimumTriggerQuantity: _minimumTriggerQuantity,
+        triggerVariant: selectedVariant,
+        freeProductCount: selections.length,
+      ),
       isActive: widget.offer?.isActive ?? true,
       startDate: _startDate,
       endDate: _endDate,
@@ -923,9 +978,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             onTap: () => _toggleSelection(product),
             freeQuantity: product.productId == null
                 ? product.quantity
-                : _normalizeFreeQuantity(
+                : _normalizeFreeQuantityCount(
                     _selectedFreeQuantitiesById[product.productId],
-                    fallback: product.quantity,
                   ),
             onFreeQuantityChanged: (value) =>
                 _updateFreeQuantity(product, value),
@@ -953,9 +1007,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
           onTap: () => _toggleSelection(product),
           freeQuantity: product.productId == null
               ? product.quantity
-              : _normalizeFreeQuantity(
+              : _normalizeFreeQuantityCount(
                   _selectedFreeQuantitiesById[product.productId],
-                  fallback: product.quantity,
                 ),
           onFreeQuantityChanged: (value) => _updateFreeQuantity(product, value),
         );
@@ -984,9 +1037,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
       final id = product.productId;
       if (id != null) {
         _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantity(
+        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
           selection.freeQuantity,
-          fallback: product.quantity,
         );
       }
     }
@@ -1060,9 +1112,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
         _selectedFreeQuantitiesById.remove(id);
       } else {
         _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantity(
+        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
           _selectedFreeQuantitiesById[id],
-          fallback: product.quantity,
         );
       }
     });
@@ -1073,16 +1124,53 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     if (id == null) return;
 
     setState(() {
-      _selectedFreeQuantitiesById[id] = quantity;
+      _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(quantity);
     });
   }
 
-  String _normalizeFreeQuantity(String? value, {required String fallback}) {
-    final normalized = value?.trim() ?? '';
-    if (normalized.isNotEmpty) return normalized;
+  String _normalizeFreeQuantityCount(String? value) {
+    return _parseFreeQuantityCount(value).toString();
+  }
 
-    final normalizedFallback = fallback.trim();
-    return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
+  String _basePackLabel(Product product) {
+    final baseQuantity = product.baseQuantity;
+    final baseUnit = product.baseUnit;
+    if (baseQuantity != null &&
+        baseQuantity > 0 &&
+        baseUnit != null &&
+        baseUnit.trim().isNotEmpty) {
+      final formattedQuantity = baseQuantity == baseQuantity.truncateToDouble()
+          ? baseQuantity.toInt().toString()
+          : baseQuantity.toString();
+      return '$formattedQuantity ${baseUnit.trim()}';
+    }
+
+    final fallback = product.quantity.trim();
+    return fallback.isEmpty ? '1 item' : fallback;
+  }
+
+  int _parseFreeQuantityCount(String? value) {
+    final normalized = value?.trim() ?? '';
+    if (normalized.isEmpty) return 1;
+
+    final multiplierMatch = RegExp(r'^(\d+)\s*x\b').firstMatch(normalized);
+    if (multiplierMatch != null) {
+      return int.tryParse(multiplierMatch.group(1)!) ?? 1;
+    }
+
+    final directNumber = int.tryParse(normalized);
+    if (directNumber != null && directNumber > 0) {
+      return directNumber;
+    }
+
+    return 1;
+  }
+
+  String _buildFreeQuantityLabel(Product product, String? countValue) {
+    final count = _parseFreeQuantityCount(countValue);
+    final packLabel = _basePackLabel(product);
+    if (count <= 1) return packLabel;
+    return '$count x $packLabel';
   }
 
   List<BogoProductSelection> _buildSelections() {
@@ -1090,9 +1178,9 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
       final product = entry.value;
       return BogoProductSelection(
         product: product,
-        freeQuantity: _normalizeFreeQuantity(
+        freeQuantity: _buildFreeQuantityLabel(
+          product,
           _selectedFreeQuantitiesById[entry.key],
-          fallback: product.quantity,
         ),
       );
     }).toList();
@@ -1334,9 +1422,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
             onTap: () => _toggleSelection(product),
             freeQuantity: product.productId == null
                 ? product.quantity
-                : _normalizeFreeQuantity(
+                : _normalizeFreeQuantityCount(
                     _selectedFreeQuantitiesById[product.productId],
-                    fallback: product.quantity,
                   ),
             onFreeQuantityChanged: (value) =>
                 _updateFreeQuantity(product, value),
@@ -1365,9 +1452,8 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
           onTap: () => _toggleSelection(product),
           freeQuantity: product.productId == null
               ? product.quantity
-              : _normalizeFreeQuantity(
+              : _normalizeFreeQuantityCount(
                   _selectedFreeQuantitiesById[product.productId],
-                  fallback: product.quantity,
                 ),
           onFreeQuantityChanged: (value) => _updateFreeQuantity(product, value),
         );
@@ -1468,10 +1554,12 @@ class _ProductSelectionTile extends StatelessWidget {
                 initialValue: freeQuantity,
                 autofocus: false,
                 onChanged: onFreeQuantityChanged,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Free quantity',
-                  hintText: 'e.g. 500gm',
-                  helperText: 'Pack: ${product.quantity}',
+                  labelText: 'Free Qty Count',
+                  hintText: '1',
+                  helperText:
+                      'Base pack: ${product.baseQuantity != null && product.baseUnit != null ? '${product.baseQuantity == product.baseQuantity!.truncateToDouble() ? product.baseQuantity!.toInt() : product.baseQuantity} ${product.baseUnit}' : product.quantity}',
                   prefixIcon: const Icon(Icons.scale_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),

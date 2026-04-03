@@ -1117,8 +1117,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                               ),
                               keyboardType: TextInputType.number,
                               validator: (v) {
-                                if (v?.trim().isEmpty == true)
+                                if (v?.trim().isEmpty == true) {
                                   return 'Required';
+                                }
                                 if (double.tryParse(v!) == null) {
                                   return 'Invalid number';
                                 }

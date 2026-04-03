@@ -395,6 +395,27 @@ class _BogoOfferCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _variantLabel(ProductVariant variant) {
+    final quantity =
+        variant.quantityValue == variant.quantityValue.truncateToDouble()
+        ? variant.quantityValue.toInt().toString()
+        : variant.quantityValue.toString();
+    return '$quantity ${variant.quantityUnit}';
+  }
+
+  String _fallbackTitle(BogoOffer offer, ProductVariant? triggerVariant) {
+    final minimumTriggerQuantity = offer.minTriggerQuantity ?? 1;
+    final variantLabel = triggerVariant != null
+        ? _variantLabel(triggerVariant)
+        : (offer.triggerBaseQuantity != null && offer.triggerBaseUnit != null)
+        ? '${offer.triggerBaseQuantity} ${offer.triggerBaseUnit}'
+        : null;
+    final buyLabel = variantLabel == null
+        ? 'Buy $minimumTriggerQuantity'
+        : 'Buy $minimumTriggerQuantity of $variantLabel';
+    return '$buyLabel, Get ${offer.freeProductIds.length} Free';
+  }
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
@@ -429,7 +450,9 @@ class _BogoOfferCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Buy 1 Get 1 Free',
+          offer.offerTitle.trim().isNotEmpty
+              ? offer.offerTitle
+              : _fallbackTitle(offer, triggerVariant),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
