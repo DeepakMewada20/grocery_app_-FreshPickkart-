@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/config/payment_config.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -327,6 +329,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 🎯 Checkout Page Banner
+                    Obx(() {
+                      final banners =
+                          BannerController.instance.checkoutPageBanners;
+                      if (banners.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: NetworkBannerWidget(
+                          height: 120,
+                          banners: banners,
+                          autoScrollInterval: const Duration(seconds: 5),
+                          autoScrollDuration:
+                              const Duration(milliseconds: 500),
+                        ),
+                      );
+                    }),
                     _buildAddressSection(cs),
                     const SizedBox(height: 16),
                     _buildItemsSection(cs),

@@ -94,10 +94,28 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // OFFER BANNER
+              // 🎡 HOME MIDDLE BANNER
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Obx(() {
+                    final bannerController = BannerController.instance;
+                    final middleBanners = bannerController.homeMiddleBanners;
+                    if (middleBanners.isEmpty) return const SizedBox.shrink();
+                    return NetworkBannerWidget(
+                      height: 160,
+                      banners: middleBanners,
+                      autoScrollInterval: const Duration(seconds: 4),
+                      autoScrollDuration: const Duration(milliseconds: 500),
+                    );
+                  }),
+                ),
+              ),
+
+              // OFFER BANNER (home_top)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
                   child: Obx(() {
                     final bannerController = BannerController.instance;
                     final banners = bannerController.homeTopBanners;

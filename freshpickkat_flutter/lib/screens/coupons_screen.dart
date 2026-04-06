@@ -7,7 +7,10 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CouponsScreen extends StatefulWidget {
-  const CouponsScreen({super.key});
+  /// If set, this coupon will be visually highlighted on screen open.
+  final String? autoApplyCouponCode;
+
+  const CouponsScreen({super.key, this.autoApplyCouponCode});
 
   @override
   State<CouponsScreen> createState() => _CouponsScreenState();
@@ -23,6 +26,12 @@ class _CouponsScreenState extends State<CouponsScreen> {
   void initState() {
     super.initState();
     _fetchAllCoupons();
+  }
+
+  bool _isHighlighted(CouponDisplay coupon) {
+    final code = widget.autoApplyCouponCode;
+    if (code == null || code.isEmpty) return false;
+    return coupon.code.trim().toLowerCase() == code.trim().toLowerCase();
   }
 
   Future<void> _fetchAllCoupons() async {
@@ -181,6 +190,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                           child: CouponListCard(
                             coupon: _coupons[index],
                             isDark: isDark,
+                            isHighlighted: _isHighlighted(_coupons[index]),
                           ),
                         ),
                         childCount: _coupons.length,
@@ -198,11 +208,13 @@ class _CouponsScreenState extends State<CouponsScreen> {
 class CouponListCard extends StatelessWidget {
   final CouponDisplay coupon;
   final bool isDark;
+  final bool isHighlighted;
 
   const CouponListCard({
     super.key,
     required this.coupon,
     required this.isDark,
+    this.isHighlighted = false,
   });
 
   Color get _accentColor => AppTheme.primaryGreen;
@@ -236,14 +248,26 @@ class CouponListCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => _copyCode(context),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
+          color: isHighlighted
+              ? _accentColor.withValues(alpha: 0.06)
+              : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: cs.outlineVariant,
-            width: 1,
+            color: isHighlighted ? _accentColor : cs.outlineVariant,
+            width: isHighlighted ? 2 : 1,
           ),
+          boxShadow: isHighlighted
+              ? [
+                  BoxShadow(
+                    color: _accentColor.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
         ),
         child: Column(
           children: [

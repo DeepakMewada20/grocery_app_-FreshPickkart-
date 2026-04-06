@@ -110,28 +110,31 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
                 );
               }
 
-              return ListView.builder(
-                controller: _scrollController,
-                itemCount:
-                    rules.length + (_controller.isLoadingMore.value ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= rules.length) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
+              return RefreshIndicator(
+                onRefresh: () => _controller.loadFreeDeliveryRules(force: true),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount:
+                      rules.length + (_controller.isLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= rules.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final rule = rules[index];
+                    return _FreeDeliveryCard(
+                      rule: rule,
+                      onToggle: (isActive) => _controller.toggleFreeDeliveryRule(
+                        rule.ruleId ?? '',
+                        isActive,
+                      ),
+                      onEdit: () => _showEditRuleDialog(rule),
+                      onDelete: () => _showDeleteConfirmation(rule),
                     );
-                  }
-                  final rule = rules[index];
-                  return _FreeDeliveryCard(
-                    rule: rule,
-                    onToggle: (isActive) => _controller.toggleFreeDeliveryRule(
-                      rule.ruleId ?? '',
-                      isActive,
-                    ),
-                    onEdit: () => _showEditRuleDialog(rule),
-                    onDelete: () => _showDeleteConfirmation(rule),
-                  );
-                },
+                  },
+                ),
               );
             }),
           ),

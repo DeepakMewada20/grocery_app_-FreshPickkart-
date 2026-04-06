@@ -118,30 +118,33 @@ class _BannersScreenState extends State<BannersScreen>
                 );
               }
 
-              return ListView.builder(
-                controller: _scrollController,
-                itemCount:
-                    banners.length + (_controller.isLoadingMore.value ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index >= banners.length) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
+              return RefreshIndicator(
+                onRefresh: () => _controller.loadBanners(force: true),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount:
+                      banners.length + (_controller.isLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= banners.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final banner = banners[index];
+                    return _BannerCard(
+                      banner: banner,
+                      onToggle: (isActive) => _controller.toggleBannerActive(
+                        banner.bannerId ?? '',
+                        isActive,
+                      ),
+                      onEdit: () => _showEditBannerDialog(banner),
+                      onDelete: () => _showDeleteConfirmation(banner),
+                      onPriorityChange: (priority) => _controller
+                          .updateBannerPriority(banner.bannerId ?? '', priority),
                     );
-                  }
-                  final banner = banners[index];
-                  return _BannerCard(
-                    banner: banner,
-                    onToggle: (isActive) => _controller.toggleBannerActive(
-                      banner.bannerId ?? '',
-                      isActive,
-                    ),
-                    onEdit: () => _showEditBannerDialog(banner),
-                    onDelete: () => _showDeleteConfirmation(banner),
-                    onPriorityChange: (priority) => _controller
-                        .updateBannerPriority(banner.bannerId ?? '', priority),
-                  );
-                },
+                  },
+                ),
               );
             }),
           ),
@@ -550,6 +553,9 @@ class _BannerDialogState extends State<_BannerDialog> {
       _lastAutoTitle = _buildDefaultTitle();
       _titleController.text = _lastAutoTitle!;
     }
+    _imageUrlController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -610,6 +616,75 @@ class _BannerDialogState extends State<_BannerDialog> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                if (_imageUrlController.text.trim().isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Image.network(
+                            _imageUrlController.text.trim(),
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.broken_image_outlined,
+                                    color: Colors.red,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Invalid Image URL',
+                                    style: TextStyle(
+                                      color: Colors.red[700],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Preview',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   initialValue: _type,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_detail_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -10,6 +11,7 @@ import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
+import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:get/get.dart';
@@ -480,6 +482,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildRelatedProducts(displayProduct),
+
+                    // 🎯 Product Page Banners
+                    Obx(() {
+                      final banners =
+                          BannerController.instance.productPageBanners;
+                      if (banners.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Special Deals For You',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            NetworkBannerWidget(
+                              height: 150,
+                              banners: banners,
+                              autoScrollInterval:
+                                  const Duration(seconds: 4),
+                              autoScrollDuration:
+                                  const Duration(milliseconds: 500),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),

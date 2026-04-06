@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -8,6 +9,7 @@ import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
+import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
@@ -60,6 +62,22 @@ class BasketScreen extends StatelessWidget {
                 physics: const ClampingScrollPhysics(),
                 child: Column(
                   children: [
+                    // 🎯 Cart Page Banner
+                    Obx(() {
+                      final banners =
+                          BannerController.instance.cartPageBanners;
+                      if (banners.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 4),
+                        child: NetworkBannerWidget(
+                          height: 130,
+                          banners: banners,
+                          autoScrollInterval: const Duration(seconds: 4),
+                          autoScrollDuration:
+                              const Duration(milliseconds: 500),
+                        ),
+                      );
+                    }),
                     _buildCartItemsList(cartController, cs),
                     const CouponSection(),
                     _buildBillDetails(cartController, cs),

@@ -8,7 +8,13 @@ import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/services/admin_notification_service.dart';
 import 'package:freshpickkat_admin/services/network_status_service.dart';
 
-enum _AuthViewState { checking, login, awaitingVerification, authenticated }
+enum _AuthViewState {
+  checking,
+  login,
+  awaitingVerification,
+  authenticated,
+  authenticatedOffline,
+}
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -111,7 +117,16 @@ class _AuthWrapperState extends State<AuthWrapper>
       return;
     }
 
-    await _authorizeCurrentUser();
+    if (_viewState != _AuthViewState.authenticated &&
+        _viewState != _AuthViewState.authenticatedOffline) {
+      setState(() {
+        _viewState = _AuthViewState.authenticatedOffline;
+        _authorizedUid = user.uid;
+        _message = null;
+      });
+    }
+
+    unawaited(_authorizeCurrentUser());
   }
 
   void _startVerificationPolling() {
@@ -144,15 +159,20 @@ class _AuthWrapperState extends State<AuthWrapper>
   Future<void> _authorizeCurrentUser() async {
     if (_authorizing) return;
     _authorizing = true;
-    if (mounted) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final previousState = _viewState;
+    final wasInMainFlow =
+        previousState == _AuthViewState.authenticated ||
+        previousState == _AuthViewState.authenticatedOffline;
+
+    if (mounted && !wasInMainFlow) {
       setState(() {
         _viewState = _AuthViewState.checking;
       });
     }
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
+      if (currentUser == null) {
         if (!mounted) return;
         setState(() => _viewState = _AuthViewState.login);
         return;
@@ -165,7 +185,7 @@ class _AuthWrapperState extends State<AuthWrapper>
       if (!mounted) return;
       setState(() {
         _viewState = _AuthViewState.authenticated;
-        _authorizedUid = user.uid;
+        _authorizedUid = currentUser.uid;
         _message = null;
       });
     } catch (e) {
@@ -178,8 +198,9 @@ class _AuthWrapperState extends State<AuthWrapper>
       if (!hasActualConnection || isTrueNetworkError) {
         if (!mounted) return;
         setState(() {
-          _viewState = _AuthViewState.login;
-          _message = 'Network error. Please try again later.';
+          _viewState = _AuthViewState.authenticatedOffline;
+          _authorizedUid = currentUser?.uid;
+          _message = null;
         });
         return;
       }
@@ -219,6 +240,7 @@ class _AuthWrapperState extends State<AuthWrapper>
   Widget build(BuildContext context) {
     switch (_viewState) {
       case _AuthViewState.authenticated:
+      case _AuthViewState.authenticatedOffline:
         return const MainScreen();
       case _AuthViewState.login:
       case _AuthViewState.awaitingVerification:

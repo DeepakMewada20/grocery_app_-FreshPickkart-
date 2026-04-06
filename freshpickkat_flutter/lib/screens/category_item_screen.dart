@@ -310,6 +310,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           banners: banners,
           autoScrollInterval: const Duration(seconds: 4),
           autoScrollDuration: const Duration(milliseconds: 500),
+          onBannerTap: (banner) => bannerController.onBannerTap(banner),
         );
       }),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
@@ -141,10 +142,32 @@ class AdminBannerController extends GetxController {
       banners.add(created);
       totalCount.value++;
       _sortBanners();
+      Get.snackbar(
+        'Success',
+        'Banner created successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
       return true;
+    } on NoInternetException {
+      Get.snackbar(
+        'Banner Creation Failed',
+        'No internet connection. Please check your network.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
     } catch (e) {
       error.value = e.toString();
-      print('Error creating banner: $e');
+      Get.snackbar(
+        'Banner Creation Failed',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return false;
     } finally {
       isLoading.value = false;
@@ -163,10 +186,23 @@ class AdminBannerController extends GetxController {
         banners[index] = updated;
       }
       _sortBanners();
+      Get.snackbar(
+        'Success',
+        'Banner updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
       return true;
     } catch (e) {
       error.value = e.toString();
-      print('Error updating banner: $e');
+      Get.snackbar(
+        'Banner Update Failed',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return false;
     } finally {
       isLoading.value = false;
@@ -182,10 +218,23 @@ class AdminBannerController extends GetxController {
       });
       banners.removeWhere((b) => b.bannerId == bannerId);
       if (totalCount.value > 0) totalCount.value--;
+      Get.snackbar(
+        'Success',
+        'Banner deleted successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
       return true;
     } catch (e) {
       error.value = e.toString();
-      print('Error deleting banner: $e');
+      Get.snackbar(
+        'Delete Failed',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return false;
     } finally {
       isLoading.value = false;

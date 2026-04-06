@@ -194,12 +194,10 @@ class BannerEndpoint extends Endpoint {
     final fields = _bannerToFields(banner, now);
 
     await firestore.projects.databases.documents.createDocument(
-      firestore_api.Document(
-        fields: fields,
-        name: '$_database/$bannerCollection/$bannerId',
-      ),
+      firestore_api.Document(fields: fields),
       _database,
       bannerCollection,
+      documentId: bannerId,
     );
 
     return (await getBannerById(session, bannerId))!;
@@ -244,7 +242,7 @@ class BannerEndpoint extends Endpoint {
         fields: {
           'active': firestore_api.Value(booleanValue: active),
           'updatedAt': firestore_api.Value(
-            timestampValue: DateTime.now().toIso8601String(),
+            timestampValue: DateTime.now().toUtc().toIso8601String(),
           ),
         },
       ),
@@ -266,7 +264,7 @@ class BannerEndpoint extends Endpoint {
         fields: {
           'priority': firestore_api.Value(integerValue: priority.toString()),
           'updatedAt': firestore_api.Value(
-            timestampValue: DateTime.now().toIso8601String(),
+            timestampValue: DateTime.now().toUtc().toIso8601String(),
           ),
         },
       ),
@@ -288,14 +286,14 @@ class BannerEndpoint extends Endpoint {
       ),
       'priority': firestore_api.Value(integerValue: banner.priority.toString()),
       'startDate': firestore_api.Value(
-        timestampValue: banner.startDate.toIso8601String(),
+        timestampValue: banner.startDate.toUtc().toIso8601String(),
       ),
       'endDate': firestore_api.Value(
-        timestampValue: banner.endDate.toIso8601String(),
+        timestampValue: banner.endDate.toUtc().toIso8601String(),
       ),
       'active': firestore_api.Value(booleanValue: banner.active),
       'createdAt': firestore_api.Value(
-        timestampValue: timestamp.toIso8601String(),
+        timestampValue: timestamp.toUtc().toIso8601String(),
       ),
     };
 
