@@ -10,3 +10,8 @@ fields:
   totalPrice: double
   isFreeItem: bool
   triggerProductId: String?
+  comboId: String?
+  comboName: String?
+  comboDiscountType: String?
+  comboDiscountValue: double?
+  comboItemQuantity: int?

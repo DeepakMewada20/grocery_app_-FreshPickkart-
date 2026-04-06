@@ -170,6 +170,13 @@ class UserEndpoint extends Endpoint {
       variantId: fields['variantId']?.stringValue,
       quantity: int.tryParse(fields['quantity']?.integerValue ?? '0') ?? 0,
       bogoFreeProductId: fields['bogoFreeProductId']?.stringValue,
+      comboId: fields['comboId']?.stringValue,
+      comboName: fields['comboName']?.stringValue,
+      comboDiscountType: fields['comboDiscountType']?.stringValue,
+      comboDiscountValue: fields['comboDiscountValue']?.doubleValue,
+      comboItemQuantity: int.tryParse(
+        fields['comboItemQuantity']?.integerValue ?? '',
+      ),
     );
   }
 
@@ -187,6 +194,22 @@ class UserEndpoint extends Endpoint {
           if (item.bogoFreeProductId != null)
             'bogoFreeProductId': firestore_api.Value(
               stringValue: item.bogoFreeProductId,
+            ),
+          if (item.comboId != null)
+            'comboId': firestore_api.Value(stringValue: item.comboId),
+          if (item.comboName != null)
+            'comboName': firestore_api.Value(stringValue: item.comboName),
+          if (item.comboDiscountType != null)
+            'comboDiscountType': firestore_api.Value(
+              stringValue: item.comboDiscountType,
+            ),
+          if (item.comboDiscountValue != null)
+            'comboDiscountValue': firestore_api.Value(
+              doubleValue: item.comboDiscountValue,
+            ),
+          if (item.comboItemQuantity != null)
+            'comboItemQuantity': firestore_api.Value(
+              integerValue: item.comboItemQuantity.toString(),
             ),
         },
       ),

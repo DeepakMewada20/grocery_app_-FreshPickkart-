@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_flutter/config/payment_config.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
@@ -7,13 +7,13 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -40,6 +40,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    Future.microtask(() => cartController.refreshCartCurrentData());
   }
 
   @override
@@ -50,6 +51,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
+
+    await cartController.refreshCartCurrentData();
 
     if (cartController.cartItems.isEmpty) {
       _showError('Your basket is empty');
@@ -148,39 +151,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final userPhone = _getCustomerPhone();
     final List<OrderItem> items = [];
     final productProvider = Get.find<ProductProviderController>();
-    
-    for (final item in cartController.cartItems) {
+
+    for (final item in cartController.regularCartItems) {
       // Add main product
-      items.add(OrderItem(
-        productId: item.product.productId ?? '',
-        variantId: item.variantId,
-        variantLabel: productFullQuantityLabel(item.product),
-        productName: item.product.productName,
-        productImage: item.product.imageUrl,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        totalPrice: item.product.price * item.quantity,
-        isFreeItem: false,
-      ));
+      items.add(
+        OrderItem(
+          productId: item.product.productId ?? '',
+          variantId: item.variantId,
+          variantLabel: productFullQuantityLabel(item.product),
+          productName: item.product.productName,
+          productImage: item.product.imageUrl,
+          quantity: item.quantity,
+          unitPrice: item.product.price,
+          totalPrice: item.product.price * item.quantity,
+          isFreeItem: false,
+        ),
+      );
 
       // Add BOGO free item if selected
       if (item.bogoFreeProductId != null) {
-        final freeProduct = productProvider.allProducts
-            .firstWhereOrNull((p) => p.productId == item.bogoFreeProductId);
-        
+        final freeProduct = productProvider.allProducts.firstWhereOrNull(
+          (p) => p.productId == item.bogoFreeProductId,
+        );
+
         if (freeProduct != null) {
-          items.add(OrderItem(
-            productId: freeProduct.productId!,
-            variantLabel: productFullQuantityLabel(freeProduct),
-            productName: freeProduct.productName,
-            productImage: freeProduct.imageUrl,
-            quantity: item.quantity, // 1 free for every 1 trigger
-            unitPrice: 0,
-            totalPrice: 0,
-            isFreeItem: true,
-            triggerProductId: item.product.productId,
-          ));
+          items.add(
+            OrderItem(
+              productId: freeProduct.productId!,
+              variantLabel: productFullQuantityLabel(freeProduct),
+              productName: freeProduct.productName,
+              productImage: freeProduct.imageUrl,
+              quantity: item.quantity, // 1 free for every 1 trigger
+              unitPrice: 0,
+              totalPrice: 0,
+              isFreeItem: true,
+              triggerProductId: item.product.productId,
+            ),
+          );
         }
+      }
+    }
+
+    for (final group in cartController.comboGroups) {
+      for (final item in group.items) {
+        items.add(
+          OrderItem(
+            productId: item.product.productId ?? '',
+            variantId: item.variantId,
+            variantLabel: productFullQuantityLabel(item.product),
+            productName: item.product.productName,
+            productImage: item.product.imageUrl,
+            quantity: item.quantity,
+            unitPrice: item.product.price,
+            totalPrice: item.product.price * item.quantity,
+            isFreeItem: false,
+            comboId: item.comboId,
+            comboName: item.comboName,
+            comboDiscountType: item.comboDiscountType,
+            comboDiscountValue: item.comboDiscountValue,
+            comboItemQuantity: item.comboItemQuantity,
+          ),
+        );
       }
     }
 
@@ -340,8 +371,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           height: 120,
                           banners: banners,
                           autoScrollInterval: const Duration(seconds: 5),
-                          autoScrollDuration:
-                              const Duration(milliseconds: 500),
+                          autoScrollDuration: const Duration(milliseconds: 500),
                         ),
                       );
                     }),
@@ -502,31 +532,164 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...cartController.cartItems.map((item) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
-                      style: TextStyle(color: cs.onSurface),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    'INR ${(item.product.price * item.quantity).toStringAsFixed(0)}',
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
+          ...cartController.regularCartItems.map(
+            (item) => _buildRegularCheckoutItem(item, cs),
+          ),
+          ...cartController.comboGroups.map(
+            (group) => _buildComboCheckoutGroup(group, cs),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRegularCheckoutItem(CartItem item, ColorScheme cs) {
+    final productProvider = Get.find<ProductProviderController>();
+    final freeProduct = item.bogoFreeProductId == null
+        ? null
+        : productProvider.allProducts.firstWhereOrNull(
+            (p) => p.productId == item.bogoFreeProductId,
+          );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
+                  style: TextStyle(color: cs.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                'INR ${(item.product.price * item.quantity).toStringAsFixed(0)}',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          if (freeProduct != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'FREE: ${freeProduct.productName} (${productFullQuantityLabel(freeProduct)}) x${item.quantity}',
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComboCheckoutGroup(ComboCartGroup group, ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  group.name,
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  comboDiscountBadgeText(
+                    group.discountType,
+                    group.discountValue,
+                  ),
+                  style: TextStyle(
+                    color: Colors.green.shade700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...group.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.75),
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      'INR ${(item.product.price * item.quantity).toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.75),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Combo total x${group.bundleQuantity}',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'INR ${group.discountedTotal.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'INR ${group.originalTotal.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.45),
+                        fontSize: 12,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

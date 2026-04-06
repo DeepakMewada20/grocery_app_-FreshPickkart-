@@ -131,6 +131,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   @override
   void dispose() {
+    if (productController.currentCategory.value.trim().toLowerCase() ==
+        widget.categoryName.trim().toLowerCase()) {
+      productController.resetHomeFeed();
+    }
     _subCategoryScrollController.dispose();
     _itemsScrollController.dispose();
     super.dispose();

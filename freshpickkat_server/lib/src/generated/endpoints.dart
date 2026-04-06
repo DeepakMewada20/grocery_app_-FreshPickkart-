@@ -1931,6 +1931,25 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'product',
       endpoint: endpoints['product']!,
       methodConnectors: {
+        'getProductsByIds': _i1.MethodConnector(
+          name: 'getProductsByIds',
+          params: {
+            'productIds': _i1.ParameterDescription(
+              name: 'productIds',
+              type: _i1.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i14.ProductEndpoint)
+                  .getProductsByIds(
+                    session,
+                    params['productIds'],
+                  ),
+        ),
         'getProducts': _i1.MethodConnector(
           name: 'getProducts',
           params: {

@@ -11,6 +11,32 @@ import '../services/business/validation_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class ProductEndpoint extends Endpoint {
+  Future<List<Product>> getProductsByIds(
+    Session session,
+    List<String> productIds,
+  ) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
+    final products = <Product>[];
+    final seen = <String>{};
+
+    for (final rawId in productIds) {
+      final productId = rawId.trim();
+      if (productId.isEmpty || !seen.add(productId)) continue;
+
+      try {
+        final doc = await firestore.projects.databases.documents.get(
+          '$database/Products/$productId',
+        );
+        if (doc.fields == null) continue;
+        products.add(_productFromFirestore(productId, doc.fields!));
+      } catch (_) {}
+    }
+
+    return products;
+  }
+
   Future<List<Product>> getProducts(
     Session session, {
     int limit = 10,

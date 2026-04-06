@@ -24,14 +24,22 @@ class CategoriesSelectionListview extends StatefulWidget {
 
 class _CategoriesSelectionListviewState
     extends State<CategoriesSelectionListview> {
+  static final Map<String, List<Product>> _cachedProductsBySort = {};
   late RxList<Product> products = <Product>[].obs;
   late RxBool isLoading = false.obs;
   final _client = ServerpodClient().client;
 
+  String get _cacheKey => widget.sortBy ?? 'name';
+
   @override
   void initState() {
     super.initState();
-    _fetchProducts();
+    final cachedProducts = _cachedProductsBySort[_cacheKey];
+    if (cachedProducts != null && cachedProducts.isNotEmpty) {
+      products.assignAll(cachedProducts);
+    } else {
+      _fetchProducts();
+    }
   }
 
   Future<void> _fetchProducts() async {
@@ -45,8 +53,9 @@ class _CategoriesSelectionListviewState
       );
 
       products.assignAll(fetchedProducts);
+      _cachedProductsBySort[_cacheKey] = fetchedProducts;
     } catch (e) {
-      print('Error fetching products: $e');
+      debugPrint('Error fetching products: $e');
     } finally {
       isLoading.value = false;
     }

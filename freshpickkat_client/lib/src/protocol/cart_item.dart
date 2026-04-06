@@ -18,6 +18,11 @@ abstract class CartItem implements _i1.SerializableModel {
     this.variantId,
     required this.quantity,
     this.bogoFreeProductId,
+    this.comboId,
+    this.comboName,
+    this.comboDiscountType,
+    this.comboDiscountValue,
+    this.comboItemQuantity,
   });
 
   factory CartItem({
@@ -25,6 +30,11 @@ abstract class CartItem implements _i1.SerializableModel {
     String? variantId,
     required int quantity,
     String? bogoFreeProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) = _CartItemImpl;
 
   factory CartItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -33,6 +43,12 @@ abstract class CartItem implements _i1.SerializableModel {
       variantId: jsonSerialization['variantId'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       bogoFreeProductId: jsonSerialization['bogoFreeProductId'] as String?,
+      comboId: jsonSerialization['comboId'] as String?,
+      comboName: jsonSerialization['comboName'] as String?,
+      comboDiscountType: jsonSerialization['comboDiscountType'] as String?,
+      comboDiscountValue: (jsonSerialization['comboDiscountValue'] as num?)
+          ?.toDouble(),
+      comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
     );
   }
 
@@ -44,6 +60,16 @@ abstract class CartItem implements _i1.SerializableModel {
 
   String? bogoFreeProductId;
 
+  String? comboId;
+
+  String? comboName;
+
+  String? comboDiscountType;
+
+  double? comboDiscountValue;
+
+  int? comboItemQuantity;
+
   /// Returns a shallow copy of this [CartItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -52,6 +78,11 @@ abstract class CartItem implements _i1.SerializableModel {
     String? variantId,
     int? quantity,
     String? bogoFreeProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -61,6 +92,11 @@ abstract class CartItem implements _i1.SerializableModel {
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (bogoFreeProductId != null) 'bogoFreeProductId': bogoFreeProductId,
+      if (comboId != null) 'comboId': comboId,
+      if (comboName != null) 'comboName': comboName,
+      if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
+      if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
+      if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
     };
   }
 
@@ -78,11 +114,21 @@ class _CartItemImpl extends CartItem {
     String? variantId,
     required int quantity,
     String? bogoFreeProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) : super._(
          productId: productId,
          variantId: variantId,
          quantity: quantity,
          bogoFreeProductId: bogoFreeProductId,
+         comboId: comboId,
+         comboName: comboName,
+         comboDiscountType: comboDiscountType,
+         comboDiscountValue: comboDiscountValue,
+         comboItemQuantity: comboItemQuantity,
        );
 
   /// Returns a shallow copy of this [CartItem]
@@ -94,6 +140,11 @@ class _CartItemImpl extends CartItem {
     Object? variantId = _Undefined,
     int? quantity,
     Object? bogoFreeProductId = _Undefined,
+    Object? comboId = _Undefined,
+    Object? comboName = _Undefined,
+    Object? comboDiscountType = _Undefined,
+    Object? comboDiscountValue = _Undefined,
+    Object? comboItemQuantity = _Undefined,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
@@ -102,6 +153,17 @@ class _CartItemImpl extends CartItem {
       bogoFreeProductId: bogoFreeProductId is String?
           ? bogoFreeProductId
           : this.bogoFreeProductId,
+      comboId: comboId is String? ? comboId : this.comboId,
+      comboName: comboName is String? ? comboName : this.comboName,
+      comboDiscountType: comboDiscountType is String?
+          ? comboDiscountType
+          : this.comboDiscountType,
+      comboDiscountValue: comboDiscountValue is double?
+          ? comboDiscountValue
+          : this.comboDiscountValue,
+      comboItemQuantity: comboItemQuantity is int?
+          ? comboItemQuantity
+          : this.comboItemQuantity,
     );
   }
 }

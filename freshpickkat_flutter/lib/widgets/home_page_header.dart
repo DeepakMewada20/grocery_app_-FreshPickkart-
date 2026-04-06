@@ -51,11 +51,13 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
       1.0,
     );
 
-    final backgroundColor = Color.lerp(
-      primaryColor,
-      isDark ? const Color(0xFF1A1A1A) : Colors.white,
-      progress,
-    )!;
+    final backgroundColor =
+        Color.lerp(
+          primaryColor,
+          isDark ? const Color(0xFF1A1A1A) : Colors.white,
+          progress,
+        ) ??
+        (isDark ? const Color(0xFF1A1A1A) : Colors.white);
 
     return SliverAppBar(
       pinned: true,

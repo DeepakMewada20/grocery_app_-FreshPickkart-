@@ -4,8 +4,9 @@ import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
-import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:freshpickkat_flutter/widgets/combo_product_preview_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:get/get.dart';
 
@@ -24,6 +25,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
   final _comboController = ComboOfferController.instance;
   final _productController = ProductProviderController.instance;
   String? _selectedComboId;
+  Worker? _comboWorker;
 
   @override
   void initState() {
@@ -32,13 +34,32 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
     if (_comboController.activeComboOffers.isEmpty) {
       _comboController.fetchActiveComboOffers();
     }
+    _prefetchComboProducts();
+    _comboWorker = ever<List<ComboOffer>>(
+      _comboController.activeComboOffers,
+      (_) => _prefetchComboProducts(),
+    );
   }
 
-  List<Product> _getProductsForCombo(ComboOffer combo) {
-    final ids = combo.comboProducts.map((cp) => cp.productId).toSet();
-    return _productController.allProducts
-        .where((p) => p.productId != null && ids.contains(p.productId))
+  void _prefetchComboProducts() {
+    final ids = _comboController.activeComboOffers
+        .expand((combo) => combo.comboProducts)
+        .map((item) => item.productId)
+        .where((id) => id.trim().isNotEmpty)
+        .toSet()
         .toList();
+    if (ids.isEmpty) return;
+    _productController.fetchProductsByIds(ids);
+  }
+
+  @override
+  void dispose() {
+    _comboWorker?.dispose();
+    super.dispose();
+  }
+
+  List<ResolvedComboProduct> _getProductsForCombo(ComboOffer combo) {
+    return resolveComboProducts(combo, _productController.allProducts);
   }
 
   @override
@@ -180,7 +201,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
 
 class _ComboCard extends StatelessWidget {
   final ComboOffer combo;
-  final List<Product> products;
+  final List<ResolvedComboProduct> products;
   final bool isHighlighted;
   final VoidCallback onTap;
 
@@ -197,12 +218,19 @@ class _ComboCard extends StatelessWidget {
     final cartController = CartController.instance;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final discountLabel = combo.discountType == 'percentage'
-        ? '${combo.discountValue.toStringAsFixed(0)}% OFF'
-        : '₹${combo.discountValue.formatPrice} OFF';
+    final discountLabel = comboDiscountBadgeText(
+      combo.discountType,
+      combo.discountValue,
+    );
+    final originalUnitTotal = calculateComboOriginalUnitTotal(products);
+    final comboUnitTotal = applyComboDiscount(
+      originalTotal: originalUnitTotal,
+      discountType: combo.discountType,
+      discountValue: combo.discountValue,
+    );
 
-    final productCardWidth = ((screenWidth - 72) / 2).clamp(150.0, 182.0);
-    final productStripHeight = productCardWidth / 0.59;
+    final productCardWidth = ((screenWidth - 84) / 2).clamp(132.0, 164.0);
+    final productStripHeight = productCardWidth * 1.38;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -281,6 +309,30 @@ class _ComboCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              '₹${comboUnitTotal.formatPrice}',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            Text(
+                              '₹${originalUnitTotal.formatPrice}',
+                              style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.4),
+                                fontSize: 13,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -312,10 +364,7 @@ class _ComboCard extends StatelessWidget {
                     ),
                     child: SizedBox(
                       width: productCardWidth,
-                      child: ProductCard(
-                        product: products[index],
-                        onAddPressed: () {},
-                      ),
+                      child: ComboProductPreviewCard(item: products[index]),
                     ),
                   );
                 },
@@ -327,12 +376,10 @@ class _ComboCard extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    for (final p in products) {
-                      cartController.addItem(p);
-                    }
+                    cartController.addComboOffer(combo);
                     Get.snackbar(
-                      '🛒 Added to Basket',
-                      '${products.length} items added from ${combo.name}',
+                      'Added to Basket',
+                      '${products.length} combo products added from ${combo.name}',
                       snackPosition: SnackPosition.BOTTOM,
                       backgroundColor: AppTheme.primaryGreen,
                       colorText: Colors.white,
@@ -341,7 +388,7 @@ class _ComboCard extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: const Text('Add All to Basket'),
+                  label: const Text('Add Combo to Basket'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: Colors.white,

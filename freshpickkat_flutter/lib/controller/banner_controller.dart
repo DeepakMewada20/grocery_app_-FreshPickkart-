@@ -4,7 +4,7 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class BannerController extends GetxController {
-  static BannerController get instance => Get.put(BannerController());
+  static BannerController get instance => Get.find<BannerController>();
 
   client.Client get _client => ServerpodClient().client;
 
@@ -27,6 +27,11 @@ class BannerController extends GetxController {
 
   Future<void> loadAllBanners({bool forceRefresh = false}) async {
     if (isLoading.value && !forceRefresh) return;
+    if (!forceRefresh &&
+        homeTopBanners.isNotEmpty &&
+        homeMiddleBanners.isNotEmpty) {
+      return;
+    }
     try {
       isLoading.value = true;
       error.value = null;

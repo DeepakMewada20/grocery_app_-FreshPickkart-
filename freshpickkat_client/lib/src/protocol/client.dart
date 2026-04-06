@@ -927,6 +927,13 @@ class EndpointProduct extends _i1.EndpointRef {
   @override
   String get name => 'product';
 
+  _i2.Future<List<_i28.Product>> getProductsByIds(List<String> productIds) =>
+      caller.callServerEndpoint<List<_i28.Product>>(
+        'product',
+        'getProductsByIds',
+        {'productIds': productIds},
+      );
+
   _i2.Future<List<_i28.Product>> getProducts({
     required int limit,
     String? lastProductName,

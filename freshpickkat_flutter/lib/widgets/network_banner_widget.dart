@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
+import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 
 class NetworkBannerWidget extends StatefulWidget {
@@ -8,6 +9,7 @@ class NetworkBannerWidget extends StatefulWidget {
   final double height;
   final Duration autoScrollDuration;
   final Duration autoScrollInterval;
+
   /// Optional override. If null, BannerNavigationHelper.navigate is used.
   final Function(client.Banner)? onBannerTap;
 
@@ -24,57 +26,160 @@ class NetworkBannerWidget extends StatefulWidget {
   State<NetworkBannerWidget> createState() => _NetworkBannerWidgetState();
 }
 
-class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
-  late PageController _pageController;
+class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
+    with RouteAware, WidgetsBindingObserver {
+  static final Map<String, int> _savedBannerIndex = {};
+  PageController? _pageController;
   int _currentPage = 0;
   Timer? _timer;
+  ModalRoute<dynamic>? _route;
+  bool _isRouteVisible = true;
+  bool _isAppResumed = true;
+
+  String get _storageKey => widget.banners
+      .map((banner) => '${banner.type}|${banner.imageUrl}|${banner.title}')
+      .join('||');
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.banners.isEmpty) return;
 
-    _currentPage = 10000;
+    final savedIndex = _savedBannerIndex[_storageKey] ?? 0;
+    final basePage = 10000 - (10000 % widget.banners.length);
+    _currentPage = basePage + savedIndex;
     _pageController = PageController(
       viewportFraction: 0.92,
       initialPage: _currentPage,
     );
-    _startAutoScroll();
+    _syncAutoScrollState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (_route == route) return;
+
+    if (_route is ModalRoute<void>) {
+      appRouteObserver.unsubscribe(this);
+    }
+
+    _route = route;
+    if (route is ModalRoute<void>) {
+      appRouteObserver.subscribe(this, route);
+    }
   }
 
   @override
   void didUpdateWidget(NetworkBannerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.banners.isEmpty != oldWidget.banners.isEmpty) {
-      _currentPage = 10000;
+    if (widget.banners.isEmpty) {
+      _cancelTimer();
+      _pageController?.dispose();
+      _pageController = null;
+      return;
+    }
+
+    if (_pageController == null ||
+        oldWidget.banners.length != widget.banners.length) {
+      _cancelTimer();
+      _pageController?.dispose();
+      final savedIndex = _savedBannerIndex[_storageKey] ?? 0;
+      final basePage = 10000 - (10000 % widget.banners.length);
+      _currentPage = basePage + savedIndex;
       _pageController = PageController(
         viewportFraction: 0.92,
         initialPage: _currentPage,
       );
-      if (widget.banners.isNotEmpty) _startAutoScroll();
     }
+
+    _syncAutoScrollState();
   }
 
   void _startAutoScroll() {
-    if (widget.banners.isEmpty) return;
+    if (!_shouldAutoScroll) return;
 
-    _timer?.cancel();
-    _timer = Timer.periodic(widget.autoScrollInterval, (timer) {
-      if (_pageController.hasClients) {
-        _currentPage++;
-        _pageController.animateToPage(
-          _currentPage,
-          duration: widget.autoScrollDuration,
-          curve: Curves.easeInOut,
-        );
-      }
+    _cancelTimer();
+    _timer = Timer.periodic(widget.autoScrollInterval, (_) {
+      _advancePage();
     });
+  }
+
+  bool get _shouldAutoScroll =>
+      widget.banners.length > 1 && _isRouteVisible && _isAppResumed;
+
+  void _syncAutoScrollState() {
+    if (_shouldAutoScroll) {
+      _startAutoScroll();
+    } else {
+      _cancelTimer();
+    }
+  }
+
+  void _advancePage() {
+    final controller = _pageController;
+    if (controller == null ||
+        !controller.hasClients ||
+        widget.banners.isEmpty) {
+      return;
+    }
+
+    _currentPage++;
+    controller.animateToPage(
+      _currentPage,
+      duration: widget.autoScrollDuration,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void didPush() {
+    _isRouteVisible = true;
+    _syncAutoScrollState();
+  }
+
+  @override
+  void didPopNext() {
+    _isRouteVisible = true;
+    _syncAutoScrollState();
+  }
+
+  @override
+  void didPushNext() {
+    _isRouteVisible = false;
+    _syncAutoScrollState();
+  }
+
+  @override
+  void didPop() {
+    _isRouteVisible = false;
+    _syncAutoScrollState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppResumed = state == AppLifecycleState.resumed;
+    _syncAutoScrollState();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    if (widget.banners.isNotEmpty) _pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    if (_route is ModalRoute<void>) {
+      appRouteObserver.unsubscribe(this);
+    }
+    if (widget.banners.isNotEmpty) {
+      _savedBannerIndex[_storageKey] = _currentPage % widget.banners.length;
+    }
+    _cancelTimer();
+    _pageController?.dispose();
     super.dispose();
   }
 
@@ -88,7 +193,8 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.banners.isEmpty) {
+    final pageController = _pageController;
+    if (widget.banners.isEmpty || pageController == null) {
       return const SizedBox.shrink();
     }
 
@@ -97,7 +203,8 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
         SizedBox(
           height: widget.height,
           child: PageView.builder(
-            controller: _pageController,
+            controller: pageController,
+            key: PageStorageKey<String>('banner:${_storageKey.hashCode}'),
             onPageChanged: (index) {
               setState(() {
                 _currentPage = index;
@@ -108,11 +215,15 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
               final banner = widget.banners[bannerIndex];
 
               return AnimatedBuilder(
-                animation: _pageController,
+                animation: pageController,
                 builder: (context, child) {
                   double value = 1.0;
-                  if (_pageController.position.haveDimensions) {
-                    value = (_pageController.page ?? 0) - index;
+                  if (pageController.hasClients &&
+                      pageController.position.haveDimensions) {
+                    value =
+                        (pageController.page ??
+                            pageController.initialPage.toDouble()) -
+                        index;
                     value = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
                   }
                   return Center(
@@ -145,10 +256,9 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
                 decoration: BoxDecoration(
                   color: isActive
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.2),
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -252,7 +362,11 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget> {
                         ),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios, color: Colors.white, size: 10),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: 10,
+                      ),
                     ],
                   ),
                 ),

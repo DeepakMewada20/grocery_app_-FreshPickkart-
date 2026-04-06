@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -74,14 +75,54 @@ class ProductProviderController extends GetxController {
       }
 
       allProducts.addAll(newProducts);
-      print(
+      debugPrint(
         'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories, Sort: ${currentSortBy.value}), total: ${allProducts.length}',
       );
     } catch (e) {
       errorMessage.value = e.toString();
-      print('Error fetching products: $e');
+      debugPrint('Error fetching products: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchProductsByIds(List<String> productIds) async {
+    final trimmedIds = productIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (trimmedIds.isEmpty) return;
+
+    final loadedIds = allProducts
+        .map((product) => product.productId)
+        .whereType<String>()
+        .toSet();
+    final missingIds = trimmedIds
+        .where((id) => !loadedIds.contains(id))
+        .toList();
+    if (missingIds.isEmpty) return;
+
+    try {
+      final fetched = await _client.product.getProductsByIds(missingIds);
+      if (fetched.isEmpty) return;
+
+      final merged = [...allProducts];
+      final existingIds = merged
+          .map((product) => product.productId)
+          .whereType<String>()
+          .toSet();
+
+      for (final product in fetched) {
+        final productId = product.productId;
+        if (productId == null || existingIds.contains(productId)) continue;
+        merged.add(product);
+        existingIds.add(productId);
+      }
+
+      allProducts.assignAll(merged);
+    } catch (e) {
+      debugPrint('Error fetching products by ids: $e');
     }
   }
 
@@ -101,6 +142,14 @@ class ProductProviderController extends GetxController {
   void refreshProducts() {
     clearProducts();
     fetchProducts();
+  }
+
+  Future<void> resetHomeFeed() async {
+    currentCategory.value = '';
+    currentSubcategories.clear();
+    currentSortBy.value = 'name';
+    clearProducts();
+    await fetchProducts();
   }
 
   bool get hasData => allProducts.isNotEmpty;

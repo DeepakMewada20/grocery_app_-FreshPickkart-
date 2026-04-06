@@ -25,6 +25,11 @@ abstract class OrderItem
     required this.totalPrice,
     required this.isFreeItem,
     this.triggerProductId,
+    this.comboId,
+    this.comboName,
+    this.comboDiscountType,
+    this.comboDiscountValue,
+    this.comboItemQuantity,
   });
 
   factory OrderItem({
@@ -38,6 +43,11 @@ abstract class OrderItem
     required double totalPrice,
     required bool isFreeItem,
     String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) = _OrderItemImpl;
 
   factory OrderItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -54,6 +64,12 @@ abstract class OrderItem
         jsonSerialization['isFreeItem'],
       ),
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
+      comboId: jsonSerialization['comboId'] as String?,
+      comboName: jsonSerialization['comboName'] as String?,
+      comboDiscountType: jsonSerialization['comboDiscountType'] as String?,
+      comboDiscountValue: (jsonSerialization['comboDiscountValue'] as num?)
+          ?.toDouble(),
+      comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
     );
   }
 
@@ -77,6 +93,16 @@ abstract class OrderItem
 
   String? triggerProductId;
 
+  String? comboId;
+
+  String? comboName;
+
+  String? comboDiscountType;
+
+  double? comboDiscountValue;
+
+  int? comboItemQuantity;
+
   /// Returns a shallow copy of this [OrderItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -91,6 +117,11 @@ abstract class OrderItem
     double? totalPrice,
     bool? isFreeItem,
     String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -106,6 +137,11 @@ abstract class OrderItem
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
+      if (comboId != null) 'comboId': comboId,
+      if (comboName != null) 'comboName': comboName,
+      if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
+      if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
+      if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
     };
   }
 
@@ -123,6 +159,11 @@ abstract class OrderItem
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
+      if (comboId != null) 'comboId': comboId,
+      if (comboName != null) 'comboName': comboName,
+      if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
+      if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
+      if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
     };
   }
 
@@ -146,6 +187,11 @@ class _OrderItemImpl extends OrderItem {
     required double totalPrice,
     required bool isFreeItem,
     String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) : super._(
          productId: productId,
          variantId: variantId,
@@ -157,6 +203,11 @@ class _OrderItemImpl extends OrderItem {
          totalPrice: totalPrice,
          isFreeItem: isFreeItem,
          triggerProductId: triggerProductId,
+         comboId: comboId,
+         comboName: comboName,
+         comboDiscountType: comboDiscountType,
+         comboDiscountValue: comboDiscountValue,
+         comboItemQuantity: comboItemQuantity,
        );
 
   /// Returns a shallow copy of this [OrderItem]
@@ -174,6 +225,11 @@ class _OrderItemImpl extends OrderItem {
     double? totalPrice,
     bool? isFreeItem,
     Object? triggerProductId = _Undefined,
+    Object? comboId = _Undefined,
+    Object? comboName = _Undefined,
+    Object? comboDiscountType = _Undefined,
+    Object? comboDiscountValue = _Undefined,
+    Object? comboItemQuantity = _Undefined,
   }) {
     return OrderItem(
       productId: productId ?? this.productId,
@@ -188,6 +244,17 @@ class _OrderItemImpl extends OrderItem {
       triggerProductId: triggerProductId is String?
           ? triggerProductId
           : this.triggerProductId,
+      comboId: comboId is String? ? comboId : this.comboId,
+      comboName: comboName is String? ? comboName : this.comboName,
+      comboDiscountType: comboDiscountType is String?
+          ? comboDiscountType
+          : this.comboDiscountType,
+      comboDiscountValue: comboDiscountValue is double?
+          ? comboDiscountValue
+          : this.comboDiscountValue,
+      comboItemQuantity: comboItemQuantity is int?
+          ? comboItemQuantity
+          : this.comboItemQuantity,
     );
   }
 }

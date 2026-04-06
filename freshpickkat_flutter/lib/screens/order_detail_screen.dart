@@ -1,6 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+
+class _GroupedOrderItem {
+  final OrderItem item;
+  final List<OrderItem> freeItems;
+
+  const _GroupedOrderItem({
+    required this.item,
+    required this.freeItems,
+  });
+}
+
+class _GroupedOrderCombo {
+  final String comboId;
+  final String name;
+  final String discountType;
+  final double discountValue;
+  final List<OrderItem> items;
+
+  const _GroupedOrderCombo({
+    required this.comboId,
+    required this.name,
+    required this.discountType,
+    required this.discountValue,
+    required this.items,
+  });
+
+  int get bundleQuantity {
+    if (items.isEmpty) return 0;
+    final counts =
+        items
+            .map((item) => item.quantity ~/ (item.comboItemQuantity ?? 1))
+            .where((count) => count > 0)
+            .toList()
+          ..sort();
+    return counts.isEmpty ? 0 : counts.first;
+  }
+
+  double get originalTotal =>
+      items.fold(0, (sum, item) => sum + item.totalPrice);
+  double get discountedTotal => applyComboDiscount(
+    originalTotal: originalTotal,
+    discountType: discountType,
+    discountValue: discountType == 'flat'
+        ? discountValue * bundleQuantity
+        : discountValue,
+  );
+}
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -55,8 +104,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!))
-              : _buildContent(cs),
+          ? Center(child: Text(_error!))
+          : _buildContent(cs),
     );
   }
 
@@ -105,7 +154,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildStatusChip('Order: ${order.status}', _statusColor(order.status)),
+              _buildStatusChip(
+                'Order: ${order.status}',
+                _statusColor(order.status),
+              ),
               const SizedBox(width: 8),
               _buildStatusChip(
                 'Payment: ${order.paymentStatus}',
@@ -167,6 +219,43 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildItems(Order order, ColorScheme cs) {
+    final freeByTrigger = <String, List<OrderItem>>{};
+    final regularItems = <OrderItem>[];
+    final comboMap = <String, List<OrderItem>>{};
+
+    for (final item in order.items) {
+      if (item.comboId != null && item.comboId!.trim().isNotEmpty) {
+        comboMap.putIfAbsent(item.comboId!, () => <OrderItem>[]).add(item);
+        continue;
+      }
+      if (item.isFreeItem && item.triggerProductId != null) {
+        freeByTrigger
+            .putIfAbsent(item.triggerProductId!, () => <OrderItem>[])
+            .add(item);
+        continue;
+      }
+      regularItems.add(item);
+    }
+
+    final groupedRegular = regularItems
+        .map(
+          (item) => _GroupedOrderItem(
+            item: item,
+            freeItems: freeByTrigger[item.productId] ?? const <OrderItem>[],
+          ),
+        )
+        .toList();
+    final comboGroups = comboMap.entries.map((entry) {
+      final first = entry.value.first;
+      return _GroupedOrderCombo(
+        comboId: entry.key,
+        name: first.comboName ?? 'Combo Offer',
+        discountType: first.comboDiscountType ?? 'flat',
+        discountValue: first.comboDiscountValue ?? 0,
+        items: entry.value,
+      );
+    }).toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -185,31 +274,157 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...order.items.map((item) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
-                      style: TextStyle(color: cs.onSurface),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    'INR ${item.totalPrice.toStringAsFixed(0)}',
+          ...groupedRegular.map((entry) => _buildOrderRegularItem(entry, cs)),
+          ...comboGroups.map((group) => _buildOrderComboGroup(group, cs)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderRegularItem(_GroupedOrderItem entry, ColorScheme cs) {
+    final item = entry.item;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
+                  style: TextStyle(color: cs.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                'INR ${item.totalPrice.toStringAsFixed(0)}',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          ...entry.freeItems.map(
+            (freeItem) => Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'FREE: ${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderComboGroup(_GroupedOrderCombo group, ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    group.name,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
+                ),
+                Text(
+                  comboDiscountBadgeText(
+                    group.discountType,
+                    group.discountValue,
+                  ),
+                  style: TextStyle(
+                    color: Colors.green.shade700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...group.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.75),
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      'INR ${item.totalPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.75),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            );
-          }),
-        ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Combo total x${group.bundleQuantity}',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'INR ${group.discountedTotal.formatPrice}',
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'INR ${group.originalTotal.formatPrice}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.45),
+                        fontSize: 12,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -233,7 +448,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildRow('Item Total', 'INR ${order.totalAmount.toStringAsFixed(0)}', cs),
+          _buildRow(
+            'Item Total',
+            'INR ${order.totalAmount.toStringAsFixed(0)}',
+            cs,
+          ),
           if (order.discountAmount > 0)
             _buildRow(
               'Discount',
@@ -277,7 +496,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Text(
             label,
             style: TextStyle(
-              color: isTotal ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
+              color: isTotal
+                  ? cs.onSurface
+                  : cs.onSurface.withValues(alpha: 0.6),
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
             ),
           ),
