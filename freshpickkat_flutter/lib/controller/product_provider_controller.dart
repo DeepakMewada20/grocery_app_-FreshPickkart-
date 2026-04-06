@@ -4,12 +4,13 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class ProductProviderController extends GetxController {
-  // --------- SINGLETON PATTERN ---------
   static ProductProviderController get instance =>
       Get.put(ProductProviderController(), permanent: true);
-  // -------------------------------------
 
   final Client _client = ServerpodClient().client;
+
+  static const int _cacheLimit = 15;
+  final Map<String, List<Product>> _productCache = {};
 
   // States
   final allProducts = <Product>[].obs;
@@ -20,16 +21,21 @@ class ProductProviderController extends GetxController {
   // Filters
   final currentCategory = ''.obs;
   final currentSubcategories = <String>[].obs;
-  final currentSortBy = 'name'.obs; // 'name', 'trending', 'best_sellers'
+  final currentSortBy = 'name'.obs;
+
+  String get _cacheKey {
+    final sub = currentSubcategories.isEmpty
+        ? 'all'
+        : currentSubcategories.join(',').toLowerCase();
+    return '${currentCategory.value}|$sub|${currentSortBy.value}';
+  }
 
   @override
   void onInit() {
     super.onInit();
-    // Auto fetch once when app starts (Home screen context)
     fetchProducts();
   }
 
-  /// Apply new filters and refresh products
   Future<void> setFilters({
     String? category,
     List<String>? subcategories,
@@ -39,13 +45,11 @@ class ProductProviderController extends GetxController {
     refreshProducts();
   }
 
-  /// Change subcategories filter only
   Future<void> setSubcategories(List<String> subs) async {
     currentSubcategories.assignAll(subs);
     refreshProducts();
   }
 
-  /// Change sort type and refresh products
   Future<void> setSortBy(String sortBy) async {
     currentSortBy.value = sortBy;
     refreshProducts();
@@ -54,12 +58,24 @@ class ProductProviderController extends GetxController {
   Future<void> fetchProducts() async {
     if (!isMoreDataAvailable.value) return;
 
+    final key = _cacheKey;
+    final isInitialFetch = allProducts.isEmpty;
+
+    if (isInitialFetch && _productCache.containsKey(key)) {
+      allProducts.assignAll(_productCache[key]!);
+      isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
+      debugPrint(
+        'Loaded from cache: ${_productCache[key]!.length} products (Key: $key)',
+      );
+      return;
+    }
+
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
       final newProducts = await _client.product.getProducts(
-        limit: 12,
+        limit: _cacheLimit,
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,
@@ -75,6 +91,11 @@ class ProductProviderController extends GetxController {
       }
 
       allProducts.addAll(newProducts);
+
+      if (isInitialFetch) {
+        _productCache[key] = List.from(allProducts);
+      }
+
       debugPrint(
         'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories, Sort: ${currentSortBy.value}), total: ${allProducts.length}',
       );
@@ -126,22 +147,26 @@ class ProductProviderController extends GetxController {
     }
   }
 
-  /// Load more products (pagination)
   Future<void> loadMore() async {
     if (!isLoading.value && isMoreDataAvailable.value) {
       await fetchProducts();
     }
   }
 
-  // Utility methods
   void clearProducts() {
     allProducts.clear();
     isMoreDataAvailable.value = true;
   }
 
   void refreshProducts() {
-    clearProducts();
-    fetchProducts();
+    final key = _cacheKey;
+    if (_productCache.containsKey(key) && _productCache[key]!.isNotEmpty) {
+      allProducts.assignAll(_productCache[key]!);
+      isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
+    } else {
+      clearProducts();
+      fetchProducts();
+    }
   }
 
   Future<void> resetHomeFeed() async {

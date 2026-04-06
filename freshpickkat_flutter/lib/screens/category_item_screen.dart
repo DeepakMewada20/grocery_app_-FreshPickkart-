@@ -133,7 +133,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   void dispose() {
     if (productController.currentCategory.value.trim().toLowerCase() ==
         widget.categoryName.trim().toLowerCase()) {
-      productController.resetHomeFeed();
+      Future.microtask(() {
+        productController.resetHomeFeed();
+      });
     }
     _subCategoryScrollController.dispose();
     _itemsScrollController.dispose();
@@ -312,6 +314,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         return NetworkBannerWidget(
           height: 140,
           banners: banners,
+          fullWidth: true,
           autoScrollInterval: const Duration(seconds: 4),
           autoScrollDuration: const Duration(milliseconds: 500),
           onBannerTap: (banner) => bannerController.onBannerTap(banner),

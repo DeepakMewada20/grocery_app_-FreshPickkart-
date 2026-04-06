@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
@@ -29,6 +30,7 @@ class _CategoriesScreenWithStickyHeaderState
   String _currentStickyHeader = '';
 
   final Map<int, GlobalKey> _categoryKeys = {};
+  final GlobalKey _allItemsKey = GlobalKey();
   int? _tappedCategoryIndex;
 
   @override
@@ -75,6 +77,19 @@ class _CategoriesScreenWithStickyHeaderState
       }
     }
 
+    final maxScroll = _itemsScrollController.position.maxScrollExtent;
+    if (_itemsScrollController.offset >= maxScroll - 100) {
+      final allItemsIndex = categoryController.categories.length;
+      if (_selectedCategoryIndex != allItemsIndex) {
+        setState(() {
+          _selectedCategoryIndex = allItemsIndex;
+          _currentStickyHeader = 'All Items';
+        });
+        _scrollCategoryIntoView(allItemsIndex);
+      }
+      return;
+    }
+
     if (_selectedCategoryIndex != newSelectedIndex) {
       setState(() {
         _selectedCategoryIndex = newSelectedIndex;
@@ -107,28 +122,39 @@ class _CategoriesScreenWithStickyHeaderState
   void _onCategoryTap(int index) {
     setState(() {
       _selectedCategoryIndex = index;
-      _currentStickyHeader = categoryController.categories[index].categoryName;
       _isAutoScrolling = true;
     });
 
-    final RenderBox? renderBox =
-        _categoryKeys[index]?.currentContext?.findRenderObject() as RenderBox?;
-
-    if (renderBox != null) {
-      final position = renderBox.localToGlobal(Offset.zero);
-      final scrollOffset = _itemsScrollController.offset + position.dy - 40.0;
-
-      _itemsScrollController
-          .animateTo(
-            scrollOffset,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          )
-          .then((_) {
-            _isAutoScrolling = false;
-          });
+    if (index < categoryController.categories.length) {
+      _currentStickyHeader = categoryController.categories[index].categoryName;
+      final context = _categoryKeys[index]?.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          alignment: 0.0,
+        ).then((_) {
+          _isAutoScrolling = false;
+        });
+      } else {
+        _isAutoScrolling = false;
+      }
     } else {
-      _isAutoScrolling = false;
+      _currentStickyHeader = 'All Items';
+      final context = _allItemsKey.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          alignment: 0.0,
+        ).then((_) {
+          _isAutoScrolling = false;
+        });
+      } else {
+        _isAutoScrolling = false;
+      }
     }
   }
 
@@ -261,13 +287,16 @@ class _CategoriesScreenWithStickyHeaderState
   }
 
   Widget _buildCategoriesList(ColorScheme cs) {
+    final totalItems = categoryController.categories.length + 1;
+
     return Container(
       width: 90,
       color: cs.surfaceContainerHighest,
       child: ListView.builder(
         controller: _categoryScrollController,
-        itemCount: categoryController.categories.length,
+        itemCount: totalItems,
         itemBuilder: (context, index) {
+          final isAllItems = index == categoryController.categories.length;
           final isSelected = _selectedCategoryIndex == index;
           final isTapped = _tappedCategoryIndex == index;
 
@@ -311,48 +340,80 @@ class _CategoriesScreenWithStickyHeaderState
                 ),
                 child: Center(
                   child: Column(
-                    children: [
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: AnimatedScale(
-                            scale: isTapped ? 1.3 : 1.0,
-                            duration: const Duration(milliseconds: 250),
-                            child: Image.network(
-                              categoryController
-                                  .categories[index]
-                                  .categoryImageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 50,
-                                    color: Colors.grey[400],
-                                  ),
-                                );
-                              },
+                    children: isAllItems
+                        ? [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: AnimatedScale(
+                                scale: isTapped ? 1.3 : 1.0,
+                                duration: const Duration(milliseconds: 250),
+                                child: Icon(
+                                  Icons.grid_view_rounded,
+                                  size: 50,
+                                  color: isSelected
+                                      ? AppTheme.primaryGreen
+                                      : cs.onSurface.withValues(alpha: 0.4),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        categoryController.categories[index].categoryName,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isSelected
-                              ? cs.onSurface
-                              : cs.onSurface.withValues(alpha: 0.6),
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
+                            Text(
+                              'All Items',
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? cs.onSurface
+                                    : cs.onSurface.withValues(alpha: 0.6),
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ]
+                        : [
+                            AspectRatio(
+                              aspectRatio: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: AnimatedScale(
+                                  scale: isTapped ? 1.3 : 1.0,
+                                  duration: const Duration(milliseconds: 250),
+                                  child: Image.network(
+                                    categoryController
+                                        .categories[index]
+                                        .categoryImageUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Icon(
+                                          Icons.image,
+                                          size: 50,
+                                          color: Colors.grey[400],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              categoryController.categories[index].categoryName,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? cs.onSurface
+                                    : cs.onSurface.withValues(alpha: 0.6),
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
                   ),
                 ),
               ),
@@ -384,101 +445,141 @@ class _CategoriesScreenWithStickyHeaderState
   }
 
   Widget _buildItemsGrid(ColorScheme cs) {
+    final productController = ProductProviderController.instance;
+
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: ListView(
-        controller: _itemsScrollController,
-        padding: const EdgeInsets.only(
-          top: 0,
-          left: 10,
-          right: 10,
-          bottom: 0,
-        ),
-        children: [
-          ...List.generate(categoryController.categories.length, (
-            categoryIndex,
-          ) {
-            final remoteCategory = categoryController.categories[categoryIndex];
-            final categoryName = remoteCategory.categoryName;
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (scrollInfo) {
+          if (scrollInfo.metrics.pixels >=
+                  scrollInfo.metrics.maxScrollExtent - 200 &&
+              !productController.isLoading.value &&
+              productController.isMoreDataAvailable.value) {
+            productController.loadMore();
+          }
+          return false;
+        },
+        child: ListView(
+          controller: _itemsScrollController,
+          padding: const EdgeInsets.only(
+            top: 0,
+            left: 10,
+            right: 10,
+            bottom: 0,
+          ),
+          children: [
+            ...List.generate(categoryController.categories.length, (
+              categoryIndex,
+            ) {
+              final remoteCategory =
+                  categoryController.categories[categoryIndex];
+              final categoryName = remoteCategory.categoryName;
 
-            final subCategoriesList = categoryController.subCategories
-                .where(
-                  (sc) =>
-                      sc.categoryId.trim().toLowerCase() ==
-                      categoryName.trim().toLowerCase(),
-                )
-                .toList();
+              final subCategoriesList = categoryController.subCategories
+                  .where(
+                    (sc) =>
+                        sc.categoryId.trim().toLowerCase() ==
+                        categoryName.trim().toLowerCase(),
+                  )
+                  .toList();
 
-            return Column(
-              key: _categoryKeys[categoryIndex],
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+              return Column(
+                key: _categoryKeys[categoryIndex],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      categoryName,
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (subCategoriesList.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Text(
+                        'No subcategories for $categoryName',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    )
+                  else
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 0.74,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                      itemCount: subCategoriesList.length,
+                      itemBuilder: (context, itemIndex) {
+                        final subCategory = subCategoriesList[itemIndex];
+                        final itemName = subCategory.subCategoriesName.join(
+                          ', ',
+                        );
+                        final imageUrl = subCategory.subCategoriesUrl;
+
+                        return CategoryItemCard(
+                          itemName: itemName,
+                          imagePath: imageUrl,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CategoryItemsScreen(
+                                  categoryName: categoryName,
+                                  subCategoryGroupName: itemName,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            }),
+
+            ItemSelectionGirdviwe(
+              key: _allItemsKey,
+              crossAxisCount: 2,
+              childAspectRatio: 0.471,
+              titalWord: "All Items",
+            ),
+
+            if (productController.isLoading.value && productController.hasData)
+              ProductGridShimmer(
+                itemCount: 4,
+                crossAxisCount: 2,
+                childAspectRatio: 0.471,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+
+            if (!productController.isMoreDataAvailable.value &&
+                productController.hasData)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
                   child: Text(
-                    categoryName,
+                    'All products loaded',
                     style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface.withValues(alpha: 0.4),
+                      fontSize: 14,
                     ),
                   ),
                 ),
-                if (subCategoriesList.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      'No subcategories for $categoryName',
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  )
-                else
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 0.74,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                    itemCount: subCategoriesList.length,
-                    itemBuilder: (context, itemIndex) {
-                      final subCategory = subCategoriesList[itemIndex];
-                      final itemName = subCategory.subCategoriesName.join(', ');
-                      final imageUrl = subCategory.subCategoriesUrl;
-
-                      return CategoryItemCard(
-                        itemName: itemName,
-                        imagePath: imageUrl,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CategoryItemsScreen(
-                                categoryName: categoryName,
-                                subCategoryGroupName: itemName,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                const SizedBox(height: 16),
-              ],
-            );
-          }),
-
-          ItemSelectionGirdviwe(
-            crossAxisCount: 2,
-            childAspectRatio: 0.471,
-            titalWord: "All Items",
-          ),
-        ],
+              ),
+          ],
+        ),
       ),
     );
   }

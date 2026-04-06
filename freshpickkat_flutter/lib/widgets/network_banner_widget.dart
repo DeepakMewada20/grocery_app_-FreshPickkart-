@@ -9,6 +9,7 @@ class NetworkBannerWidget extends StatefulWidget {
   final double height;
   final Duration autoScrollDuration;
   final Duration autoScrollInterval;
+  final bool fullWidth;
 
   /// Optional override. If null, BannerNavigationHelper.navigate is used.
   final Function(client.Banner)? onBannerTap;
@@ -19,6 +20,7 @@ class NetworkBannerWidget extends StatefulWidget {
     this.height = 180,
     this.autoScrollDuration = const Duration(milliseconds: 800),
     this.autoScrollInterval = const Duration(seconds: 3),
+    this.fullWidth = false,
     this.onBannerTap,
   });
 
@@ -50,7 +52,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
     final basePage = 10000 - (10000 % widget.banners.length);
     _currentPage = basePage + savedIndex;
     _pageController = PageController(
-      viewportFraction: 0.92,
+      viewportFraction: widget.fullWidth ? 1.0 : 0.92,
       initialPage: _currentPage,
     );
     _syncAutoScrollState();
@@ -90,7 +92,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
       final basePage = 10000 - (10000 % widget.banners.length);
       _currentPage = basePage + savedIndex;
       _pageController = PageController(
-        viewportFraction: 0.92,
+        viewportFraction: widget.fullWidth ? 1.0 : 0.92,
         initialPage: _currentPage,
       );
     }
@@ -224,7 +226,9 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                         (pageController.page ??
                             pageController.initialPage.toDouble()) -
                         index;
-                    value = (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
+                    value = widget.fullWidth
+                        ? (1 - (value.abs() * 0.0)).clamp(1.0, 1.0)
+                        : (1 - (value.abs() * 0.15)).clamp(0.85, 1.0);
                   }
                   return Center(
                     child: SizedBox(
