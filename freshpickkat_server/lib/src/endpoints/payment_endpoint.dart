@@ -332,11 +332,43 @@ class PaymentEndpoint extends Endpoint {
     String razorpayPaymentId,
   ) async {
     try {
+      final razorpayKeyId = _requireEnv(
+        'RAZORPAY_KEY_ID',
+        fallbacks: ['RAZORPAY_KEY'],
+      );
+      final razorpayKeySecret = _requireEnv(
+        'RAZORPAY_KEY_SECRET',
+        fallbacks: ['RAZORPAY_SECRET'],
+      );
+
+      final response = await http.get(
+        Uri.parse('$razorpayBaseUrl/payments/$razorpayPaymentId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization':
+              'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return protocol.PaymentActionResult(
+          success: false,
+          error: 'Failed to fetch payment status',
+          message: response.body,
+        );
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final amount = data['amount'] is int
+          ? data['amount'] as int
+          : int.tryParse('${data['amount']}');
+
       return protocol.PaymentActionResult(
         success: true,
         paymentId: razorpayPaymentId,
-        status: 'captured',
-        amount: 0,
+        status: data['status']?.toString(),
+        amount: amount,
+        message: data['description']?.toString(),
       );
     } catch (e) {
       return protocol.PaymentActionResult(

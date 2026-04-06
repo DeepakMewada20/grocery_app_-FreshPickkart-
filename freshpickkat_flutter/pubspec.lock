@@ -1036,14 +1036,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  razorpay_flutter:
+  razorpay_flutter_customui:
     dependency: "direct main"
     description:
-      name: razorpay_flutter
-      sha256: "8d985b769808cb6c8d3f2fbcc25f9ab78e29191965c31c98e2d69d55d9d20ff1"
+      name: razorpay_flutter_customui
+      sha256: "186f291b0e5dc6fee5629f0c51c2e6cd472b3e0350d3bb2bb560991c19efa266"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.3"
+    version: "1.4.2"
   rxdart:
     dependency: transitive
     description:

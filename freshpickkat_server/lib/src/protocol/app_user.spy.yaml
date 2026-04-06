@@ -3,6 +3,7 @@ fields:
   firebaseUid: String
   phoneNumber: String
   name: String?
+  email: String?
   shippingAddress: Address?
   cart: List<CartItem>?
   role: String

@@ -20,6 +20,7 @@ abstract class AppUser implements _i1.SerializableModel {
     required this.firebaseUid,
     required this.phoneNumber,
     this.name,
+    this.email,
     this.shippingAddress,
     this.cart,
     required this.role,
@@ -30,6 +31,7 @@ abstract class AppUser implements _i1.SerializableModel {
     required String firebaseUid,
     required String phoneNumber,
     String? name,
+    String? email,
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     required String role,
@@ -41,6 +43,7 @@ abstract class AppUser implements _i1.SerializableModel {
       firebaseUid: jsonSerialization['firebaseUid'] as String,
       phoneNumber: jsonSerialization['phoneNumber'] as String,
       name: jsonSerialization['name'] as String?,
+      email: jsonSerialization['email'] as String?,
       shippingAddress: jsonSerialization['shippingAddress'] == null
           ? null
           : _i4.Protocol().deserialize<_i2.Address>(
@@ -62,6 +65,8 @@ abstract class AppUser implements _i1.SerializableModel {
 
   String? name;
 
+  String? email;
+
   _i2.Address? shippingAddress;
 
   List<_i3.CartItem>? cart;
@@ -77,6 +82,7 @@ abstract class AppUser implements _i1.SerializableModel {
     String? firebaseUid,
     String? phoneNumber,
     String? name,
+    String? email,
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     String? role,
@@ -89,6 +95,7 @@ abstract class AppUser implements _i1.SerializableModel {
       'firebaseUid': firebaseUid,
       'phoneNumber': phoneNumber,
       if (name != null) 'name': name,
+      if (email != null) 'email': email,
       if (shippingAddress != null) 'shippingAddress': shippingAddress?.toJson(),
       if (cart != null) 'cart': cart?.toJson(valueToJson: (v) => v.toJson()),
       'role': role,
@@ -109,6 +116,7 @@ class _AppUserImpl extends AppUser {
     required String firebaseUid,
     required String phoneNumber,
     String? name,
+    String? email,
     _i2.Address? shippingAddress,
     List<_i3.CartItem>? cart,
     required String role,
@@ -117,6 +125,7 @@ class _AppUserImpl extends AppUser {
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
          name: name,
+         email: email,
          shippingAddress: shippingAddress,
          cart: cart,
          role: role,
@@ -131,6 +140,7 @@ class _AppUserImpl extends AppUser {
     String? firebaseUid,
     String? phoneNumber,
     Object? name = _Undefined,
+    Object? email = _Undefined,
     Object? shippingAddress = _Undefined,
     Object? cart = _Undefined,
     String? role,
@@ -140,6 +150,7 @@ class _AppUserImpl extends AppUser {
       firebaseUid: firebaseUid ?? this.firebaseUid,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       name: name is String? ? name : this.name,
+      email: email is String? ? email : this.email,
       shippingAddress: shippingAddress is _i2.Address?
           ? shippingAddress
           : this.shippingAddress?.copyWith(),

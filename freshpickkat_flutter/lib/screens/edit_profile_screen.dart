@@ -15,6 +15,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
   late TextEditingController _streetController;
   late TextEditingController _cityController;
   late TextEditingController _stateController;
@@ -31,6 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     final user = AuthController.instance.appUser;
     _nameController = TextEditingController(text: user?.name ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
     _streetController = TextEditingController();
     _cityController = TextEditingController();
     _stateController = TextEditingController();
@@ -57,6 +59,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     _streetController.dispose();
     _cityController.dispose();
     _stateController.dispose();
@@ -92,8 +95,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final userController = UserController.instance;
 
-      // Update name
-      await userController.updateProfile(name: name);
+      // Update name and email
+      final email = _emailController.text.trim();
+      await userController.updateProfile(
+        name: name,
+        email: email.isEmpty ? null : email,
+      );
 
       // Create address
       String combinedStreet = street;
@@ -188,6 +195,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 onAddressFetched: (addressData) {
                   // Handle address data if needed
                 },
+              ),
+
+              const SizedBox(height: 24),
+
+              // Email Field (Optional)
+              Text(
+                'Email (Optional)',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: 'Enter your email',
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: isDark ? Colors.white54 : Colors.grey,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.primaryGreen,
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.grey.shade50,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
               ),
 
               const SizedBox(height: 32),

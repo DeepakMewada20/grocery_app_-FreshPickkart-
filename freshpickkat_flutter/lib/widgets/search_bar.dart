@@ -13,8 +13,7 @@ class SearchBarWidget extends StatefulWidget {
 class _SearchBarWidgetState extends State<SearchBarWidget>
     with RouteAware, WidgetsBindingObserver {
   static int _savedHintIndex = 0;
-  late PageController _pageController;
-  int _currentPage = 0;
+  int _currentHintIndex = 0;
   Timer? _timer;
   ModalRoute<dynamic>? _route;
   bool _isRouteVisible = true;
@@ -30,9 +29,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    final basePage = 10000 - (10000 % hints.length);
-    _currentPage = basePage + _savedHintIndex;
-    _pageController = PageController(initialPage: _currentPage);
+    _currentHintIndex = _savedHintIndex % hints.length;
     _syncAutoScrollState();
   }
 
@@ -53,19 +50,17 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
   }
 
   void _advancePage() {
-    _currentPage++;
-    _pageController.animateToPage(
-      _currentPage,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeInOut,
-    );
+    if (!mounted) return;
+    setState(() {
+      _currentHintIndex = (_currentHintIndex + 1) % hints.length;
+    });
   }
 
   void _startAutoScroll() {
     if (!_shouldAutoScroll) return;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
-      if (!mounted || !_pageController.hasClients) return;
+      if (!mounted) return;
       _advancePage();
     });
   }
@@ -117,9 +112,8 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
     if (_route is ModalRoute<void>) {
       appRouteObserver.unsubscribe(this);
     }
-    _savedHintIndex = _currentPage % hints.length;
+    _savedHintIndex = _currentHintIndex % hints.length;
     _timer?.cancel();
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -152,26 +146,42 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
             const SizedBox(width: 10),
             Expanded(
               child: ClipRect(
-                child: PageView.builder(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final hintIndex = index % hints.length;
-
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        hints[hintIndex],
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          fontSize: 15,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, animation) {
+                    final offsetAnimation =
+                        Tween<Offset>(
+                          begin: const Offset(0, 0.35),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        );
+                    return ClipRect(
+                      child: SlideTransition(
+                        position: offsetAnimation,
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     );
                   },
+                  child: Align(
+                    key: ValueKey<int>(_currentHintIndex),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      hints[_currentHintIndex],
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        fontSize: 15,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
               ),
             ),

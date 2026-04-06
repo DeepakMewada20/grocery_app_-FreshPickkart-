@@ -9,6 +9,7 @@ class UserController extends GetxController {
 
   final RxString userName = ''.obs;
   final RxString userPhone = ''.obs;
+  final RxString userEmail = ''.obs;
   final RxString profileImageUrl = ''.obs;
   final Rx<Address?> shippingAddress = Rx<Address?>(null);
   final RxBool isLoading = false.obs;
@@ -39,6 +40,7 @@ class UserController extends GetxController {
   void _resetData() {
     userName.value = '';
     userPhone.value = '';
+    userEmail.value = '';
     profileImageUrl.value = '';
     shippingAddress.value = null;
   }
@@ -46,11 +48,16 @@ class UserController extends GetxController {
   void _updateFromAppUser(AppUser user) {
     userName.value = user.name ?? '';
     userPhone.value = user.phoneNumber;
+    userEmail.value = user.email ?? '';
     shippingAddress.value = user.shippingAddress;
     // profileImageUrl.value = user.profileImage ?? '';
   }
 
-  Future<void> updateProfile({required String name, String? imageUrl}) async {
+  Future<void> updateProfile({
+    required String name,
+    String? email,
+    String? imageUrl,
+  }) async {
     final auth = AuthController.instance;
     final appUser = auth.appUserRx.value;
     if (appUser == null) return;
@@ -60,6 +67,7 @@ class UserController extends GetxController {
         firebaseUid: appUser.firebaseUid,
         phoneNumber: appUser.phoneNumber,
         name: name,
+        email: email ?? appUser.email,
         shippingAddress: appUser.shippingAddress,
         cart: appUser.cart,
         role: appUser.role,
@@ -68,6 +76,7 @@ class UserController extends GetxController {
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
       userName.value = result.name ?? '';
+      userEmail.value = result.email ?? '';
     } catch (e) {
       debugPrint('Error updating profile: $e');
       rethrow;

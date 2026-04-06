@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_flutter/config/payment_config.dart';
@@ -12,7 +13,7 @@ import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:get/get.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -31,7 +32,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Razorpay? _razorpay;
   bool _isProcessing = false;
   String? _errorMessage;
+  bool _isErrorBanner = true;
   String? _currentOrderId;
+  String? _currentRazorpayOrderId;
 
   @override
   void initState() {
@@ -39,7 +42,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay = Razorpay();
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     Future.microtask(() => cartController.refreshCartCurrentData());
   }
 
@@ -49,8 +51,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
+  void _setProcessing(bool value, {bool clearError = false}) {
+    if (!mounted) return;
+    setState(() {
+      _isProcessing = value;
+      if (clearError) {
+        _errorMessage = null;
+        _isErrorBanner = true;
+      }
+    });
+  }
+
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
+
+    _setProcessing(true, clearError: true);
 
     await cartController.refreshCartCurrentData();
 
@@ -60,6 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (userController.shippingAddress.value == null) {
+      _setProcessing(false);
       _goToAddress();
       return;
     }
@@ -71,11 +87,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
-
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
 
     try {
       final order = _buildOrder();
@@ -106,6 +117,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _showError('Invalid payment order response');
         return;
       }
+      _currentRazorpayOrderId = razorpayOrderId;
 
       final amountPaise =
           paymentOrder.amount ?? (cartController.totalAmount * 100).round();
@@ -115,33 +127,248 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      // ignore: avoid_print
-      print(
-        'Razorpay open: orderId=$orderId, razorpayOrderId=$razorpayOrderId, amountPaise=$amountPaise',
+      final customerPhone = _getCustomerPhone();
+      final customerEmail = userController.userEmail.value.isNotEmpty
+          ? userController.userEmail.value
+          : '${customerPhone}@freshpickkart.com';
+
+      print('[DEBUG-1] customerPhone: "$customerPhone"');
+      print('[DEBUG-1] customerEmail: "$customerEmail"');
+
+      if (customerPhone.isEmpty) {
+        await client.payment.markPaymentFailed(orderId);
+        _showError(
+          'Phone number is required for payment. Please update your profile.',
+        );
+        return;
+      }
+
+      print('[DEBUG-2] Calling _showUpiAppSelection');
+      final didSelectUpiOption = await _showUpiAppSelection(
+        keyId: keyId,
+        amountPaise: amountPaise,
+        currency: paymentOrder.currency ?? 'INR',
+        razorpayOrderId: razorpayOrderId,
+        customerPhone: customerPhone,
+        customerEmail: customerEmail,
+        orderId: orderId,
       );
-
-      final options = {
-        'key': keyId,
-        'amount': amountPaise,
-        'currency': paymentOrder.currency ?? 'INR',
-        'name': 'FreshPickKart',
-        'description': 'Order $orderId',
-        'order_id': razorpayOrderId,
-        'prefill': {
-          'contact': _getCustomerPhone(),
-        },
-        'notes': {
-          'order_id': orderId,
-        },
-      };
-
-      _razorpay?.open(options);
+      if (!didSelectUpiOption && mounted) {
+        _setProcessing(false);
+      }
     } catch (e) {
+      print('[DEBUG-ERROR] _placeOrder exception: $e');
       if (_currentOrderId != null) {
         await client.payment.markPaymentFailed(_currentOrderId!);
       }
       _showError('Failed to start payment: $e');
     }
+  }
+
+  Future<bool> _showUpiAppSelection({
+    required String keyId,
+    required int amountPaise,
+    required String currency,
+    required String razorpayOrderId,
+    required String customerPhone,
+    required String customerEmail,
+    required String orderId,
+  }) async {
+    final upiApps = [
+      {
+        'name': 'PhonePe',
+        'packageName': 'com.phonepe.app',
+        'icon': Icons.phone_android,
+        'color': const Color(0xFF5F259D),
+      },
+      {
+        'name': 'Google Pay',
+        'packageName': 'com.google.android.apps.nbu.paisa.user',
+        'icon': Icons.g_mobiledata,
+        'color': const Color(0xFF4285F4),
+      },
+      {
+        'name': 'Paytm',
+        'packageName': 'net.one97.paytm',
+        'icon': Icons.payment,
+        'color': const Color(0xFF00BAF2),
+      },
+      {
+        'name': 'BHIM',
+        'packageName': 'in.org.npci.upiapp',
+        'icon': Icons.account_balance,
+        'color': const Color(0xFF0079C1),
+      },
+    ];
+
+    final didSelect = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Select UPI App',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ...upiApps.map((app) {
+                return ListTile(
+                  leading: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.18),
+                      ),
+                    ),
+                    child: Icon(
+                      app['icon'] as IconData,
+                      color: AppTheme.primaryGreen,
+                      size: 26,
+                    ),
+                  ),
+                  title: Text(
+                    app['name'] as String,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context, true);
+                    _submitUpiPayment(
+                      keyId: keyId,
+                      amountPaise: amountPaise,
+                      currency: currency,
+                      razorpayOrderId: razorpayOrderId,
+                      customerPhone: customerPhone,
+                      customerEmail: customerEmail,
+                      orderId: orderId,
+                      upiAppPackageName: app['packageName'] as String,
+                    );
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: AppTheme.primaryGreen,
+                    size: 26,
+                  ),
+                ),
+                title: Text(
+                  'Enter VPA',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+                onTap: () {
+                  Navigator.pop(context, true);
+                  _submitUpiPayment(
+                    keyId: keyId,
+                    amountPaise: amountPaise,
+                    currency: currency,
+                    razorpayOrderId: razorpayOrderId,
+                    customerPhone: customerPhone,
+                    customerEmail: customerEmail,
+                    orderId: orderId,
+                    upiAppPackageName: null,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+    return didSelect ?? false;
+  }
+
+  void _submitUpiPayment({
+    required String keyId,
+    required int amountPaise,
+    required String currency,
+    required String razorpayOrderId,
+    required String customerPhone,
+    required String customerEmail,
+    required String orderId,
+    String? upiAppPackageName,
+  }) {
+    print('[DEBUG-3] _submitUpiPayment called');
+    print('[DEBUG-3] upiAppPackageName: $upiAppPackageName');
+    print('[DEBUG-3] keyId: $keyId');
+    print('[DEBUG-3] amountPaise: $amountPaise');
+    print('[DEBUG-3] razorpayOrderId: $razorpayOrderId');
+
+    final options = {
+      'key': keyId,
+      'amount': amountPaise,
+      'currency': currency,
+      'order_id': razorpayOrderId,
+      'contact': customerPhone,
+      'email': customerEmail,
+      'method': 'upi',
+      '_[flow]': 'intent',
+      if (upiAppPackageName != null) 'upi_app_package_name': upiAppPackageName,
+      'notes': {
+        'order_id': orderId,
+      },
+    };
+
+    print('[DEBUG-4] Options: $options');
+    print('[DEBUG-4] Calling _razorpay.submit()');
+    _razorpay?.submit(options);
   }
 
   Order _buildOrder() {
@@ -245,74 +472,227 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return authController.currentUser?.phoneNumber ?? '';
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    try {
-      final orderId = _currentOrderId;
-      final razorpayOrderId = response.orderId;
-      final paymentId = response.paymentId;
-      // Test mode mein signature null ho sakta hai, empty string se fallback
-      final signature = response.signature ?? '';
+  void _handlePaymentSuccess(Map<dynamic, dynamic> response) {
+    final orderId = _currentOrderId;
+    final razorpayOrderId = response['razorpay_order_id'] as String?;
+    final paymentId = response['razorpay_payment_id'] as String?;
+    final signature = response['razorpay_signature'] as String? ?? '';
 
-      if (orderId == null || razorpayOrderId == null || paymentId == null) {
-        _showError('Payment response incomplete');
-        return;
-      }
+    if (orderId == null || razorpayOrderId == null || paymentId == null) {
+      _showError('Payment response incomplete');
+      return;
+    }
 
-      // ignore: avoid_print
-      print(
-        'Payment success: orderId=$orderId, razorpayOrderId=$razorpayOrderId, '
-        'paymentId=$paymentId, signature=$signature',
-      );
+    print(
+      'Payment success: orderId=$orderId, razorpayOrderId=$razorpayOrderId, '
+      'paymentId=$paymentId, signature=$signature',
+    );
 
-      final verifyResult = await client.payment
-          .verifyPayment(
-            orderId,
-            razorpayOrderId,
-            paymentId,
-            signature,
-          )
-          .timeout(const Duration(seconds: 20));
+    Future(() async {
+      try {
+        final verifyResult = await client.payment
+            .verifyPayment(orderId, razorpayOrderId, paymentId, signature)
+            .timeout(const Duration(seconds: 20));
 
-      if (verifyResult.success == true && verifyResult.verified == true) {
-        if (mounted) {
-          setState(() {
-            _isProcessing = false;
-          });
+        if (verifyResult.success == true && verifyResult.verified == true) {
+          await _completeSuccessfulPayment(orderId);
+        } else {
+          if (mounted) {
+            _showError(verifyResult.message ?? 'Payment verification failed');
+          }
         }
-        cartController.removeCoupon();
-        cartController.clearCart();
-        Get.offAllNamed('/home');
-        Get.to(() => OrderDetailScreen(orderId: orderId));
-      } else {
-        _showError(verifyResult.message ?? 'Payment verification failed');
+      } catch (e) {
+        if (mounted) {
+          _showError('Payment verification failed: $e');
+        }
       }
-    } catch (e) {
-      _showError('Payment verification failed: $e');
+    });
+  }
+
+  Future<void> _completeSuccessfulPayment(String orderId) async {
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+        _errorMessage = null;
+        _isErrorBanner = true;
+      });
+    }
+
+    cartController.removeCoupon();
+    cartController.clearCart();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    Get.offAllNamed('/home');
+
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (Get.currentRoute != '/order-detail') {
+      Get.to(() => OrderDetailScreen(orderId: orderId));
     }
   }
 
-  void _handlePaymentError(PaymentFailureResponse response) async {
+  Future<bool> _tryResolvePendingUpiPayment({
+    required String orderId,
+    required String paymentId,
+  }) async {
+    final razorpayOrderId = _currentRazorpayOrderId;
+    if (razorpayOrderId == null || razorpayOrderId.isEmpty) return false;
+
+    if (mounted) {
+      setState(() {
+        _isProcessing = true;
+        _errorMessage = 'Verifying payment status...';
+        _isErrorBanner = false;
+      });
+    }
+
+    for (var attempt = 0; attempt < 6; attempt++) {
+      final statusResult = await client.payment
+          .getPaymentStatus(paymentId)
+          .timeout(const Duration(seconds: 15));
+      final paymentStatus = statusResult.status?.toLowerCase().trim();
+
+      if (statusResult.success == true &&
+          (paymentStatus == 'authorized' || paymentStatus == 'captured')) {
+        final verifyResult = await client.payment
+            .verifyPayment(orderId, razorpayOrderId, paymentId, '')
+            .timeout(const Duration(seconds: 20));
+        if (verifyResult.success == true && verifyResult.verified == true) {
+          await _completeSuccessfulPayment(orderId);
+          return true;
+        }
+      }
+
+      final order = await client.order.getOrderById(orderId);
+      final orderPaymentStatus = order?.paymentStatus.toLowerCase().trim();
+      if (orderPaymentStatus == 'paid') {
+        await _completeSuccessfulPayment(orderId);
+        return true;
+      }
+
+      if (attempt < 5) {
+        await Future.delayed(const Duration(seconds: 3));
+      }
+    }
+
+    return false;
+  }
+
+  Future<void> _watchPendingPaymentResolution({
+    required String orderId,
+    required String paymentId,
+  }) async {
+    for (var attempt = 0; attempt < 10; attempt++) {
+      if (!mounted) return;
+
+      final resolved = await _tryResolvePendingUpiPayment(
+        orderId: orderId,
+        paymentId: paymentId,
+      );
+      if (resolved) {
+        return;
+      }
+
+      final order = await client.order.getOrderById(orderId);
+      final orderPaymentStatus = order?.paymentStatus.toLowerCase().trim();
+      if (orderPaymentStatus == 'failed') {
+        _showError('Payment failed. Please try again.');
+        return;
+      }
+
+      if (attempt < 9) {
+        await Future.delayed(const Duration(seconds: 4));
+      }
+    }
+
+    _showInfo(
+      'Payment status is still syncing. If money was debited, please check Orders in a moment.',
+    );
+  }
+
+  Map<String, dynamic>? _extractRazorpayError(Map<dynamic, dynamic> response) {
+    final data = response['data'];
+    if (data is Map) {
+      final message = data['message'];
+      if (message is Map) {
+        final error = message['error'];
+        if (error is Map<String, dynamic>) return error;
+        if (error is Map) return Map<String, dynamic>.from(error);
+      }
+      if (message is String && message.trim().isNotEmpty) {
+        try {
+          final decoded = jsonDecode(message);
+          if (decoded is Map && decoded['error'] is Map) {
+            return Map<String, dynamic>.from(decoded['error'] as Map);
+          }
+        } catch (_) {}
+      }
+    }
+    return null;
+  }
+
+  void _handlePaymentError(Map<dynamic, dynamic> response) async {
     try {
+      print('=== PAYMENT ERROR FULL RESPONSE ===');
+      print(response.toString());
+      print('===================================');
+
       final orderId = _currentOrderId;
+      final errorData = _extractRazorpayError(response);
+      final metadata = errorData?['metadata'];
+      final paymentId = metadata is Map
+          ? metadata['payment_id']?.toString()
+          : null;
+      final code =
+          errorData?['reason']?.toString() ??
+          errorData?['code']?.toString() ??
+          response['code']?.toString() ??
+          response['error_code']?.toString() ??
+          'unknown';
+      final message =
+          errorData?['description']?.toString().trim() ??
+          response['message']?.toString().trim() ??
+          response['description']?.toString().trim() ??
+          '';
+
+      if (orderId != null && paymentId != null && paymentId.isNotEmpty) {
+        final resolved = await _tryResolvePendingUpiPayment(
+          orderId: orderId,
+          paymentId: paymentId,
+        );
+        if (resolved) {
+          return;
+        }
+
+        if (code == 'payment_cancelled') {
+          _showInfo(
+            'Payment status is syncing. Please wait while we confirm it.',
+          );
+          Future(() async {
+            await _watchPendingPaymentResolution(
+              orderId: orderId,
+              paymentId: paymentId,
+            );
+          });
+          return;
+        }
+      }
+
       if (orderId != null) {
         await client.payment.markPaymentFailed(orderId);
       }
-      final code = response.code?.toString() ?? 'unknown';
-      final message = response.message?.trim();
-      // ignore: avoid_print
-      print('Razorpay payment error ($code): ${message ?? 'unknown error'}');
+      print(
+        'Razorpay payment error ($code): ${message.isEmpty ? 'unknown error' : message}',
+      );
       _showError(
-        message == null || message.isEmpty
+        message.isEmpty
             ? 'Payment failed (code: $code). Please try again.'
             : 'Payment failed ($code): $message',
       );
     } catch (e) {
       _showError('Error handling payment failure: $e');
     }
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    _showError('External wallet not supported');
   }
 
   void _goToAddress() {
@@ -330,6 +710,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (mounted) {
       setState(() {
         _errorMessage = safeMessage;
+        _isErrorBanner = true;
+        _isProcessing = false;
+      });
+    }
+  }
+
+  void _showInfo(String message) {
+    final safeMessage = message.trim().isEmpty
+        ? 'Please wait while we verify your payment.'
+        : message;
+    if (mounted) {
+      setState(() {
+        _errorMessage = safeMessage;
+        _isErrorBanner = false;
         _isProcessing = false;
       });
     }
@@ -846,17 +1240,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildErrorBanner(ColorScheme cs) {
-    final textColor = cs.onErrorContainer;
+    final backgroundColor = _isErrorBanner
+        ? cs.errorContainer
+        : cs.surfaceContainerHighest;
+    final borderColor = _isErrorBanner ? cs.error : cs.outlineVariant;
+    final textColor = _isErrorBanner ? cs.onErrorContainer : cs.onSurface;
+    final icon = _isErrorBanner ? Icons.error_outline : Icons.info_outline;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: cs.errorContainer,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.error),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: textColor),
+          Icon(icon, color: textColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

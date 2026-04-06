@@ -88,6 +88,7 @@ class UserEndpoint extends Endpoint {
       firebaseUid: uid,
       phoneNumber: fields['phoneNumber']?.stringValue ?? '',
       name: fields['name']?.stringValue,
+      email: fields['email']?.stringValue,
       shippingAddress: fields['shippingAddress']?.mapValue?.fields != null
           ? _addressFromFirestore(
               fields['shippingAddress']!.mapValue!.fields!,
@@ -111,6 +112,9 @@ class UserEndpoint extends Endpoint {
     };
     if (user.name != null) {
       map['name'] = firestore_api.Value(stringValue: user.name);
+    }
+    if (user.email != null) {
+      map['email'] = firestore_api.Value(stringValue: user.email);
     }
     if (user.shippingAddress != null) {
       map['shippingAddress'] = firestore_api.Value(
