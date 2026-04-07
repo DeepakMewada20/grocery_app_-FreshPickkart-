@@ -6,10 +6,12 @@ import 'package:serverpod/serverpod.dart';
 
 import '../../services/env_service.dart';
 import '../../services/firebase_service.dart';
-import '../../services/notification_service.dart';
+import '../../services/payments/payment_recovery_service.dart';
 
 class RazorpayWebhookRoute extends Route {
   RazorpayWebhookRoute() : super(methods: {Method.post});
+
+  final PaymentRecoveryService _recovery = PaymentRecoveryService();
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
@@ -73,46 +75,37 @@ class RazorpayWebhookRoute extends Route {
       }
     }
 
-    final update = <String, firestore_api.Value>{};
     if (_isPaidEvent(event)) {
-      if (currentStatus == 'paid') {
+      if (currentStatus == 'paid' && paymentId != null && paymentId.isNotEmpty) {
         return _jsonOk({'success': true, 'message': 'Already paid'});
       }
-      update['paymentStatus'] = firestore_api.Value(stringValue: 'paid');
     } else if (_isFailedEvent(event)) {
-      update['paymentStatus'] = firestore_api.Value(stringValue: 'failed');
+      await _recovery.markPaymentFailed(
+        orderId,
+        paymentId: paymentId,
+        reason: 'Webhook payment failed',
+      );
     } else if (_isRefundEvent(event)) {
-      update['paymentStatus'] = firestore_api.Value(stringValue: 'refunded');
-    }
-
-    if (paymentId != null && paymentId.isNotEmpty) {
-      update['razorpayPaymentId'] =
-          firestore_api.Value(stringValue: paymentId);
-    }
-    if (razorpayOrderId != null && razorpayOrderId.isNotEmpty) {
-      update['razorpayOrderId'] =
-          firestore_api.Value(stringValue: razorpayOrderId);
-    }
-
-    if (update.isNotEmpty) {
-      await _updateOrder(orderId, update);
-      if (_isPaidEvent(event)) {
-        final fields = orderDoc?.fields ?? {};
-        final userId = fields['userId']?.stringValue ?? '';
-        final amount = _getDoubleValue(fields, 'finalAmount');
-        final itemCount = _getIntValue(fields, 'itemCount');
-        if (userId.isNotEmpty) {
-          await NotificationService.notifyUserPaymentSuccess(
-            userId: userId,
-            orderId: orderId,
-            amount: amount,
-            itemCount: itemCount == 0 ? null : itemCount,
-          );
-        }
-        await NotificationService.notifyAdminNewOrder(
-          orderId: orderId,
-          amount: amount,
-          itemCount: itemCount == 0 ? null : itemCount,
+      await _updateOrder(orderId, {
+        'paymentStatus': firestore_api.Value(stringValue: 'refunded'),
+      });
+    } else if (_isPaidEvent(event) &&
+        paymentId != null &&
+        paymentId.isNotEmpty &&
+        razorpayOrderId != null &&
+        razorpayOrderId.isNotEmpty) {
+      await _recovery.handleWebhookPaidEvent(
+        orderId: orderId,
+        paymentId: paymentId,
+        razorpayOrderId: razorpayOrderId,
+      );
+    } else if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
+      if (paymentId != null && paymentId.isNotEmpty) {
+        final refundId = _extractRefundId(payload);
+        await _recovery.handleRefundWebhook(
+          paymentId: paymentId,
+          status: _isRefundProcessedEvent(event) ? 'processed' : 'failed',
+          gatewayRefundId: refundId,
         );
       }
     }
@@ -211,6 +204,20 @@ class RazorpayWebhookRoute extends Route {
     return event.startsWith('refund.');
   }
 
+  bool _isRefundProcessedEvent(String event) {
+    return event == 'refund.processed';
+  }
+
+  bool _isRefundFailedEvent(String event) {
+    return event == 'refund.failed';
+  }
+
+  String? _extractRefundId(Map<String, dynamic> payload) {
+    final refundEntity =
+        payload['payload']?['refund']?['entity'] as Map<String, dynamic>?;
+    return refundEntity?['id']?.toString();
+  }
+
   Future<firestore_api.Document?> _getOrderDoc(String orderId) async {
     final firestore = await FirebaseService.getFirestoreClient();
     final database =
@@ -231,16 +238,6 @@ class RazorpayWebhookRoute extends Route {
       return double.tryParse(value.integerValue!) ?? 0.0;
     }
     return 0.0;
-  }
-
-  int _getIntValue(Map<String, firestore_api.Value> fields, String key) {
-    final value = fields[key];
-    if (value == null) return 0;
-    if (value.integerValue != null && value.integerValue!.isNotEmpty) {
-      return int.tryParse(value.integerValue!) ?? 0;
-    }
-    if (value.doubleValue != null) return value.doubleValue!.round();
-    return 0;
   }
 
   Future<void> _updateOrder(

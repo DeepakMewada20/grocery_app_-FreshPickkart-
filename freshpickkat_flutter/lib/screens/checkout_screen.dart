@@ -7,7 +7,10 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
-import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart';
+import 'package:freshpickkat_flutter/services/checkout_service.dart';
+import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
+import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -27,6 +30,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final cartController = CartController.instance;
   final authController = AuthController.instance;
   final userController = UserController.instance;
+  final checkoutService = CheckoutService.instance;
+  final paymentService = PaymentService.instance;
+  final orderRecoveryService = OrderRecoveryService.instance;
   final client = ServerpodClient().client;
 
   Razorpay? _razorpay;
@@ -35,6 +41,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isErrorBanner = true;
   String? _currentOrderId;
   String? _currentRazorpayOrderId;
+  Order? _currentOrderSnapshot;
 
   @override
   void initState() {
@@ -42,7 +49,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay = Razorpay();
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    Future.microtask(() => cartController.refreshCartCurrentData());
+    Future.microtask(() async {
+      await cartController.refreshCartCurrentData();
+      await orderRecoveryService.recoverPendingPayments(
+        trigger: 'checkout_open',
+      );
+    });
   }
 
   @override
@@ -90,17 +102,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     try {
       final order = _buildOrder();
-      final orderId = await client.order.createOrder(order);
+      final checkoutSession = await checkoutService.createPendingOrder(
+        draftOrder: order,
+      );
+      final orderId = checkoutSession.orderId;
       _currentOrderId = orderId;
+      _currentOrderSnapshot = order.copyWith(orderId: orderId);
 
-      final paymentOrder = await client.payment.createPaymentOrder(
-        orderId,
-        cartController.totalAmount,
-        _getCustomerPhone(),
+      final paymentOrder = await paymentService.startPayment(
+        orderId: orderId,
+        amount: cartController.totalAmount,
+        customerPhone: _getCustomerPhone(),
       );
 
       if (paymentOrder.success != true) {
-        await client.payment.markPaymentFailed(orderId);
+        await paymentService.markPaymentFailed(orderId);
         final error = paymentOrder.error ?? 'Payment order failed';
         final details = paymentOrder.details;
         _showError(
@@ -113,7 +129,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       final razorpayOrderId = paymentOrder.razorpayOrderId;
       if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
-        await client.payment.markPaymentFailed(orderId);
+        await paymentService.markPaymentFailed(orderId);
         _showError('Invalid payment order response');
         return;
       }
@@ -122,7 +138,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final amountPaise =
           paymentOrder.amount ?? (cartController.totalAmount * 100).round();
       if (amountPaise <= 0) {
-        await client.payment.markPaymentFailed(orderId);
+        await paymentService.markPaymentFailed(orderId);
         _showError('Invalid payment amount. Please try again.');
         return;
       }
@@ -130,21 +146,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final customerPhone = _getCustomerPhone();
       final customerEmail = userController.userEmail.value.isNotEmpty
           ? userController.userEmail.value
-          : '${customerPhone}@freshpickkart.com';
+          : '$customerPhone@freshpickkart.com';
 
       print('[DEBUG-1] customerPhone: "$customerPhone"');
       print('[DEBUG-1] customerEmail: "$customerEmail"');
 
       if (customerPhone.isEmpty) {
-        await client.payment.markPaymentFailed(orderId);
+        await paymentService.markPaymentFailed(orderId);
         _showError(
           'Phone number is required for payment. Please update your profile.',
         );
         return;
       }
 
-      print('[DEBUG-2] Calling _showUpiAppSelection');
-      final didSelectUpiOption = await _showUpiAppSelection(
+      final isTestMode = keyId.startsWith('rzp_test_');
+
+      print(
+        '[DEBUG-2] Starting UPI flow (${isTestMode ? 'test' : 'live'})',
+      );
+      final didSelectUpiOption = await _startUpiPaymentFlow(
+        isTestMode: isTestMode,
         keyId: keyId,
         amountPaise: amountPaise,
         currency: paymentOrder.currency ?? 'INR',
@@ -159,10 +180,129 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       print('[DEBUG-ERROR] _placeOrder exception: $e');
       if (_currentOrderId != null) {
-        await client.payment.markPaymentFailed(_currentOrderId!);
+        await paymentService.markPaymentFailed(_currentOrderId!);
       }
       _showError('Failed to start payment: $e');
     }
+  }
+
+  Future<bool> _startUpiPaymentFlow({
+    required bool isTestMode,
+    required String keyId,
+    required int amountPaise,
+    required String currency,
+    required String razorpayOrderId,
+    required String customerPhone,
+    required String customerEmail,
+    required String orderId,
+  }) {
+    if (isTestMode) {
+      return _showTestUpiDialog(
+        keyId: keyId,
+        amountPaise: amountPaise,
+        currency: currency,
+        razorpayOrderId: razorpayOrderId,
+        customerPhone: customerPhone,
+        customerEmail: customerEmail,
+        orderId: orderId,
+      );
+    }
+
+    return _showUpiAppSelection(
+      keyId: keyId,
+      amountPaise: amountPaise,
+      currency: currency,
+      razorpayOrderId: razorpayOrderId,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
+      orderId: orderId,
+    );
+  }
+
+  Future<bool> _showTestUpiDialog({
+    required String keyId,
+    required int amountPaise,
+    required String currency,
+    required String razorpayOrderId,
+    required String customerPhone,
+    required String customerEmail,
+    required String orderId,
+  }) async {
+    var selectedVpa = 'success@razorpay';
+
+    final didSubmit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Test UPI Payment'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Razorpay test mode mein UPI Intent redirect supported nahi hota. Test VPA select karein.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedVpa,
+                    decoration: const InputDecoration(
+                      labelText: 'Test UPI ID',
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'success@razorpay',
+                        child: Text('Success (success@razorpay)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'failure@razorpay',
+                        child: Text('Failure (failure@razorpay)'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() {
+                          selectedVpa = value;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                    _submitUpiPayment(
+                      keyId: keyId,
+                      amountPaise: amountPaise,
+                      currency: currency,
+                      razorpayOrderId: razorpayOrderId,
+                      customerPhone: customerPhone,
+                      customerEmail: customerEmail,
+                      orderId: orderId,
+                      vpa: selectedVpa,
+                    );
+                  },
+                  child: const Text('Pay'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    return didSubmit ?? false;
   }
 
   Future<bool> _showUpiAppSelection({
@@ -344,9 +484,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String customerEmail,
     required String orderId,
     String? upiAppPackageName,
+    String? vpa,
   }) {
     print('[DEBUG-3] _submitUpiPayment called');
     print('[DEBUG-3] upiAppPackageName: $upiAppPackageName');
+    print('[DEBUG-3] vpa: $vpa');
     print('[DEBUG-3] keyId: $keyId');
     print('[DEBUG-3] amountPaise: $amountPaise');
     print('[DEBUG-3] razorpayOrderId: $razorpayOrderId');
@@ -359,7 +501,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'contact': customerPhone,
       'email': customerEmail,
       'method': 'upi',
-      '_[flow]': 'intent',
+      if (vpa != null && vpa.isNotEmpty) 'vpa': vpa,
+      if (vpa == null || vpa.isEmpty) '_[flow]': 'intent',
       if (upiAppPackageName != null) 'upi_app_package_name': upiAppPackageName,
       'notes': {
         'order_id': orderId,
@@ -460,6 +603,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       finalAmount: cartController.totalAmount,
       status: 'pending',
       paymentStatus: 'pending',
+      refundStatus: 'none',
       deliveryAddress: address,
       orderedAt: DateTime.now(),
       couponApplied: cartController.appliedCoupon.value?.code,
@@ -474,9 +618,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentSuccess(Map<dynamic, dynamic> response) {
     final orderId = _currentOrderId;
-    final razorpayOrderId = response['razorpay_order_id'] as String?;
-    final paymentId = response['razorpay_payment_id'] as String?;
-    final signature = response['razorpay_signature'] as String? ?? '';
+    final payload = response['data'] is Map
+        ? response['data'] as Map
+        : response;
+    final razorpayOrderId = payload['razorpay_order_id'] as String?;
+    final paymentId = payload['razorpay_payment_id'] as String?;
+    final signature = payload['razorpay_signature'] as String? ?? '';
 
     if (orderId == null || razorpayOrderId == null || paymentId == null) {
       _showError('Payment response incomplete');
@@ -490,46 +637,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     Future(() async {
       try {
-        final verifyResult = await client.payment
-            .verifyPayment(orderId, razorpayOrderId, paymentId, signature)
+        final result = await paymentService
+            .completeOrder(
+              userId: authController.currentUser?.uid ?? '',
+              orderId: orderId,
+              paymentId: paymentId,
+              razorpayOrderId: razorpayOrderId,
+              signature: signature,
+              amount:
+                  _currentOrderSnapshot?.finalAmount ??
+                  cartController.totalAmount,
+            )
             .timeout(const Duration(seconds: 20));
 
-        if (verifyResult.success == true && verifyResult.verified == true) {
+        if (result.isConfirmed) {
           await _completeSuccessfulPayment(orderId);
-        } else {
+        } else if (result.isQueuedForRecovery) {
+          Future(() async {
+            await orderRecoveryService.recoverPendingPayments(
+              trigger: 'payment_success',
+            );
+          });
           if (mounted) {
-            _showError(verifyResult.message ?? 'Payment verification failed');
+            _showInfo(
+              result.message ??
+                  'Payment received. We are finalizing your order automatically.',
+            );
           }
+        } else {
+          _showError(result.message ?? 'Payment verification failed');
         }
       } catch (e) {
         if (mounted) {
-          _showError('Payment verification failed: $e');
+          _showInfo(
+            'Payment received. Recovery will retry automatically: $e',
+          );
         }
       }
     });
   }
 
   Future<void> _completeSuccessfulPayment(String orderId) async {
-    if (mounted) {
-      setState(() {
-        _isProcessing = false;
-        _errorMessage = null;
-        _isErrorBanner = true;
-      });
-    }
+    Get.offAll(() => OrderConfirmationScreen(orderId: orderId));
 
     cartController.removeCoupon();
     cartController.clearCart();
-
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    Get.offAllNamed('/home');
-
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    if (Get.currentRoute != '/order-detail') {
-      Get.to(() => OrderDetailScreen(orderId: orderId));
-    }
   }
 
   Future<bool> _tryResolvePendingUpiPayment({
@@ -680,7 +832,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       if (orderId != null) {
-        await client.payment.markPaymentFailed(orderId);
+        await paymentService.markPaymentFailed(orderId);
       }
       print(
         'Razorpay payment error ($code): ${message.isEmpty ? 'unknown error' : message}',

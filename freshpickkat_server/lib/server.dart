@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:serverpod/serverpod.dart';
 import 'src/services/firebase_service.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
+import 'src/services/payments/payment_recovery_service.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
@@ -20,6 +22,7 @@ void run(List<String> args) async {
 
   // Initialize Firebase Admin SDK (SERVER SIDE)
   await FirebaseService.getFirestoreClient();
+  final paymentRecoveryService = PaymentRecoveryService();
 
   // Setup a default page at the web root.
   // These are used by the default page.
@@ -41,6 +44,7 @@ void run(List<String> args) async {
 
   // Razorpay webhook (POST)
   pod.webServer.addRoute(RazorpayWebhookRoute(), '/payment/webhook');
+  pod.webServer.addRoute(RazorpayWebhookRoute(), '/webhook/razorpay');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());
@@ -67,5 +71,13 @@ void run(List<String> args) async {
   }
 
   // Start the server.
+  Timer.periodic(const Duration(minutes: 5), (_) {
+    unawaited(() async {
+      try {
+        await paymentRecoveryService.recoverPendingPayments(limit: 100);
+      } catch (_) {}
+    }());
+  });
+
   await pod.start();
 }

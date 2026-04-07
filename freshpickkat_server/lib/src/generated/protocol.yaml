@@ -59,6 +59,7 @@ freeDelivery:
   - calculateDeliveryFee:
 order:
   - createOrder:
+  - createPendingOrder:
   - getOrders:
   - getOrdersPage:
   - getOrdersCount:
@@ -67,6 +68,8 @@ order:
   - getOrderById:
   - updateOrderStatus:
   - updatePaymentStatus:
+  - confirmOrder:
+  - cancelOrder:
   - assignDeliveryPerson:
   - getDashboardStats:
 payment:
@@ -75,6 +78,7 @@ payment:
   - markPaymentFailed:
   - initiateRefund:
   - getPaymentStatus:
+  - recoverPendingPayments:
 pricing:
 product:
   - getProductsByIds:
@@ -91,6 +95,9 @@ product:
   - incrementProductSearch:
   - incrementProductPurchase:
   - seedProductMetricsForTesting:
+refund:
+  - initiateRefund:
+  - getRefundStatus:
 subCategory:
   - getSubCategories:
   - uploadSubCategory:

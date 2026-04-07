@@ -29,6 +29,7 @@ abstract class Order implements _i1.SerializableModel {
     required this.finalAmount,
     required this.status,
     required this.paymentStatus,
+    required this.refundStatus,
     this.razorpayOrderId,
     this.razorpayPaymentId,
     required this.deliveryAddress,
@@ -57,6 +58,7 @@ abstract class Order implements _i1.SerializableModel {
     required double finalAmount,
     required String status,
     required String paymentStatus,
+    required String refundStatus,
     String? razorpayOrderId,
     String? razorpayPaymentId,
     required _i3.Address deliveryAddress,
@@ -88,6 +90,7 @@ abstract class Order implements _i1.SerializableModel {
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       paymentStatus: jsonSerialization['paymentStatus'] as String,
+      refundStatus: jsonSerialization['refundStatus'] as String,
       razorpayOrderId: jsonSerialization['razorpayOrderId'] as String?,
       razorpayPaymentId: jsonSerialization['razorpayPaymentId'] as String?,
       deliveryAddress: _i4.Protocol().deserialize<_i3.Address>(
@@ -148,6 +151,8 @@ abstract class Order implements _i1.SerializableModel {
 
   String paymentStatus;
 
+  String refundStatus;
+
   String? razorpayOrderId;
 
   String? razorpayPaymentId;
@@ -190,6 +195,7 @@ abstract class Order implements _i1.SerializableModel {
     double? finalAmount,
     String? status,
     String? paymentStatus,
+    String? refundStatus,
     String? razorpayOrderId,
     String? razorpayPaymentId,
     _i3.Address? deliveryAddress,
@@ -220,6 +226,7 @@ abstract class Order implements _i1.SerializableModel {
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
+      'refundStatus': refundStatus,
       if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
       if (razorpayPaymentId != null) 'razorpayPaymentId': razorpayPaymentId,
       'deliveryAddress': deliveryAddress.toJson(),
@@ -260,6 +267,7 @@ class _OrderImpl extends Order {
     required double finalAmount,
     required String status,
     required String paymentStatus,
+    required String refundStatus,
     String? razorpayOrderId,
     String? razorpayPaymentId,
     required _i3.Address deliveryAddress,
@@ -286,6 +294,7 @@ class _OrderImpl extends Order {
          finalAmount: finalAmount,
          status: status,
          paymentStatus: paymentStatus,
+         refundStatus: refundStatus,
          razorpayOrderId: razorpayOrderId,
          razorpayPaymentId: razorpayPaymentId,
          deliveryAddress: deliveryAddress,
@@ -318,6 +327,7 @@ class _OrderImpl extends Order {
     double? finalAmount,
     String? status,
     String? paymentStatus,
+    String? refundStatus,
     Object? razorpayOrderId = _Undefined,
     Object? razorpayPaymentId = _Undefined,
     _i3.Address? deliveryAddress,
@@ -345,6 +355,7 @@ class _OrderImpl extends Order {
       finalAmount: finalAmount ?? this.finalAmount,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      refundStatus: refundStatus ?? this.refundStatus,
       razorpayOrderId: razorpayOrderId is String?
           ? razorpayOrderId
           : this.razorpayOrderId,

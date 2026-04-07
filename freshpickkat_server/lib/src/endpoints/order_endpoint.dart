@@ -7,6 +7,8 @@ import '../services/role_guard_service.dart';
 import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
 import '../services/notification_service.dart';
+import '../services/orders/order_idempotency_service.dart';
+import '../services/refunds/refund_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import 'package:googleapis/firestore/v1.dart' show FirestoreApi;
 
@@ -27,6 +29,7 @@ class OrderEndpoint extends Endpoint {
   static const String paymentPaid = 'paid';
   static const String paymentFailed = 'failed';
   static const String paymentRefunded = 'refunded';
+  final RefundService _refundService = RefundService();
 
   String _generateOrderId() {
     final random = DateTime.now().millisecondsSinceEpoch;
@@ -45,6 +48,7 @@ class OrderEndpoint extends Endpoint {
     order.deliveryOtp = _generateDeliveryOtp();
     order.status = statusPending;
     order.paymentStatus = paymentPending;
+    order.refundStatus = 'none';
     order.orderedAt = DateTime.now();
 
     // --- BOGO Validation ---
@@ -79,6 +83,39 @@ class OrderEndpoint extends Endpoint {
     );
 
     return order.orderId;
+  }
+
+  Future<String> createPendingOrder(
+    Session session,
+    protocol.Order order,
+    String idempotencyKey,
+  ) async {
+    final existingOrderId = await _orderIdempotencyService.getOrderIdForKey(
+      idempotencyKey,
+    );
+    if (existingOrderId != null) {
+      return existingOrderId;
+    }
+
+    final orderId = await createOrder(session, order);
+    await _orderIdempotencyService.saveKey(
+      key: idempotencyKey,
+      userId: order.userId,
+      orderId: orderId,
+    );
+
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+    final docPath = '$database/$orderCollection/$orderId';
+    final fields = <String, firestore_api.Value>{
+      'idempotencyKey': firestore_api.Value(stringValue: idempotencyKey),
+    };
+    await firestore.projects.databases.documents.patch(
+      firestore_api.Document(fields: fields),
+      docPath,
+      updateMask_fieldPaths: fields.keys.toList(),
+    );
+    return orderId;
   }
 
   /// Returns true if the BOGO offer for [triggerProductId] is active
@@ -694,6 +731,75 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
+  Future<bool> confirmOrder(Session session, String orderId) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+    final docPath = '$database/$orderCollection/$orderId';
+    final fields = <String, firestore_api.Value>{
+      'status': firestore_api.Value(stringValue: statusConfirmed),
+      'confirmedAt': firestore_api.Value(
+        timestampValue: DateTime.now().toUtc().toIso8601String(),
+      ),
+    };
+    await firestore.projects.databases.documents.patch(
+      firestore_api.Document(fields: fields),
+      docPath,
+      updateMask_fieldPaths: fields.keys.toList(),
+    );
+    return true;
+  }
+
+  Future<bool> cancelOrder(
+    Session session,
+    String orderId,
+    String userId, {
+    String reason = 'user_cancelled',
+  }) async {
+    final order = await getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.userId != userId) {
+      throw ArgumentError('Order does not belong to user.');
+    }
+    if (order.status == statusCancelled) {
+      return true;
+    }
+
+    final firestore = await FirebaseService.getFirestoreClient();
+    final database = 'projects/$projectId/databases/(default)/documents';
+    final docPath = '$database/$orderCollection/$orderId';
+    final fields = <String, firestore_api.Value>{
+      'status': firestore_api.Value(stringValue: statusCancelled),
+      'cancelledAt': firestore_api.Value(
+        timestampValue: DateTime.now().toUtc().toIso8601String(),
+      ),
+      'cancellationReason': firestore_api.Value(stringValue: reason),
+    };
+
+    if (order.paymentStatus == paymentPaid &&
+        order.razorpayPaymentId != null &&
+        order.razorpayPaymentId!.isNotEmpty) {
+      await _refundService.initiateRefund(orderId: orderId, reason: reason);
+      fields['refundStatus'] = firestore_api.Value(stringValue: 'initiated');
+    }
+
+    await firestore.projects.databases.documents.patch(
+      firestore_api.Document(fields: fields),
+      docPath,
+      updateMask_fieldPaths: fields.keys.toList(),
+    );
+
+    if (order.userId.isNotEmpty) {
+      await NotificationService.notifyUserStatusUpdate(
+        userId: order.userId,
+        orderId: orderId,
+        status: statusCancelled,
+      );
+    }
+    return true;
+  }
+
   Future<bool> assignDeliveryPerson(
     Session session,
     String orderId,
@@ -827,6 +933,7 @@ class OrderEndpoint extends Endpoint {
       finalAmount: _getDoubleValue(fields, 'finalAmount'),
       status: fields['status']?.stringValue ?? statusPending,
       paymentStatus: fields['paymentStatus']?.stringValue ?? paymentPending,
+      refundStatus: fields['refundStatus']?.stringValue ?? 'none',
       razorpayOrderId: fields['razorpayOrderId']?.stringValue,
       razorpayPaymentId: fields['razorpayPaymentId']?.stringValue,
       deliveryAddress: _addressFromFirestore(
@@ -884,6 +991,7 @@ class OrderEndpoint extends Endpoint {
       'finalAmount': firestore_api.Value(doubleValue: order.finalAmount),
       'status': firestore_api.Value(stringValue: order.status),
       'paymentStatus': firestore_api.Value(stringValue: order.paymentStatus),
+      'refundStatus': firestore_api.Value(stringValue: order.refundStatus),
       'deliveryAddress': firestore_api.Value(
         mapValue: firestore_api.MapValue(
           fields: _addressToFirestore(order.deliveryAddress),
@@ -1015,3 +1123,5 @@ class OrderEndpoint extends Endpoint {
     return map;
   }
 }
+  final OrderIdempotencyService _orderIdempotencyService =
+      OrderIdempotencyService();

@@ -10,6 +10,7 @@ import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/checkout_screen.dart';
 import 'package:freshpickkat_flutter/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
+import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen.dart';
@@ -41,7 +42,9 @@ void main() async {
   Get.put(UserController(), permanent: true);
   Get.put(NotificationController(), permanent: true);
   Get.put(BannerController(), permanent: true);
+  Get.put(OrderRecoveryService(), permanent: true);
   NotificationController.instance.init();
+  OrderRecoveryService.instance.init();
 
   runApp(const MyApp());
 }

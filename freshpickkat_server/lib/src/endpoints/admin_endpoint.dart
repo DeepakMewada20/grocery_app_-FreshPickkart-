@@ -380,6 +380,7 @@ class AdminEndpoint extends Endpoint {
       finalAmount: getDoubleValue('finalAmount'),
       status: fields['status']?.stringValue ?? 'pending',
       paymentStatus: fields['paymentStatus']?.stringValue ?? 'pending',
+      refundStatus: fields['refundStatus']?.stringValue ?? 'none',
       deliveryAddress: protocol.Address(
         street:
             fields['deliveryAddress']

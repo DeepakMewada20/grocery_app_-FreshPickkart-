@@ -1,0 +1,11 @@
+class: RefundRecord
+fields:
+  refundId: String
+  orderId: String
+  paymentId: String
+  userId: String
+  amount: double
+  status: String
+  gatewayRefundId: String?
+  createdAt: DateTime
+  updatedAt: DateTime?

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
+import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:get/get.dart';
@@ -13,11 +14,17 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   final orderController = OrderController.instance;
+  final orderRecoveryService = OrderRecoveryService.instance;
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => orderController.fetchOrders());
+    Future.microtask(() async {
+      await orderRecoveryService.recoverPendingPayments(
+        trigger: 'orders_screen_open',
+      );
+      await orderController.fetchOrders();
+    });
   }
 
   @override

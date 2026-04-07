@@ -1,5 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -8,6 +9,8 @@ class OrderController extends GetxController {
       Get.put(OrderController(), permanent: true);
 
   final Client _client = ServerpodClient().client;
+  final OrderRecoveryService _orderRecoveryService =
+      OrderRecoveryService.instance;
 
   final RxList<Order> orders = <Order>[].obs;
   final RxBool isLoading = false.obs;
@@ -25,6 +28,7 @@ class OrderController extends GetxController {
     isLoading.value = true;
     errorMessage.value = '';
     try {
+      await _orderRecoveryService.recoverPendingPayments(trigger: 'orders_page');
       final result = await _client.order.getUserOrders(user.uid);
       orders.assignAll(result);
     } catch (e) {

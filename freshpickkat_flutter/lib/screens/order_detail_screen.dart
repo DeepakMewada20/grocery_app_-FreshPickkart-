@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
+import 'package:freshpickkat_flutter/services/order_service.dart';
+import 'package:freshpickkat_flutter/services/refund_service.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
@@ -62,7 +66,9 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Order? _order;
+  RefundRecord? _refund;
   bool _isLoading = true;
+  bool _isCancelling = false;
   String? _error;
 
   @override
@@ -78,9 +84,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
 
     final order = await OrderController.instance.fetchOrderById(widget.orderId);
+    final refund = await RefundService.instance.getRefundStatus(widget.orderId);
     if (mounted) {
       setState(() {
         _order = order;
+        _refund = refund;
         _isLoading = false;
         if (order == null) {
           _error = 'Order not found';
@@ -93,19 +101,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Order Details'),
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: cs.onSurface,
-        elevation: 0,
+        appBar: AppBar(
+          title: const Text('Order Details'),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: cs.onSurface,
+          elevation: 0,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(child: Text(_error!))
+            : _buildContent(cs),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(child: Text(_error!))
-          : _buildContent(cs),
     );
   }
 
@@ -117,6 +128,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(order, cs),
+          if (_canCancelOrder(order) || _showRefundStatus(order))
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: _buildActionsCard(order, cs),
+            ),
           const SizedBox(height: 16),
           _buildAddress(order, cs),
           const SizedBox(height: 16),
@@ -163,8 +179,49 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 'Payment: ${order.paymentStatus}',
                 _statusColor(order.paymentStatus),
               ),
+              if (_showRefundStatus(order)) ...[
+                const SizedBox(width: 8),
+                _buildStatusChip(
+                  'Refund: ${_refundLabel(order)}',
+                  _refundStatusColor(order),
+                ),
+              ],
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionsCard(Order order, ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_showRefundStatus(order))
+            Text(
+              'Refund Status: ${_refundLabel(order)}',
+              style: TextStyle(
+                color: _refundStatusColor(order),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          if (_showRefundStatus(order) && _canCancelOrder(order))
+            const SizedBox(height: 12),
+          if (_canCancelOrder(order))
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isCancelling ? null : _cancelOrder,
+                child: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
+              ),
+            ),
         ],
       ),
     );
@@ -535,6 +592,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
+      case 'success':
       case 'delivered':
         return Colors.green;
       case 'failed':
@@ -546,6 +604,82 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return Colors.orange;
       default:
         return Colors.blueGrey;
+    }
+  }
+
+  bool _canCancelOrder(Order order) {
+    if (order.status == 'cancelled' || order.status == 'delivered') {
+      return false;
+    }
+    return order.status == 'pending' || order.status == 'confirmed';
+  }
+
+  bool _showRefundStatus(Order order) {
+    return order.refundStatus.toLowerCase() != 'none' || _refund != null;
+  }
+
+  String _refundLabel(Order order) {
+    final status = (_refund?.status ?? order.refundStatus).toLowerCase();
+    switch (status) {
+      case 'initiated':
+      case 'pending':
+        return 'Initiated';
+      case 'processed':
+        return 'Completed';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status.isEmpty ? 'None' : status;
+    }
+  }
+
+  Color _refundStatusColor(Order order) {
+    switch ((_refund?.status ?? order.refundStatus).toLowerCase()) {
+      case 'initiated':
+      case 'pending':
+        return Colors.orange;
+      case 'processed':
+        return Colors.green;
+      case 'failed':
+        return Colors.redAccent;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  Future<void> _cancelOrder() async {
+    final currentUser = AuthController.instance.currentUser;
+    if (currentUser == null) {
+      Get.snackbar('Login required', 'Please login to cancel the order.');
+      return;
+    }
+
+    setState(() {
+      _isCancelling = true;
+    });
+
+    try {
+      await OrderService.instance.cancelOrder(
+        orderId: widget.orderId,
+        userId: currentUser.uid,
+      );
+      await _fetch();
+      if (mounted) {
+        Get.snackbar(
+          'Order updated',
+          'Order cancelled successfully. Refund will be tracked automatically.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Get.snackbar('Cancel failed', '$e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCancelling = false;
+        });
+      }
     }
   }
 }

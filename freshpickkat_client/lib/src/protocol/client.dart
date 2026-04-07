@@ -48,13 +48,14 @@ import 'package:freshpickkat_client/src/protocol/payment_action_result.dart'
     as _i27;
 import 'package:freshpickkat_client/src/protocol/product.dart' as _i28;
 import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i29;
-import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i30;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i31;
+import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i30;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i31;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i32;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i32;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i33;
-import 'protocol.dart' as _i34;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i34;
+import 'protocol.dart' as _i35;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -708,6 +709,18 @@ class EndpointOrder extends _i1.EndpointRef {
         {'order': order},
       );
 
+  _i2.Future<String> createPendingOrder(
+    _i23.Order order,
+    String idempotencyKey,
+  ) => caller.callServerEndpoint<String>(
+    'order',
+    'createPendingOrder',
+    {
+      'order': order,
+      'idempotencyKey': idempotencyKey,
+    },
+  );
+
   _i2.Future<List<_i23.Order>> getOrders({
     String? status,
     required String firebaseUid,
@@ -816,6 +829,27 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> confirmOrder(String orderId) =>
+      caller.callServerEndpoint<bool>(
+        'order',
+        'confirmOrder',
+        {'orderId': orderId},
+      );
+
+  _i2.Future<bool> cancelOrder(
+    String orderId,
+    String userId, {
+    required String reason,
+  }) => caller.callServerEndpoint<bool>(
+    'order',
+    'cancelOrder',
+    {
+      'orderId': orderId,
+      'userId': userId,
+      'reason': reason,
+    },
+  );
+
   _i2.Future<bool> assignDeliveryPerson(
     String orderId,
     String deliveryPersonName,
@@ -909,6 +943,18 @@ class EndpointPayment extends _i1.EndpointRef {
     'payment',
     'getPaymentStatus',
     {'razorpayPaymentId': razorpayPaymentId},
+  );
+
+  _i2.Future<_i27.PaymentActionResult> recoverPendingPayments(
+    String userId, {
+    required int limit,
+  }) => caller.callServerEndpoint<_i27.PaymentActionResult>(
+    'payment',
+    'recoverPendingPayments',
+    {
+      'userId': userId,
+      'limit': limit,
+    },
   );
 }
 
@@ -1088,6 +1134,28 @@ class EndpointProduct extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointRefund extends _i1.EndpointRef {
+  EndpointRefund(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'refund';
+
+  _i2.Future<_i30.RefundRecord> initiateRefund(String orderId) =>
+      caller.callServerEndpoint<_i30.RefundRecord>(
+        'refund',
+        'initiateRefund',
+        {'orderId': orderId},
+      );
+
+  _i2.Future<_i30.RefundRecord?> getRefundStatus(String orderId) =>
+      caller.callServerEndpoint<_i30.RefundRecord?>(
+        'refund',
+        'getRefundStatus',
+        {'orderId': orderId},
+      );
+}
+
+/// {@category Endpoint}
 class EndpointSubCategory extends _i1.EndpointRef {
   EndpointSubCategory(_i1.EndpointCaller caller) : super(caller);
 
@@ -1095,8 +1163,8 @@ class EndpointSubCategory extends _i1.EndpointRef {
   String get name => 'subCategory';
 
   /// Fetch all subcategories from Firestore 'subCategories' collection
-  _i2.Future<List<_i30.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i30.SubCategory>>(
+  _i2.Future<List<_i31.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i31.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
@@ -1104,7 +1172,7 @@ class EndpointSubCategory extends _i1.EndpointRef {
 
   /// Upload a subcategory to Firestore 'subCategories' collection
   _i2.Future<bool> uploadSubCategory(
-    _i30.SubCategory subCategory,
+    _i31.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -1141,7 +1209,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i31.CartItem> cart,
+    List<_i32.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -1166,13 +1234,13 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i32.Caller(client);
-    serverpod_auth_core = _i33.Caller(client);
+    serverpod_auth_idp = _i33.Caller(client);
+    serverpod_auth_core = _i34.Caller(client);
   }
 
-  late final _i32.Caller serverpod_auth_idp;
+  late final _i33.Caller serverpod_auth_idp;
 
-  late final _i33.Caller serverpod_auth_core;
+  late final _i34.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -1195,7 +1263,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i34.Protocol(),
+         _i35.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -1217,6 +1285,7 @@ class Client extends _i1.ServerpodClientShared {
     payment = EndpointPayment(this);
     pricing = EndpointPricing(this);
     product = EndpointProduct(this);
+    refund = EndpointRefund(this);
     subCategory = EndpointSubCategory(this);
     user = EndpointUser(this);
     modules = Modules(this);
@@ -1248,6 +1317,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointProduct product;
 
+  late final EndpointRefund refund;
+
   late final EndpointSubCategory subCategory;
 
   late final EndpointUser user;
@@ -1269,6 +1340,7 @@ class Client extends _i1.ServerpodClientShared {
     'payment': payment,
     'pricing': pricing,
     'product': product,
+    'refund': refund,
     'subCategory': subCategory,
     'user': user,
   };

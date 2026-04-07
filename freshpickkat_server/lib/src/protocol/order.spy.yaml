@@ -12,6 +12,7 @@ fields:
   finalAmount: double
   status: String
   paymentStatus: String
+  refundStatus: String
   razorpayOrderId: String?
   razorpayPaymentId: String?
   deliveryAddress: Address
