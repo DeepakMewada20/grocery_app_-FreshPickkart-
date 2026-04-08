@@ -16,7 +16,23 @@ class ComboOfferController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchActiveComboOffers();
+  }
+
+  Future<void> fetchActiveComboOffersIfEmpty() async {
+    if (activeComboOffers.isEmpty && !isLoading.value) {
+      await fetchActiveComboOffers();
+    }
+  }
+
+  Future<void> forceFetchActiveComboOffers() async {
+    activeComboOffers.clear();
+    await fetchActiveComboOffers();
+  }
+
+  void clearCache() {
+    activeComboOffers.clear();
+    applicableCombos.clear();
+    selectedComboId.value = null;
   }
 
   Future<void> fetchActiveComboOffers() async {

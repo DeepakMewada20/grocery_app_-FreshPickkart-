@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:get/get.dart';
 
@@ -15,6 +16,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   final orderController = OrderController.instance;
   final orderRecoveryService = OrderRecoveryService.instance;
+  final networkController = NetworkController.instance;
 
   @override
   void initState() {
@@ -24,6 +26,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
         trigger: 'orders_screen_open',
       );
       await orderController.fetchOrders();
+    });
+
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('orders')) {
+          orderController.fetchOrders();
+        }
+      }
     });
   }
 

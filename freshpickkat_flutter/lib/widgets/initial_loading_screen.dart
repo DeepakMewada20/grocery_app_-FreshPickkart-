@@ -8,13 +8,11 @@ import 'package:get/get.dart';
 class NetworkErrorWidget extends StatefulWidget {
   final String message;
   final VoidCallback onRetry;
-  final bool showAutoRetry;
 
   const NetworkErrorWidget({
     super.key,
     this.message = 'No internet connection',
     required this.onRetry,
-    this.showAutoRetry = true,
   });
 
   @override
@@ -25,8 +23,6 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  Timer? _autoRetryTimer;
-  int _countdownSeconds = 10;
   bool _isRetrying = false;
 
   @override
@@ -37,31 +33,9 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
       vsync: this,
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-
-    if (widget.showAutoRetry) {
-      _startAutoRetryTimer();
-    }
-  }
-
-  void _startAutoRetryTimer() {
-    _countdownSeconds = 10;
-    _autoRetryTimer?.cancel();
-    _autoRetryTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        _countdownSeconds--;
-      });
-      if (_countdownSeconds <= 0) {
-        timer.cancel();
-        _performRetry();
-      }
-    });
   }
 
   Future<void> _performRetry() async {
@@ -75,11 +49,6 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
 
     if (connected) {
       widget.onRetry();
-    } else if (widget.showAutoRetry) {
-      setState(() {
-        _isRetrying = false;
-      });
-      _startAutoRetryTimer();
     } else {
       setState(() {
         _isRetrying = false;
@@ -89,7 +58,6 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
 
   @override
   void dispose() {
-    _autoRetryTimer?.cancel();
     _pulseController.dispose();
     super.dispose();
   }
@@ -100,7 +68,7 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -110,17 +78,15 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
                 return Transform.scale(
                   scale: _pulseAnimation.value,
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      _getConnectionIcon(
-                        networkController.connectionType.value,
-                      ),
-                      size: 60,
+                      Icons.wifi_off_rounded,
+                      size: 50,
                       color: Colors.red.shade400,
                     ),
                   ),
@@ -129,7 +95,7 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
             ),
             const SizedBox(height: 24),
             Text(
-              _getTitle(networkController.connectionType.value),
+              'No Internet',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -146,21 +112,16 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
                 color: Colors.grey.shade600,
               ),
             ),
-            const SizedBox(height: 16),
-            Obx(() => _buildConnectionTypeIndicator(networkController)),
             const SizedBox(height: 32),
             if (_isRetrying)
               const CircularProgressIndicator(
                 color: AppTheme.primaryGreen,
               )
-            else ...[
+            else
               ElevatedButton.icon(
-                onPressed: () {
-                  _autoRetryTimer?.cancel();
-                  _performRetry();
-                },
+                onPressed: _performRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryGreen,
                   foregroundColor: Colors.white,
@@ -173,184 +134,31 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
                   ),
                 ),
               ),
-              if (widget.showAutoRetry && _countdownSeconds > 0) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Auto-retry in $_countdownSeconds seconds',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ],
-            const SizedBox(height: 24),
-            _buildQuickFixes(networkController.connectionType.value),
+            const SizedBox(height: 16),
+            Obx(() {
+              if (networkController.isConnected.value) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _performRetry();
+                });
+              }
+              return const SizedBox.shrink();
+            }),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildConnectionTypeIndicator(NetworkController controller) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            _getConnectionIcon(controller.connectionType.value),
-            size: 18,
-            color: _getConnectionColor(controller.connectionType.value),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            controller.connectionTypeLabel,
-            style: TextStyle(
-              fontSize: 13,
-              color: _getConnectionColor(controller.connectionType.value),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickFixes(ConnectionType type) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 18,
-                color: Colors.blue.shade700,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Quick Tips',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ..._getTips(type),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _getTips(ConnectionType type) {
-    List<String> tips;
-    switch (type) {
-      case ConnectionType.wifi:
-        tips = [
-          'Restart your WiFi router',
-          'Move closer to the router',
-          'Check if WiFi password is correct',
-        ];
-        break;
-      case ConnectionType.mobile:
-        tips = [
-          'Enable/disable Airplane mode',
-          'Restart your phone',
-          'Check if mobile data is enabled',
-        ];
-        break;
-      case ConnectionType.none:
-      default:
-        tips = [
-          'Check WiFi/Mobile data is ON',
-          'Restart your router',
-          'Contact your service provider',
-        ];
-    }
-
-    return tips
-        .map(
-          (tip) => Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  size: 14,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tip,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
-        .toList();
-  }
-
-  IconData _getConnectionIcon(ConnectionType type) {
-    switch (type) {
-      case ConnectionType.wifi:
-        return Icons.wifi_off_rounded;
-      case ConnectionType.mobile:
-        return Icons.signal_cellular_off;
-      case ConnectionType.ethernet:
-        return Icons.cable;
-      case ConnectionType.none:
-        return Icons.cloud_off_rounded;
-    }
-  }
-
-  String _getTitle(ConnectionType type) {
-    switch (type) {
-      case ConnectionType.wifi:
-        return 'WiFi Disconnected';
-      case ConnectionType.mobile:
-        return 'Mobile Data Off';
-      case ConnectionType.ethernet:
-        return 'Ethernet Disconnected';
-      case ConnectionType.none:
-      default:
-        return 'No Internet Connection';
-    }
-  }
-
-  Color _getConnectionColor(ConnectionType type) {
-    switch (type) {
-      case ConnectionType.wifi:
-        return Colors.orange.shade700;
-      case ConnectionType.mobile:
-        return Colors.blue.shade700;
-      case ConnectionType.ethernet:
-        return Colors.purple.shade700;
-      case ConnectionType.none:
-      default:
-        return Colors.red.shade700;
-    }
-  }
 }
 
 class NetworkStatusBanner extends StatelessWidget {
-  const NetworkStatusBanner({super.key});
+  final VoidCallback? onRetry;
+  final bool isBottom;
+
+  const NetworkStatusBanner({
+    super.key,
+    this.onRetry,
+    this.isBottom = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -361,65 +169,197 @@ class NetworkStatusBanner extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        color: Colors.red.shade600,
-        child: SafeArea(
-          bottom: false,
-          child: Row(
-            children: [
-              const Icon(
+      if (isBottom) {
+        return _buildBottomBanner(context, networkController);
+      }
+      return _buildTopBanner(networkController);
+    });
+  }
+
+  Widget _buildBottomBanner(
+    BuildContext context,
+    NetworkController controller,
+  ) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.wifi_off,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'No Internet',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Check your connection',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (onRetry != null) {
+                      onRetry!();
+                    } else {
+                      final connected = await controller.checkConnection();
+                      if (connected && context.mounted) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      }
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text(
+                    'Retry',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBanner(NetworkController controller) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: Colors.red.shade600,
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
                 Icons.wifi_off,
                 color: Colors.white,
                 size: 18,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'No internet connection',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'No Internet Connection',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
-                    Text(
-                      'Check your network settings',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await networkController.checkConnection();
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
                   ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Some features may not work',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (onRetry != null) {
+                  onRetry!();
+                } else {
+                  await controller.checkConnection();
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                minimumSize: Size.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
-            ],
-          ),
+              child: const Text(
+                'Retry',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 }
 
@@ -579,14 +519,12 @@ class InitialLoadingScreen extends StatelessWidget {
   final bool hasError;
   final String errorMessage;
   final VoidCallback onRetry;
-  final bool showAutoRetry;
 
   const InitialLoadingScreen({
     super.key,
     this.hasError = false,
     this.errorMessage = '',
     required this.onRetry,
-    this.showAutoRetry = true,
   });
 
   @override
@@ -602,7 +540,6 @@ class InitialLoadingScreen extends StatelessWidget {
                   ? 'Unable to load products'
                   : 'No internet connection',
               onRetry: onRetry,
-              showAutoRetry: showAutoRetry,
             ),
           ),
         ],

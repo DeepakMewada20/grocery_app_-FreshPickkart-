@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart';
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
@@ -33,6 +34,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final checkoutService = CheckoutService.instance;
   final paymentService = PaymentService.instance;
   final orderRecoveryService = OrderRecoveryService.instance;
+  final networkController = NetworkController.instance;
   final client = ServerpodClient().client;
 
   Razorpay? _razorpay;
@@ -54,6 +56,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await orderRecoveryService.recoverPendingPayments(
         trigger: 'checkout_open',
       );
+    });
+
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('checkout')) {
+          cartController.refreshCartCurrentData();
+        }
+      }
     });
   }
 

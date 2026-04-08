@@ -24,6 +24,7 @@ class _CategoriesScreenWithStickyHeaderState
   final ScrollController _itemsScrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   final categoryController = CategoryProviderController.instance;
+  final networkController = NetworkController.instance;
 
   int _selectedCategoryIndex = 0;
   bool _isAutoScrolling = false;
@@ -38,6 +39,10 @@ class _CategoriesScreenWithStickyHeaderState
     super.initState();
     _itemsScrollController.addListener(_onItemsScroll);
 
+    Future.microtask(() {
+      categoryController.fetchCategoriesIfEmpty();
+    });
+
     ever(categoryController.categories, (categories) {
       if (categories.isNotEmpty) {
         if (mounted) {
@@ -51,12 +56,27 @@ class _CategoriesScreenWithStickyHeaderState
       }
     });
 
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('categories') ||
+            currentRoute.contains('category')) {
+          categoryController.fetchCategoriesIfEmpty();
+        }
+      }
+    });
+
     if (categoryController.categories.isNotEmpty) {
       _currentStickyHeader = categoryController.categories[0].categoryName;
       for (int i = 0; i < categoryController.categories.length; i++) {
         _categoryKeys[i] = GlobalKey();
       }
     }
+  }
+
+  Future<void> _onRefresh() async {
+    await categoryController.forceFetchCategories();
   }
 
   void _onItemsScroll() {
@@ -182,23 +202,26 @@ class _CategoriesScreenWithStickyHeaderState
         titleSpacing: 0,
       ),
       body: Obx(() {
-        final networkController = NetworkController.instance;
         final isConnected = networkController.isConnected.value;
         final isLoading = categoryController.isLoading.value;
         final hasData = categoryController.categories.isNotEmpty;
 
-        if (!isConnected || (isLoading && !hasData)) {
-          if (!isConnected) {
-            return NetworkErrorWidget(
-              message: 'No internet connection',
-              onRetry: () async {
-                final connected = await networkController.checkConnection();
-                if (connected) {
-                  categoryController.refreshData();
-                }
-              },
-            );
-          }
+        // If no data and no connection -> show full screen error
+        if (!hasData && !isConnected) {
+          return InitialLoadingScreen(
+            hasError: true,
+            errorMessage: 'No internet connection',
+            onRetry: () async {
+              final connected = await networkController.checkConnection();
+              if (connected) {
+                categoryController.refreshData();
+              }
+            },
+          );
+        }
+
+        // If no data but loading -> show shimmer
+        if (!hasData && isLoading) {
           return Row(
             children: [
               Container(
@@ -247,6 +270,8 @@ class _CategoriesScreenWithStickyHeaderState
             ],
           );
         }
+
+        // Has data -> show content (bottom banner handled globally)
         if (categoryController.categories.isEmpty) {
           return Center(
             child: Text(
@@ -255,32 +280,35 @@ class _CategoriesScreenWithStickyHeaderState
             ),
           );
         }
-        return Row(
-          children: [
-            _buildCategoriesList(cs),
-            Container(
-              height: height,
-              width: 9,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    cs.surfaceContainerHighest.withOpacity(1.0),
-                    cs.surfaceContainerHighest.withOpacity(0.0),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+        return RefreshIndicator(
+          onRefresh: _onRefresh,
+          child: Row(
+            children: [
+              _buildCategoriesList(cs),
+              Container(
+                height: height,
+                width: 9,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      cs.surfaceContainerHighest,
+                      cs.surfaceContainerHighest.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Stack(
-                children: [
-                  _buildItemsGrid(cs),
-                  _buildStickyHeader(cs),
-                ],
+              Expanded(
+                child: Stack(
+                  children: [
+                    _buildItemsGrid(cs),
+                    _buildStickyHeader(cs),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }),
     );

@@ -13,7 +13,21 @@ class BogoController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchActiveOffers();
+  }
+
+  Future<void> fetchActiveOffersIfEmpty() async {
+    if (activeOffers.isEmpty && !isLoading.value) {
+      await fetchActiveOffers();
+    }
+  }
+
+  Future<void> forceFetchActiveOffers() async {
+    activeOffers.clear();
+    await fetchActiveOffers();
+  }
+
+  void clearCache() {
+    activeOffers.clear();
   }
 
   Future<void> fetchActiveOffers() async {

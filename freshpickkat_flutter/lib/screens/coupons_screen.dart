@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 
 class CouponsScreen extends StatefulWidget {
   /// If set, this coupon will be visually highlighted on screen open.
@@ -18,6 +20,7 @@ class CouponsScreen extends StatefulWidget {
 
 class _CouponsScreenState extends State<CouponsScreen> {
   final client = ServerpodClient().client;
+  final networkController = NetworkController.instance;
   List<CouponDisplay> _coupons = [];
   bool _initialLoad = true;
   String? _error;
@@ -26,6 +29,16 @@ class _CouponsScreenState extends State<CouponsScreen> {
   void initState() {
     super.initState();
     _fetchAllCoupons();
+
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('coupons')) {
+          _fetchAllCoupons();
+        }
+      }
+    });
   }
 
   bool _isHighlighted(CouponDisplay coupon) {

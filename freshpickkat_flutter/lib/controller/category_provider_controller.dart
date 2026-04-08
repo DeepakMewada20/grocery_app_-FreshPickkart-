@@ -18,8 +18,26 @@ class CategoryProviderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Optional: auto fetch once when app starts
-    refreshData();
+  }
+
+  Future<void> fetchCategoriesIfEmpty() async {
+    if (categories.isEmpty && !isLoading.value) {
+      await fetchCategories();
+    }
+  }
+
+  Future<void> forceFetchCategories() async {
+    clearCache();
+    await Future.wait([
+      fetchCategories(),
+      fetchSubCategories(),
+    ]);
+  }
+
+  void clearCache() {
+    categories.clear();
+    subCategories.clear();
+    errorMessage.value = '';
   }
 
   Future<void> refreshData() async {

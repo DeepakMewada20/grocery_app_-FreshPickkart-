@@ -1,10 +1,7 @@
 import 'package:test/test.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
-import 'package:freshpickkat_server/src/generated/endpoints.dart';
 import 'package:freshpickkat_server/src/services/firebase_service.dart';
-import 'package:serverpod/serverpod.dart';
-import 'package:serverpod_test/serverpod_test.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {

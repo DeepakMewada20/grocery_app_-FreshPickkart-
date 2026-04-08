@@ -22,7 +22,29 @@ class BannerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadAllBanners();
+  }
+
+  Future<void> loadAllBannersIfEmpty() async {
+    if (homeTopBanners.isEmpty &&
+        homeMiddleBanners.isEmpty &&
+        !isLoading.value) {
+      await loadAllBanners();
+    }
+  }
+
+  Future<void> forceLoadAllBanners() async {
+    clearCache();
+    await loadAllBanners();
+  }
+
+  void clearCache() {
+    homeTopBanners.clear();
+    homeMiddleBanners.clear();
+    categoryPageBanners.clear();
+    cartPageBanners.clear();
+    checkoutPageBanners.clear();
+    productPageBanners.clear();
+    error.value = null;
   }
 
   Future<void> loadAllBanners({bool forceRefresh = false}) async {

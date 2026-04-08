@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/widgets/categories_selection_listview.dart';
@@ -23,12 +24,38 @@ class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin<HomePage> {
   static double _savedScrollOffset = 0;
   final ScrollController _scrollController = ScrollController();
+  final networkController = NetworkController.instance;
+  final productController = ProductProviderController.instance;
+  final bannerController = BannerController.instance;
+  final bogoController = BogoController.instance;
   bool _hasRestoredScrollOffset = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_storeScrollOffset);
+
+    Future.microtask(() {
+      productController.fetchProductsIfEmpty();
+      bannerController.loadAllBannersIfEmpty();
+      bogoController.fetchActiveOffersIfEmpty();
+    });
+
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute == '/home' || currentRoute == '/') {
+          productController.fetchProductsIfEmpty();
+        }
+      }
+    });
+  }
+
+  Future<void> _onRefresh() async {
+    await productController.forceFetchProducts();
+    await bannerController.forceLoadAllBanners();
+    await bogoController.forceFetchActiveOffers();
   }
 
   void _storeScrollOffset() {
@@ -72,9 +99,6 @@ class _HomePageState extends State<HomePage>
         final isLoading = productController.isLoading.value;
         final hasData = productController.hasData;
 
-        final hasError =
-            !isConnected || productController.errorMessage.value.isNotEmpty;
-
         if (hasData && !_hasRestoredScrollOffset) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
@@ -82,12 +106,11 @@ class _HomePageState extends State<HomePage>
           });
         }
 
-        if (hasError || (isLoading && !hasData)) {
+        // If no data and no connection -> show full screen error
+        if (!hasData && !isConnected) {
           return InitialLoadingScreen(
-            hasError: hasError,
-            errorMessage: !isConnected
-                ? 'No internet connection'
-                : productController.errorMessage.value,
+            hasError: true,
+            errorMessage: 'No internet connection',
             onRetry: () async {
               final connected = await networkController.checkConnection();
               if (connected) {
@@ -97,124 +120,152 @@ class _HomePageState extends State<HomePage>
           );
         }
 
-        return NotificationListener<ScrollNotification>(
-          onNotification: (scrollInfo) {
-            if (scrollInfo.metrics.pixels >=
-                    scrollInfo.metrics.maxScrollExtent - 200 &&
-                !productController.isLoading.value &&
-                productController.isMoreDataAvailable.value) {
-              productController.loadMore();
-            }
-            return false;
-          },
-          child: CustomScrollView(
-            key: const PageStorageKey<String>('home-scroll-view'),
-            controller: _scrollController,
-            slivers: [
-              FreshPickKartSliverAppBar(scrollController: _scrollController),
+        // If no data but loading -> show loading screen
+        if (!hasData && isLoading) {
+          return InitialLoadingScreen(
+            hasError: false,
+            onRetry: () {
+              productController.fetchProducts();
+            },
+          );
+        }
 
-              // 🎁 OFFER WIDGET
-              OfferWidget(),
+        // Main content with bottom network banner
+        return Stack(
+          children: [
+            NotificationListener<ScrollNotification>(
+              onNotification: (scrollInfo) {
+                if (scrollInfo.metrics.pixels >=
+                        scrollInfo.metrics.maxScrollExtent - 200 &&
+                    !productController.isLoading.value &&
+                    productController.isMoreDataAvailable.value) {
+                  productController.loadMore();
+                }
+                return false;
+              },
+              child: RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: CustomScrollView(
+                  key: const PageStorageKey<String>('home-scroll-view'),
+                  controller: _scrollController,
+                  slivers: [
+                    FreshPickKartSliverAppBar(
+                      scrollController: _scrollController,
+                    ),
 
-              // 🎪 BANNER WITH HORIZONTAL ITEMS
-              HomeBannerWithHorizontalItem(height: height),
+                    // 🎁 OFFER WIDGET
+                    OfferWidget(),
 
-              // 📦 CATEGORIES SECTION
-              SliverToBoxAdapter(
-                child: CategoriesSelectionListview(
-                  titalWord: "Trending Products",
-                  sortBy: "trending",
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: CategoriesSelectionListview(
-                  titalWord: "Best Sellers",
-                  sortBy: "best_sellers",
-                ),
-              ),
+                    // 🎪 BANNER WITH HORIZONTAL ITEMS
+                    HomeBannerWithHorizontalItem(height: height),
 
-              // OFFER BANNER (home_top)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Obx(() {
-                    final bannerController = BannerController.instance;
-                    final banners = bannerController.homeTopBanners;
+                    // 📦 CATEGORIES SECTION
+                    SliverToBoxAdapter(
+                      child: CategoriesSelectionListview(
+                        titalWord: "Trending Products",
+                        sortBy: "trending",
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: CategoriesSelectionListview(
+                        titalWord: "Best Sellers",
+                        sortBy: "best_sellers",
+                      ),
+                    ),
 
-                    if (banners.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
+                    // OFFER BANNER (home_top)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Obx(() {
+                          final bannerController = BannerController.instance;
+                          final banners = bannerController.homeTopBanners;
 
-                    return NetworkBannerWidget(
-                      height: 180,
-                      banners: banners,
-                      autoScrollInterval: const Duration(seconds: 3),
-                      autoScrollDuration: const Duration(milliseconds: 500),
-                    );
-                  }),
-                ),
-              ),
+                          if (banners.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
 
-              // 📦 ALL PRODUCTS GRID (infinite scroll)
-              SliverToBoxAdapter(
-                child: Obx(() {
-                  final bannerController = BannerController.instance;
-                  final middleBanners = bannerController.homeMiddleBanners;
-
-                  return ItemSelectionGirdviwe(
-                    titalWord: "Other Products",
-                    midContent: middleBanners.isEmpty
-                        ? null
-                        : NetworkBannerWidget(
+                          return NetworkBannerWidget(
                             height: 180,
-                            banners: middleBanners,
-                            autoScrollInterval: const Duration(seconds: 4),
+                            banners: banners,
+                            autoScrollInterval: const Duration(seconds: 3),
                             autoScrollDuration: const Duration(
                               milliseconds: 500,
                             ),
-                          ),
-                  );
-                }),
-              ),
-
-              // Loading indicator at bottom when fetching more
-              if (productController.isLoading.value &&
-                  productController.hasData)
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 400,
-                    child: ProductGridShimmer(
-                      itemCount: 6,
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.458,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                          );
+                        }),
+                      ),
                     ),
-                  ),
-                ),
 
-              // "No more products" message
-              if (!productController.isMoreDataAvailable.value &&
-                  productController.hasData)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(
-                      child: Builder(
-                        builder: (context) => Text(
-                          'All products loaded ✅',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.4),
-                            fontSize: 14,
+                    // 📦 ALL PRODUCTS GRID (infinite scroll)
+                    SliverToBoxAdapter(
+                      child: Obx(() {
+                        final bannerController = BannerController.instance;
+                        final middleBanners =
+                            bannerController.homeMiddleBanners;
+
+                        return ItemSelectionGirdviwe(
+                          titalWord: "Other Products",
+                          midContent: middleBanners.isEmpty
+                              ? null
+                              : NetworkBannerWidget(
+                                  height: 180,
+                                  banners: middleBanners,
+                                  autoScrollInterval: const Duration(
+                                    seconds: 4,
+                                  ),
+                                  autoScrollDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
+                                ),
+                        );
+                      }),
+                    ),
+
+                    // Loading indicator at bottom when fetching more
+                    if (productController.isLoading.value &&
+                        productController.hasData)
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: 400,
+                          child: ProductGridShimmer(
+                            itemCount: 6,
+                            crossAxisCount: 3,
+                            childAspectRatio: 0.458,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                           ),
                         ),
                       ),
-                    ),
-                  ),
+
+                    // "No more products" message
+                    if (!productController.isMoreDataAvailable.value &&
+                        productController.hasData)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Center(
+                            child: Builder(
+                              builder: (context) => Text(
+                                'All products loaded ✅',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
+              ),
+            ),
+          ],
         );
       }),
     );

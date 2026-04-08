@@ -27,6 +27,7 @@ class CategoryItemsScreen extends StatefulWidget {
 class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   final productController = ProductProviderController.instance;
   final categoryController = CategoryProviderController.instance;
+  final networkController = NetworkController.instance;
 
   final ScrollController _subCategoryScrollController = ScrollController();
   final ScrollController _itemsScrollController = ScrollController();
@@ -42,6 +43,17 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _applyGroupFilter(_selectedSubGroupName);
       _scrollToSelectedSubGroup();
+    });
+
+    ever(networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('category-item') ||
+            currentRoute.contains('products')) {
+          productController.fetchProducts();
+        }
+      }
     });
 
     _itemsScrollController.addListener(_onScroll);
@@ -374,23 +386,26 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   Widget _buildProductGrid(ColorScheme cs) {
     return Obx(() {
-      final networkController = NetworkController.instance;
       final isConnected = networkController.isConnected.value;
       final isLoading = productController.isLoading.value;
       final hasData = productController.hasData;
 
-      if (!isConnected || (isLoading && !hasData)) {
-        if (!isConnected) {
-          return NetworkErrorWidget(
-            message: 'No internet connection',
-            onRetry: () async {
-              final connected = await networkController.checkConnection();
-              if (connected) {
-                productController.fetchProducts();
-              }
-            },
-          );
-        }
+      // If no data and no connection -> show full screen error
+      if (!hasData && !isConnected) {
+        return InitialLoadingScreen(
+          hasError: true,
+          errorMessage: 'No internet connection',
+          onRetry: () async {
+            final connected = await networkController.checkConnection();
+            if (connected) {
+              productController.fetchProducts();
+            }
+          },
+        );
+      }
+
+      // If no data but loading -> show shimmer
+      if (!hasData && isLoading) {
         return ProductGridShimmer(
           itemCount: 6,
           padding: const EdgeInsets.all(12),
@@ -406,6 +421,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         );
       }
 
+      // Has data -> show content (bottom banner handled globally)
       return GridView.builder(
         controller: _itemsScrollController,
         padding: const EdgeInsets.all(12),

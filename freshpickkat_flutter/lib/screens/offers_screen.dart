@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
@@ -20,7 +21,22 @@ class OffersScreen extends StatefulWidget {
 
 class _OffersScreenState extends State<OffersScreen> {
   final _productController = ProductProviderController.instance;
+  final _networkController = NetworkController.instance;
   String _sortBy = 'discount'; // 'discount' | 'price_low' | 'price_high'
+
+  @override
+  void initState() {
+    super.initState();
+    ever(_networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (_networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('offers')) {
+          _productController.fetchProducts();
+        }
+      }
+    });
+  }
 
   List<Product> get _filteredProducts {
     final products = _productController.allProducts.where((p) {

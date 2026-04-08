@@ -2,8 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
@@ -205,6 +210,13 @@ class AuthController extends GetxController {
     appUserRx.value = null;
     _cacheService.clearUser();
     CartController.instance.clearCart();
+
+    ProductProviderController.instance.clearCache();
+    BannerController.instance.clearCache();
+    CategoryProviderController.instance.clearCache();
+    BogoController.instance.clearCache();
+    ComboOfferController.instance.clearCache();
+
     await _auth.signOut();
   }
 

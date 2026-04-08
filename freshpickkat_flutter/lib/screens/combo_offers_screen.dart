@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -24,6 +25,7 @@ class ComboOffersScreen extends StatefulWidget {
 class _ComboOffersScreenState extends State<ComboOffersScreen> {
   final _comboController = ComboOfferController.instance;
   final _productController = ProductProviderController.instance;
+  final _networkController = NetworkController.instance;
   String? _selectedComboId;
   Worker? _comboWorker;
 
@@ -39,6 +41,17 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
       _comboController.activeComboOffers,
       (_) => _prefetchComboProducts(),
     );
+
+    ever(_networkController.connectionRestoredTrigger, (_) {
+      if (!mounted) return;
+      if (_networkController.isConnected.value) {
+        final currentRoute = Get.currentRoute;
+        if (currentRoute.contains('combo')) {
+          _comboController.fetchActiveComboOffers();
+          _productController.fetchProducts();
+        }
+      }
+    });
   }
 
   void _prefetchComboProducts() {

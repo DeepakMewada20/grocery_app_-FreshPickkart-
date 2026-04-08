@@ -18,6 +18,7 @@ class NetworkController extends GetxController {
   final isChecking = true.obs;
   final connectionType = ConnectionType.none.obs;
   final connectionQuality = ConnectionQuality.unknown.obs;
+  final connectionRestoredTrigger = 0.obs;
 
   DateTime? _lastDisconnectedTime;
 
@@ -153,7 +154,9 @@ class NetworkController extends GetxController {
     return ConnectionQuality.poor;
   }
 
-  void _onConnectionRestored() {}
+  void _onConnectionRestored() {
+    connectionRestoredTrigger.value++;
+  }
 
   void _onConnectionLost() {}
 

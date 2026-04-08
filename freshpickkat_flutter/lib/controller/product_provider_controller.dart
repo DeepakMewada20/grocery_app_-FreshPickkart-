@@ -33,7 +33,25 @@ class ProductProviderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchProducts();
+  }
+
+  Future<void> fetchProductsIfEmpty() async {
+    if (allProducts.isEmpty && !isLoading.value) {
+      await fetchProducts();
+    }
+  }
+
+  Future<void> forceFetchProducts() async {
+    clearProducts();
+    _productCache.clear();
+    await fetchProducts();
+  }
+
+  void clearCache() {
+    allProducts.clear();
+    _productCache.clear();
+    isMoreDataAvailable.value = true;
+    errorMessage.value = '';
   }
 
   Future<void> setFilters({
