@@ -7,7 +7,6 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:get/get.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
@@ -386,26 +385,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   Widget _buildProductGrid(ColorScheme cs) {
     return Obx(() {
-      final isConnected = networkController.isConnected.value;
-      final isLoading = productController.isLoading.value;
       final hasData = productController.hasData;
 
-      // If no data and no connection -> show full screen error
-      if (!hasData && !isConnected) {
-        return InitialLoadingScreen(
-          hasError: true,
-          errorMessage: 'No internet connection',
-          onRetry: () async {
-            final connected = await networkController.checkConnection();
-            if (connected) {
-              productController.fetchProducts();
-            }
-          },
-        );
-      }
-
-      // If no data but loading -> show shimmer
-      if (!hasData && isLoading) {
+      // If no data -> show shimmer (top banner handles offline feedback)
+      if (!hasData) {
         return ProductGridShimmer(
           itemCount: 6,
           padding: const EdgeInsets.all(12),

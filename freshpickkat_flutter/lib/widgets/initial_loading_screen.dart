@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -153,12 +154,10 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
 
 class NetworkStatusBanner extends StatelessWidget {
   final VoidCallback? onRetry;
-  final bool isBottom;
 
   const NetworkStatusBanner({
     super.key,
     this.onRetry,
-    this.isBottom = false,
   });
 
   @override
@@ -166,56 +165,68 @@ class NetworkStatusBanner extends StatelessWidget {
     final networkController = NetworkController.instance;
 
     return Obx(() {
-      if (networkController.isConnected.value) {
-        return const SizedBox.shrink();
-      }
+      final showBanner = networkController.showBanner.value;
 
-      if (isBottom) {
-        return _buildBottomBanner(context, networkController);
-      }
-      return _buildTopBanner(networkController);
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, -1),
+              end: const Offset(0, 0),
+            ).animate(animation),
+            child: child,
+          );
+        },
+        child: showBanner
+            ? Material(
+                key: const ValueKey('network_banner_active'),
+                type: MaterialType.transparency,
+                child: _buildTopBanner(networkController),
+              )
+            : const SizedBox(
+                key: ValueKey('network_banner_hidden'),
+                width: double.infinity,
+                height: 0,
+              ),
+      );
     });
   }
 
-  Widget _buildBottomBanner(
-    BuildContext context,
-    NetworkController controller,
-  ) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Material(
-        color: Colors.transparent,
+
+  Widget _buildTopBanner(NetworkController controller) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
+            color: Colors.redAccent.withValues(alpha: 0.8),
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 0.5,
               ),
-            ],
+            ),
           ),
           child: SafeArea(
-            top: false,
+            bottom: false,
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
-                    Icons.wifi_off,
+                    Icons.wifi_off_rounded,
                     color: Colors.white,
-                    size: 20,
+                    size: 18,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -225,19 +236,20 @@ class NetworkStatusBanner extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        'No Internet',
+                        'No Internet Connection',
                         style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
-                        'Check your connection',
+                        'Some features may not work offline',
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -248,19 +260,17 @@ class NetworkStatusBanner extends StatelessWidget {
                     if (onRetry != null) {
                       onRetry!();
                     } else {
-                      final connected = await controller.checkConnection();
-                      if (connected && context.mounted) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      }
+                      await controller.checkConnection();
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: 8,
+                      vertical: 6,
                     ),
                     minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -270,94 +280,13 @@ class NetworkStatusBanner extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopBanner(NetworkController controller) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: Colors.red.shade600,
-      child: SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.wifi_off,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'No Internet Connection',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Some features may not work',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (onRetry != null) {
-                  onRetry!();
-                } else {
-                  await controller.checkConnection();
-                }
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                minimumSize: Size.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: const Text(
-                'Retry',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

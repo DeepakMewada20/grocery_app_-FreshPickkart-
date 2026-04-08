@@ -9,7 +9,6 @@ import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:get/get.dart';
 
 class CategoriesScreenWithStickyHeader extends StatefulWidget {
@@ -200,26 +199,10 @@ class _CategoriesScreenWithStickyHeaderState
         titleSpacing: 0,
       ),
       body: Obx(() {
-        final isConnected = networkController.isConnected.value;
-        final isLoading = categoryController.isLoading.value;
         final hasData = categoryController.categories.isNotEmpty;
 
-        // If no data and no connection -> show full screen error
-        if (!hasData && !isConnected) {
-          return InitialLoadingScreen(
-            hasError: true,
-            errorMessage: 'No internet connection',
-            onRetry: () async {
-              final connected = await networkController.checkConnection();
-              if (connected) {
-                categoryController.refreshData();
-              }
-            },
-          );
-        }
-
-        // If no data but loading -> show shimmer
-        if (!hasData && isLoading) {
+        // If no data -> show shimmer (top banner handles offline feedback)
+        if (!hasData) {
           return Row(
             children: [
               Container(

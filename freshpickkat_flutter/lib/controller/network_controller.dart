@@ -21,6 +21,8 @@ class NetworkController extends GetxController {
   final connectionRestoredTrigger = 0.obs;
 
   DateTime? _lastDisconnectedTime;
+  final showBanner = false.obs;
+  Timer? _bannerDelayTimer;
 
   @override
   void onInit() {
@@ -118,6 +120,7 @@ class NetworkController extends GetxController {
       _lastDisconnectedTime = DateTime.now();
       isConnected.value = false;
       connectionQuality.value = ConnectionQuality.unknown;
+      _showBannerImmediately();
     } else {
       try {
         final stopwatch = Stopwatch()..start();
@@ -131,13 +134,16 @@ class NetworkController extends GetxController {
           connectionQuality.value = _measureQuality(
             stopwatch.elapsedMilliseconds,
           );
+          _hideBanner();
         } else {
           isConnected.value = false;
           connectionQuality.value = ConnectionQuality.unknown;
+          _showBannerWithDelay();
         }
       } catch (_) {
         isConnected.value = false;
         connectionQuality.value = ConnectionQuality.unknown;
+        _showBannerWithDelay();
       }
     }
 
@@ -160,6 +166,27 @@ class NetworkController extends GetxController {
 
   void _onConnectionLost() {}
 
+  void _showBannerImmediately() {
+    _bannerDelayTimer?.cancel();
+    showBanner.value = true;
+  }
+
+  void _showBannerWithDelay() {
+    if (showBanner.value) return; // Already showing
+    if (_bannerDelayTimer?.isActive == true) return; // Timer already running
+
+    _bannerDelayTimer = Timer(const Duration(seconds: 10), () {
+      if (!isConnected.value) {
+        showBanner.value = true;
+      }
+    });
+  }
+
+  void _hideBanner() {
+    _bannerDelayTimer?.cancel();
+    showBanner.value = false;
+  }
+
   Future<bool> checkConnection() async {
     try {
       isChecking.value = true;
@@ -169,6 +196,7 @@ class NetworkController extends GetxController {
       if (connectionType.value == ConnectionType.none) {
         isConnected.value = false;
         connectionQuality.value = ConnectionQuality.unknown;
+        _showBannerImmediately();
         return false;
       }
 
@@ -184,11 +212,15 @@ class NetworkController extends GetxController {
         connectionQuality.value = _measureQuality(
           stopwatch.elapsedMilliseconds,
         );
+        _hideBanner();
+      } else {
+        _showBannerWithDelay();
       }
       return connected;
     } catch (_) {
       isConnected.value = false;
       connectionQuality.value = ConnectionQuality.unknown;
+      _showBannerWithDelay();
       return false;
     } finally {
       isChecking.value = false;

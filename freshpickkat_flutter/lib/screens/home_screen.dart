@@ -83,14 +83,11 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     super.build(context);
     final productController = ProductProviderController.instance;
-    final networkController = NetworkController.instance;
     var height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Obx(() {
-        final isConnected = networkController.isConnected.value;
-        final isLoading = productController.isLoading.value;
         final hasData = productController.hasData;
 
         if (hasData && !_hasRestoredScrollOffset) {
@@ -100,22 +97,8 @@ class _HomePageState extends State<HomePage>
           });
         }
 
-        // If no data and no connection -> show full screen error
-        if (!hasData && !isConnected) {
-          return InitialLoadingScreen(
-            hasError: true,
-            errorMessage: 'No internet connection',
-            onRetry: () async {
-              final connected = await networkController.checkConnection();
-              if (connected) {
-                productController.fetchProducts();
-              }
-            },
-          );
-        }
-
-        // If no data but loading -> show loading screen
-        if (!hasData && isLoading) {
+        // If no data -> show loading screen (even if offline, top banner handles feedback)
+        if (!hasData) {
           return InitialLoadingScreen(
             hasError: false,
             onRetry: () {
