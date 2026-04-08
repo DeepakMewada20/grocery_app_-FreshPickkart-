@@ -181,13 +181,11 @@ class CartController extends GetxController {
 
   Future<void> fetchCartFromServer() async {
     final authController = AuthController.instance;
-    if (authController.isLoggedIn && authController.currentUser != null) {
+    final cachedUser = authController.appUser;
+    if (authController.isLoggedIn && cachedUser != null) {
       try {
-        final serverUser = await client.user.getUserByFirebaseUid(
-          authController.currentUser!.uid,
-        );
-        if (serverUser != null && serverUser.cart != null) {
-          await _revalidateStoredCart(serverUser.cart!);
+        if (cachedUser.cart != null) {
+          await _revalidateStoredCart(cachedUser.cart!);
         }
       } catch (e) {
         debugPrint('Error fetching cart from server: $e');

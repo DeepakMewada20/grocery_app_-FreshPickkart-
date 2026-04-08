@@ -4,52 +4,66 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
+import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {
-  // --------- SINGLETON PATTERN ---------
   static AuthController get instance =>
       Get.put(AuthController(), permanent: true);
-  // -------------------------------------
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final _cacheService = UserCacheService.instance;
   String? _verificationId;
   int? _resendToken;
+  bool _isRefreshing = false;
 
-  // Reactive states
   final Rx<fb.User?> _user = Rx<fb.User?>(null);
   final Rx<AppUser?> appUserRx = Rx<AppUser?>(null);
   final RxString returnRoute = ''.obs;
-  Product? _pendingProductToAdd; // Store product to add after login
+  Product? _pendingProductToAdd;
 
   final client = ServerpodClient().client;
 
   @override
   void onInit() {
     super.onInit();
-    // Bind current user to reactive variable
     _user.value = _auth.currentUser;
+
     if (_user.value != null) {
+      _loadCachedUser();
       refreshAppUser();
     }
+
     _auth.userChanges().listen((fb.User? user) {
-      _user.value = user;
-      if (user != null) {
-        refreshAppUser();
-      } else {
+      if (user == null) {
+        _user.value = null;
         appUserRx.value = null;
+        _cacheService.clearUser();
+      } else if (user.uid != _user.value?.uid) {
+        _user.value = user;
+        _loadCachedUser();
+        refreshAppUser();
       }
     });
   }
 
+  void _loadCachedUser() {
+    final cachedUser = _cacheService.loadUser();
+    if (cachedUser != null) {
+      appUserRx.value = cachedUser;
+    }
+  }
+
   Future<void> refreshAppUser() async {
     if (_user.value == null) return;
+    if (_isRefreshing) return;
+
+    _isRefreshing = true;
     try {
       var user = await client.user.getUserByFirebaseUid(_user.value!.uid);
       if (user == null) {
-        // Create new user if not exists
         user = AppUser(
           firebaseUid: _user.value!.uid,
           phoneNumber: _user.value!.phoneNumber ?? '',
@@ -58,21 +72,21 @@ class AuthController extends GetxController {
         user = await client.user.createOrUpdateUser(user);
       }
       appUserRx.value = user;
-      // Fetch cart once user is synced
+      await _cacheService.saveUser(user);
+
       CartController.instance.fetchCartFromServer();
-      // Sync FCM token once user is available
       NotificationController.instance.syncTokenWithServer();
 
-      // Check if there's a pending product to add after login
       final pendingProduct = getPendingProductToAdd();
       if (pendingProduct != null) {
         CartController.instance.addItem(pendingProduct);
       }
 
-      // Execute any pending navigation callbacks
       executePendingNavigation();
     } catch (e) {
       debugPrint('Error syncing AppUser: $e');
+    } finally {
+      _isRefreshing = false;
     }
   }
 
@@ -187,6 +201,10 @@ class AuthController extends GetxController {
 
   // Sign out
   Future<void> signOut() async {
+    _user.value = null;
+    appUserRx.value = null;
+    _cacheService.clearUser();
+    CartController.instance.clearCart();
     await _auth.signOut();
   }
 

@@ -44,7 +44,6 @@ void main() async {
   Get.put(BannerController(), permanent: true);
   Get.put(OrderRecoveryService(), permanent: true);
   NotificationController.instance.init();
-  OrderRecoveryService.instance.init();
 
   runApp(const MyApp());
 }

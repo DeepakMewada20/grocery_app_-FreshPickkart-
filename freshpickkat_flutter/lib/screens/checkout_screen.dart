@@ -250,7 +250,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedVpa,
+                    initialValue: selectedVpa,
                     decoration: const InputDecoration(
                       labelText: 'Test UPI ID',
                     ),
@@ -503,7 +503,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'method': 'upi',
       if (vpa != null && vpa.isNotEmpty) 'vpa': vpa,
       if (vpa == null || vpa.isEmpty) '_[flow]': 'intent',
-      if (upiAppPackageName != null) 'upi_app_package_name': upiAppPackageName,
+      'upi_app_package_name': ?upiAppPackageName,
       'notes': {
         'order_id': orderId,
       },
@@ -678,7 +678,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _completeSuccessfulPayment(String orderId) async {
-    Get.offAll(() => OrderConfirmationScreen(orderId: orderId));
+    await Get.offAll(() => OrderConfirmationScreen(orderId: orderId));
 
     cartController.removeCoupon();
     cartController.clearCart();

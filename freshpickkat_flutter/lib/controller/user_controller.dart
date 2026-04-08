@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find<UserController>();
+
+  final _cacheService = UserCacheService.instance;
 
   final RxString userName = ''.obs;
   final RxString userPhone = ''.obs;
@@ -75,6 +78,7 @@ class UserController extends GetxController {
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
+      await _cacheService.saveUser(result);
       userName.value = result.name ?? '';
       userEmail.value = result.email ?? '';
     } catch (e) {
@@ -102,6 +106,7 @@ class UserController extends GetxController {
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
+      await _cacheService.saveUser(result);
       shippingAddress.value = result.shippingAddress;
     } catch (e) {
       debugPrint('Error updating address: $e');
@@ -111,7 +116,6 @@ class UserController extends GetxController {
     }
   }
 
-  // Refresh user data from backend
   Future<void> refreshUserDataFromServer() async {
     final auth = AuthController.instance;
     if (auth.currentUser == null) return;
@@ -121,6 +125,7 @@ class UserController extends GetxController {
       );
       if (freshUser != null) {
         auth.appUserRx.value = freshUser;
+        await _cacheService.saveUser(freshUser);
         _updateFromAppUser(freshUser);
       }
     } catch (e) {

@@ -1,5 +1,5 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/services/payment_recovery_repository.dart';
+import 'package:freshpickkat_flutter/services/appcache/payment_recovery_repository.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -18,10 +18,9 @@ class PaymentCompletionResult {
 class PaymentService {
   PaymentService._();
 
-  static PaymentService get instance =>
-      Get.isRegistered<PaymentService>()
-          ? Get.find<PaymentService>()
-          : Get.put(PaymentService._(), permanent: true);
+  static PaymentService get instance => Get.isRegistered<PaymentService>()
+      ? Get.find<PaymentService>()
+      : Get.put(PaymentService._(), permanent: true);
 
   final _client = ServerpodClient().client;
   final _repository = PaymentRecoveryRepository.instance;

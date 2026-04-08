@@ -5,6 +5,7 @@ import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/widgets/payment_status_widget.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
   final String orderId;
@@ -108,6 +109,22 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
                               children: [
+                                if (_order?.paymentStatus != 'paid' &&
+                                    _order?.razorpayPaymentId != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: PaymentStatusWidget(
+                                      orderId: _order!.orderId,
+                                      paymentId: _order!.razorpayPaymentId!,
+                                      amount: _order!.finalAmount,
+                                      onSuccess: () {
+                                        _fetchOrder();
+                                      },
+                                      onFailed: () {
+                                        _fetchOrder();
+                                      },
+                                    ),
+                                  ),
                                 _buildOrderInfoCard(cs),
                                 const SizedBox(height: 16),
                                 _buildProductsCard(cs),
@@ -134,6 +151,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   }
 
   Widget _buildSuccessHeader(ColorScheme cs) {
+    final isPaid = _order?.paymentStatus == 'paid';
+    final headerColor = isPaid ? Colors.green : Colors.orange;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 40, bottom: 32),
@@ -142,8 +162,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.green.shade500,
-            Colors.green.shade600,
+            headerColor.shade500,
+            headerColor.shade600,
           ],
         ),
       ),
@@ -174,7 +194,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
           FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
-              'Payment Successful',
+              _order?.paymentStatus == 'paid'
+                  ? 'Payment Successful'
+                  : 'Payment Pending',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 16,
