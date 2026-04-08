@@ -110,24 +110,27 @@ class _HomePageState extends State<HomePage>
         // Main content with bottom network banner
         return Stack(
           children: [
-            NotificationListener<ScrollNotification>(
-              onNotification: (scrollInfo) {
-                if (scrollInfo.metrics.pixels >=
-                        scrollInfo.metrics.maxScrollExtent - 200 &&
-                    !productController.isLoading.value &&
-                    productController.isMoreDataAvailable.value) {
-                  productController.loadMore();
-                }
-                return false;
-              },
-              child: RefreshIndicator(
-                onRefresh: _onRefresh,
+            RefreshIndicator(
+              onRefresh: _onRefresh,
+              edgeOffset: 170, // Show below the expanded header
+              displacement: 40,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo.metrics.pixels >=
+                          scrollInfo.metrics.maxScrollExtent - 200 &&
+                      !productController.isLoading.value &&
+                      productController.isMoreDataAvailable.value) {
+                    productController.loadMore();
+                  }
+                  return false;
+                },
                 child: CustomScrollView(
                   key: const PageStorageKey<String>('home-scroll-view'),
                   controller: _scrollController,
                   slivers: [
-                    FreshPickKartSliverAppBar(
-                      scrollController: _scrollController,
+                    // Space for fixed header
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 170),
                     ),
 
                     // 🎁 OFFER WIDGET
@@ -241,6 +244,16 @@ class _HomePageState extends State<HomePage>
                   ],
                 ),
               ),
+            ),
+
+            // 🏛️ FIXED HEADER
+            AnimatedBuilder(
+              animation: _scrollController,
+              builder: (context, child) {
+                return FreshPickKartHeader(
+                  scrollOffset: _scrollController.hasClients ? _scrollController.offset : 0,
+                );
+              },
             ),
           ],
         );
