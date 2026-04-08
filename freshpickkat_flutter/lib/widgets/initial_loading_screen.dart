@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
-import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
 import 'package:get/get.dart';
 
 class NetworkErrorWidget extends StatefulWidget {
@@ -428,7 +427,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        return SingleChildScrollView(
+        return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,73 +786,28 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
 }
 
 class InitialLoadingScreen extends StatelessWidget {
-  final bool hasError;
-  final String errorMessage;
   final VoidCallback onRetry;
   final bool useHomeScreenSkeleton;
 
   const InitialLoadingScreen({
     super.key,
-    this.hasError = false,
-    this.errorMessage = '',
     required this.onRetry,
     this.useHomeScreenSkeleton = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (hasError) {
-      return CustomScrollView(
-        slivers: [
-          const FreshPickKartSliverAppBar(),
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: NetworkErrorWidget(
-              message: errorMessage.isNotEmpty
-                  ? 'Unable to load products'
-                  : 'No internet connection',
-              onRetry: onRetry,
-            ),
-          ),
-        ],
+    if (useHomeScreenSkeleton) {
+      return const SliverToBoxAdapter(
+        child: HomeScreenLoadingSkeleton(),
       );
     }
 
-    if (useHomeScreenSkeleton) {
-      return const _HomeScreenWithSkeleton();
-    }
-
-    return CustomScrollView(
-      slivers: [
-        const FreshPickKartSliverAppBar(),
-        const SliverFillRemaining(
-          hasScrollBody: false,
-          child: GroceryLoadingAnimation(),
-        ),
-      ],
+    return const SliverFillRemaining(
+      hasScrollBody: false,
+      child: GroceryLoadingAnimation(),
     );
   }
 }
 
-class _HomeScreenWithSkeleton extends StatelessWidget {
-  const _HomeScreenWithSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          const FreshPickKartSliverAppBar(),
-          SliverToBoxAdapter(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - 200,
-              ),
-              child: const HomeScreenLoadingSkeleton(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Note: _HomeScreenWithSkeleton was removed as it's no longer needed in the sliver architecture.

@@ -47,9 +47,11 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _onRefresh() async {
-    await productController.forceFetchProducts();
-    await bannerController.forceLoadAllBanners();
-    await bogoController.forceFetchActiveOffers();
+    await Future.wait([
+      productController.forceFetchProducts(),
+      bannerController.forceLoadAllBanners(),
+      bogoController.forceFetchActiveOffers(),
+    ]);
   }
 
   void _storeScrollOffset() {
@@ -87,34 +89,23 @@ class _HomePageState extends State<HomePage>
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Obx(() {
-        final hasData = productController.hasData;
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 170, // Show below the expanded header
+            displacement: 40,
+            child: Obx(() {
+              final hasData = productController.hasData;
 
-        if (hasData && !_hasRestoredScrollOffset) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            _restoreScrollOffsetIfNeeded();
-          });
-        }
+              if (hasData && !_hasRestoredScrollOffset) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  _restoreScrollOffsetIfNeeded();
+                });
+              }
 
-        // If no data -> show loading screen (even if offline, top banner handles feedback)
-        if (!hasData) {
-          return InitialLoadingScreen(
-            hasError: false,
-            onRetry: () {
-              productController.fetchProducts();
-            },
-          );
-        }
-
-        // Main content with bottom network banner
-        return Stack(
-          children: [
-            RefreshIndicator(
-              onRefresh: _onRefresh,
-              edgeOffset: 170, // Show below the expanded header
-              displacement: 40,
-              child: NotificationListener<ScrollNotification>(
+              return NotificationListener<ScrollNotification>(
                 onNotification: (scrollInfo) {
                   if (scrollInfo.metrics.pixels >=
                           scrollInfo.metrics.maxScrollExtent - 200 &&
@@ -133,131 +124,137 @@ class _HomePageState extends State<HomePage>
                       child: SizedBox(height: 170),
                     ),
 
-                    // 🎁 OFFER WIDGET
-                    OfferWidget(),
+                    if (!hasData)
+                      InitialLoadingScreen(
+                        onRetry: () {
+                          productController.fetchProducts();
+                        },
+                      )
+                    else ...[
+                      // 🎁 OFFER WIDGET
+                      OfferWidget(),
 
-                    // 🎪 BANNER WITH HORIZONTAL ITEMS
-                    HomeBannerWithHorizontalItem(height: height),
+                      // 🎪 BANNER WITH HORIZONTAL ITEMS
+                      HomeBannerWithHorizontalItem(height: height),
 
-                    // 📦 CATEGORIES SECTION
-                    SliverToBoxAdapter(
-                      child: CategoriesSelectionListview(
-                        titalWord: "Trending Products",
-                        sortBy: "trending",
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: CategoriesSelectionListview(
-                        titalWord: "Best Sellers",
-                        sortBy: "best_sellers",
-                      ),
-                    ),
-
-                    // OFFER BANNER (home_top)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Obx(() {
-                          final bannerController = BannerController.instance;
-                          final banners = bannerController.homeTopBanners;
-
-                          if (banners.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-
-                          return NetworkBannerWidget(
-                            height: 180,
-                            banners: banners,
-                            autoScrollInterval: const Duration(seconds: 3),
-                            autoScrollDuration: const Duration(
-                              milliseconds: 500,
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-
-                    // 📦 ALL PRODUCTS GRID (infinite scroll)
-                    SliverToBoxAdapter(
-                      child: Obx(() {
-                        final bannerController = BannerController.instance;
-                        final middleBanners =
-                            bannerController.homeMiddleBanners;
-
-                        return ItemSelectionGirdviwe(
-                          titalWord: "Other Products",
-                          midContent: middleBanners.isEmpty
-                              ? null
-                              : NetworkBannerWidget(
-                                  height: 180,
-                                  banners: middleBanners,
-                                  autoScrollInterval: const Duration(
-                                    seconds: 4,
-                                  ),
-                                  autoScrollDuration: const Duration(
-                                    milliseconds: 500,
-                                  ),
-                                ),
-                        );
-                      }),
-                    ),
-
-                    // Loading indicator at bottom when fetching more
-                    if (productController.isLoading.value &&
-                        productController.hasData)
+                      // 📦 CATEGORIES SECTION
                       SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: 400,
-                          child: ProductGridShimmer(
-                            itemCount: 6,
-                            crossAxisCount: 3,
-                            childAspectRatio: 0.458,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
+                        child: CategoriesSelectionListview(
+                          titalWord: "Trending Products",
+                          sortBy: "trending",
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: CategoriesSelectionListview(
+                          titalWord: "Best Sellers",
+                          sortBy: "best_sellers",
                         ),
                       ),
 
-                    // "No more products" message
-                    if (!productController.isMoreDataAvailable.value &&
-                        productController.hasData)
+                      // OFFER BANNER (home_top)
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Center(
-                            child: Builder(
-                              builder: (context) => Text(
-                                'All products loaded ✅',
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                  fontSize: 14,
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Obx(() {
+                            final bannerController = BannerController.instance;
+                            final banners = bannerController.homeTopBanners;
+
+                            if (banners.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return NetworkBannerWidget(
+                              height: 180,
+                              banners: banners,
+                              autoScrollInterval: const Duration(seconds: 3),
+                              autoScrollDuration: const Duration(
+                                milliseconds: 500,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+
+                      // 📦 ALL PRODUCTS GRID (infinite scroll)
+                      SliverToBoxAdapter(
+                        child: Obx(() {
+                          final bannerController = BannerController.instance;
+                          final middleBanners =
+                              bannerController.homeMiddleBanners;
+
+                          return ItemSelectionGirdviwe(
+                            titalWord: "Other Products",
+                            midContent: middleBanners.isEmpty
+                                ? null
+                                : NetworkBannerWidget(
+                                    height: 180,
+                                    banners: middleBanners,
+                                    autoScrollInterval: const Duration(
+                                      seconds: 4,
+                                    ),
+                                    autoScrollDuration: const Duration(
+                                      milliseconds: 500,
+                                    ),
+                                  ),
+                          );
+                        }),
+                      ),
+
+                      // Loading indicator at bottom when fetching more
+                      if (productController.isLoading.value)
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 400,
+                            child: ProductGridShimmer(
+                              itemCount: 6,
+                              crossAxisCount: 3,
+                              childAspectRatio: 0.458,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
+                        ),
+
+                      // "No more products" message
+                      if (!productController.isMoreDataAvailable.value)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Center(
+                              child: Builder(
+                                builder: (context) => Text(
+                                  'All products loaded ✅',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
+                    ],
                   ],
                 ),
-              ),
-            ),
+              );
+            }),
+          ),
 
-            // 🏛️ FIXED HEADER
-            AnimatedBuilder(
-              animation: _scrollController,
-              builder: (context, child) {
-                return FreshPickKartHeader(
-                  scrollOffset: _scrollController.hasClients ? _scrollController.offset : 0,
-                );
-              },
-            ),
-          ],
-        );
-      }),
+          // 🏛️ FIXED HEADER
+          AnimatedBuilder(
+            animation: _scrollController,
+            builder: (context, child) {
+              return FreshPickKartHeader(
+                scrollOffset: _scrollController.hasClients ? _scrollController.positions.first.pixels : 0,
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
