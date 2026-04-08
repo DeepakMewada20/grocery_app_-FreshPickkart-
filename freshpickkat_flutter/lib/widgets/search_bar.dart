@@ -147,25 +147,22 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
             Expanded(
               child: ClipRect(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
+                  duration: const Duration(milliseconds: 500),
                   transitionBuilder: (child, animation) {
-                    final offsetAnimation =
-                        Tween<Offset>(
-                          begin: const Offset(0, 0.35),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutCubic,
-                          ),
-                        );
-                    return ClipRect(
-                      child: SlideTransition(
-                        position: offsetAnimation,
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: child,
+                    final isIncoming = child.key == ValueKey<int>(_currentHintIndex);
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: isIncoming ? const Offset(0, 1.2) : const Offset(0, -1.2),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOutCubic,
                         ),
+                      ),
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: child,
                       ),
                     );
                   },
