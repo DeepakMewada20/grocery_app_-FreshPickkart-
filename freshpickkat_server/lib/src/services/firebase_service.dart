@@ -8,29 +8,43 @@ class FirebaseService {
       'config/firebase_service_account_key.json';
 
   static FirestoreApi? _cachedFirestore;
+  static ServiceAccountCredentials? _cachedCredentials;
+  static bool _isInitializing = false;
 
-  // Service account credentials for admin SDK
   static Future<ServiceAccountCredentials>
   getServiceAccountCredentials() async {
+    if (_cachedCredentials != null) return _cachedCredentials!;
+
     final jsonCredentials = await File(serviceAccountPath).readAsString();
-    return ServiceAccountCredentials.fromJson(jsonCredentials);
+    _cachedCredentials = ServiceAccountCredentials.fromJson(jsonCredentials);
+    return _cachedCredentials!;
   }
 
-  // Firestore API ka client lene ke liye ye function use karein
   static Future<FirestoreApi> getFirestoreClient() async {
     final cached = _cachedFirestore;
     if (cached != null) return cached;
 
-    final jsonCredentials = await File(serviceAccountPath).readAsString();
-    final credentials = ServiceAccountCredentials.fromJson(jsonCredentials);
+    while (_isInitializing) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
 
-    // Firestore ke liye permission scope
-    final scopes = [FirestoreApi.datastoreScope];
+    final existingCached = _cachedFirestore;
+    if (existingCached != null) return existingCached;
 
-    // Auth client create karein
-    final client = await clientViaServiceAccount(credentials, scopes);
-    final firestore = FirestoreApi(client);
-    _cachedFirestore = firestore;
-    return firestore;
+    _isInitializing = true;
+    try {
+      final credentials = await getServiceAccountCredentials();
+      final scopes = [FirestoreApi.datastoreScope];
+      final client = await clientViaServiceAccount(credentials, scopes);
+      final firestore = FirestoreApi(client);
+      _cachedFirestore = firestore;
+      return firestore;
+    } finally {
+      _isInitializing = false;
+    }
+  }
+
+  static void clearCache() {
+    _cachedFirestore = null;
   }
 }

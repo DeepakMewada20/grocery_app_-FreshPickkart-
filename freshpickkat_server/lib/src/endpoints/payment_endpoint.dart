@@ -145,10 +145,17 @@ class PaymentEndpoint extends Endpoint {
     Session session,
     String userId, {
     int limit = 20,
-  }) {
-    return _recovery.recoverPendingPayments(
-      userId: userId,
-      limit: limit,
-    );
+  }) async {
+    try {
+      return await _recovery.recoverPendingPayments(
+        userId: userId,
+        limit: limit,
+      );
+    } catch (e) {
+      return protocol.PaymentActionResult(
+        success: false,
+        error: 'Recovery failed: ${e.toString()}',
+      );
+    }
   }
 }

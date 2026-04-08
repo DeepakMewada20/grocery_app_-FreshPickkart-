@@ -14,91 +14,98 @@ class BannerEndpoint extends Endpoint {
     String? screen,
     bool activeOnly = true,
   }) async {
-    final firestore = await FirebaseService.getFirestoreClient();
+    try {
+      final firestore = await FirebaseService.getFirestoreClient();
 
-    final query = firestore_api.StructuredQuery(
-      from: [firestore_api.CollectionSelector(collectionId: bannerCollection)],
-    );
-
-    final response = await firestore.projects.databases.documents.runQuery(
-      firestore_api.RunQueryRequest(structuredQuery: query),
-      _database,
-    );
-
-    final now = DateTime.now();
-    final banners = <Banner>[];
-
-    for (final res in response) {
-      if (res.document == null) continue;
-      final fields = res.document!.fields!;
-
-      DateTime startDate = DateTime.now();
-      DateTime endDate = DateTime.now().add(const Duration(days: 30));
-
-      if (fields['startDate']?.timestampValue != null) {
-        startDate =
-            DateTime.tryParse(fields['startDate']!.timestampValue!) ??
-            DateTime.now();
-      }
-
-      if (fields['endDate']?.timestampValue != null) {
-        endDate =
-            DateTime.tryParse(fields['endDate']!.timestampValue!) ??
-            DateTime.now();
-      }
-
-      banners.add(
-        Banner(
-          bannerId: res.document!.name!.split('/').last,
-          title: fields['title']?.stringValue ?? '',
-          imageUrl: fields['imageUrl']?.stringValue ?? '',
-          type: fields['type']?.stringValue ?? 'offer',
-          offerId: fields['offerId']?.stringValue,
-          categoryId: fields['categoryId']?.stringValue,
-          productId: fields['productId']?.stringValue,
-          comboId: fields['comboId']?.stringValue,
-          couponCode: fields['couponCode']?.stringValue,
-          externalUrl: fields['externalUrl']?.stringValue,
-          screenPlacements: fields['screenPlacements']?.stringValue ?? '',
-          priority:
-              int.tryParse(fields['priority']?.integerValue ?? '99') ?? 99,
-          startDate: startDate,
-          endDate: endDate,
-          active: fields['active']?.booleanValue ?? false,
-          createdAt:
-              DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
-              DateTime.now(),
-          updatedAt: fields['updatedAt'] != null
-              ? DateTime.tryParse(fields['updatedAt']!.timestampValue ?? '')
-              : null,
-        ),
+      final query = firestore_api.StructuredQuery(
+        from: [
+          firestore_api.CollectionSelector(collectionId: bannerCollection),
+        ],
       );
-    }
 
-    var filteredBanners = banners.toList();
+      final response = await firestore.projects.databases.documents.runQuery(
+        firestore_api.RunQueryRequest(structuredQuery: query),
+        _database,
+      );
 
-    if (activeOnly) {
-      filteredBanners = filteredBanners.where((b) => b.active).toList();
-    }
+      final now = DateTime.now();
+      final banners = <Banner>[];
 
-    filteredBanners = filteredBanners.where((b) {
-      return now.isAfter(b.startDate.subtract(const Duration(days: 1))) &&
-          now.isBefore(b.endDate.add(const Duration(days: 1)));
-    }).toList();
+      for (final res in response) {
+        if (res.document == null) continue;
+        final fields = res.document!.fields!;
 
-    if (screen != null && screen.isNotEmpty) {
+        DateTime startDate = DateTime.now();
+        DateTime endDate = DateTime.now().add(const Duration(days: 30));
+
+        if (fields['startDate']?.timestampValue != null) {
+          startDate =
+              DateTime.tryParse(fields['startDate']!.timestampValue!) ??
+              DateTime.now();
+        }
+
+        if (fields['endDate']?.timestampValue != null) {
+          endDate =
+              DateTime.tryParse(fields['endDate']!.timestampValue!) ??
+              DateTime.now();
+        }
+
+        banners.add(
+          Banner(
+            bannerId: res.document!.name!.split('/').last,
+            title: fields['title']?.stringValue ?? '',
+            imageUrl: fields['imageUrl']?.stringValue ?? '',
+            type: fields['type']?.stringValue ?? 'offer',
+            offerId: fields['offerId']?.stringValue,
+            categoryId: fields['categoryId']?.stringValue,
+            productId: fields['productId']?.stringValue,
+            comboId: fields['comboId']?.stringValue,
+            couponCode: fields['couponCode']?.stringValue,
+            externalUrl: fields['externalUrl']?.stringValue,
+            screenPlacements: fields['screenPlacements']?.stringValue ?? '',
+            priority:
+                int.tryParse(fields['priority']?.integerValue ?? '99') ?? 99,
+            startDate: startDate,
+            endDate: endDate,
+            active: fields['active']?.booleanValue ?? false,
+            createdAt:
+                DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
+                DateTime.now(),
+            updatedAt: fields['updatedAt'] != null
+                ? DateTime.tryParse(fields['updatedAt']!.timestampValue ?? '')
+                : null,
+          ),
+        );
+      }
+
+      var filteredBanners = banners.toList();
+
+      if (activeOnly) {
+        filteredBanners = filteredBanners.where((b) => b.active).toList();
+      }
+
       filteredBanners = filteredBanners.where((b) {
-        final placements = b.screenPlacements
-            .split(',')
-            .map((s) => s.trim())
-            .toList();
-        return placements.contains(screen);
+        return now.isAfter(b.startDate.subtract(const Duration(days: 1))) &&
+            now.isBefore(b.endDate.add(const Duration(days: 1)));
       }).toList();
+
+      if (screen != null && screen.isNotEmpty) {
+        filteredBanners = filteredBanners.where((b) {
+          final placements = b.screenPlacements
+              .split(',')
+              .map((s) => s.trim())
+              .toList();
+          return placements.contains(screen);
+        }).toList();
+      }
+
+      filteredBanners.sort((a, b) => a.priority.compareTo(b.priority));
+
+      return filteredBanners;
+    } catch (e) {
+      print('BannerEndpoint.getBanners error: $e');
+      return [];
     }
-
-    filteredBanners.sort((a, b) => a.priority.compareTo(b.priority));
-
-    return filteredBanners;
   }
 
   Future<BannerPage> getBannersPage(
