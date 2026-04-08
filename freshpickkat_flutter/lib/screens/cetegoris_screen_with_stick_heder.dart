@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
@@ -38,10 +39,7 @@ class _CategoriesScreenWithStickyHeaderState
   void initState() {
     super.initState();
     _itemsScrollController.addListener(_onItemsScroll);
-
-    Future.microtask(() {
-      categoryController.fetchCategoriesIfEmpty();
-    });
+    BannerController.instance.loadBannersForScreen('category_page');
 
     ever(categoryController.categories, (categories) {
       if (categories.isNotEmpty) {

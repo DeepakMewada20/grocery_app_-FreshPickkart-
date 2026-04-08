@@ -35,12 +35,6 @@ class _HomePageState extends State<HomePage>
     super.initState();
     _scrollController.addListener(_storeScrollOffset);
 
-    Future.microtask(() {
-      productController.fetchProductsIfEmpty();
-      bannerController.loadAllBannersIfEmpty();
-      bogoController.fetchActiveOffersIfEmpty();
-    });
-
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;
       if (networkController.isConnected.value) {

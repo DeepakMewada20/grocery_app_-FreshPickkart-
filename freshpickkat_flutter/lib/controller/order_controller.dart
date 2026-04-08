@@ -16,7 +16,12 @@ class OrderController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
+
   Future<void> fetchOrders() async {
+    if (_isFetching) return;
+
     final auth = AuthController.instance;
     final user = auth.currentUser;
     if (user == null) {
@@ -25,10 +30,13 @@ class OrderController extends GetxController {
       return;
     }
 
+    _isFetching = true;
     isLoading.value = true;
     errorMessage.value = '';
     try {
-      await _orderRecoveryService.recoverPendingPayments(trigger: 'orders_page');
+      await _orderRecoveryService.recoverPendingPayments(
+        trigger: 'orders_page',
+      );
       final result = await _client.order.getUserOrders(user.uid);
       orders.assignAll(result);
     } catch (e) {
@@ -37,6 +45,7 @@ class OrderController extends GetxController {
       errorMessage.value = 'Failed to load orders: $e';
     } finally {
       isLoading.value = false;
+      _isFetching = false;
     }
   }
 

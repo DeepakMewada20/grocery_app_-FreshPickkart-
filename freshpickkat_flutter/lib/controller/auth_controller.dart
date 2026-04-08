@@ -15,8 +15,7 @@ import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {
-  static AuthController get instance =>
-      Get.put(AuthController(), permanent: true);
+  static AuthController get instance => Get.find<AuthController>();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _cacheService = UserCacheService.instance;
@@ -38,7 +37,6 @@ class AuthController extends GetxController {
 
     if (_user.value != null) {
       _loadCachedUser();
-      refreshAppUser();
     }
 
     _auth.userChanges().listen((fb.User? user) {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
 import 'package:get/get.dart';
 
@@ -450,15 +451,15 @@ class ConnectionQualityIndicator extends StatelessWidget {
   }
 }
 
-class GroceryLoadingAnimation extends StatefulWidget {
-  const GroceryLoadingAnimation({super.key});
+class HomeScreenLoadingSkeleton extends StatefulWidget {
+  const HomeScreenLoadingSkeleton({super.key});
 
   @override
-  State<GroceryLoadingAnimation> createState() =>
-      _GroceryLoadingAnimationState();
+  State<HomeScreenLoadingSkeleton> createState() =>
+      _HomeScreenLoadingSkeletonState();
 }
 
-class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
+class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -467,12 +468,12 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
 
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _animation = Tween<double>(begin: -2, end: 2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
     );
   }
 
@@ -484,19 +485,84 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFDEE8D9);
+    final highlightColor = isDark
+        ? const Color(0xFF3A3A3A)
+        : const Color(0xFFF0F5EE);
+    final cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : const Color(0xFFEFF5EC);
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 8),
+              _buildShimmerBox(
+                height: 60,
+                width: double.infinity,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 16),
+              _buildShimmerBox(
+                height: 120,
+                width: double.infinity,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
               const SizedBox(height: 20),
-              _buildShimmerItem(),
-              const SizedBox(height: 16),
-              _buildShimmerItem(),
-              const SizedBox(height: 16),
-              _buildShimmerItem(),
+              _buildSectionTitle(
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 12),
+              _buildHorizontalProductList(
+                cardColor: cardColor,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 20),
+              _buildSectionTitle(
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 12),
+              _buildHorizontalProductList(
+                cardColor: cardColor,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 20),
+              _buildSectionTitle(
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 12),
+              _buildProductGrid(
+                cardColor: cardColor,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 20),
+              _buildSectionTitle(
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 12),
+              _buildProductGrid(
+                cardColor: cardColor,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
+              ),
+              const SizedBox(height: 100),
             ],
           ),
         );
@@ -504,13 +570,289 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
     );
   }
 
-  Widget _buildShimmerItem() {
+  Widget _buildShimmerBox({
+    required double height,
+    required double width,
+    required Color baseColor,
+    required Color highlightColor,
+  }) {
     return Container(
-      height: 120,
+      height: height,
+      width: width,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: baseColor,
         borderRadius: BorderRadius.circular(12),
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(_animation.value - 1, 0),
+              end: Alignment(_animation.value + 1, 0),
+              colors: [baseColor, highlightColor, baseColor],
+              stops: const [0.0, 0.5, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Container(color: baseColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle({
+    required Color baseColor,
+    required Color highlightColor,
+  }) {
+    return Container(
+      height: 24,
+      width: 150,
+      decoration: BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(_animation.value - 1, 0),
+              end: Alignment(_animation.value + 1, 0),
+              colors: [baseColor, highlightColor, baseColor],
+              stops: const [0.0, 0.5, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Container(color: baseColor),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalProductList({
+    required Color cardColor,
+    required Color baseColor,
+    required Color highlightColor,
+  }) {
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Container(
+            width: 140,
+            margin: EdgeInsets.only(right: index < 4 ? 12 : 0),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: baseColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) {
+                          return LinearGradient(
+                            begin: Alignment(_animation.value - 1, 0),
+                            end: Alignment(_animation.value + 1, 0),
+                            colors: [baseColor, highlightColor, baseColor],
+                            stops: const [0.0, 0.5, 1.0],
+                          ).createShader(bounds);
+                        },
+                        blendMode: BlendMode.srcIn,
+                        child: Container(color: baseColor),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 10,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: baseColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: ShaderMask(
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment(_animation.value - 1, 0),
+                                end: Alignment(_animation.value + 1, 0),
+                                colors: [baseColor, highlightColor, baseColor],
+                                stops: const [0.0, 0.5, 1.0],
+                              ).createShader(bounds);
+                            },
+                            blendMode: BlendMode.srcIn,
+                            child: Container(color: baseColor),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        height: 8,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: baseColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: ShaderMask(
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment(_animation.value - 1, 0),
+                                end: Alignment(_animation.value + 1, 0),
+                                colors: [baseColor, highlightColor, baseColor],
+                                stops: const [0.0, 0.5, 1.0],
+                              ).createShader(bounds);
+                            },
+                            blendMode: BlendMode.srcIn,
+                            child: Container(color: baseColor),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductGrid({
+    required Color cardColor,
+    required Color baseColor,
+    required Color highlightColor,
+  }) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 0.55,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return Container(
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: baseColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    child: ShaderMask(
+                      shaderCallback: (bounds) {
+                        return LinearGradient(
+                          begin: Alignment(_animation.value - 1, 0),
+                          end: Alignment(_animation.value + 1, 0),
+                          colors: [baseColor, highlightColor, baseColor],
+                          stops: const [0.0, 0.5, 1.0],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.srcIn,
+                      child: Container(color: baseColor),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 8,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: baseColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: ShaderMask(
+                          shaderCallback: (bounds) {
+                            return LinearGradient(
+                              begin: Alignment(_animation.value - 1, 0),
+                              end: Alignment(_animation.value + 1, 0),
+                              colors: [baseColor, highlightColor, baseColor],
+                              stops: const [0.0, 0.5, 1.0],
+                            ).createShader(bounds);
+                          },
+                          blendMode: BlendMode.srcIn,
+                          child: Container(color: baseColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 6,
+                      width: 30,
+                      decoration: BoxDecoration(
+                        color: baseColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: ShaderMask(
+                          shaderCallback: (bounds) {
+                            return LinearGradient(
+                              begin: Alignment(_animation.value - 1, 0),
+                              end: Alignment(_animation.value + 1, 0),
+                              colors: [baseColor, highlightColor, baseColor],
+                              stops: const [0.0, 0.5, 1.0],
+                            ).createShader(bounds);
+                          },
+                          blendMode: BlendMode.srcIn,
+                          child: Container(color: baseColor),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -519,12 +861,14 @@ class InitialLoadingScreen extends StatelessWidget {
   final bool hasError;
   final String errorMessage;
   final VoidCallback onRetry;
+  final bool useHomeScreenSkeleton;
 
   const InitialLoadingScreen({
     super.key,
     this.hasError = false,
     this.errorMessage = '',
     required this.onRetry,
+    this.useHomeScreenSkeleton = true,
   });
 
   @override
@@ -546,6 +890,10 @@ class InitialLoadingScreen extends StatelessWidget {
       );
     }
 
+    if (useHomeScreenSkeleton) {
+      return const _HomeScreenWithSkeleton();
+    }
+
     return CustomScrollView(
       slivers: [
         const FreshPickKartSliverAppBar(),
@@ -554,6 +902,29 @@ class InitialLoadingScreen extends StatelessWidget {
           child: GroceryLoadingAnimation(),
         ),
       ],
+    );
+  }
+}
+
+class _HomeScreenWithSkeleton extends StatelessWidget {
+  const _HomeScreenWithSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          const FreshPickKartSliverAppBar(),
+          SliverToBoxAdapter(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 200,
+              ),
+              child: const HomeScreenLoadingSkeleton(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -4,11 +4,14 @@ import 'package:get/get.dart';
 
 class BogoController extends GetxController {
   static BogoController get instance =>
-      Get.put(BogoController(), permanent: true);
+      Get.find<BogoController>();
 
   final Client _client = ServerpodClient().client;
   final RxList<BogoOffer> activeOffers = <BogoOffer>[].obs;
   final RxBool isLoading = false.obs;
+
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
 
   @override
   void onInit() {
@@ -16,18 +19,37 @@ class BogoController extends GetxController {
   }
 
   Future<void> fetchActiveOffersIfEmpty() async {
-    if (activeOffers.isEmpty && !isLoading.value) {
+    if (_isFetching) return;
+    if (activeOffers.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
       await fetchActiveOffers();
+    } catch (e) {
+      // error handled in fetchActiveOffers
+    } finally {
+      _isFetching = false;
     }
   }
 
   Future<void> forceFetchActiveOffers() async {
+    if (_isFetching) return;
     activeOffers.clear();
-    await fetchActiveOffers();
+
+    _isFetching = true;
+    try {
+      await fetchActiveOffers();
+    } catch (e) {
+      // error handled in fetchActiveOffers
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void clearCache() {
     activeOffers.clear();
+    _isFetching = false;
   }
 
   Future<void> fetchActiveOffers() async {

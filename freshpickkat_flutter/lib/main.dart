@@ -10,7 +10,13 @@ import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/checkout_screen.dart';
 import 'package:freshpickkat_flutter/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
+import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
+import 'package:freshpickkat_flutter/services/data_initialization_service.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen.dart';
@@ -39,12 +45,17 @@ void main() async {
   );
 
   Get.put(ThemeController(), permanent: true);
-  Get.put(AuthController(), permanent: true);
-  Get.put(UserController(), permanent: true);
-  Get.put(NotificationController(), permanent: true);
-  Get.put(BannerController(), permanent: true);
-  Get.put(OrderRecoveryService(), permanent: true);
-  NotificationController.instance.init();
+  Get.put(DataInitializationService(), permanent: true);
+  Get.lazyPut(() => AuthController(), fenix: true);
+  Get.lazyPut(() => UserController(), fenix: true);
+  Get.lazyPut(() => BannerController(), fenix: true);
+  Get.lazyPut(() => ProductProviderController(), fenix: true);
+  Get.lazyPut(() => CategoryProviderController(), fenix: true);
+  Get.lazyPut(() => BogoController(), fenix: true);
+  Get.lazyPut(() => ComboOfferController(), fenix: true);
+  Get.lazyPut(() => CartController(), fenix: true);
+  Get.lazyPut(() => NotificationController(), fenix: true);
+  Get.lazyPut(() => OrderRecoveryService(), fenix: true);
 
   runApp(const MyApp());
 }

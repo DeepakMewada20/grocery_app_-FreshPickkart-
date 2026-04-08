@@ -14,12 +14,18 @@ class SearchProviderController extends GetxController {
   final isLoadingResults = false.obs;
   final errorMessage = ''.obs;
 
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetchingSuggestions = false;
+  bool _isFetchingResults = false;
+
   Future<void> fetchSuggestions(String query) async {
     if (query.isEmpty) {
       suggestions.clear();
       return;
     }
+    if (_isFetchingSuggestions) return;
 
+    _isFetchingSuggestions = true;
     try {
       isLoadingSuggestions.value = true;
       // Using searchProducts to get full product objects instead of just names
@@ -29,6 +35,7 @@ class SearchProviderController extends GetxController {
       print('Error fetching suggestions: $e');
     } finally {
       isLoadingSuggestions.value = false;
+      _isFetchingSuggestions = false;
     }
   }
 
@@ -37,7 +44,9 @@ class SearchProviderController extends GetxController {
       searchResults.clear();
       return;
     }
+    if (_isFetchingResults) return;
 
+    _isFetchingResults = true;
     try {
       isLoadingResults.value = true;
       errorMessage.value = '';
@@ -48,6 +57,7 @@ class SearchProviderController extends GetxController {
       print('Error searching products: $e');
     } finally {
       isLoadingResults.value = false;
+      _isFetchingResults = false;
     }
   }
 

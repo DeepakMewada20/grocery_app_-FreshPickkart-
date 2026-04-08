@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 
 class ComboOfferController extends GetxController {
   static ComboOfferController get instance =>
-      Get.put(ComboOfferController(), permanent: true);
+      Get.find<ComboOfferController>();
 
   final Client _client = ServerpodClient().client;
 
@@ -13,26 +13,48 @@ class ComboOfferController extends GetxController {
   final selectedComboId = Rxn<String>();
   final isLoading = false.obs;
 
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
+
   @override
   void onInit() {
     super.onInit();
   }
 
   Future<void> fetchActiveComboOffersIfEmpty() async {
-    if (activeComboOffers.isEmpty && !isLoading.value) {
+    if (_isFetching) return;
+    if (activeComboOffers.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
       await fetchActiveComboOffers();
+    } catch (e) {
+      // error handled in fetchActiveComboOffers
+    } finally {
+      _isFetching = false;
     }
   }
 
   Future<void> forceFetchActiveComboOffers() async {
+    if (_isFetching) return;
     activeComboOffers.clear();
-    await fetchActiveComboOffers();
+
+    _isFetching = true;
+    try {
+      await fetchActiveComboOffers();
+    } catch (e) {
+      // error handled in fetchActiveComboOffers
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void clearCache() {
     activeComboOffers.clear();
     applicableCombos.clear();
     selectedComboId.value = null;
+    _isFetching = false;
   }
 
   Future<void> fetchActiveComboOffers() async {

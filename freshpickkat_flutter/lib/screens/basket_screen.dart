@@ -29,6 +29,7 @@ class _BasketScreenState extends State<BasketScreen> {
   void initState() {
     super.initState();
     Future.microtask(() => CartController.instance.refreshCartCurrentData());
+    BannerController.instance.loadBannersForScreen('cart_page');
 
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;

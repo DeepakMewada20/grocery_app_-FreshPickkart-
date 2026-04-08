@@ -8,6 +8,8 @@ import 'package:freshpickkat_flutter/screens/notification_screen.dart';
 import 'package:freshpickkat_flutter/screens/more_screen.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
+import 'package:freshpickkat_flutter/services/data_initialization_service.dart';
+import 'package:freshpickkat_flutter/widgets/lazy_indexed_stack.dart';
 import 'package:get/get.dart';
 
 class MainScreen extends StatefulWidget {
@@ -19,6 +21,14 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  final dataInitService = DataInitializationService.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start global data initialization when the main app UI is ready.
+    dataInitService.initializeAppData();
+  }
 
   final List<Widget> _screens = [
     const HomePage(),
@@ -48,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: LazyIndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Obx(() {
         // Rebuild on theme mode change
         ThemeController.instance.themeMode;

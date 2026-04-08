@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -19,22 +20,92 @@ class BannerController extends GetxController {
   final isLoading = false.obs;
   final error = Rx<String?>(null);
 
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
+
   @override
   void onInit() {
     super.onInit();
   }
 
-  Future<void> loadAllBannersIfEmpty() async {
-    if (homeTopBanners.isEmpty &&
-        homeMiddleBanners.isEmpty &&
-        !isLoading.value) {
-      await loadAllBanners();
+  Future<void> loadHomeBannersIfEmpty() async {
+    if (_isFetching) return;
+    if (homeTopBanners.isNotEmpty && homeMiddleBanners.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
+      await loadHomeBanners();
+    } catch (e) {
+      // error handled in loadHomeBanners
+    } finally {
+      _isFetching = false;
+    }
+  }
+
+  Future<void> loadHomeBanners() async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      final results = await Future.wait([
+        _client.banner.getBanners(screen: 'home_top', activeOnly: true),
+        _client.banner.getBanners(screen: 'home_middle', activeOnly: true),
+      ]);
+
+      homeTopBanners.assignAll(results[0]);
+      homeMiddleBanners.assignAll(results[1]);
+    } catch (e) {
+      error.value = e.toString();
+      debugPrint('Error loading home banners: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> loadBannersForScreen(String screen) async {
+    // Determine which list to update and if it already has data
+    RxList<client.Banner>? targetList;
+    switch (screen) {
+      case 'category_page':
+        targetList = categoryPageBanners;
+        break;
+      case 'cart_page':
+        targetList = cartPageBanners;
+        break;
+      case 'checkout_page':
+        targetList = checkoutPageBanners;
+        break;
+      case 'product_page':
+        targetList = productPageBanners;
+        break;
+    }
+
+    if (targetList == null || targetList.isNotEmpty) return;
+
+    try {
+      isLoading.value = true;
+      final banners = await _client.banner.getBanners(screen: screen, activeOnly: true);
+      targetList.assignAll(banners);
+    } catch (e) {
+      debugPrint('Error loading banners for $screen: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> forceLoadAllBanners() async {
+    if (_isFetching) return;
     clearCache();
-    await loadAllBanners();
+
+    _isFetching = true;
+    try {
+      await loadAllBanners();
+    } catch (e) {
+      // error handled in loadAllBanners
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void clearCache() {
@@ -45,40 +116,18 @@ class BannerController extends GetxController {
     checkoutPageBanners.clear();
     productPageBanners.clear();
     error.value = null;
+    _isFetching = false;
   }
 
   Future<void> loadAllBanners({bool forceRefresh = false}) async {
     if (isLoading.value && !forceRefresh) return;
-    if (!forceRefresh &&
-        homeTopBanners.isNotEmpty &&
-        homeMiddleBanners.isNotEmpty) {
-      return;
-    }
-    try {
-      isLoading.value = true;
-      error.value = null;
-
-      final results = await Future.wait([
-        _client.banner.getBanners(screen: 'home_top', activeOnly: true),
-        _client.banner.getBanners(screen: 'home_middle', activeOnly: true),
-        _client.banner.getBanners(screen: 'category_page', activeOnly: true),
-        _client.banner.getBanners(screen: 'cart_page', activeOnly: true),
-        _client.banner.getBanners(screen: 'checkout_page', activeOnly: true),
-        _client.banner.getBanners(screen: 'product_page', activeOnly: true),
-      ]);
-
-      homeTopBanners.assignAll(results[0]);
-      homeMiddleBanners.assignAll(results[1]);
-      categoryPageBanners.assignAll(results[2]);
-      cartPageBanners.assignAll(results[3]);
-      checkoutPageBanners.assignAll(results[4]);
-      productPageBanners.assignAll(results[5]);
-    } catch (e) {
-      error.value = e.toString();
-      // ignore: avoid_print
-      print('Error loading banners: $e');
-    } finally {
-      isLoading.value = false;
+    await loadHomeBanners();
+    // Other screens will load on demand, but if forceRefresh is true, we might want to refresh what's already loaded
+    if (forceRefresh) {
+      if (categoryPageBanners.isNotEmpty) await loadBannersForScreen('category_page');
+      if (cartPageBanners.isNotEmpty) await loadBannersForScreen('cart_page');
+      if (checkoutPageBanners.isNotEmpty) await loadBannersForScreen('checkout_page');
+      if (productPageBanners.isNotEmpty) await loadBannersForScreen('product_page');
     }
   }
 

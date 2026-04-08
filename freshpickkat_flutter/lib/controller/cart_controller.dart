@@ -103,13 +103,13 @@ class BogoCartSuggestion {
 }
 
 class CartController extends GetxController {
-  static CartController get instance =>
-      Get.put(CartController(), permanent: true);
+  static CartController get instance => Get.find<CartController>();
 
   final RxList<CartItem> cartItems = <CartItem>[].obs;
   final Rxn<BogoCartSuggestion> bogoSuggestion = Rxn<BogoCartSuggestion>();
   final client = ServerpodClient().client;
   Timer? _cartValidationDebounce;
+  bool _isInitialLoading = false;
 
   @override
   void onInit() {
@@ -144,6 +144,7 @@ class CartController extends GetxController {
   }
 
   Future<void> _handleCartChanged() async {
+    if (_isInitialLoading) return;
     await _syncWithServer();
     await fetchAvailableCoupons();
     await _revalidateAppliedCoupon();
@@ -185,9 +186,12 @@ class CartController extends GetxController {
     if (authController.isLoggedIn && cachedUser != null) {
       try {
         if (cachedUser.cart != null) {
+          _isInitialLoading = true;
           await _revalidateStoredCart(cachedUser.cart!);
+          _isInitialLoading = false;
         }
       } catch (e) {
+        _isInitialLoading = false;
         debugPrint('Error fetching cart from server: $e');
       }
     }

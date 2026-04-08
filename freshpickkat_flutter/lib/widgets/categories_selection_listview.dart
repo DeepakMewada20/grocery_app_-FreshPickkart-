@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
@@ -24,47 +24,41 @@ class CategoriesSelectionListview extends StatefulWidget {
 
 class _CategoriesSelectionListviewState
     extends State<CategoriesSelectionListview> {
-  static final Map<String, List<Product>> _cachedProductsBySort = {};
-  late RxList<Product> products = <Product>[].obs;
-  late RxBool isLoading = false.obs;
-  final _client = ServerpodClient().client;
-
-  String get _cacheKey => widget.sortBy ?? 'name';
-
   @override
   void initState() {
     super.initState();
-    final cachedProducts = _cachedProductsBySort[_cacheKey];
-    if (cachedProducts != null && cachedProducts.isNotEmpty) {
-      products.assignAll(cachedProducts);
-    } else {
-      _fetchProducts();
-    }
+    _triggerFetch();
   }
 
-  Future<void> _fetchProducts() async {
-    try {
-      isLoading.value = true;
-      final sortType = widget.sortBy ?? 'name';
-
-      final fetchedProducts = await _client.product.getProducts(
-        limit: 10,
-        sortBy: sortType,
-      );
-
-      products.assignAll(fetchedProducts);
-      _cachedProductsBySort[_cacheKey] = fetchedProducts;
-    } catch (e) {
-      debugPrint('Error fetching products: $e');
-    } finally {
-      isLoading.value = false;
+  void _triggerFetch() {
+    final productController = ProductProviderController.instance;
+    if (widget.sortBy == 'trending') {
+      productController.fetchTrendingIfEmpty();
+    } else if (widget.sortBy == 'best_sellers') {
+      productController.fetchBestSellersIfEmpty();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final productController = ProductProviderController.instance;
+
     return Obx(() {
-      if (isLoading.value && products.isEmpty) {
+      List<Product> products;
+      bool isLoading;
+
+      if (widget.sortBy == 'trending') {
+        products = productController.trendingProducts;
+        isLoading = productController.isLoading.value && products.isEmpty;
+      } else if (widget.sortBy == 'best_sellers') {
+        products = productController.bestSellersProducts;
+        isLoading = productController.isLoading.value && products.isEmpty;
+      } else {
+        products = productController.allProducts;
+        isLoading = productController.isLoading.value && products.isEmpty;
+      }
+
+      if (isLoading) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 40),
           child: SizedBox(

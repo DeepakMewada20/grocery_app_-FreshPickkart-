@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 
 class ProductProviderController extends GetxController {
   static ProductProviderController get instance =>
-      Get.put(ProductProviderController(), permanent: true);
+      Get.find<ProductProviderController>();
 
   final Client _client = ServerpodClient().client;
 
@@ -14,9 +14,14 @@ class ProductProviderController extends GetxController {
 
   // States
   final allProducts = <Product>[].obs;
+  final trendingProducts = <Product>[].obs;
+  final bestSellersProducts = <Product>[].obs;
   final isLoading = false.obs;
   final isMoreDataAvailable = true.obs;
   final errorMessage = ''.obs;
+
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
 
   // Filters
   final currentCategory = ''.obs;
@@ -36,15 +41,60 @@ class ProductProviderController extends GetxController {
   }
 
   Future<void> fetchProductsIfEmpty() async {
-    if (allProducts.isEmpty && !isLoading.value) {
+    if (_isFetching) return;
+    if (allProducts.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
+      // ONLY fetch main products here. Trending and Best Sellers will be lazy-loaded by widgets.
       await fetchProducts();
+    } catch (e) {
+      // error handled in fetchProducts
+    } finally {
+      _isFetching = false;
+    }
+  }
+
+  Future<void> fetchTrendingIfEmpty() async {
+    if (trendingProducts.isNotEmpty) return;
+    try {
+      final products = await _client.product.getProducts(
+        limit: 10,
+        sortBy: 'trending',
+      );
+      trendingProducts.assignAll(products);
+    } catch (e) {
+      debugPrint('Error fetching trending products: $e');
+    }
+  }
+
+  Future<void> fetchBestSellersIfEmpty() async {
+    if (bestSellersProducts.isNotEmpty) return;
+    try {
+      final products = await _client.product.getProducts(
+        limit: 10,
+        sortBy: 'best_sellers',
+      );
+      bestSellersProducts.assignAll(products);
+    } catch (e) {
+      debugPrint('Error fetching best sellers: $e');
     }
   }
 
   Future<void> forceFetchProducts() async {
+    if (_isFetching) return;
     clearProducts();
     _productCache.clear();
-    await fetchProducts();
+
+    _isFetching = true;
+    try {
+      await fetchProducts();
+    } catch (e) {
+      // error handled in fetchProducts
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void clearCache() {
@@ -52,6 +102,7 @@ class ProductProviderController extends GetxController {
     _productCache.clear();
     isMoreDataAvailable.value = true;
     errorMessage.value = '';
+    _isFetching = false;
   }
 
   Future<void> setFilters({
@@ -74,7 +125,7 @@ class ProductProviderController extends GetxController {
   }
 
   Future<void> fetchProducts() async {
-    if (!isMoreDataAvailable.value) return;
+    if (!isMoreDataAvailable.value && allProducts.isNotEmpty) return;
 
     final key = _cacheKey;
     final isInitialFetch = allProducts.isEmpty;
@@ -166,6 +217,7 @@ class ProductProviderController extends GetxController {
   }
 
   Future<void> loadMore() async {
+    if (_isFetching) return;
     if (!isLoading.value && isMoreDataAvailable.value) {
       await fetchProducts();
     }
@@ -177,22 +229,24 @@ class ProductProviderController extends GetxController {
   }
 
   void refreshProducts() {
+    if (_isFetching) return;
     final key = _cacheKey;
     if (_productCache.containsKey(key) && _productCache[key]!.isNotEmpty) {
       allProducts.assignAll(_productCache[key]!);
       isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
     } else {
       clearProducts();
-      fetchProducts();
+      fetchProductsIfEmpty();
     }
   }
 
   Future<void> resetHomeFeed() async {
+    if (_isFetching) return;
     currentCategory.value = '';
     currentSubcategories.clear();
     currentSortBy.value = 'name';
     clearProducts();
-    await fetchProducts();
+    await fetchProductsIfEmpty();
   }
 
   bool get hasData => allProducts.isNotEmpty;

@@ -53,6 +53,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     Future.microtask(() async {
       await cartController.refreshCartCurrentData();
+      await BannerController.instance.loadBannersForScreen('checkout_page');
       await orderRecoveryService.recoverPendingPayments(
         trigger: 'checkout_open',
       );

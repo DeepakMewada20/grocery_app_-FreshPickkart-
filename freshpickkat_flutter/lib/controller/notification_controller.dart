@@ -23,7 +23,7 @@ class AppNotificationItem {
 
 class NotificationController extends GetxController {
   static NotificationController get instance =>
-      Get.put(NotificationController(), permanent: true);
+      Get.find<NotificationController>();
 
   static const String _savedFcmTokenKey = 'saved_fcm_token';
 

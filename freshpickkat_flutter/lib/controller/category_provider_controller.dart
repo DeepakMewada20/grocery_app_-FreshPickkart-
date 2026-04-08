@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class CategoryProviderController extends GetxController {
   // --------- SINGLETON PATTERN ---------
   static CategoryProviderController get instance =>
-      Get.put(CategoryProviderController(), permanent: true);
+      Get.find<CategoryProviderController>();
   // -------------------------------------
 
   final Client _client = ServerpodClient().client;
@@ -15,39 +15,74 @@ class CategoryProviderController extends GetxController {
   final isLoading = false.obs;
   final errorMessage = ''.obs;
 
+  // Mutex lock to prevent duplicate API calls
+  bool _isFetching = false;
+
   @override
   void onInit() {
     super.onInit();
   }
 
   Future<void> fetchCategoriesIfEmpty() async {
-    if (categories.isEmpty && !isLoading.value) {
-      await fetchCategories();
+    if (_isFetching) return;
+    if (categories.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
+      await Future.wait([
+        fetchCategories(),
+        fetchSubCategories(),
+      ]);
+    } catch (e) {
+      // error handled in individual methods
+    } finally {
+      _isFetching = false;
     }
   }
 
   Future<void> forceFetchCategories() async {
+    if (_isFetching) return;
     clearCache();
-    await Future.wait([
-      fetchCategories(),
-      fetchSubCategories(),
-    ]);
+
+    _isFetching = true;
+    try {
+      await Future.wait([
+        fetchCategories(),
+        fetchSubCategories(),
+      ]);
+    } catch (e) {
+      // error handled in individual methods
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void clearCache() {
     categories.clear();
     subCategories.clear();
     errorMessage.value = '';
+    _isFetching = false;
   }
 
   Future<void> refreshData() async {
-    await Future.wait([
-      fetchCategories(),
-      fetchSubCategories(),
-    ]);
+    if (_isFetching) return;
+
+    _isFetching = true;
+    try {
+      await Future.wait([
+        fetchCategories(),
+        fetchSubCategories(),
+      ]);
+    } catch (e) {
+      // error handled in individual methods
+    } finally {
+      _isFetching = false;
+    }
   }
 
   Future<void> fetchCategories() async {
+    if (categories.isNotEmpty) return;
     try {
       isLoading.value = true;
       errorMessage.value = '';
@@ -64,6 +99,7 @@ class CategoryProviderController extends GetxController {
   }
 
   Future<void> fetchSubCategories() async {
+    if (subCategories.isNotEmpty) return;
     try {
       isLoading.value = true;
       errorMessage.value = '';
