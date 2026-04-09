@@ -26,6 +26,7 @@ abstract class AppUser
     this.cart,
     required this.role,
     this.fcmToken,
+    this.completedOrdersCount,
   });
 
   factory AppUser({
@@ -37,6 +38,7 @@ abstract class AppUser
     List<_i3.CartItem>? cart,
     required String role,
     String? fcmToken,
+    int? completedOrdersCount,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -57,6 +59,7 @@ abstract class AppUser
             ),
       role: jsonSerialization['role'] as String,
       fcmToken: jsonSerialization['fcmToken'] as String?,
+      completedOrdersCount: jsonSerialization['completedOrdersCount'] as int?,
     );
   }
 
@@ -76,6 +79,8 @@ abstract class AppUser
 
   String? fcmToken;
 
+  int? completedOrdersCount;
+
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -88,6 +93,7 @@ abstract class AppUser
     List<_i3.CartItem>? cart,
     String? role,
     String? fcmToken,
+    int? completedOrdersCount,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -101,6 +107,8 @@ abstract class AppUser
       if (cart != null) 'cart': cart?.toJson(valueToJson: (v) => v.toJson()),
       'role': role,
       if (fcmToken != null) 'fcmToken': fcmToken,
+      if (completedOrdersCount != null)
+        'completedOrdersCount': completedOrdersCount,
     };
   }
 
@@ -118,6 +126,8 @@ abstract class AppUser
         'cart': cart?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       'role': role,
       if (fcmToken != null) 'fcmToken': fcmToken,
+      if (completedOrdersCount != null)
+        'completedOrdersCount': completedOrdersCount,
     };
   }
 
@@ -139,6 +149,7 @@ class _AppUserImpl extends AppUser {
     List<_i3.CartItem>? cart,
     required String role,
     String? fcmToken,
+    int? completedOrdersCount,
   }) : super._(
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
@@ -148,6 +159,7 @@ class _AppUserImpl extends AppUser {
          cart: cart,
          role: role,
          fcmToken: fcmToken,
+         completedOrdersCount: completedOrdersCount,
        );
 
   /// Returns a shallow copy of this [AppUser]
@@ -163,6 +175,7 @@ class _AppUserImpl extends AppUser {
     Object? cart = _Undefined,
     String? role,
     Object? fcmToken = _Undefined,
+    Object? completedOrdersCount = _Undefined,
   }) {
     return AppUser(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -177,6 +190,9 @@ class _AppUserImpl extends AppUser {
           : this.cart?.map((e0) => e0.copyWith()).toList(),
       role: role ?? this.role,
       fcmToken: fcmToken is String? ? fcmToken : this.fcmToken,
+      completedOrdersCount: completedOrdersCount is int?
+          ? completedOrdersCount
+          : this.completedOrdersCount,
     );
   }
 }

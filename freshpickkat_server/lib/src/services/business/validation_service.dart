@@ -90,30 +90,69 @@ class ValidationService {
     if (coupon.maxDiscount != null && coupon.maxDiscount! < 0) {
       throw InvalidParametersException('Max discount cannot be negative');
     }
+    if (coupon.maxDiscountAmount != null && coupon.maxDiscountAmount! < 0) {
+      throw InvalidParametersException('Max discount cannot be negative');
+    }
     if (coupon.usageLimit != null && coupon.usageLimit! < 0) {
       throw InvalidParametersException('Usage limit cannot be negative');
     }
-
-    final category = coupon.couponCategory.toLowerCase().trim();
-    if (category != 'all' && category != 'delivery') {
+    if (coupon.loyaltyRequiredOrders != null &&
+        coupon.loyaltyRequiredOrders! < 0) {
       throw InvalidParametersException(
-        'Coupon category must be All or delivery',
+        'Loyalty required orders cannot be negative',
       );
     }
 
-    if (category == 'delivery') return;
+    final category = coupon.couponCategory.toLowerCase().trim();
+    if (category != 'all') {
+      throw InvalidParametersException(
+        'Coupon category must be All',
+      );
+    }
 
-    final type = coupon.discountType?.toLowerCase().trim();
-    if (type != 'flat' && type != 'percentage') {
+    final type = coupon.type?.toUpperCase().trim();
+    const supportedTypes = {
+      'FIRST_ORDER',
+      'PERCENTAGE_DISCOUNT',
+      'FLAT_DISCOUNT',
+      'LIMITED_TIME',
+      'LOYALTY',
+      'PRODUCT_BASED',
+    };
+    if (type != null && type.isNotEmpty && !supportedTypes.contains(type)) {
+      throw InvalidParametersException('Unsupported coupon type');
+    }
+
+    final discountType = coupon.discountType?.toLowerCase().trim();
+    if (discountType != null &&
+        discountType.isNotEmpty &&
+        discountType != 'flat' &&
+        discountType != 'percentage') {
       throw InvalidParametersException(
         'Discount type must be flat or percentage',
       );
     }
-    if (coupon.discountValue == null || coupon.discountValue! <= 0) {
-      throw InvalidParametersException('Discount value must be greater than 0');
+
+    if (coupon.discountValue != null && coupon.discountValue! < 0) {
+      throw InvalidParametersException('Discount value cannot be negative');
     }
-    if (type == 'percentage' && coupon.discountValue! > 100) {
+    if (discountType == 'percentage' &&
+        coupon.discountValue != null &&
+        coupon.discountValue! > 100) {
       throw InvalidParametersException('Percentage discount cannot exceed 100');
+    }
+    if (type == 'PRODUCT_BASED' &&
+        (coupon.productIds == null || coupon.productIds!.isEmpty)) {
+      throw InvalidParametersException(
+        'At least one product is required for product-based coupons',
+      );
+    }
+    if (type == 'LOYALTY' &&
+        (coupon.loyaltyRequiredOrders == null ||
+            coupon.loyaltyRequiredOrders! <= 0)) {
+      throw InvalidParametersException(
+        'Loyalty coupons require a completed orders threshold',
+      );
     }
   }
 

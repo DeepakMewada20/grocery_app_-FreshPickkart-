@@ -49,6 +49,9 @@ coupon:
   - updateCoupon:
   - fetchApplicableCoupons:
   - validateCoupon:
+  - applyCoupon:
+  - getAvailableCoupons:
+  - getBestCoupon:
 freeDelivery:
   - upsertFreeDeliveryRule:
   - deleteFreeDeliveryRule:

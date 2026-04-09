@@ -21,6 +21,22 @@ class CatalogCouponsTab extends StatelessWidget {
   final VoidCallback onCreateCoupon;
   final ValueChanged<Coupon> onEditCoupon;
 
+  String _couponTypeLabel(Coupon coupon) {
+    if (coupon.type != null && coupon.type!.trim().isNotEmpty) {
+      return coupon.type!;
+    }
+    if ((coupon.productIds ?? const <String>[]).isNotEmpty) {
+      return 'PRODUCT_BASED';
+    }
+    if ((coupon.loyaltyRequiredOrders ?? 0) > 0) {
+      return 'LOYALTY';
+    }
+    if ((coupon.discountType ?? '').toLowerCase() == 'percentage') {
+      return 'PERCENTAGE_DISCOUNT';
+    }
+    return 'FLAT_DISCOUNT';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -31,9 +47,6 @@ class CatalogCouponsTab extends StatelessWidget {
       final liveCoupons = coupons.where(isCatalogCouponLive).length;
       final inactiveCoupons = coupons
           .where((coupon) => !coupon.isActive)
-          .length;
-      final deliveryCoupons = coupons
-          .where((coupon) => coupon.couponCategory == 'delivery')
           .length;
 
       if (isLoading && coupons.isEmpty) {
@@ -56,7 +69,7 @@ class CatalogCouponsTab extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Coupon codes, delivery coupons, and active campaign summary',
+              'Coupon codes, coupon types, and active campaign summary',
               style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
             ),
             const SizedBox(height: 16),
@@ -83,13 +96,13 @@ class CatalogCouponsTab extends StatelessWidget {
                   ],
                 ),
                 CatalogStatCard(
-                  title: 'Delivery',
-                  value: '$deliveryCoupons',
-                  icon: Icons.local_shipping_outlined,
+                  title: 'Visible',
+                  value: '${visibleCoupons.length}',
+                  icon: Icons.visibility_outlined,
                   color: const Color(0xFF7C4D12),
                   breakdown: [
                     CatalogStatBreakdown(
-                      label: 'Visible',
+                      label: 'Search Match',
                       value: '${visibleCoupons.length}',
                       color: Colors.blueGrey.shade700,
                     ),
@@ -201,10 +214,7 @@ class CatalogCouponsTab extends StatelessWidget {
                               color: statusColor,
                             ),
                             CatalogInlineBadge(
-                              label: coupon.couponCategory == 'delivery'
-                                  ? 'Delivery'
-                                  : (coupon.discountType ?? 'flat')
-                                        .toUpperCase(),
+                              label: _couponTypeLabel(coupon),
                               color: const Color(0xFF4E5D6C),
                             ),
                             CatalogInlineBadge(
@@ -313,6 +323,15 @@ class _CouponFormBottomSheet extends StatefulWidget {
 }
 
 class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
+  static const List<String> _couponTypes = [
+    'FIRST_ORDER',
+    'PERCENTAGE_DISCOUNT',
+    'FLAT_DISCOUNT',
+    'LIMITED_TIME',
+    'LOYALTY',
+    'PRODUCT_BASED',
+  ];
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _codeCtrl;
   late final TextEditingController _descCtrl;
@@ -320,9 +339,10 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
   late final TextEditingController _minOrderCtrl;
   late final TextEditingController _maxDiscountCtrl;
   late final TextEditingController _usageLimitCtrl;
+  late final TextEditingController _productIdsCtrl;
+  late final TextEditingController _loyaltyOrdersCtrl;
 
-  late String _couponCategory;
-  late String? _discountType;
+  late String _couponType;
   late bool _isActive;
   late DateTime _startDate;
   late DateTime _endDate;
@@ -346,17 +366,19 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _usageLimitCtrl = TextEditingController(
       text: coupon?.usageLimit?.toString() ?? '',
     );
-    final initialCategory = coupon?.couponCategory ?? 'All';
-    _couponCategory = (initialCategory == 'All' || initialCategory == 'delivery')
-        ? initialCategory
-        : 'All';
-    _discountType =
-        (coupon?.discountType == 'flat' || coupon?.discountType == 'percentage')
-        ? coupon?.discountType
-        : 'flat';
+    _productIdsCtrl = TextEditingController(
+      text: (coupon?.productIds ?? const <String>[]).join(', '),
+    );
+    _loyaltyOrdersCtrl = TextEditingController(
+      text: coupon?.loyaltyRequiredOrders?.toString() ?? '',
+    );
+    _couponType = _deriveCouponType(coupon);
     _isActive = coupon?.isActive ?? true;
     _startDate = coupon?.startDate ?? DateTime.now();
-    _endDate = coupon?.endDate ?? DateTime.now().add(const Duration(days: 30));
+    _endDate =
+        coupon?.expiryDate ??
+        coupon?.endDate ??
+        DateTime.now().add(const Duration(days: 30));
   }
 
   @override
@@ -367,6 +389,8 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _minOrderCtrl.dispose();
     _maxDiscountCtrl.dispose();
     _usageLimitCtrl.dispose();
+    _productIdsCtrl.dispose();
+    _loyaltyOrdersCtrl.dispose();
     super.dispose();
   }
 
@@ -383,20 +407,28 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
         : int.tryParse(_usageLimitCtrl.text.trim());
 
     final coupon = Coupon(
+      id: widget.initialCoupon?.id ?? _codeCtrl.text.trim(),
       code: _codeCtrl.text.trim().toUpperCase(),
       description: _descCtrl.text.trim(),
-      discountType: _couponCategory == 'delivery' ? null : _discountType,
-      discountValue: _couponCategory == 'delivery'
-          ? null
-          : double.parse(_discountValueCtrl.text.trim()),
+      type: _couponType,
+      discountType: _resolvedDiscountType(_couponType),
+      discountValue: double.parse(_discountValueCtrl.text.trim()),
       minOrderAmount: double.parse(_minOrderCtrl.text.trim()),
       maxDiscount: maxDiscount,
+      maxDiscountAmount: maxDiscount,
+      productIds: _couponType == 'PRODUCT_BASED'
+          ? _parseProductIds(_productIdsCtrl.text)
+          : null,
+      loyaltyRequiredOrders: _couponType == 'LOYALTY'
+          ? int.tryParse(_loyaltyOrdersCtrl.text.trim())
+          : null,
       startDate: _startDate,
       endDate: _endDate,
+      expiryDate: _endDate,
       usageLimit: usageLimit,
       usedCount: widget.initialCoupon?.usedCount ?? 0,
       isActive: _isActive,
-      couponCategory: _couponCategory,
+      couponCategory: 'All',
     );
 
     try {
@@ -525,56 +557,67 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
             children: [
               _buildSheetHeader(),
               const Divider(height: 32),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _codeCtrl,
-                      enabled: canEditCode,
-                      decoration: const InputDecoration(
-                        labelText: 'Coupon Code',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        hintText: 'e.g. SAVE50',
-                      ),
-                      textCapitalization: TextCapitalization.characters,
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                              ? 'Required'
-                              : null,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 700;
+                  final codeField = TextFormField(
+                    controller: _codeCtrl,
+                    enabled: canEditCode,
+                    decoration: const InputDecoration(
+                      labelText: 'Coupon Code',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      hintText: 'e.g. SAVE50',
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _couponCategory,
-                      decoration: const InputDecoration(
-                        labelText: 'Coupon Category',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(
-                          value: 'delivery',
-                          child: Text('Delivery'),
-                        ),
+                    textCapitalization: TextCapitalization.characters,
+                    validator: (value) =>
+                        (value == null || value.trim().isEmpty)
+                        ? 'Required'
+                        : null,
+                  );
+                  final typeField = DropdownButtonFormField<String>(
+                    initialValue: _couponType,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Coupon Type',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: _couponTypes
+                        .map(
+                          (type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type, overflow: TextOverflow.ellipsis),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        _couponType = value;
+                      });
+                    },
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      children: [
+                        codeField,
+                        const SizedBox(height: 12),
+                        typeField,
                       ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          _couponCategory = value;
-                          if (_couponCategory == 'delivery') {
-                            _discountType = null;
-                          } else {
-                            _discountType ??= 'flat';
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ],
+                    );
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: codeField),
+                      const SizedBox(width: 12),
+                      Expanded(child: typeField),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -589,48 +632,59 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     (value == null || value.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              if (_couponCategory != 'delivery') ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _discountType,
-                        decoration: const InputDecoration(
-                          labelText: 'Discount Type',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'flat', child: Text('Flat')),
-                          DropdownMenuItem(
-                            value: 'percentage',
-                            child: Text('Percentage'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _discountType = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _discountValueCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'Discount Value',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        validator: _catalogNumberValidator,
-                      ),
-                    ),
-                  ],
+              TextFormField(
+                controller: _discountValueCtrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: _couponType == 'PERCENTAGE_DISCOUNT'
+                      ? 'Discount Percentage'
+                      : 'Discount Value',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                  suffixText: _couponType == 'PERCENTAGE_DISCOUNT' ? '%' : null,
+                ),
+                validator: _catalogNumberValidator,
+              ),
+              const SizedBox(height: 16),
+              if (_couponType == 'LOYALTY') ...[
+                TextFormField(
+                  controller: _loyaltyOrdersCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Required Completed Orders',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  validator: (value) {
+                    if (_couponType != 'LOYALTY') return null;
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Required';
+                    }
+                    return int.tryParse(value.trim()) == null
+                        ? 'Invalid number'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (_couponType == 'PRODUCT_BASED') ...[
+                TextFormField(
+                  controller: _productIdsCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Product IDs',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    hintText: 'Comma separated product ids',
+                  ),
+                  validator: (value) {
+                    if (_couponType != 'PRODUCT_BASED') return null;
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
               ],
@@ -731,8 +785,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed:
-                          _isSaving ? null : () => Navigator.pop(context),
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -756,17 +811,19 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                       ),
                       child: _isSaving
                           ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : Text(
-                            isEditing ? 'Update Coupon' : 'Create Coupon',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
+                              isEditing ? 'Update Coupon' : 'Create Coupon',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                     ),
                   ),
                 ],
@@ -798,8 +855,36 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       });
     }
   }
-}
 
+  String _deriveCouponType(Coupon? coupon) {
+    if (coupon?.type != null && coupon!.type!.trim().isNotEmpty) {
+      return coupon.type!;
+    }
+    if ((coupon?.productIds ?? const <String>[]).isNotEmpty) {
+      return 'PRODUCT_BASED';
+    }
+    if ((coupon?.loyaltyRequiredOrders ?? 0) > 0) {
+      return 'LOYALTY';
+    }
+    if ((coupon?.discountType ?? '').toLowerCase() == 'percentage') {
+      return 'PERCENTAGE_DISCOUNT';
+    }
+    return 'FLAT_DISCOUNT';
+  }
+
+  String _resolvedDiscountType(String couponType) {
+    if (couponType == 'PERCENTAGE_DISCOUNT') return 'percentage';
+    return 'flat';
+  }
+
+  List<String> _parseProductIds(String raw) {
+    return raw
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+  }
+}
 
 Future<void> showEditCouponDialog({
   required BuildContext context,

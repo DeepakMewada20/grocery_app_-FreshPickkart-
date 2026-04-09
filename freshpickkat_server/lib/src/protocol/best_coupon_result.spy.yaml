@@ -1,0 +1,4 @@
+class: BestCouponResult
+fields:
+  bestCouponCode: String?
+  discountAmount: double

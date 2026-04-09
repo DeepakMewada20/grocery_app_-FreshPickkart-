@@ -11,18 +11,25 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:freshpickkat_server/src/generated/protocol.dart' as _i2;
 
 abstract class Coupon
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   Coupon._({
+    this.id,
     required this.code,
     required this.description,
+    this.type,
     this.discountType,
     this.discountValue,
     required this.minOrderAmount,
     this.maxDiscount,
+    this.maxDiscountAmount,
+    this.productIds,
+    this.loyaltyRequiredOrders,
     required this.startDate,
     required this.endDate,
+    this.expiryDate,
     this.usageLimit,
     required this.usedCount,
     required this.isActive,
@@ -30,14 +37,20 @@ abstract class Coupon
   });
 
   factory Coupon({
+    String? id,
     required String code,
     required String description,
+    String? type,
     String? discountType,
     double? discountValue,
     required double minOrderAmount,
     double? maxDiscount,
+    double? maxDiscountAmount,
+    List<String>? productIds,
+    int? loyaltyRequiredOrders,
     required DateTime startDate,
     required DateTime endDate,
+    DateTime? expiryDate,
     int? usageLimit,
     required int usedCount,
     required bool isActive,
@@ -46,16 +59,29 @@ abstract class Coupon
 
   factory Coupon.fromJson(Map<String, dynamic> jsonSerialization) {
     return Coupon(
+      id: jsonSerialization['id'] as String?,
       code: jsonSerialization['code'] as String,
       description: jsonSerialization['description'] as String,
+      type: jsonSerialization['type'] as String?,
       discountType: jsonSerialization['discountType'] as String?,
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
       minOrderAmount: (jsonSerialization['minOrderAmount'] as num).toDouble(),
       maxDiscount: (jsonSerialization['maxDiscount'] as num?)?.toDouble(),
+      maxDiscountAmount: (jsonSerialization['maxDiscountAmount'] as num?)
+          ?.toDouble(),
+      productIds: jsonSerialization['productIds'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['productIds'],
+            ),
+      loyaltyRequiredOrders: jsonSerialization['loyaltyRequiredOrders'] as int?,
       startDate: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['startDate'],
       ),
       endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      expiryDate: jsonSerialization['expiryDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['expiryDate']),
       usageLimit: jsonSerialization['usageLimit'] as int?,
       usedCount: jsonSerialization['usedCount'] as int,
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
@@ -63,9 +89,13 @@ abstract class Coupon
     );
   }
 
+  String? id;
+
   String code;
 
   String description;
+
+  String? type;
 
   String? discountType;
 
@@ -75,9 +105,17 @@ abstract class Coupon
 
   double? maxDiscount;
 
+  double? maxDiscountAmount;
+
+  List<String>? productIds;
+
+  int? loyaltyRequiredOrders;
+
   DateTime startDate;
 
   DateTime endDate;
+
+  DateTime? expiryDate;
 
   int? usageLimit;
 
@@ -91,14 +129,20 @@ abstract class Coupon
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   Coupon copyWith({
+    String? id,
     String? code,
     String? description,
+    String? type,
     String? discountType,
     double? discountValue,
     double? minOrderAmount,
     double? maxDiscount,
+    double? maxDiscountAmount,
+    List<String>? productIds,
+    int? loyaltyRequiredOrders,
     DateTime? startDate,
     DateTime? endDate,
+    DateTime? expiryDate,
     int? usageLimit,
     int? usedCount,
     bool? isActive,
@@ -108,14 +152,21 @@ abstract class Coupon
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'Coupon',
+      if (id != null) 'id': id,
       'code': code,
       'description': description,
+      if (type != null) 'type': type,
       if (discountType != null) 'discountType': discountType,
       if (discountValue != null) 'discountValue': discountValue,
       'minOrderAmount': minOrderAmount,
       if (maxDiscount != null) 'maxDiscount': maxDiscount,
+      if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
+      if (productIds != null) 'productIds': productIds?.toJson(),
+      if (loyaltyRequiredOrders != null)
+        'loyaltyRequiredOrders': loyaltyRequiredOrders,
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
+      if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
       'usedCount': usedCount,
       'isActive': isActive,
@@ -127,14 +178,21 @@ abstract class Coupon
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'Coupon',
+      if (id != null) 'id': id,
       'code': code,
       'description': description,
+      if (type != null) 'type': type,
       if (discountType != null) 'discountType': discountType,
       if (discountValue != null) 'discountValue': discountValue,
       'minOrderAmount': minOrderAmount,
       if (maxDiscount != null) 'maxDiscount': maxDiscount,
+      if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
+      if (productIds != null) 'productIds': productIds?.toJson(),
+      if (loyaltyRequiredOrders != null)
+        'loyaltyRequiredOrders': loyaltyRequiredOrders,
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
+      if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
       'usedCount': usedCount,
       'isActive': isActive,
@@ -152,27 +210,39 @@ class _Undefined {}
 
 class _CouponImpl extends Coupon {
   _CouponImpl({
+    String? id,
     required String code,
     required String description,
+    String? type,
     String? discountType,
     double? discountValue,
     required double minOrderAmount,
     double? maxDiscount,
+    double? maxDiscountAmount,
+    List<String>? productIds,
+    int? loyaltyRequiredOrders,
     required DateTime startDate,
     required DateTime endDate,
+    DateTime? expiryDate,
     int? usageLimit,
     required int usedCount,
     required bool isActive,
     required String couponCategory,
   }) : super._(
+         id: id,
          code: code,
          description: description,
+         type: type,
          discountType: discountType,
          discountValue: discountValue,
          minOrderAmount: minOrderAmount,
          maxDiscount: maxDiscount,
+         maxDiscountAmount: maxDiscountAmount,
+         productIds: productIds,
+         loyaltyRequiredOrders: loyaltyRequiredOrders,
          startDate: startDate,
          endDate: endDate,
+         expiryDate: expiryDate,
          usageLimit: usageLimit,
          usedCount: usedCount,
          isActive: isActive,
@@ -184,30 +254,48 @@ class _CouponImpl extends Coupon {
   @_i1.useResult
   @override
   Coupon copyWith({
+    Object? id = _Undefined,
     String? code,
     String? description,
+    Object? type = _Undefined,
     Object? discountType = _Undefined,
     Object? discountValue = _Undefined,
     double? minOrderAmount,
     Object? maxDiscount = _Undefined,
+    Object? maxDiscountAmount = _Undefined,
+    Object? productIds = _Undefined,
+    Object? loyaltyRequiredOrders = _Undefined,
     DateTime? startDate,
     DateTime? endDate,
+    Object? expiryDate = _Undefined,
     Object? usageLimit = _Undefined,
     int? usedCount,
     bool? isActive,
     String? couponCategory,
   }) {
     return Coupon(
+      id: id is String? ? id : this.id,
       code: code ?? this.code,
       description: description ?? this.description,
+      type: type is String? ? type : this.type,
       discountType: discountType is String? ? discountType : this.discountType,
       discountValue: discountValue is double?
           ? discountValue
           : this.discountValue,
       minOrderAmount: minOrderAmount ?? this.minOrderAmount,
       maxDiscount: maxDiscount is double? ? maxDiscount : this.maxDiscount,
+      maxDiscountAmount: maxDiscountAmount is double?
+          ? maxDiscountAmount
+          : this.maxDiscountAmount,
+      productIds: productIds is List<String>?
+          ? productIds
+          : this.productIds?.map((e0) => e0).toList(),
+      loyaltyRequiredOrders: loyaltyRequiredOrders is int?
+          ? loyaltyRequiredOrders
+          : this.loyaltyRequiredOrders,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      expiryDate: expiryDate is DateTime? ? expiryDate : this.expiryDate,
       usageLimit: usageLimit is int? ? usageLimit : this.usageLimit,
       usedCount: usedCount ?? this.usedCount,
       isActive: isActive ?? this.isActive,

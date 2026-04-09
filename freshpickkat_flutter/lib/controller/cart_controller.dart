@@ -392,6 +392,7 @@ class CartController extends GetxController {
   final Rxn<CouponValidationResult> couponValidation =
       Rxn<CouponValidationResult>();
   final RxList<CouponDisplay> availableCoupons = <CouponDisplay>[].obs;
+  final Rxn<BestCouponResult> bestCoupon = Rxn<BestCouponResult>();
   final RxBool isLoadingCoupons = false.obs;
   final RxString couponError = ''.obs;
 
@@ -421,11 +422,6 @@ class CartController extends GetxController {
   }
 
   double get deliveryFee {
-    if (appliedCoupon.value?.isDeliveryDiscount == true &&
-        couponValidation.value != null &&
-        couponValidation.value!.isValid) {
-      return (40.0 - couponValidation.value!.discountAmount).clamp(0, 40);
-    }
     return 40.0;
   }
 
@@ -447,6 +443,7 @@ class CartController extends GetxController {
   Future<void> fetchAvailableCoupons() async {
     if (cartItems.isEmpty) {
       availableCoupons.clear();
+      bestCoupon.value = null;
       removeCoupon();
       return;
     }
@@ -455,8 +452,20 @@ class CartController extends GetxController {
     couponError.value = '';
 
     try {
-      final response = await client.coupon.fetchApplicableCoupons(subtotal);
+      final cartItemInputs = _buildCartItemInputs();
+      final userId = _couponUserId;
+      final response = await client.coupon.getAvailableCoupons(
+        userId,
+        subtotal,
+        cartItemInputs,
+      );
+      final best = await client.coupon.getBestCoupon(
+        userId,
+        subtotal,
+        cartItemInputs,
+      );
       availableCoupons.assignAll(response);
+      bestCoupon.value = best;
     } catch (e) {
       couponError.value = 'Failed to load coupons';
       debugPrint('Error fetching coupons: $e');
@@ -470,7 +479,12 @@ class CartController extends GetxController {
     if (coupon == null) return;
 
     try {
-      final result = await client.coupon.validateCoupon(coupon.code, subtotal);
+      final result = await client.coupon.applyCoupon(
+        _couponUserId,
+        coupon.code,
+        subtotal,
+        _buildCartItemInputs(),
+      );
       couponValidation.value = result;
 
       if (!result.isValid) {
@@ -489,7 +503,12 @@ class CartController extends GetxController {
     couponError.value = '';
 
     try {
-      final response = await client.coupon.validateCoupon(couponCode, subtotal);
+      final response = await client.coupon.applyCoupon(
+        _couponUserId,
+        couponCode,
+        subtotal,
+        _buildCartItemInputs(),
+      );
       final result = response;
 
       couponValidation.value = result;
@@ -516,6 +535,24 @@ class CartController extends GetxController {
     appliedCoupon.value = null;
     couponValidation.value = null;
     couponError.value = '';
+  }
+
+  String get _couponUserId {
+    final authController = AuthController.instance;
+    return authController.currentUser?.uid ?? '';
+  }
+
+  List<CartItemInput> _buildCartItemInputs() {
+    return cartItems
+        .map(
+          (item) => CartItemInput(
+            productId: item.product.productId ?? '',
+            variantId: item.variantId,
+            quantity: item.quantity,
+          ),
+        )
+        .where((item) => item.productId.isNotEmpty && item.quantity > 0)
+        .toList();
   }
 
   void addItem(

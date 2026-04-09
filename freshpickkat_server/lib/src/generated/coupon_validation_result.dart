@@ -16,6 +16,9 @@ abstract class CouponValidationResult
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   CouponValidationResult._({
     required this.isValid,
+    this.couponCode,
+    this.couponId,
+    this.couponType,
     this.errorMessage,
     required this.discountAmount,
     required this.isDeliveryDiscount,
@@ -23,6 +26,9 @@ abstract class CouponValidationResult
 
   factory CouponValidationResult({
     required bool isValid,
+    String? couponCode,
+    String? couponId,
+    String? couponType,
     String? errorMessage,
     required double discountAmount,
     required bool isDeliveryDiscount,
@@ -33,6 +39,9 @@ abstract class CouponValidationResult
   ) {
     return CouponValidationResult(
       isValid: _i1.BoolJsonExtension.fromJson(jsonSerialization['isValid']),
+      couponCode: jsonSerialization['couponCode'] as String?,
+      couponId: jsonSerialization['couponId'] as String?,
+      couponType: jsonSerialization['couponType'] as String?,
       errorMessage: jsonSerialization['errorMessage'] as String?,
       discountAmount: (jsonSerialization['discountAmount'] as num).toDouble(),
       isDeliveryDiscount: _i1.BoolJsonExtension.fromJson(
@@ -42,6 +51,12 @@ abstract class CouponValidationResult
   }
 
   bool isValid;
+
+  String? couponCode;
+
+  String? couponId;
+
+  String? couponType;
 
   String? errorMessage;
 
@@ -54,6 +69,9 @@ abstract class CouponValidationResult
   @_i1.useResult
   CouponValidationResult copyWith({
     bool? isValid,
+    String? couponCode,
+    String? couponId,
+    String? couponType,
     String? errorMessage,
     double? discountAmount,
     bool? isDeliveryDiscount,
@@ -63,6 +81,9 @@ abstract class CouponValidationResult
     return {
       '__className__': 'CouponValidationResult',
       'isValid': isValid,
+      if (couponCode != null) 'couponCode': couponCode,
+      if (couponId != null) 'couponId': couponId,
+      if (couponType != null) 'couponType': couponType,
       if (errorMessage != null) 'errorMessage': errorMessage,
       'discountAmount': discountAmount,
       'isDeliveryDiscount': isDeliveryDiscount,
@@ -74,6 +95,9 @@ abstract class CouponValidationResult
     return {
       '__className__': 'CouponValidationResult',
       'isValid': isValid,
+      if (couponCode != null) 'couponCode': couponCode,
+      if (couponId != null) 'couponId': couponId,
+      if (couponType != null) 'couponType': couponType,
       if (errorMessage != null) 'errorMessage': errorMessage,
       'discountAmount': discountAmount,
       'isDeliveryDiscount': isDeliveryDiscount,
@@ -91,11 +115,17 @@ class _Undefined {}
 class _CouponValidationResultImpl extends CouponValidationResult {
   _CouponValidationResultImpl({
     required bool isValid,
+    String? couponCode,
+    String? couponId,
+    String? couponType,
     String? errorMessage,
     required double discountAmount,
     required bool isDeliveryDiscount,
   }) : super._(
          isValid: isValid,
+         couponCode: couponCode,
+         couponId: couponId,
+         couponType: couponType,
          errorMessage: errorMessage,
          discountAmount: discountAmount,
          isDeliveryDiscount: isDeliveryDiscount,
@@ -107,12 +137,18 @@ class _CouponValidationResultImpl extends CouponValidationResult {
   @override
   CouponValidationResult copyWith({
     bool? isValid,
+    Object? couponCode = _Undefined,
+    Object? couponId = _Undefined,
+    Object? couponType = _Undefined,
     Object? errorMessage = _Undefined,
     double? discountAmount,
     bool? isDeliveryDiscount,
   }) {
     return CouponValidationResult(
       isValid: isValid ?? this.isValid,
+      couponCode: couponCode is String? ? couponCode : this.couponCode,
+      couponId: couponId is String? ? couponId : this.couponId,
+      couponType: couponType is String? ? couponType : this.couponType,
       errorMessage: errorMessage is String? ? errorMessage : this.errorMessage,
       discountAmount: discountAmount ?? this.discountAmount,
       isDeliveryDiscount: isDeliveryDiscount ?? this.isDeliveryDiscount,

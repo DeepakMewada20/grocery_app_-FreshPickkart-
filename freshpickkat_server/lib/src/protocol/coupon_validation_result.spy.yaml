@@ -1,6 +1,9 @@
 class: CouponValidationResult
 fields:
   isValid: bool
+  couponCode: String?
+  couponId: String?
+  couponType: String?
   errorMessage: String?
   discountAmount: double
   isDeliveryDiscount: bool

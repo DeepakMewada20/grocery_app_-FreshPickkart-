@@ -101,6 +101,9 @@ class UserEndpoint extends Endpoint {
           : null,
       role: fields['role']?.stringValue ?? 'user',
       fcmToken: fields['fcmToken']?.stringValue,
+      completedOrdersCount: int.tryParse(
+        fields['completedOrdersCount']?.integerValue ?? '',
+      ),
     );
   }
 
@@ -132,6 +135,11 @@ class UserEndpoint extends Endpoint {
     }
     if (user.fcmToken != null) {
       map['fcmToken'] = firestore_api.Value(stringValue: user.fcmToken!);
+    }
+    if (user.completedOrdersCount != null) {
+      map['completedOrdersCount'] = firestore_api.Value(
+        integerValue: user.completedOrdersCount.toString(),
+      );
     }
     return map;
   }

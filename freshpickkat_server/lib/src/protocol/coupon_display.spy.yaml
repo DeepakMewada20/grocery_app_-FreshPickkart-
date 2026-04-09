@@ -1,11 +1,18 @@
 class: CouponDisplay
 fields:
+  id: String?
   code: String
   description: String
+  type: String?
   couponCategory: String
   minOrderAmount: double
   maxDiscount: double?
+  maxDiscountAmount: double?
   discountValue: double?
   discountType: String?
   isDeliveryDiscount: bool
   isApplicable: bool
+  status: String?
+  reason: String?
+  discountAmount: double?
+  isBest: bool

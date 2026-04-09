@@ -9,15 +9,14 @@ import '../services/business/validation_service.dart';
 import '../services/notification_service.dart';
 import '../services/orders/order_idempotency_service.dart';
 import '../services/refunds/refund_service.dart';
+import '../services/coupon_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import 'package:googleapis/firestore/v1.dart' show FirestoreApi;
-
 
 class OrderEndpoint extends Endpoint {
   static const String orderCollection = 'orders';
   static const String bogoCollection = 'bogo_offers';
   static const String projectId = 'freshpickkart-a6824';
-
 
   static const String statusPending = 'pending';
   static const String statusConfirmed = 'confirmed';
@@ -81,6 +80,10 @@ class OrderEndpoint extends Endpoint {
       docPath,
       updateMask_fieldPaths: fields.keys.toList(),
     );
+
+    if (order.couponApplied != null && order.couponApplied!.trim().isNotEmpty) {
+      await CouponService.incrementCouponUsage(order.couponApplied!);
+    }
 
     return order.orderId;
   }
@@ -179,7 +182,6 @@ class OrderEndpoint extends Endpoint {
       return false;
     }
   }
-
 
   Future<List<protocol.Order>> getOrders(
     Session session, {
@@ -665,6 +667,10 @@ class OrderEndpoint extends Endpoint {
       docPath,
       updateMask_fieldPaths: updateFields.keys.toList(),
     );
+
+    if (newStatus == statusDelivered && existingOrder.userId.isNotEmpty) {
+      await _incrementCompletedOrdersCount(existingOrder.userId);
+    }
     await AuditLogService.write(
       firestore: firestore,
       actorUid: firebaseUid,
@@ -683,6 +689,34 @@ class OrderEndpoint extends Endpoint {
     }
 
     return true;
+  }
+
+  Future<void> _incrementCompletedOrdersCount(String userId) async {
+    final firestore = await FirebaseService.getFirestoreClient();
+    final userDocPath =
+        'projects/$projectId/databases/(default)/documents/users/$userId';
+    int currentCount = 0;
+
+    try {
+      final doc = await firestore.projects.databases.documents.get(userDocPath);
+      currentCount =
+          int.tryParse(
+            doc.fields?['completedOrdersCount']?.integerValue ?? '',
+          ) ??
+          0;
+    } catch (_) {}
+
+    await firestore.projects.databases.documents.patch(
+      firestore_api.Document(
+        fields: {
+          'completedOrdersCount': firestore_api.Value(
+            integerValue: (currentCount + 1).toString(),
+          ),
+        },
+      ),
+      userDocPath,
+      updateMask_fieldPaths: ['completedOrdersCount'],
+    );
   }
 
   Future<bool> updatePaymentStatus(
@@ -1062,7 +1096,6 @@ class OrderEndpoint extends Endpoint {
     );
   }
 
-
   firestore_api.Value _orderItemToFirestore(protocol.OrderItem item) {
     return firestore_api.Value(
       mapValue: firestore_api.MapValue(
@@ -1071,7 +1104,9 @@ class OrderEndpoint extends Endpoint {
           if (item.variantId != null)
             'variantId': firestore_api.Value(stringValue: item.variantId!),
           if (item.variantLabel != null)
-            'variantLabel': firestore_api.Value(stringValue: item.variantLabel!),
+            'variantLabel': firestore_api.Value(
+              stringValue: item.variantLabel!,
+            ),
           'productName': firestore_api.Value(stringValue: item.productName),
           'productImage': firestore_api.Value(stringValue: item.productImage),
           'quantity': firestore_api.Value(
@@ -1088,7 +1123,6 @@ class OrderEndpoint extends Endpoint {
       ),
     );
   }
-
 
   protocol.Address _addressFromFirestore(
     Map<String, firestore_api.Value> fields,
@@ -1123,5 +1157,6 @@ class OrderEndpoint extends Endpoint {
     return map;
   }
 }
-  final OrderIdempotencyService _orderIdempotencyService =
-      OrderIdempotencyService();
+
+final OrderIdempotencyService _orderIdempotencyService =
+    OrderIdempotencyService();

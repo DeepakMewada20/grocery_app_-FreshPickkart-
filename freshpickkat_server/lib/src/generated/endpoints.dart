@@ -1224,6 +1224,105 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['orderAmount'],
                   ),
         ),
+        'applyCoupon': _i1.MethodConnector(
+          name: 'applyCoupon',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'couponCode': _i1.ParameterDescription(
+              name: 'couponCode',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'cartSubtotal': _i1.ParameterDescription(
+              name: 'cartSubtotal',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'cartItems': _i1.ParameterDescription(
+              name: 'cartItems',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coupon'] as _i9.CouponEndpoint).applyCoupon(
+                    session,
+                    params['userId'],
+                    params['couponCode'],
+                    params['cartSubtotal'],
+                    params['cartItems'],
+                  ),
+        ),
+        'getAvailableCoupons': _i1.MethodConnector(
+          name: 'getAvailableCoupons',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'cartSubtotal': _i1.ParameterDescription(
+              name: 'cartSubtotal',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'cartItems': _i1.ParameterDescription(
+              name: 'cartItems',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coupon'] as _i9.CouponEndpoint)
+                  .getAvailableCoupons(
+                    session,
+                    params['userId'],
+                    params['cartSubtotal'],
+                    params['cartItems'],
+                  ),
+        ),
+        'getBestCoupon': _i1.MethodConnector(
+          name: 'getBestCoupon',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'cartSubtotal': _i1.ParameterDescription(
+              name: 'cartSubtotal',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'cartItems': _i1.ParameterDescription(
+              name: 'cartItems',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coupon'] as _i9.CouponEndpoint).getBestCoupon(
+                    session,
+                    params['userId'],
+                    params['cartSubtotal'],
+                    params['cartItems'],
+                  ),
+        ),
       },
     );
     connectors['freeDelivery'] = _i1.EndpointConnector(

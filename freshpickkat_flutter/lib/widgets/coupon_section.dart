@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/coupon_extensions.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 class CouponSection extends StatefulWidget {
@@ -322,37 +323,70 @@ class _CouponSectionState extends State<CouponSection> {
                 );
               }
 
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _cartController.availableCoupons.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final coupon = _cartController.availableCoupons[index];
-                  return _CouponCard(
-                    coupon: coupon,
-                    onApply: () {
-                      if (coupon.isApplicable) {
+              final applicableCoupons = _cartController.availableCoupons
+                  .where((coupon) => coupon.isApplicable)
+                  .toList();
+              final notApplicableCoupons = _cartController.availableCoupons
+                  .where((coupon) => !coupon.isApplicable)
+                  .toList();
+              final bestCoupon = _cartController.bestCoupon.value == null
+                  ? null
+                  : _cartController.availableCoupons.firstWhereOrNull(
+                      (coupon) =>
+                          coupon.code ==
+                          _cartController.bestCoupon.value!.bestCouponCode,
+                    );
+
+              final children = <Widget>[];
+              if (bestCoupon != null) {
+                children.add(_BestCouponCard(coupon: bestCoupon));
+              }
+              if (applicableCoupons.isNotEmpty) {
+                children.add(
+                  Text(
+                    'Available Coupons',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+                for (final coupon in applicableCoupons) {
+                  children.add(
+                    _CouponCard(
+                      coupon: coupon,
+                      onApply: () async {
                         _couponController.text = coupon.code;
-                        _cartController.applyCoupon(coupon.code);
+                        await _cartController.applyCoupon(coupon.code);
                         setState(() {
                           _showCouponList = false;
                         });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Minimum order of ₹${coupon.minOrderAmount.formatPrice} required for this coupon',
-                            ),
-                            backgroundColor: cs.error,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
+                      },
+                    ),
                   );
-                },
+                }
+              }
+              if (notApplicableCoupons.isNotEmpty) {
+                children.add(
+                  Text(
+                    'Not Applicable Coupons',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+                for (final coupon in notApplicableCoupons) {
+                  children.add(_CouponCard(coupon: coupon, onApply: () {}));
+                }
+              }
+
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: children.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) => children[index],
               );
             }),
           ],
@@ -391,9 +425,7 @@ class _CouponCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              coupon.isDeliveryDiscount
-                  ? Icons.local_shipping_outlined
-                  : Icons.discount_outlined,
+              Icons.discount_outlined,
               color: AppTheme.primaryGreen,
               size: 20,
             ),
@@ -424,7 +456,7 @@ class _CouponCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        coupon.isDeliveryDiscount ? 'Delivery' : 'Price',
+                        coupon.isBest ? 'Best' : (coupon.type ?? 'Coupon'),
                         style: TextStyle(
                           color: AppTheme.primaryGreen,
                           fontSize: 10,
@@ -444,6 +476,19 @@ class _CouponCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
+                  coupon.isApplicable
+                      ? coupon.displayDiscount
+                      : (coupon.reason ?? 'Not applicable'),
+                  style: TextStyle(
+                    color: coupon.isApplicable
+                        ? AppTheme.primaryGreen
+                        : cs.error,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
                   'Min. order: ₹${coupon.minOrderAmount.formatPrice}',
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.4),
@@ -454,7 +499,7 @@ class _CouponCard extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: onApply,
+            onPressed: coupon.isApplicable ? onApply : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: coupon.isApplicable
                   ? AppTheme.primaryGreen
@@ -467,13 +512,65 @@ class _CouponCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 side: coupon.isApplicable
                     ? BorderSide.none
-                    : BorderSide(color: AppTheme.primaryGreen.withOpacity(0.5)),
+                    : BorderSide(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.5),
+                      ),
               ),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const Text(
-              'Apply',
+            child: Text(
+              coupon.isApplicable ? 'Apply' : 'Locked',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BestCouponCard extends StatelessWidget {
+  const _BestCouponCard({required this.coupon});
+
+  final CouponDisplay coupon;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.primaryGreen.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Best Coupon',
+            style: TextStyle(
+              color: AppTheme.primaryGreen,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            coupon.code,
+            style: TextStyle(
+              color: cs.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            coupon.displayDiscount,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.75),
             ),
           ),
         ],

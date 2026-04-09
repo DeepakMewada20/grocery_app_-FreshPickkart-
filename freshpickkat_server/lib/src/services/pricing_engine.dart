@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
+import '../services/coupon_service.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class PricingEngine {
@@ -103,8 +104,6 @@ class PricingEngine {
     final categoryOffers = await _fetchActiveCategoryOffers();
     final comboOffers = await _fetchActiveComboOffers();
     final freeDeliveryRules = await _fetchActiveFreeDeliveryRules();
-    final allCoupons = await _fetchActiveCoupons();
-
     double effectiveSubtotal = subtotal;
 
     for (final offer in bogoOffers) {
@@ -316,87 +315,43 @@ class PricingEngine {
       }
     }
 
-    Coupon? bestAutoCoupon;
-    double bestAutoDiscount = 0;
-
-    if (autoApplyCoupons) {
-      for (final coupon in allCoupons) {
-        if (!coupon.isActive) continue;
-        final now = DateTime.now();
-        if (coupon.startDate.isAfter(now) || coupon.endDate.isBefore(now)) {
-          continue;
-        }
-        if (effectiveSubtotal < coupon.minOrderAmount) {
-          continue;
-        }
-        if (coupon.couponCategory == 'delivery') continue;
-
-        double discount = 0;
-        if (coupon.discountType == 'percentage') {
-          discount = effectiveSubtotal * (coupon.discountValue! / 100);
-          if (coupon.maxDiscount != null && discount > coupon.maxDiscount!) {
-            discount = coupon.maxDiscount!;
-          }
-        } else {
-          discount = coupon.discountValue ?? 0;
-        }
-
-        if (discount > bestAutoDiscount) {
-          bestAutoDiscount = discount;
-          bestAutoCoupon = coupon;
-        }
-      }
-    }
-
     if (appliedCouponCode != null && appliedCouponCode.isNotEmpty) {
-      final manualCoupon = _firstWhereOrNull(
-        allCoupons,
-        (c) => c.code.toUpperCase() == appliedCouponCode.toUpperCase(),
+      final manualCoupon = await CouponService.applyCoupon(
+        userId: '',
+        couponCode: appliedCouponCode,
+        cartSubtotal: effectiveSubtotal,
+        cartItems: items,
       );
+      if (manualCoupon.isValid && manualCoupon.discountAmount > 0) {
+        result.couponDiscount = manualCoupon.discountAmount;
+        effectiveSubtotal -= manualCoupon.discountAmount;
+        result.totalSavings += manualCoupon.discountAmount;
 
-      if (manualCoupon != null && manualCoupon.isActive) {
-        final now = DateTime.now();
-        final isValid =
-            !manualCoupon.startDate.isAfter(now) &&
-            !manualCoupon.endDate.isBefore(now);
-
-        if (isValid && manualCoupon.couponCategory != 'delivery') {
-          double discount = 0;
-          if (manualCoupon.discountType == 'percentage') {
-            discount = effectiveSubtotal * (manualCoupon.discountValue! / 100);
-            if (manualCoupon.maxDiscount != null &&
-                discount > manualCoupon.maxDiscount!) {
-              discount = manualCoupon.maxDiscount!;
-            }
-          } else {
-            discount = manualCoupon.discountValue ?? 0;
-          }
-
-          if (discount > 0) {
-            result.couponDiscount = discount;
-            effectiveSubtotal -= discount;
-            result.totalSavings += discount;
-
-            result.appliedCoupon = AppliedCouponInfo(
-              couponId: manualCoupon.code,
-              couponCode: manualCoupon.code,
-              discountAmount: discount,
-              isAutoApplied: false,
-            );
-          }
-        }
+        result.appliedCoupon = AppliedCouponInfo(
+          couponId: manualCoupon.couponId ?? manualCoupon.couponCode ?? '',
+          couponCode: manualCoupon.couponCode ?? appliedCouponCode,
+          discountAmount: manualCoupon.discountAmount,
+          isAutoApplied: false,
+        );
       }
-    } else if (bestAutoCoupon != null && bestAutoDiscount > 0) {
-      result.couponDiscount = bestAutoDiscount;
-      effectiveSubtotal -= bestAutoDiscount;
-      result.totalSavings += bestAutoDiscount;
-
-      result.appliedCoupon = AppliedCouponInfo(
-        couponId: bestAutoCoupon.code,
-        couponCode: bestAutoCoupon.code,
-        discountAmount: bestAutoDiscount,
-        isAutoApplied: true,
+    } else if (autoApplyCoupons) {
+      final bestCoupon = await CouponService.getBestCoupon(
+        userId: '',
+        cartSubtotal: effectiveSubtotal,
+        cartItems: items,
       );
+      if (bestCoupon.bestCouponCode != null && bestCoupon.discountAmount > 0) {
+        result.couponDiscount = bestCoupon.discountAmount;
+        effectiveSubtotal -= bestCoupon.discountAmount;
+        result.totalSavings += bestCoupon.discountAmount;
+
+        result.appliedCoupon = AppliedCouponInfo(
+          couponId: bestCoupon.bestCouponCode!,
+          couponCode: bestCoupon.bestCouponCode!,
+          discountAmount: bestCoupon.discountAmount,
+          isAutoApplied: true,
+        );
+      }
     }
 
     double totalAmount = effectiveSubtotal + result.deliveryFee;
@@ -951,78 +906,6 @@ class PricingEngine {
         }
       }
       return rules;
-    } catch (_) {
-      return [];
-    }
-  }
-
-  static Future<List<Coupon>> _fetchActiveCoupons() async {
-    try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      final database = 'projects/$_projectId/databases/(default)/documents';
-
-      final query = firestore_api.StructuredQuery(
-        from: [firestore_api.CollectionSelector(collectionId: 'coupons')],
-        where: firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'isActive'),
-            op: 'EQUAL',
-            value: firestore_api.Value(booleanValue: true),
-          ),
-        ),
-      );
-
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        database,
-      );
-
-      final coupons = <Coupon>[];
-      for (final res in response) {
-        if (res.document?.fields != null) {
-          final fields = res.document!.fields!;
-          coupons.add(
-            Coupon(
-              code: fields['code']?.stringValue ?? '',
-              description: fields['description']?.stringValue ?? '',
-              discountType: fields['discountType']?.stringValue,
-              discountValue: double.tryParse(
-                fields['discountValue']?.doubleValue?.toString() ??
-                    fields['discountValue']?.integerValue ??
-                    '',
-              ),
-              minOrderAmount:
-                  double.tryParse(
-                    fields['minOrderAmount']?.doubleValue?.toString() ??
-                        fields['minOrderAmount']?.integerValue ??
-                        '0',
-                  ) ??
-                  0,
-              maxDiscount: double.tryParse(
-                fields['maxDiscount']?.doubleValue?.toString() ??
-                    fields['maxDiscount']?.integerValue ??
-                    '',
-              ),
-              startDate:
-                  DateTime.tryParse(
-                    fields['startDate']?.timestampValue ?? '',
-                  ) ??
-                  DateTime.now(),
-              endDate:
-                  DateTime.tryParse(fields['endDate']?.timestampValue ?? '') ??
-                  DateTime.now().add(Duration(days: 30)),
-              usageLimit: int.tryParse(
-                fields['usageLimit']?.integerValue ?? '',
-              ),
-              usedCount:
-                  int.tryParse(fields['usedCount']?.integerValue ?? '0') ?? 0,
-              isActive: fields['isActive']?.booleanValue ?? true,
-              couponCategory: fields['couponCategory']?.stringValue ?? 'All',
-            ),
-          );
-        }
-      }
-      return coupons;
     } catch (_) {
       return [];
     }
