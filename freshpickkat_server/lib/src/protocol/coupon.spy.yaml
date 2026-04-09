@@ -4,7 +4,6 @@ fields:
   code: String
   description: String
   type: String?
-  discountType: String?
   discountValue: double?
   minOrderAmount: double
   maxDiscount: double?

@@ -47,6 +47,7 @@ coupon:
   - uploadCoupon:
   - setCouponActive:
   - updateCoupon:
+  - deleteCoupon:
   - fetchApplicableCoupons:
   - validateCoupon:
   - applyCoupon:

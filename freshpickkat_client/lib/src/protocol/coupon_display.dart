@@ -23,7 +23,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
     this.maxDiscount,
     this.maxDiscountAmount,
     this.discountValue,
-    this.discountType,
     required this.isDeliveryDiscount,
     required this.isApplicable,
     this.status,
@@ -42,7 +41,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
     double? maxDiscount,
     double? maxDiscountAmount,
     double? discountValue,
-    String? discountType,
     required bool isDeliveryDiscount,
     required bool isApplicable,
     String? status,
@@ -63,7 +61,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
       maxDiscountAmount: (jsonSerialization['maxDiscountAmount'] as num?)
           ?.toDouble(),
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
-      discountType: jsonSerialization['discountType'] as String?,
       isDeliveryDiscount: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['isDeliveryDiscount'],
       ),
@@ -95,8 +92,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
 
   double? discountValue;
 
-  String? discountType;
-
   bool isDeliveryDiscount;
 
   bool isApplicable;
@@ -122,7 +117,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
     double? maxDiscount,
     double? maxDiscountAmount,
     double? discountValue,
-    String? discountType,
     bool? isDeliveryDiscount,
     bool? isApplicable,
     String? status,
@@ -143,7 +137,6 @@ abstract class CouponDisplay implements _i1.SerializableModel {
       if (maxDiscount != null) 'maxDiscount': maxDiscount,
       if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
       if (discountValue != null) 'discountValue': discountValue,
-      if (discountType != null) 'discountType': discountType,
       'isDeliveryDiscount': isDeliveryDiscount,
       'isApplicable': isApplicable,
       if (status != null) 'status': status,
@@ -172,7 +165,6 @@ class _CouponDisplayImpl extends CouponDisplay {
     double? maxDiscount,
     double? maxDiscountAmount,
     double? discountValue,
-    String? discountType,
     required bool isDeliveryDiscount,
     required bool isApplicable,
     String? status,
@@ -189,7 +181,6 @@ class _CouponDisplayImpl extends CouponDisplay {
          maxDiscount: maxDiscount,
          maxDiscountAmount: maxDiscountAmount,
          discountValue: discountValue,
-         discountType: discountType,
          isDeliveryDiscount: isDeliveryDiscount,
          isApplicable: isApplicable,
          status: status,
@@ -212,7 +203,6 @@ class _CouponDisplayImpl extends CouponDisplay {
     Object? maxDiscount = _Undefined,
     Object? maxDiscountAmount = _Undefined,
     Object? discountValue = _Undefined,
-    Object? discountType = _Undefined,
     bool? isDeliveryDiscount,
     bool? isApplicable,
     Object? status = _Undefined,
@@ -234,7 +224,6 @@ class _CouponDisplayImpl extends CouponDisplay {
       discountValue: discountValue is double?
           ? discountValue
           : this.discountValue,
-      discountType: discountType is String? ? discountType : this.discountType,
       isDeliveryDiscount: isDeliveryDiscount ?? this.isDeliveryDiscount,
       isApplicable: isApplicable ?? this.isApplicable,
       status: status is String? ? status : this.status,

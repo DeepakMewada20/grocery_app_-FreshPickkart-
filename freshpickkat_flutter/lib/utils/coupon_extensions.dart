@@ -7,12 +7,10 @@ extension CouponDisplayExtension on CouponDisplay {
       return 'Save ₹${discountAmount!.formatPrice}';
     }
 
-    if (discountType == 'flat') {
-      return '₹${(discountValue ?? 0).formatPrice} off';
-    } else if (discountType == 'percentage') {
+    if (type == 'PERCENTAGE_DISCOUNT') {
       final maxValue = maxDiscountAmount ?? maxDiscount;
       return '${(discountValue ?? 0).formatPrice}% off${maxValue != null ? ' (max ₹${maxValue.formatPrice})' : ''}';
     }
-    return 'Save on subtotal';
+    return '₹${(discountValue ?? 0).formatPrice} off';
   }
 }

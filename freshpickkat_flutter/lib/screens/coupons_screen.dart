@@ -443,11 +443,11 @@ class CouponListCard extends StatelessWidget {
                         ),
                         if (coupon.discountValue != null)
                           _detail(
-                            icon: coupon.discountType == 'percentage'
+                            icon: coupon.type == 'PERCENTAGE_DISCOUNT'
                                 ? Icons.percent
                                 : Icons.currency_rupee,
                             label: 'Discount',
-                            value: coupon.discountType == 'percentage'
+                            value: coupon.type == 'PERCENTAGE_DISCOUNT'
                                 ? '${coupon.discountValue!.formatPrice}% OFF'
                                 : '₹${coupon.discountValue!.formatPrice} OFF',
                             cs: cs,

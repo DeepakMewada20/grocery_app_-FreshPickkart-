@@ -202,10 +202,6 @@ class CouponService {
 
   static Map<String, firestore_api.Value> toFirestoreFields(Coupon coupon) {
     final normalizedType = _resolveCouponType(coupon);
-    final normalizedDiscountType = _resolveDiscountType(
-      coupon,
-      normalizedType,
-    );
     final maxDiscount = (coupon.maxDiscountAmount ?? coupon.maxDiscount)
         ?.toDouble();
     final expiryDate = coupon.expiryDate ?? coupon.endDate;
@@ -215,7 +211,6 @@ class CouponService {
       'code': firestore_api.Value(stringValue: coupon.code.toUpperCase()),
       'description': firestore_api.Value(stringValue: coupon.description),
       'type': firestore_api.Value(stringValue: normalizedType),
-      'discountType': firestore_api.Value(stringValue: normalizedDiscountType),
       'discountValue': coupon.discountValue != null
           ? firestore_api.Value(doubleValue: coupon.discountValue)
           : firestore_api.Value(nullValue: 'NULL_VALUE'),
@@ -281,8 +276,7 @@ class CouponService {
       id: fields['id']?.stringValue ?? documentId,
       code: fields['code']?.stringValue ?? '',
       description: fields['description']?.stringValue ?? '',
-      type: fields['type']?.stringValue,
-      discountType: fields['discountType']?.stringValue,
+      type: _resolveCouponTypeFromFields(fields),
       discountValue: _getDouble(fields, 'discountValue'),
       minOrderAmount: _getDouble(fields, 'minOrderAmount') ?? 0,
       maxDiscount: maxDiscountAmount,
@@ -319,7 +313,6 @@ class CouponService {
       maxDiscount: coupon.maxDiscountAmount ?? coupon.maxDiscount,
       maxDiscountAmount: coupon.maxDiscountAmount ?? coupon.maxDiscount,
       discountValue: coupon.discountValue,
-      discountType: coupon.discountType,
       isDeliveryDiscount: false,
       isApplicable: evaluation.isApplicable,
       status: evaluation.isApplicable ? 'applicable' : 'not_applicable',
@@ -499,7 +492,7 @@ class CouponService {
   }) {
     if (eligibleSubtotal <= 0) return 0;
 
-    final normalizedDiscountType = _resolveDiscountType(coupon, couponType);
+    final normalizedDiscountType = _resolveDiscountType(couponType);
     final maxDiscount = coupon.maxDiscountAmount ?? coupon.maxDiscount;
     double discount = 0;
 
@@ -518,11 +511,7 @@ class CouponService {
     return discount;
   }
 
-  static String _resolveDiscountType(Coupon coupon, String couponType) {
-    final explicitType = coupon.discountType?.toLowerCase().trim();
-    if (explicitType == 'percentage' || explicitType == 'flat') {
-      return explicitType!;
-    }
+  static String _resolveDiscountType(String couponType) {
     return couponType == 'PERCENTAGE_DISCOUNT' ? 'percentage' : 'flat';
   }
 
@@ -531,16 +520,15 @@ class CouponService {
     if (explicitType != null && explicitType.isNotEmpty) {
       return explicitType.toUpperCase();
     }
+    return 'FLAT_DISCOUNT';
+  }
 
-    final discountType = coupon.discountType?.toLowerCase().trim();
-    if ((coupon.productIds ?? const <String>[]).isNotEmpty) {
-      return 'PRODUCT_BASED';
-    }
-    if ((coupon.loyaltyRequiredOrders ?? 0) > 0) {
-      return 'LOYALTY';
-    }
-    if (discountType == 'percentage') {
-      return 'PERCENTAGE_DISCOUNT';
+  static String _resolveCouponTypeFromFields(
+    Map<String, firestore_api.Value> fields,
+  ) {
+    final explicitType = fields['type']?.stringValue?.trim();
+    if (explicitType != null && explicitType.isNotEmpty) {
+      return explicitType.toUpperCase();
     }
     return 'FLAT_DISCOUNT';
   }

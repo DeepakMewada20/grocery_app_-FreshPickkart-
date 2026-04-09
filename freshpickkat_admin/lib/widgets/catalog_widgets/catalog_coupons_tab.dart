@@ -13,6 +13,7 @@ class CatalogCouponsTab extends StatelessWidget {
     required this.onSearchChanged,
     required this.onCreateCoupon,
     required this.onEditCoupon,
+    required this.onDeleteCoupon,
   });
 
   final AdminCouponController controller;
@@ -20,6 +21,7 @@ class CatalogCouponsTab extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onCreateCoupon;
   final ValueChanged<Coupon> onEditCoupon;
+  final ValueChanged<Coupon> onDeleteCoupon;
 
   String _couponTypeLabel(Coupon coupon) {
     if (coupon.type != null && coupon.type!.trim().isNotEmpty) {
@@ -30,9 +32,6 @@ class CatalogCouponsTab extends StatelessWidget {
     }
     if ((coupon.loyaltyRequiredOrders ?? 0) > 0) {
       return 'LOYALTY';
-    }
-    if ((coupon.discountType ?? '').toLowerCase() == 'percentage') {
-      return 'PERCENTAGE_DISCOUNT';
     }
     return 'FLAT_DISCOUNT';
   }
@@ -263,6 +262,11 @@ class CatalogCouponsTab extends StatelessWidget {
                               icon: const Icon(Icons.edit_outlined),
                               tooltip: 'Edit',
                             ),
+                            IconButton(
+                              onPressed: () => onDeleteCoupon(coupon),
+                              icon: const Icon(Icons.delete_outline),
+                              tooltip: 'Delete',
+                            ),
                           ],
                         ),
                       ],
@@ -411,7 +415,6 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       code: _codeCtrl.text.trim().toUpperCase(),
       description: _descCtrl.text.trim(),
       type: _couponType,
-      discountType: _resolvedDiscountType(_couponType),
       discountValue: double.parse(_discountValueCtrl.text.trim()),
       minOrderAmount: double.parse(_minOrderCtrl.text.trim()),
       maxDiscount: maxDiscount,
@@ -866,15 +869,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     if ((coupon?.loyaltyRequiredOrders ?? 0) > 0) {
       return 'LOYALTY';
     }
-    if ((coupon?.discountType ?? '').toLowerCase() == 'percentage') {
-      return 'PERCENTAGE_DISCOUNT';
-    }
     return 'FLAT_DISCOUNT';
-  }
-
-  String _resolvedDiscountType(String couponType) {
-    if (couponType == 'PERCENTAGE_DISCOUNT') return 'percentage';
-    return 'flat';
   }
 
   List<String> _parseProductIds(String raw) {
@@ -914,6 +909,48 @@ Future<void> showEditCouponDialog({
       );
     },
   );
+}
+
+Future<void> showDeleteCouponDialog({
+  required BuildContext context,
+  required AdminCouponController controller,
+  required Coupon coupon,
+}) async {
+  final shouldDelete = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: Text('Delete ${coupon.code}?'),
+        content: const Text(
+          'This will permanently remove the coupon from Firestore.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (shouldDelete != true) return;
+
+  try {
+    final ok = await controller.deleteCoupon(coupon.code);
+    if (!context.mounted) return;
+    _showCatalogCouponSnackBar(
+      context,
+      ok ? 'Coupon deleted' : 'Delete failed',
+    );
+  } catch (error) {
+    if (!context.mounted) return;
+    _showCatalogCouponSnackBar(context, 'Failed to delete coupon: $error');
+  }
 }
 
 String? _catalogNumberValidator(String? value) {

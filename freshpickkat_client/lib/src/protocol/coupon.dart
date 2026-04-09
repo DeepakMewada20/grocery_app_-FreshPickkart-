@@ -19,7 +19,6 @@ abstract class Coupon implements _i1.SerializableModel {
     required this.code,
     required this.description,
     this.type,
-    this.discountType,
     this.discountValue,
     required this.minOrderAmount,
     this.maxDiscount,
@@ -40,7 +39,6 @@ abstract class Coupon implements _i1.SerializableModel {
     required String code,
     required String description,
     String? type,
-    String? discountType,
     double? discountValue,
     required double minOrderAmount,
     double? maxDiscount,
@@ -62,7 +60,6 @@ abstract class Coupon implements _i1.SerializableModel {
       code: jsonSerialization['code'] as String,
       description: jsonSerialization['description'] as String,
       type: jsonSerialization['type'] as String?,
-      discountType: jsonSerialization['discountType'] as String?,
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
       minOrderAmount: (jsonSerialization['minOrderAmount'] as num).toDouble(),
       maxDiscount: (jsonSerialization['maxDiscount'] as num?)?.toDouble(),
@@ -95,8 +92,6 @@ abstract class Coupon implements _i1.SerializableModel {
   String description;
 
   String? type;
-
-  String? discountType;
 
   double? discountValue;
 
@@ -132,7 +127,6 @@ abstract class Coupon implements _i1.SerializableModel {
     String? code,
     String? description,
     String? type,
-    String? discountType,
     double? discountValue,
     double? minOrderAmount,
     double? maxDiscount,
@@ -155,7 +149,6 @@ abstract class Coupon implements _i1.SerializableModel {
       'code': code,
       'description': description,
       if (type != null) 'type': type,
-      if (discountType != null) 'discountType': discountType,
       if (discountValue != null) 'discountValue': discountValue,
       'minOrderAmount': minOrderAmount,
       if (maxDiscount != null) 'maxDiscount': maxDiscount,
@@ -187,7 +180,6 @@ class _CouponImpl extends Coupon {
     required String code,
     required String description,
     String? type,
-    String? discountType,
     double? discountValue,
     required double minOrderAmount,
     double? maxDiscount,
@@ -206,7 +198,6 @@ class _CouponImpl extends Coupon {
          code: code,
          description: description,
          type: type,
-         discountType: discountType,
          discountValue: discountValue,
          minOrderAmount: minOrderAmount,
          maxDiscount: maxDiscount,
@@ -231,7 +222,6 @@ class _CouponImpl extends Coupon {
     String? code,
     String? description,
     Object? type = _Undefined,
-    Object? discountType = _Undefined,
     Object? discountValue = _Undefined,
     double? minOrderAmount,
     Object? maxDiscount = _Undefined,
@@ -251,7 +241,6 @@ class _CouponImpl extends Coupon {
       code: code ?? this.code,
       description: description ?? this.description,
       type: type is String? ? type : this.type,
-      discountType: discountType is String? ? discountType : this.discountType,
       discountValue: discountValue is double?
           ? discountValue
           : this.discountValue,

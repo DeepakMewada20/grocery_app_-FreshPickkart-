@@ -682,54 +682,63 @@ class _BasketScreenState extends State<BasketScreen> {
           ),
           const SizedBox(height: 20),
           _buildBillRow(
-            'Item Total',
+            'MRP Total',
+            '₹${cartController.mrpTotal.formatPrice}',
+            cs: cs,
+          ),
+          if (cartController.productDiscountTotal > 0) ...[
+            const SizedBox(height: 12),
+            _buildBillRow(
+              'Product Discount',
+              '-₹${cartController.productDiscountTotal.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if (cartController.comboDiscountTotal > 0) ...[
+            const SizedBox(height: 12),
+            _buildBillRow(
+              'Combo Discount',
+              '-₹${cartController.comboDiscountTotal.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          const SizedBox(height: 12),
+          _buildBillRow(
+            'Subtotal After Discounts',
             '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.couponDiscount > 0) ...[
             const SizedBox(height: 12),
-            Obx(
-              () => _buildBillRow(
-                'Coupon Discount',
-                '-₹${cartController.couponDiscount.formatPrice}',
-                valueColor: Colors.green,
-                cs: cs,
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Obx(
-            () => _buildBillRow(
-              'Delivery Fee',
-              cartController.deliveryFee == 0
-                  ? 'FREE'
-                  : '₹${cartController.deliveryFee.formatPrice}',
-              valueColor: cartController.deliveryFee == 0
-                  ? Colors.green
-                  : cs.onSurface,
-              cs: cs,
-            ),
-          ),
-          if (cartController.totalSavings > 0) ...[
-            const SizedBox(height: 12),
             _buildBillRow(
-              'Total Savings',
-              '-₹${cartController.totalSavings.formatPrice}',
+              'Coupon Discount',
+              '-₹${cartController.couponDiscount.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
           ],
+          const SizedBox(height: 12),
+          _buildBillRow(
+            'Delivery Fee',
+            cartController.deliveryFee == 0
+                ? 'FREE'
+                : '₹${cartController.deliveryFee.formatPrice}',
+            valueColor: cartController.deliveryFee == 0
+                ? Colors.green
+                : cs.onSurface,
+            cs: cs,
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: cs.outlineVariant),
           ),
-          Obx(
-            () => _buildBillRow(
-              'To Pay',
-              '₹${cartController.totalAmount.formatPrice}',
-              isTotal: true,
-              cs: cs,
-            ),
+          _buildBillRow(
+            'To Pay',
+            '₹${cartController.totalAmount.formatPrice}',
+            isTotal: true,
+            cs: cs,
           ),
         ],
       ),
@@ -806,13 +815,11 @@ class _BasketScreenState extends State<BasketScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Obx(
-                  () => Text(
-                    '₹${cartController.totalAmount.formatPrice}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  '₹${cartController.totalAmount.formatPrice}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Text(

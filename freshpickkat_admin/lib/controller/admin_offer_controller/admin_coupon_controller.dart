@@ -11,8 +11,10 @@ class AdminCouponController extends GetxController {
       Get.find<AdminCouponController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminCouponController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminCouponController',
+  );
 
   final RxList<Coupon> coupons = <Coupon>[].obs;
   final RxBool isLoading = false.obs;
@@ -107,6 +109,24 @@ class AdminCouponController extends GetxController {
         if (index != -1) {
           coupons[index] = updated;
         }
+      }
+      return ok;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> deleteCoupon(String code) async {
+    try {
+      final ok = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: true,
+        );
+        return await _client.coupon.deleteCoupon(code, uid, idToken);
+      });
+      if (ok) {
+        coupons.removeWhere((c) => c.code == code);
       }
       return ok;
     } catch (e) {

@@ -73,57 +73,25 @@ class _CouponSectionState extends State<CouponSection> {
                   ),
                 ],
               ),
-              Obx(() {
-                if (_cartController.appliedCoupon.value != null) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _cartController.appliedCoupon.value!.code,
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _showCouponList = !_showCouponList;
-                      if (_showCouponList) {
-                        _cartController.fetchAvailableCoupons();
-                      }
-                    });
-                  },
-                  child: Text(
-                    _showCouponList ? 'Hide coupons' : 'View available',
-                    style: TextStyle(
-                      color: AppTheme.primaryGreen,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+              GestureDetector(
+                onTap: () async {
+                  setState(() {
+                    _showCouponList = !_showCouponList;
+                  });
+                  if (_showCouponList &&
+                      !_cartController.hasCouponDataForCurrentCart) {
+                    await _cartController.ensureAvailableCouponsLoaded();
+                  }
+                },
+                child: Text(
+                  _showCouponList ? 'Hide coupons' : 'View available',
+                  style: TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
-                );
-              }),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -230,8 +198,17 @@ class _CouponSectionState extends State<CouponSection> {
                     const SizedBox(width: 12),
                     Obx(() {
                       final isEmpty = _inputText.value.trim().isEmpty;
+                      final isApplying = _cartController.isApplyingCoupon.value;
+                      final typedCode = _couponController.text
+                          .trim()
+                          .toUpperCase();
+                      final isApplyingTypedCoupon =
+                          isApplying &&
+                          typedCode.isNotEmpty &&
+                          _cartController.applyingCouponCode.value == typedCode;
                       return ElevatedButton(
-                        onPressed: _cartController.isLoadingCoupons.value
+                        onPressed:
+                            _cartController.isLoadingCoupons.value || isApplying
                             ? null
                             : () async {
                                 if (isEmpty) {
@@ -274,10 +251,21 @@ class _CouponSectionState extends State<CouponSection> {
                           ),
                           elevation: isEmpty ? 0 : 2,
                         ),
-                        child: const Text(
-                          'Apply',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                        child: isApplyingTypedCoupon
+                            ? SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: isEmpty
+                                      ? cs.onInverseSurface
+                                      : cs.onPrimary,
+                                ),
+                              )
+                            : const Text(
+                                'Apply',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                       );
                     }),
                   ],
@@ -339,7 +327,20 @@ class _CouponSectionState extends State<CouponSection> {
 
               final children = <Widget>[];
               if (bestCoupon != null) {
-                children.add(_BestCouponCard(coupon: bestCoupon));
+                children.add(
+                  _BestCouponCard(
+                    coupon: bestCoupon,
+                    onApply: () async {
+                      _couponController.text = bestCoupon.code;
+                      await _cartController.applyCoupon(bestCoupon.code);
+                      if (_cartController.couponError.value.isEmpty) {
+                        setState(() {
+                          _showCouponList = false;
+                        });
+                      }
+                    },
+                  ),
+                );
               }
               if (applicableCoupons.isNotEmpty) {
                 children.add(
@@ -377,7 +378,9 @@ class _CouponSectionState extends State<CouponSection> {
                   ),
                 );
                 for (final coupon in notApplicableCoupons) {
-                  children.add(_CouponCard(coupon: coupon, onApply: () {}));
+                  children.add(
+                    _CouponCard(coupon: coupon, onApply: () async {}),
+                  );
                 }
               }
 
@@ -398,16 +401,39 @@ class _CouponSectionState extends State<CouponSection> {
 
 class _CouponCard extends StatelessWidget {
   final CouponDisplay coupon;
-  final VoidCallback onApply;
+  final Future<void> Function() onApply;
 
   const _CouponCard({
     required this.coupon,
     required this.onApply,
   });
 
+  String _couponBadgeLabel() {
+    if (coupon.isBest) return 'Best';
+
+    switch (coupon.type) {
+      case 'FIRST_ORDER':
+        return 'First Order';
+      case 'PERCENTAGE_DISCOUNT':
+        return '% Off';
+      case 'FLAT_DISCOUNT':
+        return 'Flat Off';
+      case 'LIMITED_TIME':
+        return 'Limited Time';
+      case 'LOYALTY':
+        return 'Loyalty';
+      case 'PRODUCT_BASED':
+        return 'Product';
+      default:
+        return 'Coupon';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cartController = CartController.instance;
     final cs = Theme.of(context).colorScheme;
+    final normalizedCode = coupon.code.trim().toUpperCase();
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -435,7 +461,10 @@ class _CouponCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       coupon.code,
@@ -445,7 +474,6 @@ class _CouponCard extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -456,7 +484,7 @@ class _CouponCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        coupon.isBest ? 'Best' : (coupon.type ?? 'Coupon'),
+                        _couponBadgeLabel(),
                         style: TextStyle(
                           color: AppTheme.primaryGreen,
                           fontSize: 10,
@@ -498,30 +526,62 @@ class _CouponCard extends StatelessWidget {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: coupon.isApplicable ? onApply : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: coupon.isApplicable
-                  ? AppTheme.primaryGreen
-                  : cs.surface,
-              foregroundColor: coupon.isApplicable ? cs.onPrimary : cs.primary,
-              elevation: coupon.isApplicable ? 2 : 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: const Size(60, 32),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: coupon.isApplicable
-                    ? BorderSide.none
-                    : BorderSide(
-                        color: AppTheme.primaryGreen.withValues(alpha: 0.5),
+          Obx(
+            () {
+              final isApplyingThisCoupon =
+                  cartController.isApplyingCoupon.value &&
+                  cartController.applyingCouponCode.value == normalizedCode;
+              return ElevatedButton(
+                onPressed:
+                    coupon.isApplicable &&
+                        !cartController.isApplyingCoupon.value
+                    ? () async {
+                        await onApply();
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: coupon.isApplicable
+                      ? AppTheme.primaryGreen
+                      : cs.surface,
+                  foregroundColor: coupon.isApplicable
+                      ? cs.onPrimary
+                      : cs.primary,
+                  elevation: coupon.isApplicable ? 2 : 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  minimumSize: const Size(60, 32),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: coupon.isApplicable
+                        ? BorderSide.none
+                        : BorderSide(
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.5),
+                          ),
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: isApplyingThisCoupon
+                    ? SizedBox(
+                        height: 14,
+                        width: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: coupon.isApplicable
+                              ? cs.onPrimary
+                              : cs.primary,
+                        ),
+                      )
+                    : Text(
+                        coupon.isApplicable ? 'Apply' : 'Locked',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-              ),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              coupon.isApplicable ? 'Apply' : 'Locked',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -530,13 +590,16 @@ class _CouponCard extends StatelessWidget {
 }
 
 class _BestCouponCard extends StatelessWidget {
-  const _BestCouponCard({required this.coupon});
+  const _BestCouponCard({required this.coupon, required this.onApply});
 
   final CouponDisplay coupon;
+  final Future<void> Function() onApply;
 
   @override
   Widget build(BuildContext context) {
+    final cartController = CartController.instance;
     final cs = Theme.of(context).colorScheme;
+    final normalizedCode = coupon.code.trim().toUpperCase();
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -572,6 +635,44 @@ class _BestCouponCard extends StatelessWidget {
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.75),
             ),
+          ),
+          const SizedBox(height: 10),
+          Obx(
+            () {
+              final isApplyingThisCoupon =
+                  cartController.isApplyingCoupon.value &&
+                  cartController.applyingCouponCode.value == normalizedCode;
+              return SizedBox(
+                height: 38,
+                child: ElevatedButton(
+                  onPressed: cartController.isApplyingCoupon.value
+                      ? null
+                      : () async {
+                          await onApply();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: cs.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: isApplyingThisCoupon
+                      ? SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: cs.onPrimary,
+                          ),
+                        )
+                      : const Text(
+                          'Apply Best Coupon',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              );
+            },
           ),
         ],
       ),

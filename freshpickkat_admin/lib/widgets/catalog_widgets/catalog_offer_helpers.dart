@@ -9,7 +9,7 @@ List<Coupon> filterCatalogCoupons(List<Coupon> coupons, String query) {
     return coupon.code.toLowerCase().contains(normalized) ||
         coupon.description.toLowerCase().contains(normalized) ||
         coupon.couponCategory.toLowerCase().contains(normalized) ||
-        (coupon.discountType ?? '').toLowerCase().contains(normalized);
+        (coupon.type ?? '').toLowerCase().contains(normalized);
   }).toList();
 }
 
@@ -35,10 +35,7 @@ List<Product> filterCatalogOfferProducts({
         categoryOffers: categoryOffers,
         comboOffers: comboOffers,
       ),
-      'bogo' => hasCatalogConfiguredBogoOffer(
-        product,
-        bogoOffers: bogoOffers,
-      ),
+      'bogo' => hasCatalogConfiguredBogoOffer(product, bogoOffers: bogoOffers),
       'category_offer' => hasCatalogLiveCategoryOffer(
         product,
         categoryOffers: categoryOffers,
@@ -135,11 +132,13 @@ bool hasCatalogActivePercentageOffer(Product product) {
 }
 
 bool hasCatalogConfiguredFlatOffer(Product product) {
-  if (isCatalogBogoOffer(product) || hasCatalogConfiguredPercentageOffer(product)) {
+  if (isCatalogBogoOffer(product) ||
+      hasCatalogConfiguredPercentageOffer(product)) {
     return false;
   }
   if (product.discountType == 'flat') {
-    return (product.discountValue ?? 0) > 0 || catalogFlatDiscountValue(product) > 0;
+    return (product.discountValue ?? 0) > 0 ||
+        catalogFlatDiscountValue(product) > 0;
   }
   if (product.discountType == 'percentage') return false;
   return catalogFlatDiscountValue(product) > 0;
@@ -165,20 +164,11 @@ bool hasCatalogAnyLiveOffer(
   required List<CategoryOffer> categoryOffers,
   required List<ComboOffer> comboOffers,
 }) {
-  return hasCatalogLiveBogoOffer(
-        product,
-        bogoOffers: bogoOffers,
-      ) ||
+  return hasCatalogLiveBogoOffer(product, bogoOffers: bogoOffers) ||
       hasCatalogActivePercentageOffer(product) ||
       hasCatalogActiveFlatOffer(product) ||
-      hasCatalogLiveCategoryOffer(
-        product,
-        categoryOffers: categoryOffers,
-      ) ||
-      hasCatalogLiveComboOffer(
-        product,
-        comboOffers: comboOffers,
-      );
+      hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers) ||
+      hasCatalogLiveComboOffer(product, comboOffers: comboOffers);
 }
 
 bool hasCatalogLiveCategoryOffer(
@@ -314,8 +304,8 @@ String catalogDateLabel(DateTime value) {
 }
 
 String catalogCouponValueLabel(Coupon coupon) {
-  if (coupon.discountValue == null) return 'Free delivery';
-  if (coupon.discountType == 'percentage') {
+  if (coupon.discountValue == null) return 'N/A';
+  if (coupon.type == 'PERCENTAGE_DISCOUNT') {
     return '${coupon.discountValue!.toStringAsFixed(0)}%';
   }
   return '₹${coupon.discountValue!.toStringAsFixed(0)}';

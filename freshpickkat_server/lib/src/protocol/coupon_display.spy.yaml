@@ -9,7 +9,6 @@ fields:
   maxDiscount: double?
   maxDiscountAmount: double?
   discountValue: double?
-  discountType: String?
   isDeliveryDiscount: bool
   isApplicable: bool
   status: String?

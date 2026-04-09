@@ -394,7 +394,11 @@ class CartController extends GetxController {
   final RxList<CouponDisplay> availableCoupons = <CouponDisplay>[].obs;
   final Rxn<BestCouponResult> bestCoupon = Rxn<BestCouponResult>();
   final RxBool isLoadingCoupons = false.obs;
+  final RxBool isApplyingCoupon = false.obs;
+  final RxnString applyingCouponCode = RxnString();
   final RxString couponError = ''.obs;
+  String? _couponCacheKey;
+  bool _hasCouponCacheForCurrentCart = false;
 
   double get subtotal {
     final regularTotal = regularCartItems.fold<double>(
@@ -408,17 +412,30 @@ class CartController extends GetxController {
     return regularTotal + comboTotal;
   }
 
+  double get mrpTotal {
+    return cartItems.fold<double>(
+      0,
+      (sum, item) => sum + (item.product.realPrice * item.quantity),
+    );
+  }
+
+  double get productDiscountTotal {
+    return cartItems.fold<double>(
+      0,
+      (sum, item) {
+        final savings = item.product.realPrice - item.product.price;
+        if (savings <= 0) return sum;
+        return sum + (savings * item.quantity);
+      },
+    );
+  }
+
+  double get comboDiscountTotal {
+    return comboGroups.fold<double>(0, (sum, group) => sum + group.savings);
+  }
+
   double get totalSavings {
-    final regularSavings = regularCartItems.fold<double>(
-      0,
-      (sum, item) =>
-          sum + ((item.product.realPrice - item.product.price) * item.quantity),
-    );
-    final comboSavings = comboGroups.fold<double>(
-      0,
-      (sum, group) => sum + group.savings,
-    );
-    return regularSavings + comboSavings;
+    return productDiscountTotal + comboDiscountTotal;
   }
 
   double get deliveryFee {
@@ -440,11 +457,20 @@ class CartController extends GetxController {
     return (priceAfterDiscount + delivery).clamp(0, double.infinity);
   }
 
-  Future<void> fetchAvailableCoupons() async {
+  Future<void> fetchAvailableCoupons({bool force = false}) async {
     if (cartItems.isEmpty) {
       availableCoupons.clear();
       bestCoupon.value = null;
+      _couponCacheKey = null;
+      _hasCouponCacheForCurrentCart = false;
       removeCoupon();
+      return;
+    }
+
+    final currentCacheKey = _buildCouponCacheKey();
+    if (!force &&
+        _hasCouponCacheForCurrentCart &&
+        _couponCacheKey == currentCacheKey) {
       return;
     }
 
@@ -466,6 +492,9 @@ class CartController extends GetxController {
       );
       availableCoupons.assignAll(response);
       bestCoupon.value = best;
+      _syncAutoAppliedBestCoupon();
+      _couponCacheKey = currentCacheKey;
+      _hasCouponCacheForCurrentCart = true;
     } catch (e) {
       couponError.value = 'Failed to load coupons';
       debugPrint('Error fetching coupons: $e');
@@ -500,12 +529,15 @@ class CartController extends GetxController {
   Future<bool> applyCoupon(String couponCode) async {
     if (cartItems.isEmpty) return false;
 
+    final normalizedCode = couponCode.trim().toUpperCase();
     couponError.value = '';
+    isApplyingCoupon.value = true;
+    applyingCouponCode.value = normalizedCode;
 
     try {
       final response = await client.coupon.applyCoupon(
         _couponUserId,
-        couponCode,
+        normalizedCode,
         subtotal,
         _buildCartItemInputs(),
       );
@@ -515,7 +547,7 @@ class CartController extends GetxController {
 
       if (result.isValid) {
         final matchedCoupon = availableCoupons.firstWhereOrNull(
-          (c) => c.code.toUpperCase() == couponCode.toUpperCase(),
+          (c) => c.code.toUpperCase() == normalizedCode,
         );
         appliedCoupon.value = matchedCoupon;
         return true;
@@ -528,6 +560,9 @@ class CartController extends GetxController {
       couponError.value = 'Error applying coupon';
       debugPrint('Error applying coupon: $e');
       return false;
+    } finally {
+      isApplyingCoupon.value = false;
+      applyingCouponCode.value = null;
     }
   }
 
@@ -537,9 +572,63 @@ class CartController extends GetxController {
     couponError.value = '';
   }
 
+  void _syncAutoAppliedBestCoupon() {
+    final bestCode = bestCoupon.value?.bestCouponCode?.trim();
+    if (bestCode == null || bestCode.isEmpty) return;
+
+    final matchedCoupon = availableCoupons.firstWhereOrNull(
+      (coupon) => coupon.code.toUpperCase() == bestCode.toUpperCase(),
+    );
+    if (matchedCoupon == null || !matchedCoupon.isApplicable) return;
+
+    final currentAppliedCode = appliedCoupon.value?.code.trim().toUpperCase();
+    if (currentAppliedCode != null &&
+        currentAppliedCode.isNotEmpty &&
+        currentAppliedCode != bestCode.toUpperCase()) {
+      return;
+    }
+
+    appliedCoupon.value = matchedCoupon;
+    couponValidation.value = CouponValidationResult(
+      isValid: true,
+      couponCode: matchedCoupon.code,
+      couponId: matchedCoupon.id,
+      couponType: matchedCoupon.type,
+      errorMessage: null,
+      discountAmount: matchedCoupon.discountAmount ?? 0,
+      isDeliveryDiscount: false,
+    );
+  }
+
   String get _couponUserId {
     final authController = AuthController.instance;
     return authController.currentUser?.uid ?? '';
+  }
+
+  bool get hasCouponDataForCurrentCart {
+    if (cartItems.isEmpty) return false;
+    return _hasCouponCacheForCurrentCart &&
+        _couponCacheKey == _buildCouponCacheKey();
+  }
+
+  Future<void> ensureAvailableCouponsLoaded() {
+    return fetchAvailableCoupons();
+  }
+
+  String _buildCouponCacheKey() {
+    final normalizedItems =
+        _buildCartItemInputs()
+            .map(
+              (item) =>
+                  '${item.productId}:${item.variantId ?? ''}:${item.quantity}',
+            )
+            .toList()
+          ..sort();
+    return [
+      _couponUserId,
+      subtotal.toStringAsFixed(2),
+      normalizedItems.join('|'),
+    ].join('::');
   }
 
   List<CartItemInput> _buildCartItemInputs() {

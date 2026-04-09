@@ -1180,6 +1180,37 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'deleteCoupon': _i1.MethodConnector(
+          name: 'deleteCoupon',
+          params: {
+            'code': _i1.ParameterDescription(
+              name: 'code',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coupon'] as _i9.CouponEndpoint).deleteCoupon(
+                    session,
+                    params['code'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
         'fetchApplicableCoupons': _i1.MethodConnector(
           name: 'fetchApplicableCoupons',
           params: {

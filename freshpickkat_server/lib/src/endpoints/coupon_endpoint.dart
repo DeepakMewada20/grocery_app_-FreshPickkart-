@@ -210,6 +210,63 @@ class CouponEndpoint extends Endpoint {
     }
   }
 
+  Future<bool> deleteCoupon(
+    Session session,
+    String code,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    try {
+      final firestore = await FirebaseService.getFirestoreClient();
+      await RoleGuardService.ensureAdminSeller(
+        firestore: firestore,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+
+      final query = firestore_api.StructuredQuery(
+        from: [firestore_api.CollectionSelector(collectionId: 'coupons')],
+        where: firestore_api.Filter(
+          fieldFilter: firestore_api.FieldFilter(
+            field: firestore_api.FieldReference(fieldPath: 'code'),
+            op: 'EQUAL',
+            value: firestore_api.Value(stringValue: code),
+          ),
+        ),
+        limit: 1,
+      );
+
+      final response = await firestore.projects.databases.documents.runQuery(
+        firestore_api.RunQueryRequest(structuredQuery: query),
+        _database,
+      );
+
+      firestore_api.Document? document;
+      for (final item in response) {
+        if (item.document != null) {
+          document = item.document;
+          break;
+        }
+      }
+      if (document == null || document.name == null) {
+        throw Exception('Coupon not found');
+      }
+
+      await firestore.projects.databases.documents.delete(document.name!);
+      await AuditLogService.write(
+        firestore: firestore,
+        actorUid: firebaseUid,
+        action: 'delete',
+        entityType: 'coupon',
+        entityId: code,
+      );
+      return true;
+    } catch (e) {
+      session.log('Error deleting coupon: $e', level: LogLevel.error);
+      return false;
+    }
+  }
+
   Future<List<CouponDisplay>> fetchApplicableCoupons(
     Session session,
     double orderAmount,

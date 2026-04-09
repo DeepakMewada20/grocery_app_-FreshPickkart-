@@ -122,6 +122,14 @@ class _OffersScreenState extends State<OffersScreen> {
     );
   }
 
+  Future<void> _openDeleteCouponDialog(Coupon coupon) {
+    return showDeleteCouponDialog(
+      context: context,
+      controller: _couponController,
+      coupon: coupon,
+    );
+  }
+
   Future<void> _handleOfferCreationAction(String action) async {
     setState(() {
       _isOfferFabExpanded = false;
@@ -264,6 +272,7 @@ class _OffersScreenState extends State<OffersScreen> {
                       },
                       onCreateCoupon: _openAddCouponDialog,
                       onEditCoupon: _openEditCouponDialog,
+                      onDeleteCoupon: _openDeleteCouponDialog,
                     ),
                     const FreeDeliveryScreen(),
                     const BannersScreen(),

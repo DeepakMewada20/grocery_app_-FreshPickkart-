@@ -123,20 +123,10 @@ class ValidationService {
       throw InvalidParametersException('Unsupported coupon type');
     }
 
-    final discountType = coupon.discountType?.toLowerCase().trim();
-    if (discountType != null &&
-        discountType.isNotEmpty &&
-        discountType != 'flat' &&
-        discountType != 'percentage') {
-      throw InvalidParametersException(
-        'Discount type must be flat or percentage',
-      );
-    }
-
     if (coupon.discountValue != null && coupon.discountValue! < 0) {
       throw InvalidParametersException('Discount value cannot be negative');
     }
-    if (discountType == 'percentage' &&
+    if (type == 'PERCENTAGE_DISCOUNT' &&
         coupon.discountValue != null &&
         coupon.discountValue! > 100) {
       throw InvalidParametersException('Percentage discount cannot exceed 100');

@@ -154,6 +154,14 @@ class _CouponsScreenState extends State<CouponsScreen> {
                                   ),
                                   tooltip: 'Edit',
                                 ),
+                                IconButton(
+                                  onPressed: () => _confirmDeleteCoupon(coupon),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                  ),
+                                  tooltip: 'Delete',
+                                ),
                               ],
                             ),
                           ],
@@ -215,6 +223,46 @@ class _CouponsScreenState extends State<CouponsScreen> {
     }
   }
 
+  Future<void> _confirmDeleteCoupon(Coupon coupon) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Delete ${coupon.code}?'),
+          content: const Text(
+            'This will permanently remove the coupon from Firestore.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) return;
+
+    try {
+      final ok = await _controller.deleteCoupon(coupon.code);
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text(ok ? 'Coupon deleted' : 'Delete failed')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to delete coupon: $e')),
+      );
+    }
+  }
+
   Future<Coupon?> _showCouponDialog({Coupon? initialCoupon}) async {
     final formKey = GlobalKey<FormState>();
     final codeCtrl = TextEditingController(text: initialCoupon?.code ?? '');
@@ -244,8 +292,6 @@ class _CouponsScreenState extends State<CouponsScreen> {
     );
 
     String couponType = _couponTypeLabel(initialCoupon);
-    String? discountType =
-        initialCoupon?.discountType ?? _defaultDiscountType(couponType);
     bool isActive = initialCoupon?.isActive ?? true;
     DateTime startDate = initialCoupon?.startDate ?? DateTime.now();
     DateTime endDate =
@@ -305,35 +351,10 @@ class _CouponsScreenState extends State<CouponsScreen> {
                           if (value == null) return;
                           setDialogState(() {
                             couponType = value;
-                            discountType = _defaultDiscountType(value);
                           });
                         },
                       ),
                       const SizedBox(height: 10),
-                      if (!_isFixedDiscountType(couponType)) ...[
-                        DropdownButtonFormField<String>(
-                          initialValue: discountType,
-                          decoration: const InputDecoration(
-                            labelText: 'Discount type',
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'flat',
-                              child: Text('Flat'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'percentage',
-                              child: Text('Percentage'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setDialogState(() {
-                              discountType = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                      ],
                       TextFormField(
                         controller: discountValueCtrl,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -473,10 +494,6 @@ class _CouponsScreenState extends State<CouponsScreen> {
                             code: codeCtrl.text.trim().toUpperCase(),
                             description: descCtrl.text.trim(),
                             type: couponType,
-                            discountType: _resolvedDiscountType(
-                              couponType,
-                              discountType,
-                            ),
                             discountValue: double.parse(
                               discountValueCtrl.text.trim(),
                             ),
@@ -544,25 +561,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     if ((coupon.loyaltyRequiredOrders ?? 0) > 0) {
       return 'LOYALTY';
     }
-    if ((coupon.discountType ?? '').toLowerCase() == 'percentage') {
-      return 'PERCENTAGE_DISCOUNT';
-    }
     return 'FLAT_DISCOUNT';
-  }
-
-  bool _isFixedDiscountType(String couponType) {
-    return couponType == 'PERCENTAGE_DISCOUNT' || couponType == 'FLAT_DISCOUNT';
-  }
-
-  String _defaultDiscountType(String couponType) {
-    if (couponType == 'PERCENTAGE_DISCOUNT') return 'percentage';
-    return 'flat';
-  }
-
-  String _resolvedDiscountType(String couponType, String? discountType) {
-    if (couponType == 'PERCENTAGE_DISCOUNT') return 'percentage';
-    if (couponType == 'FLAT_DISCOUNT') return 'flat';
-    return (discountType ?? 'flat').toLowerCase();
   }
 
   List<String> _parseProductIds(String raw) {

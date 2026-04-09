@@ -570,6 +570,20 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> deleteCoupon(
+    String code,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'coupon',
+    'deleteCoupon',
+    {
+      'code': code,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<List<_i19.CouponDisplay>> fetchApplicableCoupons(
     double orderAmount,
   ) => caller.callServerEndpoint<List<_i19.CouponDisplay>>(
