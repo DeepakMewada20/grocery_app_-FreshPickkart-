@@ -520,12 +520,27 @@ class _BasketScreenState extends State<BasketScreen> {
                       ],
                     ),
                   ),
-                  Text(
-                    '₹${(item.product.price * (item.comboItemQuantity ?? 1)).formatPrice}',
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'MRP ₹${(item.product.realPrice * (item.comboItemQuantity ?? 1) * group.bundleQuantity).formatPrice}',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.4),
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Sell ₹${(item.product.price * (item.comboItemQuantity ?? 1) * group.bundleQuantity).formatPrice}',
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -539,15 +554,23 @@ class _BasketScreenState extends State<BasketScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '₹${group.discountedTotal.formatPrice}',
+                    'Combo ₹${group.discountedTotal.formatPrice}',
                     style: TextStyle(
-                      color: cs.onSurface,
+                      color: AppTheme.primaryGreen,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    '₹${group.originalTotal.formatPrice}',
+                    'Sell ₹${group.originalTotal.formatPrice}',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'MRP ₹${group.mrpTotal.formatPrice}',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.4),
                       fontSize: 13,

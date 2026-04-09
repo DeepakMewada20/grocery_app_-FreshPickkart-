@@ -73,17 +73,33 @@ class ComboProductPreviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        '₹${item.selectedProduct.price.formatPrice}',
-                        style: TextStyle(
-                          color: cs.onSurface,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MRP ₹${item.bundleMrpTotal.formatPrice}',
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.45),
+                              fontSize: 10,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Sell ₹${item.bundleLineTotal.formatPrice}',
+                            style: TextStyle(
+                              color: cs.onSurface,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,

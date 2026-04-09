@@ -235,6 +235,7 @@ class _ComboCard extends StatelessWidget {
       combo.discountType,
       combo.discountValue,
     );
+    final mrpUnitTotal = calculateComboMrpUnitTotal(products);
     final originalUnitTotal = calculateComboOriginalUnitTotal(products);
     final comboUnitTotal = applyComboDiscount(
       originalTotal: originalUnitTotal,
@@ -324,20 +325,28 @@ class _ComboCard extends StatelessWidget {
                           ),
                         const SizedBox(height: 10),
                         Wrap(
-                          spacing: 10,
+                          spacing: 12,
                           runSpacing: 6,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
-                              '₹${comboUnitTotal.formatPrice}',
+                              'Combo ₹${comboUnitTotal.formatPrice}',
                               style: TextStyle(
-                                color: cs.onSurface,
+                                color: AppTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                               ),
                             ),
                             Text(
-                              '₹${originalUnitTotal.formatPrice}',
+                              'Sell ₹${originalUnitTotal.formatPrice}',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'MRP ₹${mrpUnitTotal.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface.withValues(alpha: 0.4),
                                 fontSize: 13,

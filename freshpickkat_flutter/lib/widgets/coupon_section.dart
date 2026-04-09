@@ -610,39 +610,51 @@ class _BestCouponCard extends StatelessWidget {
           color: AppTheme.primaryGreen.withValues(alpha: 0.35),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Best Coupon',
-            style: TextStyle(
-              color: AppTheme.primaryGreen,
-              fontWeight: FontWeight.bold,
+      child: Obx(() {
+        final appliedCode = cartController.appliedCoupon.value?.code
+            .trim()
+            .toUpperCase();
+        final isThisCouponApplied = appliedCode == normalizedCode;
+        final isApplyingThisCoupon =
+            cartController.isApplyingCoupon.value &&
+            cartController.applyingCouponCode.value == normalizedCode;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Best Coupon',
+                    style: TextStyle(
+                      color: AppTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    coupon.code,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    coupon.displayDiscount,
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.75),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            coupon.code,
-            style: TextStyle(
-              color: cs.onSurface,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            coupon.displayDiscount,
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.75),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Obx(
-            () {
-              final isApplyingThisCoupon =
-                  cartController.isApplyingCoupon.value &&
-                  cartController.applyingCouponCode.value == normalizedCode;
-              return SizedBox(
+            if (!isThisCouponApplied) ...[
+              const SizedBox(width: 12),
+              SizedBox(
                 height: 38,
                 child: ElevatedButton(
                   onPressed: cartController.isApplyingCoupon.value
@@ -671,11 +683,11 @@ class _BestCouponCard extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ),
+            ],
+          ],
+        );
+      }),
     );
   }
 }

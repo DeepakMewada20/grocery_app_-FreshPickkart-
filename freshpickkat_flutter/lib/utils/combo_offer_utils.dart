@@ -17,7 +17,9 @@ class ResolvedComboProduct {
   });
 
   int get bundleQuantity => comboItem.quantity;
+  double get mrpUnitPrice => selectedProduct.realPrice;
   double get unitPrice => selectedVariant.price;
+  double get bundleMrpTotal => mrpUnitPrice * bundleQuantity;
   double get bundleLineTotal => unitPrice * bundleQuantity;
 }
 
@@ -62,6 +64,13 @@ double calculateComboOriginalUnitTotal(List<ResolvedComboProduct> products) {
   );
 }
 
+double calculateComboMrpUnitTotal(List<ResolvedComboProduct> products) {
+  return products.fold(
+    0,
+    (sum, item) => sum + item.bundleMrpTotal,
+  );
+}
+
 double applyComboDiscount({
   required double originalTotal,
   required String discountType,
@@ -81,4 +90,16 @@ String comboDiscountBadgeText(String discountType, double discountValue) {
     return 'More ${discountValue.formatPrice}% off';
   }
   return 'More ₹${discountValue.formatPrice} off';
+}
+
+double calculateProratedComboLineTotal({
+  required double sellingLineTotal,
+  required double originalUnitTotal,
+  required double comboUnitTotal,
+}) {
+  if (sellingLineTotal <= 0 || originalUnitTotal <= 0 || comboUnitTotal <= 0) {
+    return 0;
+  }
+  final ratio = comboUnitTotal / originalUnitTotal;
+  return (sellingLineTotal * ratio).clamp(0, double.infinity);
 }

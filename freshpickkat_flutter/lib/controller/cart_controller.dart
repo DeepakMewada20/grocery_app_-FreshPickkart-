@@ -76,12 +76,19 @@ class ComboCartGroup {
     (sum, item) => sum + (item.product.price * (item.comboItemQuantity ?? 1)),
   );
 
+  double get mrpUnitTotal => items.fold(
+    0,
+    (sum, item) =>
+        sum + (item.product.realPrice * (item.comboItemQuantity ?? 1)),
+  );
+
   double get discountedUnitTotal => applyComboDiscount(
     originalTotal: originalUnitTotal,
     discountType: discountType,
     discountValue: discountValue,
   );
 
+  double get mrpTotal => mrpUnitTotal * bundleQuantity;
   double get originalTotal => originalUnitTotal * bundleQuantity;
   double get discountedTotal => discountedUnitTotal * bundleQuantity;
   double get savings =>
