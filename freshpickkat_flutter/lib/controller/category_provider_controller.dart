@@ -18,10 +18,6 @@ class CategoryProviderController extends GetxController {
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   Future<void> fetchCategoriesIfEmpty() async {
     if (_isFetching) return;

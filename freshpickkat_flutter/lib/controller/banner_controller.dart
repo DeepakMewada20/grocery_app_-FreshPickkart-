@@ -23,10 +23,6 @@ class BannerController extends GetxController {
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   Future<void> loadHomeBannersIfEmpty() async {
     if (_isFetching) return;
