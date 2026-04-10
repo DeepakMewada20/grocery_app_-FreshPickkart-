@@ -114,9 +114,14 @@ class CartController extends GetxController {
 
   final RxList<CartItem> cartItems = <CartItem>[].obs;
   final Rxn<BogoCartSuggestion> bogoSuggestion = Rxn<BogoCartSuggestion>();
+  final RxList<BasketSuggestion> basketSuggestions = <BasketSuggestion>[].obs;
+  final Rxn<CartPricingResult> cartPricing = Rxn<CartPricingResult>();
   final client = ServerpodClient().client;
   Timer? _cartValidationDebounce;
+  Timer? _basketSuggestionDebounce;
   bool _isInitialLoading = false;
+  String _lastMeaningfulCartSnapshot = '';
+  String _lastSuggestedCartSnapshot = '';
 
   @override
   void onInit() {
@@ -147,6 +152,7 @@ class CartController extends GetxController {
   @override
   void onClose() {
     _cartValidationDebounce?.cancel();
+    _basketSuggestionDebounce?.cancel();
     super.onClose();
   }
 
@@ -155,6 +161,7 @@ class CartController extends GetxController {
     await _syncWithServer();
     await fetchAvailableCoupons();
     await _revalidateAppliedCoupon();
+    await fetchCartPricing();
   }
 
   Future<void> _syncWithServer() async {
@@ -222,6 +229,95 @@ class CartController extends GetxController {
         .toList();
 
     await _revalidateStoredCart(stored);
+    await fetchCartPricing();
+  }
+
+  Future<void> fetchCartPricing() async {
+    if (cartItems.isEmpty) {
+      cartPricing.value = null;
+      return;
+    }
+
+    try {
+      final result = await client.pricing.calculateCartPricing(
+        _buildCartItemInputs(),
+        appliedCouponCode: appliedCoupon.value?.code,
+        autoApplyCoupons: false,
+      );
+      cartPricing.value = result;
+    } catch (e) {
+      debugPrint('Error fetching cart pricing: $e');
+    }
+  }
+
+  Future<void> fetchBasketSuggestions() async {
+    final snapshot = _buildMeaningfulCartSnapshot();
+    if (cartItems.isEmpty || snapshot.isEmpty) {
+      basketSuggestions.clear();
+      _lastSuggestedCartSnapshot = '';
+      return;
+    }
+    if (snapshot == _lastSuggestedCartSnapshot) {
+      return;
+    }
+
+    try {
+      final response = await client.pricing.basketSuggestions(
+        _buildCartItemInputs(),
+        subtotal,
+        userId: AuthController.instance.currentUser?.uid,
+      );
+      if (_buildMeaningfulCartSnapshot() != snapshot) {
+        return;
+      }
+      basketSuggestions.assignAll(response.suggestions);
+      _lastSuggestedCartSnapshot = snapshot;
+    } catch (e) {
+      debugPrint('Error fetching basket suggestions: $e');
+    }
+  }
+
+  void _scheduleBasketSuggestions() {
+    final snapshot = _buildMeaningfulCartSnapshot();
+    if (snapshot.isEmpty) {
+      basketSuggestions.clear();
+      _lastMeaningfulCartSnapshot = '';
+      _lastSuggestedCartSnapshot = '';
+      _basketSuggestionDebounce?.cancel();
+      _basketSuggestionDebounce = null;
+      return;
+    }
+    if (snapshot == _lastMeaningfulCartSnapshot ||
+        snapshot == _lastSuggestedCartSnapshot) {
+      return;
+    }
+
+    _lastMeaningfulCartSnapshot = snapshot;
+    if (_basketSuggestionDebounce?.isActive ?? false) {
+      return;
+    }
+
+    _basketSuggestionDebounce = Timer(const Duration(milliseconds: 450), () {
+      _basketSuggestionDebounce = null;
+      fetchBasketSuggestions();
+    });
+  }
+
+  String _buildMeaningfulCartSnapshot() {
+    final normalizedItems =
+        cartItems
+            .map(
+              (item) => [
+                item.product.productId ?? '',
+                item.variantId ?? '',
+                item.comboId ?? '',
+                item.quantity.toString(),
+              ].join(':'),
+            )
+            .where((entry) => !entry.startsWith(':'))
+            .toList()
+          ..sort();
+    return normalizedItems.join('|');
   }
 
   void _scheduleCartValidation() {
@@ -446,7 +542,9 @@ class CartController extends GetxController {
   }
 
   double get deliveryFee {
-    return 40.0;
+    return cartPricing.value?.deliveryPricing?.deliveryFee ??
+        cartPricing.value?.deliveryFee ??
+        0;
   }
 
   double get couponDiscount {
@@ -459,9 +557,8 @@ class CartController extends GetxController {
   }
 
   double get totalAmount {
-    final delivery = deliveryFee;
-    final priceAfterDiscount = subtotal - couponDiscount;
-    return (priceAfterDiscount + delivery).clamp(0, double.infinity);
+    return cartPricing.value?.totalAmount ??
+        ((subtotal - couponDiscount) + deliveryFee).clamp(0, double.infinity);
   }
 
   Future<void> fetchAvailableCoupons({bool force = false}) async {
@@ -526,6 +623,8 @@ class CartController extends GetxController {
       if (!result.isValid) {
         removeCoupon();
         couponError.value = result.errorMessage ?? 'Coupon removed';
+      } else {
+        await fetchCartPricing();
       }
     } catch (e) {
       removeCoupon();
@@ -557,10 +656,12 @@ class CartController extends GetxController {
           (c) => c.code.toUpperCase() == normalizedCode,
         );
         appliedCoupon.value = matchedCoupon;
+        await fetchCartPricing();
         return true;
       } else {
         couponError.value = result.errorMessage ?? 'Invalid coupon';
         appliedCoupon.value = null;
+        await fetchCartPricing();
         return false;
       }
     } catch (e) {
@@ -577,6 +678,7 @@ class CartController extends GetxController {
     appliedCoupon.value = null;
     couponValidation.value = null;
     couponError.value = '';
+    fetchCartPricing();
   }
 
   void _syncAutoAppliedBestCoupon() {
@@ -645,6 +747,7 @@ class CartController extends GetxController {
             productId: item.product.productId ?? '',
             variantId: item.variantId,
             quantity: item.quantity,
+            comboId: item.comboId,
           ),
         )
         .where((item) => item.productId.isNotEmpty && item.quantity > 0)
@@ -699,6 +802,7 @@ class CartController extends GetxController {
     if (triggerBogoSuggestion && comboId == null) {
       _maybeSuggestBogoForFreeProduct(selectedProduct);
     }
+    _scheduleBasketSuggestions();
   }
 
   void removeItem(
@@ -726,6 +830,7 @@ class CartController extends GetxController {
       } else {
         cartItems.removeAt(index);
       }
+      _scheduleBasketSuggestions();
     }
   }
 
@@ -760,6 +865,7 @@ class CartController extends GetxController {
         cartItems[index].quantity = quantity;
         cartItems.refresh();
       }
+      _scheduleBasketSuggestions();
     } else if (quantity > 0) {
       cartItems.add(
         CartItem(
@@ -773,6 +879,7 @@ class CartController extends GetxController {
           comboItemQuantity: comboItemQuantity,
         ),
       );
+      _scheduleBasketSuggestions();
     }
   }
 
@@ -851,11 +958,18 @@ class CartController extends GetxController {
 
   void removeComboGroup(String comboId) {
     cartItems.removeWhere((item) => item.comboId == comboId);
+    _scheduleBasketSuggestions();
   }
 
   void clearCart() {
     cartItems.clear();
     bogoSuggestion.value = null;
+    basketSuggestions.clear();
+    cartPricing.value = null;
+    _lastMeaningfulCartSnapshot = '';
+    _lastSuggestedCartSnapshot = '';
+    _basketSuggestionDebounce?.cancel();
+    _basketSuggestionDebounce = null;
   }
 
   void setBogoSelection(
@@ -1032,5 +1146,46 @@ class CartController extends GetxController {
         );
     if (baseProduct == null) return null;
     return applyVariantToProduct(baseProduct, variantId: variantId);
+  }
+
+  Future<void> applyBasketSuggestion(BasketSuggestion suggestion) async {
+    switch (suggestion.type) {
+      case 'combo':
+        await ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
+        final combo = ComboOfferController.instance.activeComboOffers
+            .firstWhereOrNull((offer) => offer.comboId == suggestion.comboId);
+        if (combo != null) {
+          addComboOffer(combo);
+        }
+        break;
+      case 'bogo':
+        final product = _findProductById(
+          suggestion.productId,
+          variantId: suggestion.variantId,
+        );
+        if (product != null) {
+          addItem(
+            product,
+            variantId: suggestion.variantId,
+            triggerBogoSuggestion: false,
+          );
+        }
+        break;
+      case 'variant':
+        final currentProduct = _findProductById(suggestion.productId);
+        final baseProduct = ProductProviderController.instance.allProducts
+            .firstWhereOrNull((product) => product.productId == suggestion.productId);
+        if (currentProduct != null && baseProduct != null) {
+          removeItem(currentProduct, variantId: inferProductVariantId(currentProduct));
+          addItem(
+            baseProduct,
+            variantId: suggestion.variantId,
+            triggerBogoSuggestion: false,
+          );
+        }
+        break;
+      default:
+        break;
+    }
   }
 }

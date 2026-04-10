@@ -1,0 +1,5 @@
+class: DeliverySlab
+fields:
+  minOrderAmount: double
+  maxOrderAmount: double
+  fee: double

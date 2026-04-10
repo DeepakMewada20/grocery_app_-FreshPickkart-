@@ -3,3 +3,4 @@ fields:
   productId: String
   variantId: String?
   quantity: int
+  comboId: String?

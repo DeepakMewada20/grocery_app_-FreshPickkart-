@@ -17,7 +17,8 @@ class AdminFreeDeliveryController extends GetxController {
   );
   final int pageSize = 20;
 
-  final freeDeliveryRules = <FreeDeliveryRule>[].obs;
+  final deliveryRules = <DeliveryRule>[].obs;
+  final deliveryConfig = Rxn<DeliveryConfig>();
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
   final hasMore = true.obs;
@@ -27,28 +28,40 @@ class AdminFreeDeliveryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadFreeDeliveryRules();
+    loadDeliveryData();
   }
 
-  Future<void> loadFreeDeliveryRules({
+  Future<void> loadDeliveryData({
     bool force = false,
     bool loadAll = false,
   }) async {
     if (force) {
-      freeDeliveryRules.clear();
+      deliveryRules.clear();
       nextPageToken.value = null;
       hasMore.value = true;
       totalCount.value = 0;
     }
-    if (!force && freeDeliveryRules.isNotEmpty) {
+    if (!force && deliveryRules.isNotEmpty && deliveryConfig.value != null) {
       if (loadAll) {
         await ensureAllLoaded();
       }
       return;
     }
+    await _loadConfig();
     await loadMore(isInitial: true);
     if (loadAll) {
       await ensureAllLoaded();
+    }
+  }
+
+  Future<void> _loadConfig() async {
+    try {
+      final config = await ApiClient().request(() async {
+        return client.freeDelivery.getDeliveryConfig();
+      });
+      deliveryConfig.value = config;
+    } catch (e) {
+      print('Error loading delivery config: $e');
     }
   }
 
@@ -56,7 +69,7 @@ class AdminFreeDeliveryController extends GetxController {
     if (isLoadingMore.value) return;
     if (!hasMore.value && !isInitial) return;
     try {
-      if (isInitial || freeDeliveryRules.isEmpty) {
+      if (isInitial || deliveryRules.isEmpty) {
         isLoading.value = true;
       } else {
         isLoadingMore.value = true;
@@ -67,7 +80,7 @@ class AdminFreeDeliveryController extends GetxController {
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
         );
-        return await client.freeDelivery.getFreeDeliveryRulesPage(
+        return await client.freeDelivery.getDeliveryRulesPage(
           uid,
           idToken,
           limit: pageSize,
@@ -75,21 +88,21 @@ class AdminFreeDeliveryController extends GetxController {
         );
       });
       if (isInitial) {
-        freeDeliveryRules.assignAll(page.rules);
+        deliveryRules.assignAll(page.rules);
       } else {
-        freeDeliveryRules.addAll(page.rules);
+        deliveryRules.addAll(page.rules);
       }
       nextPageToken.value = page.nextPageToken;
       totalCount.value = page.totalCount;
       hasMore.value = page.nextPageToken != null && page.rules.isNotEmpty;
     } on NoInternetException {
-      networkController.showError(onRetry: loadFreeDeliveryRules);
+      networkController.showError(onRetry: loadDeliveryData);
     } on NetworkException {
-      networkController.showError(onRetry: loadFreeDeliveryRules);
+      networkController.showError(onRetry: loadDeliveryData);
     } on RequestTimeoutException {
-      networkController.showError(onRetry: loadFreeDeliveryRules);
+      networkController.showError(onRetry: loadDeliveryData);
     } catch (e) {
-      print('Error loading free delivery rules: $e');
+      print('Error loading delivery rules: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
@@ -102,89 +115,99 @@ class AdminFreeDeliveryController extends GetxController {
     }
   }
 
-  Future<bool> createFreeDeliveryRule(FreeDeliveryRule rule) async {
+  Future<bool> saveDeliveryConfig(DeliveryConfig config) async {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
-      final result = await client.freeDelivery.upsertFreeDeliveryRule(
+      final result = await client.freeDelivery.upsertDeliveryConfig(
+        config,
+        uid,
+        idToken,
+      );
+      if (result) {
+        deliveryConfig.value = config;
+      }
+      return result;
+    } catch (e) {
+      print('Error saving delivery config: $e');
+      return false;
+    }
+  }
+
+  Future<bool> createDeliveryRule(DeliveryRule rule) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: true,
+      );
+      final result = await client.freeDelivery.upsertDeliveryRule(
         rule,
         uid,
         idToken,
       );
       if (result) {
-        final index = freeDeliveryRules.indexWhere(
-          (item) => item.ruleId == rule.ruleId,
-        );
-        if (index == -1) {
-          freeDeliveryRules.add(rule);
-          totalCount.value++;
-        } else {
-          freeDeliveryRules[index] = rule;
-        }
-        freeDeliveryRules.sort(
-          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-        );
+        await loadDeliveryData(force: true);
       }
       return result;
     } catch (e) {
-      print('Error creating free delivery rule: $e');
+      print('Error creating delivery rule: $e');
       return false;
     }
   }
 
-  Future<bool> updateFreeDeliveryRule(FreeDeliveryRule rule) async {
-    return createFreeDeliveryRule(rule);
+  Future<bool> updateDeliveryRule(DeliveryRule rule) async {
+    return createDeliveryRule(rule);
   }
 
-  Future<bool> deleteFreeDeliveryRule(String ruleId) async {
+  Future<bool> deleteDeliveryRule(String ruleId) async {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
-      final result = await client.freeDelivery.deleteFreeDeliveryRule(
+      final result = await client.freeDelivery.deleteDeliveryRule(
         ruleId,
         uid,
         idToken,
       );
       if (result) {
-        freeDeliveryRules.removeWhere((rule) => rule.ruleId == ruleId);
+        deliveryRules.removeWhere((rule) => rule.ruleId == ruleId);
         if (totalCount.value > 0) totalCount.value--;
       }
       return result;
     } catch (e) {
-      print('Error deleting free delivery rule: $e');
+      print('Error deleting delivery rule: $e');
       return false;
     }
   }
 
-  Future<bool> toggleFreeDeliveryRule(String ruleId, bool isActive) async {
+  Future<bool> toggleDeliveryRule(String ruleId, bool isActive) async {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: true,
       );
-      final result = await client.freeDelivery.setFreeDeliveryRuleActive(
+      final result = await client.freeDelivery.setDeliveryRuleActive(
         ruleId,
         isActive,
         uid,
         idToken,
       );
       if (result) {
-        final index = freeDeliveryRules.indexWhere(
+        final index = deliveryRules.indexWhere(
           (rule) => rule.ruleId == ruleId,
         );
         if (index != -1) {
-          freeDeliveryRules[index] = freeDeliveryRules[index].copyWith(
+          deliveryRules[index] = deliveryRules[index].copyWith(
             isActive: isActive,
           );
         }
       }
       return result;
     } catch (e) {
-      print('Error toggling free delivery rule: $e');
+      print('Error toggling delivery rule: $e');
       return false;
     }
   }

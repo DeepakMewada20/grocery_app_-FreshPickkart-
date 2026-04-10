@@ -85,9 +85,9 @@ class _OffersScreenState extends State<OffersScreen> {
         !_comboOfferController.isLoading.value) {
       futures.add(_comboOfferController.loadComboOffers(loadAll: true));
     }
-    if (_freeDeliveryController.freeDeliveryRules.isEmpty &&
+    if (_freeDeliveryController.deliveryRules.isEmpty &&
         !_freeDeliveryController.isLoading.value) {
-      futures.add(_freeDeliveryController.loadFreeDeliveryRules(loadAll: true));
+      futures.add(_freeDeliveryController.loadDeliveryData(loadAll: true));
     }
     if (_bannerController.banners.isEmpty &&
         !_bannerController.isLoading.value) {
@@ -105,7 +105,7 @@ class _OffersScreenState extends State<OffersScreen> {
       _bogoController.loadBogoOffers(force: true, loadAll: true),
       _categoryOfferController.loadCategoryOffers(force: true, loadAll: true),
       _comboOfferController.loadComboOffers(force: true, loadAll: true),
-      _freeDeliveryController.loadFreeDeliveryRules(force: true, loadAll: true),
+      _freeDeliveryController.loadDeliveryData(force: true, loadAll: true),
       _bannerController.loadBanners(force: true, loadAll: true),
     ]);
   }
@@ -316,7 +316,7 @@ class _OffersDashboardTab extends StatelessWidget {
       final bogoOffers = bogoController.bogoOffers;
       final categoryOffers = categoryOfferController.categoryOffers;
       final comboOffers = comboOfferController.comboOffers;
-      final freeDeliveryRules = freeDeliveryController.freeDeliveryRules;
+      final freeDeliveryRules = freeDeliveryController.deliveryRules;
       final banners = bannerController.banners;
       final totalBogo = bogoController.totalCount.value;
       final totalCategoryOffers = categoryOfferController.totalCount.value;

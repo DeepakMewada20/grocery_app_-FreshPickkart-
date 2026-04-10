@@ -1,0 +1,3 @@
+class: BasketSuggestionResult
+fields:
+  suggestions: List<BasketSuggestion>

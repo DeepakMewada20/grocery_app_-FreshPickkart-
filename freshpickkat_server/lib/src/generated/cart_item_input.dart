@@ -18,12 +18,14 @@ abstract class CartItemInput
     required this.productId,
     this.variantId,
     required this.quantity,
+    this.comboId,
   });
 
   factory CartItemInput({
     required String productId,
     String? variantId,
     required int quantity,
+    String? comboId,
   }) = _CartItemInputImpl;
 
   factory CartItemInput.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -31,6 +33,7 @@ abstract class CartItemInput
       productId: jsonSerialization['productId'] as String,
       variantId: jsonSerialization['variantId'] as String?,
       quantity: jsonSerialization['quantity'] as int,
+      comboId: jsonSerialization['comboId'] as String?,
     );
   }
 
@@ -40,6 +43,8 @@ abstract class CartItemInput
 
   int quantity;
 
+  String? comboId;
+
   /// Returns a shallow copy of this [CartItemInput]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -47,6 +52,7 @@ abstract class CartItemInput
     String? productId,
     String? variantId,
     int? quantity,
+    String? comboId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -55,6 +61,7 @@ abstract class CartItemInput
       'productId': productId,
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
+      if (comboId != null) 'comboId': comboId,
     };
   }
 
@@ -65,6 +72,7 @@ abstract class CartItemInput
       'productId': productId,
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
+      if (comboId != null) 'comboId': comboId,
     };
   }
 
@@ -81,10 +89,12 @@ class _CartItemInputImpl extends CartItemInput {
     required String productId,
     String? variantId,
     required int quantity,
+    String? comboId,
   }) : super._(
          productId: productId,
          variantId: variantId,
          quantity: quantity,
+         comboId: comboId,
        );
 
   /// Returns a shallow copy of this [CartItemInput]
@@ -95,11 +105,13 @@ class _CartItemInputImpl extends CartItemInput {
     String? productId,
     Object? variantId = _Undefined,
     int? quantity,
+    Object? comboId = _Undefined,
   }) {
     return CartItemInput(
       productId: productId ?? this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
       quantity: quantity ?? this.quantity,
+      comboId: comboId is String? ? comboId : this.comboId,
     );
   }
 }

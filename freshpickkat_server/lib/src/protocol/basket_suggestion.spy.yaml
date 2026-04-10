@@ -1,0 +1,13 @@
+class: BasketSuggestion
+fields:
+  message: String
+  type: String
+  priority: int
+  metadata: Map<String, String>?
+  progressCurrent: double?
+  progressTarget: double?
+  progressRemaining: double?
+  ctaLabel: String?
+  productId: String?
+  variantId: String?
+  comboId: String?

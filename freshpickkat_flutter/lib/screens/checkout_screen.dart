@@ -16,6 +16,7 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
+import 'package:freshpickkat_flutter/widgets/delivery_progress_card.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -937,6 +938,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     _buildAddressSection(cs),
                     const SizedBox(height: 16),
                     _buildItemsSection(cs),
+                    const SizedBox(height: 16),
+                    const DeliveryProgressCard(),
                     const SizedBox(height: 16),
                     _buildBillDetails(cs),
                     const SizedBox(height: 16),

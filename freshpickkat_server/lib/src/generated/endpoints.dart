@@ -34,17 +34,17 @@ import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i21;
 import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i22;
 import 'package:freshpickkat_server/src/generated/cart_item_input.dart' as _i23;
 import 'package:freshpickkat_server/src/generated/coupon.dart' as _i24;
-import 'package:freshpickkat_server/src/generated/free_delivery_rule.dart'
-    as _i25;
-import 'package:freshpickkat_server/src/generated/order.dart' as _i26;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i27;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i28;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i29;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i30;
+import 'package:freshpickkat_server/src/generated/delivery_config.dart' as _i25;
+import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i26;
+import 'package:freshpickkat_server/src/generated/order.dart' as _i27;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i28;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i29;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i30;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i31;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i31;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i32;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i33;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -1360,72 +1360,8 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'freeDelivery',
       endpoint: endpoints['freeDelivery']!,
       methodConnectors: {
-        'upsertFreeDeliveryRule': _i1.MethodConnector(
-          name: 'upsertFreeDeliveryRule',
-          params: {
-            'rule': _i1.ParameterDescription(
-              name: 'rule',
-              type: _i1.getType<_i25.FreeDeliveryRule>(),
-              nullable: false,
-            ),
-            'firebaseUid': _i1.ParameterDescription(
-              name: 'firebaseUid',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'idToken': _i1.ParameterDescription(
-              name: 'idToken',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .upsertFreeDeliveryRule(
-                        session,
-                        params['rule'],
-                        params['firebaseUid'],
-                        params['idToken'],
-                      ),
-        ),
-        'deleteFreeDeliveryRule': _i1.MethodConnector(
-          name: 'deleteFreeDeliveryRule',
-          params: {
-            'ruleId': _i1.ParameterDescription(
-              name: 'ruleId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'firebaseUid': _i1.ParameterDescription(
-              name: 'firebaseUid',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'idToken': _i1.ParameterDescription(
-              name: 'idToken',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .deleteFreeDeliveryRule(
-                        session,
-                        params['ruleId'],
-                        params['firebaseUid'],
-                        params['idToken'],
-                      ),
-        ),
-        'getActiveFreeDeliveryRules': _i1.MethodConnector(
-          name: 'getActiveFreeDeliveryRules',
+        'getDeliveryConfig': _i1.MethodConnector(
+          name: 'getDeliveryConfig',
           params: {},
           call:
               (
@@ -1433,10 +1369,42 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .getActiveFreeDeliveryRules(session),
+                      .getDeliveryConfig(session),
         ),
-        'getAllFreeDeliveryRules': _i1.MethodConnector(
-          name: 'getAllFreeDeliveryRules',
+        'upsertDeliveryConfig': _i1.MethodConnector(
+          name: 'upsertDeliveryConfig',
+          params: {
+            'config': _i1.ParameterDescription(
+              name: 'config',
+              type: _i1.getType<_i25.DeliveryConfig>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
+                      .upsertDeliveryConfig(
+                        session,
+                        params['config'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'getAllDeliveryRules': _i1.MethodConnector(
+          name: 'getAllDeliveryRules',
           params: {
             'firebaseUid': _i1.ParameterDescription(
               name: 'firebaseUid',
@@ -1455,14 +1423,14 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .getAllFreeDeliveryRules(
+                      .getAllDeliveryRules(
                         session,
                         params['firebaseUid'],
                         params['idToken'],
                       ),
         ),
-        'getFreeDeliveryRulesPage': _i1.MethodConnector(
-          name: 'getFreeDeliveryRulesPage',
+        'getDeliveryRulesPage': _i1.MethodConnector(
+          name: 'getDeliveryRulesPage',
           params: {
             'firebaseUid': _i1.ParameterDescription(
               name: 'firebaseUid',
@@ -1491,7 +1459,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .getFreeDeliveryRulesPage(
+                      .getDeliveryRulesPage(
                         session,
                         params['firebaseUid'],
                         params['idToken'],
@@ -1499,8 +1467,72 @@ class Endpoints extends _i1.EndpointDispatch {
                         pageToken: params['pageToken'],
                       ),
         ),
-        'setFreeDeliveryRuleActive': _i1.MethodConnector(
-          name: 'setFreeDeliveryRuleActive',
+        'upsertDeliveryRule': _i1.MethodConnector(
+          name: 'upsertDeliveryRule',
+          params: {
+            'rule': _i1.ParameterDescription(
+              name: 'rule',
+              type: _i1.getType<_i26.DeliveryRule>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
+                      .upsertDeliveryRule(
+                        session,
+                        params['rule'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'deleteDeliveryRule': _i1.MethodConnector(
+          name: 'deleteDeliveryRule',
+          params: {
+            'ruleId': _i1.ParameterDescription(
+              name: 'ruleId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
+                      .deleteDeliveryRule(
+                        session,
+                        params['ruleId'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'setDeliveryRuleActive': _i1.MethodConnector(
+          name: 'setDeliveryRuleActive',
           params: {
             'ruleId': _i1.ParameterDescription(
               name: 'ruleId',
@@ -1529,7 +1561,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .setFreeDeliveryRuleActive(
+                      .setDeliveryRuleActive(
                         session,
                         params['ruleId'],
                         params['isActive'],
@@ -1537,26 +1569,21 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
-        'calculateDeliveryFee': _i1.MethodConnector(
-          name: 'calculateDeliveryFee',
+        'calculateDeliveryPricing': _i1.MethodConnector(
+          name: 'calculateDeliveryPricing',
           params: {
-            'orderAmount': _i1.ParameterDescription(
-              name: 'orderAmount',
+            'cartTotal': _i1.ParameterDescription(
+              name: 'cartTotal',
               type: _i1.getType<double>(),
               nullable: false,
             ),
-            'itemCount': _i1.ParameterDescription(
-              name: 'itemCount',
-              type: _i1.getType<int>(),
-              nullable: false,
-            ),
-            'couponCode': _i1.ParameterDescription(
-              name: 'couponCode',
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
               type: _i1.getType<String?>(),
               nullable: true,
             ),
-            'userId': _i1.ParameterDescription(
-              name: 'userId',
+            'location': _i1.ParameterDescription(
+              name: 'location',
               type: _i1.getType<String?>(),
               nullable: true,
             ),
@@ -1567,12 +1594,11 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['freeDelivery'] as _i10.FreeDeliveryEndpoint)
-                      .calculateDeliveryFee(
+                      .calculateDeliveryPricing(
                         session,
-                        params['orderAmount'],
-                        params['itemCount'],
-                        params['couponCode'],
-                        params['userId'],
+                        params['cartTotal'],
+                        userId: params['userId'],
+                        location: params['location'],
                       ),
         ),
       },
@@ -1586,7 +1612,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i26.Order>(),
+              type: _i1.getType<_i27.Order>(),
               nullable: false,
             ),
           },
@@ -1604,7 +1630,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i26.Order>(),
+              type: _i1.getType<_i27.Order>(),
               nullable: false,
             ),
             'idempotencyKey': _i1.ParameterDescription(
@@ -2161,7 +2187,126 @@ class Endpoints extends _i1.EndpointDispatch {
     connectors['pricing'] = _i1.EndpointConnector(
       name: 'pricing',
       endpoint: endpoints['pricing']!,
-      methodConnectors: {},
+      methodConnectors: {
+        'calculateCartPricing': _i1.MethodConnector(
+          name: 'calculateCartPricing',
+          params: {
+            'items': _i1.ParameterDescription(
+              name: 'items',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+            'appliedCouponCode': _i1.ParameterDescription(
+              name: 'appliedCouponCode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'autoApplyCoupons': _i1.ParameterDescription(
+              name: 'autoApplyCoupons',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['pricing'] as _i13.PricingEndpoint)
+                  .calculateCartPricing(
+                    session,
+                    params['items'],
+                    appliedCouponCode: params['appliedCouponCode'],
+                    autoApplyCoupons: params['autoApplyCoupons'],
+                  ),
+        ),
+        'getApplicableOffers': _i1.MethodConnector(
+          name: 'getApplicableOffers',
+          params: {
+            'items': _i1.ParameterDescription(
+              name: 'items',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['pricing'] as _i13.PricingEndpoint)
+                  .getApplicableOffers(
+                    session,
+                    params['items'],
+                  ),
+        ),
+        'basketSuggestions': _i1.MethodConnector(
+          name: 'basketSuggestions',
+          params: {
+            'items': _i1.ParameterDescription(
+              name: 'items',
+              type: _i1.getType<List<_i23.CartItemInput>>(),
+              nullable: false,
+            ),
+            'cartTotal': _i1.ParameterDescription(
+              name: 'cartTotal',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['pricing'] as _i13.PricingEndpoint)
+                  .basketSuggestions(
+                    session,
+                    params['items'],
+                    params['cartTotal'],
+                    userId: params['userId'],
+                  ),
+        ),
+        'calculateDeliveryFee': _i1.MethodConnector(
+          name: 'calculateDeliveryFee',
+          params: {
+            'orderAmount': _i1.ParameterDescription(
+              name: 'orderAmount',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'itemCount': _i1.ParameterDescription(
+              name: 'itemCount',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'couponCode': _i1.ParameterDescription(
+              name: 'couponCode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['pricing'] as _i13.PricingEndpoint)
+                  .calculateDeliveryFee(
+                    session,
+                    params['orderAmount'],
+                    params['itemCount'],
+                    params['couponCode'],
+                    params['userId'],
+                  ),
+        ),
+      },
     );
     connectors['product'] = _i1.EndpointConnector(
       name: 'product',
@@ -2326,7 +2471,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i27.Product>(),
+              type: _i1.getType<_i28.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2357,7 +2502,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i27.Product>(),
+              type: _i1.getType<_i28.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2585,7 +2730,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i28.SubCategory>(),
+              type: _i1.getType<_i29.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2641,7 +2786,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i29.AppUser>(),
+              type: _i1.getType<_i30.AppUser>(),
               nullable: false,
             ),
           },
@@ -2665,7 +2810,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cart': _i1.ParameterDescription(
               name: 'cart',
-              type: _i1.getType<List<_i30.CartItem>>(),
+              type: _i1.getType<List<_i31.CartItem>>(),
               nullable: false,
             ),
           },
@@ -2706,9 +2851,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i31.Endpoints()
+    modules['serverpod_auth_idp'] = _i32.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i32.Endpoints()
+    modules['serverpod_auth_core'] = _i33.Endpoints()
       ..initializeEndpoints(server);
   }
 }

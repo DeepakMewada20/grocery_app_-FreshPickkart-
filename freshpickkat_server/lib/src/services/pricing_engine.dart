@@ -2,11 +2,11 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
 import '../services/coupon_service.dart';
+import '../services/delivery/delivery_engine.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class PricingEngine {
   static const String _projectId = 'freshpickkart-a6824';
-  static const double _baseDeliveryFee = 40.0;
 
   static T? _firstWhereOrNull<T>(List<T> list, bool Function(T) test) {
     for (final item in list) {
@@ -29,9 +29,10 @@ class PricingEngine {
       bogoDiscount: 0,
       comboDiscount: 0,
       couponDiscount: 0,
-      deliveryFee: _baseDeliveryFee,
-      originalDeliveryFee: _baseDeliveryFee,
+      deliveryFee: 0,
+      originalDeliveryFee: 0,
       freeDeliveryApplied: false,
+      deliveryPricing: null,
       totalSavings: 0,
       totalAmount: 0,
       appliedOffers: [],
@@ -44,16 +45,16 @@ class PricingEngine {
         PricingLineItem(label: 'Subtotal', amount: 0, type: 'subtotal'),
         PricingLineItem(
           label: 'Delivery Fee',
-          amount: _baseDeliveryFee,
+          amount: 0,
           type: 'delivery',
         ),
         PricingLineItem(
           label: 'Total',
-          amount: _baseDeliveryFee,
+          amount: 0,
           type: 'total',
         ),
       ];
-      result.totalAmount = _baseDeliveryFee;
+      result.totalAmount = 0;
       return result;
     }
 
@@ -103,7 +104,6 @@ class PricingEngine {
     final bogoOffers = await _fetchActiveBogoOffers();
     final categoryOffers = await _fetchActiveCategoryOffers();
     final comboOffers = await _fetchActiveComboOffers();
-    final freeDeliveryRules = await _fetchActiveFreeDeliveryRules();
     double effectiveSubtotal = subtotal;
 
     for (final offer in bogoOffers) {
@@ -231,6 +231,11 @@ class PricingEngine {
       final now = DateTime.now();
       if (combo.startDate.isAfter(now) || combo.endDate.isBefore(now)) continue;
 
+      final comboId = combo.comboId?.trim();
+      if (comboId == null || comboId.isEmpty) {
+        continue;
+      }
+
       bool allProductsPresent = true;
 
       for (final comboProduct in combo.comboProducts) {
@@ -238,6 +243,7 @@ class PricingEngine {
           items,
           (i) =>
               i.productId == comboProduct.productId &&
+              i.comboId == comboId &&
               i.quantity >= comboProduct.quantity,
         );
         if (cartItem == null) {
@@ -278,43 +284,6 @@ class PricingEngine {
       }
     }
 
-    for (final rule in freeDeliveryRules) {
-      if (!rule.isActive) continue;
-      final now = DateTime.now();
-      if (rule.startDate.isAfter(now) || rule.endDate.isBefore(now)) continue;
-
-      bool qualifies = false;
-      if (rule.ruleType == 'min_order_amount' &&
-          rule.minOrderAmount != null &&
-          effectiveSubtotal >= rule.minOrderAmount!) {
-        qualifies = true;
-      } else if (rule.ruleType == 'min_items' &&
-          rule.minItemsCount != null &&
-          items.length >= rule.minItemsCount!) {
-        qualifies = true;
-      } else if (rule.ruleType == 'coupon' &&
-          rule.couponCode != null &&
-          appliedCouponCode?.toUpperCase() == rule.couponCode!.toUpperCase()) {
-        qualifies = true;
-      }
-
-      if (qualifies) {
-        result.deliveryFee = _baseDeliveryFee - rule.deliveryFeeWaived;
-        if (result.deliveryFee < 0) result.deliveryFee = 0;
-        result.freeDeliveryApplied = true;
-
-        appliedOffersList.add(
-          AppliedOfferInfo(
-            offerId: rule.ruleId ?? '',
-            offerName: rule.name,
-            offerType: 'free_delivery',
-            discountAmount: rule.deliveryFeeWaived,
-          ),
-        );
-        break;
-      }
-    }
-
     if (appliedCouponCode != null && appliedCouponCode.isNotEmpty) {
       final manualCoupon = await CouponService.applyCoupon(
         userId: '',
@@ -352,6 +321,26 @@ class PricingEngine {
           isAutoApplied: true,
         );
       }
+    }
+
+    final deliveryPricing = await DeliveryEngine.calculate(
+      session: session,
+      cartTotal: effectiveSubtotal,
+      userId: '',
+    );
+    result.deliveryPricing = deliveryPricing;
+    result.deliveryFee = deliveryPricing.deliveryFee;
+    result.originalDeliveryFee = deliveryPricing.baseDeliveryFee;
+    result.freeDeliveryApplied = deliveryPricing.isFree;
+    if (deliveryPricing.isFree && deliveryPricing.baseDeliveryFee > 0) {
+      appliedOffersList.add(
+        AppliedOfferInfo(
+          offerId: deliveryPricing.appliedRuleType ?? 'delivery',
+          offerName: deliveryPricing.appliedRuleName ?? 'Free Delivery',
+          offerType: 'free_delivery',
+          discountAmount: deliveryPricing.baseDeliveryFee,
+        ),
+      );
     }
 
     double totalAmount = effectiveSubtotal + result.deliveryFee;
@@ -835,79 +824,4 @@ class PricingEngine {
     }
   }
 
-  static Future<List<FreeDeliveryRule>> _fetchActiveFreeDeliveryRules() async {
-    try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      final database = 'projects/$_projectId/databases/(default)/documents';
-
-      final query = firestore_api.StructuredQuery(
-        from: [
-          firestore_api.CollectionSelector(collectionId: 'free_delivery_rules'),
-        ],
-        where: firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'isActive'),
-            op: 'EQUAL',
-            value: firestore_api.Value(booleanValue: true),
-          ),
-        ),
-      );
-
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        database,
-      );
-
-      final rules = <FreeDeliveryRule>[];
-      for (final res in response) {
-        if (res.document?.fields != null) {
-          final fields = res.document!.fields!;
-          rules.add(
-            FreeDeliveryRule(
-              ruleId:
-                  fields['ruleId']?.stringValue ??
-                  res.document!.name!.split('/').last,
-              name: fields['name']?.stringValue ?? '',
-              description: fields['description']?.stringValue,
-              ruleType: fields['ruleType']?.stringValue ?? 'min_order_amount',
-              minOrderAmount: double.tryParse(
-                fields['minOrderAmount']?.doubleValue?.toString() ??
-                    fields['minOrderAmount']?.integerValue ??
-                    '',
-              ),
-              minItemsCount: int.tryParse(
-                fields['minItemsCount']?.integerValue ?? '',
-              ),
-              couponCode: fields['couponCode']?.stringValue,
-              userId: fields['userId']?.stringValue,
-              isActive: fields['isActive']?.booleanValue ?? true,
-              startDate:
-                  DateTime.tryParse(
-                    fields['startDate']?.timestampValue ?? '',
-                  ) ??
-                  DateTime.now(),
-              endDate:
-                  DateTime.tryParse(fields['endDate']?.timestampValue ?? '') ??
-                  DateTime.now().add(Duration(days: 30)),
-              deliveryFeeWaived:
-                  double.tryParse(
-                    fields['deliveryFeeWaived']?.doubleValue?.toString() ??
-                        fields['deliveryFeeWaived']?.integerValue ??
-                        '40',
-                  ) ??
-                  _baseDeliveryFee,
-              createdAt:
-                  DateTime.tryParse(
-                    fields['createdAt']?.timestampValue ?? '',
-                  ) ??
-                  DateTime.now(),
-            ),
-          );
-        }
-      }
-      return rules;
-    } catch (_) {
-      return [];
-    }
-  }
 }

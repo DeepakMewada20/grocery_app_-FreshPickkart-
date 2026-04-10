@@ -1,0 +1,8 @@
+class: DeliveryConfig
+fields:
+  configId: String?
+  baseDeliveryFee: double
+  freeDeliveryThreshold: double?
+  slabs: List<DeliverySlab>
+  isActive: bool
+  updatedAt: DateTime

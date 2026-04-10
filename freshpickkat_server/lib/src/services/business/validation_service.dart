@@ -302,4 +302,48 @@ class ValidationService {
       throw InvalidParametersException('End date must be after start date');
     }
   }
+
+  static void validateDeliveryConfig(protocol.DeliveryConfig config) {
+    if (config.baseDeliveryFee < 0) {
+      throw InvalidParametersException('Base delivery fee cannot be negative');
+    }
+    if (config.freeDeliveryThreshold != null &&
+        config.freeDeliveryThreshold! < 0) {
+      throw InvalidParametersException(
+        'Free delivery threshold cannot be negative',
+      );
+    }
+    for (final slab in config.slabs) {
+      if (slab.minOrderAmount < 0 ||
+          slab.maxOrderAmount < slab.minOrderAmount ||
+          slab.fee < 0) {
+        throw InvalidParametersException('Invalid delivery slab configuration');
+      }
+    }
+  }
+
+  static void validateDeliveryRule(protocol.DeliveryRule rule) {
+    if (rule.name.trim().isEmpty) {
+      throw InvalidParametersException('Rule name is required');
+    }
+    if (rule.deliveryFee < 0) {
+      throw InvalidParametersException('Delivery fee cannot be negative');
+    }
+    if (rule.priority < 0) {
+      throw InvalidParametersException('Priority cannot be negative');
+    }
+    if (rule.endDate.isBefore(rule.startDate)) {
+      throw InvalidParametersException('End date must be after start date');
+    }
+    if (rule.ruleType != 'special_event' && rule.ruleType != 'user_rule') {
+      throw InvalidParametersException('Invalid delivery rule type');
+    }
+    final targetType = rule.targetUserType?.trim().toLowerCase();
+    if (targetType != null &&
+        targetType.isNotEmpty &&
+        targetType != 'all' &&
+        targetType != 'new_user') {
+      throw InvalidParametersException('Invalid delivery target user type');
+    }
+  }
 }

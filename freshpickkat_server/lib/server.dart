@@ -20,8 +20,9 @@ void run(List<String> args) async {
   // Token managers will be used to validate and issue authentication keys,
   // and the identity providers will be the authentication options available for users.
 
-  // Initialize Firebase Admin SDK (SERVER SIDE)
-  await FirebaseService.getFirestoreClient();
+  // Initialize Firebase Admin SDK in background with retry
+  unawaited(_initializeFirebaseWithRetry());
+
   final paymentRecoveryService = PaymentRecoveryService();
 
   // Setup a default page at the web root.
@@ -81,3 +82,18 @@ void run(List<String> args) async {
 
   await pod.start();
 }
+
+Future<void> _initializeFirebaseWithRetry() async {
+  while (true) {
+    try {
+      await FirebaseService.getFirestoreClient();
+      stdout.writeln('Firebase Admin SDK initialized successfully.');
+      break;
+    } catch (e) {
+      stderr.writeln('WARNING: Failed to initialize Firebase Admin SDK: $e');
+      stderr.writeln('Retrying in 10 seconds...');
+      await Future.delayed(const Duration(seconds: 10));
+    }
+  }
+}
+

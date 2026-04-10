@@ -10,6 +10,7 @@ fields:
   deliveryFee: double
   originalDeliveryFee: double
   freeDeliveryApplied: bool
+  deliveryPricing: DeliveryPricingResult?
   totalSavings: double
   totalAmount: double
   appliedOffers: List<AppliedOfferInfo>

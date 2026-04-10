@@ -11,11 +11,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'applied_offer_info.dart' as _i2;
-import 'applied_coupon_info.dart' as _i3;
-import 'free_item_info.dart' as _i4;
-import 'pricing_line_item.dart' as _i5;
-import 'package:freshpickkat_server/src/generated/protocol.dart' as _i6;
+import 'delivery_pricing_result.dart' as _i2;
+import 'applied_offer_info.dart' as _i3;
+import 'applied_coupon_info.dart' as _i4;
+import 'free_item_info.dart' as _i5;
+import 'pricing_line_item.dart' as _i6;
+import 'package:freshpickkat_server/src/generated/protocol.dart' as _i7;
 
 abstract class CartPricingResult
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -30,6 +31,7 @@ abstract class CartPricingResult
     required this.deliveryFee,
     required this.originalDeliveryFee,
     required this.freeDeliveryApplied,
+    this.deliveryPricing,
     required this.totalSavings,
     required this.totalAmount,
     required this.appliedOffers,
@@ -49,12 +51,13 @@ abstract class CartPricingResult
     required double deliveryFee,
     required double originalDeliveryFee,
     required bool freeDeliveryApplied,
+    _i2.DeliveryPricingResult? deliveryPricing,
     required double totalSavings,
     required double totalAmount,
-    required List<_i2.AppliedOfferInfo> appliedOffers,
-    _i3.AppliedCouponInfo? appliedCoupon,
-    required List<_i4.FreeItemInfo> freeItems,
-    required List<_i5.PricingLineItem> pricingBreakdown,
+    required List<_i3.AppliedOfferInfo> appliedOffers,
+    _i4.AppliedCouponInfo? appliedCoupon,
+    required List<_i5.FreeItemInfo> freeItems,
+    required List<_i6.PricingLineItem> pricingBreakdown,
   }) = _CartPricingResultImpl;
 
   factory CartPricingResult.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -74,20 +77,25 @@ abstract class CartPricingResult
       freeDeliveryApplied: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['freeDeliveryApplied'],
       ),
+      deliveryPricing: jsonSerialization['deliveryPricing'] == null
+          ? null
+          : _i7.Protocol().deserialize<_i2.DeliveryPricingResult>(
+              jsonSerialization['deliveryPricing'],
+            ),
       totalSavings: (jsonSerialization['totalSavings'] as num).toDouble(),
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
-      appliedOffers: _i6.Protocol().deserialize<List<_i2.AppliedOfferInfo>>(
+      appliedOffers: _i7.Protocol().deserialize<List<_i3.AppliedOfferInfo>>(
         jsonSerialization['appliedOffers'],
       ),
       appliedCoupon: jsonSerialization['appliedCoupon'] == null
           ? null
-          : _i6.Protocol().deserialize<_i3.AppliedCouponInfo>(
+          : _i7.Protocol().deserialize<_i4.AppliedCouponInfo>(
               jsonSerialization['appliedCoupon'],
             ),
-      freeItems: _i6.Protocol().deserialize<List<_i4.FreeItemInfo>>(
+      freeItems: _i7.Protocol().deserialize<List<_i5.FreeItemInfo>>(
         jsonSerialization['freeItems'],
       ),
-      pricingBreakdown: _i6.Protocol().deserialize<List<_i5.PricingLineItem>>(
+      pricingBreakdown: _i7.Protocol().deserialize<List<_i6.PricingLineItem>>(
         jsonSerialization['pricingBreakdown'],
       ),
     );
@@ -113,17 +121,19 @@ abstract class CartPricingResult
 
   bool freeDeliveryApplied;
 
+  _i2.DeliveryPricingResult? deliveryPricing;
+
   double totalSavings;
 
   double totalAmount;
 
-  List<_i2.AppliedOfferInfo> appliedOffers;
+  List<_i3.AppliedOfferInfo> appliedOffers;
 
-  _i3.AppliedCouponInfo? appliedCoupon;
+  _i4.AppliedCouponInfo? appliedCoupon;
 
-  List<_i4.FreeItemInfo> freeItems;
+  List<_i5.FreeItemInfo> freeItems;
 
-  List<_i5.PricingLineItem> pricingBreakdown;
+  List<_i6.PricingLineItem> pricingBreakdown;
 
   /// Returns a shallow copy of this [CartPricingResult]
   /// with some or all fields replaced by the given arguments.
@@ -139,12 +149,13 @@ abstract class CartPricingResult
     double? deliveryFee,
     double? originalDeliveryFee,
     bool? freeDeliveryApplied,
+    _i2.DeliveryPricingResult? deliveryPricing,
     double? totalSavings,
     double? totalAmount,
-    List<_i2.AppliedOfferInfo>? appliedOffers,
-    _i3.AppliedCouponInfo? appliedCoupon,
-    List<_i4.FreeItemInfo>? freeItems,
-    List<_i5.PricingLineItem>? pricingBreakdown,
+    List<_i3.AppliedOfferInfo>? appliedOffers,
+    _i4.AppliedCouponInfo? appliedCoupon,
+    List<_i5.FreeItemInfo>? freeItems,
+    List<_i6.PricingLineItem>? pricingBreakdown,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -160,6 +171,7 @@ abstract class CartPricingResult
       'deliveryFee': deliveryFee,
       'originalDeliveryFee': originalDeliveryFee,
       'freeDeliveryApplied': freeDeliveryApplied,
+      if (deliveryPricing != null) 'deliveryPricing': deliveryPricing?.toJson(),
       'totalSavings': totalSavings,
       'totalAmount': totalAmount,
       'appliedOffers': appliedOffers.toJson(valueToJson: (v) => v.toJson()),
@@ -185,6 +197,8 @@ abstract class CartPricingResult
       'deliveryFee': deliveryFee,
       'originalDeliveryFee': originalDeliveryFee,
       'freeDeliveryApplied': freeDeliveryApplied,
+      if (deliveryPricing != null)
+        'deliveryPricing': deliveryPricing?.toJsonForProtocol(),
       'totalSavings': totalSavings,
       'totalAmount': totalAmount,
       'appliedOffers': appliedOffers.toJson(
@@ -219,12 +233,13 @@ class _CartPricingResultImpl extends CartPricingResult {
     required double deliveryFee,
     required double originalDeliveryFee,
     required bool freeDeliveryApplied,
+    _i2.DeliveryPricingResult? deliveryPricing,
     required double totalSavings,
     required double totalAmount,
-    required List<_i2.AppliedOfferInfo> appliedOffers,
-    _i3.AppliedCouponInfo? appliedCoupon,
-    required List<_i4.FreeItemInfo> freeItems,
-    required List<_i5.PricingLineItem> pricingBreakdown,
+    required List<_i3.AppliedOfferInfo> appliedOffers,
+    _i4.AppliedCouponInfo? appliedCoupon,
+    required List<_i5.FreeItemInfo> freeItems,
+    required List<_i6.PricingLineItem> pricingBreakdown,
   }) : super._(
          subtotal: subtotal,
          itemDiscounts: itemDiscounts,
@@ -236,6 +251,7 @@ class _CartPricingResultImpl extends CartPricingResult {
          deliveryFee: deliveryFee,
          originalDeliveryFee: originalDeliveryFee,
          freeDeliveryApplied: freeDeliveryApplied,
+         deliveryPricing: deliveryPricing,
          totalSavings: totalSavings,
          totalAmount: totalAmount,
          appliedOffers: appliedOffers,
@@ -259,12 +275,13 @@ class _CartPricingResultImpl extends CartPricingResult {
     double? deliveryFee,
     double? originalDeliveryFee,
     bool? freeDeliveryApplied,
+    Object? deliveryPricing = _Undefined,
     double? totalSavings,
     double? totalAmount,
-    List<_i2.AppliedOfferInfo>? appliedOffers,
+    List<_i3.AppliedOfferInfo>? appliedOffers,
     Object? appliedCoupon = _Undefined,
-    List<_i4.FreeItemInfo>? freeItems,
-    List<_i5.PricingLineItem>? pricingBreakdown,
+    List<_i5.FreeItemInfo>? freeItems,
+    List<_i6.PricingLineItem>? pricingBreakdown,
   }) {
     return CartPricingResult(
       subtotal: subtotal ?? this.subtotal,
@@ -278,12 +295,15 @@ class _CartPricingResultImpl extends CartPricingResult {
       deliveryFee: deliveryFee ?? this.deliveryFee,
       originalDeliveryFee: originalDeliveryFee ?? this.originalDeliveryFee,
       freeDeliveryApplied: freeDeliveryApplied ?? this.freeDeliveryApplied,
+      deliveryPricing: deliveryPricing is _i2.DeliveryPricingResult?
+          ? deliveryPricing
+          : this.deliveryPricing?.copyWith(),
       totalSavings: totalSavings ?? this.totalSavings,
       totalAmount: totalAmount ?? this.totalAmount,
       appliedOffers:
           appliedOffers ??
           this.appliedOffers.map((e0) => e0.copyWith()).toList(),
-      appliedCoupon: appliedCoupon is _i3.AppliedCouponInfo?
+      appliedCoupon: appliedCoupon is _i4.AppliedCouponInfo?
           ? appliedCoupon
           : this.appliedCoupon?.copyWith(),
       freeItems:

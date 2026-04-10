@@ -1,0 +1,5 @@
+class: DeliveryRulePage
+fields:
+  rules: List<DeliveryRule>
+  nextPageToken: String?
+  totalCount: int

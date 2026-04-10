@@ -54,13 +54,14 @@ coupon:
   - getAvailableCoupons:
   - getBestCoupon:
 freeDelivery:
-  - upsertFreeDeliveryRule:
-  - deleteFreeDeliveryRule:
-  - getActiveFreeDeliveryRules:
-  - getAllFreeDeliveryRules:
-  - getFreeDeliveryRulesPage:
-  - setFreeDeliveryRuleActive:
-  - calculateDeliveryFee:
+  - getDeliveryConfig:
+  - upsertDeliveryConfig:
+  - getAllDeliveryRules:
+  - getDeliveryRulesPage:
+  - upsertDeliveryRule:
+  - deleteDeliveryRule:
+  - setDeliveryRuleActive:
+  - calculateDeliveryPricing:
 order:
   - createOrder:
   - createPendingOrder:
@@ -84,6 +85,10 @@ payment:
   - getPaymentStatus:
   - recoverPendingPayments:
 pricing:
+  - calculateCartPricing:
+  - getApplicableOffers:
+  - basketSuggestions:
+  - calculateDeliveryFee:
 product:
   - getProductsByIds:
   - getProducts:

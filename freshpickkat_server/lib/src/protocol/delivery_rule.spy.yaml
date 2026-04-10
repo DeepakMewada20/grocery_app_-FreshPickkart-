@@ -1,0 +1,13 @@
+class: DeliveryRule
+fields:
+  ruleId: String?
+  name: String
+  description: String?
+  ruleType: String
+  deliveryFee: double
+  priority: int
+  targetUserType: String?
+  isActive: bool
+  startDate: DateTime
+  endDate: DateTime
+  createdAt: DateTime

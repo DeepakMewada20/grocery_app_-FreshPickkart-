@@ -1,0 +1,11 @@
+class: DeliveryPricingResult
+fields:
+  deliveryFee: double
+  isFree: bool
+  message: String?
+  remainingAmount: double?
+  progressPercent: double?
+  appliedRuleType: String?
+  appliedRuleName: String?
+  freeDeliveryThreshold: double?
+  baseDeliveryFee: double
