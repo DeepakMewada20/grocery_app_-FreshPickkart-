@@ -3111,6 +3111,7 @@ class _PricingEndpoint {
     List<_i18.CartItemInput> items,
     double cartTotal, {
     String? userId,
+    String? appliedCouponCode,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3127,6 +3128,7 @@ class _PricingEndpoint {
             'items': items,
             'cartTotal': cartTotal,
             'userId': userId,
+            'appliedCouponCode': appliedCouponCode,
           }),
           serializationManager: _serializationManager,
         );

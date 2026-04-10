@@ -119,6 +119,9 @@ class CartController extends GetxController {
   final client = ServerpodClient().client;
   Timer? _cartValidationDebounce;
   Timer? _basketSuggestionDebounce;
+  final RxBool isPricingStale = false.obs;
+  final RxBool isBasketSuggestionsLoading = false.obs;
+  final RxDouble estimatedDeliveryFee = 0.0.obs;
   bool _isInitialLoading = false;
   String _lastMeaningfulCartSnapshot = '';
   String _lastSuggestedCartSnapshot = '';
@@ -129,6 +132,7 @@ class CartController extends GetxController {
     // Listen to cart changes and sync with server
     ever(cartItems, (_) {
       _refreshBogoSuggestion();
+      _updateDeliveryFeeEstimate();
       _handleCartChanged();
     });
     ever(BogoController.instance.activeOffers, (_) => _refreshBogoSuggestion());
@@ -158,10 +162,29 @@ class CartController extends GetxController {
 
   Future<void> _handleCartChanged() async {
     if (_isInitialLoading) return;
-    await _syncWithServer();
-    await fetchAvailableCoupons();
-    await _revalidateAppliedCoupon();
-    await fetchCartPricing();
+    isPricingStale.value = true;
+    try {
+      await Future.wait([
+        _syncWithServer(),
+        fetchAvailableCoupons(),
+        _revalidateAppliedCoupon(),
+        fetchCartPricing(),
+      ]);
+    } finally {
+      isPricingStale.value = false;
+    }
+  }
+
+  void _updateDeliveryFeeEstimate() {
+    final currentSubtotal = subtotal;
+    // Standard default slabs if config not yet cached
+    double fee = 40.0;
+    if (currentSubtotal >= 300) {
+      fee = 0.0;
+    } else if (currentSubtotal >= 200) {
+      fee = 20.0;
+    }
+    estimatedDeliveryFee.value = fee;
   }
 
   Future<void> _syncWithServer() async {
@@ -235,6 +258,7 @@ class CartController extends GetxController {
   Future<void> fetchCartPricing() async {
     if (cartItems.isEmpty) {
       cartPricing.value = null;
+      _updateDeliveryFeeEstimate();
       return;
     }
 
@@ -245,6 +269,8 @@ class CartController extends GetxController {
         autoApplyCoupons: false,
       );
       cartPricing.value = result;
+      // Also update estimate logic if we got config back (if ever exposed)
+      _updateDeliveryFeeEstimate();
     } catch (e) {
       debugPrint('Error fetching cart pricing: $e');
     }
@@ -254,6 +280,7 @@ class CartController extends GetxController {
     final snapshot = _buildMeaningfulCartSnapshot();
     if (cartItems.isEmpty || snapshot.isEmpty) {
       basketSuggestions.clear();
+      isBasketSuggestionsLoading.value = false;
       _lastSuggestedCartSnapshot = '';
       return;
     }
@@ -261,19 +288,24 @@ class CartController extends GetxController {
       return;
     }
 
+    isBasketSuggestionsLoading.value = true;
     try {
       final response = await client.pricing.basketSuggestions(
         _buildCartItemInputs(),
         subtotal,
         userId: AuthController.instance.currentUser?.uid,
+        appliedCouponCode: appliedCoupon.value?.code,
       );
       if (_buildMeaningfulCartSnapshot() != snapshot) {
+        isBasketSuggestionsLoading.value = false;
         return;
       }
       basketSuggestions.assignAll(response.suggestions);
       _lastSuggestedCartSnapshot = snapshot;
     } catch (e) {
       debugPrint('Error fetching basket suggestions: $e');
+    } finally {
+      isBasketSuggestionsLoading.value = false;
     }
   }
 
@@ -298,7 +330,6 @@ class CartController extends GetxController {
     }
 
     _basketSuggestionDebounce = Timer(const Duration(milliseconds: 300), () {
-
       _basketSuggestionDebounce = null;
       fetchBasketSuggestions();
     });
@@ -543,9 +574,10 @@ class CartController extends GetxController {
   }
 
   double get deliveryFee {
+    if (isPricingStale.value) return estimatedDeliveryFee.value;
     return cartPricing.value?.deliveryPricing?.deliveryFee ??
         cartPricing.value?.deliveryFee ??
-        0;
+        estimatedDeliveryFee.value;
   }
 
   double get couponDiscount {
@@ -558,6 +590,12 @@ class CartController extends GetxController {
   }
 
   double get totalAmount {
+    if (isPricingStale.value) {
+      return ((subtotal - couponDiscount) + deliveryFee).clamp(
+        0,
+        double.infinity,
+      );
+    }
     return cartPricing.value?.totalAmount ??
         ((subtotal - couponDiscount) + deliveryFee).clamp(0, double.infinity);
   }
@@ -624,8 +662,6 @@ class CartController extends GetxController {
       if (!result.isValid) {
         removeCoupon();
         couponError.value = result.errorMessage ?? 'Coupon removed';
-      } else {
-        await fetchCartPricing();
       }
     } catch (e) {
       removeCoupon();
@@ -1157,6 +1193,7 @@ class CartController extends GetxController {
             .firstWhereOrNull((offer) => offer.comboId == suggestion.comboId);
         if (combo != null) {
           addComboOffer(combo);
+          basketSuggestions.remove(suggestion);
         }
         break;
       case 'bogo':
@@ -1170,19 +1207,26 @@ class CartController extends GetxController {
             variantId: suggestion.variantId,
             triggerBogoSuggestion: false,
           );
+          basketSuggestions.remove(suggestion);
         }
         break;
       case 'variant':
         final currentProduct = _findProductById(suggestion.productId);
         final baseProduct = ProductProviderController.instance.allProducts
-            .firstWhereOrNull((product) => product.productId == suggestion.productId);
+            .firstWhereOrNull(
+              (product) => product.productId == suggestion.productId,
+            );
         if (currentProduct != null && baseProduct != null) {
-          removeItem(currentProduct, variantId: inferProductVariantId(currentProduct));
+          removeItem(
+            currentProduct,
+            variantId: inferProductVariantId(currentProduct),
+          );
           addItem(
             baseProduct,
             variantId: suggestion.variantId,
             triggerBogoSuggestion: false,
           );
+          basketSuggestions.remove(suggestion);
         }
         break;
       default:

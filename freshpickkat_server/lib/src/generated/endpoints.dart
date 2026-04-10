@@ -2256,6 +2256,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'appliedCouponCode': _i1.ParameterDescription(
+              name: 'appliedCouponCode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -2267,6 +2272,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['items'],
                     params['cartTotal'],
                     userId: params['userId'],
+                    appliedCouponCode: params['appliedCouponCode'],
                   ),
         ),
         'calculateDeliveryFee': _i1.MethodConnector(

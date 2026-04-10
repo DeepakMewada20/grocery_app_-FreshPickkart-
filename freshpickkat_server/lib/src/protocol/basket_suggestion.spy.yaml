@@ -11,3 +11,5 @@ fields:
   productId: String?
   variantId: String?
   comboId: String?
+  savingAmount: double?
+  thumbnailUrl: String?

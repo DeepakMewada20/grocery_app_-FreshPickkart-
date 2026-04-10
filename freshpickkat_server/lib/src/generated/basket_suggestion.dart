@@ -27,6 +27,8 @@ abstract class BasketSuggestion
     this.productId,
     this.variantId,
     this.comboId,
+    this.savingAmount,
+    this.thumbnailUrl,
   });
 
   factory BasketSuggestion({
@@ -41,6 +43,8 @@ abstract class BasketSuggestion
     String? productId,
     String? variantId,
     String? comboId,
+    double? savingAmount,
+    String? thumbnailUrl,
   }) = _BasketSuggestionImpl;
 
   factory BasketSuggestion.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -62,6 +66,8 @@ abstract class BasketSuggestion
       productId: jsonSerialization['productId'] as String?,
       variantId: jsonSerialization['variantId'] as String?,
       comboId: jsonSerialization['comboId'] as String?,
+      savingAmount: (jsonSerialization['savingAmount'] as num?)?.toDouble(),
+      thumbnailUrl: jsonSerialization['thumbnailUrl'] as String?,
     );
   }
 
@@ -87,6 +93,10 @@ abstract class BasketSuggestion
 
   String? comboId;
 
+  double? savingAmount;
+
+  String? thumbnailUrl;
+
   /// Returns a shallow copy of this [BasketSuggestion]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -102,6 +112,8 @@ abstract class BasketSuggestion
     String? productId,
     String? variantId,
     String? comboId,
+    double? savingAmount,
+    String? thumbnailUrl,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -118,6 +130,8 @@ abstract class BasketSuggestion
       if (productId != null) 'productId': productId,
       if (variantId != null) 'variantId': variantId,
       if (comboId != null) 'comboId': comboId,
+      if (savingAmount != null) 'savingAmount': savingAmount,
+      if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
     };
   }
 
@@ -136,6 +150,8 @@ abstract class BasketSuggestion
       if (productId != null) 'productId': productId,
       if (variantId != null) 'variantId': variantId,
       if (comboId != null) 'comboId': comboId,
+      if (savingAmount != null) 'savingAmount': savingAmount,
+      if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
     };
   }
 
@@ -160,6 +176,8 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     String? productId,
     String? variantId,
     String? comboId,
+    double? savingAmount,
+    String? thumbnailUrl,
   }) : super._(
          message: message,
          type: type,
@@ -172,6 +190,8 @@ class _BasketSuggestionImpl extends BasketSuggestion {
          productId: productId,
          variantId: variantId,
          comboId: comboId,
+         savingAmount: savingAmount,
+         thumbnailUrl: thumbnailUrl,
        );
 
   /// Returns a shallow copy of this [BasketSuggestion]
@@ -190,6 +210,8 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     Object? productId = _Undefined,
     Object? variantId = _Undefined,
     Object? comboId = _Undefined,
+    Object? savingAmount = _Undefined,
+    Object? thumbnailUrl = _Undefined,
   }) {
     return BasketSuggestion(
       message: message ?? this.message,
@@ -219,6 +241,8 @@ class _BasketSuggestionImpl extends BasketSuggestion {
       productId: productId is String? ? productId : this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
       comboId: comboId is String? ? comboId : this.comboId,
+      savingAmount: savingAmount is double? ? savingAmount : this.savingAmount,
+      thumbnailUrl: thumbnailUrl is String? ? thumbnailUrl : this.thumbnailUrl,
     );
   }
 }

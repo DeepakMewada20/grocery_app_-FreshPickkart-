@@ -48,12 +48,14 @@ class PricingEndpoint extends Endpoint {
     List<CartItemInput> items,
     double cartTotal, {
     String? userId,
+    String? appliedCouponCode,
   }) async {
     return BasketSuggestionService.getSuggestions(
       session: session,
       items: items,
       cartTotal: cartTotal,
       userId: userId,
+      appliedCouponCode: appliedCouponCode,
     );
   }
 

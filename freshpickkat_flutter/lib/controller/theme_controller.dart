@@ -138,6 +138,168 @@ class AppOfferTheme extends ThemeExtension<AppOfferTheme> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Suggestion Card Theme Extension
+// ─────────────────────────────────────────────────────────────────────────────
+@immutable
+class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
+  final Color cardBackground;
+  final Color cardBorder;
+  final Color cardShadow;
+  final Color progressTrack;
+  final Color deliveryIconBg;
+  final Color deliveryIconColor;
+  final Color couponIconBg;
+  final Color couponIconColor;
+  final Color bogoIconBg;
+  final Color bogoIconColor;
+  final Color comboIconBg;
+  final Color comboIconColor;
+  final Color variantIconBg;
+  final Color variantIconColor;
+  final Color savingBadgeBg;
+  final Color savingBadgeText;
+
+  const AppSuggestionTheme({
+    required this.cardBackground,
+    required this.cardBorder,
+    required this.cardShadow,
+    required this.progressTrack,
+    required this.deliveryIconBg,
+    required this.deliveryIconColor,
+    required this.couponIconBg,
+    required this.couponIconColor,
+    required this.bogoIconBg,
+    required this.bogoIconColor,
+    required this.comboIconBg,
+    required this.comboIconColor,
+    required this.variantIconBg,
+    required this.variantIconColor,
+    required this.savingBadgeBg,
+    required this.savingBadgeText,
+  });
+
+  factory AppSuggestionTheme.light() {
+    return const AppSuggestionTheme(
+      cardBackground: Color(0xFFFFFFFF),
+      cardBorder: Color(0xFFE0E0E0),
+      cardShadow: Color(0x0A000000),
+      progressTrack: Color(0xFFE8E8E8),
+      deliveryIconBg: Color(0xFFE8F5E9),
+      deliveryIconColor: Color(0xFF4CAF50),
+      couponIconBg: Color(0xFFFFF8E1),
+      couponIconColor: Color(0xFFFFB300),
+      bogoIconBg: Color(0xFFFCE4EC),
+      bogoIconColor: Color(0xFFE91E63),
+      comboIconBg: Color(0xFFE8F5E9),
+      comboIconColor: Color(0xFF1B8A4C),
+      variantIconBg: Color(0xFFE3F2FD),
+      variantIconColor: Color(0xFF2196F3),
+      savingBadgeBg: Color(0xFF1B8A4C),
+      savingBadgeText: Color(0xFFFFFFFF),
+    );
+  }
+
+  factory AppSuggestionTheme.dark() {
+    return const AppSuggestionTheme(
+      cardBackground: Color(0xFF1E1E1E),
+      cardBorder: Color(0xFF2E2E2E),
+      cardShadow: Color(0x40000000),
+      progressTrack: Color(0xFF2E2E2E),
+      deliveryIconBg: Color(0xFF1B3D1C),
+      deliveryIconColor: Color(0xFF66BB6A),
+      couponIconBg: Color(0xFF3D3100),
+      couponIconColor: Color(0xFFFFCA28),
+      bogoIconBg: Color(0xFF3D1F2C),
+      bogoIconColor: Color(0xFFF06292),
+      comboIconBg: Color(0xFF1B3D1C),
+      comboIconColor: Color(0xFF66BB6A),
+      variantIconBg: Color(0xFF1A2740),
+      variantIconColor: Color(0xFF64B5F6),
+      savingBadgeBg: Color(0xFF2ECC71),
+      savingBadgeText: Color(0xFF000000),
+    );
+  }
+
+  @override
+  AppSuggestionTheme copyWith({
+    Color? cardBackground,
+    Color? cardBorder,
+    Color? cardShadow,
+    Color? progressTrack,
+    Color? deliveryIconBg,
+    Color? deliveryIconColor,
+    Color? couponIconBg,
+    Color? couponIconColor,
+    Color? bogoIconBg,
+    Color? bogoIconColor,
+    Color? comboIconBg,
+    Color? comboIconColor,
+    Color? variantIconBg,
+    Color? variantIconColor,
+    Color? savingBadgeBg,
+    Color? savingBadgeText,
+  }) {
+    return AppSuggestionTheme(
+      cardBackground: cardBackground ?? this.cardBackground,
+      cardBorder: cardBorder ?? this.cardBorder,
+      cardShadow: cardShadow ?? this.cardShadow,
+      progressTrack: progressTrack ?? this.progressTrack,
+      deliveryIconBg: deliveryIconBg ?? this.deliveryIconBg,
+      deliveryIconColor: deliveryIconColor ?? this.deliveryIconColor,
+      couponIconBg: couponIconBg ?? this.couponIconBg,
+      couponIconColor: couponIconColor ?? this.couponIconColor,
+      bogoIconBg: bogoIconBg ?? this.bogoIconBg,
+      bogoIconColor: bogoIconColor ?? this.bogoIconColor,
+      comboIconBg: comboIconBg ?? this.comboIconBg,
+      comboIconColor: comboIconColor ?? this.comboIconColor,
+      variantIconBg: variantIconBg ?? this.variantIconBg,
+      variantIconColor: variantIconColor ?? this.variantIconColor,
+      savingBadgeBg: savingBadgeBg ?? this.savingBadgeBg,
+      savingBadgeText: savingBadgeText ?? this.savingBadgeText,
+    );
+  }
+
+  @override
+  AppSuggestionTheme lerp(ThemeExtension<AppSuggestionTheme>? other, double t) {
+    if (other is! AppSuggestionTheme) return this;
+    return AppSuggestionTheme(
+      cardBackground:
+          Color.lerp(cardBackground, other.cardBackground, t) ?? cardBackground,
+      cardBorder: Color.lerp(cardBorder, other.cardBorder, t) ?? cardBorder,
+      cardShadow: Color.lerp(cardShadow, other.cardShadow, t) ?? cardShadow,
+      progressTrack:
+          Color.lerp(progressTrack, other.progressTrack, t) ?? progressTrack,
+      deliveryIconBg:
+          Color.lerp(deliveryIconBg, other.deliveryIconBg, t) ?? deliveryIconBg,
+      deliveryIconColor:
+          Color.lerp(deliveryIconColor, other.deliveryIconColor, t) ??
+          deliveryIconColor,
+      couponIconBg:
+          Color.lerp(couponIconBg, other.couponIconBg, t) ?? couponIconBg,
+      couponIconColor:
+          Color.lerp(couponIconColor, other.couponIconColor, t) ??
+          couponIconColor,
+      bogoIconBg: Color.lerp(bogoIconBg, other.bogoIconBg, t) ?? bogoIconBg,
+      bogoIconColor:
+          Color.lerp(bogoIconColor, other.bogoIconColor, t) ?? bogoIconColor,
+      comboIconBg: Color.lerp(comboIconBg, other.comboIconBg, t) ?? comboIconBg,
+      comboIconColor:
+          Color.lerp(comboIconColor, other.comboIconColor, t) ?? comboIconColor,
+      variantIconBg:
+          Color.lerp(variantIconBg, other.variantIconBg, t) ?? variantIconBg,
+      variantIconColor:
+          Color.lerp(variantIconColor, other.variantIconColor, t) ??
+          variantIconColor,
+      savingBadgeBg:
+          Color.lerp(savingBadgeBg, other.savingBadgeBg, t) ?? savingBadgeBg,
+      savingBadgeText:
+          Color.lerp(savingBadgeText, other.savingBadgeText, t) ??
+          savingBadgeText,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AppTheme
 // ─────────────────────────────────────────────────────────────────────────────
 class AppTheme {
@@ -253,6 +415,7 @@ class AppTheme {
       badgeSoft: Color(0xFFFFF3DF),
       badgeBorder: Color(0x80E6A23C),
     );
+    final suggestionTheme = AppSuggestionTheme.light();
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -319,8 +482,9 @@ class AppTheme {
         backgroundColor: p.surface,
         surfaceTintColor: Colors.transparent,
       ),
-      extensions: const <ThemeExtension<dynamic>>[
+      extensions: <ThemeExtension<dynamic>>[
         offerTheme,
+        suggestionTheme,
       ],
     );
   }
@@ -333,6 +497,7 @@ class AppTheme {
       badgeSoft: Color(0xFF3B2A12),
       badgeBorder: Color(0x80E6A23C),
     );
+    final suggestionTheme = AppSuggestionTheme.dark();
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -379,8 +544,9 @@ class AppTheme {
         backgroundColor: darkSurface,
         surfaceTintColor: Colors.transparent,
       ),
-      extensions: const <ThemeExtension<dynamic>>[
+      extensions: <ThemeExtension<dynamic>>[
         offerTheme,
+        suggestionTheme,
       ],
     );
   }
