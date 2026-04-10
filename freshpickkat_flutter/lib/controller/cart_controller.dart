@@ -297,7 +297,8 @@ class CartController extends GetxController {
       return;
     }
 
-    _basketSuggestionDebounce = Timer(const Duration(milliseconds: 450), () {
+    _basketSuggestionDebounce = Timer(const Duration(milliseconds: 300), () {
+
       _basketSuggestionDebounce = null;
       fetchBasketSuggestions();
     });

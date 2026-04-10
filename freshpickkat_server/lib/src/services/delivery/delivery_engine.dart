@@ -75,7 +75,7 @@ class DeliveryEngine {
     return DeliveryConfig(
       configId: _defaultConfigId,
       baseDeliveryFee: 40,
-      freeDeliveryThreshold: 200,
+      freeDeliveryThreshold: 300,
       slabs: [
         DeliverySlab(minOrderAmount: 0, maxOrderAmount: 199, fee: 40),
         DeliverySlab(minOrderAmount: 200, maxOrderAmount: 299, fee: 20),
@@ -261,12 +261,7 @@ class DeliveryEngine {
     double? progressPercent;
     String? message;
 
-    if (freeThreshold != null && freeThreshold > 0 && cartTotal < freeThreshold) {
-      remainingAmount = freeThreshold - cartTotal;
-      progressPercent = ((cartTotal / freeThreshold) * 100).clamp(0, 100);
-      message =
-          '₹${remainingAmount.toStringAsFixed(0)} aur add karo for FREE delivery';
-    } else if (deliveryFee <= 0) {
+    if (deliveryFee <= 0) {
       message = 'FREE Delivery unlocked';
       progressPercent = 100;
       remainingAmount = 0;

@@ -164,16 +164,50 @@ class BasketSuggestionService {
     required double cartTotal,
     required DeliveryConfig config,
   }) {
-    final target = config.freeDeliveryThreshold;
-    if (target == null || target <= cartTotal) return null;
+    // 1. Calculate current potential fee (simplified slab match)
+    double currentFee = config.baseDeliveryFee;
+    for (final slab in config.slabs) {
+      if (cartTotal >= slab.minOrderAmount && cartTotal <= slab.maxOrderAmount) {
+        currentFee = slab.fee;
+        break;
+      }
+    }
+
+    if (currentFee <= 0) return null;
+
+    // 2. Find the next best milestone
+    DeliverySlab? nextMilestone;
+    for (final slab in config.slabs) {
+      if (slab.minOrderAmount > cartTotal && slab.fee < currentFee) {
+        if (nextMilestone == null ||
+            slab.minOrderAmount < nextMilestone.minOrderAmount) {
+          nextMilestone = slab;
+        }
+      }
+    }
+
+    if (nextMilestone == null) return null;
+
+    final target = nextMilestone.minOrderAmount;
     final remaining = math.max(0.0, target - cartTotal).toDouble();
+    final savings = currentFee - nextMilestone.fee;
+
+    String message;
+    if (nextMilestone.fee <= 0) {
+      message = 'Add ₹${remaining.toStringAsFixed(0)} more to get FREE delivery';
+    } else {
+      message =
+          'Add ₹${remaining.toStringAsFixed(0)} more to get ₹${savings.toStringAsFixed(0)} OFF on delivery';
+    }
+
     return BasketSuggestion(
-      message:
-          'Add ₹${remaining.toStringAsFixed(0)} more to get FREE delivery',
+      message: message,
       type: 'free_delivery',
       priority: 1,
       metadata: {
-        'goal': 'free_delivery',
+        'goal': nextMilestone.fee <= 0 ? 'free_delivery' : 'discounted_delivery',
+        'nextFee': nextMilestone.fee.toString(),
+        'savings': savings.toString(),
         'highlight': remaining <= 50 ? 'near' : 'normal',
       },
       progressCurrent: cartTotal,

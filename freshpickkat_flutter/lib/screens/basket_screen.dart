@@ -9,8 +9,8 @@ import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
 import 'package:freshpickkat_flutter/widgets/basket_suggestions_section.dart';
-import 'package:freshpickkat_flutter/widgets/delivery_progress_card.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
+
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
@@ -109,7 +109,6 @@ class _BasketScreenState extends State<BasketScreen> {
                     }),
                     _buildCartItemsList(context, cartController, cs),
                     const BasketSuggestionsSection(),
-                    const DeliveryProgressCard(),
                     const CouponSection(),
                     _buildBillDetails(cartController, cs),
                   ],
