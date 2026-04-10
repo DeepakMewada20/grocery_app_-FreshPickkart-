@@ -1229,8 +1229,19 @@ class CartController extends GetxController {
           basketSuggestions.remove(suggestion);
         }
         break;
+      case 'free_delivery':
+        // No direct cart action for delivery — user shops more
+        break;
       default:
         break;
+    }
+
+    // ── Auto-apply coupon for combination suggestions ─────────────────────
+    final comboCouponCode = suggestion.metadata?['comboCouponCode'];
+    if (comboCouponCode != null && comboCouponCode.trim().isNotEmpty) {
+      // Small delay to let cart update propagate before validating coupon
+      await Future.delayed(const Duration(milliseconds: 400));
+      await applyCoupon(comboCouponCode.trim());
     }
   }
 }

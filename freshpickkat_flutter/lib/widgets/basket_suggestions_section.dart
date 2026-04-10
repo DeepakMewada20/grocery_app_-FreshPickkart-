@@ -138,12 +138,16 @@ class _SuggestionCardState extends State<_SuggestionCard>
     final s = widget.suggestion;
     final cfg = _cfgFor(s.type);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isBest = s.metadata?['isBest'] == 'true';
 
     // Neutral card background — NO coloured tint
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final cardBorder = isDark
-        ? Colors.white.withValues(alpha: 0.08)
-        : Colors.black.withValues(alpha: 0.07);
+    final cardBorder = isBest
+        ? const Color(0xFFE6A23C).withValues(alpha: 0.6) // gold for best
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.07));
+    final leftStripeColor = isBest ? const Color(0xFFE6A23C) : cfg.accent;
 
     return FadeTransition(
       opacity: _fade,
@@ -157,11 +161,13 @@ class _SuggestionCardState extends State<_SuggestionCard>
             decoration: BoxDecoration(
               color: cardBg,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: cardBorder, width: 1),
+              border: Border.all(color: cardBorder, width: isBest ? 1.5 : 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.07),
-                  blurRadius: 12,
+                  color: isBest
+                      ? const Color(0xFFE6A23C).withValues(alpha: 0.22)
+                      : Colors.black.withValues(alpha: isDark ? 0.30 : 0.07),
+                  blurRadius: isBest ? 18 : 12,
                   offset: const Offset(0, 3),
                 ),
               ],
@@ -172,11 +178,11 @@ class _SuggestionCardState extends State<_SuggestionCard>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Coloured left accent stripe ─────────────────────────
-                  Container(width: 4, color: cfg.accent),
+                  Container(width: 4, color: leftStripeColor),
 
                   // ── Card body ───────────────────────────────────────────
                   Expanded(
-                    child: _bodyFor(s, cfg, isDark),
+                    child: _bodyFor(s, cfg, isDark, isBest),
                   ),
                 ],
               ),
@@ -191,14 +197,15 @@ class _SuggestionCardState extends State<_SuggestionCard>
     client.BasketSuggestion s,
     _TypeConfig cfg,
     bool isDark,
+    bool isBest,
   ) {
     switch (s.type) {
       case 'combo':
-        return _ComboBody(s: s, cfg: cfg, isDark: isDark);
+        return _ComboBody(s: s, cfg: cfg, isDark: isDark, isBest: isBest);
       case 'variant':
-        return _VariantBody(s: s, cfg: cfg, isDark: isDark);
+        return _VariantBody(s: s, cfg: cfg, isDark: isDark, isBest: isBest);
       default:
-        return _GenericBody(s: s, cfg: cfg, isDark: isDark);
+        return _GenericBody(s: s, cfg: cfg, isDark: isDark, isBest: isBest);
     }
   }
 
@@ -237,10 +244,12 @@ class _GenericBody extends StatelessWidget {
     required this.s,
     required this.cfg,
     required this.isDark,
+    required this.isBest,
   });
   final client.BasketSuggestion s;
   final _TypeConfig cfg;
   final bool isDark;
+  final bool isBest;
 
   @override
   Widget build(BuildContext context) {
@@ -259,10 +268,14 @@ class _GenericBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Row 1: type chip + save badge ───────────────────────────────
+          // ── Row 1: type chip + best badge + save badge ───────────────────────
           Row(
             children: [
               _TypeChip(cfg: cfg, isDark: isDark),
+              if (isBest) ...[
+                const SizedBox(width: 6),
+                const _BestBadge(),
+              ],
               const Spacer(),
               if (s.savingAmount != null && s.savingAmount! > 0)
                 _SaveBadge(amount: s.savingAmount!, accent: cfg.accent),
@@ -353,10 +366,16 @@ class _GenericBody extends StatelessWidget {
 //         [Overlapping images  CTA]
 // ─────────────────────────────────────────────────────────────────────────────
 class _ComboBody extends StatelessWidget {
-  const _ComboBody({required this.s, required this.cfg, required this.isDark});
+  const _ComboBody({
+    required this.s,
+    required this.cfg,
+    required this.isDark,
+    required this.isBest,
+  });
   final client.BasketSuggestion s;
   final _TypeConfig cfg;
   final bool isDark;
+  final bool isBest;
 
   @override
   Widget build(BuildContext context) {
@@ -483,10 +502,16 @@ class _ComboBody extends StatelessWidget {
 //         [CTA]
 // ─────────────────────────────────────────────────────────────────────────────
 class _VariantBody extends StatelessWidget {
-  const _VariantBody({required this.s, required this.cfg, required this.isDark});
+  const _VariantBody({
+    required this.s,
+    required this.cfg,
+    required this.isDark,
+    required this.isBest,
+  });
   final client.BasketSuggestion s;
   final _TypeConfig cfg;
   final bool isDark;
+  final bool isBest;
 
   @override
   Widget build(BuildContext context) {
@@ -512,6 +537,10 @@ class _VariantBody extends StatelessWidget {
           Row(
             children: [
               _TypeChip(cfg: cfg, isDark: isDark),
+              if (isBest) ...[
+                const SizedBox(width: 6),
+                const _BestBadge(),
+              ],
               const Spacer(),
               if (s.savingAmount != null && s.savingAmount! > 0)
                 _SaveBadge(amount: s.savingAmount!, accent: cfg.accent),
@@ -687,6 +716,40 @@ class _SaveBadge extends StatelessWidget {
           fontWeight: FontWeight.w800,
           letterSpacing: 0.1,
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Best offer badge — gold pill shown on #1 ranked card
+// ─────────────────────────────────────────────────────────────────────────────
+class _BestBadge extends StatelessWidget {
+  const _BestBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6A23C),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('⭐', style: TextStyle(fontSize: 9)),
+          SizedBox(width: 3),
+          Text(
+            'Best Offer',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ],
       ),
     );
   }
