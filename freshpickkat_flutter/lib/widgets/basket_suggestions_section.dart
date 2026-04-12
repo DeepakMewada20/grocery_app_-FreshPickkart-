@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
@@ -20,32 +21,38 @@ class _TypeConfig {
     required this.accent,
     required this.label,
   });
+
+  _TypeConfig copyWith({Color? accent}) => _TypeConfig(
+        icon: icon,
+        accent: accent ?? this.accent,
+        label: label,
+      );
 }
 
 const _typeConfigs = <String, _TypeConfig>{
   'free_delivery': _TypeConfig(
     icon: Icons.local_shipping_rounded,
-    accent: Color(0xFF1B8A4C), // green
+    accent: AppTheme.primaryGreen,
     label: 'Free Delivery',
   ),
   'coupon': _TypeConfig(
     icon: Icons.confirmation_number_rounded,
-    accent: Color(0xFFE6A23C), // amber
+    accent: AppTheme.primaryGreen,
     label: 'Coupon',
   ),
   'bogo': _TypeConfig(
     icon: Icons.card_giftcard_rounded,
-    accent: Color(0xFFE91E63), // pink
+    accent: AppTheme.primaryGreen,
     label: 'Buy 1 Get 1',
   ),
   'combo': _TypeConfig(
     icon: Icons.layers_rounded,
-    accent: Color(0xFF7B2FBE), // purple
+    accent: AppTheme.primaryGreen,
     label: 'Combo Deal',
   ),
   'variant': _TypeConfig(
     icon: Icons.trending_up_rounded,
-    accent: Color(0xFF1565C0), // blue
+    accent: AppTheme.primaryGreen,
     label: 'Better Value',
   ),
 };
@@ -149,14 +156,16 @@ class _SuggestionCardState extends State<_SuggestionCard>
       );
     }
 
-    // Neutral card background — NO coloured tint
-    final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>()!;
+    final goldAccent = const Color(0xFFE6A23C);
+    final cfgAccent = isBest ? goldAccent : suggestionTheme.ctaBackground;
+
+    // Neutral card background from theme
+    final cardBg = suggestionTheme.cardBackground;
     final cardBorder = isBest
-        ? cfg.accent.withValues(alpha: 0.6)
-        : (isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.black.withValues(alpha: 0.07));
-    final leftStripeColor = cfg.accent;
+        ? cfgAccent.withValues(alpha: 0.6)
+        : cardBg; // Invisible border for regular cards
+    final leftStripeColor = cfgAccent;
 
     return FadeTransition(
       opacity: _fade,
@@ -191,7 +200,7 @@ class _SuggestionCardState extends State<_SuggestionCard>
 
                   // ── Card body ───────────────────────────────────────────
                   Expanded(
-                    child: _bodyFor(s, cfg, isDark, isBest),
+                    child: _bodyFor(s, cfg.copyWith(accent: cfgAccent), isDark, isBest),
                   ),
                 ],
               ),
@@ -288,7 +297,7 @@ class _GenericBody extends StatelessWidget {
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark, isBest: isBest),
                 ),
               ),
               if (s.savingAmount != null && s.savingAmount! > 0) ...[
@@ -441,7 +450,7 @@ class _ComboBody extends StatelessWidget {
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark, isBest: isBest),
                 ),
               ),
               if (s.savingAmount != null && s.savingAmount! > 0) ...[
@@ -588,7 +597,7 @@ class _VariantBody extends StatelessWidget {
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark, isBest: isBest),
                 ),
               ),
               if (s.savingAmount != null && s.savingAmount! > 0) ...[
@@ -711,10 +720,11 @@ class _VariantBody extends StatelessWidget {
 // Type chip — flat, minimal color
 // ─────────────────────────────────────────────────────────────────────────────
 class _TypeChip extends StatelessWidget {
-  const _TypeChip({required this.s, required this.cfg, required this.isDark});
+  const _TypeChip({required this.s, required this.cfg, required this.isDark, required this.isBest});
   final client.BasketSuggestion s;
   final _TypeConfig cfg;
   final bool isDark;
+  final bool isBest;
 
   @override
   Widget build(BuildContext context) {
@@ -739,22 +749,26 @@ class _TypeChip extends StatelessWidget {
       icon = Icons.handshake_rounded;
     }
 
+    final theme = Theme.of(context).extension<AppSuggestionTheme>()!;
+    final bg = isBest ? const Color(0xFFE6A23C).withValues(alpha: 0.15) : theme.chipBackground;
+    final textCol = isBest ? const Color(0xFFE6A23C) : theme.chipText;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: cfg.accent,
+        color: bg,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 11),
+          Icon(icon, color: textCol, size: 11),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textCol,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.2,
@@ -769,9 +783,6 @@ class _TypeChip extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Save badge — BIGGER and prominent
-// ─────────────────────────────────────────────────────────────────────────────
 class _SaveBadge extends StatelessWidget {
   const _SaveBadge({required this.amount, required this.accent});
   final double amount;
@@ -779,17 +790,18 @@ class _SaveBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).extension<AppSuggestionTheme>()!;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: accent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         'Save ₹${amount.formatPrice}',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,        // ← bigger
+        style: TextStyle(
+          color: accent == const Color(0xFFE6A23C) ? Colors.white : theme.ctaText,
+          fontSize: 12,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.1,
         ),
@@ -807,15 +819,12 @@ class _BestBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(4),
       decoration: const BoxDecoration(
         color: Color(0xFFE6A23C),
         shape: BoxShape.circle,
       ),
-      child: const Text(
-        '⭐',
-        style: TextStyle(fontSize: 10, height: 1.2),
-      ),
+      child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
     );
   }
 }
@@ -1004,13 +1013,17 @@ class _CTAButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).extension<AppSuggestionTheme>()!;
+    final color = accent;
+    final textCol = color == const Color(0xFFE6A23C) ? Colors.white : theme.ctaText;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 32,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: accent,
+          color: color,
           borderRadius: BorderRadius.circular(9),
         ),
         child: Row(
@@ -1018,14 +1031,14 @@ class _CTAButton extends StatelessWidget {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textCol,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 13),
+            Icon(Icons.arrow_forward_rounded, color: textCol, size: 13),
           ],
         ),
       ),

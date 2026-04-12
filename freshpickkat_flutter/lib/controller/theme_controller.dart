@@ -158,6 +158,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
   final Color variantIconColor;
   final Color savingBadgeBg;
   final Color savingBadgeText;
+  final Color chipBackground;
+  final Color chipText;
+  final Color ctaBackground;
+  final Color ctaText;
+  final Color iconColor;
 
   const AppSuggestionTheme({
     required this.cardBackground,
@@ -176,6 +181,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
     required this.variantIconColor,
     required this.savingBadgeBg,
     required this.savingBadgeText,
+    required this.chipBackground,
+    required this.chipText,
+    required this.ctaBackground,
+    required this.ctaText,
+    required this.iconColor,
   });
 
   factory AppSuggestionTheme.light() {
@@ -196,6 +206,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
       variantIconColor: Color(0xFF2196F3),
       savingBadgeBg: Color(0xFF1B8A4C),
       savingBadgeText: Color(0xFFFFFFFF),
+      chipBackground: Color(0x1F1B8A4C), // Semi-transparent primary
+      chipText: Color(0xFF1B8A4C),
+      ctaBackground: Color(0xFF1B8A4C),
+      ctaText: Color(0xFFFFFFFF),
+      iconColor: Color(0xFF1B8A4C),
     );
   }
 
@@ -217,6 +232,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
       variantIconColor: Color(0xFF64B5F6),
       savingBadgeBg: Color(0xFF2ECC71),
       savingBadgeText: Color(0xFF000000),
+      chipBackground: Color(0x332ECC71),
+      chipText: Color(0xFF2ECC71),
+      ctaBackground: Color(0xFF2ECC71),
+      ctaText: Color(0xFF000000),
+      iconColor: Color(0xFF2ECC71),
     );
   }
 
@@ -238,6 +258,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
     Color? variantIconColor,
     Color? savingBadgeBg,
     Color? savingBadgeText,
+    Color? chipBackground,
+    Color? chipText,
+    Color? ctaBackground,
+    Color? ctaText,
+    Color? iconColor,
   }) {
     return AppSuggestionTheme(
       cardBackground: cardBackground ?? this.cardBackground,
@@ -256,6 +281,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
       variantIconColor: variantIconColor ?? this.variantIconColor,
       savingBadgeBg: savingBadgeBg ?? this.savingBadgeBg,
       savingBadgeText: savingBadgeText ?? this.savingBadgeText,
+      chipBackground: chipBackground ?? this.chipBackground,
+      chipText: chipText ?? this.chipText,
+      ctaBackground: ctaBackground ?? this.ctaBackground,
+      ctaText: ctaText ?? this.ctaText,
+      iconColor: iconColor ?? this.iconColor,
     );
   }
 
@@ -295,6 +325,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
       savingBadgeText:
           Color.lerp(savingBadgeText, other.savingBadgeText, t) ??
           savingBadgeText,
+      chipBackground: Color.lerp(chipBackground, other.chipBackground, t) ?? chipBackground,
+      chipText: Color.lerp(chipText, other.chipText, t) ?? chipText,
+      ctaBackground: Color.lerp(ctaBackground, other.ctaBackground, t) ?? ctaBackground,
+      ctaText: Color.lerp(ctaText, other.ctaText, t) ?? ctaText,
+      iconColor: Color.lerp(iconColor, other.iconColor, t) ?? iconColor,
     );
   }
 }
