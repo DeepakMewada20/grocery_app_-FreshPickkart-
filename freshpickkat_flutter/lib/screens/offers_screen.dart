@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/widgets/suggestions/suggestion_card.dart';
 import 'package:get/get.dart';
 
 /// Screen shown when user taps an "offer" type banner.
@@ -233,6 +235,72 @@ class _OffersScreenState extends State<OffersScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               children: [
+                // ── Smart Analysis Section ──────────────────────────────────
+                Obx(() {
+                  final cart = CartController.instance;
+                  final suggestions = cart.basketSuggestions;
+                  if (suggestions.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.auto_awesome_rounded,
+                                size: 16,
+                                color: AppTheme.primaryGreen,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Smart Analysis for You',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 185,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          clipBehavior: Clip.none,
+                          itemCount: suggestions.length,
+                          itemBuilder: (context, i) => SuggestionCard(
+                            suggestion: suggestions[i],
+                            index: i,
+                            width: MediaQuery.of(context).size.width * 0.85,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'All Offers',
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  );
+                }),
+
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(

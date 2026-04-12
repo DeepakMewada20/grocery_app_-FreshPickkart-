@@ -242,39 +242,43 @@ class _ProductCardState extends State<ProductCard> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (variants.length > 1) ...[
-                              DropdownButton<String>(
-                                value: _selectedVariantId,
-                                isExpanded: true,
-                                isDense: true,
-                                iconSize: 14,
-                                style: GoogleFonts.inter(
-                                  color: cs.onSurface.withValues(
-                                    alpha: 0.5,
+                              SizedBox(
+                                height: 24,
+                                child: DropdownButton<String>(
+                                  value: _selectedVariantId,
+                                  isExpanded: true,
+                                  isDense: true,
+                                  iconSize: 14,
+                                  underline: const SizedBox.shrink(),
+                                  style: GoogleFonts.inter(
+                                    color: cs.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    fontSize: widget.quantityFontSize ?? 10,
+                                    fontWeight: FontWeight.w400,
                                   ),
-                                  fontSize: widget.quantityFontSize ?? 10,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                dropdownColor: cs.surface,
-                                items: variants.map(
-                                  (variant) {
-                                    return DropdownMenuItem(
-                                      value: variant.variantId,
-                                      child: Text(
-                                        formatQuantityString(
-                                          variant.quantityValue,
-                                          variant.quantityUnit,
+                                  dropdownColor: cs.surface,
+                                  items: variants.map(
+                                    (variant) {
+                                      return DropdownMenuItem(
+                                        value: variant.variantId,
+                                        child: Text(
+                                          formatQuantityString(
+                                            variant.quantityValue,
+                                            variant.quantityUnit,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
+                                      );
+                                    },
+                                  ).toList(),
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    setState(() {
+                                      _selectedVariantId = value;
+                                    });
                                   },
-                                ).toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() {
-                                    _selectedVariantId = value;
-                                  });
-                                },
+                                ),
                               ),
                             ] else ...[
                               Text(
@@ -318,7 +322,7 @@ class _ProductCardState extends State<ProductCard> {
                                 ],
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
 
                             // Add button or Quantity selector
                             SizedBox(

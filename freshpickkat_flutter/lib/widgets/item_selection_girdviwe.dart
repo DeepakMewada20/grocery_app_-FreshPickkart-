@@ -10,7 +10,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
   final Widget? midContent;
   final int midContentAfterCount;
   const ItemSelectionGirdviwe({
-    this.childAspectRatio = 0.458,
+    this.childAspectRatio = 0.44,
     this.crossAxisCount = 3,
     this.midContent,
     this.midContentAfterCount = 20,

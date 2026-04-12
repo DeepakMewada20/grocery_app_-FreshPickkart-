@@ -3041,6 +3041,7 @@ class _PricingEndpoint {
   _i3.Future<_i32.CartPricingResult> calculateCartPricing(
     _i1.TestSessionBuilder sessionBuilder,
     List<_i18.CartItemInput> items, {
+    String? userId,
     String? appliedCouponCode,
     required bool autoApplyCoupons,
   }) async {
@@ -3057,6 +3058,7 @@ class _PricingEndpoint {
           methodName: 'calculateCartPricing',
           parameters: _i1.testObjectToJson({
             'items': items,
+            'userId': userId,
             'appliedCouponCode': appliedCouponCode,
             'autoApplyCoupons': autoApplyCoupons,
           }),

@@ -18,6 +18,7 @@ class PricingEngine {
   static Future<CartPricingResult> calculateCartPricing({
     required Session session,
     required List<CartItemInput> items,
+    String? userId,
     String? appliedCouponCode,
     bool autoApplyCoupons = true,
   }) async {
@@ -326,7 +327,7 @@ class PricingEngine {
     final deliveryPricing = await DeliveryEngine.calculate(
       session: session,
       cartTotal: effectiveSubtotal,
-      userId: '',
+      userId: userId,
     );
     result.deliveryPricing = deliveryPricing;
     result.deliveryFee = deliveryPricing.deliveryFee;

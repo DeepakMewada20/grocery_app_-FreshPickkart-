@@ -2196,6 +2196,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<List<_i23.CartItemInput>>(),
               nullable: false,
             ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'appliedCouponCode': _i1.ParameterDescription(
               name: 'appliedCouponCode',
               type: _i1.getType<String?>(),
@@ -2215,6 +2220,7 @@ class Endpoints extends _i1.EndpointDispatch {
                   .calculateCartPricing(
                     session,
                     params['items'],
+                    userId: params['userId'],
                     appliedCouponCode: params['appliedCouponCode'],
                     autoApplyCoupons: params['autoApplyCoupons'],
                   ),

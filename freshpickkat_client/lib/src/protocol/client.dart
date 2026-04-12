@@ -1044,6 +1044,7 @@ class EndpointPricing extends _i1.EndpointRef {
 
   _i2.Future<_i31.CartPricingResult> calculateCartPricing(
     List<_i17.CartItemInput> items, {
+    String? userId,
     String? appliedCouponCode,
     required bool autoApplyCoupons,
   }) => caller.callServerEndpoint<_i31.CartPricingResult>(
@@ -1051,6 +1052,7 @@ class EndpointPricing extends _i1.EndpointRef {
     'calculateCartPricing',
     {
       'items': items,
+      'userId': userId,
       'appliedCouponCode': appliedCouponCode,
       'autoApplyCoupons': autoApplyCoupons,
     },

@@ -265,6 +265,7 @@ class CartController extends GetxController {
     try {
       final result = await client.pricing.calculateCartPricing(
         _buildCartItemInputs(),
+        userId: AuthController.instance.currentUser?.uid,
         appliedCouponCode: appliedCoupon.value?.code,
         autoApplyCoupons: false,
       );
@@ -1186,62 +1187,70 @@ class CartController extends GetxController {
   }
 
   Future<void> applyBasketSuggestion(BasketSuggestion suggestion) async {
-    switch (suggestion.type) {
-      case 'combo':
-        await ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
-        final combo = ComboOfferController.instance.activeComboOffers
-            .firstWhereOrNull((offer) => offer.comboId == suggestion.comboId);
-        if (combo != null) {
-          addComboOffer(combo);
-          basketSuggestions.remove(suggestion);
-        }
-        break;
-      case 'bogo':
-        final product = _findProductById(
-          suggestion.productId,
-          variantId: suggestion.variantId,
-        );
-        if (product != null) {
-          addItem(
-            product,
-            variantId: suggestion.variantId,
-            triggerBogoSuggestion: false,
+    final actions = suggestion.actions ?? [];
+    if (actions.isEmpty) return;
+
+    for (final action in actions) {
+      switch (action.type) {
+        case 'product':
+        case 'bogo':
+          final product = _findProductById(
+            action.productId,
+            variantId: action.variantId,
           );
-          basketSuggestions.remove(suggestion);
-        }
-        break;
-      case 'variant':
-        final currentProduct = _findProductById(suggestion.productId);
-        final baseProduct = ProductProviderController.instance.allProducts
-            .firstWhereOrNull(
-              (product) => product.productId == suggestion.productId,
+          if (product != null) {
+            addItem(
+              product,
+              variantId: action.variantId,
+              triggerBogoSuggestion: false,
             );
-        if (currentProduct != null && baseProduct != null) {
-          removeItem(
-            currentProduct,
-            variantId: inferProductVariantId(currentProduct),
-          );
-          addItem(
-            baseProduct,
-            variantId: suggestion.variantId,
-            triggerBogoSuggestion: false,
-          );
-          basketSuggestions.remove(suggestion);
-        }
-        break;
-      case 'free_delivery':
-        // No direct cart action for delivery — user shops more
-        break;
-      default:
-        break;
+          }
+          break;
+
+        case 'combo':
+          await ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
+          final combo = ComboOfferController.instance.activeComboOffers
+              .firstWhereOrNull((offer) => offer.comboId == action.comboId);
+          if (combo != null) {
+            addComboOffer(combo);
+          }
+          break;
+
+        case 'variant':
+          final currentProduct = _findProductById(action.productId);
+          final baseProduct = ProductProviderController.instance.allProducts
+              .firstWhereOrNull(
+                (product) => product.productId == action.productId,
+              );
+          if (currentProduct != null && baseProduct != null) {
+            removeItem(
+              currentProduct,
+              variantId: inferProductVariantId(currentProduct),
+            );
+            addItem(
+              baseProduct,
+              variantId: action.variantId,
+              triggerBogoSuggestion: false,
+            );
+          }
+          break;
+
+        case 'coupon':
+          if (action.couponCode != null) {
+            // Small delay to let previous cart updates settle if multiple actions
+            if (actions.length > 1) {
+              await Future.delayed(const Duration(milliseconds: 300));
+            }
+            await applyCoupon(action.couponCode!);
+          }
+          break;
+
+        default:
+          break;
+      }
     }
 
-    // ── Auto-apply coupon for combination suggestions ─────────────────────
-    final comboCouponCode = suggestion.metadata?['comboCouponCode'];
-    if (comboCouponCode != null && comboCouponCode.trim().isNotEmpty) {
-      // Small delay to let cart update propagate before validating coupon
-      await Future.delayed(const Duration(milliseconds: 400));
-      await applyCoupon(comboCouponCode.trim());
-    }
+    // Remove the applied suggestion from the list
+    basketSuggestions.remove(suggestion);
   }
 }

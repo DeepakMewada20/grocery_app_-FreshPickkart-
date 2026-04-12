@@ -1,9 +1,19 @@
 class: BasketSuggestion
 fields:
   message: String
-  type: String
+  type: String # single, combined
   priority: int
   metadata: Map<String, String>?
+  
+  # Action-based engine fields
+  actions: List<BasketSuggestionAction>?
+  netProfit: double?
+  extraSpend: double?
+  profitEfficiency: double?
+  rank: int?
+  isBest: bool?
+
+  # Legacy/Support fields
   progressCurrent: double?
   progressTarget: double?
   progressRemaining: double?

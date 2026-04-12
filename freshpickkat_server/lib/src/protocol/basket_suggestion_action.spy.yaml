@@ -1,0 +1,11 @@
+class: BasketSuggestionAction
+fields:
+  type: String # variant, combo, coupon, bogo, delivery, product
+  label: String
+  ctaLabel: String
+  productId: String?
+  variantId: String?
+  comboId: String?
+  couponCode: String?
+  benefit: double?
+  extraSpend: double?

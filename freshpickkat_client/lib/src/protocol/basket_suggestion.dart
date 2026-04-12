@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i2;
+import 'basket_suggestion_action.dart' as _i2;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
 abstract class BasketSuggestion implements _i1.SerializableModel {
   BasketSuggestion._({
@@ -19,6 +20,12 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
     required this.type,
     required this.priority,
     this.metadata,
+    this.actions,
+    this.netProfit,
+    this.extraSpend,
+    this.profitEfficiency,
+    this.rank,
+    this.isBest,
     this.progressCurrent,
     this.progressTarget,
     this.progressRemaining,
@@ -35,6 +42,12 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
     required String type,
     required int priority,
     Map<String, String>? metadata,
+    List<_i2.BasketSuggestionAction>? actions,
+    double? netProfit,
+    double? extraSpend,
+    double? profitEfficiency,
+    int? rank,
+    bool? isBest,
     double? progressCurrent,
     double? progressTarget,
     double? progressRemaining,
@@ -53,9 +66,22 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
       priority: jsonSerialization['priority'] as int,
       metadata: jsonSerialization['metadata'] == null
           ? null
-          : _i2.Protocol().deserialize<Map<String, String>>(
+          : _i3.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['metadata'],
             ),
+      actions: jsonSerialization['actions'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<_i2.BasketSuggestionAction>>(
+              jsonSerialization['actions'],
+            ),
+      netProfit: (jsonSerialization['netProfit'] as num?)?.toDouble(),
+      extraSpend: (jsonSerialization['extraSpend'] as num?)?.toDouble(),
+      profitEfficiency: (jsonSerialization['profitEfficiency'] as num?)
+          ?.toDouble(),
+      rank: jsonSerialization['rank'] as int?,
+      isBest: jsonSerialization['isBest'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isBest']),
       progressCurrent: (jsonSerialization['progressCurrent'] as num?)
           ?.toDouble(),
       progressTarget: (jsonSerialization['progressTarget'] as num?)?.toDouble(),
@@ -77,6 +103,18 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
   int priority;
 
   Map<String, String>? metadata;
+
+  List<_i2.BasketSuggestionAction>? actions;
+
+  double? netProfit;
+
+  double? extraSpend;
+
+  double? profitEfficiency;
+
+  int? rank;
+
+  bool? isBest;
 
   double? progressCurrent;
 
@@ -104,6 +142,12 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
     String? type,
     int? priority,
     Map<String, String>? metadata,
+    List<_i2.BasketSuggestionAction>? actions,
+    double? netProfit,
+    double? extraSpend,
+    double? profitEfficiency,
+    int? rank,
+    bool? isBest,
     double? progressCurrent,
     double? progressTarget,
     double? progressRemaining,
@@ -122,6 +166,13 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
       'type': type,
       'priority': priority,
       if (metadata != null) 'metadata': metadata?.toJson(),
+      if (actions != null)
+        'actions': actions?.toJson(valueToJson: (v) => v.toJson()),
+      if (netProfit != null) 'netProfit': netProfit,
+      if (extraSpend != null) 'extraSpend': extraSpend,
+      if (profitEfficiency != null) 'profitEfficiency': profitEfficiency,
+      if (rank != null) 'rank': rank,
+      if (isBest != null) 'isBest': isBest,
       if (progressCurrent != null) 'progressCurrent': progressCurrent,
       if (progressTarget != null) 'progressTarget': progressTarget,
       if (progressRemaining != null) 'progressRemaining': progressRemaining,
@@ -148,6 +199,12 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     required String type,
     required int priority,
     Map<String, String>? metadata,
+    List<_i2.BasketSuggestionAction>? actions,
+    double? netProfit,
+    double? extraSpend,
+    double? profitEfficiency,
+    int? rank,
+    bool? isBest,
     double? progressCurrent,
     double? progressTarget,
     double? progressRemaining,
@@ -162,6 +219,12 @@ class _BasketSuggestionImpl extends BasketSuggestion {
          type: type,
          priority: priority,
          metadata: metadata,
+         actions: actions,
+         netProfit: netProfit,
+         extraSpend: extraSpend,
+         profitEfficiency: profitEfficiency,
+         rank: rank,
+         isBest: isBest,
          progressCurrent: progressCurrent,
          progressTarget: progressTarget,
          progressRemaining: progressRemaining,
@@ -182,6 +245,12 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     String? type,
     int? priority,
     Object? metadata = _Undefined,
+    Object? actions = _Undefined,
+    Object? netProfit = _Undefined,
+    Object? extraSpend = _Undefined,
+    Object? profitEfficiency = _Undefined,
+    Object? rank = _Undefined,
+    Object? isBest = _Undefined,
     Object? progressCurrent = _Undefined,
     Object? progressTarget = _Undefined,
     Object? progressRemaining = _Undefined,
@@ -207,6 +276,16 @@ class _BasketSuggestionImpl extends BasketSuggestion {
                 value0,
               ),
             ),
+      actions: actions is List<_i2.BasketSuggestionAction>?
+          ? actions
+          : this.actions?.map((e0) => e0.copyWith()).toList(),
+      netProfit: netProfit is double? ? netProfit : this.netProfit,
+      extraSpend: extraSpend is double? ? extraSpend : this.extraSpend,
+      profitEfficiency: profitEfficiency is double?
+          ? profitEfficiency
+          : this.profitEfficiency,
+      rank: rank is int? ? rank : this.rank,
+      isBest: isBest is bool? ? isBest : this.isBest,
       progressCurrent: progressCurrent is double?
           ? progressCurrent
           : this.progressCurrent,

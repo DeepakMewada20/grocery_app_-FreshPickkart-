@@ -8,6 +8,7 @@ class PricingEndpoint extends Endpoint {
   Future<CartPricingResult> calculateCartPricing(
     Session session,
     List<CartItemInput> items, {
+    String? userId,
     String? appliedCouponCode,
     bool autoApplyCoupons = true,
   }) async {
@@ -21,10 +22,11 @@ class PricingEndpoint extends Endpoint {
           ),
         )
         .toList();
-
+ 
     return await PricingEngine.calculateCartPricing(
       session: session,
       items: cartItems,
+      userId: userId,
       appliedCouponCode: appliedCouponCode,
       autoApplyCoupons: autoApplyCoupons,
     );

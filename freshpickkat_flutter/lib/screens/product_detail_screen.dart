@@ -18,10 +18,12 @@ import 'package:get/get.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
+  final String? initialVariantId;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
+    this.initialVariantId,
   });
 
   @override
@@ -43,7 +45,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // Initialize the controller with the initial product
     _controllerTag =
         'product_detail_${widget.product.productId}_${UniqueKey()}';
-    _selectedVariantId = inferProductVariantId(widget.product);
+    _selectedVariantId = widget.initialVariantId ?? inferProductVariantId(widget.product);
     _controller = Get.put(
       ProductDetailController(widget.product),
       tag: _controllerTag,
