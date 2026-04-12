@@ -136,18 +136,27 @@ class _SuggestionCardState extends State<_SuggestionCard>
   @override
   Widget build(BuildContext context) {
     final s = widget.suggestion;
-    final cfg = _cfgFor(s.type);
+    var cfg = _cfgFor(s.type);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBest = s.metadata?['isBest'] == 'true';
+
+    // If it's the best offer, unify all colored elements (button, badges, chip) to gold
+    if (isBest) {
+      cfg = _TypeConfig(
+        icon: cfg.icon,
+        accent: const Color(0xFFE6A23C), // uniform gold for the entire card
+        label: cfg.label,
+      );
+    }
 
     // Neutral card background — NO coloured tint
     final cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final cardBorder = isBest
-        ? const Color(0xFFE6A23C).withValues(alpha: 0.6) // gold for best
+        ? cfg.accent.withValues(alpha: 0.6)
         : (isDark
             ? Colors.white.withValues(alpha: 0.08)
             : Colors.black.withValues(alpha: 0.07));
-    final leftStripeColor = isBest ? const Color(0xFFE6A23C) : cfg.accent;
+    final leftStripeColor = cfg.accent;
 
     return FadeTransition(
       opacity: _fade,
@@ -268,17 +277,24 @@ class _GenericBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Row 1: type chip + best badge + save badge ───────────────────────
+          // ── Header ──────────────────────────────────────────────────────
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _TypeChip(cfg: cfg, isDark: isDark),
               if (isBest) ...[
-                const SizedBox(width: 6),
                 const _BestBadge(),
+                const SizedBox(width: 4),
               ],
-              const Spacer(),
-              if (s.savingAmount != null && s.savingAmount! > 0)
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                ),
+              ),
+              if (s.savingAmount != null && s.savingAmount! > 0) ...[
+                const SizedBox(width: 8),
                 _SaveBadge(amount: s.savingAmount!, accent: cfg.accent),
+              ],
             ],
           ),
 
@@ -385,6 +401,11 @@ class _ComboBody extends StatelessWidget {
     final textSub =
         isDark ? Colors.white.withValues(alpha: 0.50) : const Color(0xFF6B6B6B);
 
+    final combinationType = s.metadata?['combinationType'];
+    final isCombine = combinationType != null && combinationType.isNotEmpty;
+    final extraSpendStr = s.metadata?['extraSpend'] ?? '0';
+    final extraSpend = double.tryParse(extraSpendStr) ?? 0;
+
     // Build a single title from all product names stored in metadata
     final productNames = (s.metadata?['comboProductIds'] ?? '')
         .split(',')
@@ -411,43 +432,66 @@ class _ComboBody extends StatelessWidget {
         children: [
           // ── Header ──────────────────────────────────────────────────────
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _TypeChip(cfg: cfg, isDark: isDark),
-              const Spacer(),
-              if (s.savingAmount != null && s.savingAmount! > 0)
+              if (isBest) ...[
+                const _BestBadge(),
+                const SizedBox(width: 4),
+              ],
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                ),
+              ),
+              if (s.savingAmount != null && s.savingAmount! > 0) ...[
+                const SizedBox(width: 8),
                 _SaveBadge(amount: s.savingAmount!, accent: cfg.accent),
+              ],
             ],
           ),
 
           const SizedBox(height: 8),
 
-          // ── Single bold title with all product names ─────────────────────
+          // ── Main Highlight Title: Spend & Save ─────────────────────
+          if (s.savingAmount != null && s.savingAmount! > 0)
+            Text(
+              isCombine
+                  ? 'Add ₹${extraSpend.formatPrice} more & save ₹${s.savingAmount!.formatPrice} total'
+                  : 'Bundle & save ₹${s.savingAmount!.formatPrice}',
+              style: TextStyle(
+                color: textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+                height: 1.3,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          else if (allNames.isNotEmpty)
+            Text(
+              'Combo Deal',
+              style: TextStyle(
+                color: textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+                height: 1.3,
+              ),
+            ),
+
+          const SizedBox(height: 4),
+
+          // ── Subtitle: Product Names ───────────────────────────────────────
           Text(
-            allNames,
+            allNames.toLowerCase().startsWith('add ') ? allNames : 'Add $allNames',
             style: TextStyle(
-              color: textPrimary,
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-              height: 1.3,
+              color: textSub,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-
-          const SizedBox(height: 2),
-
-          // ── Subtitle: savings line ───────────────────────────────────────
-          if (s.savingAmount != null && s.savingAmount! > 0)
-            Text(
-              'Bundle & save ₹${s.savingAmount!.formatPrice} on this combo',
-              style: TextStyle(
-                color: textSub,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
 
           const Spacer(),
 
@@ -535,15 +579,22 @@ class _VariantBody extends StatelessWidget {
         children: [
           // ── Header ──────────────────────────────────────────────────────
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _TypeChip(cfg: cfg, isDark: isDark),
               if (isBest) ...[
-                const SizedBox(width: 6),
                 const _BestBadge(),
+                const SizedBox(width: 4),
               ],
-              const Spacer(),
-              if (s.savingAmount != null && s.savingAmount! > 0)
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _TypeChip(s: s, cfg: cfg, isDark: isDark),
+                ),
+              ),
+              if (s.savingAmount != null && s.savingAmount! > 0) ...[
+                const SizedBox(width: 8),
                 _SaveBadge(amount: s.savingAmount!, accent: cfg.accent),
+              ],
             ],
           ),
 
@@ -602,7 +653,7 @@ class _VariantBody extends StatelessWidget {
                     Text(
                       tgtLabel,
                       style: TextStyle(
-                        color: cfg.accent,
+                        color: textPrimary,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -610,7 +661,7 @@ class _VariantBody extends StatelessWidget {
                     Text(
                       '₹$tgtPrice',
                       style: TextStyle(
-                        color: cfg.accent,
+                        color: textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
@@ -660,30 +711,57 @@ class _VariantBody extends StatelessWidget {
 // Type chip — flat, minimal color
 // ─────────────────────────────────────────────────────────────────────────────
 class _TypeChip extends StatelessWidget {
-  const _TypeChip({required this.cfg, required this.isDark});
+  const _TypeChip({required this.s, required this.cfg, required this.isDark});
+  final client.BasketSuggestion s;
   final _TypeConfig cfg;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
+    String label = cfg.label;
+    IconData icon = cfg.icon;
+
+    final combinationType = s.metadata?['combinationType'];
+    if (combinationType != null && combinationType.isNotEmpty) {
+      if (combinationType == 'variant+coupon') {
+        label = 'Pack Upgrade + Coupon Deal';
+      } else if (combinationType == 'delivery+coupon') {
+        label = 'Free Delivery + Coupon Deal';
+      } else if (combinationType == 'combo+coupon') {
+        label = 'Combo Bundle + Coupon Deal';
+      } else {
+        label = combinationType
+                .split('+')
+                .map((e) =>
+                    e.isEmpty ? '' : '${e[0].toUpperCase()}${e.substring(1)}')
+                .join(' + ') +
+            ' Deal';
+      }
+      icon = Icons.handshake_rounded;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: cfg.accent.withValues(alpha: isDark ? 0.18 : 0.10),
+        color: cfg.accent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(cfg.icon, color: cfg.accent, size: 11),
+          Icon(icon, color: Colors.white, size: 11),
           const SizedBox(width: 4),
-          Text(
-            cfg.label,
-            style: TextStyle(
-              color: cfg.accent,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -730,26 +808,14 @@ class _BestBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6A23C),
-        borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.all(5),
+      decoration: const BoxDecoration(
+        color: Color(0xFFE6A23C),
+        shape: BoxShape.circle,
       ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('⭐', style: TextStyle(fontSize: 9)),
-          SizedBox(width: 3),
-          Text(
-            'Best Offer',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.1,
-            ),
-          ),
-        ],
+      child: const Text(
+        '⭐',
+        style: TextStyle(fontSize: 10, height: 1.2),
       ),
     );
   }

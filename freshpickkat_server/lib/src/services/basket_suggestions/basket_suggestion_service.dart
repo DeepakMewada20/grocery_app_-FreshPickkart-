@@ -23,8 +23,8 @@ class _Scored {
     required this.suggestion,
     required this.extraSpend,
     required this.totalBenefit,
-  })  : netProfit = totalBenefit - extraSpend,
-        profitEfficiency = totalBenefit / (extraSpend + 1);
+  }) : netProfit = totalBenefit - extraSpend,
+       profitEfficiency = totalBenefit / (extraSpend + 1);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,6 +127,7 @@ class BasketSuggestionService {
     scored.addAll(variantScored);
 
     // ── 3. Build combination suggestions ────────────────────────────────────
+    final upgradedBaseItems = <_Scored>{};
     final combinations = _buildCombinations(
       cartTotal: cartTotal,
       coupons: coupons,
@@ -134,8 +135,10 @@ class BasketSuggestionService {
       variantScored: variantScored,
       comboScored: comboScored,
       deliveryScored: deliveryScored,
+      upgradedBaseItems: upgradedBaseItems,
     );
     scored.addAll(combinations);
+    scored.removeWhere((item) => upgradedBaseItems.contains(item));
 
     // ── 4. Sort by: netProfit DESC → profitEfficiency DESC → extraSpend ASC ─
     scored.sort((a, b) {
@@ -179,6 +182,7 @@ class BasketSuggestionService {
     required List<_Scored> variantScored,
     required List<_Scored> comboScored,
     required _Scored? deliveryScored,
+    required Set<_Scored> upgradedBaseItems,
   }) {
     final combos = <_Scored>[];
     final now = DateTime.now().toUtc();
@@ -191,10 +195,14 @@ class BasketSuggestionService {
       for (final c in coupons) {
         final expiry = (c.expiryDate ?? c.endDate).toUtc();
         final start = c.startDate.toUtc();
-        if (!c.isActive || now.isBefore(start) || now.isAfter(expiry)) { continue; }
+        if (!c.isActive || now.isBefore(start) || now.isAfter(expiry)) {
+          continue;
+        }
         if (appliedCouponCode != null &&
             c.code.trim().toUpperCase() ==
-                appliedCouponCode.trim().toUpperCase()) { continue; }
+                appliedCouponCode.trim().toUpperCase()) {
+          continue;
+        }
         // Already unlocked without the extra spend — skip
         if (c.minOrderAmount <= cartTotal) continue;
         // Will be unlocked after the extra spend
@@ -219,7 +227,8 @@ class BasketSuggestionService {
       final totalBenefit = v.totalBenefit + couponBenefit;
       final totalSpend = vSpend;
 
-      final tgtLabel = v.suggestion.metadata?['targetVariantLabel'] ?? 'larger pack';
+      final tgtLabel =
+          v.suggestion.metadata?['targetVariantLabel'] ?? 'larger pack';
       final msg =
           'Upgrade to $tgtLabel → unlock ${couponUnlocked.code} & save ₹${totalBenefit.toStringAsFixed(0)} total';
 
@@ -240,6 +249,7 @@ class BasketSuggestionService {
           ),
         ),
       );
+      upgradedBaseItems.add(v);
     }
 
     // ── B. Combo + Coupon ────────────────────────────────────────────────
@@ -251,10 +261,10 @@ class BasketSuggestionService {
       final couponBenefit = couponUnlocked.discountValue ?? 0;
       final totalBenefit = c.totalBenefit + couponBenefit;
 
-      final comboName =
-          c.suggestion.metadata?['comboName'] ?? 'this combo';
+      final comboShortName =
+          c.suggestion.metadata?['comboShortName'] ?? 'this combo';
       final msg =
-          'Add $comboName → unlock ${couponUnlocked.code} & save ₹${totalBenefit.toStringAsFixed(0)} total';
+          'Add $comboShortName + ${couponUnlocked.code} coupon & save ₹${totalBenefit.toStringAsFixed(0)} total';
 
       final meta = Map<String, String>.from(c.suggestion.metadata ?? {});
       meta['comboCouponCode'] = couponUnlocked.code;
@@ -273,6 +283,7 @@ class BasketSuggestionService {
           ),
         ),
       );
+      upgradedBaseItems.add(c);
     }
 
     // ── C. Small spend → Delivery unlock + Coupon unlock ────────────────
@@ -286,8 +297,9 @@ class BasketSuggestionService {
           final msg =
               'Add ₹${dSpend.toStringAsFixed(0)} → free delivery + ${couponUnlocked.code} coupon (save ₹${totalBenefit.toStringAsFixed(0)})';
 
-          final meta =
-              Map<String, String>.from(deliveryScored.suggestion.metadata ?? {});
+          final meta = Map<String, String>.from(
+            deliveryScored.suggestion.metadata ?? {},
+          );
           meta['comboCouponCode'] = couponUnlocked.code;
           meta['comboCouponBenefit'] = couponBenefit.toStringAsFixed(1);
           meta['combinationType'] = 'delivery+coupon';
@@ -304,6 +316,7 @@ class BasketSuggestionService {
               ),
             ),
           );
+          upgradedBaseItems.add(deliveryScored);
         }
       }
     }
@@ -346,7 +359,8 @@ class BasketSuggestionService {
     String message;
     if (nextMilestone.fee <= 0) {
       final nearText = remaining <= 50 ? 'Just' : 'Add';
-      message = '$nearText ₹${remaining.toStringAsFixed(0)} away from FREE delivery 🚚';
+      message =
+          '$nearText ₹${remaining.toStringAsFixed(0)} away from FREE delivery 🚚';
     } else {
       message =
           'Add ₹${remaining.toStringAsFixed(0)} more — save ₹${savings.toStringAsFixed(0)} on delivery';
@@ -357,7 +371,9 @@ class BasketSuggestionService {
       type: 'free_delivery',
       priority: 0,
       metadata: {
-        'goal': nextMilestone.fee <= 0 ? 'free_delivery' : 'discounted_delivery',
+        'goal': nextMilestone.fee <= 0
+            ? 'free_delivery'
+            : 'discounted_delivery',
         'nextFee': nextMilestone.fee.toString(),
         'savings': savings.toString(),
         'highlight': remaining <= 50 ? 'near' : 'normal',
@@ -397,11 +413,16 @@ class BasketSuggestionService {
       }
       if (appliedCouponCode != null &&
           coupon.code.trim().toUpperCase() ==
-              appliedCouponCode.trim().toUpperCase()) { continue; }
-      if (coupon.minOrderAmount <= cartTotal) { continue; }
+              appliedCouponCode.trim().toUpperCase()) {
+        continue;
+      }
+      if (coupon.minOrderAmount <= cartTotal) {
+        continue;
+      }
 
-      final remaining =
-          math.max(0.0, coupon.minOrderAmount - cartTotal).toDouble();
+      final remaining = math
+          .max(0.0, coupon.minOrderAmount - cartTotal)
+          .toDouble();
       final discount = coupon.discountValue ?? 0.0;
       final np = discount - remaining;
 
@@ -413,8 +434,9 @@ class BasketSuggestionService {
 
     if (bestCoupon == null) return null;
 
-    final remaining =
-        math.max(0.0, bestCoupon.minOrderAmount - cartTotal).toDouble();
+    final remaining = math
+        .max(0.0, bestCoupon.minOrderAmount - cartTotal)
+        .toDouble();
     final discountValue = bestCoupon.discountValue ?? 0;
     final nearText = remaining <= 75 ? '🎟 Just' : 'Add';
     final couponMsg =
@@ -500,9 +522,15 @@ class BasketSuggestionService {
         );
 
         if (variantCartItem == null) {
-          final variantLabel = _getVariantLabel(product, offer.triggerVariantId);
-          final currentVariantLabel =
-              _getCurrentVariantLabel(cartItems, product, offer.triggerProductId);
+          final variantLabel = _getVariantLabel(
+            product,
+            offer.triggerVariantId,
+          );
+          final currentVariantLabel = _getCurrentVariantLabel(
+            cartItems,
+            product,
+            offer.triggerProductId,
+          );
 
           if (currentVariantLabel != null && currentVariantLabel.isNotEmpty) {
             results.add(
@@ -537,7 +565,8 @@ class BasketSuggestionService {
               extraSpend: extraCost,
               totalBenefit: freeProductPrice * freeQtyPerTrigger,
               suggestion: BasketSuggestion(
-                message: 'Add $remaining more$unitText & get $freeQtyPerTrigger FREE',
+                message:
+                    'Add $remaining more$unitText & get $freeQtyPerTrigger FREE',
                 type: 'bogo',
                 priority: 0,
                 metadata: {'state': 'quantity_required'},
@@ -563,10 +592,14 @@ class BasketSuggestionService {
       final totalTriggerSets = anyCartItem.quantity ~/ minTriggerQty;
       if (totalTriggerSets <= 0) {
         final remaining = minTriggerQty - anyCartItem.quantity;
-        final variantLabel =
-            _getCurrentVariantLabel(cartItems, product, offer.triggerProductId);
-        final unitText =
-            (variantLabel != null && variantLabel.isNotEmpty) ? variantLabel : ' item';
+        final variantLabel = _getCurrentVariantLabel(
+          cartItems,
+          product,
+          offer.triggerProductId,
+        );
+        final unitText = (variantLabel != null && variantLabel.isNotEmpty)
+            ? variantLabel
+            : ' item';
         final extraCost = product.price * remaining;
 
         results.add(
@@ -574,7 +607,8 @@ class BasketSuggestionService {
             extraSpend: extraCost,
             totalBenefit: freeProductPrice * freeQtyPerTrigger,
             suggestion: BasketSuggestion(
-              message: 'Add $remaining more$unitText & get $freeQtyPerTrigger FREE',
+              message:
+                  'Add $remaining more$unitText & get $freeQtyPerTrigger FREE',
               type: 'bogo',
               priority: 0,
               metadata: {'state': 'quantity_required'},
@@ -641,7 +675,8 @@ class BasketSuggestionService {
           final product = productMap[comboProduct.productId];
           if (product != null) {
             alreadyInCartValue +=
-                product.price * math.min(cartItem.quantity, comboProduct.quantity);
+                product.price *
+                math.min(cartItem.quantity, comboProduct.quantity);
           }
         }
       }
@@ -656,8 +691,9 @@ class BasketSuggestionService {
         0,
         (sum, cp) => sum + (productMap[cp.productId]?.price ?? 0) * cp.quantity,
       );
-      final extraSpend =
-          math.max(0.0, comboFullPrice - alreadyInCartValue).toDouble();
+      final extraSpend = math
+          .max(0.0, comboFullPrice - alreadyInCartValue)
+          .toDouble();
 
       final comboProductNames = combo.comboProducts
           .map((cp) => productMap[cp.productId]?.productName ?? 'Item')
@@ -671,9 +707,10 @@ class BasketSuggestionService {
 
       final firstTwoNames = comboProductNames.take(2).join(' + ');
       final extraCount = comboProductNames.length - 2;
-      final message = extraCount > 0
-          ? 'Bundle $firstTwoNames +$extraCount more & save ₹${savings.toStringAsFixed(0)}'
-          : 'Bundle $firstTwoNames & save ₹${savings.toStringAsFixed(0)}';
+      final shortName = extraCount > 0
+          ? '$firstTwoNames + $extraCount more'
+          : firstTwoNames;
+      final message = 'Bundle $shortName & save ₹${savings.toStringAsFixed(0)}';
 
       results.add(
         _Scored(
@@ -685,6 +722,7 @@ class BasketSuggestionService {
             priority: 0,
             metadata: {
               'comboName': combo.name,
+              'comboShortName': shortName,
               'comboProductIds': combo.comboProducts
                   .map((item) => item.productId)
                   .join(','),
@@ -766,8 +804,9 @@ class BasketSuggestionService {
         final estimatedCurrentCost = currentUnitPrice * varNorm;
         final savings = estimatedCurrentCost - variant.price;
         // extraSpend: user pays (targetPrice - currentPrice) more
-        final extraSpend =
-            math.max(0.0, variant.price - currentVariant.price).toDouble();
+        final extraSpend = math
+            .max(0.0, variant.price - currentVariant.price)
+            .toDouble();
 
         final np = savings - extraSpend;
         if (np <= bestNetProfit) continue;
@@ -864,8 +903,9 @@ class BasketSuggestionService {
     Product product,
     String productId,
   ) {
-    final cartItem =
-        cartItems.firstWhereOrNull((item) => item.productId == productId);
+    final cartItem = cartItems.firstWhereOrNull(
+      (item) => item.productId == productId,
+    );
     if (cartItem == null || cartItem.variantId == null) return null;
     return _getVariantLabel(product, cartItem.variantId);
   }
@@ -875,7 +915,8 @@ class BasketSuggestionService {
     final variants = product.variants ?? [];
     for (final variant in variants) {
       if (variant.variantId == variantId) {
-        final label = variant.quantityDescription ??
+        final label =
+            variant.quantityDescription ??
             '${variant.quantityValue.toStringAsFixed(variant.quantityValue.truncateToDouble() == variant.quantityValue ? 0 : 1)}${variant.quantityUnit}';
         return ' ($label)';
       }
