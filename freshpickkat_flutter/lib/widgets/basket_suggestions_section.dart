@@ -730,12 +730,11 @@ class _TypeChip extends StatelessWidget {
       } else if (combinationType == 'combo+coupon') {
         label = 'Combo Bundle + Coupon Deal';
       } else {
-        label = combinationType
+        label = '${combinationType
                 .split('+')
                 .map((e) =>
                     e.isEmpty ? '' : '${e[0].toUpperCase()}${e.substring(1)}')
-                .join(' + ') +
-            ' Deal';
+                .join(' + ')} Deal';
       }
       icon = Icons.handshake_rounded;
     }

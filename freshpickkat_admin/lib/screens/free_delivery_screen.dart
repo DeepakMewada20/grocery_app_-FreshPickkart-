@@ -219,7 +219,7 @@ class _DeliveryRuleCard extends StatelessWidget {
       child: ListTile(
         title: Text(rule.name),
         subtitle: Text(
-          'Fee ₹${rule.deliveryFee.toStringAsFixed(0)} • Priority ${rule.priority} • ${rule.targetUserType ?? 'all users'}',
+          'Fee ₹${rule.deliveryFee.toStringAsFixed(0)} • Priority ${rule.priority} • ${rule.targetUserType == 'specific_order' ? 'specific_order (${rule.targetOrderCount})' : (rule.targetUserType ?? 'all users')}',
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
@@ -442,6 +442,7 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _feeController;
   late final TextEditingController _priorityController;
+  late final TextEditingController _targetOrderCountController;
   late String _ruleType;
   late String _targetUserType;
   late DateTime _startDate;
@@ -460,6 +461,9 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
     _priorityController = TextEditingController(
       text: rule?.priority.toString() ?? '1',
     );
+    _targetOrderCountController = TextEditingController(
+      text: rule?.targetOrderCount?.toString() ?? '5',
+    );
     _ruleType = rule?.ruleType ?? 'special_event';
     _targetUserType = rule?.targetUserType ?? 'all';
     _startDate = rule?.startDate ?? DateTime.now();
@@ -472,6 +476,7 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
     _descriptionController.dispose();
     _feeController.dispose();
     _priorityController.dispose();
+    _targetOrderCountController.dispose();
     super.dispose();
   }
 
@@ -517,9 +522,18 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
                 items: const [
                   DropdownMenuItem(value: 'all', child: Text('All users')),
                   DropdownMenuItem(value: 'new_user', child: Text('New users')),
+                  DropdownMenuItem(value: 'specific_order', child: Text('Specific Order')),
                 ],
                 onChanged: (value) => setState(() => _targetUserType = value ?? 'all'),
               ),
+              if (_targetUserType == 'specific_order') ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _targetOrderCountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Order Count (e.g., 5 for 5th order)'),
+                ),
+              ],
               const SizedBox(height: 12),
               TextField(
                 controller: _feeController,
@@ -533,27 +547,28 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
                 decoration: const InputDecoration(labelText: 'Priority'),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _pickDate(isStart: true),
-                      child: Text(
-                        'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
+              if (_ruleType != 'user_rule')
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _pickDate(isStart: true),
+                        child: Text(
+                          'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _pickDate(isStart: false),
-                      child: Text(
-                        'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _pickDate(isStart: false),
+                        child: Text(
+                          'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -588,6 +603,9 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
       deliveryFee: double.tryParse(_feeController.text.trim()) ?? 0,
       priority: int.tryParse(_priorityController.text.trim()) ?? 1,
       targetUserType: _targetUserType,
+      targetOrderCount: _targetUserType == 'specific_order' 
+          ? int.tryParse(_targetOrderCountController.text.trim()) 
+          : null,
       isActive: widget.rule?.isActive ?? true,
       startDate: _startDate,
       endDate: _endDate,

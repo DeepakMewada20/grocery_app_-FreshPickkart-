@@ -132,7 +132,9 @@ class DeliveryEngine {
         doc.fields!,
         doc.name!.split('/').last,
       );
-      if (rule.startDate.isAfter(now) || rule.endDate.isBefore(now)) continue;
+      if (rule.ruleType != 'user_rule') {
+        if (rule.startDate.isAfter(now) || rule.endDate.isBefore(now)) continue;
+      }
       rules.add(rule);
     }
     return rules;
@@ -223,19 +225,21 @@ class DeliveryEngine {
     return null;
   }
 
-  static Future<bool> _isNewUser(String userId) async {
-    if (userId.trim().isEmpty) return false;
+  static Future<int> _getCompletedOrdersCount(String? userId) async {
+    if (userId == null || userId.trim().isEmpty) return 0;
     final firestore = await FirebaseService.getFirestoreClient();
     final docPath = '$_database/$_usersCollection/$userId';
     try {
       final doc = await firestore.projects.databases.documents.get(docPath);
-      final count = int.tryParse(
-        doc.fields?['completedOrdersCount']?.integerValue ?? '',
-      );
-      return (count ?? 0) <= 0;
+      return int.tryParse(doc.fields?['completedOrdersCount']?.integerValue ?? '') ?? 0;
     } catch (_) {
-      return false;
+      return 0;
     }
+  }
+
+  static Future<bool> _isNewUser(String userId) async {
+    final count = await _getCompletedOrdersCount(userId);
+    return count <= 0;
   }
 
   static Future<bool> matchesUserAsync(DeliveryRule rule, String? userId) async {
@@ -245,6 +249,11 @@ class DeliveryEngine {
     }
     if (target == 'new_user') {
       return _isNewUser(userId ?? '');
+    }
+    if (target == 'specific_order') {
+      if (rule.targetOrderCount == null || rule.targetOrderCount! <= 0) return false;
+      final count = await _getCompletedOrdersCount(userId);
+      return count == (rule.targetOrderCount! - 1);
     }
     return false;
   }
@@ -361,6 +370,7 @@ class DeliveryEngine {
       deliveryFee: _getDouble(fields['deliveryFee']) ?? 0,
       priority: int.tryParse(fields['priority']?.integerValue ?? '999') ?? 999,
       targetUserType: fields['targetUserType']?.stringValue,
+      targetOrderCount: int.tryParse(fields['targetOrderCount']?.integerValue ?? ''),
       isActive: fields['isActive']?.booleanValue ?? true,
       startDate:
           DateTime.tryParse(fields['startDate']?.timestampValue ?? '') ??
@@ -387,6 +397,8 @@ class DeliveryEngine {
       'priority': firestore_api.Value(integerValue: rule.priority.toString()),
       if (rule.targetUserType != null)
         'targetUserType': firestore_api.Value(stringValue: rule.targetUserType!),
+      if (rule.targetOrderCount != null)
+        'targetOrderCount': firestore_api.Value(integerValue: rule.targetOrderCount!.toString()),
       'isActive': firestore_api.Value(booleanValue: rule.isActive),
       'startDate': firestore_api.Value(
         timestampValue: rule.startDate.toUtc().toIso8601String(),

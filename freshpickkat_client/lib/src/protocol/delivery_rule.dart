@@ -21,6 +21,7 @@ abstract class DeliveryRule implements _i1.SerializableModel {
     required this.deliveryFee,
     required this.priority,
     this.targetUserType,
+    this.targetOrderCount,
     required this.isActive,
     required this.startDate,
     required this.endDate,
@@ -35,6 +36,7 @@ abstract class DeliveryRule implements _i1.SerializableModel {
     required double deliveryFee,
     required int priority,
     String? targetUserType,
+    int? targetOrderCount,
     required bool isActive,
     required DateTime startDate,
     required DateTime endDate,
@@ -50,6 +52,7 @@ abstract class DeliveryRule implements _i1.SerializableModel {
       deliveryFee: (jsonSerialization['deliveryFee'] as num).toDouble(),
       priority: jsonSerialization['priority'] as int,
       targetUserType: jsonSerialization['targetUserType'] as String?,
+      targetOrderCount: jsonSerialization['targetOrderCount'] as int?,
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       startDate: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['startDate'],
@@ -75,6 +78,8 @@ abstract class DeliveryRule implements _i1.SerializableModel {
 
   String? targetUserType;
 
+  int? targetOrderCount;
+
   bool isActive;
 
   DateTime startDate;
@@ -94,6 +99,7 @@ abstract class DeliveryRule implements _i1.SerializableModel {
     double? deliveryFee,
     int? priority,
     String? targetUserType,
+    int? targetOrderCount,
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
@@ -110,6 +116,7 @@ abstract class DeliveryRule implements _i1.SerializableModel {
       'deliveryFee': deliveryFee,
       'priority': priority,
       if (targetUserType != null) 'targetUserType': targetUserType,
+      if (targetOrderCount != null) 'targetOrderCount': targetOrderCount,
       'isActive': isActive,
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
@@ -134,6 +141,7 @@ class _DeliveryRuleImpl extends DeliveryRule {
     required double deliveryFee,
     required int priority,
     String? targetUserType,
+    int? targetOrderCount,
     required bool isActive,
     required DateTime startDate,
     required DateTime endDate,
@@ -146,6 +154,7 @@ class _DeliveryRuleImpl extends DeliveryRule {
          deliveryFee: deliveryFee,
          priority: priority,
          targetUserType: targetUserType,
+         targetOrderCount: targetOrderCount,
          isActive: isActive,
          startDate: startDate,
          endDate: endDate,
@@ -164,6 +173,7 @@ class _DeliveryRuleImpl extends DeliveryRule {
     double? deliveryFee,
     int? priority,
     Object? targetUserType = _Undefined,
+    Object? targetOrderCount = _Undefined,
     bool? isActive,
     DateTime? startDate,
     DateTime? endDate,
@@ -179,6 +189,9 @@ class _DeliveryRuleImpl extends DeliveryRule {
       targetUserType: targetUserType is String?
           ? targetUserType
           : this.targetUserType,
+      targetOrderCount: targetOrderCount is int?
+          ? targetOrderCount
+          : this.targetOrderCount,
       isActive: isActive ?? this.isActive,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

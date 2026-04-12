@@ -23,6 +23,7 @@ class NetworkController extends GetxController {
   DateTime? _lastDisconnectedTime;
   final showBanner = false.obs;
   Timer? _bannerDelayTimer;
+  Timer? _autoRetryTimer;
 
   @override
   void onInit() {
@@ -36,6 +37,7 @@ class NetworkController extends GetxController {
   @override
   void onClose() {
     _subscription?.cancel();
+    _stopAutoRetry();
     super.onClose();
   }
 
@@ -162,9 +164,28 @@ class NetworkController extends GetxController {
 
   void _onConnectionRestored() {
     connectionRestoredTrigger.value++;
+    _stopAutoRetry();
   }
 
-  void _onConnectionLost() {}
+  void _onConnectionLost() {
+    _startAutoRetry();
+  }
+
+  void _startAutoRetry() {
+    if (_autoRetryTimer?.isActive == true) return;
+    _autoRetryTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!isConnected.value) {
+        checkConnection(isAutoRetry: true);
+      } else {
+        _stopAutoRetry();
+      }
+    });
+  }
+
+  void _stopAutoRetry() {
+    _autoRetryTimer?.cancel();
+    _autoRetryTimer = null;
+  }
 
   void _showBannerImmediately() {
     _bannerDelayTimer?.cancel();
@@ -187,9 +208,10 @@ class NetworkController extends GetxController {
     showBanner.value = false;
   }
 
-  Future<bool> checkConnection() async {
+  Future<bool> checkConnection({bool isAutoRetry = false}) async {
     try {
-      isChecking.value = true;
+      if (!isAutoRetry) isChecking.value = true;
+      final previousConnection = isConnected.value;
       final result = await _connectivity.checkConnectivity();
       connectionType.value = _getConnectionType(result);
 
@@ -197,6 +219,9 @@ class NetworkController extends GetxController {
         isConnected.value = false;
         connectionQuality.value = ConnectionQuality.unknown;
         _showBannerImmediately();
+        if (previousConnection) {
+          _onConnectionLost();
+        }
         return false;
       }
 
@@ -216,14 +241,25 @@ class NetworkController extends GetxController {
       } else {
         _showBannerWithDelay();
       }
+
+      if (!previousConnection && isConnected.value) {
+        _onConnectionRestored();
+      } else if (previousConnection && !isConnected.value) {
+        _onConnectionLost();
+      }
+
       return connected;
     } catch (_) {
+      final previousConnection = isConnected.value;
       isConnected.value = false;
       connectionQuality.value = ConnectionQuality.unknown;
       _showBannerWithDelay();
+      if (previousConnection) {
+        _onConnectionLost();
+      }
       return false;
     } finally {
-      isChecking.value = false;
+      if (!isAutoRetry) isChecking.value = false;
     }
   }
 }
