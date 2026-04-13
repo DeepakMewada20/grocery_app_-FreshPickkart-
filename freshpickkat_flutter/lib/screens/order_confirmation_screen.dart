@@ -849,6 +849,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'placed':
+        return Colors.orange;
+      case 'packed':
+        return Colors.deepPurple;
       case 'paid':
       case 'delivered':
         return Colors.green;
@@ -856,7 +860,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       case 'cancelled':
         return Colors.redAccent;
       case 'pending':
+        return Colors.orange;
       case 'confirmed':
+        return Colors.blue;
       case 'out_for_delivery':
         return Colors.orange;
       default:

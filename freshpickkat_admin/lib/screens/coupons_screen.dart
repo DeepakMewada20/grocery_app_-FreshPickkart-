@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 class CouponsScreen extends StatefulWidget {
@@ -26,10 +27,8 @@ class _CouponsScreenState extends State<CouponsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Coupons'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             onPressed: _controller.loadCoupons,
@@ -176,7 +175,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
         );
       }),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         onPressed: _openAddCouponDialog,
         icon: const Icon(Icons.add),

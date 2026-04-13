@@ -11,8 +11,10 @@ class BasketSuggestionsSection extends StatelessWidget {
     return Obx(() {
       final cart = CartController.instance;
       final suggestions = cart.basketSuggestions;
+      final isLoading = cart.isBasketSuggestionsLoading.value;
+      final oldSuggestions = cart.oldBasketSuggestions;
 
-      if (cart.isBasketSuggestionsLoading.value) {
+      if (isLoading && oldSuggestions.isEmpty) {
         return const SizedBox(
           height: 120,
           child: Center(
@@ -25,16 +27,20 @@ class BasketSuggestionsSection extends StatelessWidget {
         );
       }
 
-      if (suggestions.isEmpty) return const SizedBox.shrink();
+      final displaySuggestions = isLoading && oldSuggestions.isNotEmpty
+          ? oldSuggestions
+          : suggestions;
+
+      if (displaySuggestions.isEmpty) return const SizedBox.shrink();
 
       return SizedBox(
         height: 180,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          itemCount: suggestions.length,
+          itemCount: displaySuggestions.length,
           itemBuilder: (context, i) => SuggestionCard(
-            suggestion: suggestions[i],
+            suggestion: displaySuggestions[i],
             index: i,
           ),
         ),

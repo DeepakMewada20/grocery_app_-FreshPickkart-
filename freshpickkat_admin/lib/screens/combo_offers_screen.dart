@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 Future<void> showAddComboOfferDialog({
@@ -112,10 +113,8 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Combo Offers'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -127,7 +126,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
         onPressed: _showAddComboDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Combo'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
         children: [

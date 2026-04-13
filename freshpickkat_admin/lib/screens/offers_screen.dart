@@ -14,6 +14,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import '../widgets/admin_app_bar.dart';
 import 'bogo_product_picker_screen.dart';
 import 'combo_offers_screen.dart';
 import 'category_offers_screen.dart';
@@ -183,14 +184,13 @@ class _OffersScreenState extends State<OffersScreen> {
           return AnimatedBuilder(
             animation: tabController,
             builder: (context, _) {
-              return Scaffold(
-                appBar: AppBar(
-                  toolbarHeight: 0,
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  bottom: const TabBar(
-                    isScrollable: true,
-                    tabs: [
+                return Scaffold(
+                  appBar: AdminAppBar(
+                    title: const Text('Offers'),
+                    toolbarHeight: 0,
+                    bottom: const TabBar(
+                      isScrollable: true,
+                      tabs: [
                       Tab(text: 'Dashboard'),
                       Tab(text: 'Offers'),
                       Tab(text: 'Coupons'),
@@ -631,7 +631,7 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
         FloatingActionButton.extended(
           heroTag: 'offers_add_fab',
           onPressed: widget.onToggle,
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 160),
             transitionBuilder: (child, animation) {

@@ -71,7 +71,7 @@ class PendingPaymentRecord {
 
 class PaymentFirestoreService {
   PaymentFirestoreService({OrderDocumentMapper? mapper})
-      : mapper = mapper ?? OrderDocumentMapper();
+    : mapper = mapper ?? OrderDocumentMapper();
 
   static const String ordersCollection = 'orders';
   static const String pendingPaymentsCollection = 'pending_payments';
@@ -117,6 +117,10 @@ class PaymentFirestoreService {
   Future<void> upsertOrder(protocol.Order order) async {
     final firestore = await FirebaseService.getFirestoreClient();
     final fields = mapper.toFirestore(order);
+    fields['trackingEnabled'] = firestore_api.Value(booleanValue: false);
+    fields['updatedAt'] = firestore_api.Value(
+      timestampValue: DateTime.now().toUtc().toIso8601String(),
+    );
     final doc = firestore_api.Document(fields: fields);
     await firestore.projects.databases.documents.patch(
       doc,
@@ -250,7 +254,9 @@ class PaymentFirestoreService {
 
     final query = firestore_api.StructuredQuery(
       from: [
-        firestore_api.CollectionSelector(collectionId: pendingPaymentsCollection),
+        firestore_api.CollectionSelector(
+          collectionId: pendingPaymentsCollection,
+        ),
       ],
       where: filters.length == 1
           ? filters.first

@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/refund_service.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart';
 
 class _GroupedOrderItem {
   final OrderItem item;
@@ -128,6 +129,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(order, cs),
+          if (order.status == 'out_for_delivery')
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: _buildTrackingCard(order, cs),
+            ),
           if (_canCancelOrder(order) || _showRefundStatus(order))
             Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -222,6 +228,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 child: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingCard(Order order, ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your order is on the way',
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Open the live map only when you want to follow the rider.',
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Get.to(() => OrderTrackingMapScreen(orderId: order.orderId));
+              },
+              icon: const Icon(Icons.map_outlined),
+              label: const Text('Track Order'),
+            ),
+          ),
         ],
       ),
     );
@@ -591,6 +636,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'placed':
+        return Colors.orange;
+      case 'packed':
+        return Colors.deepPurple;
       case 'paid':
       case 'success':
       case 'delivered':
@@ -599,7 +648,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       case 'cancelled':
         return Colors.redAccent;
       case 'pending':
+        return Colors.orange;
       case 'confirmed':
+        return Colors.blue;
       case 'out_for_delivery':
         return Colors.orange;
       default:
@@ -611,7 +662,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (order.status == 'cancelled' || order.status == 'delivered') {
       return false;
     }
-    return order.status == 'pending' || order.status == 'confirmed';
+    return order.status == 'placed' ||
+        order.status == 'pending' ||
+        order.status == 'confirmed';
   }
 
   bool _showRefundStatus(Order order) {

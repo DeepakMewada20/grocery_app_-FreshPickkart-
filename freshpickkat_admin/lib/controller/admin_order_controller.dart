@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
 import 'network_controller.dart';
@@ -54,7 +55,7 @@ class AdminOrderController extends GetxController {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: true,
-        );       
+        );
         return await _client.order.getOrdersPage(
           firebaseUid: uid,
           idToken: idToken,
@@ -118,8 +119,27 @@ class AdminOrderController extends GetxController {
           cancellationReason: cancellationReason,
         );
       }
+
+      if (Get.isRegistered<DeliveryTrackingController>()) {
+        await Get.find<DeliveryTrackingController>().syncOrderStatus(
+          orderId: order.orderId,
+          status: status,
+        );
+      }
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> startDelivery(Order order) async {
+    if (!Get.isRegistered<DeliveryTrackingController>()) {
+      throw StateError('Delivery tracking controller is not available');
+    }
+
+    await Get.find<DeliveryTrackingController>().beginActualDelivery(
+      order: order,
+      onPromoteToOutForDelivery: () =>
+          updateOrderStatus(order, 'out_for_delivery'),
+    );
   }
 }

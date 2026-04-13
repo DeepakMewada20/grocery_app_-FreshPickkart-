@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:get/get.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -17,10 +18,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Dashboard'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             onPressed: _controller.loadDashboard,

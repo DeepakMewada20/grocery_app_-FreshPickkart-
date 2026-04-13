@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_flutter/config/payment_config.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
@@ -15,8 +16,11 @@ import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/tracking/models/delivery_location.dart';
+import 'package:freshpickkat_flutter/tracking/repositories/firestore_order_tracking_repository.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 
@@ -36,6 +40,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final orderRecoveryService = OrderRecoveryService.instance;
   final networkController = NetworkController.instance;
   final client = ServerpodClient().client;
+  final _trackingRepository = FirestoreOrderTrackingRepository();
 
   Razorpay? _razorpay;
   bool _isProcessing = false;
@@ -121,6 +126,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final orderId = checkoutSession.orderId;
       _currentOrderId = orderId;
       _currentOrderSnapshot = order.copyWith(orderId: orderId);
+      await _seedTrackingMetadata(orderId, order);
 
       final paymentOrder = await paymentService.startPayment(
         orderId: orderId,
@@ -614,7 +620,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       discountAmount: cartController.couponDiscount,
       deliveryFee: cartController.deliveryFee,
       finalAmount: cartController.totalAmount,
-      status: 'pending',
+      status: 'placed',
       paymentStatus: 'pending',
       refundStatus: 'none',
       deliveryAddress: address,
@@ -627,6 +633,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final phone = userController.userPhone.value;
     if (phone.isNotEmpty) return phone;
     return authController.currentUser?.phoneNumber ?? '';
+  }
+
+  Future<void> _seedTrackingMetadata(String orderId, Order order) async {
+    try {
+      final userLocation = await _buildUserLocation(order.deliveryAddress);
+      await _trackingRepository.seedOrderTrackingMetadata(
+        orderId: orderId,
+        status: 'placed',
+        trackingEnabled: false,
+        userLocation: userLocation,
+      );
+    } catch (_) {
+      // Best effort only. Tracking metadata must never block checkout.
+    }
+  }
+
+  Future<DeliveryLocation?> _buildUserLocation(Address address) async {
+    final type = GetStorage().read<String>('delivery_location_type') ?? 'saved';
+    final formattedAddress = _formatAddress(address);
+    final lat = address.latitude;
+    final lng = address.longitude;
+
+    if (lat != null && lng != null) {
+      return DeliveryLocation(
+        lat: lat,
+        lng: lng,
+        address: formattedAddress,
+        type: type,
+      );
+    }
+
+    try {
+      final results = await geocoding.locationFromAddress(formattedAddress);
+      if (results.isNotEmpty) {
+        final location = results.first;
+        return DeliveryLocation(
+          lat: location.latitude,
+          lng: location.longitude,
+          address: formattedAddress,
+          type: type,
+        );
+      }
+    } catch (_) {
+      // Ignore geocoding failures and fall back to no seeded user location.
+    }
+
+    return null;
+  }
+
+  String _formatAddress(Address address) {
+    final parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.zipCode,
+      address.country,
+    ].where((p) => p.trim().isNotEmpty).toList();
+    return parts.join(', ');
   }
 
   void _handlePaymentSuccess(Map<dynamic, dynamic> response) {
@@ -1061,16 +1125,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  String _formatAddress(Address address) {
-    final parts = [
-      address.street,
-      address.city,
-      address.state,
-      address.zipCode,
-      address.country,
-    ].where((p) => p.trim().isNotEmpty).toList();
-    return parts.join(', ');
-  }
+  // String _formatAddress(Address address) {
+  //   final parts = [
+  //     address.street,
+  //     address.city,
+  //     address.state,
+  //     address.zipCode,
+  //     address.country,
+  //   ].where((p) => p.trim().isNotEmpty).toList();
+  //   return parts.join(', ');
+  // }
 
   Widget _buildItemsSection(ColorScheme cs) {
     return Container(

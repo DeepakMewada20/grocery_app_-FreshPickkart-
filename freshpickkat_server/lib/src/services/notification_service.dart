@@ -17,7 +17,7 @@ class NotificationService {
       'message': {
         'token': token,
         'notification': {'title': title, 'body': body},
-        'data': ?data,
+        ...?data,
       },
     });
   }
@@ -32,7 +32,7 @@ class NotificationService {
       'message': {
         'topic': topic,
         'notification': {'title': title, 'body': body},
-        'data': ?data,
+        ...?data,
       },
     });
   }
@@ -75,6 +75,27 @@ class NotificationService {
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'order_status'},
+    );
+  }
+
+  static Future<void> notifyDeliveryStarted({
+    required String userId,
+    required String orderId,
+  }) async {
+    final token = await _getUserFcmToken(userId);
+    if (token == null || token.isEmpty) return;
+
+    await sendToToken(
+      token: token,
+      title: 'Track your order | Apna order track karein',
+      body:
+          'Your order is on the way. Track your order in the app.\n'
+          'Aapka order raste me hai. App me live location dekhein.',
+      data: {
+        'orderId': orderId,
+        'type': 'delivery_started',
+        'screen': 'track_order',
+      },
     );
   }
 

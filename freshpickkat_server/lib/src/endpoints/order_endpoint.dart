@@ -18,8 +18,9 @@ class OrderEndpoint extends Endpoint {
   static const String bogoCollection = 'bogo_offers';
   static const String projectId = 'freshpickkart-a6824';
 
-  static const String statusPending = 'pending';
+  static const String statusPlaced = 'placed';
   static const String statusConfirmed = 'confirmed';
+  static const String statusPacked = 'packed';
   static const String statusOutForDelivery = 'out_for_delivery';
   static const String statusDelivered = 'delivered';
   static const String statusCancelled = 'cancelled';
@@ -45,7 +46,7 @@ class OrderEndpoint extends Endpoint {
 
     order.orderId = _generateOrderId();
     order.deliveryOtp = _generateDeliveryOtp();
-    order.status = statusPending;
+    order.status = statusPlaced;
     order.paymentStatus = paymentPending;
     order.refundStatus = 'none';
     order.orderedAt = DateTime.now();
@@ -74,6 +75,10 @@ class OrderEndpoint extends Endpoint {
     final database = 'projects/$projectId/databases/(default)/documents';
     final docPath = '$database/$orderCollection/${order.orderId}';
     final fields = _orderToFirestore(order);
+    fields['trackingEnabled'] = firestore_api.Value(booleanValue: false);
+    fields['updatedAt'] = firestore_api.Value(
+      timestampValue: DateTime.now().toUtc().toIso8601String(),
+    );
     final doc = firestore_api.Document(fields: fields);
     await firestore.projects.databases.documents.patch(
       doc,
@@ -112,6 +117,10 @@ class OrderEndpoint extends Endpoint {
     final docPath = '$database/$orderCollection/$orderId';
     final fields = <String, firestore_api.Value>{
       'idempotencyKey': firestore_api.Value(stringValue: idempotencyKey),
+      'trackingEnabled': firestore_api.Value(booleanValue: false),
+      'updatedAt': firestore_api.Value(
+        timestampValue: DateTime.now().toUtc().toIso8601String(),
+      ),
     };
     await firestore.projects.databases.documents.patch(
       firestore_api.Document(fields: fields),
@@ -635,10 +644,20 @@ class OrderEndpoint extends Endpoint {
     final now = DateTime.now();
     final updateFields = <String, firestore_api.Value>{
       'status': firestore_api.Value(stringValue: newStatus),
+      'trackingEnabled': firestore_api.Value(
+        booleanValue: newStatus == statusOutForDelivery,
+      ),
+      'updatedAt': firestore_api.Value(
+        timestampValue: now.toUtc().toIso8601String(),
+      ),
     };
 
     if (newStatus == statusConfirmed) {
       updateFields['confirmedAt'] = firestore_api.Value(
+        timestampValue: now.toUtc().toIso8601String(),
+      );
+    } else if (newStatus == statusPacked) {
+      updateFields['packedAt'] = firestore_api.Value(
         timestampValue: now.toUtc().toIso8601String(),
       );
     } else if (newStatus == statusOutForDelivery) {
@@ -681,11 +700,18 @@ class OrderEndpoint extends Endpoint {
     );
 
     if (existingOrder.userId.isNotEmpty) {
-      await NotificationService.notifyUserStatusUpdate(
-        userId: existingOrder.userId,
-        orderId: orderId,
-        status: newStatus,
-      );
+      if (newStatus == statusOutForDelivery) {
+        await NotificationService.notifyDeliveryStarted(
+          userId: existingOrder.userId,
+          orderId: orderId,
+        );
+      } else {
+        await NotificationService.notifyUserStatusUpdate(
+          userId: existingOrder.userId,
+          orderId: orderId,
+          status: newStatus,
+        );
+      }
     }
 
     return true;
@@ -771,6 +797,10 @@ class OrderEndpoint extends Endpoint {
     final docPath = '$database/$orderCollection/$orderId';
     final fields = <String, firestore_api.Value>{
       'status': firestore_api.Value(stringValue: statusConfirmed),
+      'trackingEnabled': firestore_api.Value(booleanValue: false),
+      'updatedAt': firestore_api.Value(
+        timestampValue: DateTime.now().toUtc().toIso8601String(),
+      ),
       'confirmedAt': firestore_api.Value(
         timestampValue: DateTime.now().toUtc().toIso8601String(),
       ),
@@ -805,6 +835,10 @@ class OrderEndpoint extends Endpoint {
     final docPath = '$database/$orderCollection/$orderId';
     final fields = <String, firestore_api.Value>{
       'status': firestore_api.Value(stringValue: statusCancelled),
+      'trackingEnabled': firestore_api.Value(booleanValue: false),
+      'updatedAt': firestore_api.Value(
+        timestampValue: DateTime.now().toUtc().toIso8601String(),
+      ),
       'cancelledAt': firestore_api.Value(
         timestampValue: DateTime.now().toUtc().toIso8601String(),
       ),
@@ -908,7 +942,7 @@ class OrderEndpoint extends Endpoint {
         totalRevenue += order.finalAmount;
       }
       switch (order.status) {
-        case statusPending:
+        case statusPlaced:
           pendingCount++;
           break;
         case statusConfirmed:
@@ -965,7 +999,7 @@ class OrderEndpoint extends Endpoint {
       discountAmount: _getDoubleValue(fields, 'discountAmount'),
       deliveryFee: _getDoubleValue(fields, 'deliveryFee'),
       finalAmount: _getDoubleValue(fields, 'finalAmount'),
-      status: fields['status']?.stringValue ?? statusPending,
+      status: _normalizeStatus(fields['status']?.stringValue ?? statusPlaced),
       paymentStatus: fields['paymentStatus']?.stringValue ?? paymentPending,
       refundStatus: fields['refundStatus']?.stringValue ?? 'none',
       razorpayOrderId: fields['razorpayOrderId']?.stringValue,
@@ -1094,6 +1128,12 @@ class OrderEndpoint extends Endpoint {
       isFreeItem: fields['isFreeItem']?.booleanValue ?? false,
       triggerProductId: fields['triggerProductId']?.stringValue,
     );
+  }
+
+  String _normalizeStatus(String status) {
+    final value = status.toLowerCase().trim();
+    if (value.isEmpty || value == 'pending') return statusPlaced;
+    return value;
   }
 
   firestore_api.Value _orderItemToFirestore(protocol.OrderItem item) {

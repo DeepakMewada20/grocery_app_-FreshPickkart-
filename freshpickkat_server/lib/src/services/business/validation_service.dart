@@ -2,8 +2,9 @@ import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart' as protocol;
 
 class ValidationService {
-  static const statusPending = 'pending';
+  static const statusPlaced = 'placed';
   static const statusConfirmed = 'confirmed';
+  static const statusPacked = 'packed';
   static const statusOutForDelivery = 'out_for_delivery';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
@@ -157,8 +158,9 @@ class ValidationService {
     if (current == next) return;
 
     const allowed = <String, Set<String>>{
-      statusPending: {statusConfirmed, statusCancelled},
-      statusConfirmed: {statusOutForDelivery, statusCancelled},
+      statusPlaced: {statusConfirmed, statusCancelled},
+      statusConfirmed: {statusPacked, statusCancelled},
+      statusPacked: {statusOutForDelivery, statusCancelled},
       statusOutForDelivery: {statusDelivered, statusCancelled},
       statusDelivered: {},
       statusCancelled: {},
@@ -169,7 +171,7 @@ class ValidationService {
       final currentLabel = _getStatusLabel(current);
       final nextLabel = _getStatusLabel(next);
       throw InvalidParametersException(
-        'Cannot change status from "$currentLabel" to "$nextLabel". Please follow the correct order: Pending → Confirmed → Out for Delivery → Delivered',
+        'Cannot change status from "$currentLabel" to "$nextLabel". Please follow the correct order: Placed → Confirmed → Packed → Out for Delivery → Delivered',
       );
     }
 
@@ -183,8 +185,10 @@ class ValidationService {
 
   static String _getStatusLabel(String status) {
     const labels = {
-      'pending': 'Pending',
+      'placed': 'Placed',
+      'pending': 'Placed',
       'confirmed': 'Confirmed',
+      'packed': 'Packed',
       'out_for_delivery': 'Out for Delivery',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',

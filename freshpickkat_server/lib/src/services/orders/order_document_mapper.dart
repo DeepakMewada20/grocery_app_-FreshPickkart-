@@ -16,7 +16,10 @@ class OrderDocumentMapper {
       userPhone: fields['userPhone']?.stringValue ?? '',
       items:
           fields['items']?.arrayValue?.values
-              ?.map((value) => _orderItemFromFirestore(value.mapValue?.fields ?? {}))
+              ?.map(
+                (value) =>
+                    _orderItemFromFirestore(value.mapValue?.fields ?? {}),
+              )
               .toList() ??
           [],
       itemCount: int.tryParse(fields['itemCount']?.integerValue ?? '0') ?? 0,
@@ -24,7 +27,7 @@ class OrderDocumentMapper {
       discountAmount: getDoubleValue(fields, 'discountAmount'),
       deliveryFee: getDoubleValue(fields, 'deliveryFee'),
       finalAmount: getDoubleValue(fields, 'finalAmount'),
-      status: fields['status']?.stringValue ?? 'pending',
+      status: _normalizeStatus(fields['status']?.stringValue ?? 'placed'),
       paymentStatus: fields['paymentStatus']?.stringValue ?? 'pending',
       refundStatus: fields['refundStatus']?.stringValue ?? 'none',
       razorpayOrderId: fields['razorpayOrderId']?.stringValue,
@@ -65,7 +68,9 @@ class OrderDocumentMapper {
           values: order.items.map(_orderItemToFirestore).toList(),
         ),
       ),
-      'itemCount': firestore_api.Value(integerValue: order.itemCount.toString()),
+      'itemCount': firestore_api.Value(
+        integerValue: order.itemCount.toString(),
+      ),
       'totalAmount': firestore_api.Value(doubleValue: order.totalAmount),
       'discountAmount': firestore_api.Value(doubleValue: order.discountAmount),
       'deliveryFee': firestore_api.Value(doubleValue: order.deliveryFee),
@@ -82,7 +87,9 @@ class OrderDocumentMapper {
         timestampValue: order.orderedAt.toUtc().toIso8601String(),
       ),
       if (order.razorpayOrderId != null)
-        'razorpayOrderId': firestore_api.Value(stringValue: order.razorpayOrderId!),
+        'razorpayOrderId': firestore_api.Value(
+          stringValue: order.razorpayOrderId!,
+        ),
       if (order.razorpayPaymentId != null)
         'razorpayPaymentId': firestore_api.Value(
           stringValue: order.razorpayPaymentId!,
@@ -122,6 +129,12 @@ class OrderDocumentMapper {
       if (order.couponApplied != null)
         'couponApplied': firestore_api.Value(stringValue: order.couponApplied!),
     };
+  }
+
+  String _normalizeStatus(String status) {
+    final value = status.toLowerCase().trim();
+    if (value.isEmpty || value == 'pending') return 'placed';
+    return value;
   }
 
   String toJsonString(protocol.Order order) => jsonEncode(order.toJson());
@@ -178,8 +191,9 @@ class OrderDocumentMapper {
       comboName: fields['comboName']?.stringValue,
       comboDiscountType: fields['comboDiscountType']?.stringValue,
       comboDiscountValue: getNullableDoubleValue(fields, 'comboDiscountValue'),
-      comboItemQuantity:
-          int.tryParse(fields['comboItemQuantity']?.integerValue ?? ''),
+      comboItemQuantity: int.tryParse(
+        fields['comboItemQuantity']?.integerValue ?? '',
+      ),
     );
   }
 
@@ -191,10 +205,14 @@ class OrderDocumentMapper {
           if (item.variantId != null)
             'variantId': firestore_api.Value(stringValue: item.variantId!),
           if (item.variantLabel != null)
-            'variantLabel': firestore_api.Value(stringValue: item.variantLabel!),
+            'variantLabel': firestore_api.Value(
+              stringValue: item.variantLabel!,
+            ),
           'productName': firestore_api.Value(stringValue: item.productName),
           'productImage': firestore_api.Value(stringValue: item.productImage),
-          'quantity': firestore_api.Value(integerValue: item.quantity.toString()),
+          'quantity': firestore_api.Value(
+            integerValue: item.quantity.toString(),
+          ),
           'unitPrice': firestore_api.Value(doubleValue: item.unitPrice),
           'totalPrice': firestore_api.Value(doubleValue: item.totalPrice),
           'isFreeItem': firestore_api.Value(booleanValue: item.isFreeItem),

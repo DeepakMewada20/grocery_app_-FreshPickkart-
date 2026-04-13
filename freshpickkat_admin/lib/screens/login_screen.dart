@@ -517,7 +517,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: ElevatedButton(
               onPressed: _isLoading ? null : _login,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               child: _isLoading
@@ -582,7 +582,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _startSetup,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                 ),
                 child: _isLoading

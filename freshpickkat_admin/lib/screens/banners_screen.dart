@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_client/src/protocol/banner.dart' as banner_pkg;
+import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_banner_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
-typedef AppBanner = banner_pkg.Banner;
+typedef AppBanner = client.Banner;
 
 class BannersScreen extends StatefulWidget {
   const BannersScreen({super.key});
@@ -53,11 +54,20 @@ class _BannersScreenState extends State<BannersScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
+      appBar: AdminAppBar(
+        title: const Text('Banners'),
+        actions: [
+          IconButton(
+            onPressed: _controller.loadMore,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddBannerDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Banner'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
         children: [
@@ -93,7 +103,7 @@ class _BannersScreenState extends State<BannersScreen>
 
               final banners = _controller.banners
                   .where(
-                    (banner_pkg.Banner b) =>
+                    (client.Banner b) =>
                         b.title.toLowerCase().contains(_searchQuery),
                   )
                   .toList();
@@ -164,7 +174,7 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  void _showEditBannerDialog(banner_pkg.Banner banner) {
+  void _showEditBannerDialog(client.Banner banner) {
     showDialog(
       context: context,
       builder: (context) => _BannerDialog(
@@ -176,7 +186,7 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  void _showDeleteConfirmation(banner_pkg.Banner banner) {
+  void _showDeleteConfirmation(client.Banner banner) {
     final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
@@ -220,7 +230,7 @@ class _BannersScreenState extends State<BannersScreen>
 }
 
 class _BannerCard extends StatelessWidget {
-  final banner_pkg.Banner banner;
+  final client.Banner banner;
   final Function(bool) onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -496,8 +506,8 @@ class _BannerCard extends StatelessWidget {
 }
 
 class _BannerDialog extends StatefulWidget {
-  final banner_pkg.Banner? banner;
-  final Function(banner_pkg.Banner) onSave;
+  final client.Banner? banner;
+  final Function(client.Banner) onSave;
 
   const _BannerDialog({this.banner, required this.onSave});
 
@@ -995,7 +1005,7 @@ class _BannerDialogState extends State<_BannerDialog> {
       return;
     }
 
-    final banner = banner_pkg.Banner(
+    final banner = client.Banner(
       bannerId: widget.banner?.bannerId,
       title: _titleController.text.trim().isEmpty
           ? _buildDefaultTitle()

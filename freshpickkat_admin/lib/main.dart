@@ -4,6 +4,9 @@ import 'package:freshpickkat_admin/firebase_options.dart';
 import 'package:freshpickkat_admin/screens/auth_wrapper.dart';
 import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
+import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/theme/admin_theme_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -13,6 +16,8 @@ void main() async {
   await GetStorage.init();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  Get.put(DeliveryTrackingController(), permanent: true);
+  Get.put(AdminThemeController(), permanent: true);
 
   runApp(const FreshPickKatAdmin());
 }
@@ -22,19 +27,22 @@ class FreshPickKatAdmin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'FreshPickKart Admin',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+    final themeController = Get.find<AdminThemeController>();
+
+    return Obx(
+      () => GetMaterialApp(
+        title: 'FreshPickKart Admin',
+        debugShowCheckedModeBanner: false,
+        theme: AdminAppTheme.light(),
+        darkTheme: AdminAppTheme.dark(),
+        themeMode: themeController.themeMode.value,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const AuthWrapper(),
+          '/login': (context) => const LoginScreen(),
+          '/main': (context) => const MainScreen(),
+        },
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthWrapper(),
-        '/login': (context) => const LoginScreen(),
-        '/main': (context) => const MainScreen(),
-      },
     );
   }
 }

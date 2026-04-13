@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -17,10 +18,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Categories'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             onPressed: _controller.loadCategories,
@@ -107,7 +106,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         children: [
           FloatingActionButton.extended(
             heroTag: 'addCategory',
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             foregroundColor: Colors.white,
             onPressed: _openAddCategoryDialog,
             icon: const Icon(Icons.add),
@@ -116,7 +115,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           const SizedBox(height: 10),
           FloatingActionButton.extended(
             heroTag: 'addSubCategory',
-            backgroundColor: Colors.teal,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             foregroundColor: Colors.white,
             onPressed: _openAddSubcategoryDialog,
             icon: const Icon(Icons.add),

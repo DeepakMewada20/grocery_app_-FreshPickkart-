@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
+import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
+import 'package:freshpickkat_admin/widgets/admin_appearance_section.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,26 +11,23 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
     final adminLabel = currentUser?.email ?? 'admin@freshpickkart.com';
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
+      appBar: const AdminAppBar(title: Text('Settings')),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
         children: [
-          const SizedBox(height: 20),
           Center(
             child: Column(
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.green.shade100,
+                  backgroundColor: cs.primary.withValues(alpha: 0.12),
                   child: const Icon(
                     Icons.person,
                     size: 50,
-                    color: Colors.green,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -43,28 +42,30 @@ class SettingsScreen extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: cs.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.green.shade200),
+                    border: Border.all(color: cs.primary.withValues(alpha: 0.25)),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Role: ADMIN_SELLER',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.green,
+                      color: cs.primary,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   adminLabel,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 16, color: cs.onSurfaceVariant),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          const AdminAppearanceSection(),
+          const SizedBox(height: 16),
           _buildSettingsItem(context, Icons.person_outline, 'Profile', () {}),
           _buildSettingsItem(
             context,
@@ -111,7 +112,10 @@ class SettingsScreen extends StatelessWidget {
     bool isDestructive = false,
   }) {
     return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.green),
+      leading: Icon(
+        icon,
+        color: isDestructive ? Colors.red : Theme.of(context).colorScheme.primary,
+      ),
       title: Text(
         title,
         style: TextStyle(color: isDestructive ? Colors.red : null),

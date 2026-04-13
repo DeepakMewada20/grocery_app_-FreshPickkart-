@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_tab.dart';
@@ -322,10 +323,9 @@ class _ProductsScreenState extends State<ProductsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
+        title: const Text('Products'),
         toolbarHeight: 0,
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
@@ -377,7 +377,7 @@ class _ProductsScreenState extends State<ProductsScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         onPressed: () {
           final currentIndex = _tabController.index;

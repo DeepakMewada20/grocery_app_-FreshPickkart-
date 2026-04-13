@@ -12,17 +12,16 @@ class PaymentRecoveryService {
     PaymentGatewayService? gateway,
     PaymentFirestoreService? store,
     OrderDocumentMapper? mapper,
-  })  : gateway = gateway ?? PaymentGatewayService(),
-        mapper = mapper ?? OrderDocumentMapper(),
-        store = store ?? PaymentFirestoreService(mapper: mapper);
+  }) : gateway = gateway ?? PaymentGatewayService(),
+       mapper = mapper ?? OrderDocumentMapper(),
+       store = store ?? PaymentFirestoreService(mapper: mapper);
 
   final PaymentGatewayService gateway;
   final OrderDocumentMapper mapper;
   final PaymentFirestoreService store;
   final RefundService _refundService = RefundService();
 
-  Future<protocol.PaymentVerifyResult> verifyAndFinalizePayment(
-    {
+  Future<protocol.PaymentVerifyResult> verifyAndFinalizePayment({
     required String orderId,
     required String razorpayOrderId,
     required String razorpayPaymentId,
@@ -110,10 +109,12 @@ class PaymentRecoveryService {
 
       final updateFields = <String, firestore_api.Value>{
         'paymentStatus': firestore_api.Value(stringValue: 'paid'),
-        'razorpayPaymentId': firestore_api.Value(stringValue: razorpayPaymentId),
+        'razorpayPaymentId': firestore_api.Value(
+          stringValue: razorpayPaymentId,
+        ),
         'razorpayOrderId': firestore_api.Value(stringValue: razorpayOrderId),
       };
-      if (order.status == 'pending') {
+      if (order.status == 'placed' || order.status == 'pending') {
         updateFields['status'] = firestore_api.Value(stringValue: 'confirmed');
         updateFields['confirmedAt'] = firestore_api.Value(
           timestampValue: DateTime.now().toUtc().toIso8601String(),
@@ -143,8 +144,7 @@ class PaymentRecoveryService {
     }
   }
 
-  Future<protocol.PaymentActionResult> recoverPendingPayments(
-    {
+  Future<protocol.PaymentActionResult> recoverPendingPayments({
     String? userId,
     int limit = 20,
   }) async {
@@ -180,8 +180,7 @@ class PaymentRecoveryService {
     }
   }
 
-  Future<protocol.PaymentVerifyResult> handleWebhookPaidEvent(
-    {
+  Future<protocol.PaymentVerifyResult> handleWebhookPaidEvent({
     required String orderId,
     required String paymentId,
     required String razorpayOrderId,
@@ -255,7 +254,9 @@ class PaymentRecoveryService {
         return true;
       }
 
-      final statusResponse = await gateway.fetchPaymentStatus(pending.paymentId);
+      final statusResponse = await gateway.fetchPaymentStatus(
+        pending.paymentId,
+      );
       final data = statusResponse['data'];
       final gatewayStatus = data is Map ? data['status']?.toString() ?? '' : '';
       final normalizedStatus = gatewayStatus.toLowerCase().trim();
@@ -274,7 +275,8 @@ class PaymentRecoveryService {
               pending.razorpayOrderId ?? order.razorpayOrderId ?? '',
           razorpayPaymentId: pending.paymentId,
           razorpaySignature: pending.signature ?? '',
-          signatureAlreadyTrusted: pending.signature == null ||
+          signatureAlreadyTrusted:
+              pending.signature == null ||
               pending.signature!.isEmpty ||
               normalizedStatus == 'captured' ||
               normalizedStatus == 'authorized',
@@ -358,7 +360,7 @@ class PaymentRecoveryService {
         itemCount: itemCount,
       ).catchError((_) {});
 
-      if (order.status == 'pending') {
+      if (order.status == 'placed' || order.status == 'pending') {
         NotificationService.notifyUserStatusUpdate(
           userId: order.userId,
           orderId: orderId,

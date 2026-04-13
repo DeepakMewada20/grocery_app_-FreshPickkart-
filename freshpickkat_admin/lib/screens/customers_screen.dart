@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/admin_app_bar.dart';
 
 class CustomersScreen extends StatelessWidget {
   const CustomersScreen({super.key});
@@ -6,11 +7,7 @@ class CustomersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customers'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-      ),
+      appBar: const AdminAppBar(title: Text('Customers')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -7,6 +7,7 @@ import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 class BogoOffersScreen extends StatefulWidget {
@@ -60,10 +61,8 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('BOGO Offers'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -75,7 +74,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         onPressed: _showAddBogoScreen,
         icon: const Icon(Icons.add),
         label: const Text('Add BOGO Offer'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
         children: [

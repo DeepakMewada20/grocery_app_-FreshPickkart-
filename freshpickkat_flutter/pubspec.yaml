@@ -40,6 +40,8 @@ dependencies:
   pinput: ^6.0.2
   google_fonts: ^6.3.3
   firebase_core: ^4.4.0
+  geolocator: ^13.0.2
+  google_maps_flutter: ^2.12.1
   flutter_dotenv: ^5.2.1
   serverpod_auth_shared_flutter: 3.4.5
   get: ^4.7.3

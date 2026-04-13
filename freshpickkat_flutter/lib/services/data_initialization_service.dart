@@ -9,7 +9,8 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:get/get.dart';
 
 class DataInitializationService extends GetxService {
-  static DataInitializationService get instance => Get.find<DataInitializationService>();
+  static DataInitializationService get instance =>
+      Get.find<DataInitializationService>();
 
   final RxBool isInitialized = false.obs;
   final RxBool isLoading = false.obs;
@@ -96,6 +97,7 @@ class DataInitializationService extends GetxService {
   Future<void> _initNotifications() async {
     try {
       await NotificationController.instance.init();
+      await NotificationController.instance.openPendingTrackingLaunchIfAny();
     } catch (e) {
       debugPrint('Error init notifications: $e');
     }

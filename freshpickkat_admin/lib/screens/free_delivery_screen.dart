@@ -28,7 +28,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
         onPressed: _showRuleDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Rule'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Obx(() {
         if (_controller.networkController.hasError.value) {

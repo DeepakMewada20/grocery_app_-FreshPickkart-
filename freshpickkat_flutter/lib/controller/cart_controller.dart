@@ -115,6 +115,8 @@ class CartController extends GetxController {
   final RxList<CartItem> cartItems = <CartItem>[].obs;
   final Rxn<BogoCartSuggestion> bogoSuggestion = Rxn<BogoCartSuggestion>();
   final RxList<BasketSuggestion> basketSuggestions = <BasketSuggestion>[].obs;
+  final RxList<BasketSuggestion> oldBasketSuggestions =
+      <BasketSuggestion>[].obs;
   final Rxn<CartPricingResult> cartPricing = Rxn<CartPricingResult>();
   final client = ServerpodClient().client;
   Timer? _cartValidationDebounce;
@@ -281,6 +283,7 @@ class CartController extends GetxController {
     final snapshot = _buildMeaningfulCartSnapshot();
     if (cartItems.isEmpty || snapshot.isEmpty) {
       basketSuggestions.clear();
+      oldBasketSuggestions.clear();
       isBasketSuggestionsLoading.value = false;
       _lastSuggestedCartSnapshot = '';
       return;
@@ -289,6 +292,9 @@ class CartController extends GetxController {
       return;
     }
 
+    if (basketSuggestions.isNotEmpty) {
+      oldBasketSuggestions.assignAll(basketSuggestions);
+    }
     isBasketSuggestionsLoading.value = true;
     try {
       final response = await client.pricing.basketSuggestions(
@@ -298,6 +304,7 @@ class CartController extends GetxController {
         appliedCouponCode: appliedCoupon.value?.code,
       );
       if (_buildMeaningfulCartSnapshot() != snapshot) {
+        oldBasketSuggestions.clear();
         isBasketSuggestionsLoading.value = false;
         return;
       }
@@ -306,6 +313,7 @@ class CartController extends GetxController {
     } catch (e) {
       debugPrint('Error fetching basket suggestions: $e');
     } finally {
+      oldBasketSuggestions.clear();
       isBasketSuggestionsLoading.value = false;
     }
   }

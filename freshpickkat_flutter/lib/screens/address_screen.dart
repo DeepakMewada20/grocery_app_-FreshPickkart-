@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/address_utils.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AddressScreen extends StatefulWidget {
   final bool autoUseCurrent;
@@ -134,6 +135,7 @@ class _AddressScreenState extends State<AddressScreen>
         locationData.latitude!,
         locationData.longitude!,
       );
+      GetStorage().write('delivery_location_type', 'current');
 
       setState(() {
         _isLoadingLocation = false;
@@ -246,6 +248,7 @@ class _AddressScreenState extends State<AddressScreen>
       Address address;
 
       if (_showCustomAddress) {
+        GetStorage().write('delivery_location_type', 'saved');
         address = Address(
           street: _streetController.text.trim(),
           city: _cityController.text.trim(),
@@ -254,6 +257,7 @@ class _AddressScreenState extends State<AddressScreen>
           country: 'India', // Default or add field
         );
       } else {
+        GetStorage().write('delivery_location_type', 'current');
         final p = _nearbyPlacemarks[_selectedIndex!];
         // Try to get location for the selected placemark if possible, or use current location
         LocationData? loc;

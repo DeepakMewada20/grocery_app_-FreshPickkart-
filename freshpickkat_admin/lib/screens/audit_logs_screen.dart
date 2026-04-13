@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import '../widgets/admin_app_bar.dart';
 
 class AuditLogsScreen extends StatefulWidget {
   const AuditLogsScreen({super.key});
@@ -37,10 +38,8 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Audit Logs'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
         ],

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -19,7 +20,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   String _searchQuery = '';
 
   static const _statusColors = {
-    'pending': Color(0xFFFFA726),
+    'placed': Color(0xFFFFA726),
+    'packed': Color(0xFF7E57C2),
     'confirmed': Color(0xFF42A5F5),
     'out_for_delivery': Color(0xFFFF7043),
     'delivered': Color(0xFF66BB6A),
@@ -92,6 +94,36 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  Future<void> _startDelivery(Order order) async {
+    try {
+      await _orderController.startDelivery(order);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Delivery tracking armed. Push will send after first live location.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to start delivery: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<String?> _askReason() async {
     final controller = TextEditingController();
     return showDialog<String>(
@@ -119,7 +151,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -138,7 +170,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: _isSearching
             ? TextField(
                 autofocus: true,
@@ -161,9 +193,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       : 'Orders',
                 ),
               ),
-        backgroundColor: Colors.green.shade600,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -183,7 +212,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       body: Obx(() {
         if (_orderController.networkController.hasError.value) {
           return NetworkErrorWidget(
-            onRetry: () => _orderController.networkController.retryLastRequest(),
+            onRetry: () =>
+                _orderController.networkController.retryLastRequest(),
           );
         }
 
@@ -314,6 +344,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             onTap: () => _showOrderDetails(order),
                             onStatusChanged: (status) =>
                                 _updateStatus(order, status),
+                            onStartDelivery: _startDelivery,
                           );
                         },
                       ),
@@ -713,8 +744,9 @@ class _StatusFilterDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           items: const [
             DropdownMenuItem(value: 'all', child: Text('All Orders')),
-            DropdownMenuItem(value: 'pending', child: Text('Pending')),
+            DropdownMenuItem(value: 'placed', child: Text('Placed')),
             DropdownMenuItem(value: 'confirmed', child: Text('Confirmed')),
+            DropdownMenuItem(value: 'packed', child: Text('Packed')),
             DropdownMenuItem(
               value: 'out_for_delivery',
               child: Text('Out for delivery'),
@@ -734,11 +766,13 @@ class _OrderCard extends StatelessWidget {
     required this.order,
     required this.onTap,
     required this.onStatusChanged,
+    required this.onStartDelivery,
   });
 
   final Order order;
   final VoidCallback onTap;
   final ValueChanged<String> onStatusChanged;
+  final Future<void> Function(Order order) onStartDelivery;
 
   @override
   Widget build(BuildContext context) {
@@ -885,10 +919,7 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _StatusDropdown(
-                  currentStatus: order.status,
-                  onChanged: onStatusChanged,
-                ),
+                _buildLifecycleActions(order, onStatusChanged),
               ],
             ),
           ),
@@ -897,9 +928,83 @@ class _OrderCard extends StatelessWidget {
     );
   }
 
+  Widget _buildLifecycleActions(
+    Order order,
+    ValueChanged<String> onStatusChanged,
+  ) {
+    final buttons = <Widget>[];
+
+    if (order.status == 'placed') {
+      buttons.add(
+        _lifecycleButton(
+          label: 'Confirm Order',
+          color: Colors.blue,
+          icon: Icons.verified_outlined,
+          onPressed: () => onStatusChanged('confirmed'),
+        ),
+      );
+    } else if (order.status == 'confirmed') {
+      buttons.add(
+        _lifecycleButton(
+          label: 'Mark Packed',
+          color: Colors.deepPurple,
+          icon: Icons.inventory_2_outlined,
+          onPressed: () => onStatusChanged('packed'),
+        ),
+      );
+    } else if (order.status == 'packed') {
+      buttons.add(
+        _lifecycleButton(
+          label: 'Start Delivery',
+          color: Colors.orange,
+          icon: Icons.local_shipping_outlined,
+          onPressed: () => onStartDelivery(order),
+        ),
+      );
+    } else if (order.status == 'out_for_delivery') {
+      buttons.add(
+        _lifecycleButton(
+          label: 'Mark Delivered',
+          color: Colors.green,
+          icon: Icons.check_circle_outline,
+          onPressed: () => onStatusChanged('delivered'),
+        ),
+      );
+    }
+
+    if (buttons.isEmpty) {
+      return Text(
+        'No further lifecycle action available',
+        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+      );
+    }
+
+    return Wrap(spacing: 8, runSpacing: 8, children: buttons);
+  }
+
+  Widget _lifecycleButton({
+    required String label,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+    );
+  }
+
   Widget _buildStatusChip(String status) {
     final colors = {
-      'pending': const Color(0xFFFFA726),
+      'placed': const Color(0xFFFFA726),
+      'packed': const Color(0xFF7E57C2),
       'confirmed': const Color(0xFF42A5F5),
       'out_for_delivery': const Color(0xFFFF7043),
       'delivered': const Color(0xFF66BB6A),
@@ -919,58 +1024,6 @@ class _OrderCard extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w600,
           fontSize: 11,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusDropdown extends StatelessWidget {
-  const _StatusDropdown({required this.currentStatus, required this.onChanged});
-
-  final String currentStatus;
-  final ValueChanged<String> onChanged;
-
-  static const _statuses = <String>[
-    'pending',
-    'confirmed',
-    'out_for_delivery',
-    'delivered',
-    'cancelled',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _statuses.contains(currentStatus) ? currentStatus : 'pending',
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          borderRadius: BorderRadius.circular(12),
-          items: _statuses
-              .map(
-                (s) => DropdownMenuItem(
-                  value: s,
-                  child: Text(
-                    s.replaceAll('_', ' ').toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (value) {
-            if (value == null || value == currentStatus) return;
-            onChanged(value);
-          },
         ),
       ),
     );

@@ -168,6 +168,7 @@ class AdminEndpoint extends Endpoint {
         totalRevenue += order.finalAmount;
       }
       switch (order.status) {
+        case 'placed':
         case 'pending':
           pendingCount++;
           break;

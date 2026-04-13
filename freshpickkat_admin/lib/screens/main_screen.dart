@@ -5,9 +5,11 @@ import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
 
 import 'dashboard_screen.dart';
 import 'orders_screen.dart';
+import 'live_delivery_screen.dart';
 import 'products_screen.dart';
 import 'offers_screen.dart';
 import 'settings_screen.dart';
@@ -25,12 +27,13 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const OrdersScreen(),
+    const LiveDeliveryScreen(),
     const ProductsScreen(),
     const OffersScreen(),
     const SettingsScreen(),
   ];
 
-  final List<bool> _builtScreens = List.generate(5, (index) => index == 0);
+  final List<bool> _builtScreens = List.generate(6, (index) => index == 0);
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _MainScreenState extends State<MainScreen> {
     Get.lazyPut(() => AdminOrderController());
     Get.lazyPut(() => AdminDashboardController());
     Get.lazyPut(() => AdminCouponController());
+    Get.lazyPut(() => LiveDeliveryController());
   }
 
   @override
@@ -75,6 +79,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Orders',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.delivery_dining_outlined),
+            selectedIcon: Icon(Icons.delivery_dining),
+            label: 'Live',
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),

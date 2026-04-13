@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
 Future<void> showAddCategoryOfferDialog({
@@ -105,10 +106,8 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
+      appBar: AdminAppBar(
         title: const Text('Category Offers'),
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -120,7 +119,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
         onPressed: _showAddOfferDialog,
         icon: const Icon(Icons.add),
         label: const Text('Add Category Offer'),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
         children: [
