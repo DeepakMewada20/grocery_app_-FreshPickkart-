@@ -8,8 +8,10 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
@@ -35,6 +37,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final cartController = CartController.instance;
   final authController = AuthController.instance;
   final userController = UserController.instance;
+  final orderController = OrderController.instance;
   final checkoutService = CheckoutService.instance;
   final paymentService = PaymentService.instance;
   final orderRecoveryService = OrderRecoveryService.instance;
@@ -104,9 +107,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    if (userController.shippingAddress.value == null) {
+    // Check if delivery address is available (either saved or temp)
+    final deliveryAddress = orderController.getDeliveryAddress(
+      userController.shippingAddress.value,
+    );
+
+    if (deliveryAddress == null) {
       _setProcessing(false);
-      _goToAddress();
+      _openLocationPicker(initialAddress: null);
       return;
     }
 
@@ -119,7 +127,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     try {
-      final order = _buildOrder();
+      // Build order - checkout service will use temp address if available
+      final order = _buildOrderFromCart(deliveryAddress);
       final checkoutSession = await checkoutService.createPendingOrder(
         draftOrder: order,
       );
@@ -533,8 +542,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay?.submit(options);
   }
 
-  Order _buildOrder() {
-    final address = userController.shippingAddress.value!;
+  Order _buildOrderFromCart(Address deliveryAddress) {
     final userId = authController.currentUser?.uid ?? '';
     final userName = userController.userName.value;
     final userPhone = _getCustomerPhone();
@@ -623,7 +631,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       status: 'placed',
       paymentStatus: 'pending',
       refundStatus: 'none',
-      deliveryAddress: address,
+      deliveryAddress: deliveryAddress,
       orderedAt: DateTime.now(),
       couponApplied: cartController.appliedCoupon.value?.code,
     );
@@ -755,6 +763,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _completeSuccessfulPayment(String orderId) async {
+    // Clear temporary delivery address after order is placed
+    orderController.clearTempDeliveryAddress();
+
     await Get.offAll(() => OrderConfirmationScreen(orderId: orderId));
 
     cartController.removeCoupon();
@@ -924,11 +935,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _goToAddress() {
-    authController.returnRoute.value = '/checkout';
-    Get.toNamed('/address');
-  }
-
   void _showError(String message) {
     final safeMessage = message.trim().isEmpty
         ? 'Payment failed. Please try again.'
@@ -1062,65 +1068,176 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildAddressSection(ColorScheme cs) {
     final address = userController.shippingAddress.value;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Delivery Address',
-                style: TextStyle(
-                  color: cs.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              TextButton(
-                onPressed: _goToAddress,
-                child: const Text('Change'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (address == null)
+
+    return Obx(() {
+      final tempAddress = orderController.tempDeliveryAddress.value;
+      final displayAddress = tempAddress ?? address;
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              'No address found. Please add delivery address.',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
-            )
-          else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  userController.userName.value.isEmpty
-                      ? 'Customer'
-                      : userController.userName.value,
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
+              'Delivery Address',
+              style: TextStyle(
+                color: cs.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (displayAddress == null) ...[
+              Text(
+                'No address selected. Please add delivery address.',
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
+              ),
+              const SizedBox(height: 16),
+              _buildAddressButton(
+                cs,
+                icon: Icons.my_location,
+                label: 'Use Current Location',
+                onPressed: () => _openLocationPicker(initialAddress: null),
+              ),
+            ] else ...[
+              if (tempAddress != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Temporary Address (This Order Only)',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _getCustomerPhone(),
-                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          userController.userName.value.isEmpty
+                              ? 'Customer'
+                              : userController.userName.value,
+                          style: TextStyle(
+                            color: cs.onSurface,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getCustomerPhone(),
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 45,
+                    child: _buildAddressButton(
+                      cs,
+                      icon: Icons.my_location,
+                      label: 'Change',
+                      onPressed: () =>
+                          _openLocationPicker(initialAddress: null),
+                      compact: true,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _formatAddress(displayAddress),
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.8),
+                  fontSize: 14,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _formatAddress(address),
-                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.8)),
-                ),
-              ],
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildAddressButton(
+    ColorScheme cs, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    bool compact = false,
+  }) {
+    if (compact) {
+      return Container(
+        margin: const EdgeInsets.only(left: 12),
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 18),
+          label: Text(
+            label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-        ],
+            side: BorderSide(
+              color: cs.primary.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openLocationPicker({required Address? initialAddress}) async {
+    await Get.to(
+      () => LocationPickerScreen(
+        isCheckoutMode: true,
+        initialAddress: initialAddress,
       ),
     );
   }
@@ -1230,11 +1347,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Row(
               children: [
-                Text(
-                  group.name,
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    group.name,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),

@@ -3,6 +3,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
 
@@ -53,6 +54,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _cityController.text = address.city;
       _stateController.text = address.state;
       _zipController.text = address.zipCode;
+    }
+  }
+
+  Future<void> _openLocationPicker() async {
+    final currentAddress = UserController.instance.shippingAddress.value;
+    final result = await Get.to(
+      () => LocationPickerScreen(
+        isCheckoutMode: false,
+        initialAddress: currentAddress,
+        addressLabel: 'Home',
+      ),
+    );
+
+    // If location was picked, reload the address fields
+    if (result != null || mounted) {
+      _loadExistingAddress();
     }
   }
 
@@ -180,6 +197,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Use Current Location Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openLocationPicker(),
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Use Current Location'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               AddressFormWidget(
                 key: _addressFormKey,
                 showTitle: false,

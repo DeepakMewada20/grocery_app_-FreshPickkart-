@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/appearance_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:get/get.dart';
 
@@ -370,61 +371,111 @@ class _MoreScreenState extends State<MoreScreen> {
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.location_on, color: cs.onSurface),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.location_on, color: cs.onSurface),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Obx(() {
+                  final addr = userController.shippingAddress.value;
+                  if (addr == null) {
+                    return Text(
+                      'No address set',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                        fontSize: 13,
+                      ),
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        addr.street,
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '${addr.city}, ${addr.state} ${addr.zipCode}',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+              IconButton(
+                onPressed: () => Get.to(
+                  () => LocationPickerScreen(
+                    isCheckoutMode: false,
+                    initialAddress: userController.shippingAddress.value,
+                    addressLabel: 'Home',
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.edit,
+                  color: AppTheme.primaryGreen,
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Obx(() {
-              final addr = userController.shippingAddress.value;
-              if (addr == null) {
-                return Text(
-                  'No address set',
-                  style: TextStyle(
-                    color: cs.onSurface.withValues(alpha: 0.4),
-                    fontSize: 13,
-                  ),
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    addr.street,
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontWeight: FontWeight.bold,
+          const SizedBox(height: 12),
+          // Button row for address actions
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Get.to(
+                    () => LocationPickerScreen(
+                      isCheckoutMode: false,
+                      initialAddress: userController.shippingAddress.value,
+                      addressLabel: 'Home',
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    '${addr.city}, ${addr.state} ${addr.zipCode}',
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 13,
+                  icon: const Icon(Icons.my_location, size: 18),
+                  label: const Text('Current Location'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Get.to(
+                    () => LocationPickerScreen(
+                      isCheckoutMode: false,
+                      initialAddress: userController.shippingAddress.value,
+                      addressLabel: 'Home',
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              );
-            }),
-          ),
-          IconButton(
-            onPressed: () => Get.toNamed('/address'),
-            icon: const Icon(
-              Icons.edit,
-              color: AppTheme.primaryGreen,
-              size: 20,
-            ),
+                  icon: const Icon(Icons.location_on_outlined, size: 18),
+                  label: const Text('Edit Address'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
