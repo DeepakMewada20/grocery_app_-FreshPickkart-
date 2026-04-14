@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -168,8 +169,8 @@ class _LoginScreenState extends State<LoginScreen>
               });
 
               try {
-                final resolvedEmail =
-                    await _authService.sendPasswordResetForIdentity(identity);
+                final resolvedEmail = await _authService
+                    .sendPasswordResetForIdentity(identity);
                 if (!mounted || !dialogContext.mounted) return;
 
                 final maskedEmail = _maskEmailForDisplay(resolvedEmail);
@@ -215,7 +216,9 @@ class _LoginScreenState extends State<LoginScreen>
                     Text(
                       statusMessage!,
                       style: TextStyle(
-                        color: isErrorMessage ? Colors.red : Colors.green,
+                        color: isErrorMessage
+                            ? AdminAppTheme.getErrorColor(context)
+                            : AdminAppTheme.getSuccessColor(context),
                       ),
                     ),
                   ],
@@ -307,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : null,
+        backgroundColor: isError ? AdminAppTheme.getErrorColor(context) : null,
       ),
     );
   }
@@ -443,12 +446,14 @@ class _LoginScreenState extends State<LoginScreen>
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: AdminAppTheme.getSuccessColor(
+                      context,
+                    ).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.admin_panel_settings,
-                    color: Colors.green,
+                    color: AdminAppTheme.getSuccessColor(context),
                     size: 52,
                   ),
                 ),
@@ -460,7 +465,9 @@ class _LoginScreenState extends State<LoginScreen>
                 const SizedBox(height: 4),
                 Text(
                   'Single Admin (ADMIN_SELLER)',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 const TabBar(
@@ -604,7 +611,9 @@ class _LoginScreenState extends State<LoginScreen>
             const SizedBox(height: 6),
             Text(
               'Click the verification link in email. App will auto-login after verification.',
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(
+                color: AdminAppTheme.getTextSecondaryColor(context),
+              ),
             ),
             const SizedBox(height: 12),
             SizedBox(

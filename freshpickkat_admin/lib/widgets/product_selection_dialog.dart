@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class ProductSelectionResult {
   final Product product;
   final ProductVariant? variant;
 
-  const ProductSelectionResult({
-    required this.product,
-    this.variant,
-  });
+  const ProductSelectionResult({required this.product, this.variant});
 
   String get productId => product.productId ?? '';
   String get selectionKey => '$productId::${variant?.variantId ?? 'default'}';
@@ -21,10 +19,7 @@ class _VariantSelectionOutcome {
   final ProductVariant? variant;
   final bool wasCancelled;
 
-  const _VariantSelectionOutcome({
-    this.variant,
-    this.wasCancelled = false,
-  });
+  const _VariantSelectionOutcome({this.variant, this.wasCancelled = false});
 }
 
 class ProductSelectionDialog extends StatefulWidget {
@@ -144,8 +139,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
     }
     if (_productController.products.isEmpty) {
       await _productController.loadInitial(
-        category:
-            _selectedCategory == null || _selectedCategory!.isEmpty
+        category: _selectedCategory == null || _selectedCategory!.isEmpty
             ? null
             : _selectedCategory,
       );
@@ -161,8 +155,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
     await Future.wait([
       _categoryController.loadCategories(),
       _productController.loadInitial(
-        category:
-            _selectedCategory == null || _selectedCategory!.isEmpty
+        category: _selectedCategory == null || _selectedCategory!.isEmpty
             ? null
             : _selectedCategory,
       ),
@@ -191,7 +184,9 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
 
   void _syncFetchedScopeCache(String scope) {
     _fetchedCategoryScope = scope;
-    _categoryProductCache[scope] = List<Product>.from(_productController.products);
+    _categoryProductCache[scope] = List<Product>.from(
+      _productController.products,
+    );
   }
 
   List<Product> _visibleProducts() {
@@ -228,7 +223,8 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
       return _categoryProductCache[normalizedSelected]!;
     }
 
-    final allProducts = _categoryProductCache['All'] ?? _productController.products;
+    final allProducts =
+        _categoryProductCache['All'] ?? _productController.products;
     return allProducts
         .where((product) => product.category == normalizedSelected)
         .toList();
@@ -263,10 +259,11 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
   }
 
   Future<_VariantSelectionOutcome> _pickVariantIfNeeded(Product product) async {
-    final variants = (product.variants ?? const <ProductVariant>[])
-        .where((variant) => variant.isAvailable)
-        .toList()
-      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+    final variants =
+        (product.variants ?? const <ProductVariant>[])
+            .where((variant) => variant.isAvailable)
+            .toList()
+          ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
 
     if (variants.length <= 1) {
       return _VariantSelectionOutcome(
@@ -286,15 +283,15 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
             children: [
               Text(
                 'Select Variant',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               Text(
                 product.productName,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
+                  color: AdminAppTheme.getTextSecondaryColor(context),
                 ),
               ),
               const SizedBox(height: 12),
@@ -308,7 +305,9 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                     return ListTile(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(
+                          color: AdminAppTheme.getBorderColor(context),
+                        ),
                       ),
                       title: Text(_variantLabel(variant)),
                       subtitle: Text(
@@ -424,7 +423,9 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                           child: Text(
                             '${_selectedResults.length} selected',
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -450,11 +451,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
 
     return AlertDialog(
       title: Text(widget.title),
-      content: SizedBox(
-        width: 640,
-        height: 520,
-        child: content,
-      ),
+      content: SizedBox(width: 640, height: 520, child: content),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),

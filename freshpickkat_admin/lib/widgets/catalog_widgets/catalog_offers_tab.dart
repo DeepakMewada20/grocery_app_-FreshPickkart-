@@ -10,6 +10,7 @@ import 'package:freshpickkat_admin/screens/category_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -84,34 +85,36 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         .toList();
   }
 
-  bool _comboOfferMatchesFilters(
-    ComboOffer offer,
-    List<Product> products,
-  ) {
+  bool _comboOfferMatchesFilters(ComboOffer offer, List<Product> products) {
     final comboProducts = _productsForComboOffer(offer, products);
     if (comboProducts.isEmpty) return false;
 
     if (widget.offerCategoryFilter != 'All' &&
-        !comboProducts.any((product) => product.category == widget.offerCategoryFilter)) {
+        !comboProducts.any(
+          (product) => product.category == widget.offerCategoryFilter,
+        )) {
       return false;
     }
 
     final query = widget.offerSearchQuery.toLowerCase().trim();
     if (query.isEmpty) return true;
 
-    final joinedNames = comboProducts.map((product) => product.productName).join(' ');
-    final joinedCategories = comboProducts.map((product) => product.category).join(' ');
-    final joinedQuantities = comboProducts.map((product) => product.quantity).join(' ');
+    final joinedNames = comboProducts
+        .map((product) => product.productName)
+        .join(' ');
+    final joinedCategories = comboProducts
+        .map((product) => product.category)
+        .join(' ');
+    final joinedQuantities = comboProducts
+        .map((product) => product.quantity)
+        .join(' ');
     return offer.name.toLowerCase().contains(query) ||
         joinedNames.toLowerCase().contains(query) ||
         joinedCategories.toLowerCase().contains(query) ||
         joinedQuantities.toLowerCase().contains(query);
   }
 
-  double _comboProductsSellingTotal(
-    ComboOffer offer,
-    List<Product> products,
-  ) {
+  double _comboProductsSellingTotal(ComboOffer offer, List<Product> products) {
     final byId = {
       for (final product in products)
         if ((product.productId ?? '').isNotEmpty) product.productId!: product,
@@ -128,10 +131,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     return total;
   }
 
-  double _comboProductsMrpTotal(
-    ComboOffer offer,
-    List<Product> products,
-  ) {
+  double _comboProductsMrpTotal(ComboOffer offer, List<Product> products) {
     final byId = {
       for (final product in products)
         if ((product.productId ?? '').isNotEmpty) product.productId!: product,
@@ -148,15 +148,14 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     return total;
   }
 
-  double _comboFinalPrice(
-    ComboOffer offer,
-    List<Product> products,
-  ) {
+  double _comboFinalPrice(ComboOffer offer, List<Product> products) {
     final sellingTotal = _comboProductsSellingTotal(offer, products);
     if (offer.discountValue <= 0) return sellingTotal;
     if (offer.discountType == 'percentage') {
-      return (sellingTotal * (1 - (offer.discountValue / 100)))
-          .clamp(0, double.infinity);
+      return (sellingTotal * (1 - (offer.discountValue / 100))).clamp(
+        0,
+        double.infinity,
+      );
     }
     return (sellingTotal - offer.discountValue).clamp(0, double.infinity);
   }
@@ -219,7 +218,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
     final primaryVariant = updatedVariants?.firstOrNull;
     final nextRealPrice = primaryVariant?.realPrice ?? product.realPrice;
-    final nextPrice = primaryVariant?.price ??
+    final nextPrice =
+        primaryVariant?.price ??
         (clearOffer || !isActive
             ? product.realPrice
             : _priceForDirectOffer(
@@ -275,18 +275,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Offer'),
+        title: Text('Remove Offer'),
         content: Text('Remove combo offer "${offer.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
+            child: Text(
               'Remove',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
             ),
           ),
         ],
@@ -304,10 +304,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     );
   }
 
-  Widget _buildComboOfferCard(
-    ComboOffer offer,
-    List<Product> products,
-  ) {
+  Widget _buildComboOfferCard(ComboOffer offer, List<Product> products) {
     final comboProducts = _productsForComboOffer(offer, products);
     final sellingTotal = _comboProductsSellingTotal(offer, products);
     final mrpTotal = _comboProductsMrpTotal(offer, products);
@@ -339,13 +336,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          const CatalogInlineBadge(
+                          CatalogInlineBadge(
                             label: 'Combo Offer',
-                            color: Colors.green,
+                            color: AdminAppTheme.getSuccessColor(context),
                           ),
                           CatalogInlineBadge(
                             label: offer.isActive ? 'Active' : 'Inactive',
-                            color: offer.isActive ? Colors.teal : Colors.redAccent,
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
                           ),
                           CatalogInlineBadge(
                             label: offer.discountType == 'percentage'
@@ -360,9 +359,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 ),
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   splashRadius: 18,
-                  icon: const Icon(Icons.more_vert),
+                  icon: Icon(Icons.more_vert),
                   onSelected: (value) async {
                     switch (value) {
                       case 'toggle':
@@ -376,7 +378,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         break;
                     }
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'toggle',
                       child: Row(
@@ -401,11 +403,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       value: 'remove',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
+                          Icon(
+                            Icons.delete_outline,
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Remove Offer',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
                           ),
                         ],
                       ),
@@ -425,14 +432,20 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 final variant = product.variants?.firstWhereOrNull(
                   (entry) => entry.variantId == item?.variantId,
                 );
-                final quantityLabel = variant != null ? product.quantity : product.quantity;
+                final quantityLabel = variant != null
+                    ? product.quantity
+                    : product.quantity;
                 return Container(
                   width: 164,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: AdminAppTheme.getSuccessColor(
+                      context,
+                    ).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(
+                      color: AdminAppTheme.getBorderColor(context),
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,13 +457,19 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           width: 42,
                           height: 42,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 42,
-                            height: 42,
-                            color: Colors.grey.shade200,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.image_not_supported, size: 18),
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 42,
+                                height: 42,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ).withValues(alpha: 0.15),
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 18,
+                                ),
+                              ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -474,7 +493,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey.shade700,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ),
                               ),
                             ),
                           ],
@@ -490,9 +511,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: AdminAppTheme.getSuccessColor(
+                  context,
+                ).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.green.shade100),
+                border: Border.all(
+                  color: AdminAppTheme.getSuccessColor(
+                    context,
+                  ).withValues(alpha: 0.15),
+                ),
               ),
               child: Wrap(
                 spacing: 16,
@@ -503,7 +530,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   Text(
                     'Combo ${_formatMoney(finalPrice)}',
                     style: TextStyle(
-                      color: Colors.green.shade800,
+                      color: AdminAppTheme.getSuccessColor(context),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -516,7 +543,10 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     );
   }
 
-  bool _categoryOfferMatchesFilters(CategoryOffer offer, List<Product> products) {
+  bool _categoryOfferMatchesFilters(
+    CategoryOffer offer,
+    List<Product> products,
+  ) {
     if (widget.offerCategoryFilter != 'All' &&
         offer.categoryName != widget.offerCategoryFilter &&
         offer.categoryId != widget.offerCategoryFilter) {
@@ -531,8 +561,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               product.category == offer.categoryId,
         )
         .toList();
-    final joinedNames =
-        categoryProducts.map((product) => product.productName).join(' ');
+    final joinedNames = categoryProducts
+        .map((product) => product.productName)
+        .join(' ');
     return offer.name.toLowerCase().contains(query) ||
         (offer.categoryName ?? '').toLowerCase().contains(query) ||
         joinedNames.toLowerCase().contains(query);
@@ -571,18 +602,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Offer'),
+        title: Text('Remove Offer'),
         content: Text('Remove category offer "${offer.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
+            child: Text(
               'Remove',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
             ),
           ),
         ],
@@ -596,16 +627,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success ? 'Category offer removed' : 'Failed to remove category offer',
+          success
+              ? 'Category offer removed'
+              : 'Failed to remove category offer',
         ),
       ),
     );
   }
 
-  Widget _buildCategoryOfferCard(
-    CategoryOffer offer,
-    List<Product> products,
-  ) {
+  Widget _buildCategoryOfferCard(CategoryOffer offer, List<Product> products) {
     final categoryProducts = products
         .where(
           (product) =>
@@ -641,13 +671,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          const CatalogInlineBadge(
+                          CatalogInlineBadge(
                             label: 'Category Offer',
-                            color: Colors.green,
+                            color: AdminAppTheme.getSuccessColor(context),
                           ),
                           CatalogInlineBadge(
                             label: offer.isActive ? 'Active' : 'Inactive',
-                            color: offer.isActive ? Colors.teal : Colors.redAccent,
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
                           ),
                           CatalogInlineBadge(
                             label: offer.discountType == 'percentage'
@@ -662,9 +694,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 ),
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   splashRadius: 18,
-                  icon: const Icon(Icons.more_vert),
+                  icon: Icon(Icons.more_vert),
                   onSelected: (value) async {
                     switch (value) {
                       case 'toggle':
@@ -678,7 +713,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         break;
                     }
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'toggle',
                       child: Row(
@@ -703,11 +738,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       value: 'remove',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
+                          Icon(
+                            Icons.delete_outline,
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Remove Offer',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
                           ),
                         ],
                       ),
@@ -720,7 +760,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
             Text(
               'Category: ${offer.categoryName ?? offer.categoryId}',
               style: TextStyle(
-                color: Colors.grey.shade800,
+                color: AdminAppTheme.getTextSecondaryColor(context),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -742,9 +782,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     width: 164,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: AdminAppTheme.getSuccessColor(
+                        context,
+                      ).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(
+                        color: AdminAppTheme.getBorderColor(context),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,13 +800,19 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                             width: 42,
                             height: 42,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: 42,
-                              height: 42,
-                              color: Colors.grey.shade200,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.image_not_supported, size: 18),
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  color: AdminAppTheme.getTextSecondaryColor(
+                                    context,
+                                  ).withValues(alpha: 0.15),
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 18,
+                                  ),
+                                ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -786,7 +836,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey.shade700,
+                                  color: AdminAppTheme.getTextSecondaryColor(
+                                    context,
+                                  ),
                                 ),
                               ),
                             ],
@@ -875,7 +927,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     )) {
       case _OfferCardActionType.bogo:
         final offer = _linkedBogoOffer(product, bogoOffers);
-        final freeCount = offer?.freeProductIds.length ??
+        final freeCount =
+            offer?.freeProductIds.length ??
             (product.bogoFreeProductIds ?? const <String>[]).length;
         return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
       case _OfferCardActionType.directDiscount:
@@ -923,10 +976,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     return null;
   }
 
-  ComboOffer? _linkedComboOffer(
-    Product product,
-    List<ComboOffer> comboOffers,
-  ) {
+  ComboOffer? _linkedComboOffer(Product product, List<ComboOffer> comboOffers) {
     final now = DateTime.now();
     final productId = product.productId;
     if (productId == null) return null;
@@ -976,15 +1026,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           product: product,
           categories: widget.categoryController.categories,
           onSubmit: (result) async {
-          await widget.productController.updateProduct(result.product);
-          final productId = product.productId;
-          if (result.bogoSelections != null && productId != null) {
-            await _saveBogoOfferConfiguration(
-              triggerProductId: productId,
-              selections: result.bogoSelections!,
-            );
-          }
-        },
+            await widget.productController.updateProduct(result.product);
+            final productId = product.productId;
+            if (result.bogoSelections != null && productId != null) {
+              await _saveBogoOfferConfiguration(
+                triggerProductId: productId,
+                selections: result.bogoSelections!,
+              );
+            }
+          },
           groupedSubcategoryOptionsFor:
               widget.categoryController.groupedSubcategoryOptionsFor,
         );
@@ -1134,10 +1184,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       case _OfferCardActionType.directDiscount:
         final nextActive = !_isDirectOfferActive(product);
         await widget.productController.updateProduct(
-          _buildDirectDiscountProduct(
-            product,
-            isActive: nextActive,
-          ),
+          _buildDirectDiscountProduct(product, isActive: nextActive),
         );
         success = true;
         statusLabel = nextActive ? 'activated' : 'deactivated';
@@ -1150,7 +1197,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     if (success) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('${product.productName} offer ${statusLabel ?? 'updated'}'),
+          content: Text(
+            '${product.productName} offer ${statusLabel ?? 'updated'}',
+          ),
         ),
       );
     } else {
@@ -1182,14 +1231,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         var isRemoving = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Remove Offer'),
+            title: Text('Remove Offer'),
             content: Text(
               'Remove the $removeLabel from "${product.productName}"?',
             ),
             actions: [
               TextButton(
-                onPressed: isRemoving ? null : () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                onPressed: isRemoving
+                    ? null
+                    : () => Navigator.pop(context, false),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: isRemoving
@@ -1207,11 +1258,17 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         Navigator.pop(context, success);
                         if (success) {
                           messenger.showSnackBar(
-                            SnackBar(content: Text('${product.productName} offer removed')),
+                            SnackBar(
+                              content: Text(
+                                '${product.productName} offer removed',
+                              ),
+                            ),
                           );
                         } else {
                           messenger.showSnackBar(
-                            const SnackBar(content: Text('Failed to remove offer')),
+                            const SnackBar(
+                              content: Text('Failed to remove offer'),
+                            ),
                           );
                         }
                       },
@@ -1221,9 +1278,11 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
+                    : Text(
                         'Remove',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                        ),
                       ),
               ),
             ],
@@ -1308,8 +1367,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           .where((offer) => _categoryOfferMatchesFilters(offer, products))
           .toList();
       final bogoCount = bogoOffers.length;
-      final activeBogoOfferCount =
-          bogoOffers.where((offer) => offer.isActive).length;
+      final activeBogoOfferCount = bogoOffers
+          .where((offer) => offer.isActive)
+          .length;
       final inactiveBogoOfferCount = bogoCount - activeBogoOfferCount;
       final noOfferCount = products.where((product) {
         return !hasCatalogAnyLiveOffer(
@@ -1337,20 +1397,23 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
       final totalCategoryOfferCount = categoryOffers.length;
-      final activeCategoryOfferCount =
-          categoryOffers.where((offer) => offer.isActive).length;
+      final activeCategoryOfferCount = categoryOffers
+          .where((offer) => offer.isActive)
+          .length;
       final liveCategoryOfferCount = categoryOffers.where((offer) {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
       final inactiveCategoryOfferCount =
           totalCategoryOfferCount - activeCategoryOfferCount;
       final totalComboOfferCount = comboOffers.length;
-      final activeComboOfferCount =
-          comboOffers.where((offer) => offer.isActive).length;
+      final activeComboOfferCount = comboOffers
+          .where((offer) => offer.isActive)
+          .length;
       final liveComboOfferCount = comboOffers.where((offer) {
         return _isOfferLive(offer.startDate, offer.endDate, offer.isActive);
       }).length;
-      final inactiveComboOfferCount = totalComboOfferCount - activeComboOfferCount;
+      final inactiveComboOfferCount =
+          totalComboOfferCount - activeComboOfferCount;
       final allOfferCount =
           directOfferCount +
           bogoOffers.length +
@@ -1380,419 +1443,460 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             children: [
-            SizedBox(
-              height: 96,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+              SizedBox(
+                height: 96,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    CatalogStatCard(
+                      title: 'All',
+                      value: '$allOfferCount',
+                      icon: Icons.grid_view_rounded,
+                      color: const Color(0xFF335C4B),
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'all',
+                      onTap: () => widget.onOfferTypeChanged('all'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'Live',
+                      value: '$liveOfferCount',
+                      icon: Icons.local_offer,
+                      color: const Color(0xFF1F6B4F),
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'live',
+                      onTap: () => widget.onOfferTypeChanged('live'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'BOGO',
+                      value: '$bogoCount',
+                      icon: Icons.card_giftcard,
+                      color: const Color(0xFF2B7A78),
+                      breakdown: [
+                        CatalogStatBreakdown(
+                          label: 'Active',
+                          value: '$activeBogoOfferCount',
+                          color: AdminAppTheme.getSuccessColor(context),
+                        ),
+                        CatalogStatBreakdown(
+                          label: 'Inactive',
+                          value: '$inactiveBogoOfferCount',
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.2),
+                        ),
+                      ],
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'bogo',
+                      onTap: () => widget.onOfferTypeChanged('bogo'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'Category Offers',
+                      value: '$totalCategoryOfferCount',
+                      icon: Icons.category_outlined,
+                      color: const Color(0xFF3A5F6F),
+                      breakdown: [
+                        CatalogStatBreakdown(
+                          label: 'Active',
+                          value: '$activeCategoryOfferCount',
+                          color: AdminAppTheme.getSuccessColor(context),
+                        ),
+                        CatalogStatBreakdown(
+                          label: 'Inactive',
+                          value: '$inactiveCategoryOfferCount',
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.2),
+                        ),
+                      ],
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'category_offer',
+                      onTap: () => widget.onOfferTypeChanged('category_offer'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'Combo Offers',
+                      value: '$totalComboOfferCount',
+                      icon: Icons.widgets_outlined,
+                      color: const Color(0xFF4F7D63),
+                      breakdown: [
+                        CatalogStatBreakdown(
+                          label: 'Active',
+                          value: '$activeComboOfferCount',
+                          color: AdminAppTheme.getSuccessColor(context),
+                        ),
+                        CatalogStatBreakdown(
+                          label: 'Inactive',
+                          value: '$inactiveComboOfferCount',
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.2),
+                        ),
+                      ],
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'combo_offer',
+                      onTap: () => widget.onOfferTypeChanged('combo_offer'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'Percentage',
+                      value: '$percentageCount',
+                      icon: Icons.percent,
+                      color: const Color(0xFF46627A),
+                      breakdown: [
+                        CatalogStatBreakdown(
+                          label: 'Active',
+                          value: '$activePercentageCount',
+                          color: AdminAppTheme.getSuccessColor(context),
+                        ),
+                        CatalogStatBreakdown(
+                          label: 'Inactive',
+                          value: '$inactivePercentageCount',
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.2),
+                        ),
+                      ],
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'percentage',
+                      onTap: () => widget.onOfferTypeChanged('percentage'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'Flat',
+                      value: '$flatCount',
+                      icon: Icons.currency_rupee,
+                      color: const Color(0xFF5B6B5F),
+                      breakdown: [
+                        CatalogStatBreakdown(
+                          label: 'Active',
+                          value: '$activeFlatCount',
+                          color: AdminAppTheme.getSuccessColor(context),
+                        ),
+                        CatalogStatBreakdown(
+                          label: 'Inactive',
+                          value: '$inactiveFlatCount',
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.2),
+                        ),
+                      ],
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'flat',
+                      onTap: () => widget.onOfferTypeChanged('flat'),
+                    ),
+                    const SizedBox(width: 10),
+                    CatalogStatCard(
+                      title: 'No Offer',
+                      value: '$noOfferCount',
+                      icon: Icons.remove_circle_outline,
+                      color: const Color(0xFF66706C),
+                      compact: true,
+                      selected: widget.offerTypeFilter == 'none',
+                      onTap: () => widget.onOfferTypeChanged('none'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              ProductSearchAndCategoryControls(
+                searchHintText: 'Search product or offer',
+                onSearchChanged: widget.onOfferSearchChanged,
+                categoryOptions: categoryOptions,
+                selectedCategory: widget.offerCategoryFilter,
+                onCategorySelected: widget.onOfferCategoryChanged,
+              ),
+              const SizedBox(height: 14),
+              Row(
                 children: [
-                  CatalogStatCard(
-                    title: 'All',
-                    value: '$allOfferCount',
-                    icon: Icons.grid_view_rounded,
-                    color: const Color(0xFF335C4B),
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'all',
-                    onTap: () => widget.onOfferTypeChanged('all'),
+                  Expanded(
+                    child: Text(
+                      widget.offerTypeFilter == 'combo_offer'
+                          ? 'Combo Offers'
+                          : widget.offerTypeFilter == 'category_offer'
+                          ? 'Category Offers'
+                          : 'Products by Offer',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'Live',
-                    value: '$liveOfferCount',
-                    icon: Icons.local_offer,
-                    color: const Color(0xFF1F6B4F),
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'live',
-                    onTap: () => widget.onOfferTypeChanged('live'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'BOGO',
-                    value: '$bogoCount',
-                    icon: Icons.card_giftcard,
-                    color: const Color(0xFF2B7A78),
-                    breakdown: [
-                      CatalogStatBreakdown(
-                        label: 'Active',
-                        value: '$activeBogoOfferCount',
-                        color: Colors.green.shade700,
-                      ),
-                      CatalogStatBreakdown(
-                        label: 'Inactive',
-                        value: '$inactiveBogoOfferCount',
-                        color: Colors.redAccent.shade200,
-                      ),
-                    ],
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'bogo',
-                    onTap: () => widget.onOfferTypeChanged('bogo'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'Category Offers',
-                    value: '$totalCategoryOfferCount',
-                    icon: Icons.category_outlined,
-                    color: const Color(0xFF3A5F6F),
-                    breakdown: [
-                      CatalogStatBreakdown(
-                        label: 'Active',
-                        value: '$activeCategoryOfferCount',
-                        color: Colors.green.shade700,
-                      ),
-                      CatalogStatBreakdown(
-                        label: 'Inactive',
-                        value: '$inactiveCategoryOfferCount',
-                        color: Colors.redAccent.shade200,
-                      ),
-                    ],
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'category_offer',
-                    onTap: () => widget.onOfferTypeChanged('category_offer'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'Combo Offers',
-                    value: '$totalComboOfferCount',
-                    icon: Icons.widgets_outlined,
-                    color: const Color(0xFF4F7D63),
-                    breakdown: [
-                      CatalogStatBreakdown(
-                        label: 'Active',
-                        value: '$activeComboOfferCount',
-                        color: Colors.green.shade700,
-                      ),
-                      CatalogStatBreakdown(
-                        label: 'Inactive',
-                        value: '$inactiveComboOfferCount',
-                        color: Colors.redAccent.shade200,
-                      ),
-                    ],
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'combo_offer',
-                    onTap: () => widget.onOfferTypeChanged('combo_offer'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'Percentage',
-                    value: '$percentageCount',
-                    icon: Icons.percent,
-                    color: const Color(0xFF46627A),
-                    breakdown: [
-                      CatalogStatBreakdown(
-                        label: 'Active',
-                        value: '$activePercentageCount',
-                        color: Colors.green.shade700,
-                      ),
-                      CatalogStatBreakdown(
-                        label: 'Inactive',
-                        value: '$inactivePercentageCount',
-                        color: Colors.redAccent.shade200,
-                      ),
-                    ],
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'percentage',
-                    onTap: () => widget.onOfferTypeChanged('percentage'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'Flat',
-                    value: '$flatCount',
-                    icon: Icons.currency_rupee,
-                    color: const Color(0xFF5B6B5F),
-                    breakdown: [
-                      CatalogStatBreakdown(
-                        label: 'Active',
-                        value: '$activeFlatCount',
-                        color: Colors.green.shade700,
-                      ),
-                      CatalogStatBreakdown(
-                        label: 'Inactive',
-                        value: '$inactiveFlatCount',
-                        color: Colors.redAccent.shade200,
-                      ),
-                    ],
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'flat',
-                    onTap: () => widget.onOfferTypeChanged('flat'),
-                  ),
-                  const SizedBox(width: 10),
-                  CatalogStatCard(
-                    title: 'No Offer',
-                    value: '$noOfferCount',
-                    icon: Icons.remove_circle_outline,
-                    color: const Color(0xFF66706C),
-                    compact: true,
-                    selected: widget.offerTypeFilter == 'none',
-                    onTap: () => widget.onOfferTypeChanged('none'),
+                  Text(
+                    widget.offerTypeFilter == 'combo_offer'
+                        ? '${visibleComboOffers.length} items'
+                        : widget.offerTypeFilter == 'category_offer'
+                        ? '${visibleCategoryOffers.length} items'
+                        : '${visibleProducts.length} items',
+                    style: TextStyle(
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 10),
-            ProductSearchAndCategoryControls(
-              searchHintText: 'Search product or offer',
-              onSearchChanged: widget.onOfferSearchChanged,
-              categoryOptions: categoryOptions,
-              selectedCategory: widget.offerCategoryFilter,
-              onCategorySelected: widget.onOfferCategoryChanged,
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.offerTypeFilter == 'combo_offer'
-                        ? 'Combo Offers'
-                        : widget.offerTypeFilter == 'category_offer'
-                            ? 'Category Offers'
-                            : 'Products by Offer',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+              const SizedBox(height: 10),
+              if (widget.offerTypeFilter == 'combo_offer' &&
+                  visibleComboOffers.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('No combo offers matched the selected filters'),
+                  ),
+                )
+              else if (widget.offerTypeFilter == 'category_offer' &&
+                  visibleCategoryOffers.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No category offers matched the selected filters',
                     ),
                   ),
-                ),
-                Text(
-                  widget.offerTypeFilter == 'combo_offer'
-                      ? '${visibleComboOffers.length} items'
-                      : widget.offerTypeFilter == 'category_offer'
-                          ? '${visibleCategoryOffers.length} items'
-                          : '${visibleProducts.length} items',
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (widget.offerTypeFilter == 'combo_offer' &&
-                visibleComboOffers.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No combo offers matched the selected filters'),
-                ),
-              )
-            else if (widget.offerTypeFilter == 'category_offer' &&
-                visibleCategoryOffers.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No category offers matched the selected filters'),
-                ),
-              )
-            else if (widget.offerTypeFilter == 'combo_offer')
-              ...visibleComboOffers.map(
-                (offer) => _buildComboOfferCard(offer, products),
-              )
-            else if (widget.offerTypeFilter == 'category_offer')
-              ...visibleCategoryOffers.map(
-                (offer) => _buildCategoryOfferCard(offer, products),
-              )
-            else if (visibleProducts.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('No products matched the selected offer filters'),
-                ),
-              )
-            else
-              ...visibleProducts.map((product) {
-                final actionType = _actionTypeForCurrentFilter(
-                  product,
-                  bogoOffers,
-                  categoryOffers,
-                  comboOffers,
-                );
-                final hasActions = actionType != _OfferCardActionType.none;
-                final supportsToggle = _supportsToggle(actionType);
-                final isOfferActive = switch (actionType) {
-                  _OfferCardActionType.bogo => _isBogoOfferActive(
+                )
+              else if (widget.offerTypeFilter == 'combo_offer')
+                ...visibleComboOffers.map(
+                  (offer) => _buildComboOfferCard(offer, products),
+                )
+              else if (widget.offerTypeFilter == 'category_offer')
+                ...visibleCategoryOffers.map(
+                  (offer) => _buildCategoryOfferCard(offer, products),
+                )
+              else if (visibleProducts.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No products matched the selected offer filters',
+                    ),
+                  ),
+                )
+              else
+                ...visibleProducts.map((product) {
+                  final actionType = _actionTypeForCurrentFilter(
                     product,
                     bogoOffers,
-                  ),
-                  _OfferCardActionType.directDiscount => _isDirectOfferActive(
-                    product,
-                  ),
-                  _OfferCardActionType.categoryOffer ||
-                  _OfferCardActionType.comboOffer => true,
-                  _OfferCardActionType.none => false,
-                };
+                    categoryOffers,
+                    comboOffers,
+                  );
+                  final hasActions = actionType != _OfferCardActionType.none;
+                  final supportsToggle = _supportsToggle(actionType);
+                  final isOfferActive = switch (actionType) {
+                    _OfferCardActionType.bogo => _isBogoOfferActive(
+                      product,
+                      bogoOffers,
+                    ),
+                    _OfferCardActionType.directDiscount => _isDirectOfferActive(
+                      product,
+                    ),
+                    _OfferCardActionType.categoryOffer ||
+                    _OfferCardActionType.comboOffer => true,
+                    _OfferCardActionType.none => false,
+                  };
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            product.imageUrl,
-                            width: 64,
-                            height: 64,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              product.imageUrl,
                               width: 64,
                               height: 64,
-                              color: Colors.grey.shade200,
-                              alignment: Alignment.center,
-                              child: const Icon(Icons.image_not_supported),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                width: 64,
+                                height: 64,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ).withValues(alpha: 0.15),
+                                alignment: Alignment.center,
+                                child: Icon(Icons.image_not_supported),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                product.productName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.productName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
                                 ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${product.category} • ${product.quantity}',
+                                  style: TextStyle(
+                                    color: AdminAppTheme.getTextSecondaryColor(
+                                      context,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children: [
+                                    CatalogInlineBadge(
+                                      label: _offerBadgeLabelForCurrentFilter(
+                                        product,
+                                        bogoOffers,
+                                        categoryOffers,
+                                        comboOffers,
+                                      ),
+                                      color:
+                                          hasCatalogAnyLiveOffer(
+                                            product,
+                                            bogoOffers: bogoOffers,
+                                            categoryOffers: categoryOffers,
+                                            comboOffers: comboOffers,
+                                          )
+                                          ? AdminAppTheme.getSuccessColor(
+                                              context,
+                                            )
+                                          : Colors.grey,
+                                    ),
+                                    if (hasActions)
+                                      CatalogInlineBadge(
+                                        label: isOfferActive
+                                            ? 'Active'
+                                            : 'Inactive',
+                                        color: isOfferActive
+                                            ? AdminAppTheme.getSuccessColor(
+                                                context,
+                                              )
+                                            : AdminAppTheme.getErrorColor(
+                                                context,
+                                              ).withValues(alpha: 0.2),
+                                      ),
+                                    CatalogInlineBadge(
+                                      label: product.isAvailable
+                                          ? 'Available'
+                                          : 'Out of stock',
+                                      color: product.isAvailable
+                                          ? AdminAppTheme.getSuccessColor(
+                                              context,
+                                            )
+                                          : AdminAppTheme.getErrorColor(
+                                              context,
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '₹${product.price.toStringAsFixed(0)} • MRP ₹${product.realPrice.toStringAsFixed(0)}',
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (hasActions) ...[
+                            const SizedBox(width: 8),
+                            PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${product.category} • ${product.quantity}',
-                                style: TextStyle(color: Colors.grey.shade700),
-                              ),
-                              const SizedBox(height: 6),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 6,
-                                children: [
-                                  CatalogInlineBadge(
-                                    label: _offerBadgeLabelForCurrentFilter(
+                              splashRadius: 18,
+                              icon: Icon(Icons.more_vert),
+                              onSelected: (value) async {
+                                switch (value) {
+                                  case 'toggle':
+                                    await _toggleOfferForProduct(
                                       product,
                                       bogoOffers,
                                       categoryOffers,
                                       comboOffers,
-                                    ),
-                                    color: hasCatalogAnyLiveOffer(
+                                    );
+                                    break;
+                                  case 'edit':
+                                    await _editOfferForProduct(
                                       product,
-                                      bogoOffers: bogoOffers,
-                                      categoryOffers: categoryOffers,
-                                      comboOffers: comboOffers,
-                                    )
-                                        ? Colors.green
-                                        : Colors.grey,
-                                  ),
-                                  if (hasActions)
-                                    CatalogInlineBadge(
-                                      label: isOfferActive ? 'Active' : 'Inactive',
-                                      color: isOfferActive
-                                          ? Colors.green.shade700
-                                          : Colors.redAccent.shade200,
+                                      bogoOffers,
+                                      categoryOffers,
+                                      comboOffers,
+                                    );
+                                    break;
+                                  case 'remove':
+                                    await _removeOfferForProduct(
+                                      product,
+                                      bogoOffers,
+                                      categoryOffers,
+                                      comboOffers,
+                                    );
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                if (supportsToggle)
+                                  const PopupMenuItem(
+                                    value: 'toggle',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.toggle_on),
+                                        SizedBox(width: 8),
+                                        Text('Toggle Active'),
+                                      ],
                                     ),
-                                  CatalogInlineBadge(
-                                    label: product.isAvailable
-                                        ? 'Available'
-                                        : 'Out of stock',
-                                    color: product.isAvailable
-                                        ? Colors.teal
-                                        : Colors.redAccent,
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '₹${product.price.toStringAsFixed(0)} • MRP ₹${product.realPrice.toStringAsFixed(0)}',
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (hasActions) ...[
-                          const SizedBox(width: 8),
-                          PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                            splashRadius: 18,
-                            icon: const Icon(Icons.more_vert),
-                            onSelected: (value) async {
-                              switch (value) {
-                                case 'toggle':
-                                  await _toggleOfferForProduct(
-                                    product,
-                                    bogoOffers,
-                                    categoryOffers,
-                                    comboOffers,
-                                  );
-                                  break;
-                                case 'edit':
-                                  await _editOfferForProduct(
-                                    product,
-                                    bogoOffers,
-                                    categoryOffers,
-                                    comboOffers,
-                                  );
-                                  break;
-                                case 'remove':
-                                  await _removeOfferForProduct(
-                                    product,
-                                    bogoOffers,
-                                    categoryOffers,
-                                    comboOffers,
-                                  );
-                                  break;
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              if (supportsToggle)
                                 const PopupMenuItem(
-                                  value: 'toggle',
+                                  value: 'edit',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.toggle_on),
+                                      Icon(Icons.edit),
                                       SizedBox(width: 8),
-                                      Text('Toggle Active'),
+                                      Text('Edit'),
                                     ],
                                   ),
                                 ),
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit),
-                                    SizedBox(width: 8),
-                                    Text('Edit'),
-                                  ],
+                                PopupMenuItem(
+                                  value: 'remove',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_outline,
+                                        color: AdminAppTheme.getErrorColor(
+                                          context,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Remove Offer',
+                                        style: TextStyle(
+                                          color: AdminAppTheme.getErrorColor(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'remove',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.delete_outline,
-                                      color: Colors.red,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Remove Offer',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              }),
-            if (widget.offerTypeFilter != 'combo_offer' &&
-                widget.offerTypeFilter != 'category_offer' &&
-                widget.productController.isLoadingMore.value)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-          ],
+                  );
+                }),
+              if (widget.offerTypeFilter != 'combo_offer' &&
+                  widget.offerTypeFilter != 'category_offer' &&
+                  widget.productController.isLoadingMore.value)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            ],
           ),
         ),
       );

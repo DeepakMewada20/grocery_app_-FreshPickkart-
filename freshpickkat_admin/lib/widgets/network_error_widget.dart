@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
 class NetworkErrorWidget extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const NetworkErrorWidget({
-    super.key,
-    required this.onRetry,
-  });
+  const NetworkErrorWidget({super.key, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -14,18 +12,18 @@ class NetworkErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.wifi_off,
             size: 64,
-            color: Colors.grey,
+            color: AdminAppTheme.getTextSecondaryColor(context),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Check your connection',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: AdminAppTheme.getTextSecondaryColor(context),
             ),
           ),
           const SizedBox(height: 24),
