@@ -184,13 +184,12 @@ class _OffersScreenState extends State<OffersScreen> {
           return AnimatedBuilder(
             animation: tabController,
             builder: (context, _) {
-                return Scaffold(
-                  appBar: AdminAppBar(
-                    title: const Text('Offers'),
-                    toolbarHeight: 0,
-                    bottom: const TabBar(
-                      isScrollable: true,
-                      tabs: [
+              return Scaffold(
+                appBar: AdminAppBar(
+                  title: const Text('Offers'),
+                  bottom: TabBar(
+                    isScrollable: true,
+                    tabs: const [
                       Tab(text: 'Dashboard'),
                       Tab(text: 'Offers'),
                       Tab(text: 'Coupons'),

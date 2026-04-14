@@ -4,6 +4,8 @@ class AdminThemeTokens {
   // Primary Colors
   static const Color primary = Color(0xFF1E8B57);
   static const Color secondary = Color(0xFF167D73);
+  static const Color accentCyan = Color(0xFF00BCD4);
+  static const Color accentBlue = Color(0xFF2196F3);
 
   // Light Theme Colors
   static const Color lightBackground = Color(0xFFF5F7FA);
@@ -13,18 +15,20 @@ class AdminThemeTokens {
   static const Color lightTextSecondary = Color(0xFF616161);
   static const Color lightBorder = Color(0xFFE0E0E0);
 
-  // Dark Theme Colors - Improved
-  static const Color darkBackground = Color(0xFF0F1412);
-  static const Color darkSurface = Color(0xFF1A211E);
-  static const Color darkSurfaceVariant = Color(0xFF232B27);
-  static const Color darkOnSurface = Color(0xFFE1E1E1);
-  static const Color darkTextPrimary = Color(0xFFF5F5F5);
-  static const Color darkTextSecondary = Color(0xFFB0B0B0);
-  static const Color darkBorder = Color(0xFF424242);
+  // Dark Theme Colors - Carbon Premium with Cyan Accents
+  static const Color darkBackground = Color(0xFF0A0E0C);
+  static const Color darkSurface = Color(0xFF121814);
+  static const Color darkSurfaceVariant = Color(0xFF1D2420);
+  static const Color darkSurfaceElevated = Color(0xFF262D2A);
+  static const Color darkOnSurface = Color(0xFFE0E0E0);
+  static const Color darkTextPrimary = Color(0xFFFAFAFA);
+  static const Color darkTextSecondary = Color(0xFFA8A8A8);
+  static const Color darkBorder = Color(0xFF353D3A);
+  static const Color darkDivider = Color(0xFF2A3330);
 
   // Semantic Colors
   static const Color success = Color(0xFF4CAF50);
-  static const Color darkSuccess = Color(0xFF81C784);
+  static const Color darkSuccess = Color(0xFF66BB6A);
   static const Color error = Color(0xFFE53935);
   static const Color darkError = Color(0xFFEF5350);
   static const Color warning = Color(0xFFFFC107);
@@ -62,16 +66,21 @@ class AdminAppTheme {
           brightness: brightness,
         ).copyWith(
           primary: AdminThemeTokens.primary,
-          secondary: AdminThemeTokens.secondary,
+          secondary: isDark
+              ? AdminThemeTokens.accentCyan
+              : AdminThemeTokens.secondary,
           surface: surface,
           onSurface: onSurface,
           surfaceContainerHighest: isDark
-              ? AdminThemeTokens.darkSurfaceVariant
+              ? AdminThemeTokens.darkSurfaceElevated
               : const Color(0xFFE8F2EB),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           error: isDark ? AdminThemeTokens.darkError : AdminThemeTokens.error,
           onError: Colors.white,
+          outlineVariant: isDark
+              ? AdminThemeTokens.darkBorder
+              : const Color(0xFFCACACA),
         );
 
     return ThemeData(
@@ -96,30 +105,38 @@ class AdminAppTheme {
       ),
       cardTheme: CardThemeData(
         color: surface,
-        elevation: isDark ? 0 : 1.5,
-        shadowColor: Colors.black.withValues(alpha: 0.08),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: isDark ? 1 : 1.5,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface,
-        indicatorColor: AdminThemeTokens.primary.withValues(alpha: 0.14),
+        indicatorColor: isDark
+            ? AdminThemeTokens.accentCyan.withValues(alpha: 0.15)
+            : AdminThemeTokens.primary.withValues(alpha: 0.14),
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: isDark ? Colors.white : AdminThemeTokens.primary,
+        labelColor: isDark
+            ? AdminThemeTokens.accentCyan
+            : AdminThemeTokens.primary,
         unselectedLabelColor: isDark
-            ? Colors.white70
+            ? AdminThemeTokens.darkTextSecondary
             : AdminThemeTokens.primary.withValues(alpha: 0.72),
-        indicatorColor: isDark ? Colors.white : AdminThemeTokens.primary,
-        dividerColor: Colors.transparent,
+        indicatorColor: isDark
+            ? AdminThemeTokens.accentCyan
+            : AdminThemeTokens.primary,
+        dividerColor: isDark
+            ? AdminThemeTokens.darkDivider
+            : Colors.transparent,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AdminThemeTokens.primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? AdminThemeTokens.darkSurfaceVariant : surface,
+        fillColor: isDark ? AdminThemeTokens.darkSurfaceElevated : surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
@@ -134,8 +151,10 @@ class AdminAppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AdminThemeTokens.primary,
+          borderSide: BorderSide(
+            color: isDark
+                ? AdminThemeTokens.accentCyan
+                : AdminThemeTokens.primary,
             width: 1.4,
           ),
         ),
@@ -171,9 +190,10 @@ class AdminAppTheme {
       ),
       dividerTheme: DividerThemeData(
         color: isDark
-            ? AdminThemeTokens.darkBorder
+            ? AdminThemeTokens.darkDivider
             : scheme.outlineVariant.withValues(alpha: 0.45),
         thickness: 1,
+        space: 16,
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
@@ -307,6 +327,18 @@ class AdminAppTheme {
     return Theme.of(context).brightness == Brightness.dark
         ? AdminThemeTokens.darkInfo
         : AdminThemeTokens.info;
+  }
+
+  static Color getAccentColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AdminThemeTokens.accentCyan
+        : AdminThemeTokens.primary;
+  }
+
+  static Color getSurfaceElevated(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AdminThemeTokens.darkSurfaceElevated
+        : AdminThemeTokens.lightSurface;
   }
 
   static Color getTextSecondaryColor(BuildContext context) {

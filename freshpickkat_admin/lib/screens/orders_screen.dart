@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/admin_app_bar.dart';
@@ -19,14 +20,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
 
-  static const _statusColors = {
-    'placed': Color(0xFFFFA726),
-    'packed': Color(0xFF7E57C2),
-    'confirmed': Color(0xFF42A5F5),
-    'out_for_delivery': Color(0xFFFF7043),
-    'delivered': Color(0xFF66BB6A),
-    'cancelled': Color(0xFFEF5350),
-  };
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'placed':
+        return const Color(0xFFFFA726);
+      case 'packed':
+        return const Color(0xFF7E57C2);
+      case 'confirmed':
+        return const Color(0xFF42A5F5);
+      case 'out_for_delivery':
+        return const Color(0xFFFF7043);
+      case 'delivered':
+        return const Color(0xFF66BB6A);
+      case 'cancelled':
+        return const Color(0xFFEF5350);
+      default:
+        return const Color(0xFF999999);
+    }
+  }
 
   @override
   void initState() {
@@ -84,7 +95,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AdminAppTheme.getErrorColor(context),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -114,7 +125,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to start delivery: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AdminAppTheme.getErrorColor(context),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -152,7 +163,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -169,15 +180,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AdminAppBar(
         title: _isSearching
             ? TextField(
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+                decoration: InputDecoration(
                   hintText: 'Search order id / customer / phone',
-                  hintStyle: TextStyle(color: Colors.white70),
+                  hintStyle: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                  ),
                   border: InputBorder.none,
                 ),
                 onChanged: (value) {
@@ -235,17 +252,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: Colors.grey.shade400,
+                  color: AdminAppTheme.getTextSecondaryColor(context),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Failed to load orders',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   error,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(
+                      context,
+                    ).withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -260,12 +285,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Icon(
                   Icons.shopping_bag_outlined,
                   size: 80,
-                  color: Colors.grey.shade300,
+                  color: AdminAppTheme.getBorderColor(context),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No orders yet',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 18),
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    fontSize: 18,
+                  ),
                 ),
               ],
             ),
@@ -287,7 +315,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         return Column(
           children: [
             Container(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: _StatusFilterDropdown(
                 currentFilter: _orderController.statusFilter,
@@ -312,12 +340,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 Icon(
                                   Icons.search_off,
                                   size: 64,
-                                  color: Colors.grey.shade300,
+                                  color: AdminAppTheme.getBorderColor(context),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'No matching orders',
-                                  style: TextStyle(color: Colors.grey.shade600),
+                                  style: TextStyle(
+                                    color: AdminAppTheme.getTextSecondaryColor(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -361,7 +393,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -431,9 +463,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: AdminAppTheme.getTextSecondaryColor(
+                              context,
+                            ).withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ).withValues(alpha: 0.15),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,11 +483,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 '${order.deliveryAddress.city}, ${order.deliveryAddress.state}',
-                                style: TextStyle(color: Colors.grey.shade700),
+                                style: TextStyle(
+                                  color: AdminAppTheme.getTextSecondaryColor(
+                                    context,
+                                  ),
+                                ),
                               ),
                               Text(
                                 '${order.deliveryAddress.zipCode}, ${order.deliveryAddress.country}',
-                                style: TextStyle(color: Colors.grey.shade600),
+                                style: TextStyle(
+                                  color: AdminAppTheme.getTextSecondaryColor(
+                                    context,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -496,7 +542,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         if (order.items.isEmpty)
                           Text(
                             'No items available',
-                            style: TextStyle(color: Colors.grey.shade500),
+                            style: TextStyle(
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
+                            ),
                           )
                         else
                           ...order.items.map(
@@ -504,7 +554,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               margin: const EdgeInsets.only(bottom: 12),
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
@@ -542,7 +594,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           '₹${item.unitPrice.toStringAsFixed(0)} each',
                                           style: TextStyle(
                                             fontSize: 13,
-                                            color: Colors.grey.shade600,
+                                            color:
+                                                AdminAppTheme.getTextSecondaryColor(
+                                                  context,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -565,7 +620,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: AdminAppTheme.getTextSecondaryColor(
+                          context,
+                        ).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -610,15 +667,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.red.shade200),
+                          border: Border.all(
+                            color: AdminAppTheme.getErrorColor(
+                              context,
+                            ).withValues(alpha: 0.2),
+                          ),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.info_outline,
-                              color: Colors.red.shade700,
+                              color: AdminAppTheme.getErrorColor(context),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -629,14 +692,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     'Cancellation Reason',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.red.shade700,
+                                      color: AdminAppTheme.getErrorColor(
+                                        context,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     order.cancellationReason!,
                                     style: TextStyle(
-                                      color: Colors.red.shade600,
+                                      color: AdminAppTheme.getErrorColor(
+                                        context,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -680,7 +747,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
             style: TextStyle(
               fontSize: isBold ? 16 : 14,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-              color: isBold ? Colors.black87 : Colors.grey.shade700,
+              color: isBold
+                  ? Theme.of(context).colorScheme.onSurface
+                  : AdminAppTheme.getTextSecondaryColor(context),
             ),
           ),
           Text(
@@ -690,7 +759,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
             style: TextStyle(
               fontSize: isBold ? 18 : 14,
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: isBold ? Colors.black87 : Colors.grey.shade800,
+              color: isBold
+                  ? Theme.of(context).colorScheme.onSurface
+                  : Colors.grey.shade800,
             ),
           ),
         ],
@@ -699,7 +770,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _statusChip(String status) {
-    final color = _statusColors[status] ?? Colors.grey;
+    final color = _getStatusColor(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -733,7 +804,9 @@ class _StatusFilterDropdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AdminAppTheme.getTextSecondaryColor(
+          context,
+        ).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonHideUnderline(
@@ -779,7 +852,7 @@ class _OrderCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -830,7 +903,9 @@ class _OrderCard extends StatelessWidget {
                             Text(
                               '${order.itemCount} Items',
                               style: TextStyle(
-                                color: Colors.grey.shade600,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ),
                                 fontSize: 13,
                               ),
                             ),
@@ -845,7 +920,9 @@ class _OrderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: AdminAppTheme.getTextSecondaryColor(
+                      context,
+                    ).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -856,7 +933,9 @@ class _OrderCard extends StatelessWidget {
                             Icon(
                               Icons.person_outline,
                               size: 18,
-                              color: Colors.grey.shade600,
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -874,7 +953,7 @@ class _OrderCard extends StatelessWidget {
                       Container(
                         width: 1,
                         height: 20,
-                        color: Colors.grey.shade300,
+                        color: AdminAppTheme.getBorderColor(context),
                       ),
                       const SizedBox(width: 12),
                       Row(
@@ -882,7 +961,7 @@ class _OrderCard extends StatelessWidget {
                           Icon(
                             Icons.phone_outlined,
                             size: 18,
-                            color: Colors.grey.shade600,
+                            color: AdminAppTheme.getTextSecondaryColor(context),
                           ),
                           const SizedBox(width: 8),
                           Text(order.userPhone),
@@ -897,10 +976,10 @@ class _OrderCard extends StatelessWidget {
                   children: [
                     Text(
                       '₹${order.finalAmount.toStringAsFixed(0)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     if (order.cancellationReason != null &&
@@ -919,7 +998,7 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildLifecycleActions(order, onStatusChanged),
+                _buildLifecycleActions(context, order, onStatusChanged),
               ],
             ),
           ),
@@ -929,6 +1008,7 @@ class _OrderCard extends StatelessWidget {
   }
 
   Widget _buildLifecycleActions(
+    BuildContext context,
     Order order,
     ValueChanged<String> onStatusChanged,
   ) {
@@ -937,6 +1017,7 @@ class _OrderCard extends StatelessWidget {
     if (order.status == 'placed') {
       buttons.add(
         _lifecycleButton(
+          context: context,
           label: 'Confirm Order',
           color: Colors.blue,
           icon: Icons.verified_outlined,
@@ -946,6 +1027,7 @@ class _OrderCard extends StatelessWidget {
     } else if (order.status == 'confirmed') {
       buttons.add(
         _lifecycleButton(
+          context: context,
           label: 'Mark Packed',
           color: Colors.deepPurple,
           icon: Icons.inventory_2_outlined,
@@ -955,6 +1037,7 @@ class _OrderCard extends StatelessWidget {
     } else if (order.status == 'packed') {
       buttons.add(
         _lifecycleButton(
+          context: context,
           label: 'Start Delivery',
           color: Colors.orange,
           icon: Icons.local_shipping_outlined,
@@ -964,6 +1047,7 @@ class _OrderCard extends StatelessWidget {
     } else if (order.status == 'out_for_delivery') {
       buttons.add(
         _lifecycleButton(
+          context: context,
           label: 'Mark Delivered',
           color: Colors.green,
           icon: Icons.check_circle_outline,
@@ -975,7 +1059,10 @@ class _OrderCard extends StatelessWidget {
     if (buttons.isEmpty) {
       return Text(
         'No further lifecycle action available',
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        style: TextStyle(
+          color: AdminAppTheme.getTextSecondaryColor(context),
+          fontSize: 12,
+        ),
       );
     }
 
@@ -983,6 +1070,7 @@ class _OrderCard extends StatelessWidget {
   }
 
   Widget _lifecycleButton({
+    required BuildContext context,
     required String label,
     required Color color,
     required IconData icon,
@@ -1050,14 +1138,18 @@ class _DetailSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, size: 20, color: Colors.grey.shade600),
+            Icon(
+              icon,
+              size: 20,
+              color: AdminAppTheme.getTextSecondaryColor(context),
+            ),
             const SizedBox(width: 8),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             if (trailing != null) ...[const Spacer(), trailing!],
@@ -1089,7 +1181,11 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
+          Icon(
+            icon,
+            size: 18,
+            color: AdminAppTheme.getTextSecondaryColor(context),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1099,14 +1195,21 @@ class _DetailRow extends StatelessWidget {
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                    style: TextStyle(
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                      fontSize: 13,
+                    ),
                   ),
               ],
             ),
           ),
           if (onCopy != null)
             IconButton(
-              icon: Icon(Icons.copy, size: 18, color: Colors.grey.shade500),
+              icon: Icon(
+                Icons.copy,
+                size: 18,
+                color: AdminAppTheme.getTextSecondaryColor(context),
+              ),
               onPressed: onCopy,
               tooltip: 'Copy',
               constraints: const BoxConstraints(),
