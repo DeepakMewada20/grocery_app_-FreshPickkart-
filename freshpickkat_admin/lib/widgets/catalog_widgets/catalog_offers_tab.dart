@@ -348,8 +348,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           ),
                           CatalogInlineBadge(
                             label: offer.discountType == 'percentage'
-                                ? '${offer.discountValue.toStringAsFixed(0)}% OFF'
-                                : 'Flat ${_formatMoney(offer.discountValue)} OFF',
+                                ? 'MORE ${offer.discountValue.toStringAsFixed(0)}% OFF'
+                                : 'MORE ${_formatMoney(offer.discountValue)} OFF',
                             color: Colors.orange,
                           ),
                         ],

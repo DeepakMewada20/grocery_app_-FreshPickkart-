@@ -189,6 +189,8 @@ class _OffersScreenState extends State<OffersScreen> {
                   title: const Text('Offers'),
                   bottom: TabBar(
                     isScrollable: true,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white70,
                     tabs: const [
                       Tab(text: 'Dashboard'),
                       Tab(text: 'Offers'),

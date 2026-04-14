@@ -121,6 +121,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  List<String> _getStatusTimeline(String currentStatus) {
+    if (currentStatus == 'cancelled') {
+      return ['placed', 'cancelled'];
+    }
+    return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivered'];
+  }
+
+  int _getStatusIndex(String status) {
+    const statusMap = {
+      'placed': 0,
+      'confirmed': 1,
+      'packed': 2,
+      'out_for_delivery': 3,
+      'delivered': 4,
+      'cancelled': 1,
+    };
+    return statusMap[status] ?? 0;
+  }
+
+  String _getStatusLabel(String status) {
+    const labels = {
+      'placed': 'Placed',
+      'confirmed': 'Confirmed',
+      'packed': 'Packed',
+      'out_for_delivery': 'On the Way',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled',
+    };
+    return labels[status] ?? status;
+  }
+
   Widget _buildContent(ColorScheme cs) {
     final order = _order!;
     return SingleChildScrollView(
@@ -129,6 +160,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(order, cs),
+          const SizedBox(height: 20),
+          _buildStatusTimeline(order, cs),
           if (order.status == 'out_for_delivery')
             Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -145,6 +178,122 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _buildItems(order, cs),
           const SizedBox(height: 16),
           _buildTotals(order, cs),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusTimeline(Order order, ColorScheme cs) {
+    final timeline = _getStatusTimeline(order.status);
+    final currentIndex = _getStatusIndex(order.status);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order Progress',
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(
+                timeline.length,
+                (index) {
+                  final status = timeline[index];
+                  final isCompleted = index < currentIndex;
+                  final isCurrent = index == currentIndex;
+
+                  return Expanded(
+                    child: Column(
+                      children: [
+                        // Status Point
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isCompleted || isCurrent
+                                ? Colors.green
+                                : cs.outlineVariant,
+                            border: isCurrent
+                                ? Border.all(
+                                    color: Colors.green,
+                                    width: 3,
+                                  )
+                                : null,
+                          ),
+                          child: Center(
+                            child: Icon(
+                              isCompleted
+                                  ? Icons.check
+                                  : (isCurrent
+                                        ? Icons.circle
+                                        : Icons.circle_outlined),
+                              color: isCompleted || isCurrent
+                                  ? Colors.white
+                                  : cs.outlineVariant,
+                              size: isCurrent ? 20 : 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Status Label
+                        Expanded(
+                          child: Text(
+                            _getStatusLabel(status),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isCompleted || isCurrent
+                                  ? Colors.green
+                                  : cs.onSurface.withValues(alpha: 0.5),
+                              fontSize: 11,
+                              fontWeight: isCompleted || isCurrent
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Progress indicator line
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (currentIndex + 1) / timeline.length,
+              minHeight: 6,
+              backgroundColor: cs.outlineVariant,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${((currentIndex + 1) / timeline.length * 100).toStringAsFixed(0)}% Complete',
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.6),
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );
@@ -555,7 +704,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'INR ${order.totalAmount.toStringAsFixed(0)}',
             cs,
           ),
-          if (order.discountAmount > 0)
+          if (order.couponApplied != null && order.couponApplied!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.shade200),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Coupon Applied',
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          order.couponApplied!.toUpperCase(),
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '-INR ${order.discountAmount.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (order.discountAmount > 0)
             _buildRow(
               'Discount',
               '-INR ${order.discountAmount.toStringAsFixed(0)}',

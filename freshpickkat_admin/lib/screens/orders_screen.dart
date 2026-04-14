@@ -388,6 +388,47 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  String _formatDate(DateTime? dateTime) {
+    if (dateTime == null) return 'N/A';
+    return '${dateTime.day.toString().padLeft(2, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.year}';
+  }
+
+  String _formatTime(DateTime? dateTime) {
+    if (dateTime == null) return 'N/A';
+    final hour = dateTime.hour > 12
+        ? dateTime.hour - 12
+        : (dateTime.hour == 0 ? 12 : dateTime.hour);
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '${hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} $period';
+  }
+
+  String _calculateTotalQuantity(OrderItem item) {
+    if (item.variantLabel == null || item.variantLabel!.isEmpty) {
+      return '${item.quantity}x';
+    }
+    // Extract number from variant label (e.g., "500 gm" -> "500")
+    final variantRegex = RegExp(r'(\d+(?:\.\d+)?)');
+    final match = variantRegex.firstMatch(item.variantLabel!);
+
+    if (match != null) {
+      final variantQuantity = double.parse(match.group(1)!);
+      final totalQty = variantQuantity * item.quantity;
+
+      // Extract unit from variant label (e.g., "500 gm" -> "gm")
+      final unitMatch = RegExp(r'(\w+)$').firstMatch(item.variantLabel!);
+      final unit = unitMatch?.group(1) ?? '';
+
+      // Format the output
+      if (totalQty >= 1000 && unit.toLowerCase() == 'gm') {
+        return '${(totalQty / 1000).toStringAsFixed(totalQty % 1000 == 0 ? 0 : 1)} kg';
+      }
+
+      return '${totalQty.toStringAsFixed(totalQty % 1 == 0 ? 0 : 1)} $unit';
+    }
+
+    return '${item.quantity}x';
+  }
+
   void _showOrderDetails(Order order) {
     showModalBottomSheet<void>(
       context: context,
@@ -461,6 +502,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       icon: Icons.location_on_outlined,
                       children: [
                         Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AdminAppTheme.getTextSecondaryColor(
@@ -530,8 +572,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       children: [
                         _DetailRow(
                           icon: Icons.access_time,
-                          label: 'Ordered on: ${order.orderedAt}',
+                          label:
+                              'Ordered: ${_formatDate(order.orderedAt)} at ${_formatTime(order.orderedAt)}',
                         ),
+                        if (order.confirmedAt != null)
+                          _DetailRow(
+                            icon: Icons.check_circle_outline,
+                            label:
+                                'Confirmed: ${_formatDate(order.confirmedAt)} at ${_formatTime(order.confirmedAt)}',
+                          ),
+                        if (order.outForDeliveryAt != null)
+                          _DetailRow(
+                            icon: Icons.local_shipping_outlined,
+                            label:
+                                'Out for Delivery: ${_formatDate(order.outForDeliveryAt)} at ${_formatTime(order.outForDeliveryAt)}',
+                          ),
+                        if (order.deliveredAt != null)
+                          _DetailRow(
+                            icon: Icons.done_all,
+                            label:
+                                'Delivered: ${_formatDate(order.deliveredAt)} at ${_formatTime(order.deliveredAt)}',
+                          ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -559,56 +620,165 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade100,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '${item.quantity}x',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green.shade700,
+                                  Row(
+                                    children: [
+                                      // Product Image
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          item.productImage,
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 60,
+                                                  height: 60,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade200,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.image_not_supported,
+                                                    color: Colors.grey.shade400,
+                                                  ),
+                                                );
+                                              },
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.productName,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        Text(
-                                          '₹${item.unitPrice.toStringAsFixed(0)} each',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color:
-                                                AdminAppTheme.getTextSecondaryColor(
-                                                  context,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.productName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            if (item.variantLabel != null &&
+                                                item.variantLabel!.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 4,
                                                 ),
-                                          ),
+                                                child: Text(
+                                                  'Variant: ${item.variantLabel}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        AdminAppTheme.getTextSecondaryColor(
+                                                          context,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                            if (item.isFreeItem)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 4,
+                                                ),
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        Colors.orange.shade100,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    'FREE ITEM',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors
+                                                          .orange
+                                                          .shade700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              '${item.quantity}x',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green.shade700,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _calculateTotalQuantity(item),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color:
+                                                  AdminAppTheme.getTextSecondaryColor(
+                                                    context,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    '₹${item.totalPrice.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '₹${item.unitPrice.toStringAsFixed(0)} each',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color:
+                                              AdminAppTheme.getTextSecondaryColor(
+                                                context,
+                                              ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '₹${item.totalPrice.toStringAsFixed(0)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -628,7 +798,39 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: Column(
                         children: [
                           _amountRow('Subtotal', order.totalAmount),
-                          _amountRow('Discount', -order.discountAmount),
+                          if (order.couponApplied != null &&
+                              order.couponApplied!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Coupon (${order.couponApplied})',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color:
+                                          AdminAppTheme.getTextSecondaryColor(
+                                            context,
+                                          ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '-₹${order.discountAmount.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (order.discountAmount > 0 &&
+                              (order.couponApplied == null ||
+                                  order.couponApplied!.isEmpty))
+                            _amountRow('Discount', -order.discountAmount),
                           _amountRow('Delivery Fee', order.deliveryFee),
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),

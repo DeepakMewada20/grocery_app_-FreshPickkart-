@@ -329,8 +329,8 @@ class _ComboOfferCard extends StatelessWidget {
                   ),
                   child: Text(
                     offer.discountType == 'percentage'
-                        ? '${offer.discountValue.toStringAsFixed(0)}% OFF'
-                        : '₹${offer.discountValue.toStringAsFixed(0)} OFF',
+                        ? 'MORE ${offer.discountValue.toStringAsFixed(0)}% OFF'
+                        : 'MORE ₹${offer.discountValue.toStringAsFixed(0)} OFF',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -578,8 +578,8 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
       return baseLabel;
     }
     final discountLabel = _discountType == 'percentage'
-        ? '${discountValue.toInt()}% OFF'
-        : '\u20b9${discountValue.toInt()} OFF';
+        ? 'more ${discountValue.toInt()}% OFF'
+        : 'more \u20b9${discountValue.toInt()} OFF';
     return '$baseLabel • $discountLabel';
   }
 
