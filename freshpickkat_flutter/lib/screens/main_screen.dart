@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/screens/cetegoris_screen_with_stick_heder.dart';
 import 'package:freshpickkat_flutter/screens/home_screen.dart';
 import 'package:freshpickkat_flutter/screens/basket_screen.dart';
@@ -20,8 +21,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
   final dataInitService = DataInitializationService.instance;
+  final tabController = TabNavigationController.instance;
 
   @override
   void initState() {
@@ -43,22 +44,21 @@ class _MainScreenState extends State<MainScreen> {
       ProtectedNavigationHelper.navigateToIndex(
         index: index,
         onNavigate: () {
-          setState(() {
-            _currentIndex = index;
-          });
+          tabController.navigateToTab(index);
         },
       );
     } else {
-      setState(() {
-        _currentIndex = index;
-      });
+      tabController.navigateToTab(index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LazyIndexedStack(index: _currentIndex, children: _screens),
+      body: Obx(() {
+        final currentIndex = tabController.currentTabIndex.value;
+        return LazyIndexedStack(index: currentIndex, children: _screens);
+      }),
       bottomNavigationBar: Obx(() {
         // Rebuild on theme mode change
         ThemeController.instance.themeMode;
@@ -71,10 +71,11 @@ class _MainScreenState extends State<MainScreen> {
             : const Color(0xFF444444);
         final selectedIconColor = isDark ? Colors.white : Colors.black87;
 
+        final currentIndex = tabController.currentTabIndex.value;
         return BottomNavigationBar(
           backgroundColor: navTheme.backgroundColor,
           type: BottomNavigationBarType.fixed,
-          currentIndex: _currentIndex,
+          currentIndex: currentIndex,
           onTap: _onItemTapped,
           showUnselectedLabels: true,
 

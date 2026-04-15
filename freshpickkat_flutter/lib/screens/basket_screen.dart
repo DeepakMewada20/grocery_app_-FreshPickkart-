@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -151,7 +152,8 @@ class _BasketScreenState extends State<BasketScreen> {
           ),
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: () => Get.back(),
+            onPressed: () =>
+                TabNavigationController.instance.navigateToCategories(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryGreen,
               foregroundColor: cs.onPrimary,

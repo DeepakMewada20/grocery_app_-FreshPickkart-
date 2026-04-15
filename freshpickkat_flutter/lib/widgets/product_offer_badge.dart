@@ -42,7 +42,8 @@ String buildProductOfferLabelCard(Product product) {
   final percentValue = _resolveOfferValue(product);
 
   if (product.discountType == 'flat') {
-    return 'OFF';
+    final flatValue = _resolveFlatOfferValue(product);
+    return '₹${flatValue.toStringAsFixed(0)} OFF';
   }
 
   final formattedPercent = percentValue % 1 == 0

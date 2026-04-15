@@ -15,6 +15,7 @@ import 'package:freshpickkat_flutter/controller/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/data_initialization_service.dart';
 import 'package:freshpickkat_flutter/tracking/controllers/order_tracking_controller.dart';
@@ -47,6 +48,7 @@ void main() async {
 
   Get.put(ThemeController(), permanent: true);
   Get.put(DataInitializationService(), permanent: true);
+  Get.put(TabNavigationController(), permanent: true);
   Get.lazyPut(() => AuthController(), fenix: true);
   Get.lazyPut(() => UserController(), fenix: true);
   Get.lazyPut(() => BannerController(), fenix: true);
