@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/coupon_extensions.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/suggestion_card.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
 import 'package:get/get.dart';
 
 class BasketSuggestionsSection extends StatelessWidget {

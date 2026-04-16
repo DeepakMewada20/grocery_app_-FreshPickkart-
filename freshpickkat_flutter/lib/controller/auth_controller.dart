@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';

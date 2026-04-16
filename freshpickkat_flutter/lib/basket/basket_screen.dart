@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -8,8 +8,8 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
-import 'package:freshpickkat_flutter/widgets/coupon_section.dart';
-import 'package:freshpickkat_flutter/widgets/basket_suggestions_section.dart';
+import 'package:freshpickkat_flutter/basket/coupon_section.dart';
+import 'package:freshpickkat_flutter/basket/basket_suggestions_section.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';

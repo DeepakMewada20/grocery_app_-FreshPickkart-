@@ -5,8 +5,8 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/suggestion_card.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
 import 'package:get/get.dart';
 
 /// Screen shown when user taps an "offer" type banner.

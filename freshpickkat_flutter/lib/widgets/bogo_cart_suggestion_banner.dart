@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:get/get.dart';
 

@@ -3,8 +3,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
-import 'package:freshpickkat_flutter/screens/combo_offers_screen.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/combined_detail_bottomsheet.dart';
+import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/combined_detail_bottomsheet.dart';
 import 'package:get/get.dart';
 
 class SuggestionNavigationHelper {

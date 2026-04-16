@@ -3,7 +3,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/screens/combo_offers_screen.dart';
-import 'package:freshpickkat_flutter/screens/offers_screen.dart';
+import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
+import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
 
 /// Parent entry point for banner-driven offer navigation.
 /// It keeps the underlying offer/combo implementations separate.

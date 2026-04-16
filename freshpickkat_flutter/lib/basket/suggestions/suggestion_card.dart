@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/suggestion_card_base.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/single_card.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/combined_card.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_base.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/single_card.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/combined_card.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 
 class SuggestionCard extends StatelessWidget {

@@ -2,24 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/suggestion_card_utils.dart';
-import 'package:freshpickkat_flutter/widgets/suggestions/shared_components.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.dart';
+import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
 import 'package:get/get.dart';
 
-class CombinedCardBody extends StatelessWidget {
+class SingleCardBody extends StatelessWidget {
   final client.BasketSuggestion s;
   final Color accent;
 
-  const CombinedCardBody({super.key, required this.s, required this.accent});
+  const SingleCardBody({super.key, required this.s, required this.accent});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF1C1C1E);
     final isBest = s.isBest ?? false;
-    final actions = s.actions ?? [];
-    final hasCouponOrDelivery = actions.any((a) => a.type == 'coupon' || a.type == 'delivery');
-    final comboAction = actions.firstWhereOrNull((a) => a.type == 'combo');
+    final action = s.actions?.first;
+    final type = s.type;
 
     return Padding(
       padding: const EdgeInsets.all(14),
@@ -32,13 +31,14 @@ class CombinedCardBody extends StatelessWidget {
                 const BestBadge(),
                 const SizedBox(width: 6),
               ],
-              Flexible(
-                child: SuggestionActionChip(
-                  label: 'COMBINED DEAL',
-                  color: accent,
-                  icon: Icons.auto_awesome_rounded,
+              if (action != null)
+                Flexible(
+                  child: SuggestionActionChip(
+                    label: action.label.toUpperCase(),
+                    color: accent,
+                    icon: _getIcon(action.type),
+                  ),
                 ),
-              ),
               const Spacer(),
               if (s.savingAmount != null && s.savingAmount! > 0)
                 SaveBadge(amount: s.savingAmount!, accent: accent),
@@ -50,43 +50,38 @@ class CombinedCardBody extends StatelessWidget {
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w800,
-              fontSize: 13,
+              fontSize: 14,
               height: 1.25,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
-          
-          // Action steps indicators
-          Row(
-            children: actions.map((a) {
-              final isLast = a == actions.last;
-              return Row(
-                children: [
-                   Icon(_getIcon(a.type), size: 12, color: accent.withValues(alpha: 0.7)),
-                   if (!isLast) 
-                     Container(
-                       width: 12,
-                       height: 1,
-                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                       color: accent.withValues(alpha: 0.3),
-                     ),
-                ],
-              );
-            }).toList(),
-          ),
           
           const Spacer(),
 
+          // ── SPECIFIC UI SECTIONS ──────────────────────────────────────────
+          
+            
+          if (type == 'variant' && s.metadata != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: VariantComparisonView(
+                curLabel: s.metadata!['curLabel'] ?? '',
+                curPrice: s.metadata!['curPrice'] ?? '',
+                vLabel: s.metadata!['vLabel'] ?? '',
+                vPrice: s.metadata!['vPrice'] ?? '',
+                accent: accent,
+              ),
+            ),
 
           Row(
             children: [
-              if (comboAction != null && comboAction.comboId != null)
-                _ComboThumbs(comboId: comboAction.comboId!, s: s)
+              if (type == 'combo' && s.comboId != null)
+                _ComboThumbs(comboId: s.comboId!, s: s)
               else if (s.thumbnailUrl != null)
                 _Thumb(url: s.thumbnailUrl!),
-              if (hasCouponOrDelivery)
+                
+              if (type == 'coupon' || type == 'delivery' || action?.type == 'coupon' || action?.type == 'delivery')
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -100,7 +95,7 @@ class CombinedCardBody extends StatelessWidget {
               else
                 const Spacer(),
               CTAButton(
-                label: actions.isNotEmpty ? (actions.first.ctaLabel).toUpperCase() : 'APPLY DEAL',
+                label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
                 onTap: () {}, // Handled by parent
               ),

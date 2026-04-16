@@ -5,7 +5,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_flutter/config/payment_config.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
-import 'package:freshpickkat_flutter/controller/cart_controller.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
