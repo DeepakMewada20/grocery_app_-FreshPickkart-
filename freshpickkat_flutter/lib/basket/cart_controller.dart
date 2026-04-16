@@ -121,13 +121,19 @@ class CartController extends GetxController {
   final Rxn<CartPricingResult> cartPricing = Rxn<CartPricingResult>();
   final client = ServerpodClient().client;
   Timer? _cartValidationDebounce;
-  Timer? _basketSuggestionDebounce;
+  Timer? _cartRefreshDebounce;
   final RxBool isPricingStale = false.obs;
   final RxBool isBasketSuggestionsLoading = false.obs;
   final RxDouble estimatedDeliveryFee = 0.0.obs;
+  final Rxn<DeliveryPricingResult> localDeliveryPricing =
+      Rxn<DeliveryPricingResult>();
   bool _isInitialLoading = false;
-  String _lastMeaningfulCartSnapshot = '';
   String _lastSuggestedCartSnapshot = '';
+  String _lastPricingSnapshot = '';
+  String? _pricingInFlightSnapshot;
+  Future<void>? _pricingInFlight;
+  DeliveryConfig? _cachedDeliveryConfig;
+  Future<void>? _deliveryConfigInFlight;
 
   @override
   void onInit() {
@@ -136,7 +142,7 @@ class CartController extends GetxController {
     ever(cartItems, (_) {
       _refreshBogoSuggestion();
       _updateDeliveryFeeEstimate();
-      _handleCartChanged();
+      _scheduleCartRefresh();
     });
     ever(BogoController.instance.activeOffers, (_) => _refreshBogoSuggestion());
     ever(
@@ -159,35 +165,107 @@ class CartController extends GetxController {
   @override
   void onClose() {
     _cartValidationDebounce?.cancel();
-    _basketSuggestionDebounce?.cancel();
+    _cartRefreshDebounce?.cancel();
     super.onClose();
   }
 
-  Future<void> _handleCartChanged() async {
+  void _scheduleCartRefresh() {
     if (_isInitialLoading) return;
     isPricingStale.value = true;
+    unawaited(fetchCartPricing());
+    _cartRefreshDebounce?.cancel();
+    _cartRefreshDebounce = Timer(const Duration(milliseconds: 250), () {
+      _cartRefreshDebounce = null;
+      unawaited(_runCartMetaRefresh());
+    });
+  }
+
+  Future<void> _runCartMetaRefresh() async {
+    if (_isInitialLoading) return;
     try {
       await Future.wait([
         _syncWithServer(),
+        _ensureDeliveryConfigLoaded(),
         fetchAvailableCoupons(),
         _revalidateAppliedCoupon(),
         fetchCartPricing(),
+        fetchBasketSuggestions(),
       ]);
     } finally {
-      isPricingStale.value = false;
     }
   }
 
   void _updateDeliveryFeeEstimate() {
     final currentSubtotal = subtotal;
-    // Standard default slabs if config not yet cached
+    final config = _cachedDeliveryConfig;
     double fee = 40.0;
-    if (currentSubtotal >= 300) {
+    double threshold = 300;
+    String? message;
+    if (config != null) {
+      threshold = config.freeDeliveryThreshold ?? threshold;
+      if (config.freeDeliveryThreshold != null &&
+          currentSubtotal >= config.freeDeliveryThreshold!) {
+        fee = 0.0;
+        message = 'Free delivery unlocked';
+      } else {
+        final matchingSlab = config.slabs.firstWhereOrNull(
+          (slab) =>
+              currentSubtotal >= slab.minOrderAmount &&
+              currentSubtotal <= slab.maxOrderAmount,
+        );
+        fee = matchingSlab?.fee ?? config.baseDeliveryFee;
+        final remaining = (threshold - currentSubtotal).clamp(0, double.infinity);
+        message = 'Add ₹${remaining.toStringAsFixed(0)} more for free delivery';
+      }
+    } else if (currentSubtotal >= 300) {
       fee = 0.0;
+      message = 'Free delivery unlocked';
     } else if (currentSubtotal >= 200) {
       fee = 20.0;
+      message = 'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
+    } else {
+      message = 'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
     }
     estimatedDeliveryFee.value = fee;
+    localDeliveryPricing.value = DeliveryPricingResult(
+      deliveryFee: fee,
+      isFree: fee <= 0,
+      message: message,
+      remainingAmount: (threshold - currentSubtotal).clamp(0, double.infinity),
+      progressPercent: threshold <= 0
+          ? 0
+          : ((currentSubtotal / threshold) * 100).clamp(0, 100).toDouble(),
+      appliedRuleType: config != null ? 'cached_delivery_config' : 'local_estimate',
+      appliedRuleName: config != null ? 'Cached delivery estimate' : 'Local delivery estimate',
+      freeDeliveryThreshold: threshold,
+      baseDeliveryFee: config?.baseDeliveryFee ?? 40,
+    );
+  }
+
+  Future<void> _ensureDeliveryConfigLoaded() async {
+    if (_cachedDeliveryConfig != null) {
+      return;
+    }
+    if (_deliveryConfigInFlight != null) {
+      await _deliveryConfigInFlight;
+      return;
+    }
+
+    final request = () async {
+      try {
+        _cachedDeliveryConfig = await client.freeDelivery.getDeliveryConfig();
+      } catch (e) {
+        debugPrint('Error fetching delivery config: $e');
+      }
+    }();
+
+    _deliveryConfigInFlight = request;
+    try {
+      await request;
+    } finally {
+      _deliveryConfigInFlight = null;
+      _updateDeliveryFeeEstimate();
+    }
   }
 
   Future<void> _syncWithServer() async {
@@ -238,7 +316,8 @@ class CartController extends GetxController {
   }
 
   Future<void> refreshCartCurrentData() async {
-    final stored = cartItems
+    final localItems = List<CartItem>.from(cartItems);
+    final stored = localItems
         .map(
           (item) => protocol.CartItem(
             productId: item.product.productId ?? '',
@@ -254,30 +333,80 @@ class CartController extends GetxController {
         )
         .toList();
 
-    await _revalidateStoredCart(stored);
+    final fallbackItems = {
+      for (final item in localItems) _cartItemKeyFromUi(item): item,
+    };
+
+    await _revalidateStoredCart(
+      stored,
+      fallbackItems: fallbackItems,
+    );
     await fetchCartPricing();
   }
 
   Future<void> fetchCartPricing() async {
     if (cartItems.isEmpty) {
       cartPricing.value = null;
+      isPricingStale.value = false;
+      _lastPricingSnapshot = '';
+      _pricingInFlightSnapshot = null;
+      _pricingInFlight = null;
+      localDeliveryPricing.value = null;
       _updateDeliveryFeeEstimate();
       return;
     }
 
-    try {
-      final result = await client.pricing.calculateCartPricing(
-        _buildCartItemInputs(),
-        userId: AuthController.instance.currentUser?.uid,
-        appliedCouponCode: appliedCoupon.value?.code,
-        autoApplyCoupons: false,
-      );
-      cartPricing.value = result;
-      // Also update estimate logic if we got config back (if ever exposed)
-      _updateDeliveryFeeEstimate();
-    } catch (e) {
-      debugPrint('Error fetching cart pricing: $e');
+    final snapshot = [
+      _buildMeaningfulCartSnapshot(),
+      appliedCoupon.value?.code.trim().toUpperCase() ?? '',
+      AuthController.instance.currentUser?.uid ?? 'guest',
+    ].join('::');
+    if (_pricingInFlightSnapshot == snapshot && _pricingInFlight != null) {
+      await _pricingInFlight;
+      return;
     }
+    if (_lastPricingSnapshot == snapshot && cartPricing.value != null) {
+      return;
+    }
+
+    final request = () async {
+      try {
+        final result = await client.pricing.calculateCartPricing(
+          _buildCartItemInputs(),
+          userId: AuthController.instance.currentUser?.uid,
+          appliedCouponCode: appliedCoupon.value?.code,
+          autoApplyCoupons: false,
+        );
+        if (_buildPricingSnapshot() == snapshot) {
+          cartPricing.value = result;
+          _lastPricingSnapshot = snapshot;
+          isPricingStale.value = false;
+          // Also update estimate logic if we got config back (if ever exposed)
+          _updateDeliveryFeeEstimate();
+        }
+      } catch (e) {
+        debugPrint('Error fetching cart pricing: $e');
+      }
+    }();
+
+    _pricingInFlightSnapshot = snapshot;
+    _pricingInFlight = request;
+    try {
+      await request;
+    } finally {
+      if (_pricingInFlightSnapshot == snapshot) {
+        _pricingInFlightSnapshot = null;
+        _pricingInFlight = null;
+      }
+    }
+  }
+
+  String _buildPricingSnapshot() {
+    return [
+      _buildMeaningfulCartSnapshot(),
+      appliedCoupon.value?.code.trim().toUpperCase() ?? '',
+      AuthController.instance.currentUser?.uid ?? 'guest',
+    ].join('::');
   }
 
   Future<void> fetchBasketSuggestions({String? mode}) async {
@@ -329,35 +458,8 @@ class CartController extends GetxController {
     } catch (e) {
       debugPrint('Error fetching basket suggestions: $e');
     } finally {
-      oldBasketSuggestions.clear();
       isBasketSuggestionsLoading.value = false;
     }
-  }
-
-  void _scheduleBasketSuggestions() {
-    final snapshot = _buildMeaningfulCartSnapshot();
-    if (snapshot.isEmpty) {
-      _lastMeaningfulCartSnapshot = '';
-      _lastSuggestedCartSnapshot = '';
-      _basketSuggestionDebounce?.cancel();
-      _basketSuggestionDebounce = null;
-      fetchBasketSuggestions(mode: 'empty');
-      return;
-    }
-    if (snapshot == _lastMeaningfulCartSnapshot ||
-        snapshot == _lastSuggestedCartSnapshot) {
-      return;
-    }
-
-    _lastMeaningfulCartSnapshot = snapshot;
-    if (_basketSuggestionDebounce?.isActive ?? false) {
-      return;
-    }
-
-    _basketSuggestionDebounce = Timer(const Duration(milliseconds: 300), () {
-      _basketSuggestionDebounce = null;
-      fetchBasketSuggestions();
-    });
   }
 
   String _buildMeaningfulCartSnapshot() {
@@ -385,7 +487,10 @@ class CartController extends GetxController {
     });
   }
 
-  Future<void> _revalidateStoredCart(List<protocol.CartItem> storedCart) async {
+  Future<void> _revalidateStoredCart(
+    List<protocol.CartItem> storedCart, {
+    Map<String, CartItem>? fallbackItems,
+  }) async {
     final productIds = storedCart
         .map((item) => item.productId)
         .toSet()
@@ -422,14 +527,21 @@ class CartController extends GetxController {
     }
 
     for (final item in regularItems) {
+      final fallbackItem = fallbackItems?[_cartItemKeyFromProtocol(item)];
       final baseProduct = productMap[item.productId];
-      if (baseProduct == null) continue;
+      if (baseProduct == null) {
+        if (fallbackItem != null) normalized.add(fallbackItem);
+        continue;
+      }
 
       final variant = _resolveExistingVariant(
         baseProduct,
         variantId: item.variantId,
       );
-      if (variant == null || !variant.isAvailable) continue;
+      if (variant == null || !variant.isAvailable) {
+        if (fallbackItem != null) normalized.add(fallbackItem);
+        continue;
+      }
 
       final selectedProduct = applyVariantToProduct(
         baseProduct,
@@ -467,14 +579,46 @@ class CartController extends GetxController {
       final activeCombo = activeComboOffers.firstWhereOrNull(
         (offer) => (offer.comboId ?? offer.name) == entry.key,
       );
-      if (activeCombo == null) continue;
+      if (activeCombo == null) {
+        final fallbackComboItems = storedCart
+            .where((item) => item.comboId == entry.key)
+            .map((item) => fallbackItems?[_cartItemKeyFromProtocol(item)])
+            .whereType<CartItem>()
+            .toList();
+        normalized.addAll(fallbackComboItems);
+        continue;
+      }
 
       final bundleCount = _inferStoredBundleCount(entry.value);
-      if (bundleCount <= 0) continue;
+      if (bundleCount <= 0) {
+        final fallbackComboItems = storedCart
+            .where((item) => item.comboId == entry.key)
+            .map((item) => fallbackItems?[_cartItemKeyFromProtocol(item)])
+            .whereType<CartItem>()
+            .toList();
+        normalized.addAll(fallbackComboItems);
+        continue;
+      }
 
       final resolved = resolveComboProducts(activeCombo, currentProducts);
-      if (resolved.length != activeCombo.comboProducts.length) continue;
-      if (resolved.any((item) => !item.selectedVariant.isAvailable)) continue;
+      if (resolved.length != activeCombo.comboProducts.length) {
+        final fallbackComboItems = storedCart
+            .where((item) => item.comboId == entry.key)
+            .map((item) => fallbackItems?[_cartItemKeyFromProtocol(item)])
+            .whereType<CartItem>()
+            .toList();
+        normalized.addAll(fallbackComboItems);
+        continue;
+      }
+      if (resolved.any((item) => !item.selectedVariant.isAvailable)) {
+        final fallbackComboItems = storedCart
+            .where((item) => item.comboId == entry.key)
+            .map((item) => fallbackItems?[_cartItemKeyFromProtocol(item)])
+            .whereType<CartItem>()
+            .toList();
+        normalized.addAll(fallbackComboItems);
+        continue;
+      }
 
       for (final item in resolved) {
         normalized.add(
@@ -493,6 +637,24 @@ class CartController extends GetxController {
     }
 
     cartItems.assignAll(normalized);
+  }
+
+  String _cartItemKeyFromUi(CartItem item) {
+    return [
+      item.product.productId ?? '',
+      item.variantId ?? '',
+      item.comboId ?? '',
+      item.quantity.toString(),
+    ].join(':');
+  }
+
+  String _cartItemKeyFromProtocol(protocol.CartItem item) {
+    return [
+      item.productId,
+      item.variantId ?? '',
+      item.comboId ?? '',
+      item.quantity.toString(),
+    ].join(':');
   }
 
   int _inferStoredBundleCount(List<protocol.CartItem> items) {
@@ -653,13 +815,17 @@ class CartController extends GetxController {
         subtotal,
         cartItemInputs,
       );
-      final best = await client.coupon.getBestCoupon(
-        userId,
-        subtotal,
-        cartItemInputs,
-      );
       availableCoupons.assignAll(response);
-      bestCoupon.value = best;
+      final bestDisplay = response.firstWhereOrNull((coupon) => coupon.isBest) ??
+          response.firstWhereOrNull(
+            (coupon) => coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
+          );
+      bestCoupon.value = bestDisplay == null
+          ? null
+          : BestCouponResult(
+              bestCouponCode: bestDisplay.code,
+              discountAmount: bestDisplay.discountAmount ?? 0,
+            );
       _syncAutoAppliedBestCoupon();
       _couponCacheKey = currentCacheKey;
       _hasCouponCacheForCurrentCart = true;
@@ -864,7 +1030,7 @@ class CartController extends GetxController {
     if (triggerBogoSuggestion && comboId == null) {
       _maybeSuggestBogoForFreeProduct(selectedProduct);
     }
-    _scheduleBasketSuggestions();
+    _scheduleCartRefresh();
   }
 
   void removeItem(
@@ -892,7 +1058,7 @@ class CartController extends GetxController {
       } else {
         cartItems.removeAt(index);
       }
-      _scheduleBasketSuggestions();
+      _scheduleCartRefresh();
     }
   }
 
@@ -927,7 +1093,7 @@ class CartController extends GetxController {
         cartItems[index].quantity = quantity;
         cartItems.refresh();
       }
-      _scheduleBasketSuggestions();
+      _scheduleCartRefresh();
     } else if (quantity > 0) {
       cartItems.add(
         CartItem(
@@ -940,8 +1106,8 @@ class CartController extends GetxController {
           comboDiscountValue: comboDiscountValue,
           comboItemQuantity: comboItemQuantity,
         ),
-      );
-      _scheduleBasketSuggestions();
+        );
+      _scheduleCartRefresh();
     }
   }
 
@@ -1020,7 +1186,7 @@ class CartController extends GetxController {
 
   void removeComboGroup(String comboId) {
     cartItems.removeWhere((item) => item.comboId == comboId);
-    _scheduleBasketSuggestions();
+    _scheduleCartRefresh();
   }
 
   void clearCart() {
@@ -1029,11 +1195,8 @@ class CartController extends GetxController {
     bestBasketSuggestion.value = null;
     basketSuggestions.clear();
     cartPricing.value = null;
-    _lastMeaningfulCartSnapshot = '';
     _lastSuggestedCartSnapshot = '';
-    _basketSuggestionDebounce?.cancel();
-    _basketSuggestionDebounce = null;
-    unawaited(fetchBasketSuggestions(mode: 'empty'));
+    _scheduleCartRefresh();
   }
 
   void setBogoSelection(

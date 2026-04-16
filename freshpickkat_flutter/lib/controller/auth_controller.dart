@@ -77,7 +77,9 @@ class AuthController extends GetxController {
       appUserRx.value = user;
       await _cacheService.saveUser(user);
 
-      CartController.instance.fetchCartFromServer();
+      if (CartController.instance.cartItems.isEmpty) {
+        CartController.instance.fetchCartFromServer();
+      }
       NotificationController.instance.syncTokenWithServer();
 
       final pendingProduct = getPendingProductToAdd();

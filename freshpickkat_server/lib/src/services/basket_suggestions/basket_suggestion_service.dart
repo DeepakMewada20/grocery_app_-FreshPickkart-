@@ -193,6 +193,24 @@ class BasketSuggestionService {
       ...bestSellers,
       ...trending,
     ];
+    final loadedProductIds = productPool
+        .map((product) => product.productId)
+        .whereType<String>()
+        .toSet();
+    final recentOrderProductIds = recentOrders
+        .expand((order) => order.items)
+        .map((item) => item.productId)
+        .where((productId) => productId.trim().isNotEmpty)
+        .where((productId) => !loadedProductIds.contains(productId))
+        .toSet()
+        .toList();
+    final recentOrderProducts = recentOrderProductIds.isEmpty
+        ? const <Product>[]
+        : await ProductEndpoint().getProductsByIds(
+            session,
+            recentOrderProductIds,
+          );
+    productPool.addAll(recentOrderProducts);
     final productMap = {
       for (final product in productPool)
         if (product.productId != null) product.productId!: product,

@@ -651,6 +651,9 @@ class _BasketScreenState extends State<BasketScreen> {
   }
 
   Widget _buildBillDetails(CartController cartController, ColorScheme cs) {
+    final showEstimatedDelivery =
+        cartController.isPricingStale.value ||
+        cartController.cartPricing.value?.deliveryPricing == null;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -711,7 +714,7 @@ class _BasketScreenState extends State<BasketScreen> {
           ],
           const SizedBox(height: 12),
           _buildBillRow(
-            'Delivery Fee',
+            showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
             cartController.deliveryFee == 0
                 ? 'FREE'
                 : '₹${cartController.deliveryFee.formatPrice}',

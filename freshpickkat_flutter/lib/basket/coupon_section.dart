@@ -14,27 +14,17 @@ class CouponSection extends StatefulWidget {
 }
 
 class _CouponSectionState extends State<CouponSection> {
-  final TextEditingController _couponController = TextEditingController();
   final CartController _cartController = CartController.instance;
-  final RxString _inputText = ''.obs;
   bool _showCouponList = false;
 
   @override
   void initState() {
     super.initState();
-    _couponController.addListener(() {
-      _inputText.value = _couponController.text;
-      if (_inputText.value.isNotEmpty &&
-          _cartController.couponError.value == 'Please enter a coupon code') {
-        _cartController.couponError.value = '';
+    Future.microtask(() {
+      if (!_cartController.hasCouponDataForCurrentCart) {
+        _cartController.ensureAvailableCouponsLoaded();
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _couponController.dispose();
-    super.dispose();
   }
 
   @override
@@ -139,7 +129,6 @@ class _CouponSectionState extends State<CouponSection> {
                     IconButton(
                       onPressed: () {
                         _cartController.removeCoupon();
-                        _couponController.clear();
                       },
                       icon: const Icon(
                         Icons.close,
@@ -154,134 +143,51 @@ class _CouponSectionState extends State<CouponSection> {
               );
             }
 
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _couponController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter coupon code',
-                          hintStyle: TextStyle(
-                            color: cs.onSurface.withValues(alpha: 0.4),
-                            fontSize: 14,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: cs.outline),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: cs.outline),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppTheme.primaryGreen,
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: cs.surface,
-                        ),
-                        style: TextStyle(
-                          color: cs.onSurface,
-                          fontSize: 14,
-                        ),
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Obx(() {
-                      final isEmpty = _inputText.value.trim().isEmpty;
-                      final isApplying = _cartController.isApplyingCoupon.value;
-                      final typedCode = _couponController.text
-                          .trim()
-                          .toUpperCase();
-                      final isApplyingTypedCoupon =
-                          isApplying &&
-                          typedCode.isNotEmpty &&
-                          _cartController.applyingCouponCode.value == typedCode;
-                      return ElevatedButton(
-                        onPressed:
-                            _cartController.isLoadingCoupons.value || isApplying
-                            ? null
-                            : () async {
-                                if (isEmpty) {
-                                  _cartController.couponError.value =
-                                      'Please enter a coupon code';
-                                  return;
-                                }
-                                await _cartController.applyCoupon(
-                                  _couponController.text.trim(),
-                                );
-                                if (_cartController
-                                    .couponError
-                                    .value
-                                    .isNotEmpty) {
-                                  // Error is already shown in the UI via Obx, no need for snackbar
-                                } else if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Coupon applied successfully!',
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isEmpty
-                              ? cs.inverseSurface
-                              : AppTheme.primaryGreen,
-                          foregroundColor: isEmpty
-                              ? cs.onInverseSurface
-                              : cs.onPrimary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: isEmpty ? 0 : 2,
-                        ),
-                        child: isApplyingTypedCoupon
-                            ? SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: isEmpty
-                                      ? cs.onInverseSurface
-                                      : cs.onPrimary,
-                                ),
-                              )
-                            : const Text(
-                                'Apply',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                      );
-                    }),
-                  ],
+            if (_cartController.couponError.value.isNotEmpty) {
+              return Text(
+                _cartController.couponError.value,
+                style: TextStyle(
+                  color: cs.error,
+                  fontSize: 12,
                 ),
-                if (_cartController.couponError.value.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _cartController.couponError.value,
-                    style: TextStyle(
-                      color: cs.error,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ],
-            );
+              );
+            }
+
+            if (_cartController.isLoadingCoupons.value &&
+                _cartController.availableCoupons.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: LinearProgressIndicator(
+                  backgroundColor: cs.surfaceContainerHighest,
+                  color: AppTheme.primaryGreen,
+                ),
+              );
+            }
+
+            final bestCouponCode =
+                _cartController.bestCoupon.value?.bestCouponCode;
+            if (bestCouponCode != null && bestCouponCode.isNotEmpty) {
+              final bestCoupon = _cartController.availableCoupons
+                  .firstWhereOrNull(
+                    (coupon) => coupon.code == bestCouponCode,
+                  );
+              if (bestCoupon != null) {
+                return _BestCouponCard(
+                  coupon: bestCoupon,
+                  compact: true,
+                  onApply: () async {
+                    await _cartController.applyCoupon(bestCoupon.code);
+                    if (_cartController.couponError.value.isEmpty) {
+                      setState(() {
+                        _showCouponList = false;
+                      });
+                    }
+                  },
+                );
+              }
+            }
+
+            return const SizedBox.shrink();
           }),
           if (_showCouponList) ...[
             const SizedBox(height: 16),
@@ -331,7 +237,6 @@ class _CouponSectionState extends State<CouponSection> {
                   _BestCouponCard(
                     coupon: bestCoupon,
                     onApply: () async {
-                      _couponController.text = bestCoupon.code;
                       await _cartController.applyCoupon(bestCoupon.code);
                       if (_cartController.couponError.value.isEmpty) {
                         setState(() {
@@ -357,7 +262,6 @@ class _CouponSectionState extends State<CouponSection> {
                     _CouponCard(
                       coupon: coupon,
                       onApply: () async {
-                        _couponController.text = coupon.code;
                         await _cartController.applyCoupon(coupon.code);
                         setState(() {
                           _showCouponList = false;
@@ -590,10 +494,15 @@ class _CouponCard extends StatelessWidget {
 }
 
 class _BestCouponCard extends StatelessWidget {
-  const _BestCouponCard({required this.coupon, required this.onApply});
+  const _BestCouponCard({
+    required this.coupon,
+    required this.onApply,
+    this.compact = false,
+  });
 
   final CouponDisplay coupon;
   final Future<void> Function() onApply;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +511,7 @@ class _BestCouponCard extends StatelessWidget {
     final normalizedCode = coupon.code.trim().toUpperCase();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(compact ? 10 : 12),
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
@@ -626,27 +535,53 @@ class _BestCouponCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Best Coupon',
-                    style: TextStyle(
-                      color: AppTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Best',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          coupon.code,
+                          style: TextStyle(
+                            color: cs.onSurface,
+                            fontSize: compact ? 14 : 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    coupon.code,
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
                   Text(
                     coupon.displayDiscount,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.75),
+                      fontSize: compact ? 12 : 13,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Min. order: ₹${coupon.minOrderAmount.formatPrice}',
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5),
+                      fontSize: compact ? 10 : 11,
                     ),
                   ),
                 ],
@@ -655,7 +590,7 @@ class _BestCouponCard extends StatelessWidget {
             if (!isThisCouponApplied) ...[
               const SizedBox(width: 12),
               SizedBox(
-                height: 38,
+                height: compact ? 34 : 38,
                 child: ElevatedButton(
                   onPressed: cartController.isApplyingCoupon.value
                       ? null
@@ -668,6 +603,9 @@ class _BestCouponCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: compact ? 12 : 16,
+                    ),
                   ),
                   child: isApplyingThisCoupon
                       ? SizedBox(
@@ -678,9 +616,12 @@ class _BestCouponCard extends StatelessWidget {
                             color: cs.onPrimary,
                           ),
                         )
-                      : const Text(
-                          'Apply Best Coupon',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                      : Text(
+                          compact ? 'Apply' : 'Apply Best Coupon',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: compact ? 12 : 14,
+                          ),
                         ),
                 ),
               ),

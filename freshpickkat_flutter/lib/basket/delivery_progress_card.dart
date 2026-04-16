@@ -13,7 +13,9 @@ class DeliveryProgressCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Obx(() {
-      final deliveryPricing = cartController.cartPricing.value?.deliveryPricing;
+      final deliveryPricing =
+          cartController.cartPricing.value?.deliveryPricing ??
+          cartController.localDeliveryPricing.value;
       if (deliveryPricing == null) return const SizedBox.shrink();
 
       final progress = ((deliveryPricing.progressPercent ?? 0) / 100).clamp(
