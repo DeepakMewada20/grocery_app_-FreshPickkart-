@@ -15,9 +15,15 @@ import 'basket_suggestion.dart' as _i2;
 import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
 abstract class BasketSuggestionResult implements _i1.SerializableModel {
-  BasketSuggestionResult._({required this.suggestions});
+  BasketSuggestionResult._({
+    this.bestSuggestion,
+    this.otherSuggestions,
+    required this.suggestions,
+  });
 
   factory BasketSuggestionResult({
+    _i2.BasketSuggestion? bestSuggestion,
+    List<_i2.BasketSuggestion>? otherSuggestions,
     required List<_i2.BasketSuggestion> suggestions,
   }) = _BasketSuggestionResultImpl;
 
@@ -25,22 +31,45 @@ abstract class BasketSuggestionResult implements _i1.SerializableModel {
     Map<String, dynamic> jsonSerialization,
   ) {
     return BasketSuggestionResult(
+      bestSuggestion: jsonSerialization['bestSuggestion'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.BasketSuggestion>(
+              jsonSerialization['bestSuggestion'],
+            ),
+      otherSuggestions: jsonSerialization['otherSuggestions'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<_i2.BasketSuggestion>>(
+              jsonSerialization['otherSuggestions'],
+            ),
       suggestions: _i3.Protocol().deserialize<List<_i2.BasketSuggestion>>(
         jsonSerialization['suggestions'],
       ),
     );
   }
 
+  _i2.BasketSuggestion? bestSuggestion;
+
+  List<_i2.BasketSuggestion>? otherSuggestions;
+
   List<_i2.BasketSuggestion> suggestions;
 
   /// Returns a shallow copy of this [BasketSuggestionResult]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  BasketSuggestionResult copyWith({List<_i2.BasketSuggestion>? suggestions});
+  BasketSuggestionResult copyWith({
+    _i2.BasketSuggestion? bestSuggestion,
+    List<_i2.BasketSuggestion>? otherSuggestions,
+    List<_i2.BasketSuggestion>? suggestions,
+  });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'BasketSuggestionResult',
+      if (bestSuggestion != null) 'bestSuggestion': bestSuggestion?.toJson(),
+      if (otherSuggestions != null)
+        'otherSuggestions': otherSuggestions?.toJson(
+          valueToJson: (v) => v.toJson(),
+        ),
       'suggestions': suggestions.toJson(valueToJson: (v) => v.toJson()),
     };
   }
@@ -51,16 +80,35 @@ abstract class BasketSuggestionResult implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _BasketSuggestionResultImpl extends BasketSuggestionResult {
-  _BasketSuggestionResultImpl({required List<_i2.BasketSuggestion> suggestions})
-    : super._(suggestions: suggestions);
+  _BasketSuggestionResultImpl({
+    _i2.BasketSuggestion? bestSuggestion,
+    List<_i2.BasketSuggestion>? otherSuggestions,
+    required List<_i2.BasketSuggestion> suggestions,
+  }) : super._(
+         bestSuggestion: bestSuggestion,
+         otherSuggestions: otherSuggestions,
+         suggestions: suggestions,
+       );
 
   /// Returns a shallow copy of this [BasketSuggestionResult]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  BasketSuggestionResult copyWith({List<_i2.BasketSuggestion>? suggestions}) {
+  BasketSuggestionResult copyWith({
+    Object? bestSuggestion = _Undefined,
+    Object? otherSuggestions = _Undefined,
+    List<_i2.BasketSuggestion>? suggestions,
+  }) {
     return BasketSuggestionResult(
+      bestSuggestion: bestSuggestion is _i2.BasketSuggestion?
+          ? bestSuggestion
+          : this.bestSuggestion?.copyWith(),
+      otherSuggestions: otherSuggestions is List<_i2.BasketSuggestion>?
+          ? otherSuggestions
+          : this.otherSuggestions?.map((e0) => e0.copyWith()).toList(),
       suggestions:
           suggestions ?? this.suggestions.map((e0) => e0.copyWith()).toList(),
     );

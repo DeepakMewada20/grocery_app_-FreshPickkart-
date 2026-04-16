@@ -46,7 +46,7 @@ class CombinedCardBody extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            s.message,
+            s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w800,
@@ -56,6 +56,19 @@ class CombinedCardBody extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          if ((s.subtitle ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              s.subtitle!,
+              style: TextStyle(
+                color: textPrimary.withValues(alpha: 0.7),
+                fontSize: 11.5,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           const SizedBox(height: 8),
           
           // Action steps indicators
@@ -118,6 +131,9 @@ class CombinedCardBody extends StatelessWidget {
       case 'variant': return Icons.trending_up_rounded;
       case 'combo': return Icons.layers_rounded;
       case 'bogo': return Icons.card_giftcard_rounded;
+      case 'reorder': return Icons.replay_rounded;
+      case 'category': return Icons.category_rounded;
+      case 'product': return Icons.local_offer_rounded;
       default: return Icons.star_rounded;
     }
   }

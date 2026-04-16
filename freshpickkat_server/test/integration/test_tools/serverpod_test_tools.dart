@@ -3110,8 +3110,9 @@ class _PricingEndpoint {
 
   _i3.Future<_i34.BasketSuggestionResult> basketSuggestions(
     _i1.TestSessionBuilder sessionBuilder,
-    List<_i18.CartItemInput> items,
-    double cartTotal, {
+    List<_i18.CartItemInput>? items, {
+    double? cartTotal,
+    required String mode,
     String? userId,
     String? appliedCouponCode,
   }) async {
@@ -3129,6 +3130,7 @@ class _PricingEndpoint {
           parameters: _i1.testObjectToJson({
             'items': items,
             'cartTotal': cartTotal,
+            'mode': mode,
             'userId': userId,
             'appliedCouponCode': appliedCouponCode,
           }),

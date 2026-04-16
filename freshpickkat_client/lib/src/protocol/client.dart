@@ -1067,8 +1067,9 @@ class EndpointPricing extends _i1.EndpointRef {
   );
 
   _i2.Future<_i33.BasketSuggestionResult> basketSuggestions(
-    List<_i17.CartItemInput> items,
-    double cartTotal, {
+    List<_i17.CartItemInput>? items, {
+    double? cartTotal,
+    required String mode,
     String? userId,
     String? appliedCouponCode,
   }) => caller.callServerEndpoint<_i33.BasketSuggestionResult>(
@@ -1077,6 +1078,7 @@ class EndpointPricing extends _i1.EndpointRef {
     {
       'items': items,
       'cartTotal': cartTotal,
+      'mode': mode,
       'userId': userId,
       'appliedCouponCode': appliedCouponCode,
     },

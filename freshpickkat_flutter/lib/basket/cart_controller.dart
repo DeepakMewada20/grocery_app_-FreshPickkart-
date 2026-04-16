@@ -114,6 +114,7 @@ class CartController extends GetxController {
 
   final RxList<CartItem> cartItems = <CartItem>[].obs;
   final Rxn<BogoCartSuggestion> bogoSuggestion = Rxn<BogoCartSuggestion>();
+  final Rxn<BasketSuggestion> bestBasketSuggestion = Rxn<BasketSuggestion>();
   final RxList<BasketSuggestion> basketSuggestions = <BasketSuggestion>[].obs;
   final RxList<BasketSuggestion> oldBasketSuggestions =
       <BasketSuggestion>[].obs;
@@ -279,18 +280,21 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> fetchBasketSuggestions() async {
-    final snapshot = _buildMeaningfulCartSnapshot();
-    if (cartItems.isEmpty || snapshot.isEmpty) {
+  Future<void> fetchBasketSuggestions({String? mode}) async {
+    final effectiveMode = mode ?? (cartItems.isEmpty ? 'empty' : 'cart');
+    final snapshot = effectiveMode == 'empty'
+        ? 'empty::${AuthController.instance.currentUser?.uid ?? 'guest'}'
+        : _buildMeaningfulCartSnapshot();
+
+    if (effectiveMode == 'cart' && snapshot.isEmpty) {
+      bestBasketSuggestion.value = null;
       basketSuggestions.clear();
       oldBasketSuggestions.clear();
       isBasketSuggestionsLoading.value = false;
       _lastSuggestedCartSnapshot = '';
       return;
     }
-    if (snapshot == _lastSuggestedCartSnapshot) {
-      return;
-    }
+    if (snapshot == _lastSuggestedCartSnapshot) return;
 
     if (basketSuggestions.isNotEmpty) {
       oldBasketSuggestions.assignAll(basketSuggestions);
@@ -298,17 +302,29 @@ class CartController extends GetxController {
     isBasketSuggestionsLoading.value = true;
     try {
       final response = await client.pricing.basketSuggestions(
-        _buildCartItemInputs(),
-        subtotal,
+        effectiveMode == 'empty' ? const <CartItemInput>[] : _buildCartItemInputs(),
+        cartTotal: effectiveMode == 'empty' ? 0 : subtotal,
+        mode: effectiveMode,
         userId: AuthController.instance.currentUser?.uid,
         appliedCouponCode: appliedCoupon.value?.code,
       );
-      if (_buildMeaningfulCartSnapshot() != snapshot) {
+      final currentSnapshot = effectiveMode == 'empty'
+          ? 'empty::${AuthController.instance.currentUser?.uid ?? 'guest'}'
+          : _buildMeaningfulCartSnapshot();
+      if (currentSnapshot != snapshot) {
         oldBasketSuggestions.clear();
         isBasketSuggestionsLoading.value = false;
         return;
       }
-      basketSuggestions.assignAll(response.suggestions);
+      bestBasketSuggestion.value =
+          response.bestSuggestion ??
+          (response.suggestions.isNotEmpty ? response.suggestions.first : null);
+      basketSuggestions.assignAll(
+        response.otherSuggestions ??
+            (response.suggestions.length > 1
+                ? response.suggestions.skip(1).toList(growable: false)
+                : const <BasketSuggestion>[]),
+      );
       _lastSuggestedCartSnapshot = snapshot;
     } catch (e) {
       debugPrint('Error fetching basket suggestions: $e');
@@ -321,11 +337,11 @@ class CartController extends GetxController {
   void _scheduleBasketSuggestions() {
     final snapshot = _buildMeaningfulCartSnapshot();
     if (snapshot.isEmpty) {
-      basketSuggestions.clear();
       _lastMeaningfulCartSnapshot = '';
       _lastSuggestedCartSnapshot = '';
       _basketSuggestionDebounce?.cancel();
       _basketSuggestionDebounce = null;
+      fetchBasketSuggestions(mode: 'empty');
       return;
     }
     if (snapshot == _lastMeaningfulCartSnapshot ||
@@ -1010,12 +1026,14 @@ class CartController extends GetxController {
   void clearCart() {
     cartItems.clear();
     bogoSuggestion.value = null;
+    bestBasketSuggestion.value = null;
     basketSuggestions.clear();
     cartPricing.value = null;
     _lastMeaningfulCartSnapshot = '';
     _lastSuggestedCartSnapshot = '';
     _basketSuggestionDebounce?.cancel();
     _basketSuggestionDebounce = null;
+    unawaited(fetchBasketSuggestions(mode: 'empty'));
   }
 
   void setBogoSelection(

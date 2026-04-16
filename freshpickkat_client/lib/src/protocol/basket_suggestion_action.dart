@@ -11,12 +11,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i2;
 
 abstract class BasketSuggestionAction implements _i1.SerializableModel {
   BasketSuggestionAction._({
     required this.type,
     required this.label,
     required this.ctaLabel,
+    this.payload,
     this.productId,
     this.variantId,
     this.comboId,
@@ -29,6 +31,7 @@ abstract class BasketSuggestionAction implements _i1.SerializableModel {
     required String type,
     required String label,
     required String ctaLabel,
+    Map<String, String>? payload,
     String? productId,
     String? variantId,
     String? comboId,
@@ -44,6 +47,11 @@ abstract class BasketSuggestionAction implements _i1.SerializableModel {
       type: jsonSerialization['type'] as String,
       label: jsonSerialization['label'] as String,
       ctaLabel: jsonSerialization['ctaLabel'] as String,
+      payload: jsonSerialization['payload'] == null
+          ? null
+          : _i2.Protocol().deserialize<Map<String, String>>(
+              jsonSerialization['payload'],
+            ),
       productId: jsonSerialization['productId'] as String?,
       variantId: jsonSerialization['variantId'] as String?,
       comboId: jsonSerialization['comboId'] as String?,
@@ -58,6 +66,8 @@ abstract class BasketSuggestionAction implements _i1.SerializableModel {
   String label;
 
   String ctaLabel;
+
+  Map<String, String>? payload;
 
   String? productId;
 
@@ -78,6 +88,7 @@ abstract class BasketSuggestionAction implements _i1.SerializableModel {
     String? type,
     String? label,
     String? ctaLabel,
+    Map<String, String>? payload,
     String? productId,
     String? variantId,
     String? comboId,
@@ -92,6 +103,7 @@ abstract class BasketSuggestionAction implements _i1.SerializableModel {
       'type': type,
       'label': label,
       'ctaLabel': ctaLabel,
+      if (payload != null) 'payload': payload?.toJson(),
       if (productId != null) 'productId': productId,
       if (variantId != null) 'variantId': variantId,
       if (comboId != null) 'comboId': comboId,
@@ -114,6 +126,7 @@ class _BasketSuggestionActionImpl extends BasketSuggestionAction {
     required String type,
     required String label,
     required String ctaLabel,
+    Map<String, String>? payload,
     String? productId,
     String? variantId,
     String? comboId,
@@ -124,6 +137,7 @@ class _BasketSuggestionActionImpl extends BasketSuggestionAction {
          type: type,
          label: label,
          ctaLabel: ctaLabel,
+         payload: payload,
          productId: productId,
          variantId: variantId,
          comboId: comboId,
@@ -140,6 +154,7 @@ class _BasketSuggestionActionImpl extends BasketSuggestionAction {
     String? type,
     String? label,
     String? ctaLabel,
+    Object? payload = _Undefined,
     Object? productId = _Undefined,
     Object? variantId = _Undefined,
     Object? comboId = _Undefined,
@@ -151,6 +166,17 @@ class _BasketSuggestionActionImpl extends BasketSuggestionAction {
       type: type ?? this.type,
       label: label ?? this.label,
       ctaLabel: ctaLabel ?? this.ctaLabel,
+      payload: payload is Map<String, String>?
+          ? payload
+          : this.payload?.map(
+              (
+                key0,
+                value0,
+              ) => MapEntry(
+                key0,
+                value0,
+              ),
+            ),
       productId: productId is String? ? productId : this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
       comboId: comboId is String? ? comboId : this.comboId,

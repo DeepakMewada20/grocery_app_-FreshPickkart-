@@ -1,3 +1,5 @@
 class: BasketSuggestionResult
 fields:
+  bestSuggestion: BasketSuggestion?
+  otherSuggestions: List<BasketSuggestion>?
   suggestions: List<BasketSuggestion>

@@ -1,9 +1,14 @@
 class: BasketSuggestion
 fields:
+  id: String?
+  title: String?
+  subtitle: String?
   message: String
   type: String # single, combined
   priority: int
+  score: double?
   metadata: Map<String, String>?
+  action: BasketSuggestionAction?
   
   # Action-based engine fields
   actions: List<BasketSuggestionAction>?

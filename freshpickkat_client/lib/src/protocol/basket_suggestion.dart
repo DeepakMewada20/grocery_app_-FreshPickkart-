@@ -16,10 +16,15 @@ import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
 abstract class BasketSuggestion implements _i1.SerializableModel {
   BasketSuggestion._({
+    this.id,
+    this.title,
+    this.subtitle,
     required this.message,
     required this.type,
     required this.priority,
+    this.score,
     this.metadata,
+    this.action,
     this.actions,
     this.netProfit,
     this.extraSpend,
@@ -38,10 +43,15 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
   });
 
   factory BasketSuggestion({
+    String? id,
+    String? title,
+    String? subtitle,
     required String message,
     required String type,
     required int priority,
+    double? score,
     Map<String, String>? metadata,
+    _i2.BasketSuggestionAction? action,
     List<_i2.BasketSuggestionAction>? actions,
     double? netProfit,
     double? extraSpend,
@@ -61,13 +71,22 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
 
   factory BasketSuggestion.fromJson(Map<String, dynamic> jsonSerialization) {
     return BasketSuggestion(
+      id: jsonSerialization['id'] as String?,
+      title: jsonSerialization['title'] as String?,
+      subtitle: jsonSerialization['subtitle'] as String?,
       message: jsonSerialization['message'] as String,
       type: jsonSerialization['type'] as String,
       priority: jsonSerialization['priority'] as int,
+      score: (jsonSerialization['score'] as num?)?.toDouble(),
       metadata: jsonSerialization['metadata'] == null
           ? null
           : _i3.Protocol().deserialize<Map<String, String>>(
               jsonSerialization['metadata'],
+            ),
+      action: jsonSerialization['action'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.BasketSuggestionAction>(
+              jsonSerialization['action'],
             ),
       actions: jsonSerialization['actions'] == null
           ? null
@@ -96,13 +115,23 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
     );
   }
 
+  String? id;
+
+  String? title;
+
+  String? subtitle;
+
   String message;
 
   String type;
 
   int priority;
 
+  double? score;
+
   Map<String, String>? metadata;
+
+  _i2.BasketSuggestionAction? action;
 
   List<_i2.BasketSuggestionAction>? actions;
 
@@ -138,10 +167,15 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   BasketSuggestion copyWith({
+    String? id,
+    String? title,
+    String? subtitle,
     String? message,
     String? type,
     int? priority,
+    double? score,
     Map<String, String>? metadata,
+    _i2.BasketSuggestionAction? action,
     List<_i2.BasketSuggestionAction>? actions,
     double? netProfit,
     double? extraSpend,
@@ -162,10 +196,15 @@ abstract class BasketSuggestion implements _i1.SerializableModel {
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'BasketSuggestion',
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (subtitle != null) 'subtitle': subtitle,
       'message': message,
       'type': type,
       'priority': priority,
+      if (score != null) 'score': score,
       if (metadata != null) 'metadata': metadata?.toJson(),
+      if (action != null) 'action': action?.toJson(),
       if (actions != null)
         'actions': actions?.toJson(valueToJson: (v) => v.toJson()),
       if (netProfit != null) 'netProfit': netProfit,
@@ -195,10 +234,15 @@ class _Undefined {}
 
 class _BasketSuggestionImpl extends BasketSuggestion {
   _BasketSuggestionImpl({
+    String? id,
+    String? title,
+    String? subtitle,
     required String message,
     required String type,
     required int priority,
+    double? score,
     Map<String, String>? metadata,
+    _i2.BasketSuggestionAction? action,
     List<_i2.BasketSuggestionAction>? actions,
     double? netProfit,
     double? extraSpend,
@@ -215,10 +259,15 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     double? savingAmount,
     String? thumbnailUrl,
   }) : super._(
+         id: id,
+         title: title,
+         subtitle: subtitle,
          message: message,
          type: type,
          priority: priority,
+         score: score,
          metadata: metadata,
+         action: action,
          actions: actions,
          netProfit: netProfit,
          extraSpend: extraSpend,
@@ -241,10 +290,15 @@ class _BasketSuggestionImpl extends BasketSuggestion {
   @_i1.useResult
   @override
   BasketSuggestion copyWith({
+    Object? id = _Undefined,
+    Object? title = _Undefined,
+    Object? subtitle = _Undefined,
     String? message,
     String? type,
     int? priority,
+    Object? score = _Undefined,
     Object? metadata = _Undefined,
+    Object? action = _Undefined,
     Object? actions = _Undefined,
     Object? netProfit = _Undefined,
     Object? extraSpend = _Undefined,
@@ -262,9 +316,13 @@ class _BasketSuggestionImpl extends BasketSuggestion {
     Object? thumbnailUrl = _Undefined,
   }) {
     return BasketSuggestion(
+      id: id is String? ? id : this.id,
+      title: title is String? ? title : this.title,
+      subtitle: subtitle is String? ? subtitle : this.subtitle,
       message: message ?? this.message,
       type: type ?? this.type,
       priority: priority ?? this.priority,
+      score: score is double? ? score : this.score,
       metadata: metadata is Map<String, String>?
           ? metadata
           : this.metadata?.map(
@@ -276,6 +334,9 @@ class _BasketSuggestionImpl extends BasketSuggestion {
                 value0,
               ),
             ),
+      action: action is _i2.BasketSuggestionAction?
+          ? action
+          : this.action?.copyWith(),
       actions: actions is List<_i2.BasketSuggestionAction>?
           ? actions
           : this.actions?.map((e0) => e0.copyWith()).toList(),

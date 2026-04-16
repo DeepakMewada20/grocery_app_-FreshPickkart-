@@ -2249,12 +2249,17 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i23.CartItemInput>>(),
-              nullable: false,
+              type: _i1.getType<List<_i23.CartItemInput>?>(),
+              nullable: true,
             ),
             'cartTotal': _i1.ParameterDescription(
               name: 'cartTotal',
-              type: _i1.getType<double>(),
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+            'mode': _i1.ParameterDescription(
+              name: 'mode',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
             'userId': _i1.ParameterDescription(
@@ -2276,7 +2281,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   .basketSuggestions(
                     session,
                     params['items'],
-                    params['cartTotal'],
+                    cartTotal: params['cartTotal'],
+                    mode: params['mode'],
                     userId: params['userId'],
                     appliedCouponCode: params['appliedCouponCode'],
                   ),

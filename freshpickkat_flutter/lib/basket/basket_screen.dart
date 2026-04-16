@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
-import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
+import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/basket/coupon_section.dart';
 import 'package:freshpickkat_flutter/basket/basket_suggestions_section.dart';
+import 'package:freshpickkat_flutter/basket/empty_basket_view.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -34,6 +35,9 @@ class _BasketScreenState extends State<BasketScreen> {
     Future.microtask(() async {
       await CartController.instance.refreshCartCurrentData();
       await CartController.instance.fetchBasketSuggestions();
+      await CategoryProviderController.instance.fetchCategoriesIfEmpty();
+      await ProductProviderController.instance.fetchTrendingIfEmpty();
+      await ProductProviderController.instance.fetchBestSellersIfEmpty();
     });
     BannerController.instance.loadBannersForScreen('cart_page');
 
@@ -84,7 +88,7 @@ class _BasketScreenState extends State<BasketScreen> {
       ),
       body: Obx(() {
         if (cartController.itemCount == 0) {
-          return _buildEmptyState(context, cs);
+          return _buildEmptyState(context);
         }
 
         return Column(
@@ -123,53 +127,8 @@ class _BasketScreenState extends State<BasketScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, ColorScheme cs) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_basket_outlined,
-            size: 100,
-            color: cs.onSurface.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Your basket is empty',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Looks like you haven\'t added anything yet.',
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.5),
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () =>
-                TabNavigationController.instance.navigateToCategories(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryGreen,
-              foregroundColor: cs.onPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Start Shopping',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget _buildEmptyState(BuildContext context) {
+    return const EmptyBasketView();
   }
 
   Widget _buildCartItemsList(

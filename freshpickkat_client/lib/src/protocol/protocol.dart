@@ -535,6 +535,14 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
+    if (t == _i1.getType<List<_i13.BasketSuggestion>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i13.BasketSuggestion>(e))
+                    .toList()
+              : null)
+          as T;
+    }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
@@ -708,6 +716,14 @@ class Protocol extends _i1.SerializationManager {
       return (data as List)
               .map((e) => deserialize<_i64.AppliedOfferInfo>(e))
               .toList()
+          as T;
+    }
+    if (t == _i1.getType<List<_i59.CartItemInput>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i59.CartItemInput>(e))
+                    .toList()
+              : null)
           as T;
     }
     if (t == List<_i65.Product>) {

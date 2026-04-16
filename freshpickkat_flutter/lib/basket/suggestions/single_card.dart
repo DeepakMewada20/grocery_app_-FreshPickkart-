@@ -15,6 +15,7 @@ class SingleCardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     final textPrimary = isDark ? Colors.white : const Color(0xFF1C1C1E);
     final isBest = s.isBest ?? false;
     final action = s.actions?.first;
@@ -46,7 +47,7 @@ class SingleCardBody extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            s.message,
+            s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w800,
@@ -56,6 +57,19 @@ class SingleCardBody extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+          if ((s.subtitle ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              s.subtitle!,
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.66),
+                fontSize: 11.5,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           
           const Spacer(),
 
@@ -113,6 +127,9 @@ class SingleCardBody extends StatelessWidget {
       case 'variant': return Icons.trending_up_rounded;
       case 'combo': return Icons.layers_rounded;
       case 'bogo': return Icons.card_giftcard_rounded;
+      case 'reorder': return Icons.replay_rounded;
+      case 'category': return Icons.category_rounded;
+      case 'product': return Icons.local_offer_rounded;
       default: return Icons.star_rounded;
     }
   }

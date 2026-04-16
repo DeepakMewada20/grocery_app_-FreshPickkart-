@@ -47,8 +47,9 @@ class PricingEndpoint extends Endpoint {
 
   Future<BasketSuggestionResult> basketSuggestions(
     Session session,
-    List<CartItemInput> items,
-    double cartTotal, {
+    List<CartItemInput>? items, {
+    double? cartTotal,
+    String mode = 'cart',
     String? userId,
     String? appliedCouponCode,
   }) async {
@@ -56,6 +57,7 @@ class PricingEndpoint extends Endpoint {
       session: session,
       items: items,
       cartTotal: cartTotal,
+      mode: mode,
       userId: userId,
       appliedCouponCode: appliedCouponCode,
     );
