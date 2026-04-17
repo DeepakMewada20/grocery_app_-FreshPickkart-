@@ -16,27 +16,28 @@ class SuggestionActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 10, color: color),
+            Icon(icon, size: 9, color: color.withValues(alpha: 0.85)),
             const SizedBox(width: 4),
           ],
-          Expanded(
+          Flexible(
             child: Text(
               label,
               style: TextStyle(
-                color: color,
+                color: color.withValues(alpha: 0.9),
                 fontSize: 9,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -56,19 +57,26 @@ class SaveBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<AppSuggestionTheme>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isGold = accent == const Color(0xFFD4952A);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: accent,
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: accent.withValues(alpha: isDark ? 0.6 : 0.5),
+          width: 1,
+        ),
       ),
       child: Text(
         'Save ₹${amount.formatPrice}',
         style: TextStyle(
-          color: accent == const Color(0xFFE6A23C) ? Colors.white : theme.ctaText,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
+          color: isGold
+              ? (isDark ? const Color(0xFFD4952A) : const Color(0xFFB87E1C))
+              : accent,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
           letterSpacing: 0.2,
         ),
       ),
@@ -82,12 +90,27 @@ class BestBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: const BoxDecoration(
-        color: Color(0xFFE6A23C),
-        shape: BoxShape.circle,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD4952A).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: const Icon(Icons.star_rounded, color: Colors.white, size: 10),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.star_rounded, color: Color(0xFFD4952A), size: 9),
+          SizedBox(width: 3),
+          Text(
+            'BEST',
+            style: TextStyle(
+              color: Color(0xFFD4952A),
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -106,24 +129,16 @@ class CTAButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<AppSuggestionTheme>()!;
-    final textCol = accent == const Color(0xFFE6A23C) ? Colors.white : theme.ctaText;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: accent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: accent.withValues(alpha: 0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: accent.withValues(alpha: isDark ? 0.18 : 0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -131,13 +146,14 @@ class CTAButton extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: textCol,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
+                color: accent,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.arrow_forward_rounded, color: textCol, size: 13),
+            const SizedBox(width: 3),
+            Icon(Icons.arrow_forward_ios_rounded, color: accent, size: 10),
           ],
         ),
       ),

@@ -64,8 +64,9 @@ class BasketSuggestionService {
         .where((item) => item.productId.trim().isNotEmpty && item.quantity > 0)
         .toList();
 
-    final effectiveMode =
-        mode == 'empty' || normalizedItems.isEmpty ? 'empty' : 'cart';
+    final effectiveMode = mode == 'empty' || normalizedItems.isEmpty
+        ? 'empty'
+        : 'cart';
     if (effectiveMode == 'empty') {
       return _buildEmptyModeSuggestions(
         session: session,
@@ -278,7 +279,8 @@ class BasketSuggestionService {
     for (var i = 0; i < scored.length && results.length < 5; i++) {
       final item = scored[i];
       final isBest = i == 0;
-      final action = item.suggestion.action ??
+      final action =
+          item.suggestion.action ??
           (item.suggestion.actions?.isNotEmpty == true
               ? item.suggestion.actions!.first
               : null);
@@ -313,8 +315,11 @@ class BasketSuggestionService {
   }
 
   static String _buildSuggestionId(BasketSuggestion suggestion, int index) {
-    final action = suggestion.action ??
-        (suggestion.actions?.isNotEmpty == true ? suggestion.actions!.first : null);
+    final action =
+        suggestion.action ??
+        (suggestion.actions?.isNotEmpty == true
+            ? suggestion.actions!.first
+            : null);
     final parts = <String?>[
       suggestion.type,
       suggestion.comboId,
@@ -421,7 +426,11 @@ class BasketSuggestionService {
       'category' => 5.0,
       _ => 0.0,
     };
-    return typeBias + conversionProbability + userRelevance + profitImpact + urgency;
+    return typeBias +
+        conversionProbability +
+        userRelevance +
+        profitImpact +
+        urgency;
   }
 
   static BasketSuggestionAction _primaryAction({
@@ -510,7 +519,8 @@ class BasketSuggestionService {
   ) async {
     if (userId.trim().isEmpty) return const <Order>[];
     final firestore = await FirebaseService.getFirestoreClient();
-    final database = 'projects/freshpickkart-a6824/databases/(default)/documents';
+    final database =
+        'projects/freshpickkart-a6824/databases/(default)/documents';
     final query = firestore_api.StructuredQuery(
       from: [firestore_api.CollectionSelector(collectionId: 'orders')],
       where: firestore_api.Filter(
@@ -564,54 +574,59 @@ class BasketSuggestionService {
     final entries = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return entries.take(5).map((entry) {
-      final product = productMap[entry.key];
-      if (product == null) {
-        return null;
-      }
-      final variantId = preferredVariant[entry.key];
-      final action = _primaryAction(
-        type: 'add_to_cart',
-        label: 'Add ${product.productName}',
-        ctaLabel: 'Add Again',
-        payload: variantId == null
-            ? {'productId': product.productId ?? ''}
-            : {
-                'productId': product.productId ?? '',
-                'variantId': variantId,
-              },
-        productId: product.productId,
-        variantId: variantId,
-      );
-      final benefit = product.price;
-      final score = _scoreFromComponents(
-        type: 'reorder',
-        conversionProbability: 38 + (entry.value * 6).clamp(0, 24).toDouble(),
-        userRelevance: 38 + (entry.value * 5).clamp(0, 20).toDouble(),
-        profitImpact: (benefit / 10).clamp(4, 18).toDouble(),
-        urgency: 22,
-      );
+    return entries
+        .take(5)
+        .map((entry) {
+          final product = productMap[entry.key];
+          if (product == null) {
+            return null;
+          }
+          final variantId = preferredVariant[entry.key];
+          final action = _primaryAction(
+            type: 'add_to_cart',
+            label: 'Add ${product.productName}',
+            ctaLabel: 'Add Again',
+            payload: variantId == null
+                ? {'productId': product.productId ?? ''}
+                : {
+                    'productId': product.productId ?? '',
+                    'variantId': variantId,
+                  },
+            productId: product.productId,
+            variantId: variantId,
+          );
+          final benefit = product.price;
+          final score = _scoreFromComponents(
+            type: 'reorder',
+            conversionProbability:
+                38 + (entry.value * 6).clamp(0, 24).toDouble(),
+            userRelevance: 38 + (entry.value * 5).clamp(0, 20).toDouble(),
+            profitImpact: (benefit / 10).clamp(4, 18).toDouble(),
+            urgency: 22,
+          );
 
-      return _Scored(
-        extraSpend: 0,
-        totalBenefit: benefit,
-        score: score,
-        suggestion: _buildSuggestion(
-          id: 'reorder:${entry.key}',
-          type: 'reorder',
-          title: product.productName,
-          subtitle: 'Frequently bought again',
-          message: 'Buy ${product.productName} again with one tap',
-          priority: 0,
-          action: action,
-          productId: product.productId,
-          variantId: variantId,
-          thumbnailUrl: product.imageUrl,
-          savingAmount: 0,
-          ctaLabel: 'Add Again',
-        ),
-      );
-    }).whereType<_Scored>().toList();
+          return _Scored(
+            extraSpend: 0,
+            totalBenefit: benefit,
+            score: score,
+            suggestion: _buildSuggestion(
+              id: 'reorder:${entry.key}',
+              type: 'reorder',
+              title: product.productName,
+              subtitle: 'Frequently bought again',
+              message: 'Buy ${product.productName} again with one tap',
+              priority: 0,
+              action: action,
+              productId: product.productId,
+              variantId: variantId,
+              thumbnailUrl: product.imageUrl,
+              savingAmount: 0,
+              ctaLabel: 'Add Again',
+            ),
+          );
+        })
+        .whereType<_Scored>()
+        .toList();
   }
 
   static _Scored? _scoreEmptyCouponSuggestion({
@@ -623,7 +638,8 @@ class BasketSuggestionService {
     Coupon? best;
     for (final coupon in coupons) {
       if (!coupon.isActive) continue;
-      if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase()) continue;
+      if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase())
+        continue;
       final expiry = (coupon.expiryDate ?? coupon.endDate).toUtc();
       if (now.isAfter(expiry)) continue;
       if (best == null) {
@@ -633,7 +649,8 @@ class BasketSuggestionService {
       final bestValue = (best.discountValue ?? 0);
       final candidateValue = (coupon.discountValue ?? 0);
       if (candidateValue > bestValue ||
-          (candidateValue == bestValue && coupon.minOrderAmount < best.minOrderAmount)) {
+          (candidateValue == bestValue &&
+              coupon.minOrderAmount < best.minOrderAmount)) {
         best = coupon;
       }
     }
@@ -685,9 +702,11 @@ class BasketSuggestionService {
   static _Scored? _scoreEmptyDeliverySuggestion(DeliveryConfig config) {
     final currentFee = config.baseDeliveryFee;
     if (currentFee <= 0 || config.slabs.isEmpty) return null;
-    final nextMilestone = config.slabs
-        .where((slab) => slab.fee == 0)
-        .fold<DeliverySlab?>(null, (best, slab) {
+    final nextMilestone =
+        config.slabs.where((slab) => slab.fee == 0).fold<DeliverySlab?>(null, (
+          best,
+          slab,
+        ) {
           if (best == null || slab.minOrderAmount < best.minOrderAmount) {
             return slab;
           }
@@ -726,7 +745,8 @@ class BasketSuggestionService {
             ? 'Free delivery above ₹${nextMilestone.minOrderAmount.toStringAsFixed(0)}'
             : 'Delivery savings unlocked',
         subtitle: 'A little more brings the fee down',
-        message: 'Free delivery above ₹${nextMilestone.minOrderAmount.toStringAsFixed(0)}',
+        message:
+            'Free delivery above ₹${nextMilestone.minOrderAmount.toStringAsFixed(0)}',
         priority: 2,
         action: action,
         score: score,
@@ -751,7 +771,9 @@ class BasketSuggestionService {
       ...trending,
     ].where((product) => product.productId != null).toList();
 
-    final topProduct = availableProducts.isNotEmpty ? availableProducts.first : null;
+    final topProduct = availableProducts.isNotEmpty
+        ? availableProducts.first
+        : null;
     if (topProduct != null) {
       final action = _primaryAction(
         type: 'navigate',
@@ -802,7 +824,8 @@ class BasketSuggestionService {
           ctaLabel: 'Add Item',
           payload: {
             'productId': trigger.productId ?? '',
-            if (offer.triggerVariantId != null) 'variantId': offer.triggerVariantId!,
+            if (offer.triggerVariantId != null)
+              'variantId': offer.triggerVariantId!,
           },
           productId: trigger.productId,
           variantId: offer.triggerVariantId,
@@ -903,16 +926,19 @@ class BasketSuggestionService {
       images.putIfAbsent(product.category, () => product.imageUrl);
     }
 
-    final sortedCategories = categories
-        .where((category) => category.categoryName.trim().isNotEmpty)
-        .toList()
-      ..sort((a, b) {
-        final countA = counts[a.categoryName] ?? 0;
-        final countB = counts[b.categoryName] ?? 0;
-        final countCompare = countB.compareTo(countA);
-        if (countCompare != 0) return countCompare;
-        return a.categoryName.toLowerCase().compareTo(b.categoryName.toLowerCase());
-      });
+    final sortedCategories =
+        categories
+            .where((category) => category.categoryName.trim().isNotEmpty)
+            .toList()
+          ..sort((a, b) {
+            final countA = counts[a.categoryName] ?? 0;
+            final countB = counts[b.categoryName] ?? 0;
+            final countCompare = countB.compareTo(countA);
+            if (countCompare != 0) return countCompare;
+            return a.categoryName.toLowerCase().compareTo(
+              b.categoryName.toLowerCase(),
+            );
+          });
 
     return sortedCategories.take(2).map((category) {
       final productHint = productPool.firstWhereOrNull(
@@ -1018,7 +1044,8 @@ class BasketSuggestionService {
   }) {
     double currentFee = config.baseDeliveryFee;
     for (final slab in config.slabs) {
-      if (cartTotal >= slab.minOrderAmount && cartTotal <= slab.maxOrderAmount) {
+      if (cartTotal >= slab.minOrderAmount &&
+          cartTotal <= slab.maxOrderAmount) {
         currentFee = slab.fee;
         break;
       }
@@ -1028,19 +1055,24 @@ class BasketSuggestionService {
     DeliverySlab? nextMilestone;
     for (final slab in config.slabs) {
       if (slab.minOrderAmount > cartTotal && slab.fee < currentFee) {
-        if (nextMilestone == null || slab.minOrderAmount < nextMilestone.minOrderAmount) {
+        if (nextMilestone == null ||
+            slab.minOrderAmount < nextMilestone.minOrderAmount) {
           nextMilestone = slab;
         }
       }
     }
     if (nextMilestone == null) return null;
 
-    final remaining = math.max(0.0, nextMilestone.minOrderAmount - cartTotal).toDouble();
+    final remaining = math
+        .max(0.0, nextMilestone.minOrderAmount - cartTotal)
+        .toDouble();
     final savings = currentFee - nextMilestone.fee;
-    
+
     final isFree = nextMilestone.fee == 0;
-    final benefitLabel = isFree ? 'FREE Delivery' : 'SAVE ₹${savings.toStringAsFixed(0)}';
-    
+    final benefitLabel = isFree
+        ? 'FREE Delivery'
+        : 'SAVE ₹${savings.toStringAsFixed(0)}';
+
     final action = BasketSuggestionAction(
       type: 'delivery',
       label: 'Unlock $benefitLabel',
@@ -1096,7 +1128,7 @@ class BasketSuggestionService {
       final remaining = c.minOrderAmount - cartTotal;
       final benefit = c.discountValue ?? 0.0;
       final np = benefit - remaining;
-      
+
       if (np > bestNp) {
         bestNp = np;
         best = c;
@@ -1107,7 +1139,7 @@ class BasketSuggestionService {
 
     final remaining = best.minOrderAmount - cartTotal;
     final benefit = best.discountValue ?? 0.0;
-    
+
     final action = BasketSuggestionAction(
       type: 'coupon',
       label: 'Unlock Coupon ${best.code}',
@@ -1160,9 +1192,13 @@ class BasketSuggestionService {
       if (trigger == null) continue;
 
       // REDUNDANCY CHECK: If trigger is in cart AND any free product is in cart, skip
-      final triggerInCart = cartItems.any((it) => it.productId == offer.triggerProductId);
-      final freeInCart = cartItems.any((it) => offer.freeProductIds.contains(it.productId));
-      
+      final triggerInCart = cartItems.any(
+        (it) => it.productId == offer.triggerProductId,
+      );
+      final freeInCart = cartItems.any(
+        (it) => offer.freeProductIds.contains(it.productId),
+      );
+
       if (triggerInCart && freeInCart) continue;
 
       // BENEFIT: Highest price item
@@ -1180,7 +1216,8 @@ class BasketSuggestionService {
         ctaLabel: triggerInCart ? 'Get Free Item' : 'Add to Cart',
         payload: {
           'productId': offer.triggerProductId,
-          if (offer.triggerVariantId != null) 'variantId': offer.triggerVariantId!,
+          if (offer.triggerVariantId != null)
+            'variantId': offer.triggerVariantId!,
         },
         productId: offer.triggerProductId,
         variantId: offer.triggerVariantId,
@@ -1188,25 +1225,27 @@ class BasketSuggestionService {
         extraSpend: extraSpend,
       );
 
-      results.add(_Scored(
-        extraSpend: extraSpend,
-        totalBenefit: benefit,
-        score: _scoreFromComponents(
-          type: 'bogo',
-          conversionProbability: triggerInCart ? 42 : 28,
-          userRelevance: triggerInCart ? 24 : 18,
-          profitImpact: (benefit * 1.3).clamp(10, 28).toDouble(),
-          urgency: triggerInCart ? 14 : 10,
+      results.add(
+        _Scored(
+          extraSpend: extraSpend,
+          totalBenefit: benefit,
+          score: _scoreFromComponents(
+            type: 'bogo',
+            conversionProbability: triggerInCart ? 42 : 28,
+            userRelevance: triggerInCart ? 24 : 18,
+            profitImpact: (benefit * 1.3).clamp(10, 28).toDouble(),
+            urgency: triggerInCart ? 14 : 10,
+          ),
+          suggestion: BasketSuggestion(
+            message: 'Get a free product with ${trigger.productName}',
+            type: 'single',
+            priority: 0,
+            actions: [action],
+            savingAmount: benefit,
+            thumbnailUrl: trigger.imageUrl,
+          ),
         ),
-        suggestion: BasketSuggestion(
-          message: 'Get a free product with ${trigger.productName}',
-          type: 'single',
-          priority: 0,
-          actions: [action],
-          savingAmount: benefit,
-          thumbnailUrl: trigger.imageUrl,
-        ),
-      ));
+      );
     }
     return results;
   }
@@ -1231,10 +1270,13 @@ class BasketSuggestionService {
         final p = productMap[cp.productId];
         if (p == null) continue;
         fullPrice += p.price * cp.quantity;
-        
-        final inCart = cartItems.firstWhereOrNull((it) => it.productId == cp.productId && it.comboId == null);
+
+        final inCart = cartItems.firstWhereOrNull(
+          (it) => it.productId == cp.productId && it.comboId == null,
+        );
         if (inCart != null) {
-          alreadyInCartValue += p.price * math.min(inCart.quantity, cp.quantity);
+          alreadyInCartValue +=
+              p.price * math.min(inCart.quantity, cp.quantity);
         }
       }
 
@@ -1245,8 +1287,10 @@ class BasketSuggestionService {
         savings = combo.discountValue;
       }
 
-      final extraSpend = math.max(0.0, fullPrice - alreadyInCartValue).toDouble();
-      
+      final extraSpend = math
+          .max(0.0, fullPrice - alreadyInCartValue)
+          .toDouble();
+
       final action = BasketSuggestionAction(
         type: 'combo',
         label: 'Add ${combo.name}',
@@ -1259,26 +1303,29 @@ class BasketSuggestionService {
         extraSpend: extraSpend,
       );
 
-      results.add(_Scored(
-        extraSpend: extraSpend,
-        totalBenefit: savings,
-        score: _scoreFromComponents(
-          type: 'combo',
-          conversionProbability: 34,
-          userRelevance: 22,
-          profitImpact: (savings * 1.2).clamp(10, 28).toDouble(),
-          urgency: extraSpend <= 50 ? 14 : 8,
+      results.add(
+        _Scored(
+          extraSpend: extraSpend,
+          totalBenefit: savings,
+          score: _scoreFromComponents(
+            type: 'combo',
+            conversionProbability: 34,
+            userRelevance: 22,
+            profitImpact: (savings * 1.2).clamp(10, 28).toDouble(),
+            urgency: extraSpend <= 50 ? 14 : 8,
+          ),
+          suggestion: BasketSuggestion(
+            message: 'Save ₹${savings.toStringAsFixed(0)} with ${combo.name}',
+            type: 'single',
+            priority: 0,
+            actions: [action],
+            savingAmount: savings,
+            comboId: combo.comboId,
+            thumbnailUrl:
+                productMap[combo.comboProducts.first.productId]?.imageUrl,
+          ),
         ),
-        suggestion: BasketSuggestion(
-          message: 'Save ₹${savings.toStringAsFixed(0)} with ${combo.name}',
-          type: 'single',
-          priority: 0,
-          actions: [action],
-          savingAmount: savings,
-          comboId: combo.comboId,
-          thumbnailUrl: productMap[combo.comboProducts.first.productId]?.imageUrl,
-        ),
-      ));
+      );
     }
     return results;
   }
@@ -1296,7 +1343,9 @@ class BasketSuggestionService {
       final product = productMap[item.productId];
       if (product == null) continue;
 
-      final variants = (product.variants ?? []).where((v) => v.isAvailable).toList();
+      final variants = (product.variants ?? [])
+          .where((v) => v.isAvailable)
+          .toList();
       if (variants.length < 2) continue;
 
       final current = _resolveVariant(product, item.variantId);
@@ -1305,32 +1354,44 @@ class BasketSuggestionService {
       if (curNorm <= 0) continue;
       final curUp = current.price / curNorm;
 
-      for (final v in variants) {
+      // Sort variants by quantity — pick ONLY the next immediate larger one
+      final sortedVariants = [...variants]
+        ..sort((a, b) => _normalizeQuantity(a).compareTo(_normalizeQuantity(b)));
+
+      ProductVariant? nextVariant;
+      for (final v in sortedVariants) {
         if (v.variantId == current.variantId) continue;
         final vNorm = _normalizeQuantity(v);
         if (vNorm <= curNorm) continue;
-        
         final vUp = v.price / vNorm;
         if (vUp >= curUp) continue;
+        nextVariant = v; // take the first (smallest next) better-value variant
+        break;
+      }
 
-        final projectedSavings = (curUp * vNorm) - v.price;
-        final extraSpend = math.max(0.0, v.price - current.price).toDouble();
+      if (nextVariant == null) continue;
 
-        final action = BasketSuggestionAction(
-          type: 'variant',
-          label: 'Upgrade to ${_formatVariantLabel(v)}',
-          ctaLabel: 'Upgrade',
-          payload: {
-            'productId': product.productId ?? '',
-            'variantId': v.variantId,
-          },
-          productId: product.productId,
-          variantId: v.variantId,
-          benefit: projectedSavings,
-          extraSpend: extraSpend,
-        );
+      final v = nextVariant;
+      final vNorm = _normalizeQuantity(v);
+      final projectedSavings = (curUp * vNorm) - v.price;
+      final extraSpend = math.max(0.0, v.price - current.price).toDouble();
 
-        results.add(_Scored(
+      final action = BasketSuggestionAction(
+        type: 'variant',
+        label: 'Upgrade to ${_formatVariantLabel(v)}',
+        ctaLabel: 'Upgrade',
+        payload: {
+          'productId': product.productId ?? '',
+          'variantId': v.variantId,
+        },
+        productId: product.productId,
+        variantId: v.variantId,
+        benefit: projectedSavings,
+        extraSpend: extraSpend,
+      );
+
+      results.add(
+        _Scored(
           extraSpend: extraSpend,
           totalBenefit: projectedSavings,
           score: _scoreFromComponents(
@@ -1341,8 +1402,9 @@ class BasketSuggestionService {
             urgency: extraSpend <= 20 ? 12 : 6,
           ),
           suggestion: BasketSuggestion(
-            message: 'Upgrade pack & save ₹${projectedSavings.toStringAsFixed(0)}',
-            type: 'single',
+            message:
+                'Upgrade to ${_formatVariantLabel(v)} & save ₹${projectedSavings.toStringAsFixed(0)}',
+            type: 'variant',
             priority: 0,
             actions: [action],
             savingAmount: projectedSavings,
@@ -1354,8 +1416,8 @@ class BasketSuggestionService {
               'vPrice': v.price.toStringAsFixed(0),
             },
           ),
-        ));
-      }
+        ),
+      );
     }
     return results;
   }
@@ -1379,7 +1441,10 @@ class BasketSuggestionService {
       Coupon? best;
       double maxSav = 0;
       for (final c in coupons) {
-        if (!c.isActive || c.minOrderAmount <= cartTotal || c.minOrderAmount > total) continue;
+        if (!c.isActive ||
+            c.minOrderAmount <= cartTotal ||
+            c.minOrderAmount > total)
+          continue;
         if (appliedCouponCode?.toUpperCase() == c.code.toUpperCase()) continue;
         if (c.discountValue != null && c.discountValue! > maxSav) {
           maxSav = c.discountValue!;
@@ -1410,25 +1475,28 @@ class BasketSuggestionService {
         ),
       ];
 
-      combos.add(_Scored(
-        extraSpend: v.extraSpend,
-        totalBenefit: benefit,
-        score: _scoreFromComponents(
-          type: 'combined',
-          conversionProbability: 40,
-          userRelevance: 28,
-          profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
-          urgency: 18,
+      combos.add(
+        _Scored(
+          extraSpend: v.extraSpend,
+          totalBenefit: benefit,
+          score: _scoreFromComponents(
+            type: 'combined',
+            conversionProbability: 40,
+            userRelevance: 28,
+            profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
+            urgency: 18,
+          ),
+          suggestion: BasketSuggestion(
+            message:
+                'Upgrade pack & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
+            type: 'combined',
+            priority: 0,
+            actions: actions,
+            savingAmount: benefit,
+            thumbnailUrl: v.suggestion.thumbnailUrl,
+          ),
         ),
-        suggestion: BasketSuggestion(
-          message: 'Upgrade pack & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
-          type: 'combined',
-          priority: 0,
-          actions: actions,
-          savingAmount: benefit,
-          thumbnailUrl: v.suggestion.thumbnailUrl,
-        ),
-      ));
+      );
       upgradedBaseItems.add(v);
     }
 
@@ -1453,25 +1521,28 @@ class BasketSuggestionService {
         ),
       ];
 
-      combos.add(_Scored(
-        extraSpend: c.extraSpend,
-        totalBenefit: benefit,
-        score: _scoreFromComponents(
-          type: 'combined',
-          conversionProbability: 42,
-          userRelevance: 26,
-          profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
-          urgency: 18,
+      combos.add(
+        _Scored(
+          extraSpend: c.extraSpend,
+          totalBenefit: benefit,
+          score: _scoreFromComponents(
+            type: 'combined',
+            conversionProbability: 42,
+            userRelevance: 26,
+            profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
+            urgency: 18,
+          ),
+          suggestion: BasketSuggestion(
+            message:
+                'Add combo & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
+            type: 'combined',
+            priority: 0,
+            actions: actions,
+            savingAmount: benefit,
+            thumbnailUrl: c.suggestion.thumbnailUrl,
+          ),
         ),
-        suggestion: BasketSuggestion(
-          message: 'Add combo & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
-          type: 'combined',
-          priority: 0,
-          actions: actions,
-          savingAmount: benefit,
-          thumbnailUrl: c.suggestion.thumbnailUrl,
-        ),
-      ));
+      );
       upgradedBaseItems.add(c);
     }
 
@@ -1481,28 +1552,31 @@ class BasketSuggestionService {
         if (v.extraSpend >= deliveryScored.extraSpend) {
           final benefit = v.totalBenefit + deliveryScored.totalBenefit;
           final actions = [
-             ...v.suggestion.actions!,
-             ...deliveryScored.suggestion.actions!,
+            ...v.suggestion.actions!,
+            ...deliveryScored.suggestion.actions!,
           ];
-          combos.add(_Scored(
-            extraSpend: v.extraSpend,
-            totalBenefit: benefit,
-            score: _scoreFromComponents(
-              type: 'combined',
-              conversionProbability: 44,
-              userRelevance: 28,
-              profitImpact: (benefit * 1.1).clamp(16, 34).toDouble(),
-              urgency: 20,
+          combos.add(
+            _Scored(
+              extraSpend: v.extraSpend,
+              totalBenefit: benefit,
+              score: _scoreFromComponents(
+                type: 'combined',
+                conversionProbability: 44,
+                userRelevance: 28,
+                profitImpact: (benefit * 1.1).clamp(16, 34).toDouble(),
+                urgency: 20,
+              ),
+              suggestion: BasketSuggestion(
+                message:
+                    'Upgrade & get FREE Delivery (Save ₹${benefit.toStringAsFixed(0)})',
+                type: 'combined',
+                priority: 0,
+                actions: actions,
+                savingAmount: benefit,
+                thumbnailUrl: v.suggestion.thumbnailUrl,
+              ),
             ),
-            suggestion: BasketSuggestion(
-              message: 'Upgrade & get FREE Delivery (Save ₹${benefit.toStringAsFixed(0)})',
-              type: 'combined',
-              priority: 0,
-              actions: actions,
-              savingAmount: benefit,
-              thumbnailUrl: v.suggestion.thumbnailUrl,
-            ),
-          ));
+          );
           upgradedBaseItems.add(v);
           break; // Take the best variant
         }
@@ -1517,30 +1591,46 @@ class BasketSuggestionService {
   // ─────────────────────────────────────────────────────────────────────────
 
   static Future<DeliveryConfig> _getDeliveryConfig() async {
-    if (_cachedDeliveryConfig != null && _cachedDeliveryConfigAt != null && DateTime.now().difference(_cachedDeliveryConfigAt!) < _cacheTtl) return _cachedDeliveryConfig!;
+    if (_cachedDeliveryConfig != null &&
+        _cachedDeliveryConfigAt != null &&
+        DateTime.now().difference(_cachedDeliveryConfigAt!) < _cacheTtl)
+      return _cachedDeliveryConfig!;
     final config = await DeliveryEngine.getDeliveryConfig();
-    _cachedDeliveryConfig = config; _cachedDeliveryConfigAt = DateTime.now();
+    _cachedDeliveryConfig = config;
+    _cachedDeliveryConfigAt = DateTime.now();
     return config;
   }
 
   static Future<List<Coupon>> _getCoupons() async {
-    if (_cachedCoupons != null && _cachedCouponsAt != null && DateTime.now().difference(_cachedCouponsAt!) < _cacheTtl) return _cachedCoupons!;
+    if (_cachedCoupons != null &&
+        _cachedCouponsAt != null &&
+        DateTime.now().difference(_cachedCouponsAt!) < _cacheTtl)
+      return _cachedCoupons!;
     final coupons = await CouponService.fetchCoupons(activeOnly: true);
-    _cachedCoupons = coupons; _cachedCouponsAt = DateTime.now();
+    _cachedCoupons = coupons;
+    _cachedCouponsAt = DateTime.now();
     return coupons;
   }
 
   static Future<List<BogoOffer>> _getBogoOffers(Session session) async {
-    if (_cachedBogoOffers != null && _cachedBogoAt != null && DateTime.now().difference(_cachedBogoAt!) < _cacheTtl) return _cachedBogoOffers!;
+    if (_cachedBogoOffers != null &&
+        _cachedBogoAt != null &&
+        DateTime.now().difference(_cachedBogoAt!) < _cacheTtl)
+      return _cachedBogoOffers!;
     final offers = await BogoEndpoint().getActiveOffers(session);
-    _cachedBogoOffers = offers; _cachedBogoAt = DateTime.now();
+    _cachedBogoOffers = offers;
+    _cachedBogoAt = DateTime.now();
     return offers;
   }
 
   static Future<List<ComboOffer>> _getComboOffers(Session session) async {
-    if (_cachedComboOffers != null && _cachedComboAt != null && DateTime.now().difference(_cachedComboAt!) < _cacheTtl) return _cachedComboOffers!;
+    if (_cachedComboOffers != null &&
+        _cachedComboAt != null &&
+        DateTime.now().difference(_cachedComboAt!) < _cacheTtl)
+      return _cachedComboOffers!;
     final offers = await ComboOfferEndpoint().getActiveComboOffers(session);
-    _cachedComboOffers = offers; _cachedComboAt = DateTime.now();
+    _cachedComboOffers = offers;
+    _cachedComboAt = DateTime.now();
     return offers;
   }
 
@@ -1548,7 +1638,8 @@ class BasketSuggestionService {
     final variants = product.variants ?? [];
     if (variants.isEmpty) return null;
     if (variantId == null) return variants.first;
-    return variants.firstWhereOrNull((v) => v.variantId == variantId) ?? variants.first;
+    return variants.firstWhereOrNull((v) => v.variantId == variantId) ??
+        variants.first;
   }
 
   static double _normalizeQuantity(ProductVariant variant) {
@@ -1560,7 +1651,9 @@ class BasketSuggestionService {
 
   static String _formatVariantLabel(ProductVariant variant) {
     final value = variant.quantityValue;
-    final amount = value == value.truncateToDouble() ? value.toInt().toString() : value.toStringAsFixed(1);
+    final amount = value == value.truncateToDouble()
+        ? value.toInt().toString()
+        : value.toStringAsFixed(1);
     return '$amount${variant.quantityUnit}';
   }
 }

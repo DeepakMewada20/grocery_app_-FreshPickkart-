@@ -58,11 +58,13 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBest = s.isBest ?? false;
     final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>()!;
-    final goldAccent = const Color(0xFFE6A23C);
+    final goldAccent = const Color(0xFFD4952A);
 
-    final accent = isBest ? goldAccent : suggestionTheme.ctaBackground;
+    final accent = suggestionTheme.ctaBackground;
     final cardBg = suggestionTheme.cardBackground;
-    final cardBorder = isBest ? accent.withValues(alpha: 0.6) : cardBg;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.07)
+        : Colors.black.withValues(alpha: 0.06);
 
     return FadeTransition(
       opacity: _fade,
@@ -76,23 +78,39 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
             decoration: BoxDecoration(
               color: cardBg,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: cardBorder, width: isBest ? 1.5 : 1),
+              border: Border.all(color: borderColor, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: isBest
-                      ? goldAccent.withValues(alpha: 0.22)
-                      : Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-                  blurRadius: isBest ? 20 : 12,
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                  blurRadius: 14,
+                  spreadRadius: 0,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Row(
+              child: Stack(
                 children: [
-                  Container(width: 5, color: accent),
-                  Expanded(child: widget.child),
+                  Row(
+                    children: [
+                      // Thin premium left accent line
+                      Container(
+                        width: 3,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              accent.withValues(alpha: 0.9),
+                              accent.withValues(alpha: 0.2),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(child: widget.child),
+                    ],
+                  ),
                 ],
               ),
             ),

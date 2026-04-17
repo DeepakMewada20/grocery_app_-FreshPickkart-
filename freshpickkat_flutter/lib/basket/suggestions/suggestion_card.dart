@@ -23,7 +23,7 @@ class SuggestionCard extends StatelessWidget {
     final s = suggestion;
     final isBest = s.isBest ?? false;
     final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>()!;
-    final accent = isBest ? const Color(0xFFE6A23C) : suggestionTheme.ctaBackground;
+    final accent = suggestionTheme.ctaBackground;
 
     return SuggestionCardBase(
       suggestion: s,

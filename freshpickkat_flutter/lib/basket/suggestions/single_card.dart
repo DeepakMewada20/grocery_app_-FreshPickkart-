@@ -16,13 +16,16 @@ class SingleCardBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    final textPrimary = isDark ? Colors.white : const Color(0xFF1C1C1E);
+    final textPrimary = isDark ? Colors.white.withValues(alpha: 0.92) : const Color(0xFF111111);
+    final textSecondary = isDark
+        ? Colors.white.withValues(alpha: 0.45)
+        : const Color(0xFF888888);
     final isBest = s.isBest ?? false;
     final action = s.actions?.first;
     final type = s.type;
 
     return Padding(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,26 +48,27 @@ class SingleCardBody extends StatelessWidget {
                 SaveBadge(amount: s.savingAmount!, accent: accent),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-              height: 1.25,
+              fontWeight: FontWeight.w700,
+              fontSize: 13.5,
+              height: 1.3,
+              letterSpacing: -0.1,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           if ((s.subtitle ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               s.subtitle!,
               style: TextStyle(
-                color: cs.onSurface.withValues(alpha: 0.66),
-                fontSize: 11.5,
-                height: 1.2,
+                color: textSecondary,
+                fontSize: 11,
+                height: 1.3,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -73,20 +77,7 @@ class SingleCardBody extends StatelessWidget {
           
           const Spacer(),
 
-          // ── SPECIFIC UI SECTIONS ──────────────────────────────────────────
-          
-            
-          if (type == 'variant' && s.metadata != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: VariantComparisonView(
-                curLabel: s.metadata!['curLabel'] ?? '',
-                curPrice: s.metadata!['curPrice'] ?? '',
-                vLabel: s.metadata!['vLabel'] ?? '',
-                vPrice: s.metadata!['vPrice'] ?? '',
-                accent: accent,
-              ),
-            ),
+          // Variant comparison and other specific UI is now handled in the bottom row to save space
 
           Row(
             children: [
@@ -95,10 +86,26 @@ class SingleCardBody extends StatelessWidget {
               else if (s.thumbnailUrl != null)
                 _Thumb(url: s.thumbnailUrl!),
                 
-              if (type == 'coupon' || type == 'delivery' || action?.type == 'coupon' || action?.type == 'delivery')
+              const SizedBox(width: 8),
+
+              // Variant Comparison logic moved here
+              if (s.metadata != null && s.metadata!.containsKey('curLabel') && s.metadata!.containsKey('vLabel'))
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: VariantComparisonView(
+                      curLabel: s.metadata!['curLabel'] ?? '',
+                      curPrice: s.metadata!['curPrice'] ?? '',
+                      vLabel: s.metadata!['vLabel'] ?? '',
+                      vPrice: s.metadata!['vPrice'] ?? '',
+                      accent: accent,
+                    ),
+                  ),
+                )
+              else if (type == 'coupon' || type == 'delivery' || action?.type == 'coupon' || action?.type == 'delivery')
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: SuggestionProgressBar(
                       current: s.progressCurrent ?? 0,
                       target: s.progressTarget ?? 0,
@@ -108,6 +115,8 @@ class SingleCardBody extends StatelessWidget {
                 )
               else
                 const Spacer(),
+
+              const SizedBox(width: 8),
               CTAButton(
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,

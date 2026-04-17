@@ -17,66 +17,86 @@ class SuggestionProgressBar extends StatelessWidget {
     if (target <= 0) return const SizedBox.shrink();
     
     final progress = (current / target).clamp(0.0, 1.0);
-    final percentage = (progress * 100).toInt();
+    final remaining = (target - current).clamp(0, double.infinity).toInt();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              child: Text(
-                '₹${current.toInt()} / ₹${target.toInt()}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: cs.onSurface.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.bold,
+            if (remaining > 0)
+              Flexible(
+                child: Text(
+                  '₹$remaining more',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: cs.onSurface.withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '$percentage%',
+              )
+            else
+              Text(
+                'Unlocked',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 10.5,
                   color: accent,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
           ],
         ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: progress),
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, child) {
-              return LinearProgressIndicator(
-                value: value,
-                backgroundColor: accent.withValues(alpha: 0.1),
-                valueColor: AlwaysStoppedAnimation<Color>(accent),
-                minHeight: 6,
-              );
-            },
-          ),
+        const SizedBox(height: 6),
+        // Custom gradient progress bar
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final barWidth = constraints.maxWidth;
+            return Container(
+              height: 4,
+              width: barWidth,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: progress),
+                duration: const Duration(milliseconds: 900),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, _) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: value,
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [
+                              accent.withValues(alpha: 0.5),
+                              accent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ],
     );
   }
 }
+
 
 class OverlappingThumbs extends StatelessWidget {
   final List<String> imageUrls;
@@ -152,54 +172,87 @@ class VariantComparisonView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: cs.onSurface.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _VariantNode(label: curLabel, price: curPrice, color: cs.onSurface.withValues(alpha: 0.5)),
-          const SizedBox(width: 8),
-          Icon(Icons.arrow_forward_rounded, size: 14, color: accent.withValues(alpha: 0.5)),
-          const SizedBox(width: 8),
-          _VariantNode(label: vLabel, price: vPrice, color: accent, isBold: true),
-        ],
-      ),
-    );
-  }
-}
+    final dimText = cs.onSurface.withValues(alpha: isDark ? 0.45 : 0.4);
+    final dimBg = cs.onSurface.withValues(alpha: isDark ? 0.06 : 0.05);
 
-class _VariantNode extends StatelessWidget {
-  final String label;
-  final String price;
-  final Color color;
-  final bool isBold;
-
-  const _VariantNode({required this.label, required this.price, required this.color, this.isBold = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: color,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+        // Current variant pill (muted)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: dimBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                curLabel,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  color: dimText,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                '\u20b9$curPrice',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: dimText,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          '₹$price',
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: isBold ? FontWeight.w900 : FontWeight.bold,
+        // Arrow
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 10,
+            color: accent.withValues(alpha: 0.5),
+          ),
+        ),
+        // Suggested variant pill (highlighted)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: isDark ? 0.15 : 0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: accent.withValues(alpha: isDark ? 0.3 : 0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                vLabel,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  color: accent.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                '\u20b9$vPrice',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
         ),
       ],
