@@ -27,9 +27,16 @@ class BasketSuggestionsSection extends StatelessWidget {
         );
       }
 
-      final displaySuggestions = isLoading && oldSuggestions.isNotEmpty
-          ? oldSuggestions
-          : suggestions;
+      final bestSuggestion = cart.bestBasketSuggestion.value;
+      final baseSuggestions = isLoading && oldSuggestions.isNotEmpty
+          ? oldSuggestions.toList()
+          : suggestions.toList();
+      final displaySuggestions = bestSuggestion != null
+          ? [
+              bestSuggestion,
+              ...baseSuggestions.where((s) => s.id != bestSuggestion.id),
+            ]
+          : baseSuggestions;
 
       if (displaySuggestions.isEmpty) return const SizedBox.shrink();
 
