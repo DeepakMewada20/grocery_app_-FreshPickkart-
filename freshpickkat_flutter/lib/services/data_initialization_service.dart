@@ -25,14 +25,16 @@ class DataInitializationService extends GetxService {
 
     try {
       // Run critical fetches in parallel
+      // Auth and Notifications run in background (non-blocking)
+      // Categories is now deferred to its own screen.
+      _initAuth();
+      _initNotifications();
+
       await Future.wait([
-        _initAuth(),
         _initBanners(),
-        _initCategories(),
         _initBogoOffers(),
         _initComboOffers(),
         _initInitialProducts(),
-        _initNotifications(),
       ]);
 
       isInitialized.value = true;

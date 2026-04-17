@@ -56,6 +56,8 @@ class AuthController extends GetxController {
     final cachedUser = _cacheService.loadUser();
     if (cachedUser != null) {
       appUserRx.value = cachedUser;
+      // Load cart count from cache immediately
+      CartController.instance.fetchCartFromCache();
     }
   }
 
@@ -77,9 +79,10 @@ class AuthController extends GetxController {
       appUserRx.value = user;
       await _cacheService.saveUser(user);
 
-      if (CartController.instance.cartItems.isEmpty) {
-        CartController.instance.fetchCartFromServer();
-      }
+      // Revalidate cart from server and unlock sync
+      await CartController.instance.fetchCartFromServer();
+      CartController.instance.markInitialized();
+
       NotificationController.instance.syncTokenWithServer();
 
       final pendingProduct = getPendingProductToAdd();

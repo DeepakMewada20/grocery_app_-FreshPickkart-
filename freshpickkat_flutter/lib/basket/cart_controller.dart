@@ -12,6 +12,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:get/get.dart';
 
 class CartItem {
@@ -134,6 +135,12 @@ class CartController extends GetxController {
   Future<void>? _pricingInFlight;
   DeliveryConfig? _cachedDeliveryConfig;
   Future<void>? _deliveryConfigInFlight;
+  bool _isInitialized = false;
+
+  void markInitialized() {
+    _isInitialized = true;
+    _scheduleCartRefresh(); // Trigger first sync after initialization
+  }
 
   @override
   void onInit() {
@@ -170,7 +177,7 @@ class CartController extends GetxController {
   }
 
   void _scheduleCartRefresh() {
-    if (_isInitialLoading) return;
+    if (_isInitialLoading || !_isInitialized) return;
     isPricingStale.value = true;
     unawaited(fetchCartPricing());
     _cartRefreshDebounce?.cancel();
@@ -269,6 +276,7 @@ class CartController extends GetxController {
   }
 
   Future<void> _syncWithServer() async {
+    if (!_isInitialized) return;
     final authController = AuthController.instance;
     if (authController.isLoggedIn && authController.currentUser != null) {
       try {
@@ -294,6 +302,46 @@ class CartController extends GetxController {
         );
       } catch (e) {
         debugPrint('Error syncing cart to server: $e');
+      }
+    }
+  }
+
+  Future<void> fetchCartFromCache() async {
+    final cachedUser = UserCacheService.instance.loadUser();
+    if (cachedUser != null && cachedUser.cart != null) {
+      try {
+        _isInitialLoading = true;
+        // We populate with "Slim" CartItems (minimal product info) just for the UI count
+        // until the full revalidation happens.
+        final items = cachedUser.cart!.map((item) => CartItem(
+          product: Product(
+            productId: item.productId,
+            productName: '...',
+            category: '',
+            imageUrl: '',
+            price: 0,
+            realPrice: 0,
+            discount: 0,
+            isAvailable: true,
+            addedAt: DateTime.now(),
+            subcategory: [],
+            quantity: '0',
+            mostSearch: 0,
+            mostPurchases: 0,
+          ),
+          variantId: item.variantId,
+          quantity: item.quantity,
+          comboId: item.comboId,
+          comboName: item.comboName,
+          comboDiscountType: item.comboDiscountType,
+          comboDiscountValue: item.comboDiscountValue,
+          comboItemQuantity: item.comboItemQuantity,
+        )).toList();
+        cartItems.assignAll(items);
+        _isInitialLoading = false;
+      } catch (e) {
+        _isInitialLoading = false;
+        debugPrint('Error loading cart count from cache: $e');
       }
     }
   }

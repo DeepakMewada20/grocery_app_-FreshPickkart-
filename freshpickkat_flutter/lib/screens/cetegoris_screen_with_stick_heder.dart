@@ -37,6 +37,8 @@ class _CategoriesScreenWithStickyHeaderState
   @override
   void initState() {
     super.initState();
+    // Lazy load categories only when this screen is accessed
+    categoryController.fetchCategoriesIfEmpty();
     _itemsScrollController.addListener(_onItemsScroll);
     BannerController.instance.loadBannersForScreen('category_page');
 
