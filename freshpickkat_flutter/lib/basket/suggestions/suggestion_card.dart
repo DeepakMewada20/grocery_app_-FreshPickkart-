@@ -21,7 +21,6 @@ class SuggestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = suggestion;
-    final isBest = s.isBest ?? false;
     final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>()!;
     final accent = suggestionTheme.ctaBackground;
 

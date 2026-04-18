@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 class SuggestionActionChip extends StatelessWidget {

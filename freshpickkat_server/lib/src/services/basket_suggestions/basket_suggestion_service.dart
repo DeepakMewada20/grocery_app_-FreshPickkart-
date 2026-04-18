@@ -638,8 +638,9 @@ class BasketSuggestionService {
     Coupon? best;
     for (final coupon in coupons) {
       if (!coupon.isActive) continue;
-      if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase())
+      if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase()) {
         continue;
+      }
       final expiry = (coupon.expiryDate ?? coupon.endDate).toUtc();
       if (now.isAfter(expiry)) continue;
       if (best == null) {
@@ -1443,8 +1444,9 @@ class BasketSuggestionService {
       for (final c in coupons) {
         if (!c.isActive ||
             c.minOrderAmount <= cartTotal ||
-            c.minOrderAmount > total)
+            c.minOrderAmount > total) {
           continue;
+        }
         if (appliedCouponCode?.toUpperCase() == c.code.toUpperCase()) continue;
         if (c.discountValue != null && c.discountValue! > maxSav) {
           maxSav = c.discountValue!;
@@ -1593,8 +1595,9 @@ class BasketSuggestionService {
   static Future<DeliveryConfig> _getDeliveryConfig() async {
     if (_cachedDeliveryConfig != null &&
         _cachedDeliveryConfigAt != null &&
-        DateTime.now().difference(_cachedDeliveryConfigAt!) < _cacheTtl)
+        DateTime.now().difference(_cachedDeliveryConfigAt!) < _cacheTtl) {
       return _cachedDeliveryConfig!;
+    }
     final config = await DeliveryEngine.getDeliveryConfig();
     _cachedDeliveryConfig = config;
     _cachedDeliveryConfigAt = DateTime.now();
@@ -1604,8 +1607,9 @@ class BasketSuggestionService {
   static Future<List<Coupon>> _getCoupons() async {
     if (_cachedCoupons != null &&
         _cachedCouponsAt != null &&
-        DateTime.now().difference(_cachedCouponsAt!) < _cacheTtl)
+        DateTime.now().difference(_cachedCouponsAt!) < _cacheTtl) {
       return _cachedCoupons!;
+    }
     final coupons = await CouponService.fetchCoupons(activeOnly: true);
     _cachedCoupons = coupons;
     _cachedCouponsAt = DateTime.now();
@@ -1615,8 +1619,9 @@ class BasketSuggestionService {
   static Future<List<BogoOffer>> _getBogoOffers(Session session) async {
     if (_cachedBogoOffers != null &&
         _cachedBogoAt != null &&
-        DateTime.now().difference(_cachedBogoAt!) < _cacheTtl)
+        DateTime.now().difference(_cachedBogoAt!) < _cacheTtl) {
       return _cachedBogoOffers!;
+    }
     final offers = await BogoEndpoint().getActiveOffers(session);
     _cachedBogoOffers = offers;
     _cachedBogoAt = DateTime.now();
@@ -1626,8 +1631,9 @@ class BasketSuggestionService {
   static Future<List<ComboOffer>> _getComboOffers(Session session) async {
     if (_cachedComboOffers != null &&
         _cachedComboAt != null &&
-        DateTime.now().difference(_cachedComboAt!) < _cacheTtl)
+        DateTime.now().difference(_cachedComboAt!) < _cacheTtl) {
       return _cachedComboOffers!;
+    }
     final offers = await ComboOfferEndpoint().getActiveComboOffers(session);
     _cachedComboOffers = offers;
     _cachedComboAt = DateTime.now();

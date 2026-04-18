@@ -15,7 +15,6 @@ class SingleCardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
     final textPrimary = isDark ? Colors.white.withValues(alpha: 0.92) : const Color(0xFF111111);
     final textSecondary = isDark
         ? Colors.white.withValues(alpha: 0.45)

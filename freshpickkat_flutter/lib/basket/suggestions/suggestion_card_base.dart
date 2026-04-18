@@ -54,11 +54,8 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
 
   @override
   Widget build(BuildContext context) {
-    final s = widget.suggestion;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isBest = s.isBest ?? false;
     final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>()!;
-    final goldAccent = const Color(0xFFD4952A);
 
     final accent = suggestionTheme.ctaBackground;
     final cardBg = suggestionTheme.cardBackground;

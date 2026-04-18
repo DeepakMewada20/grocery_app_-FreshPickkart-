@@ -50,7 +50,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
 
     // Vehicle movement controller
     _vehicleController = AnimationController(
-      duration: const Duration(milliseconds: 4500),
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 
@@ -109,12 +109,12 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     await Future.delayed(const Duration(milliseconds: 600));
     _textController.forward();
 
-    // Start vehicle animation after text
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Start vehicle animation almost immediately after text for smoother feel
+    await Future.delayed(const Duration(milliseconds: 100));
     _vehicleController.forward();
 
-    // Navigate after splash
-    await Future.delayed(const Duration(milliseconds: 3500));
+    // Navigate after splash - adjusted to maintain ~3.0s total experience
+    await Future.delayed(const Duration(milliseconds: 2100));
     if (mounted) {
       Navigator.pushReplacement(
         context,
