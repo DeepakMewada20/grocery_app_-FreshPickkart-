@@ -1,0 +1,6 @@
+class: CheckoutResult
+fields:
+  success: bool
+  orderId: String?
+  paymentOrder: PaymentOrderResult?
+  error: String?

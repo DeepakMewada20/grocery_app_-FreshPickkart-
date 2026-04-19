@@ -87,15 +87,7 @@ flutter:
     - lib/assets/images/name_logo.png
     - lib/assets/images/delivery_truck.png
     - lib/assets/images/delivery_scooter.png
-    - lib/assets/images/street_background.png
     - lib/assets/images/grocry_home_banner.png
-    - lib/assets/images/oil.png
-    - lib/assets/images/milk.png
-    - lib/assets/images/rise.png
-    - lib/assets/images/Fruits_.png
-    - lib/assets/images/Pooja+Needs_1729079193.avif
-    - lib/assets/images/Wellness+&+Health_1729062880.png
-    - lib/assets/images/discount.jpg
     - lib/assets/images/app_logo.png
     - lib/assets/images/app_splash.png
 dependency_overrides:

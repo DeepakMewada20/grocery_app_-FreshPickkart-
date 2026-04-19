@@ -16,6 +16,20 @@ class OrderService {
     return _client.order.createPendingOrder(order, idempotencyKey);
   }
 
+  Future<CheckoutResult> createOrderAndPayment({
+    required Order order,
+    required String idempotencyKey,
+    required double amount,
+    required String customerPhone,
+  }) {
+    return _client.checkout.createOrderAndPayment(
+      order,
+      idempotencyKey,
+      amount,
+      customerPhone,
+    );
+  }
+
   Future<bool> cancelOrder({
     required String orderId,
     required String userId,

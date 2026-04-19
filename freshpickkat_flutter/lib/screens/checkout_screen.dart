@@ -47,11 +47,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Razorpay? _razorpay;
   bool _isProcessing = false;
+  String? _loadingStatus;
   String? _errorMessage;
   bool _isErrorBanner = true;
   String? _currentOrderId;
   String? _currentRazorpayOrderId;
   Order? _currentOrderSnapshot;
+  DateTime? _lastRefreshTime;
 
   @override
   void initState() {
@@ -60,7 +62,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     Future.microtask(() async {
-      await cartController.refreshCartCurrentData();
+      await _refreshCartWithTimestamp();
       await BannerController.instance.loadBannersForScreen('checkout_page');
       await orderRecoveryService.recoverPendingPayments(
         trigger: 'checkout_open',
@@ -72,10 +74,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (networkController.isConnected.value) {
         final currentRoute = Get.currentRoute;
         if (currentRoute.contains('checkout')) {
-          cartController.refreshCartCurrentData();
+          _refreshCartWithTimestamp();
         }
       }
     });
+  }
+
+  Future<void> _refreshCartWithTimestamp() async {
+    await cartController.refreshCartCurrentData();
+    _lastRefreshTime = DateTime.now();
   }
 
   @override
@@ -84,10 +91,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
-  void _setProcessing(bool value, {bool clearError = false}) {
+  void _setProcessing(bool value, {bool clearError = false, String? status}) {
     if (!mounted) return;
     setState(() {
       _isProcessing = value;
+      _loadingStatus = status;
       if (clearError) {
         _errorMessage = null;
         _isErrorBanner = true;
@@ -98,9 +106,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
 
-    _setProcessing(true, clearError: true);
+    final now = DateTime.now();
+    final shouldRefresh = _lastRefreshTime == null ||
+        now.difference(_lastRefreshTime!).inMinutes >= 3;
 
-    await cartController.refreshCartCurrentData();
+    if (shouldRefresh) {
+      _setProcessing(true, clearError: true, status: 'Refreshing basket...');
+      await _refreshCartWithTimestamp();
+    } else {
+      _setProcessing(true, clearError: true, status: 'Checking basket...');
+    }
 
     if (cartController.cartItems.isEmpty) {
       _showError('Your basket is empty');
@@ -127,31 +142,47 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     try {
+      final customerPhone = _getCustomerPhone();
+      final customerEmail = userController.userEmail.value.isNotEmpty
+          ? userController.userEmail.value
+          : '$customerPhone@freshpickkart.com';
+
+      if (customerPhone.isEmpty) {
+        _showError(
+          'Phone number is required for payment. Please update your profile.',
+        );
+        return;
+      }
+
       // Build order - checkout service will use temp address if available
       final order = _buildOrderFromCart(deliveryAddress);
-      final checkoutSession = await checkoutService.createPendingOrder(
+
+      _setProcessing(true, status: 'Creating order & fetching payment ID...');
+
+      // CONSOLIDATED CALL: Creates both Order and Payment ID in one network request
+      final checkoutResult = await checkoutService.createOrderAndPayment(
         draftOrder: order,
+        amount: cartController.totalAmount,
+        customerPhone: customerPhone,
       );
-      final orderId = checkoutSession.orderId;
+
+      if (checkoutResult.success != true || checkoutResult.orderId == null) {
+        _showError(checkoutResult.error ?? 'Failed to initiate checkout');
+        return;
+      }
+
+      final orderId = checkoutResult.orderId!;
+      final paymentOrder = checkoutResult.paymentOrder;
+
       _currentOrderId = orderId;
       _currentOrderSnapshot = order.copyWith(orderId: orderId);
-      await _seedTrackingMetadata(orderId, order);
 
-      final paymentOrder = await paymentService.startPayment(
-        orderId: orderId,
-        amount: cartController.totalAmount,
-        customerPhone: _getCustomerPhone(),
-      );
+      // OPTIMIZATION: Seed tracking metadata in background (no await)
+      _seedTrackingMetadata(orderId, order);
 
-      if (paymentOrder.success != true) {
+      if (paymentOrder == null || paymentOrder.success != true) {
         await paymentService.markPaymentFailed(orderId);
-        final error = paymentOrder.error ?? 'Payment order failed';
-        final details = paymentOrder.details;
-        _showError(
-          details != null && details.toString().trim().isNotEmpty
-              ? '$error: $details'
-              : error,
-        );
+        _showError(paymentOrder?.error ?? 'Payment order failed');
         return;
       }
 
@@ -171,27 +202,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      final customerPhone = _getCustomerPhone();
-      final customerEmail = userController.userEmail.value.isNotEmpty
-          ? userController.userEmail.value
-          : '$customerPhone@freshpickkart.com';
-
-      print('[DEBUG-1] customerPhone: "$customerPhone"');
-      print('[DEBUG-1] customerEmail: "$customerEmail"');
-
-      if (customerPhone.isEmpty) {
-        await paymentService.markPaymentFailed(orderId);
-        _showError(
-          'Phone number is required for payment. Please update your profile.',
-        );
-        return;
-      }
-
       final isTestMode = keyId.startsWith('rzp_test_');
 
-      print(
-        '[DEBUG-2] Starting UPI flow (${isTestMode ? 'test' : 'live'})',
-      );
+      _setProcessing(true, status: 'Opening payment gateway...');
+
       final didSelectUpiOption = await _startUpiPaymentFlow(
         isTestMode: isTestMode,
         keyId: keyId,
@@ -202,6 +216,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerEmail: customerEmail,
         orderId: orderId,
       );
+
       if (!didSelectUpiOption && mounted) {
         _setProcessing(false);
       }
@@ -1083,13 +1098,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Delivery Address',
-              style: TextStyle(
-                color: cs.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Delivery Address',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                if (displayAddress != null)
+                  SizedBox(
+                    height: 35,
+                    child: _buildAddressButton(
+                      cs,
+                      icon: Icons.my_location,
+                      label: 'Change',
+                      onPressed: () =>
+                          _openLocationPicker(initialAddress: null),
+                      compact: true,
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             if (displayAddress == null) ...[
@@ -1129,12 +1161,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    color: cs.onSurface.withValues(alpha: 0.6),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1161,26 +1188,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  SizedBox(
-                    height: 45,
-                    child: _buildAddressButton(
-                      cs,
-                      icon: Icons.my_location,
-                      label: 'Change',
-                      onPressed: () =>
-                          _openLocationPicker(initialAddress: null),
-                      compact: true,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
-              Text(
-                _formatAddress(displayAddress),
-                style: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.8),
-                  fontSize: 14,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _formatAddress(displayAddress),
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],
@@ -1572,13 +1601,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           child: _isProcessing
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.5,
-                  ),
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _loadingStatus ?? 'Processing...',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 )
               : const Text(
                   'PLACE ORDER',

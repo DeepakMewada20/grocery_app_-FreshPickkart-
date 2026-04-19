@@ -34,6 +34,8 @@ categoryOffer:
   - getAllCategoryOffers:
   - getCategoryOffersPage:
   - setCategoryOfferActive:
+checkout:
+  - createOrderAndPayment:
 comboOffer:
   - upsertComboOffer:
   - deleteComboOffer:

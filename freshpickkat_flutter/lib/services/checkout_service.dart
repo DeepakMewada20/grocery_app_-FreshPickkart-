@@ -48,4 +48,19 @@ class CheckoutService {
       isExistingOrder: false,
     );
   }
+
+  Future<CheckoutResult> createOrderAndPayment({
+    required Order draftOrder,
+    required double amount,
+    required String customerPhone,
+    String? idempotencyKey,
+  }) async {
+    final key = idempotencyKey ?? generateIdempotencyKey(draftOrder.userId);
+    return _orderService.createOrderAndPayment(
+      order: draftOrder,
+      idempotencyKey: key,
+      amount: amount,
+      customerPhone: customerPhone,
+    );
+  }
 }
