@@ -983,63 +983,70 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Checkout'),
+    return PopScope(
+      canPop: !_isProcessing,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // User tried to pop while processing, we can show a snackbar here if desired.
+      },
+      child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: cs.onSurface,
-        elevation: 0,
-      ),
-      body: Obx(() {
-        if (cartController.cartItems.isEmpty) {
-          return _buildEmptyState(cs);
-        }
+        appBar: AppBar(
+          title: const Text('Checkout'),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          foregroundColor: cs.onSurface,
+          elevation: 0,
+        ),
+        body: Obx(() {
+          if (cartController.cartItems.isEmpty) {
+            return _buildEmptyState(cs);
+          }
 
-        return Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 🎯 Checkout Page Banner
-                    Obx(() {
-                      final banners =
-                          BannerController.instance.checkoutPageBanners;
-                      if (banners.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: NetworkBannerWidget(
-                          height: 120,
-                          banners: banners,
-                          autoScrollInterval: const Duration(seconds: 5),
-                          autoScrollDuration: const Duration(milliseconds: 500),
-                        ),
-                      );
-                    }),
-                    _buildAddressSection(cs),
-                    const SizedBox(height: 16),
-                    _buildItemsSection(cs),
-                    const SizedBox(height: 16),
-                    const SizedBox(height: 16),
-                    _buildBillDetails(cs),
-                    const SizedBox(height: 16),
-                    _buildPaymentSection(cs),
-                    if (_errorMessage != null) ...[
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 🎯 Checkout Page Banner
+                      Obx(() {
+                        final banners =
+                            BannerController.instance.checkoutPageBanners;
+                        if (banners.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: NetworkBannerWidget(
+                            height: 120,
+                            banners: banners,
+                            autoScrollInterval: const Duration(seconds: 5),
+                            autoScrollDuration: const Duration(milliseconds: 500),
+                          ),
+                        );
+                      }),
+                      _buildAddressSection(cs),
                       const SizedBox(height: 16),
-                      _buildErrorBanner(cs),
+                      _buildItemsSection(cs),
+                      const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                      _buildBillDetails(cs),
+                      const SizedBox(height: 16),
+                      _buildPaymentSection(cs),
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 16),
+                        _buildErrorBanner(cs),
+                      ],
+                      const SizedBox(height: 80),
                     ],
-                    const SizedBox(height: 80),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            _buildPlaceOrderButton(cs),
-          ],
-        );
-      }),
+              _buildPlaceOrderButton(cs),
+            ],
+          );
+        }),
+      ),
     );
   }
 
