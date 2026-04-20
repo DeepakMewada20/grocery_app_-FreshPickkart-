@@ -54,6 +54,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? _currentRazorpayOrderId;
   Order? _currentOrderSnapshot;
   DateTime? _lastRefreshTime;
+  Future<void>? _refreshFuture;
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay = Razorpay();
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    Future.microtask(() async {
+    _refreshFuture = Future.microtask(() async {
       await _refreshCartWithTimestamp();
       await BannerController.instance.loadBannersForScreen('checkout_page');
       await orderRecoveryService.recoverPendingPayments(
@@ -106,6 +107,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
 
+    // 1. If an initial refresh is still running, wait for it first
+    if (_refreshFuture != null) {
+      _setProcessing(true, clearError: true, status: 'Finalizing basket...');
+      await _refreshFuture;
+      _refreshFuture = null; // Clear it once done
+    }
+
     final now = DateTime.now();
     final shouldRefresh = _lastRefreshTime == null ||
         now.difference(_lastRefreshTime!).inMinutes >= 3;
@@ -114,7 +122,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _setProcessing(true, clearError: true, status: 'Refreshing basket...');
       await _refreshCartWithTimestamp();
     } else {
-      _setProcessing(true, clearError: true, status: 'Checking basket...');
+      // If we just finished waiting for _refreshFuture above, we are already "Processing"
+      if (!_isProcessing) {
+        _setProcessing(true, clearError: true, status: 'Checking basket...');
+      } else {
+        setState(() {
+          _loadingStatus = 'Checking basket...';
+        });
+      }
     }
 
     if (cartController.cartItems.isEmpty) {
@@ -735,6 +750,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'paymentId=$paymentId, signature=$signature',
     );
 
+    setState(() {
+      _loadingStatus = 'Verifying payment...';
+    });
+
     Future(() async {
       try {
         final result = await paymentService
@@ -751,6 +770,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             .timeout(const Duration(seconds: 20));
 
         if (result.isConfirmed) {
+          setState(() {
+            _loadingStatus = 'Confirming order...';
+          });
           await _completeSuccessfulPayment(orderId);
         } else if (result.isQueuedForRecovery) {
           Future(() async {
@@ -912,6 +934,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           '';
 
       if (orderId != null && paymentId != null && paymentId.isNotEmpty) {
+        setState(() {
+          _loadingStatus = 'Finalizing payment status...';
+        });
         final resolved = await _tryResolvePendingUpiPayment(
           orderId: orderId,
           paymentId: paymentId,
