@@ -16,6 +16,7 @@ import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
@@ -201,8 +202,8 @@ class _BasketScreenState extends State<BasketScreen> {
                       width: 80,
                       height: 80,
                       color: cs.surface,
-                      child: Image.network(
-                        item.product.imageUrl,
+                      child: SafeNetworkImage(
+                        url: item.product.imageUrl,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -310,8 +311,8 @@ class _BasketScreenState extends State<BasketScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            freeProduct.imageUrl,
+                          child: SafeNetworkImage(
+                            url: freeProduct.imageUrl,
                             width: 40,
                             height: 40,
                             fit: BoxFit.cover,
@@ -457,8 +458,8 @@ class _BasketScreenState extends State<BasketScreen> {
                       width: 52,
                       height: 52,
                       color: cs.surface,
-                      child: Image.network(
-                        item.product.imageUrl,
+                      child: SafeNetworkImage(
+                        url: item.product.imageUrl,
                         fit: BoxFit.contain,
                       ),
                     ),

@@ -13,6 +13,7 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
+import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:get/get.dart';
 
 class CartItem {
@@ -136,6 +137,8 @@ class CartController extends GetxController {
   DeliveryConfig? _cachedDeliveryConfig;
   Future<void>? _deliveryConfigInFlight;
   bool _isInitialized = false;
+  bool _isInitialSyncComplete = false;
+  Future<void>? _syncLock; // Serial queue for server updates
 
   void markInitialized() {
     _isInitialized = true;
@@ -276,9 +279,15 @@ class CartController extends GetxController {
   }
 
   Future<void> _syncWithServer() async {
-    if (!_isInitialized) return;
+    if (!_isInitialized || !_isInitialSyncComplete) return;
     final authController = AuthController.instance;
     if (authController.isLoggedIn && authController.currentUser != null) {
+      // Use a serial queue (syncLock) to prevent race conditions
+      final completer = Completer<void>();
+      final previousLock = _syncLock;
+      _syncLock = completer.future;
+      await previousLock;
+
       try {
         final protocolCart = cartItems
             .map(
@@ -302,6 +311,8 @@ class CartController extends GetxController {
         );
       } catch (e) {
         debugPrint('Error syncing cart to server: $e');
+      } finally {
+        completer.complete();
       }
     }
   }
@@ -339,6 +350,10 @@ class CartController extends GetxController {
         )).toList();
         cartItems.assignAll(items);
         _isInitialLoading = false;
+        // If not logged in, cache is our only source of truth for now
+        if (!AuthController.instance.isLoggedIn) {
+          _isInitialSyncComplete = true; 
+        }
       } catch (e) {
         _isInitialLoading = false;
         debugPrint('Error loading cart count from cache: $e');
@@ -359,6 +374,8 @@ class CartController extends GetxController {
       } catch (e) {
         _isInitialLoading = false;
         debugPrint('Error fetching cart from server: $e');
+        // If server fails, allow local changes to sync anyway to prevent further data loss
+        _isInitialSyncComplete = true; 
       }
     }
   }
@@ -461,9 +478,9 @@ class CartController extends GetxController {
     final effectiveMode = mode ?? (cartItems.isEmpty ? 'empty' : 'cart');
     final snapshot = effectiveMode == 'empty'
         ? 'empty::${AuthController.instance.currentUser?.uid ?? 'guest'}'
-        : _buildMeaningfulCartSnapshot();
+        : '$effectiveMode::${_buildMeaningfulCartSnapshot()}';
 
-    if (effectiveMode == 'cart' && snapshot.isEmpty) {
+    if (effectiveMode == 'cart' && snapshot.endsWith('::')) {
       bestBasketSuggestion.value = null;
       basketSuggestions.clear();
       oldBasketSuggestions.clear();
@@ -472,6 +489,14 @@ class CartController extends GetxController {
       return;
     }
     if (snapshot == _lastSuggestedCartSnapshot) return;
+
+    // 🕵️ Detect mode switch (Empty -> Cart or vice versa)
+    final lastMode = _lastSuggestedCartSnapshot.split('::').first;
+    if (lastMode.isNotEmpty && lastMode != effectiveMode) {
+      bestBasketSuggestion.value = null;
+      basketSuggestions.clear();
+      oldBasketSuggestions.clear();
+    }
 
     if (basketSuggestions.isNotEmpty) {
       oldBasketSuggestions.assignAll(basketSuggestions);
@@ -487,7 +512,7 @@ class CartController extends GetxController {
       );
       final currentSnapshot = effectiveMode == 'empty'
           ? 'empty::${AuthController.instance.currentUser?.uid ?? 'guest'}'
-          : _buildMeaningfulCartSnapshot();
+          : '$effectiveMode::${_buildMeaningfulCartSnapshot()}';
       if (currentSnapshot != snapshot) {
         oldBasketSuggestions.clear();
         isBasketSuggestionsLoading.value = false;
@@ -503,11 +528,38 @@ class CartController extends GetxController {
                 : const <BasketSuggestion>[]),
       );
       _lastSuggestedCartSnapshot = snapshot;
+
+      // Pre-fetch combo products for the UI to show multiple images
+      _prefetchComboProductsFromSuggestions(response.suggestions);
     } catch (e) {
       debugPrint('Error fetching basket suggestions: $e');
     } finally {
       isBasketSuggestionsLoading.value = false;
     }
+  }
+
+  void _prefetchComboProductsFromSuggestions(List<BasketSuggestion> suggestions) {
+    final comboIds = suggestions
+        .where((s) => s.comboId != null && s.comboId!.isNotEmpty)
+        .map((s) => s.comboId!)
+        .toSet();
+    
+    if (comboIds.isEmpty) return;
+
+    // Ensure combos are loaded first
+    ComboOfferController.instance.fetchActiveComboOffersIfEmpty().then((_) {
+      final productIds = <String>{};
+      for (final id in comboIds) {
+        final combo = ComboOfferController.instance.activeComboOffers
+            .firstWhereOrNull((c) => c.comboId == id);
+        if (combo != null) {
+          productIds.addAll(combo.comboProducts.map((p) => p.productId));
+        }
+      }
+      if (productIds.isNotEmpty) {
+        ProductProviderController.instance.fetchProductsByIds(productIds.toList());
+      }
+    });
   }
 
   String _buildMeaningfulCartSnapshot() {
@@ -684,7 +736,46 @@ class CartController extends GetxController {
       }
     }
 
-    cartItems.assignAll(normalized);
+    // MERGE LOGIC: Combine incoming server items with existing local items
+    final merged = List<CartItem>.from(cartItems);
+
+    for (final incoming in normalized) {
+      final key = _cartItemKeyFromUi(incoming);
+      final existingIndex = merged.indexWhere((it) => _cartItemKeyFromUi(it) == key);
+
+      if (existingIndex != -1) {
+        // If it exists in both, REPLACE with the server-side version (to get real prices)
+        // while maintaining the quantity preference (server usually wins on sync)
+        final existing = merged[existingIndex];
+        
+        // If local quantity was higher, keep it (optional, but server is safer for startup sync)
+        final finalQuantity = incoming.quantity > existing.quantity 
+            ? incoming.quantity 
+            : existing.quantity;
+            
+        merged[existingIndex] = CartItem(
+          product: incoming.product,
+          variantId: incoming.variantId,
+          quantity: finalQuantity,
+          bogoFreeProductId: incoming.bogoFreeProductId,
+          comboId: incoming.comboId,
+          comboName: incoming.comboName,
+          comboDiscountType: incoming.comboDiscountType,
+          comboDiscountValue: incoming.comboDiscountValue,
+          comboItemQuantity: incoming.comboItemQuantity,
+        );
+      } else {
+        // If it's new from server, add it
+        merged.add(incoming);
+      }
+    }
+
+    cartItems.assignAll(merged);
+    _isInitialSyncComplete = true; // Unlock server sync after first merge
+    
+    // Explicitly refresh calculations once real products are in
+    _updateDeliveryFeeEstimate();
+    unawaited(fetchCartPricing());
   }
 
   String _cartItemKeyFromUi(CartItem item) {
@@ -692,7 +783,6 @@ class CartController extends GetxController {
       item.product.productId ?? '',
       item.variantId ?? '',
       item.comboId ?? '',
-      item.quantity.toString(),
     ].join(':');
   }
 
@@ -701,7 +791,6 @@ class CartController extends GetxController {
       item.productId,
       item.variantId ?? '',
       item.comboId ?? '',
-      item.quantity.toString(),
     ].join(':');
   }
 
@@ -1480,6 +1569,14 @@ class CartController extends GetxController {
             }
             await applyCoupon(action.couponCode!);
           }
+          break;
+
+        case 'navigate':
+          SuggestionNavigationHelper.handleTap(suggestion);
+          // For pure navigation actions, we might NOT want to remove the suggestion 
+          // immediately so the user can go back to it.
+          // However, to keep it consistent with the user's request (it was being removed),
+          // we continue the loop.
           break;
 
         default:

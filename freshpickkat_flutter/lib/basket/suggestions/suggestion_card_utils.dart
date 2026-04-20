@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 
 class SuggestionProgressBar extends StatelessWidget {
   final double current;
@@ -112,38 +113,44 @@ class OverlappingThumbs extends StatelessWidget {
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) return const SizedBox.shrink();
     
-    // Limit to 3 images as per user requirement
-    final displayImages = imageUrls.take(3).toList();
+    // Take up to 4 images for a richer look if available
+    final displayImages = imageUrls.take(4).toList();
+    final overlap = size * 0.55;
 
     return SizedBox(
-      height: size,
-      width: size + (displayImages.length - 1) * (size * 0.6),
+      height: size + 4, // Extra space for shadows
+      width: size + (displayImages.length - 1) * overlap + 4,
       child: Stack(
+        clipBehavior: Clip.none,
         children: displayImages.asMap().entries.map((entry) {
           final idx = entry.key;
           final url = entry.value;
+          
           return Positioned(
-            left: idx * (size * 0.6),
+            left: idx * overlap,
             child: Container(
               width: size,
               height: size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(
+                  color: Colors.white, 
+                  width: 2,
+                  strokeAlign: BorderSide.strokeAlignOutside,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 6,
+                    offset: const Offset(1, 2),
                   ),
                 ],
               ),
               child: ClipOval(
-                child: Image.network(
-                  url,
+                child: SafeNetworkImage(
+                  url: url,
                   fit: BoxFit.cover,
-                  errorBuilder: (c, e, s) => Container(color: Colors.grey[200]),
                 ),
               ),
             ),

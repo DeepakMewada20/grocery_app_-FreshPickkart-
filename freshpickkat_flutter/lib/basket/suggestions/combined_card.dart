@@ -4,6 +4,8 @@ import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:get/get.dart';
 
 class CombinedCardBody extends StatelessWidget {
@@ -115,7 +117,7 @@ class CombinedCardBody extends StatelessWidget {
               CTAButton(
                 label: actions.isNotEmpty ? (actions.first.ctaLabel).toUpperCase() : 'APPLY DEAL',
                 accent: accent,
-                onTap: () {}, // Handled by parent
+                onTap: () => CartController.instance.applyBasketSuggestion(s),
               ),
             ],
           ),
@@ -149,14 +151,27 @@ class _ComboThumbs extends StatelessWidget {
     return Obx(() {
       final combos = ComboOfferController.instance.activeComboOffers;
       final combo = combos.firstWhereOrNull((c) => c.comboId == comboId);
-      if (combo == null) return const SizedBox(width: 40, height: 40);
-
-      final productIds = combo.comboProducts.map((p) => p.productId).toList();
-      final products = ProductProviderController.instance.allProducts
-          .where((p) => productIds.contains(p.productId))
-          .toList();
       
-      final urls = products.map((p) => p.imageUrl).whereType<String>().toList();
+      final urls = <String>[];
+      
+      if (combo != null) {
+        final productIds = combo.comboProducts.map((p) => p.productId).toList();
+        final products = ProductProviderController.instance.allProducts
+            .where((p) => productIds.contains(p.productId))
+            .toList();
+        urls.addAll(products.map((p) => p.imageUrl).whereType<String>());
+      }
+
+      // Fallback to metadata if we have few/no images from loaded products
+      if (urls.length < 2) {
+        final metaUrls = s.metadata?['comboImageUrls']?.split(',') ?? [];
+        for (final url in metaUrls) {
+          if (url.isNotEmpty && !urls.contains(url)) {
+            urls.add(url);
+          }
+        }
+      }
+      
       if (urls.isEmpty && s.thumbnailUrl != null) {
          urls.add(s.thumbnailUrl!);
       }
@@ -182,10 +197,9 @@ class _Thumb extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
-        child: Image.network(
-          url, 
+        child: SafeNetworkImage(
+          url: url, 
           fit: BoxFit.cover,
-          errorBuilder: (c, e, s) => const Icon(Icons.image_not_supported, size: 20),
         ),
       ),
     );

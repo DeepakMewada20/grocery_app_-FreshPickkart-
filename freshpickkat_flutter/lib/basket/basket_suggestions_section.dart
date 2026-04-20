@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
+import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:get/get.dart';
 
 class BasketSuggestionsSection extends StatelessWidget {
@@ -15,16 +16,7 @@ class BasketSuggestionsSection extends StatelessWidget {
       final oldSuggestions = cart.oldBasketSuggestions;
 
       if (isLoading && oldSuggestions.isEmpty) {
-        return const SizedBox(
-          height: 120,
-          child: Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2.5),
-            ),
-          ),
-        );
+        return const SuggestionSkeletonSection();
       }
 
       final bestSuggestion = cart.bestBasketSuggestion.value;

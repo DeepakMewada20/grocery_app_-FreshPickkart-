@@ -158,7 +158,61 @@ class BasketSuggestionService {
       return a.extraSpend.compareTo(b.extraSpend);
     });
 
-    // ── 5. Finalize Results (Top 6) ──────────────────────────────────────────
+    // ── 5. Backfill if needed (Threshold: 3) ────────────────────────────────
+    if (scored.length < 3) {
+      final backfillPool = await Future.wait([
+        ProductEndpoint().getProducts(session, limit: 8, sortBy: 'best_sellers'),
+        ProductEndpoint().getProducts(session, limit: 8, sortBy: 'trending'),
+      ]);
+      final bestSellers = backfillPool[0];
+      final trending = backfillPool[1];
+
+      // Refresh productMap with new backfill products
+      for (final p in [...bestSellers, ...trending]) {
+        if (p.productId != null) productMap.putIfAbsent(p.productId!, () => p);
+      }
+
+      final discovery = _scoreEmptyOfferSuggestions(
+        bestSellers: bestSellers,
+        trending: trending,
+        bogoOffers: bogoOffers,
+        comboOffers: comboOffers,
+        productMap: productMap,
+      );
+
+      for (final ds in discovery) {
+        final isDuplicate = scored.any(
+          (s) =>
+              (s.suggestion.productId != null &&
+                  s.suggestion.productId == ds.suggestion.productId) ||
+              (s.suggestion.comboId != null &&
+                  s.suggestion.comboId == ds.suggestion.comboId),
+        );
+        final alreadyInCart = normalizedItems.any(
+          (it) =>
+              (ds.suggestion.comboId != null &&
+                  it.comboId == ds.suggestion.comboId) ||
+              (ds.suggestion.type == 'bogo' &&
+                  ds.suggestion.productId != null &&
+                  it.productId == ds.suggestion.productId),
+        );
+
+        if (!isDuplicate && !alreadyInCart) {
+          // Low score to stay below contextual suggestions
+          scored.add(
+            _Scored(
+              suggestion: ds.suggestion,
+              extraSpend: ds.extraSpend,
+              totalBenefit: ds.totalBenefit,
+              score: ds.score * 0.1,
+            ),
+          );
+        }
+        if (scored.length >= 6) break;
+      }
+    }
+
+    // ── 6. Finalize Results (Top 6) ──────────────────────────────────────────
     return _finalizeResults(scored);
   }
 
@@ -815,8 +869,7 @@ class BasketSuggestionService {
     }
 
     final bogo = bogoOffers.where((offer) => offer.isActive).toList();
-    if (bogo.isNotEmpty) {
-      final offer = bogo.first;
+    for (final offer in bogo) {
       final trigger = productMap[offer.triggerProductId];
       if (trigger != null) {
         final action = _primaryAction(
@@ -864,8 +917,7 @@ class BasketSuggestionService {
     }
 
     final combo = comboOffers.where((offer) => offer.isActive).toList();
-    if (combo.isNotEmpty) {
-      final offer = combo.first;
+    for (final offer in combo) {
       final comboId = offer.comboId ?? offer.name;
       final comboLeadProduct = offer.comboProducts.isNotEmpty
           ? productMap[offer.comboProducts.first.productId]
@@ -1304,6 +1356,12 @@ class BasketSuggestionService {
         extraSpend: extraSpend,
       );
 
+      final comboImageUrls = combo.comboProducts
+          .map((cp) => productMap[cp.productId]?.imageUrl)
+          .whereType<String>()
+          .take(4)
+          .join(',');
+
       results.add(
         _Scored(
           extraSpend: extraSpend,
@@ -1317,13 +1375,16 @@ class BasketSuggestionService {
           ),
           suggestion: BasketSuggestion(
             message: 'Save ₹${savings.toStringAsFixed(0)} with ${combo.name}',
-            type: 'single',
+            type: 'combo',
             priority: 0,
             actions: [action],
             savingAmount: savings,
             comboId: combo.comboId,
             thumbnailUrl:
                 productMap[combo.comboProducts.first.productId]?.imageUrl,
+            metadata: {
+              'comboImageUrls': comboImageUrls,
+            },
           ),
         ),
       );
@@ -1541,7 +1602,9 @@ class BasketSuggestionService {
             priority: 0,
             actions: actions,
             savingAmount: benefit,
+            comboId: c.suggestion.comboId,
             thumbnailUrl: c.suggestion.thumbnailUrl,
+            metadata: c.suggestion.metadata,
           ),
         ),
       );

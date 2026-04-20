@@ -10,6 +10,7 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:get/get.dart';
 
 class EmptyBasketView extends StatelessWidget {
@@ -442,22 +443,11 @@ class _CategoryTileState extends State<_CategoryTile>
                   scale: _scaleAnimation.value,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      widget.category.categoryImageUrl,
+                    child: SafeNetworkImage(
+                      url: widget.category.categoryImageUrl,
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 56,
-                          height: 56,
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                            Icons.category_outlined,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        );
-                      },
                     ),
                   ),
                 );
@@ -555,17 +545,9 @@ class _BuyAgainCard extends StatelessWidget {
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             )
-                          : Image.network(
-                              imageUrl,
+                          : SafeNetworkImage(
+                              url: imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Container(
-                                color: theme.colorScheme.surfaceContainerHighest,
-                                child: Icon(
-                                  Icons.shopping_bag_outlined,
-                                  size: 30,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
                             ),
                     ),
                   ),

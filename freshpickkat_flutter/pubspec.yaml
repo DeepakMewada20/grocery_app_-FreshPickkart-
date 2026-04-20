@@ -90,6 +90,7 @@ flutter:
     - lib/assets/images/grocry_home_banner.png
     - lib/assets/images/app_logo.png
     - lib/assets/images/app_splash.png
+    - lib/assets/images/logo.png
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
 
