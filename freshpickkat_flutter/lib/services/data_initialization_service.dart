@@ -64,14 +64,6 @@ class DataInitializationService extends GetxService {
     }
   }
 
-  Future<void> _initCategories() async {
-    try {
-      await CategoryProviderController.instance.fetchCategoriesIfEmpty();
-    } catch (e) {
-      debugPrint('Error init categories: $e');
-    }
-  }
-
   Future<void> _initBogoOffers() async {
     try {
       await BogoController.instance.fetchActiveOffersIfEmpty();
