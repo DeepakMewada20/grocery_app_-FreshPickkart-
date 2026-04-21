@@ -5,6 +5,7 @@ import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
 import '../services/coupon_service.dart';
 import '../services/delivery/delivery_engine.dart';
+import '../services/bogo/bogo_eligibility.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 
 class PricingEngine {
@@ -120,42 +121,33 @@ class PricingEngine {
       final now = DateTime.now();
       if (offer.startDate.isAfter(now) || offer.endDate.isBefore(now)) continue;
 
-      final triggerItem = _firstWhereOrNull(
-        items,
-        (i) =>
-            i.productId == offer.triggerProductId &&
-            (offer.triggerVariantId == null ||
-                offer.triggerVariantId!.trim().isEmpty ||
-                i.variantId == offer.triggerVariantId),
-      );
-      if (triggerItem == null) continue;
-
       final product = productMap[offer.triggerProductId];
       if (product == null) continue;
-      ProductVariant? triggerVariant;
-      if (offer.triggerVariantId != null &&
-          offer.triggerVariantId!.trim().isNotEmpty) {
-        try {
-          triggerVariant = (product.variants ?? const <ProductVariant>[])
-              .firstWhere(
-                (variant) => variant.variantId == offer.triggerVariantId,
-              );
-        } catch (_) {}
-      }
 
-      final minimumTriggerQuantity = offer.minTriggerQuantity ?? 1;
-      if (minimumTriggerQuantity <= 0 ||
-          triggerItem.quantity < minimumTriggerQuantity) {
-        continue;
-      }
+      final matchingTriggerItems = items.where(
+        (item) =>
+            item.productId == offer.triggerProductId &&
+            isBogoTriggerEligible(
+              triggerProduct: product,
+              offer: offer,
+              selectedVariantId: item.variantId,
+            ) &&
+            item.bogoFreeProductId != null &&
+            offer.freeProductIds.contains(item.bogoFreeProductId),
+      );
 
-      final price = triggerVariant?.price ?? product.price;
-      final freeQty = triggerItem.quantity ~/ minimumTriggerQuantity;
-      if (freeQty > 0) {
-        final discount = price * freeQty;
+      for (final triggerItem in matchingTriggerItems) {
+        final selectedFreeProductId = triggerItem.bogoFreeProductId;
+        if (selectedFreeProductId == null) continue;
+        final freeProduct = productMap[selectedFreeProductId];
+        if (freeProduct == null) continue;
+
+        final freeQty = triggerItem.quantity;
+        if (freeQty <= 0) continue;
+
+        final discount = freeProduct.price * freeQty;
         result.bogoDiscount += discount;
         result.totalSavings += discount;
-        effectiveSubtotal -= discount;
 
         appliedOffersList.add(
           AppliedOfferInfo(
@@ -166,20 +158,15 @@ class PricingEngine {
           ),
         );
 
-        for (final freeProductId in offer.freeProductIds) {
-          final freeProduct = productMap[freeProductId];
-          if (freeProduct != null) {
-            freeItemsList.add(
-              FreeItemInfo(
-                productId: freeProductId,
-                productName: freeProduct.productName,
-                variantId: null,
-                quantity: freeQty,
-                triggerProductId: offer.triggerProductId,
-              ),
-            );
-          }
-        }
+        freeItemsList.add(
+          FreeItemInfo(
+            productId: selectedFreeProductId,
+            productName: freeProduct.productName,
+            variantId: null,
+            quantity: freeQty,
+            triggerProductId: offer.triggerProductId,
+          ),
+        );
       }
     }
 
@@ -637,9 +624,7 @@ class PricingEngine {
                   fields['triggerProductId']?.stringValue ??
                   res.document!.name!.split('/').last,
               triggerVariantId: fields['triggerVariantId']?.stringValue,
-              minTriggerQuantity: int.tryParse(
-                fields['minTriggerQuantity']?.integerValue?.toString() ?? '1',
-              ),
+              minTriggerQuantity: 1,
               triggerBaseQuantity: double.tryParse(
                 fields['triggerBaseQuantity']?.doubleValue?.toString() ??
                     fields['triggerBaseQuantity']?.integerValue?.toString() ??

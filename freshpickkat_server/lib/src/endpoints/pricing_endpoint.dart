@@ -19,6 +19,7 @@ class PricingEndpoint extends Endpoint {
             variantId: item.variantId,
             quantity: item.quantity,
             comboId: item.comboId,
+            bogoFreeProductId: item.bogoFreeProductId,
           ),
         )
         .toList();

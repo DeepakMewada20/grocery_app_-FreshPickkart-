@@ -10,6 +10,7 @@ import '../services/notification_service.dart';
 import '../services/orders/order_idempotency_service.dart';
 import '../services/refunds/refund_service.dart';
 import '../services/coupon_service.dart';
+import '../services/bogo/bogo_eligibility.dart';
 import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import 'package:googleapis/firestore/v1.dart' show FirestoreApi;
 
@@ -30,6 +31,13 @@ class OrderEndpoint extends Endpoint {
   static const String paymentFailed = 'failed';
   static const String paymentRefunded = 'refunded';
   final RefundService _refundService = RefundService();
+
+  T? _firstWhereOrNull<T>(Iterable<T> values, bool Function(T value) test) {
+    for (final value in values) {
+      if (test(value)) return value;
+    }
+    return null;
+  }
 
   String _generateOrderId() {
     final random = DateTime.now().millisecondsSinceEpoch;
@@ -56,11 +64,20 @@ class OrderEndpoint extends Endpoint {
     final validatedItems = <protocol.OrderItem>[];
     for (final item in order.items) {
       if (item.isFreeItem && item.triggerProductId != null) {
+        final triggerItem = _firstWhereOrNull(
+          order.items,
+          (candidate) =>
+              !candidate.isFreeItem &&
+              candidate.productId == item.triggerProductId,
+        );
+        if (triggerItem == null) continue;
+
         // Check if BOGO offer is still active for the trigger product
         final isValid = await _isBogoOfferActive(
           firestore,
           triggerProductId: item.triggerProductId!,
           freeProductId: item.productId,
+          triggerVariantId: triggerItem.variantId,
         );
         if (!isValid) continue; // silently remove invalid free items
       }
@@ -136,6 +153,7 @@ class OrderEndpoint extends Endpoint {
     FirestoreApi firestore, {
     required String triggerProductId,
     required String freeProductId,
+    required String? triggerVariantId,
   }) async {
     try {
       final database = 'projects/$projectId/databases/(default)/documents';
@@ -183,13 +201,160 @@ class OrderEndpoint extends Endpoint {
                   .where((s) => s.isNotEmpty)
                   .toList() ??
               [];
-          return freeProductIdsList.contains(freeProductId);
+          if (!freeProductIdsList.contains(freeProductId)) {
+            return false;
+          }
+
+          final triggerProduct = await _fetchProductById(
+            firestore,
+            triggerProductId,
+          );
+          if (triggerProduct == null) return false;
+
+          final offer = protocol.BogoOffer(
+            offerId: fields['offerId']?.stringValue,
+            triggerProductId:
+                fields['triggerProductId']?.stringValue ?? triggerProductId,
+            triggerVariantId: fields['triggerVariantId']?.stringValue,
+            minTriggerQuantity: 1,
+            triggerBaseQuantity: double.tryParse(
+              fields['triggerBaseQuantity']?.doubleValue?.toString() ??
+                  fields['triggerBaseQuantity']?.integerValue?.toString() ??
+                  '',
+            ),
+            triggerBaseUnit: fields['triggerBaseUnit']?.stringValue,
+            freeProductIds: freeProductIdsList,
+            freeProducts: null,
+            offerTitle: fields['offerTitle']?.stringValue ?? 'Buy 1 Get 1',
+            isActive: fields['isActive']?.booleanValue ?? true,
+            startDate:
+                DateTime.tryParse(fields['startDate']?.timestampValue ?? '') ??
+                DateTime.now(),
+            endDate:
+                DateTime.tryParse(fields['endDate']?.timestampValue ?? '') ??
+                DateTime.now(),
+            createdAt:
+                DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
+                DateTime.now(),
+          );
+
+          return isBogoTriggerEligible(
+            triggerProduct: triggerProduct,
+            offer: offer,
+            selectedVariantId: triggerVariantId,
+          );
         }
       }
       return false;
     } catch (_) {
       return false;
     }
+  }
+
+  Future<protocol.Product?> _fetchProductById(
+    FirestoreApi firestore,
+    String productId,
+  ) async {
+    final database = 'projects/$projectId/databases/(default)/documents';
+    final docPath = '$database/Products/$productId';
+    try {
+      final doc = await firestore.projects.databases.documents.get(docPath);
+      if (doc.fields == null) return null;
+      return _mapProductFromFirestore(doc.fields!);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  protocol.Product _mapProductFromFirestore(
+    Map<String, firestore_api.Value> fields,
+  ) {
+    final variants = <protocol.ProductVariant>[];
+    final rawVariants = fields['variants']?.arrayValue?.values ?? const [];
+    for (final value in rawVariants) {
+      final variantFields = value.mapValue?.fields;
+      if (variantFields == null) continue;
+      variants.add(
+        protocol.ProductVariant(
+          variantId: variantFields['variantId']?.stringValue ?? 'default',
+          quantityValue:
+              double.tryParse(
+                variantFields['quantityValue']?.doubleValue?.toString() ??
+                    variantFields['quantityValue']?.integerValue?.toString() ??
+                    '1',
+              ) ??
+              1,
+          quantityUnit: variantFields['quantityUnit']?.stringValue ?? 'pc',
+          quantityDescription:
+              variantFields['quantityDescription']?.stringValue,
+          price:
+              double.tryParse(
+                variantFields['price']?.doubleValue?.toString() ??
+                    variantFields['price']?.integerValue?.toString() ??
+                    '0',
+              ) ??
+              0,
+          realPrice:
+              double.tryParse(
+                variantFields['realPrice']?.doubleValue?.toString() ??
+                    variantFields['realPrice']?.integerValue?.toString() ??
+                    '0',
+              ) ??
+              0,
+          isAvailable: variantFields['isAvailable']?.booleanValue ?? true,
+          sortOrder: int.tryParse(
+            variantFields['sortOrder']?.integerValue?.toString() ?? '0',
+          ),
+        ),
+      );
+    }
+
+    return protocol.Product(
+      productId: fields['productId']?.stringValue,
+      productName: fields['productName']?.stringValue ?? '',
+      category: fields['category']?.stringValue ?? '',
+      imageUrl: fields['imageUrl']?.stringValue ?? '',
+      price:
+          double.tryParse(
+            fields['price']?.doubleValue?.toString() ??
+                fields['price']?.integerValue?.toString() ??
+                '0',
+          ) ??
+          0,
+      realPrice:
+          double.tryParse(
+            fields['realPrice']?.doubleValue?.toString() ??
+                fields['realPrice']?.integerValue?.toString() ??
+                '0',
+          ) ??
+          0,
+      discount:
+          double.tryParse(
+            fields['discount']?.doubleValue?.toString() ??
+                fields['discount']?.integerValue?.toString() ??
+                '0',
+          ) ??
+          0,
+      isAvailable: fields['isAvailable']?.booleanValue ?? true,
+      addedAt:
+          DateTime.tryParse(fields['addedAt']?.timestampValue ?? '') ??
+          DateTime.now(),
+      subcategory: fields['subcategory']?.arrayValue?.values
+              ?.map((value) => value.stringValue ?? '')
+              .toList() ??
+          const <String>[],
+      quantity: fields['quantity']?.stringValue ?? '1',
+      baseUnit: fields['baseUnit']?.stringValue,
+      baseQuantity: double.tryParse(
+        fields['baseQuantity']?.doubleValue?.toString() ??
+            fields['baseQuantity']?.integerValue?.toString() ??
+            '',
+      ),
+      mostSearch: int.tryParse(fields['mostSearch']?.integerValue ?? '0') ?? 0,
+      mostPurchases:
+          int.tryParse(fields['mostPurchases']?.integerValue ?? '0') ?? 0,
+      variants: variants.isEmpty ? null : variants,
+    );
   }
 
   Future<List<protocol.Order>> getOrders(

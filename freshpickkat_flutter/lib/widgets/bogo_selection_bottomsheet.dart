@@ -4,9 +4,10 @@ import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:get/get.dart';
 
-class BogoSelectionBottomSheet extends StatelessWidget {
+class BogoSelectionBottomSheet extends StatefulWidget {
   final String triggerProductId;
   final String? triggerVariantId;
   final List<String> freeProductIds;
@@ -19,6 +20,21 @@ class BogoSelectionBottomSheet extends StatelessWidget {
   });
 
   @override
+  State<BogoSelectionBottomSheet> createState() =>
+      _BogoSelectionBottomSheetState();
+}
+
+class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
+  late String? _currentTriggerVariantId;
+  bool _isSwitchingVariant = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTriggerVariantId = widget.triggerVariantId;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final productController = ProductProviderController.instance;
     final bogoController = BogoController.instance;
@@ -29,7 +45,7 @@ class BogoSelectionBottomSheet extends StatelessWidget {
         theme.extension<AppOfferTheme>() ??
         AppOfferTheme.fallback(theme.brightness);
 
-    final List<Product> eligibleProducts = freeProductIds
+    final List<Product> eligibleProducts = widget.freeProductIds
         .map(
           (id) => productController.allProducts.firstWhereOrNull(
             (p) => p.productId == id,
@@ -37,11 +53,34 @@ class BogoSelectionBottomSheet extends StatelessWidget {
         )
         .whereType<Product>()
         .toList();
+    final triggerProduct = productController.allProducts.firstWhereOrNull(
+      (product) => product.productId == widget.triggerProductId,
+    );
+    final offer = bogoController.getOfferForProduct(widget.triggerProductId);
+    final eligibleVariants =
+        triggerProduct != null && offer != null
+        ? eligibleBogoTriggerVariants(triggerProduct, offer)
+        : const <ProductVariant>[];
+    final isSelectionEnabled =
+        triggerProduct != null &&
+            offer != null &&
+            widget.freeProductIds.isNotEmpty
+        ? isBogoTriggerVariantEligible(
+            triggerProduct,
+            offer: offer,
+            selectedVariantId: _currentTriggerVariantId,
+          )
+        : true;
+    final helperMessage =
+        triggerProduct != null && offer != null && !isSelectionEnabled
+        ? buildBogoIneligibleMessage(triggerProduct, offer)
+        : 'Select 1 item from the list below. This gift will be added at ₹0.';
     final selectedFreeProductId = cartController.cartItems
         .firstWhereOrNull(
           (item) =>
-              item.product.productId == triggerProductId &&
-              (item.variantId ?? 'default') == (triggerVariantId ?? 'default'),
+              item.product.productId == widget.triggerProductId &&
+              (item.variantId ?? 'default') ==
+                  (_currentTriggerVariantId ?? 'default'),
         )
         ?.bogoFreeProductId;
 
@@ -94,7 +133,9 @@ class BogoSelectionBottomSheet extends StatelessWidget {
               ],
             ),
             Text(
-              'Choose your free product',
+              isSelectionEnabled
+                  ? 'Choose your free product'
+                  : 'Free product locked for this pack',
               style: theme.textTheme.titleLarge?.copyWith(
                 color: cs.onSurface,
                 fontWeight: FontWeight.bold,
@@ -102,11 +143,96 @@ class BogoSelectionBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Select 1 item from the list below. This gift will be added at ₹0.',
+              helperMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurface.withValues(alpha: 0.68),
               ),
             ),
+            if (eligibleVariants.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isSelectionEnabled
+                          ? 'Eligible trigger packs'
+                          : 'Upgrade trigger pack',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isSelectionEnabled
+                          ? 'This offer works on these packs. You can switch here if needed.'
+                          : 'Choose one of these packs to unlock your free product.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: eligibleVariants.map((variant) {
+                        final isCurrent =
+                            variant.variantId == _currentTriggerVariantId;
+                        return ChoiceChip(
+                          label: Text(
+                            formatBogoTriggerVariantLabel(variant),
+                          ),
+                          selected: isCurrent,
+                          onSelected: _isSwitchingVariant
+                              ? null
+                              : (selected) async {
+                                  if (!selected || isCurrent) return;
+                                  final switched =
+                                      await _switchTriggerVariant(
+                                        variant.variantId,
+                                      );
+                                  if (!switched || !mounted) return;
+                                  setState(() {
+                                    _currentTriggerVariantId = variant.variantId;
+                                  });
+                                },
+                        );
+                      }).toList(growable: false),
+                    ),
+                    if (_isSwitchingVariant) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: offerTheme.badge,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Updating cart pack...',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.onSurface.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 18),
             if (eligibleProducts.isEmpty)
               Padding(
@@ -130,7 +256,7 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                         product.productId == selectedFreeProductId;
                     final displayQuantity = bogoController
                         .freeProductQuantityLabel(
-                          triggerProductId,
+                          widget.triggerProductId,
                           product.productId ?? '',
                           fallback: product.quantity,
                         );
@@ -204,7 +330,9 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  'FREE with this offer',
+                                  isSelectionEnabled
+                                      ? 'FREE with this offer'
+                                      : 'Available on eligible trigger packs',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: offerTheme.badge,
                                     fontWeight: FontWeight.w700,
@@ -215,14 +343,16 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           FilledButton(
-                            onPressed: () {
-                              cartController.setBogoSelection(
-                                triggerProductId,
-                                product.productId,
-                                triggerVariantId: triggerVariantId,
-                              );
-                              Get.back();
-                            },
+                            onPressed: !isSelectionEnabled
+                                ? null
+                                : () {
+                                    cartController.setBogoSelection(
+                                      widget.triggerProductId,
+                                      product.productId,
+                                      triggerVariantId: _currentTriggerVariantId,
+                                    );
+                                    Get.back();
+                                  },
                             style: FilledButton.styleFrom(
                               backgroundColor: offerTheme.badge,
                               foregroundColor: offerTheme.onBadge,
@@ -231,7 +361,11 @@ class BogoSelectionBottomSheet extends StatelessWidget {
                                 vertical: 12,
                               ),
                             ),
-                            child: Text(isSelected ? 'Selected' : 'Choose'),
+                            child: Text(
+                              !isSelectionEnabled
+                                  ? 'Unavailable'
+                                  : (isSelected ? 'Selected' : 'Choose'),
+                            ),
                           ),
                         ],
                       ),
@@ -243,5 +377,20 @@ class BogoSelectionBottomSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<bool> _switchTriggerVariant(String nextVariantId) async {
+    setState(() => _isSwitchingVariant = true);
+    try {
+      return CartController.instance.switchRegularItemVariant(
+        widget.triggerProductId,
+        fromVariantId: _currentTriggerVariantId,
+        toVariantId: nextVariantId,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSwitchingVariant = false);
+      }
+    }
   }
 }

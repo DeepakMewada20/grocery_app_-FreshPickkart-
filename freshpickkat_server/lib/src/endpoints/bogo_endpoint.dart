@@ -15,6 +15,7 @@ class BogoEndpoint extends Endpoint {
     // Use triggerProductId as the document ID so it's easy to look up
     final docPath = '$database/$bogoCollection/${offer.triggerProductId}';
     offer.offerId = offer.triggerProductId;
+    offer.minTriggerQuantity = 1;
     offer.createdAt = offer.createdAt;
 
     final fields = _bogoOfferToFirestore(offer);
@@ -180,9 +181,7 @@ class BogoEndpoint extends Endpoint {
       offerId: docId,
       triggerProductId: fields['triggerProductId']?.stringValue ?? docId,
       triggerVariantId: fields['triggerVariantId']?.stringValue,
-      minTriggerQuantity: int.tryParse(
-        fields['minTriggerQuantity']?.integerValue?.toString() ?? '1',
-      ),
+      minTriggerQuantity: 1,
       triggerBaseQuantity: double.tryParse(
         fields['triggerBaseQuantity']?.doubleValue?.toString() ??
             fields['triggerBaseQuantity']?.integerValue?.toString() ??
@@ -242,7 +241,7 @@ class BogoEndpoint extends Endpoint {
           ? firestore_api.Value(stringValue: offer.triggerVariantId!.trim())
           : firestore_api.Value(nullValue: 'NULL_VALUE'),
       'minTriggerQuantity': firestore_api.Value(
-        integerValue: (offer.minTriggerQuantity ?? 1).toString(),
+        integerValue: '1',
       ),
       'triggerBaseQuantity': offer.triggerBaseQuantity != null
           ? firestore_api.Value(doubleValue: offer.triggerBaseQuantity!)

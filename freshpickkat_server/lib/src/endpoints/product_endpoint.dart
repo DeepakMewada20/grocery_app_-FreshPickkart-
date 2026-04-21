@@ -655,7 +655,6 @@ class ProductEndpoint extends Endpoint {
           .toList();
       final existingFreeProductQuantities = <String, String?>{};
       String? existingTriggerVariantId;
-      int? existingMinTriggerQuantity;
       double? existingTriggerBaseQuantity;
       String? existingTriggerBaseUnit;
 
@@ -666,11 +665,6 @@ class ProductEndpoint extends Endpoint {
         if (existingDoc.fields != null) {
           existingTriggerVariantId =
               existingDoc.fields!['triggerVariantId']?.stringValue;
-          existingMinTriggerQuantity = int.tryParse(
-            existingDoc.fields!['minTriggerQuantity']?.integerValue
-                    ?.toString() ??
-                '1',
-          );
           existingTriggerBaseQuantity = double.tryParse(
             existingDoc.fields!['triggerBaseQuantity']?.doubleValue
                     ?.toString() ??
@@ -708,7 +702,7 @@ class ProductEndpoint extends Endpoint {
             stringValue: existingTriggerVariantId.trim(),
           ),
         'minTriggerQuantity': firestore_api.Value(
-          integerValue: (existingMinTriggerQuantity ?? 1).toString(),
+          integerValue: '1',
         ),
         if (existingTriggerBaseQuantity != null)
           'triggerBaseQuantity': firestore_api.Value(

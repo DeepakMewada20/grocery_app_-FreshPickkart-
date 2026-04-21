@@ -4,3 +4,4 @@ fields:
   variantId: String?
   quantity: int
   comboId: String?
+  bogoFreeProductId: String?

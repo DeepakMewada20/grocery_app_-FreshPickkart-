@@ -692,15 +692,24 @@ class _BasketScreenState extends State<BasketScreen> {
           if (cartController.comboDiscountTotal > 0) ...[
             const SizedBox(height: 12),
             _buildBillRow(
-              'Combo Discount',
+              'Combo Savings',
               '-₹${cartController.comboDiscountTotal.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if (cartController.bogoDiscountTotal > 0) ...[
+            const SizedBox(height: 12),
+            _buildBillRow(
+              'BOGO Savings',
+              '-₹${cartController.bogoDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
           ],
           const SizedBox(height: 12),
           _buildBillRow(
-            'Subtotal After Discounts',
+            'Items Total (Combo Applied)',
             '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),

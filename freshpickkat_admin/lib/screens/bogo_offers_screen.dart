@@ -403,15 +403,14 @@ class _BogoOfferCard extends StatelessWidget {
   }
 
   String _fallbackTitle(BogoOffer offer, ProductVariant? triggerVariant) {
-    final minimumTriggerQuantity = offer.minTriggerQuantity ?? 1;
     final variantLabel = triggerVariant != null
         ? _variantLabel(triggerVariant)
         : (offer.triggerBaseQuantity != null && offer.triggerBaseUnit != null)
         ? '${offer.triggerBaseQuantity} ${offer.triggerBaseUnit}'
         : null;
     final buyLabel = variantLabel == null
-        ? 'Buy $minimumTriggerQuantity'
-        : 'Buy $minimumTriggerQuantity of $variantLabel';
+        ? 'Buy 1'
+        : 'Buy 1 of $variantLabel';
     return '$buyLabel, Get ${offer.freeProductIds.length} Free';
   }
 
@@ -484,7 +483,7 @@ class _BogoOfferCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Buy ${offer.minTriggerQuantity ?? 1} Get ${offer.freeProductIds.length} Free',
+                    'Buy 1 Get ${offer.freeProductIds.length} Free',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

@@ -1520,7 +1520,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           const SizedBox(height: 12),
           _buildBillRow(
-            'Item Total',
+            'MRP Total',
+            'INR ${cartController.mrpTotal.toStringAsFixed(0)}',
+            cs: cs,
+          ),
+          if (cartController.productDiscountTotal > 0) ...[
+            const SizedBox(height: 8),
+            _buildBillRow(
+              'Product Discount',
+              '-INR ${cartController.productDiscountTotal.toStringAsFixed(0)}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if (cartController.comboDiscountTotal > 0) ...[
+            const SizedBox(height: 8),
+            _buildBillRow(
+              'Combo Savings',
+              '-INR ${cartController.comboDiscountTotal.toStringAsFixed(0)}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if (cartController.bogoDiscountTotal > 0) ...[
+            const SizedBox(height: 8),
+            _buildBillRow(
+              'BOGO Savings',
+              '-INR ${cartController.bogoDiscountTotal.toStringAsFixed(0)}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          const SizedBox(height: 8),
+          _buildBillRow(
+            'Items Total (Combo Applied)',
             'INR ${cartController.subtotal.toStringAsFixed(0)}',
             cs: cs,
           ),

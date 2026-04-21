@@ -9,6 +9,7 @@ import '../../generated/protocol.dart';
 import '../firebase_service.dart';
 import '../coupon_service.dart';
 import '../delivery/delivery_engine.dart';
+import '../bogo/bogo_eligibility.dart';
 import '../orders/order_document_mapper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -210,8 +211,18 @@ class BasketSuggestionService {
         comboOffers: comboOffers,
         productMap: productMap,
       );
+      final prioritizedDiscovery = [
+        ...discovery.where(
+          (item) =>
+              item.suggestion.type == 'bogo' || item.suggestion.type == 'combo',
+        ),
+        ...discovery.where(
+          (item) =>
+              item.suggestion.type != 'bogo' && item.suggestion.type != 'combo',
+        ),
+      ];
 
-      for (final ds in discovery) {
+      for (final ds in prioritizedDiscovery) {
         final isDuplicate = scored.any(
           (s) =>
               (s.suggestion.productId != null &&
@@ -361,8 +372,21 @@ class BasketSuggestionService {
 
   static BasketSuggestionResult _finalizeResults(List<_Scored> scored) {
     final results = <BasketSuggestion>[];
+    final offerSuggestionCount = scored
+        .where(
+          (item) =>
+              item.suggestion.type == 'combo' ||
+              item.suggestion.type == 'bogo' ||
+              item.suggestion.type == 'combined',
+        )
+        .length;
+    final comboLimit = offerSuggestionCount >= 3 ? 1 : 2;
+    var comboCount = 0;
     for (var i = 0; i < scored.length && results.length < 5; i++) {
       final item = scored[i];
+      if (item.suggestion.type == 'combo' && comboCount >= comboLimit) {
+        continue;
+      }
       final isBest = i == 0;
       final action =
           item.suggestion.action ??
@@ -387,6 +411,7 @@ class BasketSuggestionService {
       final meta = Map<String, String>.from(finalized.metadata ?? {});
       meta['isBest'] = isBest ? 'true' : 'false';
       meta['score'] = item.score.toStringAsFixed(2);
+      if (finalized.type == 'combo') comboCount++;
       results.add(finalized.copyWith(metadata: meta));
     }
 
@@ -1681,58 +1706,166 @@ class BasketSuggestionService {
       final trigger = productMap[offer.triggerProductId];
       if (trigger == null) continue;
 
-      // REDUNDANCY CHECK: If trigger is in cart AND any free product is in cart, skip
-      final triggerInCart = cartItems.any(
-        (it) => it.productId == offer.triggerProductId,
-      );
-      final freeInCart = cartItems.any(
-        (it) => offer.freeProductIds.contains(it.productId),
-      );
+      final bestFreeProduct = _bestBogoFreeProduct(offer, productMap);
+      final baseBenefit = bestFreeProduct?.price ?? trigger.price;
 
-      if (triggerInCart && freeInCart) continue;
+      final triggerCartItems = cartItems
+          .where(
+            (item) =>
+                item.productId == offer.triggerProductId &&
+                (item.comboId == null || item.comboId!.trim().isEmpty),
+          )
+          .toList();
 
-      // BENEFIT: Highest price item
-      double benefit = 0;
-      for (final fid in offer.freeProductIds) {
-        final f = productMap[fid];
-        if (f != null && f.price > benefit) benefit = f.price;
+      final eligibleTriggerItems = triggerCartItems
+          .where(
+            (item) => isBogoTriggerEligible(
+              triggerProduct: trigger,
+              offer: offer,
+              selectedVariantId: item.variantId,
+            ),
+          )
+          .toList();
+      if (eligibleTriggerItems.isNotEmpty) {
+        continue;
       }
-      if (benefit <= 0) benefit = trigger.price;
 
-      final extraSpend = triggerInCart ? 0.0 : trigger.price;
+      final ineligibleTriggerItems = triggerCartItems
+          .where(
+            (item) => !isBogoTriggerEligible(
+              triggerProduct: trigger,
+              offer: offer,
+              selectedVariantId: item.variantId,
+            ),
+          )
+          .toList();
+
+      if (ineligibleTriggerItems.isNotEmpty) {
+        final currentItem = ineligibleTriggerItems.first;
+        final currentVariant = _resolveVariant(trigger, currentItem.variantId);
+        if (currentVariant == null) continue;
+
+        final eligibleVariants = eligibleBogoTriggerVariants(trigger, offer)
+            .where((variant) => variant.variantId != currentVariant.variantId)
+            .toList();
+        if (eligibleVariants.isEmpty) continue;
+
+        final currentSize = _normalizeQuantity(currentVariant);
+        eligibleVariants.sort((a, b) {
+          final aDelta = (_normalizeQuantity(a) - currentSize).abs();
+          final bDelta = (_normalizeQuantity(b) - currentSize).abs();
+          final sizeCompare = aDelta.compareTo(bDelta);
+          if (sizeCompare != 0) return sizeCompare;
+          return a.price.compareTo(b.price);
+        });
+        final targetVariant = eligibleVariants.first;
+        final quantity = currentItem.quantity.clamp(1, 99999);
+        final variantDiscount =
+            math.max(0.0, targetVariant.realPrice - targetVariant.price) *
+            quantity;
+        final freeBenefit = (bestFreeProduct?.price ?? 0) * quantity;
+        final benefit = variantDiscount + freeBenefit;
+        final extraSpend =
+            math.max(0.0, targetVariant.price - currentVariant.price) *
+            quantity;
+
+        final action = BasketSuggestionAction(
+          type: 'bogo',
+          label: 'BOGO Upgrade',
+          ctaLabel: 'Upgrade & Unlock',
+          payload: {
+            'productId': offer.triggerProductId,
+            'variantId': targetVariant.variantId,
+            'currentVariantId': currentVariant.variantId,
+            'mode': 'bogo_upgrade',
+            if (bestFreeProduct?.productId != null)
+              'freeProductId': bestFreeProduct!.productId!,
+          },
+          productId: offer.triggerProductId,
+          variantId: targetVariant.variantId,
+          benefit: benefit,
+          extraSpend: extraSpend,
+        );
+
+        results.add(
+          _Scored(
+            extraSpend: extraSpend,
+            totalBenefit: benefit,
+            score: _scoreFromComponents(
+              type: 'bogo',
+              conversionProbability: 38,
+              userRelevance: 32,
+              profitImpact: (benefit * 1.2).clamp(10, 30).toDouble(),
+              urgency: extraSpend <= 50 ? 22 : 16,
+            ),
+            suggestion: BasketSuggestion(
+              title:
+                  'Upgrade ${_formatVariantLabel(currentVariant)} to ${_formatVariantLabel(targetVariant)}',
+              subtitle:
+                  'Unlock FREE ${bestFreeProduct?.productName ?? 'gift'} with this pack switch',
+              message:
+                  'Switch ${trigger.productName} from ${_formatVariantLabel(currentVariant)} to ${_formatVariantLabel(targetVariant)} and unlock FREE ${bestFreeProduct?.productName ?? 'gift'}',
+              type: 'bogo',
+              priority: 0,
+              actions: [action],
+              savingAmount: benefit,
+              thumbnailUrl: trigger.imageUrl,
+              productId: trigger.productId,
+              variantId: targetVariant.variantId,
+              metadata: {
+                'mode': 'bogo_upgrade',
+                'currentVariantLabel': _formatVariantLabel(currentVariant),
+                'targetVariantLabel': _formatVariantLabel(targetVariant),
+                'curLabel': _formatVariantLabel(currentVariant),
+                'curPrice': currentVariant.price.toStringAsFixed(0),
+                'vLabel': _formatVariantLabel(targetVariant),
+                'vPrice': targetVariant.price.toStringAsFixed(0),
+                if (bestFreeProduct?.productName != null)
+                  'freeProductName': bestFreeProduct!.productName,
+              },
+            ),
+          ),
+        );
+        continue;
+      }
+
       final action = BasketSuggestionAction(
         type: 'bogo',
         label: 'Buy 1 Get 1 Free',
-        ctaLabel: triggerInCart ? 'Get Free Item' : 'Add to Cart',
+        ctaLabel: 'Add to Cart',
         payload: {
           'productId': offer.triggerProductId,
           if (offer.triggerVariantId != null)
             'variantId': offer.triggerVariantId!,
+          if (bestFreeProduct?.productId != null)
+            'freeProductId': bestFreeProduct!.productId!,
         },
         productId: offer.triggerProductId,
         variantId: offer.triggerVariantId,
-        benefit: benefit,
-        extraSpend: extraSpend,
+        benefit: baseBenefit,
+        extraSpend: trigger.price,
       );
 
       results.add(
         _Scored(
-          extraSpend: extraSpend,
-          totalBenefit: benefit,
+          extraSpend: trigger.price,
+          totalBenefit: baseBenefit,
           score: _scoreFromComponents(
             type: 'bogo',
-            conversionProbability: triggerInCart ? 42 : 28,
-            userRelevance: triggerInCart ? 24 : 18,
-            profitImpact: (benefit * 1.3).clamp(10, 28).toDouble(),
-            urgency: triggerInCart ? 14 : 10,
+            conversionProbability: 28,
+            userRelevance: 18,
+            profitImpact: (baseBenefit * 1.3).clamp(10, 28).toDouble(),
+            urgency: 10,
           ),
           suggestion: BasketSuggestion(
             message: 'Get a free product with ${trigger.productName}',
             type: 'single',
             priority: 0,
             actions: [action],
-            savingAmount: benefit,
+            savingAmount: baseBenefit,
             thumbnailUrl: trigger.imageUrl,
+            productId: trigger.productId,
+            variantId: offer.triggerVariantId,
           ),
         ),
       );
@@ -1954,6 +2087,7 @@ class BasketSuggestionService {
 
     // C. BOGO + Coupon / Delivery
     for (final b in bogoScored) {
+      if (_isBogoUpgradeScored(b)) continue;
       final combined = _stackWithThresholds(
         cartTotal: cartTotal,
         coupons: coupons,
@@ -1973,7 +2107,9 @@ class BasketSuggestionService {
 
     // D. BOGO + Combo (+ best one of Coupon / Delivery)
     final bestCombo = _bestScoredByValue(comboScored);
-    final bestBogo = _bestScoredByValue(bogoScored);
+    final bestBogo = _bestScoredByValue(
+      bogoScored.where((item) => !_isBogoUpgradeScored(item)).toList(),
+    );
     if (bestCombo != null && bestBogo != null) {
       final dual = _buildDualOfferCombination(
         cartTotal: cartTotal,
@@ -2066,6 +2202,26 @@ class BasketSuggestionService {
         ? value.toInt().toString()
         : value.toStringAsFixed(1);
     return '$amount${variant.quantityUnit}';
+  }
+
+  static Product? _bestBogoFreeProduct(
+    BogoOffer offer,
+    Map<String, Product> productMap,
+  ) {
+    Product? best;
+    for (final freeProductId in offer.freeProductIds) {
+      final product = productMap[freeProductId];
+      if (product == null) continue;
+      if (best == null || product.price > best.price) {
+        best = product;
+      }
+    }
+    return best;
+  }
+
+  static bool _isBogoUpgradeScored(_Scored scored) {
+    return scored.suggestion.type == 'bogo' &&
+        scored.suggestion.metadata?['mode'] == 'bogo_upgrade';
   }
 
   static double _comboItemSellingPrice(Product product, String? variantId) {

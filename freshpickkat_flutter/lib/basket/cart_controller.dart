@@ -9,6 +9,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -415,11 +416,22 @@ class CartController extends GetxController {
       for (final item in localItems) _cartItemKeyFromUi(item): item,
     };
 
-    await _revalidateStoredCart(
-      stored,
-      fallbackItems: fallbackItems,
-    );
-    await fetchCartPricing();
+    try {
+      await _revalidateStoredCart(
+        stored,
+        fallbackItems: fallbackItems,
+      );
+    } catch (e) {
+      debugPrint('Error refreshing cart current data: $e');
+      if (cartItems.isEmpty && localItems.isNotEmpty) {
+        cartItems.assignAll(localItems);
+      }
+    }
+    try {
+      await fetchCartPricing();
+    } catch (e) {
+      debugPrint('Error refreshing cart pricing: $e');
+    }
   }
 
   Future<void> fetchCartPricing() async {
@@ -610,23 +622,41 @@ class CartController extends GetxController {
     List<protocol.CartItem> storedCart, {
     Map<String, CartItem>? fallbackItems,
   }) async {
+    if (storedCart.isEmpty) {
+      cartItems.clear();
+      _lastSuggestedCartSnapshot = '';
+      return;
+    }
+
     final productIds = storedCart
-        .map((item) => item.productId)
+        .map((item) => item.productId.trim())
+        .where((id) => id.isNotEmpty)
         .toSet()
         .toList();
-    final currentProducts = await client.product.getProductsByIds(productIds);
+
+    final productsFuture = productIds.isEmpty
+        ? Future.value(const <Product>[])
+        : client.product.getProductsByIds(productIds);
+    final bogoFuture = BogoController.instance.activeOffers.isNotEmpty
+        ? Future.value(BogoController.instance.activeOffers.toList())
+        : client.bogo.getActiveOffers();
+    final comboFuture =
+        ComboOfferController.instance.activeComboOffers.isNotEmpty
+        ? Future.value(ComboOfferController.instance.activeComboOffers.toList())
+        : client.comboOffer.getActiveComboOffers();
+
+    final responses = await Future.wait([
+      productsFuture,
+      bogoFuture,
+      comboFuture,
+    ]);
+    final currentProducts = responses[0] as List<Product>;
     final productMap = {
       for (final product in currentProducts)
         if (product.productId != null) product.productId!: product,
     };
-
-    final activeBogoOffers = BogoController.instance.activeOffers.isNotEmpty
-        ? BogoController.instance.activeOffers.toList()
-        : await client.bogo.getActiveOffers();
-    final activeComboOffers =
-        ComboOfferController.instance.activeComboOffers.isNotEmpty
-        ? ComboOfferController.instance.activeComboOffers.toList()
-        : await client.comboOffer.getActiveComboOffers();
+    final activeBogoOffers = responses[1] as List<BogoOffer>;
+    final activeComboOffers = responses[2] as List<ComboOffer>;
 
     final normalized = <CartItem>[];
     final comboItems = storedCart
@@ -672,9 +702,11 @@ class CartController extends GetxController {
         final bogoOffer = activeBogoOffers.firstWhereOrNull(
           (offer) =>
               offer.triggerProductId == item.productId &&
-              (offer.triggerVariantId == null ||
-                  offer.triggerVariantId!.trim().isEmpty ||
-                  offer.triggerVariantId == variant.variantId),
+              isBogoTriggerVariantEligible(
+                baseProduct,
+                offer: offer,
+                selectedVariantId: variant.variantId,
+              ),
         );
 
         if (bogoOffer == null ||
@@ -914,8 +946,12 @@ class CartController extends GetxController {
     return comboGroups.fold<double>(0, (sum, group) => sum + group.savings);
   }
 
+  double get bogoDiscountTotal {
+    return cartPricing.value?.bogoDiscount ?? 0;
+  }
+
   double get totalSavings {
-    return productDiscountTotal + comboDiscountTotal;
+    return productDiscountTotal + comboDiscountTotal + bogoDiscountTotal;
   }
 
   double get deliveryFee {
@@ -1135,6 +1171,7 @@ class CartController extends GetxController {
             variantId: item.variantId,
             quantity: item.quantity,
             comboId: item.comboId,
+            bogoFreeProductId: item.bogoFreeProductId,
           ),
         )
         .where((item) => item.productId.isNotEmpty && item.quantity > 0)
@@ -1270,6 +1307,72 @@ class CartController extends GetxController {
     }
   }
 
+  bool switchRegularItemVariant(
+    String productId, {
+    String? fromVariantId,
+    required String toVariantId,
+  }) {
+    final baseProduct =
+        ProductProviderController.instance.allProducts.firstWhereOrNull(
+          (product) => product.productId == productId,
+        ) ??
+        _findProductById(productId);
+    if (baseProduct == null) return false;
+
+    final resolvedToVariantId = resolveProductVariant(
+      baseProduct,
+      variantId: toVariantId,
+    ).variantId;
+    final normalizedFromVariantId = fromVariantId ?? 'default';
+    if (normalizedFromVariantId == resolvedToVariantId) {
+      return true;
+    }
+
+    final fromIndex = cartItems.indexWhere(
+      (item) =>
+          item.product.productId == productId &&
+          (item.variantId ?? 'default') == normalizedFromVariantId &&
+          item.comboId == null,
+    );
+    final effectiveFromIndex = fromIndex != -1
+        ? fromIndex
+        : cartItems.indexWhere(
+            (item) =>
+                item.product.productId == productId && item.comboId == null,
+          );
+    if (effectiveFromIndex == -1) return false;
+
+    final currentItem = cartItems[effectiveFromIndex];
+    final targetIndex = cartItems.indexWhere(
+      (item) =>
+          item.product.productId == productId &&
+          (item.variantId ?? 'default') == resolvedToVariantId &&
+          item.comboId == null,
+    );
+
+    if (targetIndex != -1) {
+      cartItems[targetIndex].quantity += currentItem.quantity;
+      cartItems.removeAt(effectiveFromIndex);
+      cartItems.refresh();
+      _scheduleCartRefresh();
+      return true;
+    }
+
+    final updatedItem = CartItem(
+      product: applyVariantToProduct(
+        baseProduct,
+        variantId: resolvedToVariantId,
+      ),
+      variantId: resolvedToVariantId,
+      quantity: currentItem.quantity,
+      bogoFreeProductId: null,
+    );
+    cartItems[effectiveFromIndex] = updatedItem;
+    cartItems.refresh();
+    _scheduleCartRefresh();
+    return true;
+  }
+
   int getProductQuantity(
     String? productId, {
     String? variantId,
@@ -1363,6 +1466,22 @@ class CartController extends GetxController {
     String? freeProductId, {
     String? triggerVariantId,
   }) {
+    final triggerProduct =
+        ProductProviderController.instance.allProducts.firstWhereOrNull(
+          (product) => product.productId == triggerProductId,
+        ) ??
+        _findProductById(triggerProductId);
+    final offer = BogoController.instance.getOfferForProduct(triggerProductId);
+    if (triggerProduct != null &&
+        offer != null &&
+        !isBogoTriggerVariantEligible(
+          triggerProduct,
+          offer: offer,
+          selectedVariantId: triggerVariantId,
+        )) {
+      return;
+    }
+
     int index = cartItems.indexWhere(
       (item) =>
           item.product.productId == triggerProductId &&
@@ -1453,6 +1572,13 @@ class CartController extends GetxController {
     final freeId = suggestion.freeProduct.productId;
     final triggerId = suggestion.triggerProduct.productId;
     if (freeId == null || triggerId == null) return false;
+    if (!isBogoTriggerVariantEligible(
+      suggestion.triggerProduct,
+      offer: suggestion.offer,
+      selectedVariantId: suggestion.triggerVariantId,
+    )) {
+      return false;
+    }
 
     final freeItem = cartItems.firstWhereOrNull(
       (item) => item.product.productId == freeId && item.comboId == null,
@@ -1494,7 +1620,12 @@ class CartController extends GetxController {
       (item) =>
           item.product.productId == offer.triggerProductId &&
           item.bogoFreeProductId == null &&
-          item.comboId == null,
+          item.comboId == null &&
+          isBogoTriggerVariantEligible(
+            triggerProduct,
+            offer: offer,
+            selectedVariantId: item.variantId,
+          ),
     );
     if (triggerItem == null) return null;
     if (triggerItem.bogoFreeProductId == freeProductId) return null;
@@ -1547,10 +1678,21 @@ class CartController extends GetxController {
         _findProductById(triggerProductId);
     if (baseProduct == null) return;
 
+    final currentVariantId = action.payload?['currentVariantId'];
     final resolvedVariantId = resolveProductVariant(
       baseProduct,
       variantId: action.variantId,
     ).variantId;
+
+    if (currentVariantId != null &&
+        currentVariantId.trim().isNotEmpty &&
+        currentVariantId != resolvedVariantId) {
+      switchRegularItemVariant(
+        triggerProductId,
+        fromVariantId: currentVariantId,
+        toVariantId: resolvedVariantId,
+      );
+    }
 
     var triggerItem = cartItems.firstWhereOrNull(
       (item) =>
@@ -1575,20 +1717,23 @@ class CartController extends GetxController {
     final offer = BogoController.instance.activeOffers.firstWhereOrNull(
       (candidate) =>
           candidate.isActive &&
-          candidate.triggerProductId == triggerProductId &&
-          (candidate.triggerVariantId == null ||
-              candidate.triggerVariantId!.trim().isEmpty ||
-              candidate.triggerVariantId == resolvedVariantId),
+          candidate.triggerProductId == triggerProductId,
     );
     if (offer == null || offer.freeProductIds.isEmpty) return;
+    final isEligible = isBogoTriggerVariantEligible(
+      baseProduct,
+      offer: offer,
+      selectedVariantId: resolvedVariantId,
+    );
 
     final selectedFreeProductId = triggerItem?.bogoFreeProductId;
     if (selectedFreeProductId != null &&
+        isEligible &&
         offer.freeProductIds.contains(selectedFreeProductId)) {
       return;
     }
 
-    if (offer.freeProductIds.length == 1) {
+    if (isEligible && offer.freeProductIds.length == 1) {
       setBogoSelection(
         triggerProductId,
         offer.freeProductIds.first,

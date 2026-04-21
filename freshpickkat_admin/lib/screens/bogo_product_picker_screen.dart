@@ -73,7 +73,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   String? _selectedCategory;
   Product? _selectedTriggerProduct;
   String? _selectedTriggerVariantId;
-  int _minimumTriggerQuantity = 1;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 365));
 
@@ -103,10 +102,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         _startDate = offer.startDate;
         _endDate = offer.endDate;
         _selectedTriggerVariantId = offer.triggerVariantId;
-        _minimumTriggerQuantity =
-            offer.minTriggerQuantity == null || offer.minTriggerQuantity! <= 0
-            ? 1
-            : offer.minTriggerQuantity!;
 
         _selectedTriggerProduct = _productController.products.firstWhere(
           (p) => p.productId == offer.triggerProductId,
@@ -332,13 +327,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   }
 
   String _buildOfferTitle({
-    required int minimumTriggerQuantity,
     required ProductVariant? triggerVariant,
     required int freeProductCount,
   }) {
     final buyLabel = triggerVariant == null
-        ? 'Buy $minimumTriggerQuantity'
-        : 'Buy $minimumTriggerQuantity of ${_variantLabel(triggerVariant)}';
+        ? 'Buy 1'
+        : 'Buy 1 of ${_variantLabel(triggerVariant)}';
     return '$buyLabel, Get $freeProductCount Free';
   }
 
@@ -634,23 +628,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                 SizedBox(
                   width: 140,
                   child: TextFormField(
-                    initialValue: '$_minimumTriggerQuantity',
-                    enabled: !_isSubmitting,
-                    keyboardType: TextInputType.number,
+                    initialValue: '1',
+                    enabled: false,
                     decoration: const InputDecoration(
                       labelText: 'Min Qty',
-                      hintText: '1',
                       border: OutlineInputBorder(),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _minimumTriggerQuantity =
-                            int.tryParse(value.trim()) == null ||
-                                int.parse(value.trim()) <= 0
-                            ? 1
-                            : int.parse(value.trim());
-                      });
-                    },
                   ),
                 ),
               ],
@@ -692,7 +675,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       offerId: widget.offer?.offerId,
       triggerProductId: _selectedTriggerProduct!.productId!,
       triggerVariantId: _selectedTriggerVariantId,
-      minTriggerQuantity: _minimumTriggerQuantity,
+      minTriggerQuantity: 1,
       triggerBaseQuantity: selectedVariant?.quantityValue,
       triggerBaseUnit: selectedVariant?.quantityUnit,
       freeProductIds: selections
@@ -707,7 +690,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
           )
           .toList(),
       offerTitle: _buildOfferTitle(
-        minimumTriggerQuantity: _minimumTriggerQuantity,
         triggerVariant: selectedVariant,
         freeProductCount: selections.length,
       ),

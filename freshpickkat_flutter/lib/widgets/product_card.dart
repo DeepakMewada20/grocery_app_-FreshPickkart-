@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';
@@ -61,10 +63,10 @@ class _ProductCardState extends State<ProductCard> {
     _cartController.removeItem(widget.product, variantId: _selectedVariantId);
   }
 
-  void _handleAddToCart() {
+  Future<void> _handleAddToCart() async {
     if (_authController.isLoggedIn) {
       _increment();
-      _showBogoSelectionIfNeeded(_displayProduct);
+      await _showBogoSelectionIfNeeded(_displayProduct);
       if (widget.onAddPressed != null) widget.onAddPressed!();
     } else {
       ProtectedNavigationHelper.navigateTo(
@@ -74,9 +76,10 @@ class _ProductCardState extends State<ProductCard> {
     }
   }
 
-  void _showBogoSelectionIfNeeded(Product product) {
+  Future<void> _showBogoSelectionIfNeeded(Product product) async {
     final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
     if (!isBogoProduct(product) || product.productId == null) return;
+    await BogoController.instance.fetchActiveOffersIfEmpty();
 
     final cartItem = _cartController.cartItems.firstWhereOrNull(
       (item) =>
@@ -84,8 +87,16 @@ class _ProductCardState extends State<ProductCard> {
           (item.variantId ?? 'default') == _selectedVariantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
+    final offer = BogoController.instance.getOfferForProduct(product.productId!);
+    final isEligible =
+        offer == null ||
+        isBogoTriggerVariantEligible(
+          widget.product,
+          offer: offer,
+          selectedVariantId: _selectedVariantId,
+        );
 
-    if (freeProductIds.length == 1) {
+    if (isEligible && freeProductIds.length == 1) {
       _cartController.setBogoSelection(
         product.productId!,
         freeProductIds.first,
