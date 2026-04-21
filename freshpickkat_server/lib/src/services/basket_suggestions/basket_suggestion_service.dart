@@ -45,6 +45,18 @@ class _ActionSelection {
   });
 }
 
+class _ComboPricingSnapshot {
+  final double sellingTotal;
+  final double comboTotal;
+  final double savings;
+
+  const _ComboPricingSnapshot({
+    required this.sellingTotal,
+    required this.comboTotal,
+    required this.savings,
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Service
 // ─────────────────────────────────────────────────────────────────────────────
@@ -942,41 +954,42 @@ class BasketSuggestionService {
           ? productMap[offer.comboProducts.first.productId]
           : null;
       if (comboLeadProduct != null) {
-        final savings = offer.discountType == 'percentage'
-            ? comboLeadProduct.price * (offer.discountValue / 100)
-            : offer.discountValue;
+        final pricing = _computeComboPricing(offer, productMap);
+        if (pricing.comboTotal <= 0 || pricing.savings <= 0) continue;
         final action = _primaryAction(
           type: 'navigate',
           label: 'View ${offer.name}',
           ctaLabel: 'View Combo',
           payload: {'comboId': comboId},
           comboId: comboId,
-          benefit: savings,
+          benefit: pricing.savings,
+          extraSpend: pricing.comboTotal,
         );
         final score = _scoreFromComponents(
           type: 'combo',
           conversionProbability: 30,
           userRelevance: 18,
-          profitImpact: (savings / 2).clamp(8, 20).toDouble(),
+          profitImpact: (pricing.savings / 2).clamp(8, 20).toDouble(),
           urgency: 14,
         );
         scored.add(
           _Scored(
-            extraSpend: comboLeadProduct.price,
-            totalBenefit: savings,
+            extraSpend: pricing.comboTotal,
+            totalBenefit: pricing.savings,
             score: score,
             suggestion: _buildSuggestion(
               id: 'combo:$comboId',
               type: 'combo',
               title: offer.name,
               subtitle: 'Bundle deal',
-              message: 'Save ₹${savings.toStringAsFixed(0)} with ${offer.name}',
+              message:
+                  'Get ${offer.name} for ₹${pricing.comboTotal.toStringAsFixed(0)} and save ₹${pricing.savings.toStringAsFixed(0)}',
               priority: 3,
               action: action,
               score: score,
               comboId: comboId,
               thumbnailUrl: comboLeadProduct.imageUrl,
-              savingAmount: savings,
+              savingAmount: pricing.savings,
             ),
           ),
         );
@@ -1741,32 +1754,8 @@ class BasketSuggestionService {
       final comboId = combo.comboId ?? combo.name;
       if (cartItems.any((it) => it.comboId == comboId)) continue;
 
-      double fullPrice = 0;
-      double alreadyInCartValue = 0;
-      for (final cp in combo.comboProducts) {
-        final p = productMap[cp.productId];
-        if (p == null) continue;
-        fullPrice += p.price * cp.quantity;
-
-        final inCart = cartItems.firstWhereOrNull(
-          (it) => it.productId == cp.productId && it.comboId == null,
-        );
-        if (inCart != null) {
-          alreadyInCartValue +=
-              p.price * math.min(inCart.quantity, cp.quantity);
-        }
-      }
-
-      double savings = 0;
-      if (combo.discountType == 'percentage') {
-        savings = fullPrice * (combo.discountValue / 100);
-      } else {
-        savings = combo.discountValue;
-      }
-
-      final extraSpend = math
-          .max(0.0, fullPrice - alreadyInCartValue)
-          .toDouble();
+      final pricing = _computeComboPricing(combo, productMap);
+      if (pricing.comboTotal <= 0 || pricing.savings <= 0) continue;
 
       final action = BasketSuggestionAction(
         type: 'combo',
@@ -1776,8 +1765,8 @@ class BasketSuggestionService {
           'comboId': combo.comboId ?? combo.name,
         },
         comboId: combo.comboId,
-        benefit: savings,
-        extraSpend: extraSpend,
+        benefit: pricing.savings,
+        extraSpend: pricing.comboTotal,
       );
 
       final comboImageUrls = combo.comboProducts
@@ -1788,21 +1777,22 @@ class BasketSuggestionService {
 
       results.add(
         _Scored(
-          extraSpend: extraSpend,
-          totalBenefit: savings,
+          extraSpend: pricing.comboTotal,
+          totalBenefit: pricing.savings,
           score: _scoreFromComponents(
             type: 'combo',
             conversionProbability: 34,
             userRelevance: 22,
-            profitImpact: (savings * 1.2).clamp(10, 28).toDouble(),
-            urgency: extraSpend <= 50 ? 14 : 8,
+            profitImpact: (pricing.savings * 1.2).clamp(10, 28).toDouble(),
+            urgency: pricing.comboTotal <= 50 ? 14 : 8,
           ),
           suggestion: BasketSuggestion(
-            message: 'Save ₹${savings.toStringAsFixed(0)} with ${combo.name}',
+            message:
+                'Get ${combo.name} for ₹${pricing.comboTotal.toStringAsFixed(0)} and save ₹${pricing.savings.toStringAsFixed(0)}',
             type: 'combo',
             priority: 0,
             actions: [action],
-            savingAmount: savings,
+            savingAmount: pricing.savings,
             comboId: combo.comboId,
             thumbnailUrl:
                 productMap[combo.comboProducts.first.productId]?.imageUrl,
@@ -2076,5 +2066,47 @@ class BasketSuggestionService {
         ? value.toInt().toString()
         : value.toStringAsFixed(1);
     return '$amount${variant.quantityUnit}';
+  }
+
+  static double _comboItemSellingPrice(Product product, String? variantId) {
+    if (variantId == null || variantId.trim().isEmpty) {
+      return product.price;
+    }
+    final variant = (product.variants ?? const <ProductVariant>[])
+        .firstWhereOrNull((item) => item.variantId == variantId);
+    return variant?.price ?? product.price;
+  }
+
+  static _ComboPricingSnapshot _computeComboPricing(
+    ComboOffer combo,
+    Map<String, Product> productMap,
+  ) {
+    var sellingTotal = 0.0;
+    for (final item in combo.comboProducts) {
+      final product = productMap[item.productId];
+      if (product == null) continue;
+      sellingTotal +=
+          _comboItemSellingPrice(product, item.variantId) * item.quantity;
+    }
+
+    final comboTotal =
+        (combo.discountType == 'percentage'
+                ? (sellingTotal * (1 - (combo.discountValue / 100))).clamp(
+                    0,
+                    double.infinity,
+                  )
+                : (sellingTotal - combo.discountValue).clamp(
+                    0,
+                    double.infinity,
+                  ))
+            .toDouble();
+    final savings = (sellingTotal - comboTotal)
+        .clamp(0, double.infinity)
+        .toDouble();
+    return _ComboPricingSnapshot(
+      sellingTotal: sellingTotal,
+      comboTotal: comboTotal,
+      savings: savings,
+    );
   }
 }

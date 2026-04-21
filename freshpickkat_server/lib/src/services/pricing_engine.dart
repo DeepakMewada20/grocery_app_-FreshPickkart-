@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/firebase_service.dart';
@@ -13,6 +15,21 @@ class PricingEngine {
       if (test(item)) return item;
     }
     return null;
+  }
+
+  static double _resolveItemPrice(Product product, {String? variantId}) {
+    if (variantId != null &&
+        variantId.trim().isNotEmpty &&
+        product.variants != null) {
+      final variant = _firstWhereOrNull(
+        product.variants!,
+        (v) => v.variantId == variantId,
+      );
+      if (variant != null) {
+        return variant.price;
+      }
+    }
+    return product.price;
   }
 
   static Future<CartPricingResult> calculateCartPricing({
@@ -70,16 +87,7 @@ class PricingEngine {
       final product = productMap[item.productId];
       if (product == null) continue;
 
-      double itemPrice = product.price;
-      if (item.variantId != null && product.variants != null) {
-        final variant = _firstWhereOrNull(
-          product.variants!,
-          (v) => v.variantId == item.variantId,
-        );
-        if (variant != null) {
-          itemPrice = variant.price;
-        }
-      }
+      final itemPrice = _resolveItemPrice(product, variantId: item.variantId);
 
       final itemTotal = itemPrice * item.quantity;
       subtotal += itemTotal;
@@ -254,19 +262,48 @@ class PricingEngine {
       }
 
       if (allProductsPresent) {
-        double discount = 0;
-        if (combo.discountType == 'percentage') {
-          double comboTotal = 0;
-          for (final comboProduct in combo.comboProducts) {
-            final product = productMap[comboProduct.productId];
-            if (product != null) {
-              comboTotal += product.price * comboProduct.quantity;
-            }
+        var bundleCount = 1 << 30;
+        var comboSellingUnitTotal = 0.0;
+
+        for (final comboProduct in combo.comboProducts) {
+          final product = productMap[comboProduct.productId];
+          if (product == null) {
+            allProductsPresent = false;
+            break;
           }
-          discount = comboTotal * (combo.discountValue / 100);
-        } else {
-          discount = combo.discountValue;
+
+          final cartItem = _firstWhereOrNull(
+            items,
+            (i) =>
+                i.productId == comboProduct.productId &&
+                i.comboId == comboId &&
+                ((comboProduct.variantId == null ||
+                        comboProduct.variantId!.trim().isEmpty)
+                    ? true
+                    : i.variantId == comboProduct.variantId),
+          );
+          if (cartItem == null || cartItem.quantity < comboProduct.quantity) {
+            allProductsPresent = false;
+            break;
+          }
+
+          bundleCount = math.min(
+            bundleCount,
+            cartItem.quantity ~/ comboProduct.quantity,
+          );
+          comboSellingUnitTotal +=
+              _resolveItemPrice(product, variantId: comboProduct.variantId) *
+              comboProduct.quantity;
         }
+
+        if (!allProductsPresent || bundleCount <= 0) continue;
+
+        final discountPerBundle = combo.discountType == 'percentage'
+            ? comboSellingUnitTotal * (combo.discountValue / 100)
+            : combo.discountValue;
+        final discount =
+            discountPerBundle.clamp(0, comboSellingUnitTotal).toDouble() *
+            bundleCount;
 
         if (discount > 0) {
           result.comboDiscount += discount;
@@ -824,5 +861,4 @@ class PricingEngine {
       return [];
     }
   }
-
 }
