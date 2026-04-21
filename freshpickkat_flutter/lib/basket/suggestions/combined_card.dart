@@ -19,9 +19,14 @@ class CombinedCardBody extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary = isDark ? Colors.white : const Color(0xFF1C1C1E);
     final isBest = s.isBest ?? false;
-    final actions = s.actions ?? [];
-    final hasCouponOrDelivery = actions.any((a) => a.type == 'coupon' || a.type == 'delivery');
-    final comboAction = actions.firstWhereOrNull((a) => a.type == 'combo');
+    final actions = (s.actions ?? []).take(3).toList(growable: false);
+    final hasCouponOrDelivery = actions.any((a) {
+      final kind = _actionKind(a);
+      return kind == 'coupon' || kind == 'delivery';
+    });
+    final comboAction = actions.firstWhereOrNull(
+      (a) => _actionKind(a) == 'combo',
+    );
 
     return Padding(
       padding: const EdgeInsets.all(14),
@@ -72,28 +77,31 @@ class CombinedCardBody extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 8),
-          
+
           // Action steps indicators
           Row(
             children: actions.map((a) {
               final isLast = a == actions.last;
               return Row(
                 children: [
-                   Icon(_getIcon(a.type), size: 12, color: accent.withValues(alpha: 0.7)),
-                   if (!isLast) 
-                     Container(
-                       width: 12,
-                       height: 1,
-                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                       color: accent.withValues(alpha: 0.3),
-                     ),
+                  Icon(
+                    _getIcon(a),
+                    size: 12,
+                    color: accent.withValues(alpha: 0.7),
+                  ),
+                  if (!isLast)
+                    Container(
+                      width: 12,
+                      height: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      color: accent.withValues(alpha: 0.3),
+                    ),
                 ],
               );
             }).toList(),
           ),
-          
-          const Spacer(),
 
+          const Spacer(),
 
           Row(
             children: [
@@ -115,7 +123,11 @@ class CombinedCardBody extends StatelessWidget {
               else
                 const Spacer(),
               CTAButton(
-                label: actions.isNotEmpty ? (actions.first.ctaLabel).toUpperCase() : 'APPLY DEAL',
+                label: actions.length > 1
+                    ? 'APPLY ALL'
+                    : (actions.isNotEmpty
+                          ? actions.first.ctaLabel.toUpperCase()
+                          : 'APPLY DEAL'),
                 accent: accent,
                 onTap: () => CartController.instance.applyBasketSuggestion(s),
               ),
@@ -126,17 +138,58 @@ class CombinedCardBody extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type) {
-      case 'coupon': return Icons.confirmation_number_rounded;
-      case 'delivery': return Icons.local_shipping_rounded;
-      case 'variant': return Icons.trending_up_rounded;
-      case 'combo': return Icons.layers_rounded;
-      case 'bogo': return Icons.card_giftcard_rounded;
-      case 'reorder': return Icons.replay_rounded;
-      case 'category': return Icons.category_rounded;
-      case 'product': return Icons.local_offer_rounded;
-      default: return Icons.star_rounded;
+  String _actionKind(client.BasketSuggestionAction action) {
+    if (action.type == 'coupon' ||
+        action.type == 'apply_coupon' ||
+        action.couponCode != null) {
+      return 'coupon';
+    }
+    if (action.type == 'combo' || action.comboId != null) {
+      return 'combo';
+    }
+    if (action.type == 'bogo') {
+      return 'bogo';
+    }
+    if (action.type == 'delivery') {
+      return 'delivery';
+    }
+    if (action.type == 'variant') {
+      return 'variant';
+    }
+    if (action.type == 'reorder') {
+      return 'reorder';
+    }
+    if (action.type == 'category') {
+      return 'category';
+    }
+    if (action.type == 'product' ||
+        action.type == 'add_to_cart' ||
+        action.productId != null) {
+      return 'product';
+    }
+    return action.type;
+  }
+
+  IconData _getIcon(client.BasketSuggestionAction action) {
+    switch (_actionKind(action)) {
+      case 'coupon':
+        return Icons.confirmation_number_rounded;
+      case 'delivery':
+        return Icons.local_shipping_rounded;
+      case 'variant':
+        return Icons.trending_up_rounded;
+      case 'combo':
+        return Icons.layers_rounded;
+      case 'bogo':
+        return Icons.card_giftcard_rounded;
+      case 'reorder':
+        return Icons.replay_rounded;
+      case 'category':
+        return Icons.category_rounded;
+      case 'product':
+        return Icons.local_offer_rounded;
+      default:
+        return Icons.star_rounded;
     }
   }
 }
@@ -151,9 +204,9 @@ class _ComboThumbs extends StatelessWidget {
     return Obx(() {
       final combos = ComboOfferController.instance.activeComboOffers;
       final combo = combos.firstWhereOrNull((c) => c.comboId == comboId);
-      
+
       final urls = <String>[];
-      
+
       if (combo != null) {
         final productIds = combo.comboProducts.map((p) => p.productId).toList();
         final products = ProductProviderController.instance.allProducts
@@ -171,9 +224,9 @@ class _ComboThumbs extends StatelessWidget {
           }
         }
       }
-      
+
       if (urls.isEmpty && s.thumbnailUrl != null) {
-         urls.add(s.thumbnailUrl!);
+        urls.add(s.thumbnailUrl!);
       }
 
       return OverlappingThumbs(imageUrls: urls);
@@ -198,7 +251,7 @@ class _Thumb extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: SafeNetworkImage(
-          url: url, 
+          url: url,
           fit: BoxFit.cover,
         ),
       ),

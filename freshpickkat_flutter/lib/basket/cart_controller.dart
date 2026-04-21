@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_client/freshpickkat_client.dart'
     as protocol
@@ -14,6 +14,7 @@ import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:get/get.dart';
 
 class CartItem {
@@ -201,8 +202,7 @@ class CartController extends GetxController {
         fetchCartPricing(),
         fetchBasketSuggestions(),
       ]);
-    } finally {
-    }
+    } finally {}
   }
 
   void _updateDeliveryFeeEstimate() {
@@ -224,7 +224,10 @@ class CartController extends GetxController {
               currentSubtotal <= slab.maxOrderAmount,
         );
         fee = matchingSlab?.fee ?? config.baseDeliveryFee;
-        final remaining = (threshold - currentSubtotal).clamp(0, double.infinity);
+        final remaining = (threshold - currentSubtotal).clamp(
+          0,
+          double.infinity,
+        );
         message = 'Add ₹${remaining.toStringAsFixed(0)} more for free delivery';
       }
     } else if (currentSubtotal >= 300) {
@@ -232,9 +235,11 @@ class CartController extends GetxController {
       message = 'Free delivery unlocked';
     } else if (currentSubtotal >= 200) {
       fee = 20.0;
-      message = 'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
+      message =
+          'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
     } else {
-      message = 'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
+      message =
+          'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
     }
     estimatedDeliveryFee.value = fee;
     localDeliveryPricing.value = DeliveryPricingResult(
@@ -245,8 +250,12 @@ class CartController extends GetxController {
       progressPercent: threshold <= 0
           ? 0
           : ((currentSubtotal / threshold) * 100).clamp(0, 100).toDouble(),
-      appliedRuleType: config != null ? 'cached_delivery_config' : 'local_estimate',
-      appliedRuleName: config != null ? 'Cached delivery estimate' : 'Local delivery estimate',
+      appliedRuleType: config != null
+          ? 'cached_delivery_config'
+          : 'local_estimate',
+      appliedRuleName: config != null
+          ? 'Cached delivery estimate'
+          : 'Local delivery estimate',
       freeDeliveryThreshold: threshold,
       baseDeliveryFee: config?.baseDeliveryFee ?? 40,
     );
@@ -324,35 +333,39 @@ class CartController extends GetxController {
         _isInitialLoading = true;
         // We populate with "Slim" CartItems (minimal product info) just for the UI count
         // until the full revalidation happens.
-        final items = cachedUser.cart!.map((item) => CartItem(
-          product: Product(
-            productId: item.productId,
-            productName: '...',
-            category: '',
-            imageUrl: '',
-            price: 0,
-            realPrice: 0,
-            discount: 0,
-            isAvailable: true,
-            addedAt: DateTime.now(),
-            subcategory: [],
-            quantity: '0',
-            mostSearch: 0,
-            mostPurchases: 0,
-          ),
-          variantId: item.variantId,
-          quantity: item.quantity,
-          comboId: item.comboId,
-          comboName: item.comboName,
-          comboDiscountType: item.comboDiscountType,
-          comboDiscountValue: item.comboDiscountValue,
-          comboItemQuantity: item.comboItemQuantity,
-        )).toList();
+        final items = cachedUser.cart!
+            .map(
+              (item) => CartItem(
+                product: Product(
+                  productId: item.productId,
+                  productName: '...',
+                  category: '',
+                  imageUrl: '',
+                  price: 0,
+                  realPrice: 0,
+                  discount: 0,
+                  isAvailable: true,
+                  addedAt: DateTime.now(),
+                  subcategory: [],
+                  quantity: '0',
+                  mostSearch: 0,
+                  mostPurchases: 0,
+                ),
+                variantId: item.variantId,
+                quantity: item.quantity,
+                comboId: item.comboId,
+                comboName: item.comboName,
+                comboDiscountType: item.comboDiscountType,
+                comboDiscountValue: item.comboDiscountValue,
+                comboItemQuantity: item.comboItemQuantity,
+              ),
+            )
+            .toList();
         cartItems.assignAll(items);
         _isInitialLoading = false;
         // If not logged in, cache is our only source of truth for now
         if (!AuthController.instance.isLoggedIn) {
-          _isInitialSyncComplete = true; 
+          _isInitialSyncComplete = true;
         }
       } catch (e) {
         _isInitialLoading = false;
@@ -375,7 +388,7 @@ class CartController extends GetxController {
         _isInitialLoading = false;
         debugPrint('Error fetching cart from server: $e');
         // If server fails, allow local changes to sync anyway to prevent further data loss
-        _isInitialSyncComplete = true; 
+        _isInitialSyncComplete = true;
       }
     }
   }
@@ -504,7 +517,9 @@ class CartController extends GetxController {
     isBasketSuggestionsLoading.value = true;
     try {
       final response = await client.pricing.basketSuggestions(
-        effectiveMode == 'empty' ? const <CartItemInput>[] : _buildCartItemInputs(),
+        effectiveMode == 'empty'
+            ? const <CartItemInput>[]
+            : _buildCartItemInputs(),
         cartTotal: effectiveMode == 'empty' ? 0 : subtotal,
         mode: effectiveMode,
         userId: AuthController.instance.currentUser?.uid,
@@ -538,12 +553,14 @@ class CartController extends GetxController {
     }
   }
 
-  void _prefetchComboProductsFromSuggestions(List<BasketSuggestion> suggestions) {
+  void _prefetchComboProductsFromSuggestions(
+    List<BasketSuggestion> suggestions,
+  ) {
     final comboIds = suggestions
         .where((s) => s.comboId != null && s.comboId!.isNotEmpty)
         .map((s) => s.comboId!)
         .toSet();
-    
+
     if (comboIds.isEmpty) return;
 
     // Ensure combos are loaded first
@@ -557,7 +574,9 @@ class CartController extends GetxController {
         }
       }
       if (productIds.isNotEmpty) {
-        ProductProviderController.instance.fetchProductsByIds(productIds.toList());
+        ProductProviderController.instance.fetchProductsByIds(
+          productIds.toList(),
+        );
       }
     });
   }
@@ -741,18 +760,20 @@ class CartController extends GetxController {
 
     for (final incoming in normalized) {
       final key = _cartItemKeyFromUi(incoming);
-      final existingIndex = merged.indexWhere((it) => _cartItemKeyFromUi(it) == key);
+      final existingIndex = merged.indexWhere(
+        (it) => _cartItemKeyFromUi(it) == key,
+      );
 
       if (existingIndex != -1) {
         // If it exists in both, REPLACE with the server-side version (to get real prices)
         // while maintaining the quantity preference (server usually wins on sync)
         final existing = merged[existingIndex];
-        
+
         // If local quantity was higher, keep it (optional, but server is safer for startup sync)
-        final finalQuantity = incoming.quantity > existing.quantity 
-            ? incoming.quantity 
+        final finalQuantity = incoming.quantity > existing.quantity
+            ? incoming.quantity
             : existing.quantity;
-            
+
         merged[existingIndex] = CartItem(
           product: incoming.product,
           variantId: incoming.variantId,
@@ -772,7 +793,7 @@ class CartController extends GetxController {
 
     cartItems.assignAll(merged);
     _isInitialSyncComplete = true; // Unlock server sync after first merge
-    
+
     // Explicitly refresh calculations once real products are in
     _updateDeliveryFeeEstimate();
     unawaited(fetchCartPricing());
@@ -953,7 +974,8 @@ class CartController extends GetxController {
         cartItemInputs,
       );
       availableCoupons.assignAll(response);
-      final bestDisplay = response.firstWhereOrNull((coupon) => coupon.isBest) ??
+      final bestDisplay =
+          response.firstWhereOrNull((coupon) => coupon.isBest) ??
           response.firstWhereOrNull(
             (coupon) => coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
           );
@@ -1243,7 +1265,7 @@ class CartController extends GetxController {
           comboDiscountValue: comboDiscountValue,
           comboItemQuantity: comboItemQuantity,
         ),
-        );
+      );
       _scheduleCartRefresh();
     }
   }
@@ -1512,14 +1534,90 @@ class CartController extends GetxController {
     return applyVariantToProduct(baseProduct, variantId: variantId);
   }
 
+  Future<void> _applyBogoAction(BasketSuggestionAction action) async {
+    final triggerProductId = action.productId;
+    if (triggerProductId == null || triggerProductId.trim().isEmpty) return;
+
+    await BogoController.instance.fetchActiveOffersIfEmpty();
+
+    final baseProduct =
+        ProductProviderController.instance.allProducts.firstWhereOrNull(
+          (product) => product.productId == triggerProductId,
+        ) ??
+        _findProductById(triggerProductId);
+    if (baseProduct == null) return;
+
+    final resolvedVariantId = resolveProductVariant(
+      baseProduct,
+      variantId: action.variantId,
+    ).variantId;
+
+    var triggerItem = cartItems.firstWhereOrNull(
+      (item) =>
+          item.product.productId == triggerProductId &&
+          (item.variantId ?? 'default') == resolvedVariantId &&
+          item.comboId == null,
+    );
+    if (triggerItem == null) {
+      addItem(
+        baseProduct,
+        variantId: resolvedVariantId,
+        triggerBogoSuggestion: false,
+      );
+      triggerItem = cartItems.firstWhereOrNull(
+        (item) =>
+            item.product.productId == triggerProductId &&
+            (item.variantId ?? 'default') == resolvedVariantId &&
+            item.comboId == null,
+      );
+    }
+
+    final offer = BogoController.instance.activeOffers.firstWhereOrNull(
+      (candidate) =>
+          candidate.isActive &&
+          candidate.triggerProductId == triggerProductId &&
+          (candidate.triggerVariantId == null ||
+              candidate.triggerVariantId!.trim().isEmpty ||
+              candidate.triggerVariantId == resolvedVariantId),
+    );
+    if (offer == null || offer.freeProductIds.isEmpty) return;
+
+    final selectedFreeProductId = triggerItem?.bogoFreeProductId;
+    if (selectedFreeProductId != null &&
+        offer.freeProductIds.contains(selectedFreeProductId)) {
+      return;
+    }
+
+    if (offer.freeProductIds.length == 1) {
+      setBogoSelection(
+        triggerProductId,
+        offer.freeProductIds.first,
+        triggerVariantId: resolvedVariantId,
+      );
+      return;
+    }
+
+    await Get.bottomSheet(
+      BogoSelectionBottomSheet(
+        triggerProductId: triggerProductId,
+        triggerVariantId: resolvedVariantId,
+        freeProductIds: offer.freeProductIds,
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   Future<void> applyBasketSuggestion(BasketSuggestion suggestion) async {
-    final actions = suggestion.actions ?? [];
+    final actions = suggestion.type == 'combined'
+        ? (suggestion.actions ?? []).take(3).toList(growable: false)
+        : (suggestion.actions ?? []);
     if (actions.isEmpty) return;
 
     for (final action in actions) {
       switch (action.type) {
         case 'product':
-        case 'bogo':
+        case 'add_to_cart':
           final product = _findProductById(
             action.productId,
             variantId: action.variantId,
@@ -1533,10 +1631,17 @@ class CartController extends GetxController {
           }
           break;
 
+        case 'bogo':
+          await _applyBogoAction(action);
+          break;
+
         case 'combo':
           await ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
+          final comboId = action.comboId ?? action.payload?['comboId'];
           final combo = ComboOfferController.instance.activeComboOffers
-              .firstWhereOrNull((offer) => offer.comboId == action.comboId);
+              .firstWhereOrNull(
+                (offer) => (offer.comboId ?? offer.name) == comboId,
+              );
           if (combo != null) {
             addComboOffer(combo);
           }
@@ -1562,6 +1667,7 @@ class CartController extends GetxController {
           break;
 
         case 'coupon':
+        case 'apply_coupon':
           if (action.couponCode != null) {
             // Small delay to let previous cart updates settle if multiple actions
             if (actions.length > 1) {
@@ -1571,9 +1677,12 @@ class CartController extends GetxController {
           }
           break;
 
+        case 'delivery':
+          break;
+
         case 'navigate':
           SuggestionNavigationHelper.handleTap(suggestion);
-          // For pure navigation actions, we might NOT want to remove the suggestion 
+          // For pure navigation actions, we might NOT want to remove the suggestion
           // immediately so the user can go back to it.
           // However, to keep it consistent with the user's request (it was being removed),
           // we continue the loop.

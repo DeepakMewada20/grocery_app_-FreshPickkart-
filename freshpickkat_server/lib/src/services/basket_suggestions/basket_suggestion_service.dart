@@ -31,6 +31,20 @@ class _Scored {
        profitEfficiency = totalBenefit / (extraSpend + 1);
 }
 
+class _ActionSelection {
+  final List<BasketSuggestionAction> actions;
+  final double totalBenefit;
+  final double extraSpend;
+  final double selectionValue;
+
+  const _ActionSelection({
+    required this.actions,
+    required this.totalBenefit,
+    required this.extraSpend,
+    required this.selectionValue,
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Service
 // ─────────────────────────────────────────────────────────────────────────────
@@ -143,6 +157,7 @@ class BasketSuggestionService {
       appliedCouponCode: appliedCouponCode,
       variantScored: variantScored,
       comboScored: comboScored,
+      bogoScored: bogoScored,
       deliveryScored: deliveryScored,
       upgradedBaseItems: upgradedBaseItems,
     );
@@ -161,7 +176,11 @@ class BasketSuggestionService {
     // ── 5. Backfill if needed (Threshold: 3) ────────────────────────────────
     if (scored.length < 3) {
       final backfillPool = await Future.wait([
-        ProductEndpoint().getProducts(session, limit: 8, sortBy: 'best_sellers'),
+        ProductEndpoint().getProducts(
+          session,
+          limit: 8,
+          sortBy: 'best_sellers',
+        ),
         ProductEndpoint().getProducts(session, limit: 8, sortBy: 'trending'),
       ]);
       final bestSellers = backfillPool[0];
@@ -1036,56 +1055,461 @@ class BasketSuggestionService {
     required _Scored? delivery,
     required List<_Scored> offers,
   }) {
-    final comboOffer = offers.firstWhereOrNull(
-      (entry) => entry.suggestion.type == 'combo',
+    final bestCombo = _bestScoredByValue(
+      offers.where((entry) => entry.suggestion.type == 'combo'),
     );
-    if (coupon == null && delivery == null && comboOffer == null) {
+    final bestBogo = _bestScoredByValue(
+      offers.where((entry) => entry.suggestion.type == 'bogo'),
+    );
+    final leadOffer = _bestScoredByValue([?bestCombo, ?bestBogo]);
+
+    final components = <_Scored>[?bestCombo, ?bestBogo, ?coupon, ?delivery];
+    if (components.length < 2) return const [];
+
+    _ActionSelection? bestSelection;
+    List<_Scored>? bestComponents;
+    for (var mask = 0; mask < (1 << components.length); mask++) {
+      final selected = <_Scored>[];
+      for (var i = 0; i < components.length; i++) {
+        if ((mask & (1 << i)) != 0) {
+          selected.add(components[i]);
+        }
+      }
+
+      if (selected.length < 2 || selected.length > 3) continue;
+      final offerCount = selected
+          .where(
+            (entry) =>
+                entry.suggestion.type == 'combo' ||
+                entry.suggestion.type == 'bogo',
+          )
+          .length;
+      if (offerCount > 2) continue;
+
+      final actions = selected
+          .map(_combinedActionForSuggestion)
+          .whereType<BasketSuggestionAction>()
+          .toList(growable: false);
+      if (actions.length != selected.length) continue;
+
+      final totalBenefit = selected.fold<double>(
+        0,
+        (sum, entry) => sum + entry.totalBenefit,
+      );
+      final extraSpend = selected.fold<double>(
+        0,
+        (maxSpend, entry) => math.max(maxSpend, entry.extraSpend),
+      );
+      final selection = _ActionSelection(
+        actions: actions,
+        totalBenefit: totalBenefit,
+        extraSpend: extraSpend,
+        selectionValue: _selectionValue(
+          totalBenefit: totalBenefit,
+          extraSpend: extraSpend,
+          actionCount: actions.length,
+        ),
+      );
+
+      if (_isBetterSelection(selection, bestSelection)) {
+        bestSelection = selection;
+        bestComponents = selected;
+      }
+    }
+
+    if (bestSelection == null ||
+        bestComponents == null ||
+        bestSelection.actions.length < 2) {
       return const [];
     }
 
-    final actions = <BasketSuggestionAction>[
-      if (comboOffer?.suggestion.action != null) comboOffer!.suggestion.action!,
-      if (coupon?.suggestion.action != null) coupon!.suggestion.action!,
-      if (delivery?.suggestion.action != null) delivery!.suggestion.action!,
-    ];
-    if (actions.isEmpty) return const [];
-
-    final totalBenefit =
-        (coupon?.totalBenefit ?? 0) +
-        (delivery?.totalBenefit ?? 0) +
-        (comboOffer?.totalBenefit ?? 0);
     final score = _scoreFromComponents(
       type: 'combined',
       conversionProbability: 40,
       userRelevance: 28,
-      profitImpact: (totalBenefit / 2).clamp(12, 28).toDouble(),
+      profitImpact: (bestSelection.totalBenefit / 2).clamp(12, 28).toDouble(),
       urgency: 18,
     );
+    final visualBase = leadOffer ?? bestComponents.first;
 
-    final primaryAction = actions.first;
     return [
       _Scored(
-        extraSpend: [
-          coupon?.extraSpend ?? 0,
-          delivery?.extraSpend ?? 0,
-          comboOffer?.extraSpend ?? 0,
-        ].reduce(math.max),
-        totalBenefit: totalBenefit,
+        extraSpend: bestSelection.extraSpend,
+        totalBenefit: bestSelection.totalBenefit,
         score: score,
         suggestion: _buildSuggestion(
-          id: 'combined:${actions.map((a) => a.type).join('+')}',
+          id: 'combined:${bestSelection.actions.map((a) => a.type).join('+')}',
           type: 'combined',
           title: 'Stacked savings',
-          subtitle: 'Coupon + offer combo',
-          message: 'Stack a coupon with the strongest live offer',
+          subtitle: _combinedSubtitle(bestSelection.actions),
+          message: 'Stack the strongest live offers without extra clutter',
           priority: 1,
-          action: primaryAction,
-          actions: actions,
+          action: bestSelection.actions.first,
+          actions: bestSelection.actions,
           score: score,
-          savingAmount: totalBenefit,
+          savingAmount: bestSelection.totalBenefit,
+          comboId: visualBase.suggestion.comboId,
+          productId: visualBase.suggestion.productId,
+          variantId: visualBase.suggestion.variantId,
+          thumbnailUrl: visualBase.suggestion.thumbnailUrl,
+          metadata: visualBase.suggestion.metadata,
         ),
       ),
     ];
+  }
+
+  static BasketSuggestionAction? _combinedActionForSuggestion(_Scored entry) {
+    final action =
+        entry.suggestion.action ??
+        (entry.suggestion.actions?.isNotEmpty == true
+            ? entry.suggestion.actions!.first
+            : null);
+    if (action == null) return null;
+
+    final normalizedType = switch (entry.suggestion.type) {
+      'combo' => 'combo',
+      'bogo' => 'bogo',
+      'coupon' => 'coupon',
+      'delivery' => 'delivery',
+      _ => action.type,
+    };
+
+    return action.copyWith(
+      type: normalizedType,
+      productId: action.productId ?? entry.suggestion.productId,
+      variantId: action.variantId ?? entry.suggestion.variantId,
+      comboId:
+          action.comboId ??
+          entry.suggestion.comboId ??
+          action.payload?['comboId'],
+      couponCode: action.couponCode ?? action.payload?['couponCode'],
+      benefit: action.benefit ?? entry.totalBenefit,
+      extraSpend: action.extraSpend ?? entry.extraSpend,
+    );
+  }
+
+  static String _combinedSubtitle(List<BasketSuggestionAction> actions) {
+    final labels = <String>[];
+    for (final action in actions) {
+      final label = switch (action.type) {
+        'combo' => 'Combo',
+        'bogo' => 'BOGO',
+        'coupon' => 'Coupon',
+        'delivery' => 'Delivery',
+        'variant' => 'Pack upgrade',
+        _ => null,
+      };
+      if (label != null && !labels.contains(label)) {
+        labels.add(label);
+      }
+    }
+    return labels.isEmpty
+        ? 'Multiple savings in one suggestion'
+        : labels.join(' + ');
+  }
+
+  static BasketSuggestionAction _couponActionFromCoupon(Coupon coupon) {
+    return BasketSuggestionAction(
+      type: 'coupon',
+      label: 'Apply ${coupon.code}',
+      ctaLabel: 'Apply',
+      payload: {
+        'couponCode': coupon.code,
+      },
+      couponCode: coupon.code,
+      benefit: coupon.discountValue,
+      extraSpend: 0,
+    );
+  }
+
+  static double _selectionValue({
+    required double totalBenefit,
+    required double extraSpend,
+    required int actionCount,
+  }) {
+    final complexityPenalty = math.max(0, actionCount - 2) * 15.0;
+    return (totalBenefit - extraSpend) - complexityPenalty;
+  }
+
+  static bool _isBetterSelection(
+    _ActionSelection candidate,
+    _ActionSelection? current,
+  ) {
+    if (current == null) return true;
+    final valueCompare = candidate.selectionValue.compareTo(
+      current.selectionValue,
+    );
+    if (valueCompare != 0) return valueCompare > 0;
+    final benefitCompare = candidate.totalBenefit.compareTo(
+      current.totalBenefit,
+    );
+    if (benefitCompare != 0) return benefitCompare > 0;
+    final actionCompare = current.actions.length.compareTo(
+      candidate.actions.length,
+    );
+    if (actionCompare != 0) return actionCompare > 0;
+    return candidate.extraSpend < current.extraSpend;
+  }
+
+  static _Scored? _bestScoredByValue(Iterable<_Scored> items) {
+    _Scored? best;
+    for (final item in items) {
+      if (best == null) {
+        best = item;
+        continue;
+      }
+      final netCompare = item.netProfit.compareTo(best.netProfit);
+      if (netCompare > 0) {
+        best = item;
+        continue;
+      }
+      if (netCompare < 0) continue;
+      final efficiencyCompare = item.profitEfficiency.compareTo(
+        best.profitEfficiency,
+      );
+      if (efficiencyCompare > 0) {
+        best = item;
+        continue;
+      }
+      if (efficiencyCompare < 0) continue;
+      if (item.extraSpend < best.extraSpend) {
+        best = item;
+      }
+    }
+    return best;
+  }
+
+  static Coupon? _findBestCouponForAdditionalSpend({
+    required double cartTotal,
+    required double additionalSpend,
+    required List<Coupon> coupons,
+    required String? appliedCouponCode,
+  }) {
+    final total = cartTotal + additionalSpend;
+    Coupon? best;
+    double maxSav = 0;
+    for (final coupon in coupons) {
+      if (!coupon.isActive ||
+          coupon.minOrderAmount <= cartTotal ||
+          coupon.minOrderAmount > total) {
+        continue;
+      }
+      if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase()) {
+        continue;
+      }
+      final value = coupon.discountValue ?? 0;
+      if (value > maxSav) {
+        maxSav = value;
+        best = coupon;
+      }
+    }
+    return best;
+  }
+
+  static _Scored? _stackWithThresholds({
+    required double cartTotal,
+    required List<Coupon> coupons,
+    required String? appliedCouponCode,
+    required _Scored base,
+    required _Scored? deliveryScored,
+    required String messagePrefix,
+    required double conversionProbability,
+    required double userRelevance,
+    required double urgency,
+  }) {
+    final baseAction = _combinedActionForSuggestion(base);
+    if (baseAction == null) return null;
+
+    final unlockedCoupon = _findBestCouponForAdditionalSpend(
+      cartTotal: cartTotal,
+      additionalSpend: base.extraSpend,
+      coupons: coupons,
+      appliedCouponCode: appliedCouponCode,
+    );
+    final availableDelivery = deliveryScored;
+    final unlocksDelivery =
+        availableDelivery != null &&
+        base.extraSpend >= availableDelivery.extraSpend;
+    final deliveryAction = unlocksDelivery
+        ? _combinedActionForSuggestion(availableDelivery)
+        : null;
+    final deliveryBenefit = deliveryAction != null && availableDelivery != null
+        ? availableDelivery.totalBenefit
+        : 0.0;
+
+    _ActionSelection? bestSelection;
+    for (final includeCoupon in [false, true]) {
+      if (includeCoupon && unlockedCoupon == null) continue;
+      for (final includeDelivery in [false, true]) {
+        if (includeDelivery && deliveryAction == null) continue;
+        final actionCount =
+            1 + (includeCoupon ? 1 : 0) + (includeDelivery ? 1 : 0);
+        if (actionCount < 2 || actionCount > 3) continue;
+
+        final totalBenefit =
+            base.totalBenefit +
+            (includeCoupon ? (unlockedCoupon?.discountValue ?? 0) : 0) +
+            (includeDelivery ? deliveryBenefit : 0);
+        final selection = _ActionSelection(
+          actions: [
+            baseAction,
+            if (includeCoupon && unlockedCoupon != null)
+              _couponActionFromCoupon(unlockedCoupon),
+            if (includeDelivery && deliveryAction != null) deliveryAction,
+          ],
+          totalBenefit: totalBenefit,
+          extraSpend: base.extraSpend,
+          selectionValue: _selectionValue(
+            totalBenefit: totalBenefit,
+            extraSpend: base.extraSpend,
+            actionCount: actionCount,
+          ),
+        );
+        if (_isBetterSelection(selection, bestSelection)) {
+          bestSelection = selection;
+        }
+      }
+    }
+
+    if (bestSelection == null || bestSelection.actions.length < 2) {
+      return null;
+    }
+
+    final score = _scoreFromComponents(
+      type: 'combined',
+      conversionProbability: conversionProbability,
+      userRelevance: userRelevance,
+      profitImpact: (bestSelection.totalBenefit * 1.15)
+          .clamp(14, 34)
+          .toDouble(),
+      urgency: urgency,
+    );
+
+    return _Scored(
+      extraSpend: base.extraSpend,
+      totalBenefit: bestSelection.totalBenefit,
+      score: score,
+      suggestion: BasketSuggestion(
+        message:
+            '$messagePrefix & stack more savings (Save ₹${bestSelection.totalBenefit.toStringAsFixed(0)})',
+        type: 'combined',
+        priority: 0,
+        actions: bestSelection.actions,
+        savingAmount: bestSelection.totalBenefit,
+        productId: base.suggestion.productId,
+        variantId: base.suggestion.variantId,
+        comboId: base.suggestion.comboId,
+        thumbnailUrl: base.suggestion.thumbnailUrl,
+        metadata: base.suggestion.metadata,
+      ),
+    );
+  }
+
+  static _Scored? _buildDualOfferCombination({
+    required double cartTotal,
+    required List<Coupon> coupons,
+    required String? appliedCouponCode,
+    required _Scored combo,
+    required _Scored bogo,
+    required _Scored? deliveryScored,
+  }) {
+    final comboAction = _combinedActionForSuggestion(combo);
+    final bogoAction = _combinedActionForSuggestion(bogo);
+    if (comboAction == null || bogoAction == null) return null;
+
+    final pairExtraSpend = combo.extraSpend + bogo.extraSpend;
+    final pairBenefit = combo.totalBenefit + bogo.totalBenefit;
+    final unlockedCoupon = _findBestCouponForAdditionalSpend(
+      cartTotal: cartTotal,
+      additionalSpend: pairExtraSpend,
+      coupons: coupons,
+      appliedCouponCode: appliedCouponCode,
+    );
+    final availableDelivery = deliveryScored;
+    final deliveryAvailable =
+        availableDelivery != null &&
+        pairExtraSpend >= availableDelivery.extraSpend;
+    final deliveryAction = deliveryAvailable
+        ? _combinedActionForSuggestion(availableDelivery)
+        : null;
+    final deliveryBenefit = deliveryAction != null && availableDelivery != null
+        ? availableDelivery.totalBenefit
+        : 0.0;
+
+    final pairIncrementalValue = bogo.totalBenefit - bogo.extraSpend;
+    final simplerExtraValue = math.max(
+      unlockedCoupon?.discountValue ?? 0,
+      deliveryAvailable ? deliveryBenefit : 0,
+    );
+    if (pairIncrementalValue <= simplerExtraValue) {
+      return null;
+    }
+
+    _ActionSelection? bestSelection;
+    for (final extra in <BasketSuggestionAction?>[
+      null,
+      ?(unlockedCoupon != null
+          ? _couponActionFromCoupon(unlockedCoupon)
+          : null),
+      ?deliveryAction,
+    ]) {
+      final actions = <BasketSuggestionAction>[
+        comboAction,
+        bogoAction,
+        ?extra,
+      ];
+      final totalBenefit =
+          pairBenefit +
+          (extra?.type == 'coupon' ? unlockedCoupon?.discountValue ?? 0 : 0) +
+          (extra?.type == 'delivery' ? deliveryBenefit : 0);
+      final selection = _ActionSelection(
+        actions: actions,
+        totalBenefit: totalBenefit,
+        extraSpend: pairExtraSpend,
+        selectionValue: _selectionValue(
+          totalBenefit: totalBenefit,
+          extraSpend: pairExtraSpend,
+          actionCount: actions.length,
+        ),
+      );
+      if (_isBetterSelection(selection, bestSelection)) {
+        bestSelection = selection;
+      }
+    }
+
+    if (bestSelection == null || bestSelection.actions.length < 2) {
+      return null;
+    }
+
+    final score = _scoreFromComponents(
+      type: 'combined',
+      conversionProbability: 44,
+      userRelevance: 28,
+      profitImpact: (bestSelection.totalBenefit * 1.15)
+          .clamp(16, 36)
+          .toDouble(),
+      urgency: pairExtraSpend <= 75 ? 20 : 16,
+    );
+
+    return _Scored(
+      extraSpend: pairExtraSpend,
+      totalBenefit: bestSelection.totalBenefit,
+      score: score,
+      suggestion: BasketSuggestion(
+        message:
+            'Stack BOGO + Combo (Save ₹${bestSelection.totalBenefit.toStringAsFixed(0)})',
+        type: 'combined',
+        priority: 0,
+        actions: bestSelection.actions,
+        savingAmount: bestSelection.totalBenefit,
+        comboId: combo.suggestion.comboId,
+        productId: bogo.suggestion.productId,
+        variantId: bogo.suggestion.variantId,
+        thumbnailUrl:
+            combo.suggestion.thumbnailUrl ?? bogo.suggestion.thumbnailUrl,
+        metadata: combo.suggestion.metadata ?? bogo.suggestion.metadata,
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1417,8 +1841,9 @@ class BasketSuggestionService {
       final curUp = current.price / curNorm;
 
       // Sort variants by quantity — pick ONLY the next immediate larger one
-      final sortedVariants = [...variants]
-        ..sort((a, b) => _normalizeQuantity(a).compareTo(_normalizeQuantity(b)));
+      final sortedVariants = [
+        ...variants,
+      ]..sort((a, b) => _normalizeQuantity(a).compareTo(_normalizeQuantity(b)));
 
       ProductVariant? nextVariant;
       for (final v in sortedVariants) {
@@ -1493,158 +1918,85 @@ class BasketSuggestionService {
     required String? appliedCouponCode,
     required List<_Scored> variantScored,
     required List<_Scored> comboScored,
+    required List<_Scored> bogoScored,
     required _Scored? deliveryScored,
     required Set<_Scored> upgradedBaseItems,
   }) {
     final combos = <_Scored>[];
 
-    Coupon? findBestCoupon(double extra) {
-      final total = cartTotal + extra;
-      Coupon? best;
-      double maxSav = 0;
-      for (final c in coupons) {
-        if (!c.isActive ||
-            c.minOrderAmount <= cartTotal ||
-            c.minOrderAmount > total) {
-          continue;
-        }
-        if (appliedCouponCode?.toUpperCase() == c.code.toUpperCase()) continue;
-        if (c.discountValue != null && c.discountValue! > maxSav) {
-          maxSav = c.discountValue!;
-          best = c;
-        }
-      }
-      return best;
-    }
-
-    // A. Variant + Coupon
+    // A. Variant + Coupon / Delivery
     for (final v in variantScored) {
-      final cUnlocked = findBestCoupon(v.extraSpend);
-      if (cUnlocked == null) continue;
-
-      final benefit = v.totalBenefit + (cUnlocked.discountValue ?? 0);
-      final actions = [
-        ...v.suggestion.actions!,
-        BasketSuggestionAction(
-          type: 'coupon',
-          label: 'Apply ${cUnlocked.code}',
-          ctaLabel: 'Apply',
-          payload: {
-            'couponCode': cUnlocked.code,
-          },
-          couponCode: cUnlocked.code,
-          benefit: cUnlocked.discountValue,
-          extraSpend: 0,
-        ),
-      ];
-
-      combos.add(
-        _Scored(
-          extraSpend: v.extraSpend,
-          totalBenefit: benefit,
-          score: _scoreFromComponents(
-            type: 'combined',
-            conversionProbability: 40,
-            userRelevance: 28,
-            profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
-            urgency: 18,
-          ),
-          suggestion: BasketSuggestion(
-            message:
-                'Upgrade pack & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
-            type: 'combined',
-            priority: 0,
-            actions: actions,
-            savingAmount: benefit,
-            thumbnailUrl: v.suggestion.thumbnailUrl,
-          ),
-        ),
+      final combined = _stackWithThresholds(
+        cartTotal: cartTotal,
+        coupons: coupons,
+        appliedCouponCode: appliedCouponCode,
+        base: v,
+        deliveryScored: deliveryScored,
+        messagePrefix: 'Upgrade pack',
+        conversionProbability: 40,
+        userRelevance: 28,
+        urgency: 18,
       );
-      upgradedBaseItems.add(v);
+      if (combined != null) {
+        combos.add(combined);
+        upgradedBaseItems.add(v);
+      }
     }
 
-    // B. Combo + Coupon
+    // B. Combo + Coupon / Delivery
     for (final c in comboScored) {
-      final cUnlocked = findBestCoupon(c.extraSpend);
-      if (cUnlocked == null) continue;
-
-      final benefit = c.totalBenefit + (cUnlocked.discountValue ?? 0);
-      final actions = [
-        ...c.suggestion.actions!,
-        BasketSuggestionAction(
-          type: 'coupon',
-          label: 'Apply ${cUnlocked.code}',
-          ctaLabel: 'Apply',
-          payload: {
-            'couponCode': cUnlocked.code,
-          },
-          couponCode: cUnlocked.code,
-          benefit: cUnlocked.discountValue,
-          extraSpend: 0,
-        ),
-      ];
-
-      combos.add(
-        _Scored(
-          extraSpend: c.extraSpend,
-          totalBenefit: benefit,
-          score: _scoreFromComponents(
-            type: 'combined',
-            conversionProbability: 42,
-            userRelevance: 26,
-            profitImpact: (benefit * 1.2).clamp(14, 32).toDouble(),
-            urgency: 18,
-          ),
-          suggestion: BasketSuggestion(
-            message:
-                'Add combo & unlock ${cUnlocked.code} (Save ₹${benefit.toStringAsFixed(0)})',
-            type: 'combined',
-            priority: 0,
-            actions: actions,
-            savingAmount: benefit,
-            comboId: c.suggestion.comboId,
-            thumbnailUrl: c.suggestion.thumbnailUrl,
-            metadata: c.suggestion.metadata,
-          ),
-        ),
+      final combined = _stackWithThresholds(
+        cartTotal: cartTotal,
+        coupons: coupons,
+        appliedCouponCode: appliedCouponCode,
+        base: c,
+        deliveryScored: deliveryScored,
+        messagePrefix: 'Add combo',
+        conversionProbability: 42,
+        userRelevance: 26,
+        urgency: 18,
       );
-      upgradedBaseItems.add(c);
+      if (combined != null) {
+        combos.add(combined);
+        upgradedBaseItems.add(c);
+      }
     }
 
-    // C. Variant + Delivery
-    if (deliveryScored != null) {
-      for (final v in variantScored) {
-        if (v.extraSpend >= deliveryScored.extraSpend) {
-          final benefit = v.totalBenefit + deliveryScored.totalBenefit;
-          final actions = [
-            ...v.suggestion.actions!,
-            ...deliveryScored.suggestion.actions!,
-          ];
-          combos.add(
-            _Scored(
-              extraSpend: v.extraSpend,
-              totalBenefit: benefit,
-              score: _scoreFromComponents(
-                type: 'combined',
-                conversionProbability: 44,
-                userRelevance: 28,
-                profitImpact: (benefit * 1.1).clamp(16, 34).toDouble(),
-                urgency: 20,
-              ),
-              suggestion: BasketSuggestion(
-                message:
-                    'Upgrade & get FREE Delivery (Save ₹${benefit.toStringAsFixed(0)})',
-                type: 'combined',
-                priority: 0,
-                actions: actions,
-                savingAmount: benefit,
-                thumbnailUrl: v.suggestion.thumbnailUrl,
-              ),
-            ),
-          );
-          upgradedBaseItems.add(v);
-          break; // Take the best variant
-        }
+    // C. BOGO + Coupon / Delivery
+    for (final b in bogoScored) {
+      final combined = _stackWithThresholds(
+        cartTotal: cartTotal,
+        coupons: coupons,
+        appliedCouponCode: appliedCouponCode,
+        base: b,
+        deliveryScored: deliveryScored,
+        messagePrefix: 'Grab the BOGO deal',
+        conversionProbability: b.extraSpend <= 0 ? 46 : 38,
+        userRelevance: b.extraSpend <= 0 ? 30 : 24,
+        urgency: b.extraSpend <= 75 ? 22 : 16,
+      );
+      if (combined != null) {
+        combos.add(combined);
+        upgradedBaseItems.add(b);
+      }
+    }
+
+    // D. BOGO + Combo (+ best one of Coupon / Delivery)
+    final bestCombo = _bestScoredByValue(comboScored);
+    final bestBogo = _bestScoredByValue(bogoScored);
+    if (bestCombo != null && bestBogo != null) {
+      final dual = _buildDualOfferCombination(
+        cartTotal: cartTotal,
+        coupons: coupons,
+        appliedCouponCode: appliedCouponCode,
+        combo: bestCombo,
+        bogo: bestBogo,
+        deliveryScored: deliveryScored,
+      );
+      if (dual != null) {
+        combos.add(dual);
+        upgradedBaseItems.add(bestCombo);
+        upgradedBaseItems.add(bestBogo);
       }
     }
 
