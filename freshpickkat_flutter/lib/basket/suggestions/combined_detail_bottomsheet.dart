@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:get/get.dart';
 
 class CombinedDetailBottomSheet extends StatelessWidget {
@@ -88,6 +92,14 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                         final i = entry.key;
                         final action = entry.value;
                         final isLast = i == actions.length - 1;
+
+                        if (_actionKind(action) == 'combo') {
+                          return _ComboTimelineStep(
+                            stepNumber: i + 1,
+                            isLast: isLast,
+                            action: action,
+                          );
+                        }
 
                         return IntrinsicHeight(
                           child: Row(
@@ -325,6 +337,198 @@ class CombinedDetailBottomSheet extends StatelessWidget {
       default:
         return Icons.auto_awesome_rounded;
     }
+  }
+}
+
+class _ComboTimelineStep extends StatelessWidget {
+  final int stepNumber;
+  final bool isLast;
+  final client.BasketSuggestionAction action;
+
+  const _ComboTimelineStep({
+    required this.stepNumber,
+    required this.isLast,
+    required this.action,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '$stepNumber',
+                    style: TextStyle(
+                      color: AppTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _ComboOfferBreakdownCard(action: action),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComboOfferBreakdownCard extends StatefulWidget {
+  final client.BasketSuggestionAction action;
+
+  const _ComboOfferBreakdownCard({required this.action});
+
+  @override
+  State<_ComboOfferBreakdownCard> createState() =>
+      _ComboOfferBreakdownCardState();
+}
+
+class _ComboOfferBreakdownCardState extends State<_ComboOfferBreakdownCard> {
+  bool _isExpanded = false;
+  String? _prefetchedComboId;
+
+  @override
+  void initState() {
+    super.initState();
+    ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final comboId =
+          widget.action.comboId ?? widget.action.payload?['comboId'];
+      final combo = ComboOfferController.instance.activeComboOffers
+          .firstWhereOrNull(
+            (offer) => (offer.comboId ?? offer.name) == comboId,
+          );
+
+      if (combo == null) {
+        return _FallbackComboCard(
+          isExpanded: _isExpanded,
+          onToggle: () => setState(() => _isExpanded = !_isExpanded),
+          title: widget.action.label,
+          subtitle: 'Combo details are loading from the active offers list.',
+        );
+      }
+
+      final productIds = combo.comboProducts
+          .map((item) => item.productId)
+          .toSet();
+      if (_prefetchedComboId != (combo.comboId ?? combo.name)) {
+        _prefetchedComboId = combo.comboId ?? combo.name;
+        ProductProviderController.instance.fetchProductsByIds(
+          productIds.toList(),
+        );
+      }
+
+      final products = resolveComboProducts(
+        combo,
+        ProductProviderController.instance.allProducts,
+      );
+      return ComboOfferCard(
+        combo: combo,
+        products: products,
+        isExpanded: _isExpanded,
+        isHighlighted: _isExpanded,
+        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        isCompactVariant: true,
+      );
+    });
+  }
+}
+
+class _FallbackComboCard extends StatelessWidget {
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final String title;
+  final String subtitle;
+
+  const _FallbackComboCard({
+    required this.isExpanded,
+    required this.onToggle,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: InkWell(
+        onTap: onToggle,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: cs.onSurface.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
