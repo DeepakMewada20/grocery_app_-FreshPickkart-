@@ -68,6 +68,11 @@ class BannerEndpoint extends Endpoint {
             startDate: startDate,
             endDate: endDate,
             active: fields['active']?.booleanValue ?? false,
+            isBaseImage: fields['isBaseImage']?.booleanValue ?? false,
+            linkedProductIds: fields['linkedProductIds']?.arrayValue?.values
+                ?.map((v) => v.stringValue ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList(),
             createdAt:
                 DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
                 DateTime.now(),
@@ -85,6 +90,7 @@ class BannerEndpoint extends Endpoint {
       }
 
       filteredBanners = filteredBanners.where((b) {
+        if (b.isBaseImage) return true;
         return now.isAfter(b.startDate.subtract(const Duration(days: 1))) &&
             now.isBefore(b.endDate.add(const Duration(days: 1)));
       }).toList();
@@ -97,6 +103,28 @@ class BannerEndpoint extends Endpoint {
               .toList();
           return placements.contains(screen);
         }).toList();
+
+        // Special handling for home_top_image: return only one banner (Festive > Base)
+        if (screen == 'home_top_image') {
+          final festiveBanners = filteredBanners
+              .where((b) => !b.isBaseImage)
+              .toList()
+            ..sort((a, b) => b.priority.compareTo(a.priority));
+
+          if (festiveBanners.isNotEmpty) {
+            return [festiveBanners.first];
+          }
+
+          final baseBanners = filteredBanners
+              .where((b) => b.isBaseImage)
+              .toList();
+          
+          if (baseBanners.isNotEmpty) {
+            return [baseBanners.first];
+          }
+          
+          return [];
+        }
       }
 
       filteredBanners.sort((a, b) => a.priority.compareTo(b.priority));
@@ -176,6 +204,11 @@ class BannerEndpoint extends Endpoint {
         startDate: startDate,
         endDate: endDate,
         active: fields['active']?.booleanValue ?? false,
+        isBaseImage: fields['isBaseImage']?.booleanValue ?? false,
+        linkedProductIds: fields['linkedProductIds']?.arrayValue?.values
+            ?.map((v) => v.stringValue ?? '')
+            .where((s) => s.isNotEmpty)
+            .toList(),
         createdAt:
             DateTime.tryParse(fields['createdAt']?.timestampValue ?? '') ??
             DateTime.now(),
@@ -198,6 +231,10 @@ class BannerEndpoint extends Endpoint {
 
     final now = DateTime.now();
 
+    if (banner.isBaseImage) {
+      await _unsetOtherBaseImages(firestore, bannerId, banner.screenPlacements);
+    }
+
     final fields = _bannerToFields(banner, now);
 
     await firestore.projects.databases.documents.createDocument(
@@ -217,6 +254,11 @@ class BannerEndpoint extends Endpoint {
 
     final firestore = await FirebaseService.getFirestoreClient();
     final docPath = '$_database/$bannerCollection/${banner.bannerId}';
+    
+    if (banner.isBaseImage) {
+      await _unsetOtherBaseImages(firestore, banner.bannerId!, banner.screenPlacements);
+    }
+
     final fields = _bannerToFields(banner, DateTime.now());
 
     await firestore.projects.databases.documents.patch(
@@ -299,6 +341,7 @@ class BannerEndpoint extends Endpoint {
         timestampValue: banner.endDate.toUtc().toIso8601String(),
       ),
       'active': firestore_api.Value(booleanValue: banner.active),
+      'isBaseImage': firestore_api.Value(booleanValue: banner.isBaseImage),
       'createdAt': firestore_api.Value(
         timestampValue: timestamp.toUtc().toIso8601String(),
       ),
@@ -328,7 +371,81 @@ class BannerEndpoint extends Endpoint {
         stringValue: banner.externalUrl!,
       );
     }
+    if (banner.linkedProductIds != null) {
+      fields['linkedProductIds'] = firestore_api.Value(
+        arrayValue: firestore_api.ArrayValue(
+          values: banner.linkedProductIds!
+              .map((id) => firestore_api.Value(stringValue: id))
+              .toList(),
+        ),
+      );
+    }
 
     return fields;
+  }
+
+  Future<void> _unsetOtherBaseImages(
+    firestore_api.FirestoreApi firestore,
+    String currentBannerId,
+    String screenPlacements,
+  ) async {
+    print('Unsetting other base images for placement: $screenPlacements (except ID: $currentBannerId)');
+    
+    // Fetch all banners from Firestore (since collection is small)
+    final query = firestore_api.RunQueryRequest(
+      structuredQuery: firestore_api.StructuredQuery(
+        from: [
+          firestore_api.CollectionSelector(collectionId: bannerCollection)
+        ],
+      ),
+    );
+
+    final results = await firestore.projects.databases.documents.runQuery(
+      query,
+      _database,
+    );
+
+    int unsetCount = 0;
+    for (var result in results) {
+      final doc = result.document;
+      if (doc != null && doc.name != null) {
+        final docId = doc.name!.split('/').last;
+        final fields = doc.fields ?? {};
+        
+        final isBase = fields['isBaseImage']?.booleanValue ?? false;
+        if (!isBase || docId == currentBannerId) continue;
+
+        final docPlacements = fields['screenPlacements']?.stringValue ?? '';
+        
+        bool overlap = false;
+        final newPlacements = screenPlacements.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
+        final oldPlacements = docPlacements.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
+        
+        for (var p in newPlacements) {
+          if (oldPlacements.contains(p)) {
+            overlap = true;
+            break;
+          }
+        }
+
+        if (overlap) {
+          print('Unsetting isBaseImage for banner: $docId');
+          await firestore.projects.databases.documents.patch(
+            firestore_api.Document(
+              fields: {
+                'isBaseImage': firestore_api.Value(booleanValue: false),
+                'updatedAt': firestore_api.Value(
+                  timestampValue: DateTime.now().toUtc().toIso8601String(),
+                ),
+              },
+            ),
+            doc.name!,
+            updateMask_fieldPaths: ['isBaseImage', 'updatedAt'],
+          );
+          unsetCount++;
+        }
+      }
+    }
+    print('Total base images unset: $unsetCount');
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
@@ -11,82 +13,126 @@ class HomeBannerWithHorizontalItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bannerController = BannerController.instance;
     final productController = ProductProviderController.instance;
 
     return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.only(top: 16),
-        height: height * 0.37,
-        width: double.infinity,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            /// 🖼️ BACKGROUND IMAGE
-            Container(
-              height: height * 0.37,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('lib/assets/images/grocry_home_banner.png'),
-                  fit: BoxFit.cover,
+      child: Obx(() {
+        // 🔍 Get the banner provided by server (already filtered Festive > Base)
+        final banner = bannerController.homeTopImageBanners.firstOrNull;
+
+        final bannerHeight = height * 0.4;
+
+        return Container(
+          margin: const EdgeInsets.only(top: 16),
+          height: bannerHeight,
+          width: double.infinity,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              /// 🖼️ BACKGROUND IMAGE (DYNAMIC)
+              Positioned.fill(
+                child: banner != null
+                    ? Image.network(
+                        banner.imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const _ShimmerBox();
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(color: Colors.grey[200]),
+                      )
+                    : Container(
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(
+                              'lib/assets/images/grocry_home_banner.png',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+              ),
+
+              /// 🧱 HORIZONTAL ITEMS (OVERLAP)
+              Positioned(
+                bottom: 7,
+                left: 0,
+                right: 0,
+                child: SizedBox(
+                  height: 130,
+                  child: Builder(
+                    builder: (context) {
+                      if (banner == null) {
+                        // Fallback to top 5 products if no dynamic banner
+                        final products = productController.allProducts
+                            .take(5)
+                            .toList();
+                        return _ProductList(products: products);
+                      }
+
+                      // Fetch linked products for the banner
+                      final productIds = banner.linkedProductIds!;
+                      productController.fetchProductsByIds(productIds);
+
+                      final products = productController.allProducts
+                          .where((p) => productIds.contains(p.productId))
+                          .toList();
+
+                      if (products.isEmpty && productController.isLoading.value) {
+                        return _ShimmerProductList();
+                      }
+
+                      return _ProductList(products: products);
+                    },
+                  ),
                 ),
               ),
-            ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
 
-            /// 🧱 HORIZONTAL ITEMS (OVERLAP)
-            Positioned(
-              bottom: 7,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                height: 130,
-                child: Obx(() {
-                  if (productController.isLoading.value &&
-                      productController.allProducts.isEmpty) {
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: 5,
-                      itemBuilder: (context, index) {
-                        final isDark =
-                            Theme.of(context).brightness == Brightness.dark;
-                        return Container(
-                          width: 100,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: isDark
-                                ? const Color(0xFF2A2A2A)
-                                : const Color(0xFFE8F5E9),
-                          ),
-                          child: const _ShimmerBox(),
-                        );
-                      },
-                    );
-                  }
+class _ProductList extends StatelessWidget {
+  final List<Product> products;
+  const _ProductList({required this.products});
 
-                  final products = productController.allProducts;
-                  if (products.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
+  @override
+  Widget build(BuildContext context) {
+    if (products.isEmpty) return const SizedBox.shrink();
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        return _ProductBannerCard(product: products[index]);
+      },
+    );
+  }
+}
 
-                  final displayProducts = products.take(5).toList();
-
-                  return ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: displayProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = displayProducts[index];
-                      return _ProductBannerCard(product: product);
-                    },
-                  );
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
+class _ShimmerProductList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return Container(
+          width: 100,
+          margin: const EdgeInsets.only(right: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey[300],
+          ),
+          child: const _ShimmerBox(),
+        );
+      },
     );
   }
 }
@@ -136,7 +182,7 @@ class _ProductBannerCard extends StatelessWidget {
                   );
                 },
               ),
-              if (hasProductOffer(product))
+              if (product.discount > 0)
                 Positioned(
                   top: 6,
                   left: 6,

@@ -15,5 +15,7 @@ fields:
   startDate: DateTime
   endDate: DateTime
   active: bool
+  isBaseImage: bool
+  linkedProductIds: List<String>?
   createdAt: DateTime
   updatedAt: DateTime?

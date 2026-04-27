@@ -11,6 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i2;
 
 abstract class Banner implements _i1.SerializableModel {
   Banner._({
@@ -29,6 +30,8 @@ abstract class Banner implements _i1.SerializableModel {
     required this.startDate,
     required this.endDate,
     required this.active,
+    required this.isBaseImage,
+    this.linkedProductIds,
     required this.createdAt,
     this.updatedAt,
   });
@@ -49,6 +52,8 @@ abstract class Banner implements _i1.SerializableModel {
     required DateTime startDate,
     required DateTime endDate,
     required bool active,
+    required bool isBaseImage,
+    List<String>? linkedProductIds,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) = _BannerImpl;
@@ -72,6 +77,14 @@ abstract class Banner implements _i1.SerializableModel {
       ),
       endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       active: _i1.BoolJsonExtension.fromJson(jsonSerialization['active']),
+      isBaseImage: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isBaseImage'],
+      ),
+      linkedProductIds: jsonSerialization['linkedProductIds'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['linkedProductIds'],
+            ),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -111,6 +124,10 @@ abstract class Banner implements _i1.SerializableModel {
 
   bool active;
 
+  bool isBaseImage;
+
+  List<String>? linkedProductIds;
+
   DateTime createdAt;
 
   DateTime? updatedAt;
@@ -134,6 +151,8 @@ abstract class Banner implements _i1.SerializableModel {
     DateTime? startDate,
     DateTime? endDate,
     bool? active,
+    bool? isBaseImage,
+    List<String>? linkedProductIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -156,6 +175,9 @@ abstract class Banner implements _i1.SerializableModel {
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
       'active': active,
+      'isBaseImage': isBaseImage,
+      if (linkedProductIds != null)
+        'linkedProductIds': linkedProductIds?.toJson(),
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -186,6 +208,8 @@ class _BannerImpl extends Banner {
     required DateTime startDate,
     required DateTime endDate,
     required bool active,
+    required bool isBaseImage,
+    List<String>? linkedProductIds,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -204,6 +228,8 @@ class _BannerImpl extends Banner {
          startDate: startDate,
          endDate: endDate,
          active: active,
+         isBaseImage: isBaseImage,
+         linkedProductIds: linkedProductIds,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -228,6 +254,8 @@ class _BannerImpl extends Banner {
     DateTime? startDate,
     DateTime? endDate,
     bool? active,
+    bool? isBaseImage,
+    Object? linkedProductIds = _Undefined,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
   }) {
@@ -247,6 +275,10 @@ class _BannerImpl extends Banner {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       active: active ?? this.active,
+      isBaseImage: isBaseImage ?? this.isBaseImage,
+      linkedProductIds: linkedProductIds is List<String>?
+          ? linkedProductIds
+          : this.linkedProductIds?.map((e0) => e0).toList(),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
     );

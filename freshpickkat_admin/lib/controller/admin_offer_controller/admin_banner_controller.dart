@@ -139,9 +139,13 @@ class AdminBannerController extends GetxController {
       final created = await ApiClient().request(() async {
         return await _client.banner.createBanner(banner);
       });
-      banners.add(created);
-      totalCount.value++;
-      _sortBanners();
+      if (banner.isBaseImage) {
+        await loadBanners(force: true);
+      } else {
+        banners.add(created);
+        totalCount.value++;
+        _sortBanners();
+      }
       Get.snackbar(
         'Success',
         'Banner created successfully',
@@ -181,11 +185,15 @@ class AdminBannerController extends GetxController {
       final updated = await ApiClient().request(() async {
         return await _client.banner.updateBanner(banner);
       });
-      final index = banners.indexWhere((b) => b.bannerId == banner.bannerId);
-      if (index != -1) {
-        banners[index] = updated;
+      if (banner.isBaseImage) {
+        await loadBanners(force: true);
+      } else {
+        final index = banners.indexWhere((b) => b.bannerId == banner.bannerId);
+        if (index != -1) {
+          banners[index] = updated;
+        }
+        _sortBanners();
       }
-      _sortBanners();
       Get.snackbar(
         'Success',
         'Banner updated successfully',
@@ -265,6 +273,8 @@ class AdminBannerController extends GetxController {
           startDate: banner.startDate,
           endDate: banner.endDate,
           active: active,
+          isBaseImage: banner.isBaseImage,
+          linkedProductIds: banner.linkedProductIds,
           createdAt: banner.createdAt,
           updatedAt: banner.updatedAt,
         );
@@ -301,6 +311,8 @@ class AdminBannerController extends GetxController {
           startDate: banner.startDate,
           endDate: banner.endDate,
           active: banner.active,
+          isBaseImage: banner.isBaseImage,
+          linkedProductIds: banner.linkedProductIds,
           createdAt: banner.createdAt,
           updatedAt: DateTime.now(),
         );

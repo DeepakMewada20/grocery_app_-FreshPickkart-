@@ -147,7 +147,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     isAvailable = product?.isAvailable ?? true;
 
     selectedCategory = product?.category;
-    if (product?.subcategory != null) {
+    if (product != null) {
       selectedSubcategories.addAll(product!.subcategory);
     }
 

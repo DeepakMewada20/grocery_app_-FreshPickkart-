@@ -39,6 +39,7 @@ class AdminImageUploadService {
     required ImageSource source,
     required String folder,
     String toolbarTitle = 'Crop Image',
+    CropAspectRatio? aspectRatio,
   }) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -51,16 +52,21 @@ class AdminImageUploadService {
 
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: picked.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      aspectRatio: aspectRatio ?? const CropAspectRatio(ratioX: 1, ratioY: 1),
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: toolbarTitle,
           toolbarColor: Colors.green,
           toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true,
+          initAspectRatio: aspectRatio != null
+              ? CropAspectRatioPreset.original
+              : CropAspectRatioPreset.square,
+          lockAspectRatio: aspectRatio != null,
         ),
-        IOSUiSettings(title: toolbarTitle, aspectRatioLockEnabled: true),
+        IOSUiSettings(
+          title: toolbarTitle,
+          aspectRatioLockEnabled: aspectRatio != null,
+        ),
       ],
     );
 

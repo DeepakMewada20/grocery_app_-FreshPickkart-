@@ -11,6 +11,7 @@ class BannerController extends GetxController {
 
   // All placement groups
   final homeTopBanners = <client.Banner>[].obs;
+  final homeTopImageBanners = <client.Banner>[].obs;
   final homeMiddleBanners = <client.Banner>[].obs;
   final categoryPageBanners = <client.Banner>[].obs;
   final cartPageBanners = <client.Banner>[].obs;
@@ -46,11 +47,13 @@ class BannerController extends GetxController {
 
       final results = await Future.wait([
         _client.banner.getBanners(screen: 'home_top', activeOnly: true),
+        _client.banner.getBanners(screen: 'home_top_image', activeOnly: true),
         _client.banner.getBanners(screen: 'home_middle', activeOnly: true),
       ]);
 
-      homeTopBanners.assignAll(results[0]);
-      homeMiddleBanners.assignAll(results[1]);
+      homeTopBanners.assignAll(results[0].where((b) => !b.screenPlacements.contains('home_top_image')));
+      homeTopImageBanners.assignAll(results[1]);
+      homeMiddleBanners.assignAll(results[2]);
     } catch (e) {
       error.value = e.toString();
       debugPrint('Error loading home banners: $e');
@@ -106,6 +109,7 @@ class BannerController extends GetxController {
 
   void clearCache() {
     homeTopBanners.clear();
+    homeTopImageBanners.clear();
     homeMiddleBanners.clear();
     categoryPageBanners.clear();
     cartPageBanners.clear();
