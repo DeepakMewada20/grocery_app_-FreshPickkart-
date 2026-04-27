@@ -79,4 +79,14 @@ class AdminImageUploadService {
     await ref.putFile(file);
     return ref.getDownloadURL();
   }
+
+  static Future<void> deleteImage(String url) async {
+    if (url.isEmpty || !url.startsWith('http')) return;
+    try {
+      final ref = FirebaseStorage.instance.refFromURL(url);
+      await ref.delete();
+    } catch (e) {
+      debugPrint('Error deleting image: $e');
+    }
+  }
 }

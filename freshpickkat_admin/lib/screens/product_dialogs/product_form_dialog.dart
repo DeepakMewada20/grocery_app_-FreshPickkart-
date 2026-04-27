@@ -14,6 +14,7 @@ import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart'
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 
 import 'variant_draft.dart';
 import 'variant_editor.dart';
@@ -95,6 +96,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   bool _isSubmitting = false;
   String? imageError;
   bool _didRequestOfferData = false;
+  final List<String> _uploadedUrlsInSession = [];
+  bool _isSaved = false;
 
   String? selectedCategory;
   final selectedSubcategories = <String>{};
@@ -208,7 +211,19 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     for (final variant in extraVariants) {
       variant.dispose();
     }
+    if (!_isSaved) {
+      _cleanupImages(keepCurrent: false);
+    }
     super.dispose();
+  }
+
+  Future<void> _cleanupImages({required bool keepCurrent}) async {
+    final currentImageUrl = imageCtrl.text.trim();
+    for (final url in _uploadedUrlsInSession) {
+      if (keepCurrent && url == currentImageUrl) continue;
+      await AdminImageUploadService.deleteImage(url);
+    }
+    _uploadedUrlsInSession.clear();
   }
 
   String? _numberValidator(String? v) {
@@ -265,7 +280,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         .child('${now}_$name');
 
     await ref.putFile(file);
-    return ref.getDownloadURL();
+    final url = await ref.getDownloadURL();
+    _uploadedUrlsInSession.add(url);
+    return url;
   }
 
   Future<ImageSource?> _pickImageSource() async {
@@ -792,7 +809,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 if (source == null) return;
                 final url = await _pickAndUploadProductImage(source);
                 if (url != null && mounted) {
-                  setState(() => imageCtrl.text = url);
+                  setState(() {
+                    imageCtrl.text = url;
+                    imageError = null;
+                  });
                 }
               } catch (e) {
                 setState(() => imageError = e.toString());
@@ -1384,6 +1404,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       try {
         await widget.onSubmit(result);
         if (!mounted) return;
+        _isSaved = true;
+        await _cleanupImages(keepCurrent: true);
         Navigator.pop(context, true);
       } catch (e) {
         if (!mounted) return;
