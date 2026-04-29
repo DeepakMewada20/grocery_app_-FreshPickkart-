@@ -52,8 +52,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.dispose();
   }
 
-  Future<void> _loadInitial() async {
-    await _orderController.loadInitial();
+  Future<void> _loadInitial({bool force = false}) async {
+    await _orderController.loadInitial(
+      status: _orderController.statusFilter,
+      force: force,
+    );
   }
 
   void _handleScroll() {
@@ -240,10 +243,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
         final hasMore = _orderController.hasMore.value;
         final isLoadingMore = _orderController.isLoadingMore.value;
 
-        if (isLoading && orders.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (error != null && orders.isEmpty) {
           return Center(
             child: Column(
@@ -277,28 +276,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
           );
         }
 
-        if (orders.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 80,
-                  color: AdminAppTheme.getBorderColor(context),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No orders yet',
-                  style: TextStyle(
-                    color: AdminAppTheme.getTextSecondaryColor(context),
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
 
         final filtered = orders.where((o) {
           final statusFilter = _orderController.statusFilter;
@@ -327,10 +304,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: _loadInitial,
+                onRefresh: () => _loadInitial(force: true),
                 color: Colors.green,
-                child: filtered.isEmpty
-                    ? ListView(
+                child: (isLoading && orders.isEmpty) || (filtered.isEmpty && (isLoading || isLoadingMore))
+                    ? const Center(child: CircularProgressIndicator())
+                    : filtered.isEmpty
+                        ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           const SizedBox(height: 120),
@@ -338,13 +317,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             child: Column(
                               children: [
                                 Icon(
-                                  Icons.search_off,
+                                  _orderController.statusFilter == 'all' && _searchQuery.isEmpty
+                                      ? Icons.shopping_bag_outlined
+                                      : Icons.search_off,
                                   size: 64,
                                   color: AdminAppTheme.getBorderColor(context),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No matching orders',
+                                  _orderController.statusFilter == 'all' && _searchQuery.isEmpty
+                                      ? 'No orders yet'
+                                      : 'No matching orders',
                                   style: TextStyle(
                                     color: AdminAppTheme.getTextSecondaryColor(
                                       context,

@@ -24,19 +24,35 @@ class AdminOrderController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMore = true.obs;
   final RxnString error = RxnString(null);
+  
+  final Map<String, String?> _nextPageTokens = {};
+  final Map<String, bool> _hasMoreMap = {};
+  final Map<String, int> _totalCounts = {};
 
   String statusFilter = 'all';
 
-  Future<void> loadInitial({String? status}) async {
+  Future<void> loadInitial({String? status, bool force = false}) async {
     statusFilter = status ?? 'all';
 
-    orders.clear();
-    nextPageToken.value = null;
-    totalCount.value = 0;
-    hasMore.value = true;
+    if (force) {
+      _nextPageTokens[statusFilter] = null;
+      _hasMoreMap[statusFilter] = true;
+      _totalCounts[statusFilter] = 0;
+    }
+
+    final currentFilteredCount = orders.where((o) {
+      if (statusFilter == 'all') return true;
+      return o.status == statusFilter;
+    }).length;
+
+    nextPageToken.value = _nextPageTokens[statusFilter];
+    totalCount.value = _totalCounts[statusFilter] ?? 0;
+    hasMore.value = _hasMoreMap[statusFilter] ?? true;
     error.value = null;
 
-    await loadMore(isInitial: true);
+    if (currentFilteredCount < 10 && hasMore.value) {
+      await loadMore(isInitial: orders.isEmpty);
+    }
   }
 
   Future<void> loadMore({bool isInitial = false}) async {
@@ -65,11 +81,35 @@ class AdminOrderController extends GetxController {
         );
       });
 
-      if (isInitial) orders.clear();
-      orders.addAll(page.orders);
+      final bool isFirstPage = nextPageToken.value == null;
+
+      _nextPageTokens[statusFilter] = page.nextPageToken;
+      _totalCounts[statusFilter] = page.totalCount;
+      _hasMoreMap[statusFilter] =
+          page.nextPageToken != null && page.orders.isNotEmpty;
+
       nextPageToken.value = page.nextPageToken;
       totalCount.value = page.totalCount;
-      hasMore.value = page.nextPageToken != null && page.orders.isNotEmpty;
+      hasMore.value = _hasMoreMap[statusFilter]!;
+
+      // If it's the first page (initial or force), clear old orders for this status
+      if (isFirstPage) {
+        if (statusFilter == 'all') {
+          orders.clear();
+        } else {
+          orders.removeWhere((o) => o.status == statusFilter);
+        }
+      }
+
+      for (final newOrder in page.orders) {
+        final index = orders.indexWhere((o) => o.orderId == newOrder.orderId);
+        if (index != -1) {
+          orders[index] = newOrder;
+        } else {
+          orders.add(newOrder);
+        }
+      }
+
       error.value = null;
     } on NoInternetException {
       networkController.showError(

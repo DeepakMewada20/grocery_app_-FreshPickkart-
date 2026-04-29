@@ -27,7 +27,6 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AdminAppBar(
         title: const Text('Live Delivery'),
-        style: AdminAppBarStyle.surface,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
