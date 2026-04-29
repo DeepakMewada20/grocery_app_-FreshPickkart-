@@ -10,7 +10,6 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:image_cropper/image_cropper.dart';
-import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/catalog_widgets/catalog_shared_widgets.dart';
 
@@ -59,15 +58,6 @@ class _BannersScreenState extends State<BannersScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AdminAppBar(
-        title: const Text('Banners'),
-        actions: [
-          IconButton(
-            onPressed: _controller.loadMore,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddBannerDialog,
         icon: const Icon(Icons.add),

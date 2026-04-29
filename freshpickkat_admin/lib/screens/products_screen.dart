@@ -324,9 +324,7 @@ class _ProductsScreenState extends State<ProductsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AdminAppBar(
-        title: const Text('Products'),
-        toolbarHeight: 0,
-        bottom: TabBar(
+        title: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,

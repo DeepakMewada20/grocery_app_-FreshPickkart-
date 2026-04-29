@@ -186,8 +186,7 @@ class _OffersScreenState extends State<OffersScreen> {
             builder: (context, _) {
               return Scaffold(
                 appBar: AdminAppBar(
-                  title: const Text('Offers'),
-                  bottom: TabBar(
+                  title: TabBar(
                     isScrollable: true,
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.white70,
