@@ -12,6 +12,7 @@ import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
+import '../widgets/catalog_widgets/catalog_shared_widgets.dart';
 
 typedef AppBanner = client.Banner;
 
@@ -27,7 +28,7 @@ class _BannersScreenState extends State<BannersScreen>
   final AdminBannerController _controller = AdminBannerController.instance;
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
-  BannerMode _filterMode = BannerMode.normal;
+  BannerMode? _filterMode;
 
   @override
   bool get wantKeepAlive => true;
@@ -76,41 +77,54 @@ class _BannersScreenState extends State<BannersScreen>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search banners...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search banners...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(color: Colors.green),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.toLowerCase();
+                    });
+                  },
                 ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.toLowerCase();
-                });
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SegmentedButton<BannerMode>(
-              segments: const [
-                ButtonSegment(
-                  value: BannerMode.normal,
-                  label: Text('Standard'),
-                  icon: Icon(Icons.dashboard_outlined),
-                ),
-                ButtonSegment(
-                  value: BannerMode.homeTopImage,
-                  label: Text('Home Top Image'),
-                  icon: Icon(Icons.image_outlined),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildFilterChip('All', null),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Standard', BannerMode.normal),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Home Top Image', BannerMode.homeTopImage),
+                    ],
+                  ),
                 ),
               ],
-              selected: {_filterMode},
-              onSelectionChanged: (newSelection) {
-                setState(() => _filterMode = newSelection.first);
-              },
             ),
           ),
           Expanded(
@@ -126,14 +140,22 @@ class _BannersScreenState extends State<BannersScreen>
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final banners = _controller.banners.where((b) {
-                final matchesQuery = b.title.toLowerCase().contains(_searchQuery) ||
-                    b.screenPlacements.toLowerCase().contains(_searchQuery);
-                final isHero = b.screenPlacements.contains('home_top_image');
-                final matchesMode =
-                    _filterMode == BannerMode.homeTopImage ? isHero : !isHero;
-                return matchesQuery && matchesMode;
-              }).toList();
+                final banners = _controller.banners.where((b) {
+                  final matchesQuery = b.title.toLowerCase().contains(_searchQuery) ||
+                      b.screenPlacements.toLowerCase().contains(_searchQuery);
+                  
+                  // Filter by mode if selected
+                  bool matchesMode = true;
+                  final isHero = b.screenPlacements.contains('home_top_image');
+                  
+                  if (_filterMode == BannerMode.homeTopImage) {
+                    matchesMode = isHero;
+                  } else if (_filterMode == BannerMode.normal) {
+                    matchesMode = !isHero;
+                  }
+                  
+                  return matchesQuery && matchesMode;
+                }).toList();
 
               if (banners.isEmpty) {
                 return Center(
@@ -259,6 +281,35 @@ class _BannersScreenState extends State<BannersScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFilterChip(String label, BannerMode? mode) {
+    final isSelected = _filterMode == mode;
+    return Theme(
+      data: Theme.of(context).copyWith(
+        chipTheme: Theme.of(context).chipTheme.copyWith(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+          side: BorderSide(
+            color: isSelected ? Colors.green : Colors.grey.shade300,
+          ),
+          backgroundColor: Colors.white,
+          selectedColor: Colors.green.withValues(alpha: 0.12),
+          labelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.green.shade800 : Colors.grey.shade800,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+        ),
+      ),
+      child: CatalogOfferFilterChip(
+        label: label,
+        selected: isSelected,
+        onSelected: () => setState(() => _filterMode = mode),
+      ),
     );
   }
 }
@@ -543,6 +594,7 @@ class _BannerCard extends StatelessWidget {
     );
   }
 
+
   void _showPriorityDialog(BuildContext context) {
     int selectedPriority = banner.priority;
     showDialog(
@@ -550,7 +602,7 @@ class _BannerCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: const Text('Change Priority'),
         content: DropdownButtonFormField<int>(
-          value: selectedPriority,
+          initialValue: selectedPriority,
           items: List.generate(10, (i) => i + 1)
               .map(
                 (p) => DropdownMenuItem(value: p, child: Text('Priority $p')),
@@ -787,7 +839,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                     if (_mode == BannerMode.normal) ...[
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _type,
+                        initialValue: _type,
                         decoration: const InputDecoration(
                           labelText: 'Banner Type',
                           border: OutlineInputBorder(),
@@ -885,7 +937,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<int>(
-                        value: _priority,
+                        initialValue: _priority,
                         decoration: const InputDecoration(
                           labelText: 'Priority',
                           border: OutlineInputBorder(),
@@ -1134,7 +1186,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Obx(() {
       final categories = categoryController.categories;
       return DropdownButtonFormField<String>(
-        value: _categoryId,
+        initialValue: _categoryId,
         decoration: const InputDecoration(labelText: 'Category'),
         items: categories
             .map((c) => DropdownMenuItem(value: c.categoryName, child: Text(c.categoryName)))
@@ -1186,7 +1238,7 @@ class _BannerSheetState extends State<_BannerSheet> {
           const Text('Select Coupon', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: _couponCode,
+            initialValue: _couponCode,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.local_offer_outlined),
@@ -1215,7 +1267,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Obx(() {
       final combos = offerController.comboOffers;
       return DropdownButtonFormField<String>(
-        value: _comboId,
+        initialValue: _comboId,
         decoration: const InputDecoration(labelText: 'Combo'),
         items: combos
             .map((c) => DropdownMenuItem(value: c.comboId, child: Text(c.name)))
