@@ -95,6 +95,18 @@ class EndpointAdmin extends _i1.EndpointRef {
         {'idToken': idToken},
       );
 
+  _i2.Future<_i3.AdminAuthResult> completeFirebaseSetup(
+    String idToken,
+    String username,
+  ) => caller.callServerEndpoint<_i3.AdminAuthResult>(
+    'admin',
+    'completeFirebaseSetup',
+    {
+      'idToken': idToken,
+      'username': username,
+    },
+  );
+
   _i2.Future<List<_i4.AppUser>> getAllUsers(
     String firebaseUid,
     String idToken,

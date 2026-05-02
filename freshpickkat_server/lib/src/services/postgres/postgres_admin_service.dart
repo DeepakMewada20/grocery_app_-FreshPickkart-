@@ -12,14 +12,15 @@ import '../firebase_auth_service.dart';
 import 'postgres_support.dart';
 
 class PostgresAdminService {
+  static const String _adminRole = 'ADMIN_SELLER';
   static final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
   Future<bool> isAdminSetupCompleted(Session session) async {
-    return await AppUserRow.db.count(
-          session,
-          where: (t) => t.status.equals('active'),
-        ) >
-        0;
+    final users = await AppUserRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+    );
+    return users.any((user) => _isAdminSellerRole(user.role));
   }
 
   Future<String> resolveAdminLoginEmail(
@@ -90,10 +91,109 @@ class PostgresAdminService {
       session,
       where: (t) => t.firebaseUid.equals(token.uid) & t.status.equals('active'),
     );
-    if (user == null || !_isAdminSellerRole(user.role)) {
+    if (user != null && _isAdminSellerRole(user.role)) {
+      return protocol.AdminAuthResult(ok: true);
+    }
+
+    final relinked = await _relinkAdminByEmail(session, token);
+    if (!relinked) {
       return protocol.AdminAuthResult(
         ok: false,
         message: 'Access denied: ADMIN_SELLER role required.',
+      );
+    }
+
+    return protocol.AdminAuthResult(ok: true);
+  }
+
+  Future<protocol.AdminAuthResult> completeFirebaseSetup(
+    Session session,
+    String idToken,
+    String username,
+  ) async {
+    final token = await FirebaseAuthService.verifyIdToken(idToken);
+    if (token == null) {
+      final verifyError = FirebaseAuthService.getLastVerifyError();
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: verifyError == null || verifyError.trim().isEmpty
+            ? 'Invalid or expired Firebase token.'
+            : 'Invalid or expired Firebase token. $verifyError',
+      );
+    }
+    if (!token.emailVerified) {
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Email verification required.',
+      );
+    }
+
+    final email = token.email?.trim().toLowerCase();
+    if (email == null || !_emailRegex.hasMatch(email)) {
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Verified admin email required.',
+      );
+    }
+
+    final adminUsers = await _activeAdminUsers(session);
+    final existingByUid = await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(token.uid),
+    );
+    final existingAdminByEmail = _findAdminByEmail(adminUsers, email);
+
+    if (existingByUid != null && _isAdminSellerRole(existingByUid.role)) {
+      await _updateAdminRow(
+        session,
+        existingByUid,
+        firebaseUid: token.uid,
+        email: email,
+        username: username,
+      );
+      return protocol.AdminAuthResult(ok: true);
+    }
+
+    if (existingAdminByEmail != null) {
+      await _updateAdminRow(
+        session,
+        existingAdminByEmail,
+        firebaseUid: token.uid,
+        email: email,
+        username: username,
+      );
+      return protocol.AdminAuthResult(ok: true);
+    }
+
+    if (adminUsers.isNotEmpty) {
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Access denied: ADMIN_SELLER role required.',
+      );
+    }
+
+    if (existingByUid == null) {
+      final now = DateTime.now().toUtc();
+      await AppUserRow.db.insertRow(
+        session,
+        AppUserRow(
+          firebaseUid: token.uid,
+          phoneNumber: token.phoneNumber ?? '',
+          name: _cleanUsername(username),
+          email: email,
+          role: _adminRole,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } else {
+      await _updateAdminRow(
+        session,
+        existingByUid,
+        firebaseUid: token.uid,
+        email: email,
+        username: username,
       );
     }
 
@@ -316,6 +416,68 @@ class PostgresAdminService {
         lowered == 'admin-seller' ||
         lowered == 'admin seller' ||
         normalized.toUpperCase() == 'ADMIN_SELLER';
+  }
+
+  Future<List<AppUserRow>> _activeAdminUsers(Session session) async {
+    final users = await AppUserRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+    );
+    return users.where((user) => _isAdminSellerRole(user.role)).toList();
+  }
+
+  Future<bool> _relinkAdminByEmail(
+    Session session,
+    VerifiedFirebaseToken token,
+  ) async {
+    final email = token.email?.trim().toLowerCase();
+    if (email == null || !_emailRegex.hasMatch(email)) return false;
+
+    final match = _findAdminByEmail(await _activeAdminUsers(session), email);
+    if (match == null) return false;
+
+    await _updateAdminRow(
+      session,
+      match,
+      firebaseUid: token.uid,
+      email: email,
+      username: match.name,
+    );
+    return true;
+  }
+
+  AppUserRow? _findAdminByEmail(List<AppUserRow> users, String email) {
+    for (final user in users) {
+      if (user.email?.trim().toLowerCase() == email) return user;
+    }
+    return null;
+  }
+
+  Future<void> _updateAdminRow(
+    Session session,
+    AppUserRow row, {
+    required String firebaseUid,
+    required String email,
+    String? username,
+  }) async {
+    await AppUserRow.db.updateRow(
+      session,
+      row.copyWith(
+        firebaseUid: firebaseUid,
+        phoneNumber: row.phoneNumber,
+        name: _cleanUsername(username) ?? row.name,
+        email: email,
+        role: _adminRole,
+        status: 'active',
+        deactivatedAt: null,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  String? _cleanUsername(String? username) {
+    final cleaned = username?.trim().toLowerCase();
+    return cleaned == null || cleaned.isEmpty ? null : cleaned;
   }
 
   String _formatQuantity(

@@ -2,6 +2,7 @@ admin:
   - isAdminSetupCompleted:
   - resolveAdminLoginEmail:
   - firebaseLogin:
+  - completeFirebaseSetup:
   - getAllUsers:
   - getDashboardStats:
   - getAnalytics:

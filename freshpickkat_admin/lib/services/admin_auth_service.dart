@@ -93,6 +93,7 @@ class AdminAuthService {
       throw Exception('Failed to fetch Firebase auth token.');
     }
 
+    await _completeServerSetup(idToken, user.displayName);
     await _verifyAdminToken(idToken);
   }
 
@@ -230,6 +231,7 @@ class AdminAuthService {
       throw Exception('Failed to fetch Firebase auth token.');
     }
 
+    await _completeServerSetup(idToken, user.displayName);
     await _verifyAdminToken(idToken);
   }
 
@@ -326,6 +328,20 @@ class AdminAuthService {
         throw Exception(message);
       }
       throw Exception('Admin verification failed.');
+    }
+  }
+
+  Future<void> _completeServerSetup(String idToken, String? username) async {
+    final result = await _client.admin.completeFirebaseSetup(
+      idToken,
+      username ?? '',
+    );
+    if (!result.ok) {
+      final message = (result.message ?? '').trim();
+      if (message.isNotEmpty) {
+        throw Exception(message);
+      }
+      throw Exception('Admin setup failed.');
     }
   }
 }

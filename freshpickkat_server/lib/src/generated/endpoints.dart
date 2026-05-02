@@ -220,6 +220,31 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'completeFirebaseSetup': _i1.MethodConnector(
+          name: 'completeFirebaseSetup',
+          params: {
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'username': _i1.ParameterDescription(
+              name: 'username',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .completeFirebaseSetup(
+                    session,
+                    params['idToken'],
+                    params['username'],
+                  ),
+        ),
         'getAllUsers': _i1.MethodConnector(
           name: 'getAllUsers',
           params: {

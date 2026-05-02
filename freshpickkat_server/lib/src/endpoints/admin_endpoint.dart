@@ -26,6 +26,14 @@ class AdminEndpoint extends Endpoint {
     return _adminService.firebaseLogin(session, idToken);
   }
 
+  Future<protocol.AdminAuthResult> completeFirebaseSetup(
+    Session session,
+    String idToken,
+    String username,
+  ) {
+    return _adminService.completeFirebaseSetup(session, idToken, username);
+  }
+
   Future<List<protocol.AppUser>> getAllUsers(
     Session session,
     String firebaseUid,
