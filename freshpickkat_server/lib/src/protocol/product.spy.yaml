@@ -17,7 +17,6 @@ fields:
     baseQuantity: double?
     quantityDescription: String?
     countryOfOrigin: String?
-    searchKeywords: List<String>?
     mostSearch: int
     mostPurchases: int
     bogoFreeProductIds: List<String>?

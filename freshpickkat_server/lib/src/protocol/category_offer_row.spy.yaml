@@ -1,0 +1,19 @@
+class: CategoryOfferRow
+serverOnly: true
+table: category_offer
+fields:
+  id: UuidValue?, defaultPersist=random
+  categoryId: UuidValue, relation(parent=category, onDelete=Restrict)
+  name: String
+  description: String?
+  discountType: String
+  discountValue: double
+  maxDiscountAmount: double?
+  minOrderAmount: double?
+  priority: int, default=0
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

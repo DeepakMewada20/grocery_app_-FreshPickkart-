@@ -1,0 +1,18 @@
+class: IdempotencyRecordRow
+serverOnly: true
+table: idempotency_record
+fields:
+  id: UuidValue?, defaultPersist=random
+  scope: String
+  idempotencyKey: String
+  userId: UuidValue?, relation(parent=app_user, onDelete=Restrict)
+  orderId: UuidValue?, relation(parent=customer_order, onDelete=Restrict)
+  paymentTransactionId: UuidValue?, relation(parent=payment_transaction, onDelete=Restrict)
+  requestHash: String?
+  responseReference: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  expiresAt: DateTime?
+indexes:
+  idempotency_scope_key_idx:
+    fields: scope, idempotencyKey
+    unique: true

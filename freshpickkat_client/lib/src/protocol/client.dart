@@ -545,7 +545,6 @@ class EndpointCoupon extends _i1.EndpointRef {
   @override
   String get name => 'coupon';
 
-  /// Fetch coupons for admin panel.
   _i2.Future<List<_i20.Coupon>> fetchCoupons(
     String firebaseUid,
     String idToken,
@@ -558,7 +557,6 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  /// Upload a new coupon to Firestore
   _i2.Future<bool> uploadCoupon(
     _i20.Coupon coupon,
     String firebaseUid,
@@ -984,6 +982,40 @@ class EndpointOrder extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointOrderPg extends _i1.EndpointRef {
+  EndpointOrderPg(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'orderPg';
+
+  _i2.Future<String> createPendingOrder(
+    _i16.Order order,
+    String idempotencyKey,
+  ) => caller.callServerEndpoint<String>(
+    'orderPg',
+    'createPendingOrder',
+    {
+      'order': order,
+      'idempotencyKey': idempotencyKey,
+    },
+  );
+
+  _i2.Future<_i28.OrderPage> getOrdersForUser({
+    required String userReference,
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i28.OrderPage>(
+    'orderPg',
+    'getOrdersForUser',
+    {
+      'userReference': userReference,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointPayment extends _i1.EndpointRef {
   EndpointPayment(_i1.EndpointCaller caller) : super(caller);
 
@@ -1196,7 +1228,6 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  /// Upload a product to Firestore 'Products' collection
   _i2.Future<String?> uploadProduct(
     _i35.Product product,
     String firebaseUid,
@@ -1259,14 +1290,12 @@ class EndpointProduct extends _i1.EndpointRef {
     {},
   );
 
-  /// Initialize mostSearch and mostPurchases fields for all products
   _i2.Future<int> initializeProductMetrics() => caller.callServerEndpoint<int>(
     'product',
     'initializeProductMetrics',
     {},
   );
 
-  /// Increment the search count for a product
   _i2.Future<bool> incrementProductSearch(String productId) =>
       caller.callServerEndpoint<bool>(
         'product',
@@ -1274,7 +1303,6 @@ class EndpointProduct extends _i1.EndpointRef {
         {'productId': productId},
       );
 
-  /// Increment the purchase count for a product
   _i2.Future<bool> incrementProductPurchase(String productId) =>
       caller.callServerEndpoint<bool>(
         'product',
@@ -1282,14 +1310,74 @@ class EndpointProduct extends _i1.EndpointRef {
         {'productId': productId},
       );
 
-  /// Seed all products with random test data (mostSearch & mostPurchases)
-  /// Call this from wallet_screen to fill all products with random values (1-30)
-  /// for testing that Trending and Best Sellers sections display correctly
   _i2.Future<int> seedProductMetricsForTesting() =>
       caller.callServerEndpoint<int>(
         'product',
         'seedProductMetricsForTesting',
         {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointProductPg extends _i1.EndpointRef {
+  EndpointProductPg(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'productPg';
+
+  _i2.Future<_i36.ProductPage> getActiveProductsPage({
+    required int limit,
+    String? pageToken,
+    String? categoryId,
+    String? subCategoryId,
+  }) => caller.callServerEndpoint<_i36.ProductPage>(
+    'productPg',
+    'getActiveProductsPage',
+    {
+      'limit': limit,
+      'pageToken': pageToken,
+      'categoryId': categoryId,
+      'subCategoryId': subCategoryId,
+    },
+  );
+
+  _i2.Future<_i36.ProductPage> searchActiveProducts({
+    required String query,
+    required int limit,
+    String? pageToken,
+    String? categoryId,
+    String? subCategoryId,
+    required double similarityThreshold,
+  }) => caller.callServerEndpoint<_i36.ProductPage>(
+    'productPg',
+    'searchActiveProducts',
+    {
+      'query': query,
+      'limit': limit,
+      'pageToken': pageToken,
+      'categoryId': categoryId,
+      'subCategoryId': subCategoryId,
+      'similarityThreshold': similarityThreshold,
+    },
+  );
+
+  _i2.Future<void> enqueueSearchRebuild({
+    required String productId,
+    required String reason,
+  }) => caller.callServerEndpoint<void>(
+    'productPg',
+    'enqueueSearchRebuild',
+    {
+      'productId': productId,
+      'reason': reason,
+    },
+  );
+
+  _i2.Future<int> processPendingSearchRebuildJobs({required int limit}) =>
+      caller.callServerEndpoint<int>(
+        'productPg',
+        'processPendingSearchRebuildJobs',
+        {'limit': limit},
       );
 }
 
@@ -1322,7 +1410,6 @@ class EndpointSubCategory extends _i1.EndpointRef {
   @override
   String get name => 'subCategory';
 
-  /// Fetch all subcategories from Firestore 'subCategories' collection
   _i2.Future<List<_i38.SubCategory>> getSubCategories() =>
       caller.callServerEndpoint<List<_i38.SubCategory>>(
         'subCategory',
@@ -1330,7 +1417,6 @@ class EndpointSubCategory extends _i1.EndpointRef {
         {},
       );
 
-  /// Upload a subcategory to Firestore 'subCategories' collection
   _i2.Future<bool> uploadSubCategory(
     _i38.SubCategory subCategory,
     String firebaseUid,
@@ -1443,9 +1529,11 @@ class Client extends _i1.ServerpodClientShared {
     coupon = EndpointCoupon(this);
     freeDelivery = EndpointFreeDelivery(this);
     order = EndpointOrder(this);
+    orderPg = EndpointOrderPg(this);
     payment = EndpointPayment(this);
     pricing = EndpointPricing(this);
     product = EndpointProduct(this);
+    productPg = EndpointProductPg(this);
     refund = EndpointRefund(this);
     subCategory = EndpointSubCategory(this);
     user = EndpointUser(this);
@@ -1474,11 +1562,15 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointOrder order;
 
+  late final EndpointOrderPg orderPg;
+
   late final EndpointPayment payment;
 
   late final EndpointPricing pricing;
 
   late final EndpointProduct product;
+
+  late final EndpointProductPg productPg;
 
   late final EndpointRefund refund;
 
@@ -1501,9 +1593,11 @@ class Client extends _i1.ServerpodClientShared {
     'coupon': coupon,
     'freeDelivery': freeDelivery,
     'order': order,
+    'orderPg': orderPg,
     'payment': payment,
     'pricing': pricing,
     'product': product,
+    'productPg': productPg,
     'refund': refund,
     'subCategory': subCategory,
     'user': user,

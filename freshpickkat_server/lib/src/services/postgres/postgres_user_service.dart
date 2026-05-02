@@ -1,0 +1,335 @@
+import 'package:serverpod/serverpod.dart';
+
+import '../../generated/protocol.dart';
+import 'postgres_support.dart';
+
+class PostgresUserService {
+  Future<AppUser?> getUserByFirebaseUid(Session session, String firebaseUid) async {
+    final user = await _findUserByFirebaseUid(
+      session,
+      firebaseUid,
+      activeOnly: true,
+    );
+    if (user == null) return null;
+
+    return _hydrateUser(session, user);
+  }
+
+  Future<AppUser> createOrUpdateUser(Session session, AppUser user) async {
+    final firebaseUid = cleanNullableString(user.firebaseUid);
+    if (firebaseUid == null) {
+      throw Exception('firebaseUid is required.');
+    }
+
+    await session.db.transaction<void>((transaction) async {
+      final now = DateTime.now().toUtc();
+      final existing = await _findUserByFirebaseUid(
+        session,
+        firebaseUid,
+        activeOnly: false,
+        transaction: transaction,
+      );
+
+      final role = cleanNullableString(user.role) ?? 'user';
+      final persisted = existing == null
+          ? await AppUserRow.db.insertRow(
+              session,
+              AppUserRow(
+                firebaseUid: firebaseUid,
+                phoneNumber: user.phoneNumber.trim(),
+                name: user.name,
+                email: user.email,
+                role: role,
+                fcmToken: cleanNullableString(user.fcmToken),
+                status: 'active',
+                createdAt: now,
+                updatedAt: now,
+              ),
+              transaction: transaction,
+            )
+          : await AppUserRow.db.updateRow(
+              session,
+              existing.copyWith(
+                phoneNumber: user.phoneNumber.trim(),
+                name: user.name ?? existing.name,
+                email: user.email ?? existing.email,
+                fcmToken: user.fcmToken ?? existing.fcmToken,
+                status: 'active',
+                deactivatedAt: null,
+                updatedAt: now,
+              ),
+              transaction: transaction,
+            );
+
+      final persistedId = persisted.id;
+      if (persistedId == null) {
+        throw Exception('Failed to persist user.');
+      }
+
+      if (user.shippingAddress != null) {
+        await _upsertDefaultAddress(
+          session,
+          userId: persistedId,
+          address: user.shippingAddress!,
+          transaction: transaction,
+        );
+      }
+
+      if (user.cart != null) {
+        await _replaceCart(
+          session,
+          userId: persistedId,
+          cart: user.cart!,
+          transaction: transaction,
+        );
+      }
+    });
+
+    final hydrated = await getUserByFirebaseUid(session, firebaseUid);
+    if (hydrated == null) {
+      throw Exception('Failed to load user.');
+    }
+    return hydrated;
+  }
+
+  Future<bool> updateCart(
+    Session session,
+    String firebaseUid,
+    List<CartItem> cart,
+  ) async {
+    final user = await _findUserByFirebaseUid(
+      session,
+      firebaseUid,
+      activeOnly: true,
+    );
+    if (user?.id == null) return false;
+
+    await session.db.transaction<void>((transaction) async {
+      await _replaceCart(
+        session,
+        userId: user!.id!,
+        cart: cart,
+        transaction: transaction,
+      );
+      await AppUserRow.db.updateById(
+        session,
+        user.id!,
+        columnValues: (t) => [t.updatedAt(DateTime.now().toUtc())],
+        transaction: transaction,
+      );
+    });
+    return true;
+  }
+
+  Future<bool> updateFcmToken(
+    Session session,
+    String firebaseUid,
+    String token,
+  ) async {
+    final user = await _findUserByFirebaseUid(
+      session,
+      firebaseUid,
+      activeOnly: true,
+    );
+    if (user?.id == null) return false;
+
+    await AppUserRow.db.updateById(
+      session,
+      user!.id!,
+      columnValues: (t) => [
+        t.fcmToken(cleanNullableString(token)),
+        t.updatedAt(DateTime.now().toUtc()),
+      ],
+    );
+    return true;
+  }
+
+  Future<AppUser> _hydrateUser(Session session, AppUserRow user) async {
+    final userId = user.id;
+    final defaultAddress = userId == null
+        ? null
+        : await _loadDefaultAddress(session, userId);
+    final cart = userId == null ? const <CartItem>[] : await _loadCart(session, userId);
+    final completedOrdersCount = userId == null
+        ? 0
+        : await CustomerOrderRow.db.count(
+            session,
+            where: (t) =>
+                t.userId.equals(userId) & t.orderStatus.equals('delivered'),
+          );
+
+    return AppUser(
+      firebaseUid: user.firebaseUid ?? '',
+      phoneNumber: user.phoneNumber,
+      name: user.name,
+      email: user.email,
+      shippingAddress: defaultAddress,
+      cart: cart.isEmpty ? null : cart,
+      role: cleanNullableString(user.role) ?? 'user',
+      fcmToken: user.fcmToken,
+      completedOrdersCount: completedOrdersCount,
+    );
+  }
+
+  Future<AppUserRow?> _findUserByFirebaseUid(
+    Session session,
+    String firebaseUid, {
+    required bool activeOnly,
+    Transaction? transaction,
+  }) {
+    final normalized = cleanNullableString(firebaseUid);
+    if (normalized == null) return Future.value(null);
+
+    return AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => activeOnly
+          ? t.firebaseUid.equals(normalized) & t.status.equals('active')
+          : t.firebaseUid.equals(normalized),
+      transaction: transaction,
+    );
+  }
+
+  Future<Address?> _loadDefaultAddress(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final addresses = await UserAddressRow.db.find(
+      session,
+      where: (t) => t.userId.equals(userId),
+    );
+    if (addresses.isEmpty) return null;
+
+    addresses.sort((a, b) {
+      if (a.isDefault != b.isDefault) {
+        return a.isDefault ? -1 : 1;
+      }
+      return b.updatedAt.compareTo(a.updatedAt);
+    });
+
+    final row = addresses.first;
+    return Address(
+      street: row.streetLine1,
+      city: row.city,
+      state: row.state,
+      zipCode: row.postalCode,
+      country: row.country,
+      latitude: row.latitude,
+      longitude: row.longitude,
+    );
+  }
+
+  Future<List<CartItem>> _loadCart(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final rows = await UserCartItemRow.db.find(
+      session,
+      where: (t) => t.userId.equals(userId),
+    );
+    rows.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    return rows
+        .map(
+          (row) => CartItem(
+            productId: row.productId,
+            variantId: row.variantId,
+            quantity: row.quantity,
+            bogoFreeProductId: row.bogoFreeProductId,
+            comboId: row.comboId,
+            comboName: row.comboName,
+            comboDiscountType: row.comboDiscountType,
+            comboDiscountValue: row.comboDiscountValue,
+            comboItemQuantity: row.comboItemQuantity,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> _upsertDefaultAddress(
+    Session session, {
+    required UuidValue userId,
+    required Address address,
+    Transaction? transaction,
+  }) async {
+    final existing = await UserAddressRow.db.find(
+      session,
+      where: (t) => t.userId.equals(userId),
+      transaction: transaction,
+    );
+
+    final target = existing.cast<UserAddressRow?>().firstWhere(
+      (row) => row?.isDefault == true,
+      orElse: () => existing.isEmpty ? null : existing.first,
+    );
+
+    final now = DateTime.now().toUtc();
+    final normalized = UserAddressRow(
+      userId: userId,
+      label: target?.label ?? 'shipping',
+      recipientName: null,
+      phoneNumber: null,
+      streetLine1: address.street.trim(),
+      streetLine2: null,
+      landmark: null,
+      city: address.city.trim(),
+      state: address.state.trim(),
+      postalCode: address.zipCode.trim(),
+      country: address.country.trim(),
+      latitude: address.latitude,
+      longitude: address.longitude,
+      isDefault: true,
+      createdAt: target?.createdAt ?? now,
+      updatedAt: now,
+    );
+
+    if (target?.id == null) {
+      await UserAddressRow.db.insertRow(
+        session,
+        normalized,
+        transaction: transaction,
+      );
+      return;
+    }
+
+    await UserAddressRow.db.updateRow(
+      session,
+      normalized.copyWith(id: target!.id),
+      transaction: transaction,
+    );
+  }
+
+  Future<void> _replaceCart(
+    Session session, {
+    required UuidValue userId,
+    required List<CartItem> cart,
+    Transaction? transaction,
+  }) async {
+    await UserCartItemRow.db.deleteWhere(
+      session,
+      where: (t) => t.userId.equals(userId),
+      transaction: transaction,
+    );
+
+    final now = DateTime.now().toUtc();
+    for (final item in cart) {
+      await UserCartItemRow.db.insertRow(
+        session,
+        UserCartItemRow(
+          userId: userId,
+          productId: item.productId.trim(),
+          variantId: cleanNullableString(item.variantId),
+          quantity: item.quantity,
+          bogoFreeProductId: cleanNullableString(item.bogoFreeProductId),
+          comboId: cleanNullableString(item.comboId),
+          comboName: cleanNullableString(item.comboName),
+          comboDiscountType: cleanNullableString(item.comboDiscountType),
+          comboDiscountValue: item.comboDiscountValue,
+          comboItemQuantity: item.comboItemQuantity,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+    }
+  }
+}

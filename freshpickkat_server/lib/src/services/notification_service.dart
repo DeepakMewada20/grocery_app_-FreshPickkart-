@@ -1,7 +1,11 @@
 import 'dart:convert';
 
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:serverpod/serverpod.dart';
+
+import '../generated/protocol.dart' show AppUserRow;
 import 'firebase_service.dart';
+import 'postgres/postgres_support.dart';
 
 class NotificationService {
   static const String _fcmScope =
@@ -38,12 +42,13 @@ class NotificationService {
   }
 
   static Future<void> notifyUserPaymentSuccess({
+    Session? session,
     required String userId,
     required String orderId,
     required double amount,
     int? itemCount,
   }) async {
-    final token = await _getUserFcmToken(userId);
+    final token = await _getUserFcmToken(userId, session: session);
     if (token == null || token.isEmpty) return;
 
     final title = 'Payment successful';
@@ -60,11 +65,12 @@ class NotificationService {
   }
 
   static Future<void> notifyUserStatusUpdate({
+    Session? session,
     required String userId,
     required String orderId,
     required String status,
   }) async {
-    final token = await _getUserFcmToken(userId);
+    final token = await _getUserFcmToken(userId, session: session);
     if (token == null || token.isEmpty) return;
 
     final title = 'Order update';
@@ -79,10 +85,11 @@ class NotificationService {
   }
 
   static Future<void> notifyDeliveryStarted({
+    Session? session,
     required String userId,
     required String orderId,
   }) async {
-    final token = await _getUserFcmToken(userId);
+    final token = await _getUserFcmToken(userId, session: session);
     if (token == null || token.isEmpty) return;
 
     await sendToToken(
@@ -117,16 +124,25 @@ class NotificationService {
     );
   }
 
-  static Future<String?> _getUserFcmToken(String userId) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    final docPath =
-        'projects/${FirebaseService.projectId}/databases/(default)/documents/users/$userId';
-    try {
-      final doc = await firestore.projects.databases.documents.get(docPath);
-      return doc.fields?['fcmToken']?.stringValue;
-    } catch (_) {
-      return null;
-    }
+  static Future<String?> _getUserFcmToken(
+    String userId, {
+    Session? session,
+  }) async {
+    final activeSession = session;
+    if (activeSession == null) return null;
+
+    final normalized = userId.trim();
+    if (normalized.isEmpty) return null;
+
+    final parsedId = tryParseUuid(normalized);
+    final user = await AppUserRow.db.findFirstRow(
+      activeSession,
+      where: (t) => parsedId == null
+          ? t.firebaseUid.equals(normalized) & t.status.equals('active')
+          : (t.firebaseUid.equals(normalized) & t.status.equals('active')) |
+                (t.id.equals(parsedId) & t.status.equals('active')),
+    );
+    return user?.fcmToken;
   }
 
   static Future<void> _sendMessage(Map<String, dynamic> payload) async {

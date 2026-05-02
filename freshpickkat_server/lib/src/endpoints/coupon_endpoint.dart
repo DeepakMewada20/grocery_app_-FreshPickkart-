@@ -1,43 +1,29 @@
 import 'package:serverpod/serverpod.dart';
+
 import '../generated/protocol.dart';
-import '../services/firebase_service.dart';
-import '../services/coupon_service.dart';
-import '../services/role_guard_service.dart';
-import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
-import 'package:googleapis/firestore/v1.dart' as firestore_api;
+import '../services/postgres/postgres_admin_guard_service.dart';
+import '../services/postgres/postgres_audit_log_service.dart';
+import '../services/postgres/postgres_coupon_service.dart';
 
 class CouponEndpoint extends Endpoint {
-  final String _database =
-      'projects/freshpickkart-a6824/databases/(default)/documents';
+  final PostgresCouponService _coupons = PostgresCouponService();
+  final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final PostgresAuditLogService _audit = PostgresAuditLogService();
 
-  /// Fetch coupons for admin panel.
   Future<List<Coupon>> fetchCoupons(
     Session session,
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await RoleGuardService.ensureAdminSeller(
-      firestore: firestore,
+    await _adminGuard.ensureAdminSeller(
+      session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    return _fetchCouponsInternal(session);
+    return _coupons.fetchCoupons(session, activeOnly: false);
   }
 
-  Future<List<Coupon>> _fetchCouponsInternal(Session session) async {
-    try {
-      final coupons = await CouponService.fetchCoupons(activeOnly: false);
-      session.log('Total coupons fetched from Firestore: ${coupons.length}');
-      return coupons;
-    } catch (e) {
-      session.log('Error fetching coupons: $e', level: LogLevel.error);
-      return [];
-    }
-  }
-
-  /// Upload a new coupon to Firestore
   Future<bool> uploadCoupon(
     Session session,
     Coupon coupon,
@@ -45,33 +31,26 @@ class CouponEndpoint extends Endpoint {
     String idToken,
   ) async {
     try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      await RoleGuardService.ensureAdminSeller(
-        firestore: firestore,
+      await _adminGuard.ensureAdminSeller(
+        session,
         firebaseUid: firebaseUid,
         idToken: idToken,
       );
       ValidationService.validateCoupon(coupon);
-
-      final document = firestore_api.Document(
-        fields: CouponService.toFirestoreFields(coupon),
-      );
-
-      await firestore.projects.databases.documents.createDocument(
-        document,
-        _database,
-        'coupons',
-      );
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
-        action: 'create',
-        entityType: 'coupon',
-        entityId: coupon.code,
-      );
-      return true;
-    } catch (e) {
-      session.log('Error uploading coupon: $e', level: LogLevel.error);
+      final result = await _coupons.uploadCoupon(session, coupon);
+      if (result) {
+        await _audit.write(
+          session,
+          actorFirebaseUid: firebaseUid,
+          action: 'create',
+          entityType: 'coupon',
+          entityId: coupon.id,
+          metadata: {'entityRef': coupon.code.trim().toUpperCase()},
+        );
+      }
+      return result;
+    } catch (error) {
+      session.log('Error uploading coupon: $error', level: LogLevel.error);
       return false;
     }
   }
@@ -84,62 +63,25 @@ class CouponEndpoint extends Endpoint {
     String idToken,
   ) async {
     try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      await RoleGuardService.ensureAdminSeller(
-        firestore: firestore,
+      await _adminGuard.ensureAdminSeller(
+        session,
         firebaseUid: firebaseUid,
         idToken: idToken,
       );
-
-      final query = firestore_api.StructuredQuery(
-        from: [firestore_api.CollectionSelector(collectionId: 'coupons')],
-        where: firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'code'),
-            op: 'EQUAL',
-            value: firestore_api.Value(stringValue: code),
-          ),
-        ),
-        limit: 1,
-      );
-
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        _database,
-      );
-
-      firestore_api.Document? document;
-      for (final item in response) {
-        if (item.document != null) {
-          document = item.document;
-          break;
-        }
+      final result = await _coupons.setCouponActive(session, code, isActive);
+      if (result) {
+        await _audit.write(
+          session,
+          actorFirebaseUid: firebaseUid,
+          action: isActive ? 'enable' : 'disable',
+          entityType: 'coupon',
+          metadata: {'entityRef': code.trim().toUpperCase()},
+        );
       }
-
-      if (document == null || document.name == null) {
-        throw Exception('Coupon not found');
-      }
-
-      final doc = firestore_api.Document(
-        fields: {'isActive': firestore_api.Value(booleanValue: isActive)},
-      );
-
-      await firestore.projects.databases.documents.patch(
-        doc,
-        document.name!,
-        updateMask_fieldPaths: ['isActive'],
-      );
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
-        action: isActive ? 'enable' : 'disable',
-        entityType: 'coupon',
-        entityId: code,
-      );
-      return true;
-    } catch (e) {
+      return result;
+    } catch (error) {
       session.log(
-        'Error updating coupon active state: $e',
+        'Error updating coupon active state: $error',
         level: LogLevel.error,
       );
       return false;
@@ -153,59 +95,26 @@ class CouponEndpoint extends Endpoint {
     String idToken,
   ) async {
     try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      await RoleGuardService.ensureAdminSeller(
-        firestore: firestore,
+      await _adminGuard.ensureAdminSeller(
+        session,
         firebaseUid: firebaseUid,
         idToken: idToken,
       );
-
-      final query = firestore_api.StructuredQuery(
-        from: [firestore_api.CollectionSelector(collectionId: 'coupons')],
-        where: firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'code'),
-            op: 'EQUAL',
-            value: firestore_api.Value(stringValue: coupon.code),
-          ),
-        ),
-        limit: 1,
-      );
-
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        _database,
-      );
-
-      firestore_api.Document? document;
-      for (final item in response) {
-        if (item.document != null) {
-          document = item.document;
-          break;
-        }
+      ValidationService.validateCoupon(coupon);
+      final result = await _coupons.updateCoupon(session, coupon);
+      if (result) {
+        await _audit.write(
+          session,
+          actorFirebaseUid: firebaseUid,
+          action: 'update',
+          entityType: 'coupon',
+          entityId: coupon.id,
+          metadata: {'entityRef': coupon.code.trim().toUpperCase()},
+        );
       }
-      if (document == null || document.name == null) {
-        throw Exception('Coupon not found');
-      }
-
-      final fields = CouponService.toFirestoreFields(coupon);
-
-      await firestore.projects.databases.documents.patch(
-        firestore_api.Document(fields: fields),
-        document.name!,
-        updateMask_fieldPaths: fields.keys.toList(),
-      );
-
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
-        action: 'update',
-        entityType: 'coupon',
-        entityId: coupon.code,
-      );
-      return true;
-    } catch (e) {
-      session.log('Error updating coupon: $e', level: LogLevel.error);
+      return result;
+    } catch (error) {
+      session.log('Error updating coupon: $error', level: LogLevel.error);
       return false;
     }
   }
@@ -217,52 +126,24 @@ class CouponEndpoint extends Endpoint {
     String idToken,
   ) async {
     try {
-      final firestore = await FirebaseService.getFirestoreClient();
-      await RoleGuardService.ensureAdminSeller(
-        firestore: firestore,
+      await _adminGuard.ensureAdminSeller(
+        session,
         firebaseUid: firebaseUid,
         idToken: idToken,
       );
-
-      final query = firestore_api.StructuredQuery(
-        from: [firestore_api.CollectionSelector(collectionId: 'coupons')],
-        where: firestore_api.Filter(
-          fieldFilter: firestore_api.FieldFilter(
-            field: firestore_api.FieldReference(fieldPath: 'code'),
-            op: 'EQUAL',
-            value: firestore_api.Value(stringValue: code),
-          ),
-        ),
-        limit: 1,
-      );
-
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        _database,
-      );
-
-      firestore_api.Document? document;
-      for (final item in response) {
-        if (item.document != null) {
-          document = item.document;
-          break;
-        }
+      final result = await _coupons.deleteCoupon(session, code);
+      if (result) {
+        await _audit.write(
+          session,
+          actorFirebaseUid: firebaseUid,
+          action: 'delete',
+          entityType: 'coupon',
+          metadata: {'entityRef': code.trim().toUpperCase()},
+        );
       }
-      if (document == null || document.name == null) {
-        throw Exception('Coupon not found');
-      }
-
-      await firestore.projects.databases.documents.delete(document.name!);
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
-        action: 'delete',
-        entityType: 'coupon',
-        entityId: code,
-      );
-      return true;
-    } catch (e) {
-      session.log('Error deleting coupon: $e', level: LogLevel.error);
+      return result;
+    } catch (error) {
+      session.log('Error deleting coupon: $error', level: LogLevel.error);
       return false;
     }
   }
@@ -290,19 +171,20 @@ class CouponEndpoint extends Endpoint {
     List<CartItemInput> cartItems,
   ) async {
     try {
-      return await CouponService.applyCoupon(
+      return _coupons.applyCoupon(
+        session,
         userId: userId,
         couponCode: couponCode,
         cartSubtotal: cartSubtotal,
         cartItems: cartItems,
       );
-    } catch (e) {
-      session.log('Error applying coupon: $e', level: LogLevel.error);
+    } catch (error) {
+      session.log('Error applying coupon: $error', level: LogLevel.error);
       return CouponValidationResult(
         isValid: false,
-        couponCode: couponCode.toUpperCase(),
+        couponCode: couponCode.trim().toUpperCase(),
         errorMessage: 'Error validating coupon',
-        discountAmount: 0.0,
+        discountAmount: 0,
         isDeliveryDiscount: false,
       );
     }
@@ -315,17 +197,18 @@ class CouponEndpoint extends Endpoint {
     List<CartItemInput> cartItems,
   ) async {
     try {
-      return await CouponService.getAvailableCoupons(
+      return _coupons.getAvailableCoupons(
+        session,
         userId: userId,
         cartSubtotal: cartSubtotal,
         cartItems: cartItems,
       );
-    } catch (e) {
+    } catch (error) {
       session.log(
-        'Error getting available coupons: $e',
+        'Error getting available coupons: $error',
         level: LogLevel.error,
       );
-      return [];
+      return const [];
     }
   }
 
@@ -336,13 +219,14 @@ class CouponEndpoint extends Endpoint {
     List<CartItemInput> cartItems,
   ) async {
     try {
-      return await CouponService.getBestCoupon(
+      return _coupons.getBestCoupon(
+        session,
         userId: userId,
         cartSubtotal: cartSubtotal,
         cartItems: cartItems,
       );
-    } catch (e) {
-      session.log('Error getting best coupon: $e', level: LogLevel.error);
+    } catch (error) {
+      session.log('Error getting best coupon: $error', level: LogLevel.error);
       return BestCouponResult(bestCouponCode: null, discountAmount: 0);
     }
   }

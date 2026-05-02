@@ -1,0 +1,11 @@
+class: AdminAuditLogRow
+serverOnly: true
+table: admin_audit_log
+fields:
+  id: UuidValue?, defaultPersist=random
+  actorUserId: UuidValue?, relation(parent=app_user, onDelete=Restrict)
+  action: String
+  entityType: String
+  entityId: UuidValue?
+  metadata: Map<String, String>?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now

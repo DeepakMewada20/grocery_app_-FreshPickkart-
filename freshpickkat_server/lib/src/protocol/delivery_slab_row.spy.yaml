@@ -1,0 +1,15 @@
+class: DeliverySlabRow
+serverOnly: true
+table: delivery_slab
+fields:
+  id: UuidValue?, defaultPersist=random
+  configId: UuidValue, relation(parent=delivery_config, onDelete=Cascade)
+  minOrderAmount: double
+  maxOrderAmount: double
+  fee: double
+  sortOrder: int, default=0
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  delivery_slab_config_sort_idx:
+    fields: configId, sortOrder, id

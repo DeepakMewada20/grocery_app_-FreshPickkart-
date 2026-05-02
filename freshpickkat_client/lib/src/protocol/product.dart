@@ -33,7 +33,6 @@ abstract class Product implements _i1.SerializableModel {
     this.baseQuantity,
     this.quantityDescription,
     this.countryOfOrigin,
-    this.searchKeywords,
     required this.mostSearch,
     required this.mostPurchases,
     this.bogoFreeProductIds,
@@ -58,7 +57,6 @@ abstract class Product implements _i1.SerializableModel {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
-    List<String>? searchKeywords,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -88,11 +86,6 @@ abstract class Product implements _i1.SerializableModel {
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
-      searchKeywords: jsonSerialization['searchKeywords'] == null
-          ? null
-          : _i3.Protocol().deserialize<List<String>>(
-              jsonSerialization['searchKeywords'],
-            ),
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
       bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
@@ -142,8 +135,6 @@ abstract class Product implements _i1.SerializableModel {
 
   String? countryOfOrigin;
 
-  List<String>? searchKeywords;
-
   int mostSearch;
 
   int mostPurchases;
@@ -173,7 +164,6 @@ abstract class Product implements _i1.SerializableModel {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
-    List<String>? searchKeywords,
     int? mostSearch,
     int? mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -201,7 +191,6 @@ abstract class Product implements _i1.SerializableModel {
       if (quantityDescription != null)
         'quantityDescription': quantityDescription,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
-      if (searchKeywords != null) 'searchKeywords': searchKeywords?.toJson(),
       'mostSearch': mostSearch,
       'mostPurchases': mostPurchases,
       if (bogoFreeProductIds != null)
@@ -238,7 +227,6 @@ class _ProductImpl extends Product {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
-    List<String>? searchKeywords,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -261,7 +249,6 @@ class _ProductImpl extends Product {
          baseQuantity: baseQuantity,
          quantityDescription: quantityDescription,
          countryOfOrigin: countryOfOrigin,
-         searchKeywords: searchKeywords,
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
          bogoFreeProductIds: bogoFreeProductIds,
@@ -290,7 +277,6 @@ class _ProductImpl extends Product {
     Object? baseQuantity = _Undefined,
     Object? quantityDescription = _Undefined,
     Object? countryOfOrigin = _Undefined,
-    Object? searchKeywords = _Undefined,
     int? mostSearch,
     int? mostPurchases,
     Object? bogoFreeProductIds = _Undefined,
@@ -320,9 +306,6 @@ class _ProductImpl extends Product {
       countryOfOrigin: countryOfOrigin is String?
           ? countryOfOrigin
           : this.countryOfOrigin,
-      searchKeywords: searchKeywords is List<String>?
-          ? searchKeywords
-          : this.searchKeywords?.map((e0) => e0).toList(),
       mostSearch: mostSearch ?? this.mostSearch,
       mostPurchases: mostPurchases ?? this.mostPurchases,
       bogoFreeProductIds: bogoFreeProductIds is List<String>?

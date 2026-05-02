@@ -1,0 +1,17 @@
+class: BogoOfferRow
+serverOnly: true
+table: bogo_offer
+fields:
+  id: UuidValue?, defaultPersist=random
+  triggerProductId: UuidValue, relation(parent=product, onDelete=Restrict)
+  triggerVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  minTriggerQuantity: int, default=1
+  triggerBaseQuantity: double?
+  triggerBaseUnit: String?
+  title: String
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

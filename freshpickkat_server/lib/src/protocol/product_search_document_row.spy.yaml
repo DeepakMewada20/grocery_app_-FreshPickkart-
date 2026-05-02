@@ -1,0 +1,14 @@
+class: ProductSearchDocumentRow
+serverOnly: true
+table: product_search_document
+fields:
+  id: UuidValue?, defaultPersist=random
+  productId: UuidValue, relation(parent=product, onDelete=Cascade)
+  searchText: String
+  builtAt: DateTime, defaultModel=now, defaultPersist=now
+  sourceCreatedAt: DateTime
+  sourceUpdatedAt: DateTime
+indexes:
+  product_search_document_product_idx:
+    fields: productId
+    unique: true

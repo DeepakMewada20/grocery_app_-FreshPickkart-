@@ -1,0 +1,19 @@
+class: FreeDeliveryRuleRow
+serverOnly: true
+table: free_delivery_rule
+fields:
+  id: UuidValue?, defaultPersist=random
+  name: String
+  description: String?
+  ruleType: String
+  minOrderAmount: double?
+  minItemsCount: int?
+  couponId: UuidValue?, relation(parent=coupon, onDelete=Restrict)
+  userId: UuidValue?, relation(parent=app_user, onDelete=Restrict)
+  waivedAmount: double, default=0
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

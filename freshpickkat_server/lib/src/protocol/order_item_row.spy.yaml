@@ -1,0 +1,21 @@
+class: OrderItemRow
+serverOnly: true
+table: order_item
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
+  productId: UuidValue, relation(parent=product, onDelete=Restrict)
+  productVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  comboOfferId: UuidValue?, relation(parent=combo_offer, onDelete=Restrict)
+  bogoOfferId: UuidValue?, relation(parent=bogo_offer, onDelete=Restrict)
+  productNameSnapshot: String
+  productImageUrlSnapshot: String?
+  variantLabelSnapshot: String?
+  quantity: int
+  unitPrice: double
+  totalPrice: double
+  isFreeItem: bool, default=false
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  order_item_order_idx:
+    fields: orderId

@@ -1,0 +1,20 @@
+class: ComboOfferRow
+serverOnly: true
+table: combo_offer
+fields:
+  id: UuidValue?, defaultPersist=random
+  name: String
+  description: String?
+  discountType: String
+  discountValue: double
+  minQuantityPerProduct: int, default=1
+  maxUsagePerUser: int?
+  maxUsageTotal: int?
+  usedCount: int, default=0
+  priority: int, default=0
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

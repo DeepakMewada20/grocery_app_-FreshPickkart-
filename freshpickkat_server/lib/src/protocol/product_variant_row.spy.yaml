@@ -1,0 +1,24 @@
+class: ProductVariantRow
+serverOnly: true
+table: product_variant
+fields:
+  id: UuidValue?, defaultPersist=random
+  productId: UuidValue, relation(parent=product, onDelete=Cascade)
+  label: String
+  sku: String?
+  quantityValue: double
+  quantityUnit: String
+  quantityDescription: String?
+  salePrice: double
+  listPrice: double
+  isAvailable: bool, default=true
+  isDefault: bool, default=false
+  sortOrder: int, default=0
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  product_variant_sku_idx:
+    fields: sku
+    unique: true
+  product_variant_product_sort_idx:
+    fields: productId, sortOrder, id

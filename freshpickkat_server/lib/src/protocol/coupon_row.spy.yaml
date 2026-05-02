@@ -1,0 +1,26 @@
+class: CouponRow
+serverOnly: true
+table: coupon
+fields:
+  id: UuidValue?, defaultPersist=random
+  code: String
+  description: String?
+  couponType: String
+  couponCategory: String, default='All'
+  discountValue: double?
+  minOrderAmount: double, default=0
+  maxDiscountAmount: double?
+  maxUsageTotal: int?
+  maxUsagePerUser: int?
+  loyaltyRequiredOrders: int?
+  usedCount: int, default=0
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  coupon_code_idx:
+    fields: code
+    unique: true

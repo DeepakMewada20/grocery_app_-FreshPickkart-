@@ -6,7 +6,6 @@ import 'src/services/firebase_service.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/services/payments/payment_recovery_service.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
@@ -22,8 +21,6 @@ void run(List<String> args) async {
 
   // Initialize Firebase Admin SDK in background with retry
   unawaited(_initializeFirebaseWithRetry());
-
-  final paymentRecoveryService = PaymentRecoveryService();
 
   // Setup a default page at the web root.
   // These are used by the default page.
@@ -71,22 +68,13 @@ void run(List<String> args) async {
     );
   }
 
-  // Start the server.
-  Timer.periodic(const Duration(minutes: 5), (_) {
-    unawaited(() async {
-      try {
-        await paymentRecoveryService.recoverPendingPayments(limit: 100);
-      } catch (_) {}
-    }());
-  });
-
   await pod.start();
 }
 
 Future<void> _initializeFirebaseWithRetry() async {
   while (true) {
     try {
-      await FirebaseService.getFirestoreClient();
+      await FirebaseService.getServiceAccountCredentials();
       stdout.writeln('Firebase Admin SDK initialized successfully.');
       break;
     } catch (e) {
@@ -96,4 +84,3 @@ Future<void> _initializeFirebaseWithRetry() async {
     }
   }
 }
-

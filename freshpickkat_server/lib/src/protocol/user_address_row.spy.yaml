@@ -1,0 +1,24 @@
+class: UserAddressRow
+serverOnly: true
+table: user_address
+fields:
+  id: UuidValue?, defaultPersist=random
+  userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  label: String?
+  recipientName: String?
+  phoneNumber: String?
+  streetLine1: String
+  streetLine2: String?
+  landmark: String?
+  city: String
+  state: String
+  postalCode: String
+  country: String
+  latitude: double?
+  longitude: double?
+  isDefault: bool, default=false
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  user_address_user_id_idx:
+    fields: userId

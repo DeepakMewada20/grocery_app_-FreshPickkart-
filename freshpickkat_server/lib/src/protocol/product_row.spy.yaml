@@ -1,0 +1,25 @@
+class: ProductRow
+serverOnly: true
+table: product
+fields:
+  id: UuidValue?, defaultPersist=random
+  categoryId: UuidValue, relation(parent=category, onDelete=Restrict)
+  name: String
+  slug: String
+  shortDescription: String?
+  description: String?
+  primaryImageUrl: String?
+  countryOfOrigin: String?
+  baseUnit: String?
+  baseQuantity: double?
+  quantityDescription: String?
+  mostSearchCount: int, default=0
+  mostPurchaseCount: int, default=0
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  product_slug_idx:
+    fields: slug
+    unique: true

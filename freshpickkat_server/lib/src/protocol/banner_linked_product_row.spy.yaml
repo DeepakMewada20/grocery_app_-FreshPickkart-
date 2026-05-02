@@ -1,0 +1,15 @@
+class: BannerLinkedProductRow
+serverOnly: true
+table: banner_linked_product
+fields:
+  id: UuidValue?, defaultPersist=random
+  bannerId: UuidValue, relation(parent=banner, onDelete=Cascade)
+  productId: UuidValue, relation(parent=product, onDelete=Restrict)
+  sortOrder: int, default=0
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  banner_linked_product_unique_idx:
+    fields: bannerId, productId
+    unique: true
+  banner_linked_product_banner_sort_idx:
+    fields: bannerId, sortOrder, id

@@ -1,17 +1,18 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:googleapis/firestore/v1.dart' as firestore_api;
-import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/serverpod.dart' hide Order;
 
+import '../../generated/protocol.dart';
 import '../../services/env_service.dart';
-import '../../services/firebase_service.dart';
-import '../../services/payments/payment_recovery_service.dart';
+import '../../services/postgres/postgres_payment_service.dart';
+import '../../services/postgres/postgres_refund_service.dart';
 
 class RazorpayWebhookRoute extends Route {
   RazorpayWebhookRoute() : super(methods: {Method.post});
 
-  final PaymentRecoveryService _recovery = PaymentRecoveryService();
+  final PostgresPaymentService _payments = PostgresPaymentService();
+  final PostgresRefundService _refunds = PostgresRefundService();
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
@@ -22,7 +23,8 @@ class RazorpayWebhookRoute extends Route {
       );
     }
 
-    final signature = _firstHeader(
+    final signature =
+        _firstHeader(
           request.headers,
           'x-razorpay-signature',
         ) ??
@@ -45,28 +47,23 @@ class RazorpayWebhookRoute extends Route {
     final payload = jsonDecode(bodyString) as Map<String, dynamic>;
     final event = (payload['event'] ?? '').toString();
 
-    final orderId = _extractOrderId(payload);
-    if (orderId == null || orderId.isEmpty) {
-      return _jsonOk({'success': true, 'message': 'Order id not found'});
-    }
-
-    final orderDoc = await _getOrderDoc(orderId);
-    final currentStatus = orderDoc?.fields?['paymentStatus']?.stringValue;
-
     final paymentId = _extractPaymentId(payload);
     final razorpayOrderId = _extractRazorpayOrderId(payload);
+    final orderNumber = _extractOrderNumber(payload);
+    final order = orderNumber == null || orderNumber.isEmpty
+        ? null
+        : await _getOrderByNumber(session, orderNumber);
     final amountPaise = _extractAmountPaise(payload);
     final currency = _extractCurrency(payload);
 
-    if (_isPaidEvent(event) && orderDoc?.fields != null) {
+    if (_isPaidEvent(event) && order != null) {
       if (currency != null && currency.toUpperCase() != 'INR') {
         return Response.badRequest(
           body: Body.fromString('Invalid currency'),
         );
       }
       if (amountPaise != null) {
-        final expected =
-            (_getDoubleValue(orderDoc!.fields!, 'finalAmount') * 100).round();
+        final expected = (order.finalAmount * 100).round();
         if ((expected - amountPaise).abs() > 1) {
           return Response.badRequest(
             body: Body.fromString('Amount mismatch'),
@@ -75,39 +72,52 @@ class RazorpayWebhookRoute extends Route {
       }
     }
 
-    if (_isPaidEvent(event)) {
-      if (currentStatus == 'paid' && paymentId != null && paymentId.isNotEmpty) {
-        return _jsonOk({'success': true, 'message': 'Already paid'});
-      }
-    } else if (_isFailedEvent(event)) {
-      await _recovery.markPaymentFailed(
-        orderId,
-        paymentId: paymentId,
-        reason: 'Webhook payment failed',
-      );
-    } else if (_isRefundEvent(event)) {
-      await _updateOrder(orderId, {
-        'paymentStatus': firestore_api.Value(stringValue: 'refunded'),
-      });
-    } else if (_isPaidEvent(event) &&
-        paymentId != null &&
-        paymentId.isNotEmpty &&
-        razorpayOrderId != null &&
-        razorpayOrderId.isNotEmpty) {
-      await _recovery.handleWebhookPaidEvent(
-        orderId: orderId,
-        paymentId: paymentId,
-        razorpayOrderId: razorpayOrderId,
-      );
-    } else if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
+    if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
       if (paymentId != null && paymentId.isNotEmpty) {
-        final refundId = _extractRefundId(payload);
-        await _recovery.handleRefundWebhook(
+        await _refunds.handleRefundWebhook(
+          session,
           paymentId: paymentId,
           status: _isRefundProcessedEvent(event) ? 'processed' : 'failed',
-          gatewayRefundId: refundId,
+          gatewayRefundId: _extractRefundId(payload),
         );
       }
+    } else if (_isRefundEvent(event)) {
+      if (paymentId != null && paymentId.isNotEmpty) {
+        await _refunds.handleRefundWebhook(
+          session,
+          paymentId: paymentId,
+          status: _extractRefundStatus(payload) ?? 'pending',
+          gatewayRefundId: _extractRefundId(payload),
+        );
+      }
+    } else if (_isPaidEvent(event)) {
+      if (order == null) {
+        return _jsonOk({'success': true, 'message': 'Order not found'});
+      }
+      if (order.paymentStatus == 'paid' &&
+          paymentId != null &&
+          paymentId.isNotEmpty) {
+        return _jsonOk({'success': true, 'message': 'Already paid'});
+      }
+      if (paymentId != null &&
+          paymentId.isNotEmpty &&
+          razorpayOrderId != null &&
+          razorpayOrderId.isNotEmpty) {
+        final result = await _payments.verifyPayment(
+          session,
+          orderNumber: order.orderId,
+          razorpayOrderId: razorpayOrderId,
+          razorpayPaymentId: paymentId,
+          razorpaySignature: '',
+        );
+        if (!result.success || !result.verified) {
+          return Response.badRequest(
+            body: Body.fromString(result.message ?? result.error ?? 'Failed'),
+          );
+        }
+      }
+    } else if (_isFailedEvent(event) && order != null) {
+      await _payments.markPaymentFailed(session, order.orderId);
     }
 
     return _jsonOk({'success': true});
@@ -128,7 +138,7 @@ class RazorpayWebhookRoute extends Route {
     return digest.toString();
   }
 
-  String? _extractOrderId(Map<String, dynamic> payload) {
+  String? _extractOrderNumber(Map<String, dynamic> payload) {
     final orderEntity =
         payload['payload']?['order']?['entity'] as Map<String, dynamic>?;
     final receipt = orderEntity?['receipt']?.toString();
@@ -138,13 +148,29 @@ class RazorpayWebhookRoute extends Route {
         payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
     final notes = paymentEntity?['notes'] as Map<String, dynamic>?;
     final orderId = notes?['order_id']?.toString();
-    return orderId;
+    if (orderId != null && orderId.isNotEmpty) return orderId;
+
+    final refundEntity =
+        payload['payload']?['refund']?['entity'] as Map<String, dynamic>?;
+    final refundNotes = refundEntity?['notes'] as Map<String, dynamic>?;
+    final refundOrderId = refundNotes?['order_id']?.toString();
+    if (refundOrderId != null && refundOrderId.isNotEmpty) return refundOrderId;
+    return null;
   }
 
   String? _extractPaymentId(Map<String, dynamic> payload) {
     final paymentEntity =
         payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
-    return paymentEntity?['id']?.toString();
+    final paymentId = paymentEntity?['id']?.toString();
+    if (paymentId != null && paymentId.isNotEmpty) return paymentId;
+
+    final refundEntity =
+        payload['payload']?['refund']?['entity'] as Map<String, dynamic>?;
+    final refundPaymentId = refundEntity?['payment_id']?.toString();
+    if (refundPaymentId != null && refundPaymentId.isNotEmpty) {
+      return refundPaymentId;
+    }
+    return null;
   }
 
   String? _extractRazorpayOrderId(Map<String, dynamic> payload) {
@@ -218,41 +244,44 @@ class RazorpayWebhookRoute extends Route {
     return refundEntity?['id']?.toString();
   }
 
-  Future<firestore_api.Document?> _getOrderDoc(String orderId) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    final database =
-        'projects/${FirebaseService.projectId}/databases/(default)/documents';
-    final docPath = '$database/orders/$orderId';
-    try {
-      return await firestore.projects.databases.documents.get(docPath);
-    } catch (_) {
-      return null;
-    }
+  String? _extractRefundStatus(Map<String, dynamic> payload) {
+    final refundEntity =
+        payload['payload']?['refund']?['entity'] as Map<String, dynamic>?;
+    final status = refundEntity?['status']?.toString().trim();
+    if (status == null || status.isEmpty) return null;
+    return status;
   }
 
-  double _getDoubleValue(Map<String, firestore_api.Value> fields, String key) {
-    final value = fields[key];
-    if (value == null) return 0.0;
-    if (value.doubleValue != null) return value.doubleValue!;
-    if (value.integerValue != null && value.integerValue!.isNotEmpty) {
-      return double.tryParse(value.integerValue!) ?? 0.0;
-    }
-    return 0.0;
-  }
-
-  Future<void> _updateOrder(
-    String orderId,
-    Map<String, firestore_api.Value> fields,
+  Future<Order?> _getOrderByNumber(
+    Session session,
+    String orderNumber,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    final database =
-        'projects/${FirebaseService.projectId}/databases/(default)/documents';
-    final docPath = '$database/orders/$orderId';
-    final doc = firestore_api.Document(fields: fields);
-    await firestore.projects.databases.documents.patch(
-      doc,
-      docPath,
-      updateMask_fieldPaths: fields.keys.toList(),
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber.trim()),
+    );
+    if (row == null) return null;
+    return Order(
+      orderId: row.orderNumber,
+      userId: row.userId.toString(),
+      userPhone: '',
+      items: const [],
+      itemCount: row.itemCount,
+      totalAmount: row.totalAmount,
+      discountAmount: row.discountAmount,
+      deliveryFee: row.deliveryFee,
+      finalAmount: row.finalAmount,
+      status: row.orderStatus,
+      paymentStatus: row.paymentStatus,
+      refundStatus: row.refundStatus,
+      deliveryAddress: Address(
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: '',
+      ),
+      orderedAt: row.orderedAt,
     );
   }
 

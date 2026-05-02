@@ -1,16 +1,14 @@
 import 'dart:math' as math;
 import 'package:serverpod/serverpod.dart' hide Order;
-import 'package:googleapis/firestore/v1.dart' as firestore_api;
 import '../../endpoints/bogo_endpoint.dart';
 import '../../endpoints/category_endpoint.dart';
 import '../../endpoints/combo_offer_endpoint.dart';
 import '../../endpoints/product_endpoint.dart';
 import '../../generated/protocol.dart';
-import '../firebase_service.dart';
-import '../coupon_service.dart';
 import '../delivery/delivery_engine.dart';
 import '../bogo/bogo_eligibility.dart';
-import '../orders/order_document_mapper.dart';
+import '../postgres/postgres_coupon_service.dart';
+import '../postgres/postgres_order_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal scoring wrapper — never sent to client, pure Dart
@@ -63,6 +61,8 @@ class _ComboPricingSnapshot {
 // ─────────────────────────────────────────────────────────────────────────────
 class BasketSuggestionService {
   static const Duration _cacheTtl = Duration(minutes: 2);
+  static final PostgresCouponService _couponService = PostgresCouponService();
+  static final PostgresOrderService _orderService = PostgresOrderService();
 
   static List<BogoOffer>? _cachedBogoOffers;
   static DateTime? _cachedBogoAt;
@@ -75,6 +75,16 @@ class BasketSuggestionService {
 
   static List<Coupon>? _cachedCoupons;
   static DateTime? _cachedCouponsAt;
+
+  static T? _firstWhereOrNull<T>(
+    Iterable<T> values,
+    bool Function(T item) test,
+  ) {
+    for (final value in values) {
+      if (test(value)) return value;
+    }
+    return null;
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Public entry point
@@ -122,8 +132,8 @@ class BasketSuggestionService {
         if (p.productId != null) p.productId!: p,
     };
 
-    final deliveryConfig = await _getDeliveryConfig();
-    final coupons = await _getCoupons();
+    final deliveryConfig = await _getDeliveryConfig(session);
+    final coupons = await _getCoupons(session);
     final bogoOffers = await _getBogoOffers(session);
 
     // ── 2. Build all individual scored suggestions ──────────────────────────
@@ -270,8 +280,8 @@ class BasketSuggestionService {
       CategoryEndpoint().getCategories(session),
       _getBogoOffers(session),
       _getComboOffers(session),
-      _getDeliveryConfig(),
-      _getCoupons(),
+      _getDeliveryConfig(session),
+      _getCoupons(session),
       normalizedUserId == null || normalizedUserId.isEmpty
           ? Future.value(const <Order>[])
           : _getRecentOrders(session, normalizedUserId),
@@ -628,38 +638,8 @@ class BasketSuggestionService {
     String userId,
   ) async {
     if (userId.trim().isEmpty) return const <Order>[];
-    final firestore = await FirebaseService.getFirestoreClient();
-    final database =
-        'projects/freshpickkart-a6824/databases/(default)/documents';
-    final query = firestore_api.StructuredQuery(
-      from: [firestore_api.CollectionSelector(collectionId: 'orders')],
-      where: firestore_api.Filter(
-        fieldFilter: firestore_api.FieldFilter(
-          field: firestore_api.FieldReference(fieldPath: 'userId'),
-          op: 'EQUAL',
-          value: firestore_api.Value(stringValue: userId),
-        ),
-      ),
-      limit: 10,
-    );
-
     try {
-      final response = await firestore.projects.databases.documents.runQuery(
-        firestore_api.RunQueryRequest(structuredQuery: query),
-        database,
-      );
-
-      final mapper = OrderDocumentMapper();
-      final orders = <Order>[];
-      for (final res in response) {
-        if (res.document?.fields == null) continue;
-        orders.add(
-          mapper.fromFirestore(
-            res.document!.fields!,
-            res.document!.name!.split('/').last,
-          ),
-        );
-      }
+      final orders = await _orderService.getUserOrders(session, userId);
       orders.sort((a, b) => b.orderedAt.compareTo(a.orderedAt));
       return orders.take(5).toList(growable: false);
     } catch (_) {
@@ -1051,7 +1031,8 @@ class BasketSuggestionService {
           });
 
     return sortedCategories.take(2).map((category) {
-      final productHint = productPool.firstWhereOrNull(
+      final productHint = _firstWhereOrNull(
+        productPool,
         (product) => product.category == category.categoryName,
       );
       final action = _primaryAction(
@@ -2133,25 +2114,28 @@ class BasketSuggestionService {
   // Shared Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  static Future<DeliveryConfig> _getDeliveryConfig() async {
+  static Future<DeliveryConfig> _getDeliveryConfig(Session session) async {
     if (_cachedDeliveryConfig != null &&
         _cachedDeliveryConfigAt != null &&
         DateTime.now().difference(_cachedDeliveryConfigAt!) < _cacheTtl) {
       return _cachedDeliveryConfig!;
     }
-    final config = await DeliveryEngine.getDeliveryConfig();
+    final config = await DeliveryEngine.getDeliveryConfig(session);
     _cachedDeliveryConfig = config;
     _cachedDeliveryConfigAt = DateTime.now();
     return config;
   }
 
-  static Future<List<Coupon>> _getCoupons() async {
+  static Future<List<Coupon>> _getCoupons(Session session) async {
     if (_cachedCoupons != null &&
         _cachedCouponsAt != null &&
         DateTime.now().difference(_cachedCouponsAt!) < _cacheTtl) {
       return _cachedCoupons!;
     }
-    final coupons = await CouponService.fetchCoupons(activeOnly: true);
+    final coupons = await _couponService.fetchCoupons(
+      session,
+      activeOnly: true,
+    );
     _cachedCoupons = coupons;
     _cachedCouponsAt = DateTime.now();
     return coupons;
@@ -2185,7 +2169,7 @@ class BasketSuggestionService {
     final variants = product.variants ?? [];
     if (variants.isEmpty) return null;
     if (variantId == null) return variants.first;
-    return variants.firstWhereOrNull((v) => v.variantId == variantId) ??
+    return _firstWhereOrNull(variants, (v) => v.variantId == variantId) ??
         variants.first;
   }
 
@@ -2228,8 +2212,10 @@ class BasketSuggestionService {
     if (variantId == null || variantId.trim().isEmpty) {
       return product.price;
     }
-    final variant = (product.variants ?? const <ProductVariant>[])
-        .firstWhereOrNull((item) => item.variantId == variantId);
+    final variant = _firstWhereOrNull(
+      product.variants ?? const <ProductVariant>[],
+      (item) => item.variantId == variantId,
+    );
     return variant?.price ?? product.price;
   }
 

@@ -1,0 +1,22 @@
+class: OrderAddressRow
+serverOnly: true
+table: order_address
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
+  recipientName: String?
+  phoneNumber: String?
+  streetLine1: String
+  streetLine2: String?
+  landmark: String?
+  city: String
+  state: String
+  postalCode: String
+  country: String
+  latitude: double?
+  longitude: double?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  order_address_order_idx:
+    fields: orderId
+    unique: true

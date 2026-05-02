@@ -1,0 +1,18 @@
+class: SubCategoryRow
+serverOnly: true
+table: sub_category
+fields:
+  id: UuidValue?, defaultPersist=random
+  categoryId: UuidValue, relation(parent=category, onDelete=Restrict)
+  name: String
+  slug: String
+  imageUrl: String?
+  displayOrder: int, default=0
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  sub_category_category_slug_idx:
+    fields: categoryId, slug
+    unique: true

@@ -1,0 +1,20 @@
+class: RefundRecordRow
+serverOnly: true
+table: refund_record
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Restrict)
+  paymentTransactionId: UuidValue, relation(parent=payment_transaction, onDelete=Restrict)
+  userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  gatewayRefundId: String?
+  amount: double
+  refundStatus: String
+  failureReason: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  refund_record_gateway_refund_idx:
+    fields: gatewayRefundId
+    unique: true
+  refund_record_order_idx:
+    fields: orderId

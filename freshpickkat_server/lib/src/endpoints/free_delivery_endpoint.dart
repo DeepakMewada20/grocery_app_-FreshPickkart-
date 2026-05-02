@@ -1,14 +1,17 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
-import '../services/business/audit_log_service.dart';
 import '../services/business/validation_service.dart';
 import '../services/delivery/delivery_engine.dart';
-import '../services/firebase_service.dart';
+import '../services/postgres/postgres_admin_guard_service.dart';
+import '../services/postgres/postgres_audit_log_service.dart';
 
 class FreeDeliveryEndpoint extends Endpoint {
+  final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final PostgresAuditLogService _audit = PostgresAuditLogService();
+
   Future<DeliveryConfig> getDeliveryConfig(Session session) async {
-    return DeliveryEngine.getDeliveryConfig();
+    return DeliveryEngine.getDeliveryConfig(session);
   }
 
   Future<bool> upsertDeliveryConfig(
@@ -17,15 +20,18 @@ class FreeDeliveryEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await _ensureAdmin(firestore, firebaseUid, idToken);
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     ValidationService.validateDeliveryConfig(config);
 
-    final result = await DeliveryEngine.saveDeliveryConfig(config);
+    final result = await DeliveryEngine.saveDeliveryConfig(session, config);
     if (result) {
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
+      await _audit.write(
+        session,
+        actorFirebaseUid: firebaseUid,
         action: 'upsert',
         entityType: 'delivery_config',
         entityId: config.configId ?? 'default',
@@ -39,9 +45,12 @@ class FreeDeliveryEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await _ensureAdmin(firestore, firebaseUid, idToken);
-    return DeliveryEngine.getAllDeliveryRules();
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return DeliveryEngine.getAllDeliveryRules(session);
   }
 
   Future<DeliveryRulePage> getDeliveryRulesPage(
@@ -77,15 +86,18 @@ class FreeDeliveryEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await _ensureAdmin(firestore, firebaseUid, idToken);
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     ValidationService.validateDeliveryRule(rule);
 
-    final result = await DeliveryEngine.upsertDeliveryRule(rule);
+    final result = await DeliveryEngine.upsertDeliveryRule(session, rule);
     if (result) {
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
+      await _audit.write(
+        session,
+        actorFirebaseUid: firebaseUid,
         action: 'upsert',
         entityType: 'delivery_rule',
         entityId: rule.ruleId ?? rule.name,
@@ -100,14 +112,17 @@ class FreeDeliveryEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await _ensureAdmin(firestore, firebaseUid, idToken);
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
 
-    final result = await DeliveryEngine.deleteDeliveryRule(ruleId);
+    final result = await DeliveryEngine.deleteDeliveryRule(session, ruleId);
     if (result) {
-      await AuditLogService.write(
-        firestore: firestore,
-        actorUid: firebaseUid,
+      await _audit.write(
+        session,
+        actorFirebaseUid: firebaseUid,
         action: 'delete',
         entityType: 'delivery_rule',
         entityId: ruleId,
@@ -123,9 +138,12 @@ class FreeDeliveryEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    final firestore = await FirebaseService.getFirestoreClient();
-    await _ensureAdmin(firestore, firebaseUid, idToken);
-    return DeliveryEngine.setDeliveryRuleActive(ruleId, isActive);
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return DeliveryEngine.setDeliveryRuleActive(session, ruleId, isActive);
   }
 
   Future<DeliveryPricingResult> calculateDeliveryPricing(
@@ -141,10 +159,4 @@ class FreeDeliveryEndpoint extends Endpoint {
       location: location,
     );
   }
-
-  Future<void> _ensureAdmin(
-    dynamic firestore,
-    String firebaseUid,
-    String idToken,
-  ) async {}
 }

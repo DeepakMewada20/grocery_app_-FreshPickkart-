@@ -1,0 +1,19 @@
+class: AppUserRow
+serverOnly: true
+table: app_user
+fields:
+  id: UuidValue?, defaultPersist=random
+  firebaseUid: String?
+  phoneNumber: String
+  name: String?
+  email: String?
+  role: String, default='customer'
+  fcmToken: String?
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  app_user_firebase_uid_idx:
+    fields: firebaseUid
+    unique: true

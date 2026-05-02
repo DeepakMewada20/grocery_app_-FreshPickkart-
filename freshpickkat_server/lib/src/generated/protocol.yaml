@@ -79,6 +79,9 @@ order:
   - cancelOrder:
   - assignDeliveryPerson:
   - getDashboardStats:
+orderPg:
+  - createPendingOrder:
+  - getOrdersForUser:
 payment:
   - createPaymentOrder:
   - verifyPayment:
@@ -106,6 +109,11 @@ product:
   - incrementProductSearch:
   - incrementProductPurchase:
   - seedProductMetricsForTesting:
+productPg:
+  - getActiveProductsPage:
+  - searchActiveProducts:
+  - enqueueSearchRebuild:
+  - processPendingSearchRebuildJobs:
 refund:
   - initiateRefund:
   - getRefundStatus:

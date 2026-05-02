@@ -1,0 +1,15 @@
+class: DeliveryConfigRow
+serverOnly: true
+table: delivery_config
+fields:
+  id: UuidValue?, defaultPersist=random
+  configKey: String
+  baseDeliveryFee: double
+  freeDeliveryThreshold: double?
+  isActive: bool, default=true
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  delivery_config_key_idx:
+    fields: configKey
+    unique: true

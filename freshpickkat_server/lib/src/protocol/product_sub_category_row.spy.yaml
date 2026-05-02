@@ -1,0 +1,12 @@
+class: ProductSubCategoryRow
+serverOnly: true
+table: product_sub_category
+fields:
+  id: UuidValue?, defaultPersist=random
+  productId: UuidValue, relation(parent=product, onDelete=Cascade)
+  subCategoryId: UuidValue, relation(parent=sub_category, onDelete=Restrict)
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  product_sub_category_unique_idx:
+    fields: productId, subCategoryId
+    unique: true

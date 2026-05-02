@@ -1,0 +1,14 @@
+class: BogoOfferRewardRow
+serverOnly: true
+table: bogo_offer_reward
+fields:
+  id: UuidValue?, defaultPersist=random
+  bogoOfferId: UuidValue, relation(parent=bogo_offer, onDelete=Cascade)
+  rewardProductId: UuidValue, relation(parent=product, onDelete=Restrict)
+  rewardVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  quantity: int, default=1
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  bogo_offer_reward_unique_idx:
+    fields: bogoOfferId, rewardProductId, rewardVariantId
+    unique: true

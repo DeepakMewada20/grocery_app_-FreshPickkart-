@@ -1,0 +1,12 @@
+class: BannerPlacementRow
+serverOnly: true
+table: banner_placement
+fields:
+  id: UuidValue?, defaultPersist=random
+  bannerId: UuidValue, relation(parent=banner, onDelete=Cascade)
+  placementKey: String
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  banner_placement_unique_idx:
+    fields: bannerId, placementKey
+    unique: true

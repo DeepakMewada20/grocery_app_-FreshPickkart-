@@ -1,0 +1,31 @@
+class: PaymentTransactionRow
+serverOnly: true
+table: payment_transaction
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Restrict)
+  userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  idempotencyKey: String
+  gatewayName: String
+  gatewayOrderId: String?
+  gatewayPaymentId: String?
+  amount: double
+  currencyCode: String, default='INR'
+  paymentStatus: String
+  gatewayStatus: String?
+  failureReason: String?
+  paidAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  payment_transaction_idempotency_idx:
+    fields: idempotencyKey
+    unique: true
+  payment_transaction_gateway_order_idx:
+    fields: gatewayOrderId
+    unique: true
+  payment_transaction_gateway_payment_idx:
+    fields: gatewayPaymentId
+    unique: true
+  payment_transaction_order_idx:
+    fields: orderId

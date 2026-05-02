@@ -1,0 +1,20 @@
+class: UserCartItemRow
+serverOnly: true
+table: user_cart_item
+fields:
+  id: UuidValue?, defaultPersist=random
+  userId: UuidValue, relation(parent=app_user, onDelete=Cascade)
+  productId: String
+  variantId: String?
+  quantity: int
+  bogoFreeProductId: String?
+  comboId: String?
+  comboName: String?
+  comboDiscountType: String?
+  comboDiscountValue: double?
+  comboItemQuantity: int?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  user_cart_item_user_id_idx:
+    fields: userId

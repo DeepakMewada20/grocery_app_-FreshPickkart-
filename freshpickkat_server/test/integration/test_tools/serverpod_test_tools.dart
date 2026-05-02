@@ -195,11 +195,15 @@ class TestEndpoints {
 
   late final _OrderEndpoint order;
 
+  late final _OrderPgEndpoint orderPg;
+
   late final _PaymentEndpoint payment;
 
   late final _PricingEndpoint pricing;
 
   late final _ProductEndpoint product;
+
+  late final _ProductPgEndpoint productPg;
 
   late final _RefundEndpoint refund;
 
@@ -259,6 +263,10 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    orderPg = _OrderPgEndpoint(
+      endpoints,
+      serializationManager,
+    );
     payment = _PaymentEndpoint(
       endpoints,
       serializationManager,
@@ -268,6 +276,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     product = _ProductEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    productPg = _ProductPgEndpoint(
       endpoints,
       serializationManager,
     );
@@ -2864,6 +2876,89 @@ class _OrderEndpoint {
   }
 }
 
+class _OrderPgEndpoint {
+  _OrderPgEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<String> createPendingOrder(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i17.Order order,
+    String idempotencyKey,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'orderPg',
+            method: 'createPendingOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'orderPg',
+          methodName: 'createPendingOrder',
+          parameters: _i1.testObjectToJson({
+            'order': order,
+            'idempotencyKey': idempotencyKey,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i29.OrderPage> getOrdersForUser(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String userReference,
+    required int limit,
+    String? pageToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'orderPg',
+            method: 'getOrdersForUser',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'orderPg',
+          methodName: 'getOrdersForUser',
+          parameters: _i1.testObjectToJson({
+            'userReference': userReference,
+            'limit': limit,
+            'pageToken': pageToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i29.OrderPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _PaymentEndpoint {
   _PaymentEndpoint(
     this._endpointDispatch,
@@ -3720,6 +3815,165 @@ class _ProductEndpoint {
           endpointPath: 'product',
           methodName: 'seedProductMetricsForTesting',
           parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _ProductPgEndpoint {
+  _ProductPgEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i37.ProductPage> getActiveProductsPage(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+    String? pageToken,
+    String? categoryId,
+    String? subCategoryId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productPg',
+            method: 'getActiveProductsPage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productPg',
+          methodName: 'getActiveProductsPage',
+          parameters: _i1.testObjectToJson({
+            'limit': limit,
+            'pageToken': pageToken,
+            'categoryId': categoryId,
+            'subCategoryId': subCategoryId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i37.ProductPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i37.ProductPage> searchActiveProducts(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String query,
+    required int limit,
+    String? pageToken,
+    String? categoryId,
+    String? subCategoryId,
+    required double similarityThreshold,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productPg',
+            method: 'searchActiveProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productPg',
+          methodName: 'searchActiveProducts',
+          parameters: _i1.testObjectToJson({
+            'query': query,
+            'limit': limit,
+            'pageToken': pageToken,
+            'categoryId': categoryId,
+            'subCategoryId': subCategoryId,
+            'similarityThreshold': similarityThreshold,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i37.ProductPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> enqueueSearchRebuild(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String productId,
+    required String reason,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productPg',
+            method: 'enqueueSearchRebuild',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productPg',
+          methodName: 'enqueueSearchRebuild',
+          parameters: _i1.testObjectToJson({
+            'productId': productId,
+            'reason': reason,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<int> processPendingSearchRebuildJobs(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productPg',
+            method: 'processPendingSearchRebuildJobs',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productPg',
+          methodName: 'processPendingSearchRebuildJobs',
+          parameters: _i1.testObjectToJson({'limit': limit}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

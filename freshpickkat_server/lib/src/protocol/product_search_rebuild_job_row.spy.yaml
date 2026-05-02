@@ -1,0 +1,18 @@
+class: ProductSearchRebuildJobRow
+serverOnly: true
+table: product_search_rebuild_job
+fields:
+  id: UuidValue?, defaultPersist=random
+  productId: UuidValue, relation(parent=product, onDelete=Cascade)
+  reason: String
+  jobStatus: String, default='pending'
+  attemptCount: int, default=0
+  scheduledAt: DateTime, defaultModel=now, defaultPersist=now
+  startedAt: DateTime?
+  finishedAt: DateTime?
+  lastError: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  product_search_rebuild_job_status_scheduled_idx:
+    fields: jobStatus, scheduledAt, id
