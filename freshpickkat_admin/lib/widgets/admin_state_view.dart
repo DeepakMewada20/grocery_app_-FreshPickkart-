@@ -49,10 +49,12 @@ class AdminStateView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(16),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
@@ -89,6 +91,7 @@ class AdminStateView extends StatelessWidget {
               ),
             ],
           ],
+          ),
         ),
       ),
     );

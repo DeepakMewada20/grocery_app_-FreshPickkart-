@@ -512,7 +512,7 @@ class PostgresOfferService {
     Session session,
     List<BogoOfferRow> rows,
   ) async {
-    if (rows.isEmpty) return const [];
+    if (rows.isEmpty) return [];
 
     final offerIds = rows.map((row) => row.id!).toSet();
     final rewards = await BogoOfferRewardRow.db.find(
@@ -561,7 +561,7 @@ class PostgresOfferService {
     Session session,
     List<ComboOfferRow> rows,
   ) async {
-    if (rows.isEmpty) return const [];
+    if (rows.isEmpty) return [];
 
     final comboIds = rows.map((row) => row.id!).toSet();
     final items = await ComboOfferItemRow.db.find(
@@ -624,7 +624,7 @@ class PostgresOfferService {
     Session session,
     List<CategoryOfferRow> rows,
   ) async {
-    if (rows.isEmpty) return const [];
+    if (rows.isEmpty) return [];
 
     final offerIds = rows.map((row) => row.id!).toSet();
     final categoryIds = rows.map((row) => row.categoryId).toSet();

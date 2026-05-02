@@ -131,19 +131,6 @@ class PostgresProductCompatService {
       session,
       filters: resolvedFilters,
     );
-    final cursorParameters = <String, dynamic>{
-      ...resolvedFilters.parameters,
-      'cursorProductId': cursor?['productId']?.toString(),
-      'limit': pageSize + 1,
-    };
-    if (sortBy == 'trending' || sortBy == 'best_sellers') {
-      cursorParameters['cursorMetric'] = cursor == null
-          ? null
-          : asInt(cursor['metric']);
-    } else {
-      cursorParameters['cursorName'] = cursor?['name']?.toString();
-    }
-
     final result = await session.db.unsafeQuery(
       '''
       SELECT
@@ -160,7 +147,15 @@ class PostgresProductCompatService {
       ORDER BY $orderClause
       LIMIT @limit
       ''',
-      parameters: QueryParameters.named(cursorParameters),
+      parameters: QueryParameters.named({
+        ...resolvedFilters.parameters,
+        if (sortBy == 'trending' || sortBy == 'best_sellers')
+          'cursorMetric': cursor == null ? null : asInt(cursor['metric'])
+        else
+          'cursorName': cursor?['name']?.toString(),
+        'cursorProductId': cursor?['productId']?.toString(),
+        'limit': pageSize + 1,
+      }),
     );
 
     final productIds = <String>[];
@@ -487,33 +482,33 @@ class PostgresProductCompatService {
       'trending' =>
         '''
         AND (
-          @cursorMetric IS NULL
-          OR p."mostSearchCount" < @cursorMetric
+          @cursorMetric::integer IS NULL
+          OR p."mostSearchCount" < @cursorMetric::integer
           OR (
-            p."mostSearchCount" = @cursorMetric
-            AND p.id::text < @cursorProductId
+            p."mostSearchCount" = @cursorMetric::integer
+            AND p.id::text < @cursorProductId::text
           )
         )
       ''',
       'best_sellers' =>
         '''
         AND (
-          @cursorMetric IS NULL
-          OR p."mostPurchaseCount" < @cursorMetric
+          @cursorMetric::integer IS NULL
+          OR p."mostPurchaseCount" < @cursorMetric::integer
           OR (
-            p."mostPurchaseCount" = @cursorMetric
-            AND p.id::text < @cursorProductId
+            p."mostPurchaseCount" = @cursorMetric::integer
+            AND p.id::text < @cursorProductId::text
           )
         )
       ''',
       _ =>
         '''
         AND (
-          @cursorName IS NULL
-          OR p.name > @cursorName
+          @cursorName::text IS NULL
+          OR p.name > @cursorName::text
           OR (
-            p.name = @cursorName
-            AND p.id::text > @cursorProductId
+            p.name = @cursorName::text
+            AND p.id::text > @cursorProductId::text
           )
         )
       ''',
