@@ -11,8 +11,10 @@ class AdminProductController extends GetxController {
       Get.find<AdminProductController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminProductController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminProductController',
+  );
   final int pageSize = 20;
 
   final RxList<Product> products = <Product>[].obs;
@@ -31,7 +33,8 @@ class AdminProductController extends GetxController {
 
   void _sortProducts() {
     products.sort(
-      (a, b) => a.productName.toLowerCase().compareTo(b.productName.toLowerCase()),
+      (a, b) =>
+          a.productName.toLowerCase().compareTo(b.productName.toLowerCase()),
     );
   }
 
@@ -84,7 +87,7 @@ class AdminProductController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
 
         return await _client.product.getProductsPage(
@@ -107,11 +110,17 @@ class AdminProductController extends GetxController {
       hasMore.value = page.nextPageToken != null && page.products.isNotEmpty;
       error.value = null;
     } on NoInternetException {
-      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
     } on NetworkException {
-      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
     } on RequestTimeoutException {
-      networkController.showError(onRetry: () => loadMore(isInitial: isInitial));
+      networkController.showError(
+        onRetry: () => loadMore(isInitial: isInitial),
+      );
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -125,7 +134,7 @@ class AdminProductController extends GetxController {
       final newId = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.product.uploadProduct(product, uid, idToken);
       });
@@ -138,13 +147,12 @@ class AdminProductController extends GetxController {
     }
   }
 
-
   Future<void> updateProduct(Product product) async {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.product.updateProduct(product, uid, idToken);
       });
@@ -162,7 +170,7 @@ class AdminProductController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.product.deleteProduct(productId, uid, idToken);
       });

@@ -101,6 +101,18 @@ class AuthController extends GetxController {
   // Get current firebase user
   fb.User? get currentUser => _user.value;
 
+  Future<String> requireIdToken({bool forceRefresh = false}) async {
+    final user = currentUser;
+    if (user == null) {
+      throw Exception('Login required.');
+    }
+    final token = await user.getIdToken(forceRefresh);
+    if (token == null || token.trim().isEmpty) {
+      throw Exception('Invalid login session.');
+    }
+    return token;
+  }
+
   // Get current app user (Serverpod)
   AppUser? get appUser => appUserRx.value;
 

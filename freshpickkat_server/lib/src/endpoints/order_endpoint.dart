@@ -5,6 +5,7 @@ import '../services/notification_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_order_service.dart';
+import '../services/postgres/postgres_user_guard_service.dart';
 
 class OrderEndpoint extends Endpoint {
   static const String statusPlaced = 'placed';
@@ -16,6 +17,7 @@ class OrderEndpoint extends Endpoint {
 
   final PostgresOrderService _orders = PostgresOrderService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
@@ -99,11 +101,28 @@ class OrderEndpoint extends Endpoint {
   Future<List<protocol.Order>> getUserOrders(
     Session session,
     String userId,
-  ) {
+    String idToken,
+  ) async {
+    await _userGuard.ensureUser(
+      session,
+      firebaseUid: userId,
+      idToken: idToken,
+    );
     return _orders.getUserOrders(session, userId);
   }
 
-  Future<protocol.Order?> getOrderById(Session session, String orderId) {
+  Future<protocol.Order?> getOrderById(
+    Session session,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _orders.getOrderById(session, orderId);
   }
 
@@ -120,7 +139,7 @@ class OrderEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    final existingOrder = await getOrderById(session, orderId);
+    final existingOrder = await _orders.getOrderById(session, orderId);
     if (existingOrder == null) {
       throw ArgumentError('Order not found: $orderId');
     }
@@ -205,7 +224,25 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
-  Future<bool> confirmOrder(Session session, String orderId) {
+  Future<bool> confirmOrder(
+    Session session,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw Exception('Order not found.');
+    }
+    if (order.paymentStatus.toLowerCase().trim() != paymentPaid) {
+      throw Exception('Only paid orders can be confirmed.');
+    }
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _orders.confirmOrder(session, orderId);
   }
 
@@ -213,8 +250,15 @@ class OrderEndpoint extends Endpoint {
     Session session,
     String orderId,
     String userId, {
+    required String idToken,
     String reason = 'user_cancelled',
-  }) {
+  }) async {
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: userId,
+      idToken: idToken,
+    );
     return _orders.cancelOrder(
       session,
       orderId,
@@ -322,5 +366,26 @@ class OrderEndpoint extends Endpoint {
       'deliveredOrders': deliveredCount,
       'cancelledOrders': cancelledCount,
     };
+  }
+
+  Future<void> _ensureOrderOwner(
+    Session session, {
+    required String orderId,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw Exception('Order not found.');
+    }
+    final dbUserId = user.id?.toString();
+    if (order.userId != firebaseUid && order.userId != dbUserId) {
+      throw Exception('Order does not belong to user.');
+    }
   }
 }

@@ -4,6 +4,9 @@ import '../../generated/protocol.dart';
 import '../firebase_auth_service.dart';
 
 class PostgresAdminGuardService {
+  static const Duration _authorizationCacheTtl = Duration(minutes: 5);
+  static final Map<String, _CachedAdminAuthorization> _authorizationCache = {};
+
   Future<AppUserRow> ensureAdminSeller(
     Session session, {
     required String firebaseUid,
@@ -30,6 +33,15 @@ class PostgresAdminGuardService {
       throw Exception('Email verification required.');
     }
 
+    final cached = _authorizationCache[expectedUid];
+    final now = DateTime.now().toUtc();
+    if (cached != null && cached.expiresAt.isAfter(now)) {
+      return cached.user;
+    }
+    if (cached != null) {
+      _authorizationCache.remove(expectedUid);
+    }
+
     final user = await AppUserRow.db.findFirstRow(
       session,
       where: (t) =>
@@ -39,6 +51,10 @@ class PostgresAdminGuardService {
       throw Exception('Access denied: ADMIN_SELLER role required.');
     }
 
+    _authorizationCache[expectedUid] = _CachedAdminAuthorization(
+      user: user,
+      expiresAt: now.add(_authorizationCacheTtl),
+    );
     return user;
   }
 
@@ -54,4 +70,14 @@ class PostgresAdminGuardService {
         lowered == 'admin seller' ||
         normalized.toUpperCase() == 'ADMIN_SELLER';
   }
+}
+
+class _CachedAdminAuthorization {
+  const _CachedAdminAuthorization({
+    required this.user,
+    required this.expiresAt,
+  });
+
+  final AppUserRow user;
+  final DateTime expiresAt;
 }

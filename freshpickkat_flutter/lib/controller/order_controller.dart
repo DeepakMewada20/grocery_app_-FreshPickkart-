@@ -42,7 +42,8 @@ class OrderController extends GetxController {
       await _orderRecoveryService.recoverPendingPayments(
         trigger: 'orders_page',
       );
-      final result = await _client.order.getUserOrders(user.uid);
+      final idToken = await auth.requireIdToken();
+      final result = await _client.order.getUserOrders(user.uid, idToken);
       orders.assignAll(result);
     } catch (e) {
       // ignore: avoid_print
@@ -56,7 +57,11 @@ class OrderController extends GetxController {
 
   Future<Order?> fetchOrderById(String orderId) async {
     try {
-      return await _client.order.getOrderById(orderId);
+      final auth = AuthController.instance;
+      final user = auth.currentUser;
+      if (user == null) return null;
+      final idToken = await auth.requireIdToken();
+      return await _client.order.getOrderById(orderId, user.uid, idToken);
     } catch (_) {
       return null;
     }

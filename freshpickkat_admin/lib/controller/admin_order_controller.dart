@@ -24,7 +24,7 @@ class AdminOrderController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMore = true.obs;
   final RxnString error = RxnString(null);
-  
+
   final Map<String, String?> _nextPageTokens = {};
   final Map<String, bool> _hasMoreMap = {};
   final Map<String, int> _totalCounts = {};
@@ -70,7 +70,7 @@ class AdminOrderController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.order.getOrdersPage(
           firebaseUid: uid,
@@ -140,7 +140,7 @@ class AdminOrderController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.order.updateOrderStatus(
           order.orderId,

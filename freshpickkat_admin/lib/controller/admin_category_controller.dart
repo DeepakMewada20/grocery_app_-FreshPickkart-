@@ -11,8 +11,10 @@ class AdminCategoryController extends GetxController {
       Get.find<AdminCategoryController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminCategoryController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminCategoryController',
+  );
 
   final RxList<Category> categories = <Category>[].obs;
   final RxList<SubCategory> subCategories = <SubCategory>[].obs;
@@ -71,7 +73,7 @@ class AdminCategoryController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.category.uploadCategory(category, uid, idToken);
       });
@@ -86,7 +88,7 @@ class AdminCategoryController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.subCategory.uploadSubCategory(subCategory, uid, idToken);
       });

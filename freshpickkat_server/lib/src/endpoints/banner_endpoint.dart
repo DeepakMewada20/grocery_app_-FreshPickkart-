@@ -1,10 +1,12 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_banner_service.dart';
 
 class BannerEndpoint extends Endpoint {
   final PostgresBannerService _banners = PostgresBannerService();
+  final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
 
   Future<List<Banner>> getBanners(
     Session session, {
@@ -32,7 +34,12 @@ class BannerEndpoint extends Endpoint {
     String? pageToken,
     bool activeOnly = false,
     String? screen,
-  }) {
+    String? firebaseUid,
+    String? idToken,
+  }) async {
+    if (!activeOnly) {
+      await _ensureAdmin(session, firebaseUid, idToken);
+    }
     return _banners.getBannersPage(
       session,
       limit: limit,
@@ -46,15 +53,45 @@ class BannerEndpoint extends Endpoint {
     return _banners.getBannerById(session, bannerId);
   }
 
-  Future<Banner> createBanner(Session session, Banner banner) {
+  Future<Banner> createBanner(
+    Session session,
+    Banner banner,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _banners.createBanner(session, banner);
   }
 
-  Future<Banner> updateBanner(Session session, Banner banner) {
+  Future<Banner> updateBanner(
+    Session session,
+    Banner banner,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _banners.updateBanner(session, banner);
   }
 
-  Future<void> deleteBanner(Session session, String bannerId) {
+  Future<void> deleteBanner(
+    Session session,
+    String bannerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _banners.deleteBanner(session, bannerId);
   }
 
@@ -62,7 +99,14 @@ class BannerEndpoint extends Endpoint {
     Session session,
     String bannerId,
     bool active,
-  ) {
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _banners.toggleBannerActive(session, bannerId, active);
   }
 
@@ -70,7 +114,26 @@ class BannerEndpoint extends Endpoint {
     Session session,
     String bannerId,
     int priority,
-  ) {
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _banners.updateBannerPriority(session, bannerId, priority);
+  }
+
+  Future<void> _ensureAdmin(
+    Session session,
+    String? firebaseUid,
+    String? idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid ?? '',
+      idToken: idToken ?? '',
+    );
   }
 }

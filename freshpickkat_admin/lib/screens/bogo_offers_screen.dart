@@ -249,7 +249,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
 
       final resolved = <String, Product>{};
@@ -408,9 +408,7 @@ class _BogoOfferCard extends StatelessWidget {
         : (offer.triggerBaseQuantity != null && offer.triggerBaseUnit != null)
         ? '${offer.triggerBaseQuantity} ${offer.triggerBaseUnit}'
         : null;
-    final buyLabel = variantLabel == null
-        ? 'Buy 1'
-        : 'Buy 1 of $variantLabel';
+    final buyLabel = variantLabel == null ? 'Buy 1' : 'Buy 1 of $variantLabel';
     return '$buyLabel, Get ${offer.freeProductIds.length} Free';
   }
 

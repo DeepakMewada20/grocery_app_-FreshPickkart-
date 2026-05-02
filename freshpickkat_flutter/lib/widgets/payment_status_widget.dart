@@ -91,6 +91,7 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
 
       final gatewayStatus = await paymentService.fetchGatewayPaymentStatus(
         widget.paymentId,
+        widget.orderId,
       );
 
       if (!mounted) return;
@@ -160,6 +161,7 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
 
       final gatewayStatus = await paymentService.fetchGatewayPaymentStatus(
         widget.paymentId,
+        widget.orderId,
       );
 
       if (!mounted) return;

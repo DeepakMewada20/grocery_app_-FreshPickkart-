@@ -184,6 +184,8 @@ class EndpointBanner extends _i1.EndpointRef {
     String? pageToken,
     required bool activeOnly,
     String? screen,
+    String? firebaseUid,
+    String? idToken,
   }) => caller.callServerEndpoint<_i9.BannerPage>(
     'banner',
     'getBannersPage',
@@ -192,6 +194,8 @@ class EndpointBanner extends _i1.EndpointRef {
       'pageToken': pageToken,
       'activeOnly': activeOnly,
       'screen': screen,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 
@@ -202,48 +206,77 @@ class EndpointBanner extends _i1.EndpointRef {
         {'bannerId': bannerId},
       );
 
-  _i2.Future<_i8.Banner> createBanner(_i8.Banner banner) =>
-      caller.callServerEndpoint<_i8.Banner>(
-        'banner',
-        'createBanner',
-        {'banner': banner},
-      );
+  _i2.Future<_i8.Banner> createBanner(
+    _i8.Banner banner,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i8.Banner>(
+    'banner',
+    'createBanner',
+    {
+      'banner': banner,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<_i8.Banner> updateBanner(_i8.Banner banner) =>
-      caller.callServerEndpoint<_i8.Banner>(
-        'banner',
-        'updateBanner',
-        {'banner': banner},
-      );
+  _i2.Future<_i8.Banner> updateBanner(
+    _i8.Banner banner,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i8.Banner>(
+    'banner',
+    'updateBanner',
+    {
+      'banner': banner,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<void> deleteBanner(String bannerId) =>
-      caller.callServerEndpoint<void>(
-        'banner',
-        'deleteBanner',
-        {'bannerId': bannerId},
-      );
+  _i2.Future<void> deleteBanner(
+    String bannerId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<void>(
+    'banner',
+    'deleteBanner',
+    {
+      'bannerId': bannerId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
   _i2.Future<void> toggleBannerActive(
     String bannerId,
     bool active,
+    String firebaseUid,
+    String idToken,
   ) => caller.callServerEndpoint<void>(
     'banner',
     'toggleBannerActive',
     {
       'bannerId': bannerId,
       'active': active,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 
   _i2.Future<void> updateBannerPriority(
     String bannerId,
     int priority,
+    String firebaseUid,
+    String idToken,
   ) => caller.callServerEndpoint<void>(
     'banner',
     'updateBannerPriority',
     {
       'bannerId': bannerId,
       'priority': priority,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 }
@@ -255,34 +288,57 @@ class EndpointBogo extends _i1.EndpointRef {
   @override
   String get name => 'bogo';
 
-  _i2.Future<bool> upsertOffer(_i10.BogoOffer offer) =>
-      caller.callServerEndpoint<bool>(
-        'bogo',
-        'upsertOffer',
-        {'offer': offer},
-      );
+  _i2.Future<bool> upsertOffer(
+    _i10.BogoOffer offer,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'bogo',
+    'upsertOffer',
+    {
+      'offer': offer,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<bool> deleteOffer(String triggerProductId) =>
-      caller.callServerEndpoint<bool>(
-        'bogo',
-        'deleteOffer',
-        {'triggerProductId': triggerProductId},
-      );
+  _i2.Future<bool> deleteOffer(
+    String triggerProductId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'bogo',
+    'deleteOffer',
+    {
+      'triggerProductId': triggerProductId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<List<_i10.BogoOffer>> getAllOffers() =>
-      caller.callServerEndpoint<List<_i10.BogoOffer>>(
-        'bogo',
-        'getAllOffers',
-        {},
-      );
+  _i2.Future<List<_i10.BogoOffer>> getAllOffers(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<List<_i10.BogoOffer>>(
+    'bogo',
+    'getAllOffers',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
   _i2.Future<_i11.BogoOfferPage> getOffersPage({
+    required String firebaseUid,
+    required String idToken,
     required int limit,
     String? pageToken,
   }) => caller.callServerEndpoint<_i11.BogoOfferPage>(
     'bogo',
     'getOffersPage',
     {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
       'limit': limit,
       'pageToken': pageToken,
     },
@@ -295,12 +351,19 @@ class EndpointBogo extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Future<_i10.BogoOffer?> getOfferForProduct(String triggerProductId) =>
-      caller.callServerEndpoint<_i10.BogoOffer?>(
-        'bogo',
-        'getOfferForProduct',
-        {'triggerProductId': triggerProductId},
-      );
+  _i2.Future<_i10.BogoOffer?> getOfferForProduct(
+    String triggerProductId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i10.BogoOffer?>(
+    'bogo',
+    'getOfferForProduct',
+    {
+      'triggerProductId': triggerProductId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -879,19 +942,31 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i16.Order>> getUserOrders(String userId) =>
-      caller.callServerEndpoint<List<_i16.Order>>(
-        'order',
-        'getUserOrders',
-        {'userId': userId},
-      );
+  _i2.Future<List<_i16.Order>> getUserOrders(
+    String userId,
+    String idToken,
+  ) => caller.callServerEndpoint<List<_i16.Order>>(
+    'order',
+    'getUserOrders',
+    {
+      'userId': userId,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<_i16.Order?> getOrderById(String orderId) =>
-      caller.callServerEndpoint<_i16.Order?>(
-        'order',
-        'getOrderById',
-        {'orderId': orderId},
-      );
+  _i2.Future<_i16.Order?> getOrderById(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i16.Order?>(
+    'order',
+    'getOrderById',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
   _i2.Future<bool> updateOrderStatus(
     String orderId,
@@ -929,16 +1004,24 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> confirmOrder(String orderId) =>
-      caller.callServerEndpoint<bool>(
-        'order',
-        'confirmOrder',
-        {'orderId': orderId},
-      );
+  _i2.Future<bool> confirmOrder(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'order',
+    'confirmOrder',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
   _i2.Future<bool> cancelOrder(
     String orderId,
     String userId, {
+    required String idToken,
     required String reason,
   }) => caller.callServerEndpoint<bool>(
     'order',
@@ -946,6 +1029,7 @@ class EndpointOrder extends _i1.EndpointRef {
     {
       'orderId': orderId,
       'userId': userId,
+      'idToken': idToken,
       'reason': reason,
     },
   );
@@ -1052,41 +1136,62 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i31.PaymentActionResult> markPaymentFailed(String orderId) =>
-      caller.callServerEndpoint<_i31.PaymentActionResult>(
-        'payment',
-        'markPaymentFailed',
-        {'orderId': orderId},
-      );
+  _i2.Future<_i31.PaymentActionResult> markPaymentFailed(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i31.PaymentActionResult>(
+    'payment',
+    'markPaymentFailed',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
   _i2.Future<_i31.PaymentActionResult> initiateRefund(
     String razorpayPaymentId,
     double amount,
+    String firebaseUid,
+    String idToken,
   ) => caller.callServerEndpoint<_i31.PaymentActionResult>(
     'payment',
     'initiateRefund',
     {
       'razorpayPaymentId': razorpayPaymentId,
       'amount': amount,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 
   _i2.Future<_i31.PaymentActionResult> getPaymentStatus(
     String razorpayPaymentId,
+    String orderId,
+    String firebaseUid,
+    String idToken,
   ) => caller.callServerEndpoint<_i31.PaymentActionResult>(
     'payment',
     'getPaymentStatus',
-    {'razorpayPaymentId': razorpayPaymentId},
+    {
+      'razorpayPaymentId': razorpayPaymentId,
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
   );
 
   _i2.Future<_i31.PaymentActionResult> recoverPendingPayments(
     String userId, {
+    required String idToken,
     required int limit,
   }) => caller.callServerEndpoint<_i31.PaymentActionResult>(
     'payment',
     'recoverPendingPayments',
     {
       'userId': userId,
+      'idToken': idToken,
       'limit': limit,
     },
   );
@@ -1284,16 +1389,28 @@ class EndpointProduct extends _i1.EndpointRef {
         {'query': query},
       );
 
-  _i2.Future<int> migrateProducts() => caller.callServerEndpoint<int>(
+  _i2.Future<int> migrateProducts(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<int>(
     'product',
     'migrateProducts',
-    {},
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
   );
 
-  _i2.Future<int> initializeProductMetrics() => caller.callServerEndpoint<int>(
+  _i2.Future<int> initializeProductMetrics(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<int>(
     'product',
     'initializeProductMetrics',
-    {},
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
   );
 
   _i2.Future<bool> incrementProductSearch(String productId) =>
@@ -1310,12 +1427,17 @@ class EndpointProduct extends _i1.EndpointRef {
         {'productId': productId},
       );
 
-  _i2.Future<int> seedProductMetricsForTesting() =>
-      caller.callServerEndpoint<int>(
-        'product',
-        'seedProductMetricsForTesting',
-        {},
-      );
+  _i2.Future<int> seedProductMetricsForTesting(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<int>(
+    'product',
+    'seedProductMetricsForTesting',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -1364,21 +1486,32 @@ class EndpointProductPg extends _i1.EndpointRef {
   _i2.Future<void> enqueueSearchRebuild({
     required String productId,
     required String reason,
+    required String firebaseUid,
+    required String idToken,
   }) => caller.callServerEndpoint<void>(
     'productPg',
     'enqueueSearchRebuild',
     {
       'productId': productId,
       'reason': reason,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 
-  _i2.Future<int> processPendingSearchRebuildJobs({required int limit}) =>
-      caller.callServerEndpoint<int>(
-        'productPg',
-        'processPendingSearchRebuildJobs',
-        {'limit': limit},
-      );
+  _i2.Future<int> processPendingSearchRebuildJobs({
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+  }) => caller.callServerEndpoint<int>(
+    'productPg',
+    'processPendingSearchRebuildJobs',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -1388,19 +1521,33 @@ class EndpointRefund extends _i1.EndpointRef {
   @override
   String get name => 'refund';
 
-  _i2.Future<_i37.RefundRecord> initiateRefund(String orderId) =>
-      caller.callServerEndpoint<_i37.RefundRecord>(
-        'refund',
-        'initiateRefund',
-        {'orderId': orderId},
-      );
+  _i2.Future<_i37.RefundRecord> initiateRefund(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i37.RefundRecord>(
+    'refund',
+    'initiateRefund',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 
-  _i2.Future<_i37.RefundRecord?> getRefundStatus(String orderId) =>
-      caller.callServerEndpoint<_i37.RefundRecord?>(
-        'refund',
-        'getRefundStatus',
-        {'orderId': orderId},
-      );
+  _i2.Future<_i37.RefundRecord?> getRefundStatus(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i37.RefundRecord?>(
+    'refund',
+    'getRefundStatus',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

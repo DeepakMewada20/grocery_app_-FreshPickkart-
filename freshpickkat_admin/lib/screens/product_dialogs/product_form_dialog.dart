@@ -167,8 +167,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   Future<void> _fetchBogoOffer() async {
     if (product?.productId == null) return;
     try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       final offer = await ServerpodAdminClient().client.bogo.getOfferForProduct(
         product!.productId!,
+        uid,
+        idToken,
       );
       if (offer != null) {
         bogoFreeProductIds.addAll(offer.freeProductIds);
@@ -364,7 +370,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   Future<List<Product>> _fetchAllProductsForCategory(String category) async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
-      forceRefresh: true,
+      forceRefresh: false,
     );
 
     final products = <Product>[];

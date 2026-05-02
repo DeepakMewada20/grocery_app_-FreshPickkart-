@@ -17,15 +17,27 @@ void main() {
       expect(verifyResult.success, isTrue);
       expect(verifyResult.verified, isTrue);
 
-      final updatedOrder = await endpoints.order.getOrderById(
-        sessionBuilder,
-        orderId,
-      );
+      final updatedOrder = await _findOrder(sessionBuilder, orderId);
       expect(updatedOrder, isNotNull);
       expect(updatedOrder!.paymentStatus, equals('paid'));
-      expect(updatedOrder.status, equals('confirmed'));
+      expect(updatedOrder.orderStatus, equals('confirmed'));
     });
   });
+}
+
+Future<protocol.CustomerOrderRow?> _findOrder(
+  TestSessionBuilder sessionBuilder,
+  String orderId,
+) async {
+  final session = sessionBuilder.build();
+  try {
+    return protocol.CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderId),
+    );
+  } finally {
+    await session.close();
+  }
 }
 
 Future<String> _createPendingOrder(

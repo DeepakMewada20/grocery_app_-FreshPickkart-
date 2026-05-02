@@ -87,7 +87,7 @@ class AdminComboOfferController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await client.comboOffer.getComboOffersPage(
           uid,
@@ -129,7 +129,7 @@ class AdminComboOfferController extends GetxController {
       final normalizedOffer = offer.copyWith(comboId: _ensureComboId(offer));
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.comboOffer.upsertComboOffer(
         normalizedOffer,
@@ -154,7 +154,7 @@ class AdminComboOfferController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.comboOffer.deleteComboOffer(
         comboId,
@@ -176,7 +176,7 @@ class AdminComboOfferController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.comboOffer.setComboOfferActive(
         comboId,

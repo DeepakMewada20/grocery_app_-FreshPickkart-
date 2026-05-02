@@ -1,14 +1,14 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class OrderService {
   OrderService._();
 
-  static OrderService get instance =>
-      Get.isRegistered<OrderService>()
-          ? Get.find<OrderService>()
-          : Get.put(OrderService._(), permanent: true);
+  static OrderService get instance => Get.isRegistered<OrderService>()
+      ? Get.find<OrderService>()
+      : Get.put(OrderService._(), permanent: true);
 
   final _client = ServerpodClient().client;
 
@@ -34,11 +34,20 @@ class OrderService {
     required String orderId,
     required String userId,
     String reason = 'user_cancelled',
-  }) {
-    return _client.order.cancelOrder(orderId, userId, reason: reason);
+  }) async {
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.order.cancelOrder(
+      orderId,
+      userId,
+      idToken: idToken,
+      reason: reason,
+    );
   }
 
-  Future<bool> confirmOrder(String orderId) {
-    return _client.order.confirmOrder(orderId);
+  Future<bool> confirmOrder(String orderId) async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception('Login required.');
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.order.confirmOrder(orderId, user.uid, idToken);
   }
 }

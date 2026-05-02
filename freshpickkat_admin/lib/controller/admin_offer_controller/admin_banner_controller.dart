@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
+import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
@@ -96,11 +97,17 @@ class AdminBannerController extends GetxController {
       }
       error.value = null;
       networkController.hideError();
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       final page = await ApiClient().request(() async {
         return await _client.banner.getBannersPage(
           activeOnly: false,
           limit: pageSize,
           pageToken: nextPageToken.value,
+          firebaseUid: uid,
+          idToken: idToken,
         );
       });
       if (isInitial) {
@@ -136,8 +143,12 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       final created = await ApiClient().request(() async {
-        return await _client.banner.createBanner(banner);
+        return await _client.banner.createBanner(banner, uid, idToken);
       });
       if (banner.isBaseImage) {
         await loadBanners(force: true);
@@ -182,8 +193,12 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       final updated = await ApiClient().request(() async {
-        return await _client.banner.updateBanner(banner);
+        return await _client.banner.updateBanner(banner, uid, idToken);
       });
       if (banner.isBaseImage) {
         await loadBanners(force: true);
@@ -221,8 +236,12 @@ class AdminBannerController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       await ApiClient().request(() async {
-        await _client.banner.deleteBanner(bannerId);
+        await _client.banner.deleteBanner(bannerId, uid, idToken);
       });
       banners.removeWhere((b) => b.bannerId == bannerId);
       if (totalCount.value > 0) totalCount.value--;
@@ -251,8 +270,12 @@ class AdminBannerController extends GetxController {
 
   Future<bool> toggleBannerActive(String bannerId, bool active) async {
     try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       await ApiClient().request(() async {
-        await _client.banner.toggleBannerActive(bannerId, active);
+        await _client.banner.toggleBannerActive(bannerId, active, uid, idToken);
       });
       final index = banners.indexWhere((b) => b.bannerId == bannerId);
       if (index != -1) {
@@ -289,8 +312,17 @@ class AdminBannerController extends GetxController {
 
   Future<bool> updateBannerPriority(String bannerId, int priority) async {
     try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       await ApiClient().request(() async {
-        await _client.banner.updateBannerPriority(bannerId, priority);
+        await _client.banner.updateBannerPriority(
+          bannerId,
+          priority,
+          uid,
+          idToken,
+        );
       });
       final index = banners.indexWhere((b) => b.bannerId == bannerId);
       if (index != -1) {

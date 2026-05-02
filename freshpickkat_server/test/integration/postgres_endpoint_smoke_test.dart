@@ -21,23 +21,7 @@ void main() {
     });
 
     test('banner endpoint creates and reads PostgreSQL banners', () async {
-      final now = DateTime.now().toUtc();
-      final created = await endpoints.banner.createBanner(
-        sessionBuilder,
-        protocol.Banner(
-          title: 'Smoke Banner',
-          imageUrl: 'https://example.com/banner.png',
-          type: 'external_link',
-          externalUrl: 'https://example.com',
-          screenPlacements: 'home_top',
-          priority: 1,
-          startDate: now.subtract(const Duration(days: 1)),
-          endDate: now.add(const Duration(days: 1)),
-          active: true,
-          isBaseImage: false,
-          createdAt: now,
-        ),
-      );
+      final bannerId = await _seedBanner(sessionBuilder);
 
       final banners = await endpoints.banner.getBanners(
         sessionBuilder,
@@ -45,10 +29,9 @@ void main() {
         activeOnly: true,
       );
 
-      expect(created.bannerId, isNotNull);
       expect(
         banners.map((banner) => banner.bannerId),
-        contains(created.bannerId),
+        contains(bannerId),
       );
     });
 
@@ -81,6 +64,41 @@ void main() {
       },
     );
   });
+}
+
+Future<String> _seedBanner(TestSessionBuilder sessionBuilder) async {
+  final session = sessionBuilder.build();
+  try {
+    final now = DateTime.now().toUtc();
+    final inserted = await protocol.BannerRow.db.insertRow(
+      session,
+      protocol.BannerRow(
+        title: 'Smoke Banner',
+        imageUrl: 'https://example.com/banner.png',
+        actionType: 'external_link',
+        externalUrl: 'https://example.com',
+        priority: 1,
+        startsAt: now.subtract(const Duration(days: 1)),
+        endsAt: now.add(const Duration(days: 1)),
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    await protocol.BannerPlacementRow.db.insertRow(
+      session,
+      protocol.BannerPlacementRow(
+        bannerId: inserted.id!,
+        placementKey: 'home_top',
+        createdAt: now,
+      ),
+    );
+
+    return inserted.id!.toString();
+  } finally {
+    await session.close();
+  }
 }
 
 Future<void> _seedCategory(TestSessionBuilder sessionBuilder) async {

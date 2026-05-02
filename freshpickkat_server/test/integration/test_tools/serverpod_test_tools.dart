@@ -638,6 +638,8 @@ class _BannerEndpoint {
     String? pageToken,
     required bool activeOnly,
     String? screen,
+    String? firebaseUid,
+    String? idToken,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -655,6 +657,8 @@ class _BannerEndpoint {
             'pageToken': pageToken,
             'activeOnly': activeOnly,
             'screen': screen,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -705,6 +709,8 @@ class _BannerEndpoint {
   _i3.Future<_i9.Banner> createBanner(
     _i1.TestSessionBuilder sessionBuilder,
     _i9.Banner banner,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -717,7 +723,11 @@ class _BannerEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'banner',
           methodName: 'createBanner',
-          parameters: _i1.testObjectToJson({'banner': banner}),
+          parameters: _i1.testObjectToJson({
+            'banner': banner,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -736,6 +746,8 @@ class _BannerEndpoint {
   _i3.Future<_i9.Banner> updateBanner(
     _i1.TestSessionBuilder sessionBuilder,
     _i9.Banner banner,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -748,7 +760,11 @@ class _BannerEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'banner',
           methodName: 'updateBanner',
-          parameters: _i1.testObjectToJson({'banner': banner}),
+          parameters: _i1.testObjectToJson({
+            'banner': banner,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -767,6 +783,8 @@ class _BannerEndpoint {
   _i3.Future<void> deleteBanner(
     _i1.TestSessionBuilder sessionBuilder,
     String bannerId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -779,7 +797,11 @@ class _BannerEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'banner',
           methodName: 'deleteBanner',
-          parameters: _i1.testObjectToJson({'bannerId': bannerId}),
+          parameters: _i1.testObjectToJson({
+            'bannerId': bannerId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -799,6 +821,8 @@ class _BannerEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String bannerId,
     bool active,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -814,6 +838,8 @@ class _BannerEndpoint {
           parameters: _i1.testObjectToJson({
             'bannerId': bannerId,
             'active': active,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -834,6 +860,8 @@ class _BannerEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String bannerId,
     int priority,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -849,6 +877,8 @@ class _BannerEndpoint {
           parameters: _i1.testObjectToJson({
             'bannerId': bannerId,
             'priority': priority,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -879,6 +909,8 @@ class _BogoEndpoint {
   _i3.Future<bool> upsertOffer(
     _i1.TestSessionBuilder sessionBuilder,
     _i11.BogoOffer offer,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -891,7 +923,11 @@ class _BogoEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'bogo',
           methodName: 'upsertOffer',
-          parameters: _i1.testObjectToJson({'offer': offer}),
+          parameters: _i1.testObjectToJson({
+            'offer': offer,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -910,6 +946,8 @@ class _BogoEndpoint {
   _i3.Future<bool> deleteOffer(
     _i1.TestSessionBuilder sessionBuilder,
     String triggerProductId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -924,6 +962,8 @@ class _BogoEndpoint {
           methodName: 'deleteOffer',
           parameters: _i1.testObjectToJson({
             'triggerProductId': triggerProductId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -942,6 +982,8 @@ class _BogoEndpoint {
 
   _i3.Future<List<_i11.BogoOffer>> getAllOffers(
     _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -954,7 +996,10 @@ class _BogoEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'bogo',
           methodName: 'getAllOffers',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -972,6 +1017,8 @@ class _BogoEndpoint {
 
   _i3.Future<_i12.BogoOfferPage> getOffersPage(
     _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
     required int limit,
     String? pageToken,
   }) async {
@@ -987,6 +1034,8 @@ class _BogoEndpoint {
           endpointPath: 'bogo',
           methodName: 'getOffersPage',
           parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
             'limit': limit,
             'pageToken': pageToken,
           }),
@@ -1038,6 +1087,8 @@ class _BogoEndpoint {
   _i3.Future<_i11.BogoOffer?> getOfferForProduct(
     _i1.TestSessionBuilder sessionBuilder,
     String triggerProductId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1052,6 +1103,8 @@ class _BogoEndpoint {
           methodName: 'getOfferForProduct',
           parameters: _i1.testObjectToJson({
             'triggerProductId': triggerProductId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -2590,6 +2643,7 @@ class _OrderEndpoint {
   _i3.Future<List<_i17.Order>> getUserOrders(
     _i1.TestSessionBuilder sessionBuilder,
     String userId,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2602,7 +2656,10 @@ class _OrderEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'order',
           methodName: 'getUserOrders',
-          parameters: _i1.testObjectToJson({'userId': userId}),
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -2621,6 +2678,8 @@ class _OrderEndpoint {
   _i3.Future<_i17.Order?> getOrderById(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2633,7 +2692,11 @@ class _OrderEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'order',
           methodName: 'getOrderById',
-          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -2734,6 +2797,8 @@ class _OrderEndpoint {
   _i3.Future<bool> confirmOrder(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2746,7 +2811,11 @@ class _OrderEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'order',
           methodName: 'confirmOrder',
-          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -2766,6 +2835,7 @@ class _OrderEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
     String userId, {
+    required String idToken,
     required String reason,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2782,6 +2852,7 @@ class _OrderEndpoint {
           parameters: _i1.testObjectToJson({
             'orderId': orderId,
             'userId': userId,
+            'idToken': idToken,
             'reason': reason,
           }),
           serializationManager: _serializationManager,
@@ -3048,6 +3119,8 @@ class _PaymentEndpoint {
   _i3.Future<_i32.PaymentActionResult> markPaymentFailed(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3060,7 +3133,11 @@ class _PaymentEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'payment',
           methodName: 'markPaymentFailed',
-          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3080,6 +3157,8 @@ class _PaymentEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String razorpayPaymentId,
     double amount,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3095,6 +3174,8 @@ class _PaymentEndpoint {
           parameters: _i1.testObjectToJson({
             'razorpayPaymentId': razorpayPaymentId,
             'amount': amount,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -3114,6 +3195,9 @@ class _PaymentEndpoint {
   _i3.Future<_i32.PaymentActionResult> getPaymentStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String razorpayPaymentId,
+    String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3128,6 +3212,9 @@ class _PaymentEndpoint {
           methodName: 'getPaymentStatus',
           parameters: _i1.testObjectToJson({
             'razorpayPaymentId': razorpayPaymentId,
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -3147,6 +3234,7 @@ class _PaymentEndpoint {
   _i3.Future<_i32.PaymentActionResult> recoverPendingPayments(
     _i1.TestSessionBuilder sessionBuilder,
     String userId, {
+    required String idToken,
     required int limit,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3162,6 +3250,7 @@ class _PaymentEndpoint {
           methodName: 'recoverPendingPayments',
           parameters: _i1.testObjectToJson({
             'userId': userId,
+            'idToken': idToken,
             'limit': limit,
           }),
           serializationManager: _serializationManager,
@@ -3680,7 +3769,11 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<int> migrateProducts(_i1.TestSessionBuilder sessionBuilder) async {
+  _i3.Future<int> migrateProducts(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -3692,7 +3785,10 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'migrateProducts',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3710,6 +3806,8 @@ class _ProductEndpoint {
 
   _i3.Future<int> initializeProductMetrics(
     _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3722,7 +3820,10 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'initializeProductMetrics',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3802,6 +3903,8 @@ class _ProductEndpoint {
 
   _i3.Future<int> seedProductMetricsForTesting(
     _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3814,7 +3917,10 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'seedProductMetricsForTesting',
-          parameters: _i1.testObjectToJson({}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3927,6 +4033,8 @@ class _ProductPgEndpoint {
     _i1.TestSessionBuilder sessionBuilder, {
     required String productId,
     required String reason,
+    required String firebaseUid,
+    required String idToken,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -3942,6 +4050,8 @@ class _ProductPgEndpoint {
           parameters: _i1.testObjectToJson({
             'productId': productId,
             'reason': reason,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );
@@ -3960,6 +4070,8 @@ class _ProductPgEndpoint {
 
   _i3.Future<int> processPendingSearchRebuildJobs(
     _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
     required int limit,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -3973,7 +4085,11 @@ class _ProductPgEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'productPg',
           methodName: 'processPendingSearchRebuildJobs',
-          parameters: _i1.testObjectToJson({'limit': limit}),
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'limit': limit,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -4003,6 +4119,8 @@ class _RefundEndpoint {
   _i3.Future<_i38.RefundRecord> initiateRefund(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4015,7 +4133,11 @@ class _RefundEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'refund',
           methodName: 'initiateRefund',
-          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -4034,6 +4156,8 @@ class _RefundEndpoint {
   _i3.Future<_i38.RefundRecord?> getRefundStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -4046,7 +4170,11 @@ class _RefundEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'refund',
           methodName: 'getRefundStatus',
-          parameters: _i1.testObjectToJson({'orderId': orderId}),
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

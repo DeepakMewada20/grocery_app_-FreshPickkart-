@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import '../../services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
 import '../network_controller.dart';
@@ -73,8 +74,14 @@ class AdminBogoController extends GetxController {
         isLoadingMore.value = true;
       }
       networkController.hideError();
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
       final page = await ApiClient().request(() async {
         return await client.bogo.getOffersPage(
+          firebaseUid: uid,
+          idToken: idToken,
           limit: pageSize,
           pageToken: nextPageToken.value,
         );
@@ -109,7 +116,11 @@ class AdminBogoController extends GetxController {
 
   Future<bool> deleteOffer(String triggerProductId) async {
     try {
-      await client.bogo.deleteOffer(triggerProductId);
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      await client.bogo.deleteOffer(triggerProductId, uid, idToken);
       bogoOffers.removeWhere(
         (offer) => offer.triggerProductId == triggerProductId,
       );
@@ -123,7 +134,11 @@ class AdminBogoController extends GetxController {
 
   Future<bool> upsertOffer(BogoOffer offer) async {
     try {
-      await client.bogo.upsertOffer(offer);
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      await client.bogo.upsertOffer(offer, uid, idToken);
       _upsertLocal(offer);
       return true;
     } catch (e) {

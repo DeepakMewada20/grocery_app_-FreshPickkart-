@@ -78,7 +78,7 @@ class AdminFreeDeliveryController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await client.freeDelivery.getDeliveryRulesPage(
           uid,
@@ -119,7 +119,7 @@ class AdminFreeDeliveryController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.freeDelivery.upsertDeliveryConfig(
         config,
@@ -140,7 +140,7 @@ class AdminFreeDeliveryController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.freeDelivery.upsertDeliveryRule(
         rule,
@@ -165,7 +165,7 @@ class AdminFreeDeliveryController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.freeDelivery.deleteDeliveryRule(
         ruleId,
@@ -187,7 +187,7 @@ class AdminFreeDeliveryController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.freeDelivery.setDeliveryRuleActive(
         ruleId,
@@ -196,9 +196,7 @@ class AdminFreeDeliveryController extends GetxController {
         idToken,
       );
       if (result) {
-        final index = deliveryRules.indexWhere(
-          (rule) => rule.ruleId == ruleId,
-        );
+        final index = deliveryRules.indexWhere((rule) => rule.ruleId == ruleId);
         if (index != -1) {
           deliveryRules[index] = deliveryRules[index].copyWith(
             isActive: isActive,

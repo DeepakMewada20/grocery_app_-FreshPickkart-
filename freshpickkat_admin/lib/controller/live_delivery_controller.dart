@@ -60,7 +60,7 @@ class LiveDeliveryController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.order.getOrdersPage(
           firebaseUid: uid,

@@ -36,7 +36,7 @@ class AdminCouponController extends GetxController {
       final result = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.coupon.fetchCoupons(uid, idToken);
       });
@@ -59,7 +59,7 @@ class AdminCouponController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         await _client.coupon.uploadCoupon(coupon, uid, idToken);
       });
@@ -74,7 +74,7 @@ class AdminCouponController extends GetxController {
       final ok = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.coupon.setCouponActive(
           code,
@@ -100,7 +100,7 @@ class AdminCouponController extends GetxController {
       final ok = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.coupon.updateCoupon(updated, uid, idToken);
       });
@@ -121,7 +121,7 @@ class AdminCouponController extends GetxController {
       final ok = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await _client.coupon.deleteCoupon(code, uid, idToken);
       });

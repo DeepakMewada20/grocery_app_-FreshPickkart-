@@ -400,6 +400,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -412,6 +422,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     pageToken: params['pageToken'],
                     activeOnly: params['activeOnly'],
                     screen: params['screen'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
                   ),
         ),
         'getBannerById': _i1.MethodConnector(
@@ -441,6 +453,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<_i21.Banner>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -450,6 +472,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['banner'] as _i4.BannerEndpoint).createBanner(
                     session,
                     params['banner'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'updateBanner': _i1.MethodConnector(
@@ -458,6 +482,16 @@ class Endpoints extends _i1.EndpointDispatch {
             'banner': _i1.ParameterDescription(
               name: 'banner',
               type: _i1.getType<_i21.Banner>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
               nullable: false,
             ),
           },
@@ -469,6 +503,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['banner'] as _i4.BannerEndpoint).updateBanner(
                     session,
                     params['banner'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'deleteBanner': _i1.MethodConnector(
@@ -476,6 +512,16 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'bannerId': _i1.ParameterDescription(
               name: 'bannerId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -488,6 +534,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['banner'] as _i4.BannerEndpoint).deleteBanner(
                     session,
                     params['bannerId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'toggleBannerActive': _i1.MethodConnector(
@@ -503,6 +551,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<bool>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -513,6 +571,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['bannerId'],
                     params['active'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'updateBannerPriority': _i1.MethodConnector(
@@ -528,6 +588,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<int>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -538,6 +608,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['bannerId'],
                     params['priority'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
       },
@@ -554,6 +626,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<_i22.BogoOffer>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -562,6 +644,8 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['bogo'] as _i5.BogoEndpoint).upsertOffer(
                 session,
                 params['offer'],
+                params['firebaseUid'],
+                params['idToken'],
               ),
         ),
         'deleteOffer': _i1.MethodConnector(
@@ -569,6 +653,16 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'triggerProductId': _i1.ParameterDescription(
               name: 'triggerProductId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -580,21 +674,47 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['bogo'] as _i5.BogoEndpoint).deleteOffer(
                 session,
                 params['triggerProductId'],
+                params['firebaseUid'],
+                params['idToken'],
               ),
         ),
         'getAllOffers': _i1.MethodConnector(
           name: 'getAllOffers',
-          params: {},
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['bogo'] as _i5.BogoEndpoint).getAllOffers(session),
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint).getAllOffers(
+                session,
+                params['firebaseUid'],
+                params['idToken'],
+              ),
         ),
         'getOffersPage': _i1.MethodConnector(
           name: 'getOffersPage',
           params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -612,6 +732,8 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['bogo'] as _i5.BogoEndpoint).getOffersPage(
                 session,
+                firebaseUid: params['firebaseUid'],
+                idToken: params['idToken'],
                 limit: params['limit'],
                 pageToken: params['pageToken'],
               ),
@@ -634,6 +756,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -643,6 +775,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['bogo'] as _i5.BogoEndpoint).getOfferForProduct(
                     session,
                     params['triggerProductId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
       },
@@ -1851,6 +1985,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -1860,6 +1999,7 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['order'] as _i12.OrderEndpoint).getUserOrders(
                     session,
                     params['userId'],
+                    params['idToken'],
                   ),
         ),
         'getOrderById': _i1.MethodConnector(
@@ -1867,6 +2007,16 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'orderId': _i1.ParameterDescription(
               name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -1879,6 +2029,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['order'] as _i12.OrderEndpoint).getOrderById(
                     session,
                     params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'updateOrderStatus': _i1.MethodConnector(
@@ -1975,6 +2127,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -1984,6 +2146,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['order'] as _i12.OrderEndpoint).confirmOrder(
                     session,
                     params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'cancelOrder': _i1.MethodConnector(
@@ -1996,6 +2160,11 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'userId': _i1.ParameterDescription(
               name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -2013,6 +2182,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 session,
                 params['orderId'],
                 params['userId'],
+                idToken: params['idToken'],
                 reason: params['reason'],
               ),
         ),
@@ -2228,6 +2398,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2237,6 +2417,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   .markPaymentFailed(
                     session,
                     params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'initiateRefund': _i1.MethodConnector(
@@ -2252,6 +2434,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<double>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2262,6 +2454,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['razorpayPaymentId'],
                     params['amount'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'getPaymentStatus': _i1.MethodConnector(
@@ -2269,6 +2463,21 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'razorpayPaymentId': _i1.ParameterDescription(
               name: 'razorpayPaymentId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -2281,6 +2490,9 @@ class Endpoints extends _i1.EndpointDispatch {
                   .getPaymentStatus(
                     session,
                     params['razorpayPaymentId'],
+                    params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'recoverPendingPayments': _i1.MethodConnector(
@@ -2288,6 +2500,11 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'userId': _i1.ParameterDescription(
               name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -2305,6 +2522,7 @@ class Endpoints extends _i1.EndpointDispatch {
                   .recoverPendingPayments(
                     session,
                     params['userId'],
+                    idToken: params['idToken'],
                     limit: params['limit'],
                   ),
         ),
@@ -2743,23 +2961,53 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
         'migrateProducts': _i1.MethodConnector(
           name: 'migrateProducts',
-          params: {},
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['product'] as _i16.ProductEndpoint)
-                  .migrateProducts(session),
+                  .migrateProducts(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
         ),
         'initializeProductMetrics': _i1.MethodConnector(
           name: 'initializeProductMetrics',
-          params: {},
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['product'] as _i16.ProductEndpoint)
-                  .initializeProductMetrics(session),
+                  .initializeProductMetrics(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
         ),
         'incrementProductSearch': _i1.MethodConnector(
           name: 'incrementProductSearch',
@@ -2801,13 +3049,28 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
         'seedProductMetricsForTesting': _i1.MethodConnector(
           name: 'seedProductMetricsForTesting',
-          params: {},
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['product'] as _i16.ProductEndpoint)
-                  .seedProductMetricsForTesting(session),
+                  .seedProductMetricsForTesting(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
         ),
       },
     );
@@ -2914,6 +3177,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2924,11 +3197,23 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     productId: params['productId'],
                     reason: params['reason'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
                   ),
         ),
         'processPendingSearchRebuildJobs': _i1.MethodConnector(
           name: 'processPendingSearchRebuildJobs',
           params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -2942,6 +3227,8 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['productPg'] as _i17.ProductPgEndpoint)
                   .processPendingSearchRebuildJobs(
                     session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
                     limit: params['limit'],
                   ),
         ),
@@ -2959,6 +3246,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2968,6 +3265,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['refund'] as _i18.RefundEndpoint).initiateRefund(
                     session,
                     params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'getRefundStatus': _i1.MethodConnector(
@@ -2975,6 +3274,16 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'orderId': _i1.ParameterDescription(
               name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
               type: _i1.getType<String>(),
               nullable: false,
             ),
@@ -2987,6 +3296,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['refund'] as _i18.RefundEndpoint).getRefundStatus(
                     session,
                     params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
       },

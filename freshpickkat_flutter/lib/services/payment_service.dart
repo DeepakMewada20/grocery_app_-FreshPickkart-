@@ -1,4 +1,5 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/payment_recovery_repository.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -101,24 +102,43 @@ class PaymentService {
   }
 
   Future<void> markPaymentFailed(String orderId) async {
-    await _client.payment.markPaymentFailed(orderId);
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception('Login required.');
+    final idToken = await AuthController.instance.requireIdToken();
+    await _client.payment.markPaymentFailed(orderId, user.uid, idToken);
   }
 
-  Future<PaymentActionResult> fetchGatewayPaymentStatus(String paymentId) {
-    return _client.payment.getPaymentStatus(paymentId);
+  Future<PaymentActionResult> fetchGatewayPaymentStatus(
+    String paymentId,
+    String orderId,
+  ) async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception('Login required.');
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.payment.getPaymentStatus(
+      paymentId,
+      orderId,
+      user.uid,
+      idToken,
+    );
   }
 
   Future<PaymentActionResult> initiateRefund({
     required String paymentId,
     required double amount,
   }) {
-    return _client.payment.initiateRefund(paymentId, amount);
+    throw UnsupportedError('Refund initiation is restricted to admin users.');
   }
 
   Future<PaymentActionResult> recoverPendingPayments({
     required String userId,
     int limit = 20,
-  }) {
-    return _client.payment.recoverPendingPayments(userId, limit: limit);
+  }) async {
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.payment.recoverPendingPayments(
+      userId,
+      idToken: idToken,
+      limit: limit,
+    );
   }
 }

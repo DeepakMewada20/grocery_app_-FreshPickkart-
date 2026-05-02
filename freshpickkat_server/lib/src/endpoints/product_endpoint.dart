@@ -174,11 +174,29 @@ class ProductEndpoint extends Endpoint {
     return _pgProducts.searchProducts(session, query);
   }
 
-  Future<int> migrateProducts(Session session) {
+  Future<int> migrateProducts(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _pgProducts.migrateProducts(session);
   }
 
-  Future<int> initializeProductMetrics(Session session) {
+  Future<int> initializeProductMetrics(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _pgProducts.initializeProductMetrics(session);
   }
 
@@ -186,14 +204,20 @@ class ProductEndpoint extends Endpoint {
     return _pgProducts.incrementProductSearch(session, productId);
   }
 
-  Future<bool> incrementProductPurchase(
-    Session session,
-    String productId,
-  ) {
+  Future<bool> incrementProductPurchase(Session session, String productId) {
     return _pgProducts.incrementProductPurchase(session, productId);
   }
 
-  Future<int> seedProductMetricsForTesting(Session session) {
+  Future<int> seedProductMetricsForTesting(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _pgProducts.seedProductMetricsForTesting(session);
   }
 }

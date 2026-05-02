@@ -153,6 +153,7 @@ class OrderRecoveryService extends GetxService with WidgetsBindingObserver {
 
       final gatewayStatus = await _paymentService.fetchGatewayPaymentStatus(
         payment.paymentId,
+        payment.orderId,
       );
       final normalizedGatewayStatus =
           gatewayStatus.status?.toLowerCase().trim() ?? '';

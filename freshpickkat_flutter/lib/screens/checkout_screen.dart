@@ -115,7 +115,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     final now = DateTime.now();
-    final shouldRefresh = _lastRefreshTime == null ||
+    final shouldRefresh =
+        _lastRefreshTime == null ||
         now.difference(_lastRefreshTime!).inMinutes >= 3;
 
     if (shouldRefresh) {
@@ -825,8 +826,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     for (var attempt = 0; attempt < 6; attempt++) {
+      final user = authController.currentUser;
+      if (user == null) return false;
+      final idToken = await authController.requireIdToken();
       final statusResult = await client.payment
-          .getPaymentStatus(paymentId)
+          .getPaymentStatus(paymentId, orderId, user.uid, idToken)
           .timeout(const Duration(seconds: 15));
       final paymentStatus = statusResult.status?.toLowerCase().trim();
 
@@ -841,7 +845,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
 
-      final order = await client.order.getOrderById(orderId);
+      final order = await client.order.getOrderById(
+        orderId,
+        user.uid,
+        idToken,
+      );
       final orderPaymentStatus = order?.paymentStatus.toLowerCase().trim();
       if (orderPaymentStatus == 'paid') {
         await _completeSuccessfulPayment(orderId);
@@ -871,7 +879,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      final order = await client.order.getOrderById(orderId);
+      final user = authController.currentUser;
+      if (user == null) return;
+      final idToken = await authController.requireIdToken();
+      final order = await client.order.getOrderById(
+        orderId,
+        user.uid,
+        idToken,
+      );
       final orderPaymentStatus = order?.paymentStatus.toLowerCase().trim();
       if (orderPaymentStatus == 'failed') {
         _showError('Payment failed. Please try again.');
@@ -1046,7 +1061,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             height: 120,
                             banners: banners,
                             autoScrollInterval: const Duration(seconds: 5),
-                            autoScrollDuration: const Duration(milliseconds: 500),
+                            autoScrollDuration: const Duration(
+                              milliseconds: 500,
+                            ),
                           ),
                         );
                       }),

@@ -188,7 +188,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
 
       final products = <Product>[];
@@ -1047,7 +1047,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
 
       final products = <Product>[];

@@ -86,7 +86,7 @@ class AdminCategoryOfferController extends GetxController {
       final page = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
         return await client.categoryOffer.getCategoryOffersPage(
           uid,
@@ -128,7 +128,7 @@ class AdminCategoryOfferController extends GetxController {
       final normalizedOffer = offer.copyWith(offerId: _ensureOfferId(offer));
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.categoryOffer.upsertCategoryOffer(
         normalizedOffer,
@@ -153,7 +153,7 @@ class AdminCategoryOfferController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.categoryOffer.deleteCategoryOffer(
         offerId,
@@ -175,7 +175,7 @@ class AdminCategoryOfferController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: true,
+        forceRefresh: false,
       );
       final result = await client.categoryOffer.setCategoryOfferActive(
         offerId,

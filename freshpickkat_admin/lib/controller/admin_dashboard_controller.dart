@@ -11,8 +11,10 @@ class AdminDashboardController extends GetxController {
       Get.find<AdminDashboardController>();
 
   final _client = ServerpodAdminClient().client;
-  final NetworkController networkController =
-      Get.put(NetworkController(), tag: 'AdminDashboardController');
+  final NetworkController networkController = Get.put(
+    NetworkController(),
+    tag: 'AdminDashboardController',
+  );
 
   final Rx<AdminDashboardStats?> stats = Rx<AdminDashboardStats?>(null);
   final Rx<AdminAnalytics?> analytics = Rx<AdminAnalytics?>(null);
@@ -33,7 +35,7 @@ class AdminDashboardController extends GetxController {
       final results = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: true,
+          forceRefresh: false,
         );
 
         return await Future.wait([

@@ -1,10 +1,12 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_catalog_service.dart';
 import '../services/postgres/postgres_product_search_service.dart';
 
 class ProductPgEndpoint extends Endpoint {
+  final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresCatalogService _catalogService = PostgresCatalogService();
   final PostgresProductSearchService _searchService =
       PostgresProductSearchService();
@@ -49,7 +51,14 @@ class ProductPgEndpoint extends Endpoint {
     Session session, {
     required String productId,
     required String reason,
-  }) {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _searchService.enqueueRebuild(
       session,
       productId: productId,
@@ -59,8 +68,15 @@ class ProductPgEndpoint extends Endpoint {
 
   Future<int> processPendingSearchRebuildJobs(
     Session session, {
+    required String firebaseUid,
+    required String idToken,
     int limit = 20,
-  }) {
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
     return _searchService.processPendingJobs(
       session,
       limit: limit,

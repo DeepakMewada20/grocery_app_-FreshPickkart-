@@ -24,7 +24,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
   Future<List<AdminAuditLogEntry>> _loadAuditLogs() async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
-      forceRefresh: true,
+      forceRefresh: false,
     );
     return _client.admin.getAuditLogs(uid, idToken, limit: 100);
   }
