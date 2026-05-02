@@ -320,6 +320,36 @@ class _ProductsScreenState extends State<ProductsScreen>
     return allProducts.where((product) => product.category == _selectedCategory).toList();
   }
 
+  bool _isCategoryFabExpanded = false;
+
+  void _toggleCategoryFab() {
+    setState(() {
+      _isCategoryFabExpanded = !_isCategoryFabExpanded;
+    });
+  }
+
+  Future<void> _handleCategoryFabAction(String action) async {
+    setState(() {
+      _isCategoryFabExpanded = false;
+    });
+
+    // Small delay to let the menu close before opening dialog
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+
+    if (action == 'category') {
+      showAddCategoryDialog(
+        context: context,
+        controller: _categoryController,
+      );
+    } else {
+      showAddSubcategoryDialog(
+        context: context,
+        controller: _categoryController,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -338,53 +368,219 @@ class _ProductsScreenState extends State<ProductsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          ProductsListContent(
-            scrollController: _scrollController,
-            searchQuery: _searchQuery,
-            isSearching: false,
-            onSearchChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-            onSearchClose: () {
-              setState(() {
-                _searchQuery = '';
-              });
-            },
-            onOpenEditProductDialog: _openEditProductDialog,
-            onDeleteProduct: _deleteProduct,
-            visibleProducts: _visibleProducts,
-            loadData: _loadData,
-            selectedCategory: _selectedCategory,
-            onCategorySelected: _selectCategory,
-            enablePagination:
-                _selectedCategory == _fetchedCategoryScope,
+          // ── Products Tab Content with its own FAB ────────────────────────
+          Stack(
+            children: [
+              ProductsListContent(
+                scrollController: _scrollController,
+                searchQuery: _searchQuery,
+                isSearching: false,
+                onSearchChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                onSearchClose: () {
+                  setState(() {
+                    _searchQuery = '';
+                  });
+                },
+                onOpenEditProductDialog: _openEditProductDialog,
+                onDeleteProduct: _deleteProduct,
+                visibleProducts: _visibleProducts,
+                loadData: _loadData,
+                selectedCategory: _selectedCategory,
+                onCategorySelected: _selectCategory,
+                enablePagination: _selectedCategory == _fetchedCategoryScope,
+              ),
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: FloatingActionButton.extended(
+                  key: const ValueKey('add_product_fab'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  onPressed: _openAddProductDialog,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Product'),
+                ),
+              ),
+            ],
           ),
-          CatalogCategoriesTab(
-            controller: AdminCategoryController.instance,
-            onAddCategory: () => showAddCategoryDialog(
-              context: context,
-              controller: AdminCategoryController.instance,
-            ),
-            onAddSubcategory: () => showAddSubcategoryDialog(
-              context: context,
-              controller: AdminCategoryController.instance,
-            ),
+
+          // ── Categories Tab Content with Animated FAB Menu ────────────────
+          Stack(
+            children: [
+              CatalogCategoriesTab(
+                controller: AdminCategoryController.instance,
+                onAddCategory: () => showAddCategoryDialog(
+                  context: context,
+                  controller: AdminCategoryController.instance,
+                ),
+                onAddSubcategory: () => showAddSubcategoryDialog(
+                  context: context,
+                  controller: AdminCategoryController.instance,
+                ),
+              ),
+              // Backdrop for expanded FAB (inside stack so it moves with tab)
+              if (_isCategoryFabExpanded)
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: _toggleCategoryFab,
+                    child: Container(color: Colors.black.withValues(alpha: 0.05)),
+                  ),
+                ),
+              Positioned(
+                right: 16,
+                bottom: 16,
+                child: _CategoryFabMenu(
+                  key: const ValueKey('category_fab_menu'),
+                  isExpanded: _isCategoryFabExpanded,
+                  onToggle: _toggleCategoryFab,
+                  onSelected: _handleCategoryFabAction,
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          final currentIndex = _tabController.index;
-          if (currentIndex == 0) {
-            _openAddProductDialog();
-          }
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Product'),
+    );
+  }
+}
+
+// ── Animated FAB Menu for Categories ─────────────────────────────────────────
+
+class _CategoryFabMenu extends StatefulWidget {
+  const _CategoryFabMenu({
+    super.key,
+    required this.isExpanded,
+    required this.onToggle,
+    required this.onSelected,
+  });
+
+  final bool isExpanded;
+  final VoidCallback onToggle;
+  final ValueChanged<String> onSelected;
+
+  @override
+  State<_CategoryFabMenu> createState() => _CategoryFabMenuState();
+}
+
+class _CategoryFabMenuState extends State<_CategoryFabMenu>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    if (widget.isExpanded) _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CategoryFabMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (widget.isExpanded) ...[
+          _buildMenuItem(
+            label: 'Add Subcategory',
+            icon: Icons.account_tree_outlined,
+            color: Colors.teal,
+            onTap: () => widget.onSelected('subcategory'),
+            index: 1,
+          ),
+          const SizedBox(height: 12),
+          _buildMenuItem(
+            label: 'Add Category',
+            icon: Icons.category_outlined,
+            color: Colors.green,
+            onTap: () => widget.onSelected('category'),
+            index: 0,
+          ),
+          const SizedBox(height: 12),
+        ],
+        FloatingActionButton.extended(
+          onPressed: widget.onToggle,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          icon: AnimatedRotation(
+            duration: const Duration(milliseconds: 250),
+            turns: widget.isExpanded ? 0.375 : 0, // 45 degrees
+            child: const Icon(Icons.add),
+          ),
+          label: Text(widget.isExpanded ? 'Close' : 'Add New'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    required int index,
+  }) {
+    return FadeTransition(
+      opacity: _controller,
+      child: ScaleTransition(
+        scale: _controller,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+              FloatingActionButton.small(
+                onPressed: onTap,
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                child: Icon(icon),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_preview
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/modern_text_field.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class CatalogCategoriesTab extends StatelessWidget {
   const CatalogCategoriesTab({
@@ -44,46 +45,35 @@ class CatalogCategoriesTab extends StatelessWidget {
         onRefresh: controller.loadCategories,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                CatalogStatCard(
-                  title: 'Categories',
-                  value: '${categories.length}',
-                  icon: Icons.category,
-                  color: Colors.green,
-                ),
-                CatalogStatCard(
-                  title: 'Subcategories',
-                  value: '${subCategories.length}',
-                  icon: Icons.account_tree_outlined,
-                  color: Colors.teal,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: onAddCategory,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Category'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: onAddSubcategory,
-                  icon: const Icon(Icons.add),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                  ),
-                  label: const Text('Add Subcategory'),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final cardWidth = (constraints.maxWidth - 12) / 2;
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: CatalogStatCard(
+                        title: 'Categories',
+                        value: '${categories.length}',
+                        icon: Icons.category,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: cardWidth,
+                      child: CatalogStatCard(
+                        title: 'Subcategories',
+                        value: '${subCategories.length}',
+                        icon: Icons.account_tree_outlined,
+                        color: Colors.teal,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 20),
             const Text(
@@ -147,6 +137,8 @@ class CatalogCategoriesTab extends StatelessWidget {
   }
 }
 
+// ── Helpers for Bottom Sheets ────────────────────────────────────────────────
+
 Future<void> showAddCategoryDialog({
   required BuildContext context,
   required AdminCategoryController controller,
@@ -157,132 +149,133 @@ Future<void> showAddCategoryDialog({
   String? imageError;
   var isUploadingImage = false;
 
-  final saved = await showDialog<bool>(
+  final saved = await showModalBottomSheet<bool>(
     context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
     builder: (context) {
       return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Add Category'),
-            content: Form(
-              key: formKey,
-              child: SingleChildScrollView(
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(
-                      controller: nameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Category name',
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? 'Required'
-                          : null,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Add New Category',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+                    ModernTextField(
+                      controller: nameCtrl,
+                      labelText: 'Category Name',
+                      hintText: 'Enter category name',
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
                     if (imageCtrl.text.trim().isNotEmpty) ...[
-                      Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ImagePreview(imageUrl: imageCtrl.text.trim()),
-                          IconButton(
-                            icon: const Icon(Icons.cancel, color: Colors.red),
-                            onPressed: () {
-                              setDialogState(() {
-                                imageCtrl.clear();
-                              });
-                            },
-                          ),
-                        ],
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: ImagePreview(imageUrl: imageCtrl.text.trim()),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              onPressed: () => setSheetState(() => imageCtrl.clear()),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                     ],
                     ModernTextField(
                       controller: imageCtrl,
                       labelText: 'Image URL',
-                      hintText: 'Paste image link here',
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? 'Category image is required'
-                          : null,
-                      onChanged: (_) => setDialogState(() {
-                        imageError = null;
-                      }),
+                      hintText: 'Paste link or upload below',
+                      onChanged: (_) => setSheetState(() => imageError = null),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'OR',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     ImagePickerButton(
                       isUploading: isUploadingImage,
-                      label: 'Upload Category Image',
+                      label: 'Upload Image',
                       onPressed: () async {
-                        setDialogState(() {
+                        setSheetState(() {
                           isUploadingImage = true;
                           imageError = null;
                         });
                         try {
-                          final source =
-                              await AdminImageUploadService.pickImageSource(
-                                context,
-                              );
+                          final source = await AdminImageUploadService.pickImageSource(context);
                           if (source == null) return;
-                          final url =
-                              await AdminImageUploadService.pickCropAndUploadImage(
-                                source: source,
-                                folder: 'categories',
-                                toolbarTitle: 'Crop Category Image',
-                              );
+                          final url = await AdminImageUploadService.pickCropAndUploadImage(
+                            source: source,
+                            folder: 'categories',
+                            toolbarTitle: 'Crop Image',
+                            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Lock to 1:1
+                          );
                           if (url != null && context.mounted) {
-                            setDialogState(() {
-                              imageCtrl.text = url;
-                            });
+                            setSheetState(() => imageCtrl.text = url);
                           }
-                        } catch (error) {
-                          setDialogState(() {
-                            imageError = error.toString();
-                          });
+                        } catch (e) {
+                          setSheetState(() => imageError = e.toString());
                         } finally {
-                          if (context.mounted) {
-                            setDialogState(() {
-                              isUploadingImage = false;
-                            });
-                          }
+                          if (context.mounted) setSheetState(() => isUploadingImage = false);
                         }
                       },
                     ),
                     if (imageError != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        imageError!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                      const SizedBox(height: 8),
+                      Text(imageError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
                     ],
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          if (imageCtrl.text.trim().isEmpty) {
+                            setSheetState(() => imageError = 'Please upload or provide an image');
+                            return;
+                          }
+                          Navigator.pop(context, true);
+                        }
+                      },
+                      child: const Text('Save Category', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    Navigator.pop(context, true);
-                  }
-                },
-                child: const Text('Save'),
-              ),
-            ],
           );
         },
       );
@@ -300,10 +293,10 @@ Future<void> showAddCategoryDialog({
       ),
     );
     if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Category added');
+    _showCatalogSnackBar(context, 'Category added successfully');
   } catch (error) {
     if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Failed to add category: $error');
+    _showCatalogSnackBar(context, 'Failed to add: $error');
   }
 }
 
@@ -323,145 +316,142 @@ Future<void> showAddSubcategoryDialog({
   String? imageError;
   var isUploadingImage = false;
 
-  final saved = await showDialog<bool>(
+  final saved = await showModalBottomSheet<bool>(
     context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
     builder: (context) {
       return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Add Subcategory'),
-            content: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedCategory,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: controller.categories
-                        .map(
-                          (category) => DropdownMenuItem<String>(
-                            value: category.categoryName,
-                            child: Text(category.categoryName),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setDialogState(() {
-                        selectedCategory = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: nameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Subcategory name',
-                    ),
-                    validator: (value) =>
-                        (value == null || value.trim().isEmpty)
-                        ? 'Required'
-                        : null,
-                  ),
-                  const SizedBox(height: 14),
-                  if (imageCtrl.text.trim().isNotEmpty) ...[
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        ImagePreview(imageUrl: imageCtrl.text.trim()),
-                        IconButton(
-                          icon: const Icon(Icons.cancel, color: Colors.red),
-                          onPressed: () {
-                            setDialogState(() {
-                              imageCtrl.clear();
-                            });
-                          },
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                  ],
-                  ModernTextField(
-                    controller: imageCtrl,
-                    labelText: 'Image URL',
-                    hintText: 'Paste image link here',
-                    onChanged: (_) => setDialogState(() {
-                      imageError = null;
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'OR',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Add New Subcategory',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  ImagePickerButton(
-                    isUploading: isUploadingImage,
-                    label: 'Upload Subcategory Image',
-                    onPressed: () async {
-                      setDialogState(() {
-                        isUploadingImage = true;
-                        imageError = null;
-                      });
-                      try {
-                        final source =
-                            await AdminImageUploadService.pickImageSource(
-                              context,
-                            );
-                        if (source == null) return;
-                        final url =
-                            await AdminImageUploadService.pickCropAndUploadImage(
-                              source: source,
-                              folder: 'subcategories',
-                              toolbarTitle: 'Crop Subcategory Image',
-                            );
-                        if (url != null && context.mounted) {
-                          setDialogState(() {
-                            imageCtrl.text = url;
-                          });
-                        }
-                      } catch (error) {
-                        setDialogState(() {
-                          imageError = error.toString();
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'Parent Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: controller.categories
+                          .map((c) => DropdownMenuItem(value: c.categoryName, child: Text(c.categoryName)))
+                          .toList(),
+                      onChanged: (val) => setSheetState(() => selectedCategory = val!),
+                    ),
+                    const SizedBox(height: 16),
+                    ModernTextField(
+                      controller: nameCtrl,
+                      labelText: 'Subcategory Name',
+                      hintText: 'Enter subcategory name',
+                      validator: (value) =>
+                          (value == null || value.trim().isEmpty) ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    if (imageCtrl.text.trim().isNotEmpty) ...[
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: ImagePreview(imageUrl: imageCtrl.text.trim()),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              onPressed: () => setSheetState(() => imageCtrl.clear()),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    ModernTextField(
+                      controller: imageCtrl,
+                      labelText: 'Image URL (Optional)',
+                      hintText: 'Paste link or upload below',
+                    ),
+                    const SizedBox(height: 16),
+                    ImagePickerButton(
+                      isUploading: isUploadingImage,
+                      label: 'Upload Image',
+                      onPressed: () async {
+                        setSheetState(() {
+                          isUploadingImage = true;
+                          imageError = null;
                         });
-                      } finally {
-                        if (context.mounted) {
-                          setDialogState(() {
-                            isUploadingImage = false;
-                          });
+                        try {
+                          final source = await AdminImageUploadService.pickImageSource(context);
+                          if (source == null) return;
+                          final url = await AdminImageUploadService.pickCropAndUploadImage(
+                            source: source,
+                            folder: 'subcategories',
+                            toolbarTitle: 'Crop Image',
+                            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Lock to 1:1
+                          );
+                          if (url != null && context.mounted) {
+                            setSheetState(() => imageCtrl.text = url);
+                          }
+                        } catch (e) {
+                          setSheetState(() => imageError = e.toString());
+                        } finally {
+                          if (context.mounted) setSheetState(() => isUploadingImage = false);
                         }
-                      }
-                    },
-                  ),
-                  if (imageError != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      imageError!,
-                      style: const TextStyle(color: Colors.red),
+                      },
                     ),
+                    if (imageError != null) ...[
+                      const SizedBox(height: 8),
+                      Text(imageError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                    ],
+                    const SizedBox(height: 30),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          Navigator.pop(context, true);
+                        }
+                      },
+                      child: const Text('Save Subcategory', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(height: 20),
                   ],
-                ],
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    Navigator.pop(context, true);
-                  }
-                },
-                child: const Text('Save'),
-              ),
-            ],
           );
         },
       );
@@ -479,13 +469,13 @@ Future<void> showAddSubcategoryDialog({
       ),
     );
     if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Subcategory added');
+    _showCatalogSnackBar(context, 'Subcategory added successfully');
   } catch (error) {
     if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Failed to add subcategory: $error');
+    _showCatalogSnackBar(context, 'Failed to add: $error');
   }
 }
 
 void _showCatalogSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating));
 }
