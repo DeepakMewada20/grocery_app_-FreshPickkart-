@@ -23,4 +23,38 @@ class SubCategoryEndpoint extends Endpoint {
       idToken,
     );
   }
+
+  Future<bool> updateSubCategory(
+    Session session,
+    String categoryName,
+    String oldSubName,
+    SubCategory subCategory,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _categories.updateSubCategory(
+      session,
+      categoryName,
+      oldSubName,
+      subCategory,
+      firebaseUid,
+      idToken,
+    );
+  }
+
+  Future<bool> deleteSubCategory(
+    Session session,
+    String categoryName,
+    String subCategoryName,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _categories.deleteSubCategory(
+      session,
+      categoryName,
+      subCategoryName,
+      firebaseUid,
+      idToken,
+    );
+  }
 }

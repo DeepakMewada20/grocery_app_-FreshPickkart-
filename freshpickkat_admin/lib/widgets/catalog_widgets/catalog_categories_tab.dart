@@ -101,6 +101,28 @@ class CatalogCategoriesTab extends StatelessWidget {
                     subtitle: Text(
                       '${category.subCategory.length} mapped subcategories',
                     ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          showAddCategoryDialog(
+                            context: context,
+                            controller: controller,
+                            categoryToEdit: category,
+                          );
+                        } else if (value == 'delete') {
+                          _confirmDelete(
+                            context: context,
+                            title: 'Delete Category',
+                            message: 'Are you sure you want to delete "${category.categoryName}"?',
+                            onConfirm: () => controller.deleteCategory(category.categoryName),
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -127,6 +149,28 @@ class CatalogCategoriesTab extends StatelessWidget {
                     ),
                     title: Text(subCategory.subCategoriesName.join(', ')),
                     subtitle: Text('Category: ${subCategory.categoryId}'),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          showAddSubcategoryDialog(
+                            context: context,
+                            controller: controller,
+                            subcategoryToEdit: subCategory,
+                          );
+                        } else if (value == 'delete') {
+                          _confirmDelete(
+                            context: context,
+                            title: 'Delete Subcategory',
+                            message: 'Are you sure you want to delete "${subCategory.subCategoriesName.first}"?',
+                            onConfirm: () => controller.deleteSubCategory(subCategory.categoryId, subCategory.subCategoriesName.first),
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -135,6 +179,36 @@ class CatalogCategoriesTab extends StatelessWidget {
       );
     });
   }
+
+  void _confirmDelete({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required Future<void> Function() onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await onConfirm();
+                if (context.mounted) _showCatalogSnackBar(context, 'Deleted successfully');
+              } catch (e) {
+                if (context.mounted) _showCatalogSnackBar(context, 'Delete failed: $e');
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Helpers for Bottom Sheets ────────────────────────────────────────────────
@@ -142,14 +216,17 @@ class CatalogCategoriesTab extends StatelessWidget {
 Future<void> showAddCategoryDialog({
   required BuildContext context,
   required AdminCategoryController controller,
+  Category? categoryToEdit,
 }) async {
+  final isEdit = categoryToEdit != null;
   final formKey = GlobalKey<FormState>();
-  final nameCtrl = TextEditingController();
-  final imageCtrl = TextEditingController();
+  final nameCtrl = TextEditingController(text: categoryToEdit?.categoryName);
+  final imageCtrl = TextEditingController(text: categoryToEdit?.categoryImageUrl);
   String? imageError;
   var isUploadingImage = false;
+  var isSaving = false;
 
-  final saved = await showModalBottomSheet<bool>(
+  await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
@@ -184,9 +261,9 @@ Future<void> showAddCategoryDialog({
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Add New Category',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    Text(
+                      isEdit ? 'Edit Category' : 'Add New Category',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     ModernTextField(
@@ -205,7 +282,9 @@ Future<void> showAddCategoryDialog({
                             SizedBox(
                               width: 120,
                               height: 120,
-                              child: ImagePreview(imageUrl: imageCtrl.text.trim()),
+                              child: ImagePreview(
+                                imageUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.cancel, color: Colors.red),
@@ -220,39 +299,47 @@ Future<void> showAddCategoryDialog({
                       controller: imageCtrl,
                       labelText: 'Image URL',
                       hintText: 'Paste link or upload below',
-                      onChanged: (_) => setSheetState(() => imageError = null),
+                      onChanged: (_) => setSheetState(() {
+                        imageError = null;
+                      }),
                     ),
                     const SizedBox(height: 16),
                     ImagePickerButton(
                       isUploading: isUploadingImage,
                       label: 'Upload Image',
-                      onPressed: () async {
-                        setSheetState(() {
-                          isUploadingImage = true;
-                          imageError = null;
-                        });
-                        try {
-                          final source = await AdminImageUploadService.pickImageSource(context);
-                          if (source == null) return;
-                          final url = await AdminImageUploadService.pickCropAndUploadImage(
-                            source: source,
-                            folder: 'categories',
-                            toolbarTitle: 'Crop Image',
-                            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Lock to 1:1
-                          );
-                          if (url != null && context.mounted) {
-                            setSheetState(() => imageCtrl.text = url);
+                      onPressed: () {
+                        () async {
+                          setSheetState(() {
+                            isUploadingImage = true;
+                            imageError = null;
+                          });
+                          try {
+                            final source = await AdminImageUploadService.pickImageSource(context);
+                            if (source == null) return;
+                            final url = await AdminImageUploadService.pickCropAndUploadImage(
+                              source: source,
+                              folder: 'categories',
+                              toolbarTitle: 'Crop Image',
+                              aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+                            );
+                            if (url != null && context.mounted) {
+                              setSheetState(() => imageCtrl.text = url);
+                            }
+                          } catch (e) {
+                            setSheetState(() => imageError = e.toString());
+                          } finally {
+                            if (context.mounted) setSheetState(() => isUploadingImage = false);
                           }
-                        } catch (e) {
-                          setSheetState(() => imageError = e.toString());
-                        } finally {
-                          if (context.mounted) setSheetState(() => isUploadingImage = false);
-                        }
+                        }();
                       },
                     ),
                     if (imageError != null) ...[
                       const SizedBox(height: 8),
-                      Text(imageError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      Text(
+                        imageError!,
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                     const SizedBox(height: 30),
                     ElevatedButton(
@@ -260,16 +347,53 @@ Future<void> showAddCategoryDialog({
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          if (imageCtrl.text.trim().isEmpty) {
-                            setSheetState(() => imageError = 'Please upload or provide an image');
-                            return;
-                          }
-                          Navigator.pop(context, true);
-                        }
-                      },
-                      child: const Text('Save Category', style: TextStyle(fontSize: 16)),
+                      onPressed: (isSaving || isUploadingImage)
+                          ? null
+                          : () async {
+                              if (formKey.currentState!.validate()) {
+                                final cleanImageUrl = imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", "");
+                                if (cleanImageUrl.isEmpty) {
+                                  setSheetState(() => imageError = 'Please upload or provide an image');
+                                  return;
+                                }
+
+                                setSheetState(() {
+                                  isSaving = true;
+                                  imageError = null;
+                                });
+
+                                try {
+                                  final category = Category(
+                                    categoryName: nameCtrl.text.trim(),
+                                    categoryImageUrl: cleanImageUrl,
+                                    subCategory: categoryToEdit?.subCategory ?? {},
+                                  );
+
+                                  if (isEdit) {
+                                    await controller.updateCategory(categoryToEdit.categoryName, category);
+                                  } else {
+                                    await controller.uploadCategory(category);
+                                  }
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    _showCatalogSnackBar(context, isEdit ? 'Category updated' : 'Category added');
+                                  }
+                                } catch (error) {
+                                  setSheetState(() {
+                                    isSaving = false;
+                                    imageError = error.toString();
+                                  });
+                                }
+                              }
+                            },
+                      child: isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(isEdit ? 'Update Category' : 'Save Category', style: const TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -281,42 +405,28 @@ Future<void> showAddCategoryDialog({
       );
     },
   );
-
-  if (saved != true) return;
-
-  try {
-    await controller.uploadCategory(
-      Category(
-        categoryName: nameCtrl.text.trim(),
-        categoryImageUrl: imageCtrl.text.trim(),
-        subCategory: {},
-      ),
-    );
-    if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Category added successfully');
-  } catch (error) {
-    if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Failed to add: $error');
-  }
 }
 
 Future<void> showAddSubcategoryDialog({
   required BuildContext context,
   required AdminCategoryController controller,
+  SubCategory? subcategoryToEdit,
 }) async {
   if (controller.categories.isEmpty) {
     _showCatalogSnackBar(context, 'Create category first');
     return;
   }
 
+  final isEdit = subcategoryToEdit != null;
   final formKey = GlobalKey<FormState>();
-  String selectedCategory = controller.categories.first.categoryName;
-  final nameCtrl = TextEditingController();
-  final imageCtrl = TextEditingController();
+  String selectedCategory = subcategoryToEdit?.categoryId ?? controller.categories.first.categoryName;
+  final nameCtrl = TextEditingController(text: subcategoryToEdit?.subCategoriesName.first);
+  final imageCtrl = TextEditingController(text: subcategoryToEdit?.subCategoriesUrl);
   String? imageError;
   var isUploadingImage = false;
+  var isSaving = false;
 
-  final saved = await showModalBottomSheet<bool>(
+  await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
@@ -351,9 +461,9 @@ Future<void> showAddSubcategoryDialog({
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Add New Subcategory',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    Text(
+                      isEdit ? 'Edit Subcategory' : 'Add New Subcategory',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
@@ -365,7 +475,7 @@ Future<void> showAddSubcategoryDialog({
                       items: controller.categories
                           .map((c) => DropdownMenuItem(value: c.categoryName, child: Text(c.categoryName)))
                           .toList(),
-                      onChanged: (val) => setSheetState(() => selectedCategory = val!),
+                      onChanged: isEdit ? null : (val) => setSheetState(() => selectedCategory = val!),
                     ),
                     const SizedBox(height: 16),
                     ModernTextField(
@@ -384,7 +494,9 @@ Future<void> showAddSubcategoryDialog({
                             SizedBox(
                               width: 120,
                               height: 120,
-                              child: ImagePreview(imageUrl: imageCtrl.text.trim()),
+                              child: ImagePreview(
+                                imageUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                              ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.cancel, color: Colors.red),
@@ -399,38 +511,45 @@ Future<void> showAddSubcategoryDialog({
                       controller: imageCtrl,
                       labelText: 'Image URL (Optional)',
                       hintText: 'Paste link or upload below',
+                      onChanged: (_) => setSheetState(() {}),
                     ),
                     const SizedBox(height: 16),
                     ImagePickerButton(
                       isUploading: isUploadingImage,
                       label: 'Upload Image',
-                      onPressed: () async {
-                        setSheetState(() {
-                          isUploadingImage = true;
-                          imageError = null;
-                        });
-                        try {
-                          final source = await AdminImageUploadService.pickImageSource(context);
-                          if (source == null) return;
-                          final url = await AdminImageUploadService.pickCropAndUploadImage(
-                            source: source,
-                            folder: 'subcategories',
-                            toolbarTitle: 'Crop Image',
-                            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Lock to 1:1
-                          );
-                          if (url != null && context.mounted) {
-                            setSheetState(() => imageCtrl.text = url);
+                      onPressed: () {
+                        () async {
+                          setSheetState(() {
+                            isUploadingImage = true;
+                            imageError = null;
+                          });
+                          try {
+                            final source = await AdminImageUploadService.pickImageSource(context);
+                            if (source == null) return;
+                            final url = await AdminImageUploadService.pickCropAndUploadImage(
+                              source: source,
+                              folder: 'subcategories',
+                              toolbarTitle: 'Crop Image',
+                              aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+                            );
+                            if (url != null && context.mounted) {
+                              setSheetState(() => imageCtrl.text = url);
+                            }
+                          } catch (e) {
+                            setSheetState(() => imageError = e.toString());
+                          } finally {
+                            if (context.mounted) setSheetState(() => isUploadingImage = false);
                           }
-                        } catch (e) {
-                          setSheetState(() => imageError = e.toString());
-                        } finally {
-                          if (context.mounted) setSheetState(() => isUploadingImage = false);
-                        }
+                        }();
                       },
                     ),
                     if (imageError != null) ...[
                       const SizedBox(height: 8),
-                      Text(imageError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      Text(
+                        imageError!,
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                     const SizedBox(height: 30),
                     ElevatedButton(
@@ -440,12 +559,51 @@ Future<void> showAddSubcategoryDialog({
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          Navigator.pop(context, true);
-                        }
-                      },
-                      child: const Text('Save Subcategory', style: TextStyle(fontSize: 16)),
+                      onPressed: (isSaving || isUploadingImage)
+                          ? null
+                          : () async {
+                              if (formKey.currentState!.validate()) {
+                                setSheetState(() {
+                                  isSaving = true;
+                                  imageError = null;
+                                });
+
+                                try {
+                                  final subCategory = SubCategory(
+                                    categoryId: selectedCategory,
+                                    subCategoriesName: [nameCtrl.text.trim()],
+                                    subCategoriesUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                                  );
+
+                                  if (isEdit) {
+                                    await controller.updateSubCategory(
+                                      subcategoryToEdit.categoryId,
+                                      subcategoryToEdit.subCategoriesName.first,
+                                      subCategory,
+                                    );
+                                  } else {
+                                    await controller.uploadSubCategory(subCategory);
+                                  }
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    _showCatalogSnackBar(context, isEdit ? 'Subcategory updated' : 'Subcategory added');
+                                  }
+                                } catch (error) {
+                                  setSheetState(() {
+                                    isSaving = false;
+                                    imageError = error.toString();
+                                  });
+                                }
+                              }
+                            },
+                      child: isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(isEdit ? 'Update Subcategory' : 'Save Subcategory', style: const TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -457,23 +615,6 @@ Future<void> showAddSubcategoryDialog({
       );
     },
   );
-
-  if (saved != true) return;
-
-  try {
-    await controller.uploadSubCategory(
-      SubCategory(
-        categoryId: selectedCategory,
-        subCategoriesName: [nameCtrl.text.trim()],
-        subCategoriesUrl: imageCtrl.text.trim(),
-      ),
-    );
-    if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Subcategory added successfully');
-  } catch (error) {
-    if (!context.mounted) return;
-    _showCatalogSnackBar(context, 'Failed to add: $error');
-  }
 }
 
 void _showCatalogSnackBar(BuildContext context, String message) {

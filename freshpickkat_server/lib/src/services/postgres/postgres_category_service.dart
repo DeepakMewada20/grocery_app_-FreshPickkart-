@@ -172,6 +172,78 @@ class PostgresCategoryService {
     return true;
   }
 
+  Future<bool> deleteCategory(
+    Session session,
+    String categoryName,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _guard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final category = await _resolveCategory(session, categoryName);
+    if (category == null) throw Exception('Category not found');
+
+    category.status = 'deleted';
+    category.updatedAt = DateTime.now().toUtc();
+    await CategoryRow.db.updateRow(session, category);
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'delete',
+      entityType: 'category',
+      entityId: category.id.toString(),
+      metadata: {'name': categoryName},
+    );
+    return true;
+  }
+
+  Future<bool> updateCategory(
+    Session session,
+    String oldName,
+    Category category,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _guard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final existing = await _resolveCategory(session, oldName);
+    if (existing == null) throw Exception('Category not found');
+
+    final newName = _requireName(category.categoryName, fieldName: 'categoryName');
+    final newSlug = _slugify(newName);
+
+    if (newSlug != existing.slug) {
+      final conflict = await _findCategoryBySlug(session, newSlug);
+      if (conflict != null) throw Exception('New category name already exists');
+    }
+
+    existing.name = newName;
+    existing.slug = newSlug;
+    existing.imageUrl = cleanNullableString(category.categoryImageUrl);
+    existing.updatedAt = DateTime.now().toUtc();
+
+    await CategoryRow.db.updateRow(session, existing);
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'update',
+      entityType: 'category',
+      entityId: existing.id.toString(),
+      metadata: {'old_name': oldName, 'new_name': newName},
+    );
+    return true;
+  }
+
   Future<bool> uploadSubCategory(
     Session session,
     SubCategory subCategory,
@@ -250,6 +322,99 @@ class PostgresCategoryService {
           ? null
           : createdSubCategoryIds.first.toString(),
       metadata: {'category': subCategory.categoryId},
+    );
+    return true;
+  }
+
+  Future<bool> deleteSubCategory(
+    Session session,
+    String categoryName,
+    String subCategoryName,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _guard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final category = await _resolveCategory(session, categoryName);
+    if (category == null) throw Exception('Parent category not found');
+
+    final subSlug = _slugify(subCategoryName);
+    final subCategory = await SubCategoryRow.db.findFirstRow(
+      session,
+      where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(subSlug),
+    );
+
+    if (subCategory == null) throw Exception('Subcategory not found');
+
+    subCategory.status = 'deleted';
+    subCategory.updatedAt = DateTime.now().toUtc();
+    await SubCategoryRow.db.updateRow(session, subCategory);
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'delete',
+      entityType: 'sub_category',
+      entityId: subCategory.id.toString(),
+      metadata: {'name': subCategoryName, 'category': categoryName},
+    );
+    return true;
+  }
+
+  Future<bool> updateSubCategory(
+    Session session,
+    String categoryName,
+    String oldSubName,
+    SubCategory subCategory,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _guard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final category = await _resolveCategory(session, categoryName);
+    if (category == null) throw Exception('Parent category not found');
+
+    final oldSlug = _slugify(oldSubName);
+    final existing = await SubCategoryRow.db.findFirstRow(
+      session,
+      where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(oldSlug),
+    );
+
+    if (existing == null) throw Exception('Subcategory not found');
+
+    final newName = _requireName(subCategory.subCategoriesName.first, fieldName: 'subCategoryName');
+    final newSlug = _slugify(newName);
+
+    if (newSlug != existing.slug) {
+      final conflict = await SubCategoryRow.db.findFirstRow(
+        session,
+        where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(newSlug),
+      );
+      if (conflict != null) throw Exception('New subcategory name already exists in this category');
+    }
+
+    existing.name = newName;
+    existing.slug = newSlug;
+    existing.imageUrl = cleanNullableString(subCategory.subCategoriesUrl);
+    existing.updatedAt = DateTime.now().toUtc();
+
+    await SubCategoryRow.db.updateRow(session, existing);
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'update',
+      entityType: 'sub_category',
+      entityId: existing.id.toString(),
+      metadata: {'category': categoryName, 'old_name': oldSubName, 'new_name': newName},
     );
     return true;
   }

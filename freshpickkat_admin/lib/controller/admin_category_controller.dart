@@ -72,10 +72,34 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
         await _client.category.uploadCategory(category, uid, idToken);
+      });
+      await loadCategories();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateCategory(String oldName, Category category) async {
+    try {
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        await _client.category.updateCategory(oldName, category, uid, idToken);
+      });
+      await loadCategories();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCategory(String categoryName) async {
+    try {
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        await _client.category.deleteCategory(categoryName, uid, idToken);
       });
       await loadCategories();
     } catch (e) {
@@ -87,10 +111,34 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
         await _client.subCategory.uploadSubCategory(subCategory, uid, idToken);
+      });
+      await loadCategories();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateSubCategory(String categoryName, String oldSubName, SubCategory subCategory) async {
+    try {
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        await _client.subCategory.updateSubCategory(categoryName, oldSubName, subCategory, uid, idToken);
+      });
+      await loadCategories();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteSubCategory(String categoryName, String subCategoryName) async {
+    try {
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        await _client.subCategory.deleteSubCategory(categoryName, subCategoryName, uid, idToken);
       });
       await loadCategories();
     } catch (e) {

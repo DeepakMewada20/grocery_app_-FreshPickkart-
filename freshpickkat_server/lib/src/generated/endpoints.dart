@@ -851,6 +851,74 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'updateCategory': _i1.MethodConnector(
+          name: 'updateCategory',
+          params: {
+            'oldName': _i1.ParameterDescription(
+              name: 'oldName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'category': _i1.ParameterDescription(
+              name: 'category',
+              type: _i1.getType<_i23.Category>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['category'] as _i6.CategoryEndpoint)
+                  .updateCategory(
+                    session,
+                    params['oldName'],
+                    params['category'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'deleteCategory': _i1.MethodConnector(
+          name: 'deleteCategory',
+          params: {
+            'categoryName': _i1.ParameterDescription(
+              name: 'categoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['category'] as _i6.CategoryEndpoint)
+                  .deleteCategory(
+                    session,
+                    params['categoryName'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['categoryOffer'] = _i1.EndpointConnector(
@@ -3368,6 +3436,86 @@ class Endpoints extends _i1.EndpointDispatch {
                   .uploadSubCategory(
                     session,
                     params['subCategory'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'updateSubCategory': _i1.MethodConnector(
+          name: 'updateSubCategory',
+          params: {
+            'categoryName': _i1.ParameterDescription(
+              name: 'categoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'oldSubName': _i1.ParameterDescription(
+              name: 'oldSubName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'subCategory': _i1.ParameterDescription(
+              name: 'subCategory',
+              type: _i1.getType<_i32.SubCategory>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['subCategory'] as _i19.SubCategoryEndpoint)
+                  .updateSubCategory(
+                    session,
+                    params['categoryName'],
+                    params['oldSubName'],
+                    params['subCategory'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'deleteSubCategory': _i1.MethodConnector(
+          name: 'deleteSubCategory',
+          params: {
+            'categoryName': _i1.ParameterDescription(
+              name: 'categoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'subCategoryName': _i1.ParameterDescription(
+              name: 'subCategoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['subCategory'] as _i19.SubCategoryEndpoint)
+                  .deleteSubCategory(
+                    session,
+                    params['categoryName'],
+                    params['subCategoryName'],
                     params['firebaseUid'],
                     params['idToken'],
                   ),

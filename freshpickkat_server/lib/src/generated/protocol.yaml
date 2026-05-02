@@ -28,6 +28,8 @@ bogo:
 category:
   - getCategories:
   - uploadCategory:
+  - updateCategory:
+  - deleteCategory:
 categoryOffer:
   - upsertCategoryOffer:
   - deleteCategoryOffer:
@@ -121,6 +123,8 @@ refund:
 subCategory:
   - getSubCategories:
   - uploadSubCategory:
+  - updateSubCategory:
+  - deleteSubCategory:
 user:
   - getUserByFirebaseUid:
   - createOrUpdateUser:

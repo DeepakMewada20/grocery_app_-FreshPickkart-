@@ -23,4 +23,34 @@ class CategoryEndpoint extends Endpoint {
       idToken,
     );
   }
+
+  Future<bool> updateCategory(
+    Session session,
+    String oldName,
+    Category category,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _categories.updateCategory(
+      session,
+      oldName,
+      category,
+      firebaseUid,
+      idToken,
+    );
+  }
+
+  Future<bool> deleteCategory(
+    Session session,
+    String categoryName,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _categories.deleteCategory(
+      session,
+      categoryName,
+      firebaseUid,
+      idToken,
+    );
+  }
 }

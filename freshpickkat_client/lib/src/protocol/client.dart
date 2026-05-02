@@ -405,6 +405,36 @@ class EndpointCategory extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<bool> updateCategory(
+    String oldName,
+    _i12.Category category,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'category',
+    'updateCategory',
+    {
+      'oldName': oldName,
+      'category': category,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> deleteCategory(
+    String categoryName,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'category',
+    'deleteCategory',
+    {
+      'categoryName': categoryName,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -1585,6 +1615,40 @@ class EndpointSubCategory extends _i1.EndpointRef {
     'uploadSubCategory',
     {
       'subCategory': subCategory,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> updateSubCategory(
+    String categoryName,
+    String oldSubName,
+    _i38.SubCategory subCategory,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'subCategory',
+    'updateSubCategory',
+    {
+      'categoryName': categoryName,
+      'oldSubName': oldSubName,
+      'subCategory': subCategory,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> deleteSubCategory(
+    String categoryName,
+    String subCategoryName,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'subCategory',
+    'deleteSubCategory',
+    {
+      'categoryName': categoryName,
+      'subCategoryName': subCategoryName,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },
