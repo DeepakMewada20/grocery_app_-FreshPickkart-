@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controller/network_controller.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 // Example Controller
@@ -75,7 +76,11 @@ class ExampleUsageScreen extends StatelessWidget {
 
         // 3. Else -> show data
         if (controller.products.isEmpty) {
-          return const Center(child: Text('No products found.'));
+          return AdminStateView.empty(
+            title: 'No products found',
+            message: 'Products will appear here once added.',
+            onRefresh: controller.fetchProducts,
+          );
         }
 
         return ListView.builder(

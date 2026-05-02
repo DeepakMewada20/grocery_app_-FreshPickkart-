@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:get/get.dart';
 import '../widgets/admin_app_bar.dart';
+import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -44,32 +45,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         if (error != null && stats == null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Failed to load dashboard stats'),
-                  const SizedBox(height: 8),
-                  Text(
-                    error,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _controller.loadDashboard,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
+          return AdminStateView.error(
+            message: error,
+            onRetry: _controller.loadDashboard,
           );
         }
 
         if (stats == null || analytics == null) {
-          return const Center(child: Text('No data'));
+          return AdminStateView.empty(
+            title: 'No dashboard data yet',
+            message: 'Orders and products will appear here once data is added.',
+            onRefresh: _controller.loadDashboard,
+          );
         }
 
         final topProducts = analytics.topProducts;

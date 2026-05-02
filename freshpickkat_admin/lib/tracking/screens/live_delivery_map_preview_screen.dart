@@ -7,6 +7,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../widgets/admin_app_bar.dart';
+import '../../widgets/admin_state_view.dart';
 
 class LiveDeliveryMapPreviewScreen extends StatefulWidget {
   const LiveDeliveryMapPreviewScreen({super.key, required this.order});
@@ -154,7 +155,11 @@ class _LiveDeliveryMapPreviewScreenState
         }
 
         if (_controller.error.isNotEmpty && snapshot == null) {
-          return Center(child: Text(_controller.error.value));
+          return AdminStateView.error(
+            message: _controller.error.value,
+            onRetry: () =>
+                _controller.startListening(orderId: widget.order.orderId),
+          );
         }
 
         final initialTarget =

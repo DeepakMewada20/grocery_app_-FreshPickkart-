@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_picker_button.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_preview.dart';
@@ -33,7 +34,10 @@ class CatalogCategoriesTab extends StatelessWidget {
       }
 
       if (error != null && categories.isEmpty && subCategories.isEmpty) {
-        return Center(child: Text('Error: $error'));
+        return AdminStateView.error(
+          message: error,
+          onRetry: controller.loadCategories,
+        );
       }
 
       return RefreshIndicator(

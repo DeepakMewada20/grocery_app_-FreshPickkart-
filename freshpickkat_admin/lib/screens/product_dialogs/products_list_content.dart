@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_admin/widgets/network_error_widget.dart';
 
@@ -10,10 +11,7 @@ class ProductFilterOption {
   final String value;
   final String label;
 
-  const ProductFilterOption({
-    required this.value,
-    required this.label,
-  });
+  const ProductFilterOption({required this.value, required this.label});
 }
 
 class ProductSearchAndCategoryControls extends StatelessWidget {
@@ -88,9 +86,7 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       side: BorderSide(
-                        color: isSelected
-                            ? Colors.green
-                            : Colors.grey.shade300,
+                        color: isSelected ? Colors.green : Colors.grey.shade300,
                       ),
                       backgroundColor: Colors.white,
                       selectedColor: Colors.green.withValues(alpha: 0.12),
@@ -158,18 +154,50 @@ class ProductsListArea extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (productController.networkController.hasError.value && products.isEmpty) {
+      if (productController.networkController.hasError.value &&
+          products.isEmpty) {
         return NetworkErrorWidget(
           onRetry: () => productController.networkController.retryLastRequest(),
         );
       }
 
       if (error != null && products.isEmpty) {
-        return Center(child: Text('Error: $error'));
+        return RefreshIndicator(
+          onRefresh: loadData,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const SizedBox(height: 120),
+              SizedBox(
+                height: 260,
+                child: AdminStateView.error(
+                  message: error,
+                  onRetry: () => productController.loadInitial(),
+                ),
+              ),
+            ],
+          ),
+        );
       }
 
       if (products.isEmpty) {
-        return const Center(child: Text('No products found'));
+        return RefreshIndicator(
+          onRefresh: loadData,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const SizedBox(height: 120),
+              SizedBox(
+                height: 260,
+                child: AdminStateView.empty(
+                  title: 'No products yet',
+                  message: 'Add your first product to start selling.',
+                  onRefresh: loadData,
+                ),
+              ),
+            ],
+          ),
+        );
       }
 
       return RefreshIndicator(
@@ -181,7 +209,14 @@ class ProductsListArea extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 120),
-                const Center(child: Text('No matching products')),
+                SizedBox(
+                  height: 260,
+                  child: AdminStateView.empty(
+                    title: 'No matching products',
+                    message: 'Try a different search or category filter.',
+                    icon: Icons.search_off_outlined,
+                  ),
+                ),
                 if (enablePagination && hasMore) ...[
                   const SizedBox(height: 16),
                   Center(
@@ -216,8 +251,8 @@ class ProductsListArea extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: NetworkErrorWidget(
-                      onRetry: () =>
-                          productController.networkController.retryLastRequest(),
+                      onRetry: () => productController.networkController
+                          .retryLastRequest(),
                     ),
                   );
                 }
@@ -272,9 +307,7 @@ class ProductsListArea extends StatelessWidget {
                   ),
                   trailing: onSelectProduct != null
                       ? Icon(
-                          isSelected
-                              ? Icons.check_circle
-                              : Icons.chevron_right,
+                          isSelected ? Icons.check_circle : Icons.chevron_right,
                           color: isSelected ? Colors.green : Colors.grey,
                         )
                       : showActionMenu
@@ -288,7 +321,10 @@ class ProductsListArea extends StatelessWidget {
                           },
                           itemBuilder: (context) => const [
                             PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
+                            ),
                           ],
                         )
                       : null,

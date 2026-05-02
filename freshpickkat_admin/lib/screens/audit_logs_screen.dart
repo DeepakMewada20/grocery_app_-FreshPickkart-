@@ -3,6 +3,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import '../widgets/admin_app_bar.dart';
+import '../widgets/admin_state_view.dart';
 
 class AuditLogsScreen extends StatefulWidget {
   const AuditLogsScreen({super.key});
@@ -51,13 +52,22 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Failed to load logs\n${snapshot.error}'),
+            return AdminStateView.error(
+              message: snapshot.error.toString(),
+              onRetry: () {
+                setState(() {
+                  _future = _loadAuditLogs();
+                });
+              },
             );
           }
           final rows = snapshot.data ?? [];
           if (rows.isEmpty) {
-            return const Center(child: Text('No logs yet'));
+            return const AdminStateView(
+              title: 'No logs yet',
+              message: 'Admin activity will appear here.',
+              icon: Icons.receipt_long_outlined,
+            );
           }
           return RefreshIndicator(
             onRefresh: _reload,

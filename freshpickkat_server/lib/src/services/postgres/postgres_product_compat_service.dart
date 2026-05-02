@@ -131,6 +131,18 @@ class PostgresProductCompatService {
       session,
       filters: resolvedFilters,
     );
+    final cursorParameters = <String, dynamic>{
+      ...resolvedFilters.parameters,
+      'cursorProductId': cursor?['productId']?.toString(),
+      'limit': pageSize + 1,
+    };
+    if (sortBy == 'trending' || sortBy == 'best_sellers') {
+      cursorParameters['cursorMetric'] = cursor == null
+          ? null
+          : asInt(cursor['metric']);
+    } else {
+      cursorParameters['cursorName'] = cursor?['name']?.toString();
+    }
 
     final result = await session.db.unsafeQuery(
       '''
@@ -148,13 +160,7 @@ class PostgresProductCompatService {
       ORDER BY $orderClause
       LIMIT @limit
       ''',
-      parameters: QueryParameters.named({
-        ...resolvedFilters.parameters,
-        'cursorName': cursor?['name']?.toString(),
-        'cursorMetric': cursor == null ? null : asInt(cursor['metric']),
-        'cursorProductId': cursor?['productId']?.toString(),
-        'limit': pageSize + 1,
-      }),
+      parameters: QueryParameters.named(cursorParameters),
     );
 
     final productIds = <String>[];

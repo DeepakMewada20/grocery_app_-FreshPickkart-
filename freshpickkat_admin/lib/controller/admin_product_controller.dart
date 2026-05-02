@@ -122,11 +122,21 @@ class AdminProductController extends GetxController {
         onRetry: () => loadMore(isInitial: isInitial),
       );
     } catch (e) {
-      error.value = e.toString();
+      error.value = _friendlyLoadError(e);
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
     }
+  }
+
+  String _friendlyLoadError(Object error) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('internal server error') ||
+        raw.contains('status code 500') ||
+        raw.contains('serverpodclientexception')) {
+      return 'Unable to load products right now. Please try again.';
+    }
+    return 'Unable to load products right now. Please try again.';
   }
 
   Future<Product?> addProduct(Product product) async {

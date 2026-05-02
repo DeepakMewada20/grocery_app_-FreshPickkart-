@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -53,7 +54,10 @@ class CatalogCouponsTab extends StatelessWidget {
       }
 
       if (error != null && coupons.isEmpty) {
-        return Center(child: Text('Error: $error'));
+        return AdminStateView.error(
+          message: error,
+          onRetry: controller.loadCoupons,
+        );
       }
 
       return RefreshIndicator(

@@ -11,6 +11,7 @@ import 'package:freshpickkat_admin/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -1348,7 +1349,10 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       }
 
       if (error != null && products.isEmpty) {
-        return Center(child: Text('Error: $error'));
+        return AdminStateView.error(
+          message: error,
+          onRetry: () => widget.productController.loadInitial(),
+        );
       }
 
       final visibleProducts = filterCatalogOfferProducts(

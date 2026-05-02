@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/admin_app_bar.dart';
+import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -44,7 +45,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         }
 
         if (error != null && categories.isEmpty) {
-          return Center(child: Text('Error: $error'));
+          return AdminStateView.error(
+            message: error,
+            onRetry: _controller.loadCategories,
+          );
         }
 
         return RefreshIndicator(

@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupo
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/admin_app_bar.dart';
+import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 class CouponsScreen extends StatefulWidget {
@@ -52,11 +53,18 @@ class _CouponsScreenState extends State<CouponsScreen> {
         }
 
         if (error != null && coupons.isEmpty) {
-          return Center(child: Text('Error: $error'));
+          return AdminStateView.error(
+            message: error,
+            onRetry: _controller.loadCoupons,
+          );
         }
 
         if (coupons.isEmpty) {
-          return const Center(child: Text('No coupons found'));
+          return AdminStateView.empty(
+            title: 'No coupons yet',
+            message: 'Create a coupon to start offering discounts.',
+            onRefresh: _controller.loadCoupons,
+          );
         }
 
         return Column(

@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
+import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
@@ -914,21 +915,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 120),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Failed to load products.\n$_errorMessage',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => _loadProductsForCategory(_selectedCategory!),
-                  child: const Text('Retry'),
-                ),
-              ],
+          SizedBox(
+            height: 260,
+            child: AdminStateView.error(
+              message: _errorMessage,
+              onRetry: () => _loadProductsForCategory(_selectedCategory!),
             ),
           ),
         ],
@@ -938,9 +929,16 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     if (filteredProducts.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
-          Center(child: Text('No products found for this category/search.')),
+        children: [
+          const SizedBox(height: 120),
+          SizedBox(
+            height: 260,
+            child: AdminStateView.empty(
+              title: 'No products found',
+              message: 'Try a different category or search term.',
+              icon: Icons.search_off_outlined,
+            ),
+          ),
         ],
       );
     }
@@ -1363,22 +1361,9 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Failed to load products.\n$_errorMessage',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _loadProductsForCategory(_selectedCategory!),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return AdminStateView.error(
+        message: _errorMessage,
+        onRetry: () => _loadProductsForCategory(_selectedCategory!),
       );
     }
 

@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/admin_app_bar.dart';
+import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -244,35 +245,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
         final isLoadingMore = _orderController.isLoadingMore.value;
 
         if (error != null && orders.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: AdminAppTheme.getTextSecondaryColor(context),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Failed to load orders',
-                  style: TextStyle(
-                    color: AdminAppTheme.getTextSecondaryColor(context),
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  error,
-                  style: TextStyle(
-                    color: AdminAppTheme.getTextSecondaryColor(
-                      context,
-                    ).withValues(alpha: 0.7),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+          return AdminStateView.error(
+            message: error,
+            onRetry: () => _orderController.loadInitial(force: true),
           );
         }
 
