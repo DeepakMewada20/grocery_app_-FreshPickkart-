@@ -339,16 +339,18 @@ class _ProductCardState extends State<ProductCard> {
                             SizedBox(
                               width: double.infinity,
                               height: 32,
-                              child: Obx(() {
-                                final quantity = _cartController
-                                    .getProductQuantity(
-                                      widget.product.productId,
-                                      variantId: _selectedVariantId,
-                                    );
-                                return quantity == 0
-                                    ? _buildAddButton(cs)
-                                    : _buildQuantitySelector(quantity);
-                              }),
+                              child: !displayProduct.isAvailable
+                                  ? _buildNotAvailableButton(cs)
+                                  : Obx(() {
+                                      final quantity = _cartController
+                                          .getProductQuantity(
+                                            widget.product.productId,
+                                            variantId: _selectedVariantId,
+                                          );
+                                      return quantity == 0
+                                          ? _buildAddButton(cs)
+                                          : _buildQuantitySelector(quantity);
+                                    }),
                             ),
                           ],
                         ),
@@ -382,6 +384,25 @@ class _ProductCardState extends State<ProductCard> {
               fontWeight: FontWeight.w700,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotAvailableButton(ColorScheme cs) {
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Text(
+        'Not Available',
+        style: GoogleFonts.poppins(
+          color: cs.onSurface.withOpacity(0.5),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

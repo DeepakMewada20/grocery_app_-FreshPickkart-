@@ -78,10 +78,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   final formKey = GlobalKey<FormState>();
 
   late final TextEditingController nameCtrl;
+  late final TextEditingController shortDescriptionCtrl;
+  late final TextEditingController descriptionCtrl;
   late final TextEditingController imageCtrl;
   late final TextEditingController quantityValueCtrl;
   late final TextEditingController quantityDescriptionCtrl;
   late final TextEditingController countryOfOriginCtrl;
+  late final TextEditingController stockCtrl;
   late final TextEditingController priceCtrl;
   late final TextEditingController mrpCtrl;
 
@@ -120,6 +123,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     super.initState();
 
     nameCtrl = TextEditingController(text: product?.productName ?? '');
+    shortDescriptionCtrl = TextEditingController(
+      text: product?.shortDescription ?? '',
+    );
+    descriptionCtrl = TextEditingController(text: product?.description ?? '');
     imageCtrl = TextEditingController(text: product?.imageUrl ?? '');
     quantityValueCtrl = TextEditingController(
       text:
@@ -134,6 +141,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     );
     countryOfOriginCtrl = TextEditingController(
       text: product?.countryOfOrigin ?? 'India',
+    );
+    stockCtrl = TextEditingController(
+      text: product?.stock != null
+          ? (product!.stock == product!.stock!.toInt()
+              ? product!.stock!.toInt().toString()
+              : product!.stock!.toString())
+          : '',
     );
     priceCtrl = TextEditingController(text: product?.price.toString() ?? '');
     mrpCtrl = TextEditingController(text: product?.realPrice.toString() ?? '');
@@ -208,10 +222,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     quantityValueCtrl.removeListener(_syncVariantBasePricing);
     mrpCtrl.removeListener(_syncVariantBasePricing);
     nameCtrl.dispose();
+    shortDescriptionCtrl.dispose();
+    descriptionCtrl.dispose();
     imageCtrl.dispose();
     quantityValueCtrl.dispose();
     quantityDescriptionCtrl.dispose();
     countryOfOriginCtrl.dispose();
+    stockCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
     for (final variant in extraVariants) {
@@ -346,6 +363,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   }
 
   Future<void> _ensureOfferDataLoaded() async {
+    if (!isEditMode) return;
     if (_didRequestOfferData) return;
     _didRequestOfferData = true;
 
@@ -611,6 +629,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     if (isEditMode) {
       return product!.copyWith(
         productName: nameCtrl.text.trim(),
+        shortDescription: shortDescriptionCtrl.text.trim().isEmpty
+            ? null
+            : shortDescriptionCtrl.text.trim(),
+        description: descriptionCtrl.text.trim().isEmpty
+            ? null
+            : descriptionCtrl.text.trim(),
         category: selectedCategory!.trim(),
         imageUrl: imageCtrl.text.trim(),
         price: price,
@@ -629,6 +653,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
             ? null
             : countryOfOriginCtrl.text.trim(),
+        stock: stockCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(stockCtrl.text.trim()),
         bogoFreeProductIds:
             product?.bogoFreeProductIds?.toList() ??
             bogoFreeProductIds.toList(),
@@ -637,6 +664,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     } else {
       return Product(
         productName: nameCtrl.text.trim(),
+        shortDescription: shortDescriptionCtrl.text.trim().isEmpty
+            ? null
+            : shortDescriptionCtrl.text.trim(),
+        description: descriptionCtrl.text.trim().isEmpty
+            ? null
+            : descriptionCtrl.text.trim(),
         category: selectedCategory!.trim(),
         imageUrl: imageCtrl.text.trim(),
         price: price,
@@ -655,6 +688,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         countryOfOrigin: countryOfOriginCtrl.text.trim().isEmpty
             ? null
             : countryOfOriginCtrl.text.trim(),
+        stock: stockCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(stockCtrl.text.trim()),
         bogoFreeProductIds: bogoFreeProductIds.toList(),
         variants: variants,
         addedAt: DateTime.now(),
@@ -727,6 +763,20 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             labelText: 'Product name',
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Required' : null,
+          ),
+          const SizedBox(height: 12),
+          ModernTextField(
+            controller: shortDescriptionCtrl,
+            labelText: 'Short Description (Optional)',
+            hintText: 'e.g., Fresh organic apples from Kashmir',
+            maxLines: 2,
+          ),
+          const SizedBox(height: 12),
+          ModernTextField(
+            controller: descriptionCtrl,
+            labelText: 'Full Description (Optional)',
+            hintText: 'Detailed information about the product...',
+            maxLines: 4,
           ),
           const SizedBox(height: 12),
           ModernDropdown<String>(
@@ -924,10 +974,27 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             hintText: 'e.g., 10-12 pieces',
           ),
           const SizedBox(height: 12),
-          ModernTextField(
-            controller: countryOfOriginCtrl,
-            labelText: 'Country of Origin (Optional)',
-            hintText: 'e.g., India',
+          Row(
+            children: [
+              Expanded(
+                child: ModernTextField(
+                  controller: countryOfOriginCtrl,
+                  labelText: 'Country of Origin (Optional)',
+                  hintText: 'e.g., India',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ModernTextField(
+                  controller: stockCtrl,
+                  labelText: 'Stock (Optional)',
+                  hintText: 'e.g., 50',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

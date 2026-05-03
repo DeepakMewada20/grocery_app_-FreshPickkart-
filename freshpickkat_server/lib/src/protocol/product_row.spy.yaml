@@ -13,6 +13,8 @@ fields:
   baseUnit: String?
   baseQuantity: double?
   quantityDescription: String?
+  stock: double?
+  discountType: String?
   mostSearchCount: int, default=0
   mostPurchaseCount: int, default=0
   status: String, default='active'

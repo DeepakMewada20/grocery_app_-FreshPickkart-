@@ -378,5 +378,60 @@ class PostgresPaymentService {
         itemCount: itemCount,
       );
     } catch (_) {}
+
+    await _deductStockForOrderItems(session, order.id!);
+  }
+
+  Future<void> _deductStockForOrderItems(Session session, UuidValue orderId) async {
+    try {
+      final orderItems = await OrderItemRow.db.find(
+        session,
+        where: (t) => t.orderId.equals(orderId),
+      );
+
+      const unitConversions = <String, double>{
+        'gm': 1.0, 'kg': 1000.0, 'litre': 1000.0, 'ml': 1.0, 'pc': 1.0, 'pack': 1.0,
+      };
+
+      for (final item in orderItems) {
+        final product = await ProductRow.db.findById(session, item.productId);
+        if (product == null || product.stock == null) continue;
+
+        double deduction = 0;
+        if (item.productVariantId != null) {
+          final variant = await ProductVariantRow.db.findById(session, item.productVariantId!);
+          if (variant != null) {
+            final vUnit = variant.quantityUnit.toLowerCase();
+            final pUnit = (product.baseUnit ?? 'unit').toLowerCase();
+            final inGrams = variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
+            final inBase = inGrams / (unitConversions[pUnit] ?? 1.0);
+            deduction = inBase * item.quantity;
+          } else {
+            deduction = item.quantity.toDouble();
+          }
+        } else {
+          deduction = item.quantity.toDouble();
+        }
+
+        final newStock = product.stock! - deduction;
+        bool shouldDisable = false;
+        
+        final minRequired = product.baseQuantity ?? 0.0;
+        if (newStock <= 0 || newStock < minRequired) {
+          shouldDisable = true;
+        }
+
+        await ProductRow.db.updateRow(
+          session,
+          product.copyWith(
+            stock: newStock < 0 ? 0 : newStock,
+            status: shouldDisable ? 'inactive' : product.status,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+      }
+    } catch (e) {
+      session.log('Background stock deduction failed: $e', level: LogLevel.error);
+    }
   }
 }

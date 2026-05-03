@@ -26,6 +26,8 @@ abstract class ProductRow
     this.baseUnit,
     this.baseQuantity,
     this.quantityDescription,
+    this.stock,
+    this.discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
     String? status,
@@ -50,6 +52,8 @@ abstract class ProductRow
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    double? stock,
+    String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
     String? status,
@@ -75,6 +79,8 @@ abstract class ProductRow
       baseUnit: jsonSerialization['baseUnit'] as String?,
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
+      stock: (jsonSerialization['stock'] as num?)?.toDouble(),
+      discountType: jsonSerialization['discountType'] as String?,
       mostSearchCount: jsonSerialization['mostSearchCount'] as int?,
       mostPurchaseCount: jsonSerialization['mostPurchaseCount'] as int?,
       status: jsonSerialization['status'] as String?,
@@ -119,6 +125,10 @@ abstract class ProductRow
 
   String? quantityDescription;
 
+  double? stock;
+
+  String? discountType;
+
   int mostSearchCount;
 
   int mostPurchaseCount;
@@ -149,6 +159,8 @@ abstract class ProductRow
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    double? stock,
+    String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
     String? status,
@@ -172,6 +184,8 @@ abstract class ProductRow
       if (baseQuantity != null) 'baseQuantity': baseQuantity,
       if (quantityDescription != null)
         'quantityDescription': quantityDescription,
+      if (stock != null) 'stock': stock,
+      if (discountType != null) 'discountType': discountType,
       'mostSearchCount': mostSearchCount,
       'mostPurchaseCount': mostPurchaseCount,
       'status': status,
@@ -231,6 +245,8 @@ class _ProductRowImpl extends ProductRow {
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    double? stock,
+    String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
     String? status,
@@ -249,6 +265,8 @@ class _ProductRowImpl extends ProductRow {
          baseUnit: baseUnit,
          baseQuantity: baseQuantity,
          quantityDescription: quantityDescription,
+         stock: stock,
+         discountType: discountType,
          mostSearchCount: mostSearchCount,
          mostPurchaseCount: mostPurchaseCount,
          status: status,
@@ -273,6 +291,8 @@ class _ProductRowImpl extends ProductRow {
     Object? baseUnit = _Undefined,
     Object? baseQuantity = _Undefined,
     Object? quantityDescription = _Undefined,
+    Object? stock = _Undefined,
+    Object? discountType = _Undefined,
     int? mostSearchCount,
     int? mostPurchaseCount,
     String? status,
@@ -300,6 +320,8 @@ class _ProductRowImpl extends ProductRow {
       quantityDescription: quantityDescription is String?
           ? quantityDescription
           : this.quantityDescription,
+      stock: stock is double? ? stock : this.stock,
+      discountType: discountType is String? ? discountType : this.discountType,
       mostSearchCount: mostSearchCount ?? this.mostSearchCount,
       mostPurchaseCount: mostPurchaseCount ?? this.mostPurchaseCount,
       status: status ?? this.status,
@@ -369,6 +391,17 @@ class ProductRowUpdateTable extends _i1.UpdateTable<ProductRowTable> {
   _i1.ColumnValue<String, String> quantityDescription(String? value) =>
       _i1.ColumnValue(
         table.quantityDescription,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> stock(double? value) => _i1.ColumnValue(
+    table.stock,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> discountType(String? value) =>
+      _i1.ColumnValue(
+        table.discountType,
         value,
       );
 
@@ -449,6 +482,14 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
       'quantityDescription',
       this,
     );
+    stock = _i1.ColumnDouble(
+      'stock',
+      this,
+    );
+    discountType = _i1.ColumnString(
+      'discountType',
+      this,
+    );
     mostSearchCount = _i1.ColumnInt(
       'mostSearchCount',
       this,
@@ -502,6 +543,10 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString quantityDescription;
 
+  late final _i1.ColumnDouble stock;
+
+  late final _i1.ColumnString discountType;
+
   late final _i1.ColumnInt mostSearchCount;
 
   late final _i1.ColumnInt mostPurchaseCount;
@@ -527,6 +572,8 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
     baseUnit,
     baseQuantity,
     quantityDescription,
+    stock,
+    discountType,
     mostSearchCount,
     mostPurchaseCount,
     status,

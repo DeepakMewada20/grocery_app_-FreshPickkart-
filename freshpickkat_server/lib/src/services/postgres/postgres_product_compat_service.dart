@@ -266,8 +266,8 @@ class PostgresProductCompatService {
           categoryId: category!.id!,
           name: product.productName.trim(),
           slug: slug,
-          shortDescription: cleanNullableString(product.quantityDescription),
-          description: cleanNullableString(product.quantityDescription),
+          shortDescription: cleanNullableString(product.shortDescription),
+          description: cleanNullableString(product.description),
           primaryImageUrl: cleanNullableString(product.imageUrl),
           countryOfOrigin: cleanNullableString(product.countryOfOrigin),
           baseUnit: cleanNullableString(product.baseUnit),
@@ -275,6 +275,8 @@ class PostgresProductCompatService {
           quantityDescription:
               cleanNullableString(product.quantityDescription) ??
               cleanNullableString(product.quantity),
+          stock: product.stock,
+          discountType: product.discountType,
           mostSearchCount: product.mostSearch,
           mostPurchaseCount: product.mostPurchases,
           createdAt: now,
@@ -340,8 +342,8 @@ class PostgresProductCompatService {
       final updated = existing.copyWith(
         categoryId: category!.id!,
         name: product.productName.trim(),
-        shortDescription: cleanNullableString(product.quantityDescription),
-        description: cleanNullableString(product.quantityDescription),
+        shortDescription: cleanNullableString(product.shortDescription),
+        description: cleanNullableString(product.description),
         primaryImageUrl: cleanNullableString(product.imageUrl),
         countryOfOrigin: cleanNullableString(product.countryOfOrigin),
         baseUnit: cleanNullableString(product.baseUnit),
@@ -349,6 +351,8 @@ class PostgresProductCompatService {
         quantityDescription:
             cleanNullableString(product.quantityDescription) ??
             cleanNullableString(product.quantity),
+        stock: product.stock,
+        discountType: product.discountType,
         mostSearchCount: product.mostSearch,
         mostPurchaseCount: product.mostPurchases,
         updatedAt: DateTime.now().toUtc(),

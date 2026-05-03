@@ -25,6 +25,8 @@ abstract class Product implements _i1.SerializableModel {
     required this.discount,
     this.discountType,
     this.discountValue,
+    this.shortDescription,
+    this.description,
     required this.isAvailable,
     required this.addedAt,
     required this.subcategory,
@@ -33,6 +35,7 @@ abstract class Product implements _i1.SerializableModel {
     this.baseQuantity,
     this.quantityDescription,
     this.countryOfOrigin,
+    this.stock,
     required this.mostSearch,
     required this.mostPurchases,
     this.bogoFreeProductIds,
@@ -49,6 +52,8 @@ abstract class Product implements _i1.SerializableModel {
     required double discount,
     String? discountType,
     double? discountValue,
+    String? shortDescription,
+    String? description,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
@@ -57,6 +62,7 @@ abstract class Product implements _i1.SerializableModel {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
+    double? stock,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -74,6 +80,8 @@ abstract class Product implements _i1.SerializableModel {
       discount: (jsonSerialization['discount'] as num).toDouble(),
       discountType: jsonSerialization['discountType'] as String?,
       discountValue: (jsonSerialization['discountValue'] as num?)?.toDouble(),
+      shortDescription: jsonSerialization['shortDescription'] as String?,
+      description: jsonSerialization['description'] as String?,
       isAvailable: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['isAvailable'],
       ),
@@ -86,6 +94,7 @@ abstract class Product implements _i1.SerializableModel {
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
+      stock: (jsonSerialization['stock'] as num?)?.toDouble(),
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
       bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
@@ -119,6 +128,10 @@ abstract class Product implements _i1.SerializableModel {
 
   double? discountValue;
 
+  String? shortDescription;
+
+  String? description;
+
   bool isAvailable;
 
   DateTime addedAt;
@@ -134,6 +147,8 @@ abstract class Product implements _i1.SerializableModel {
   String? quantityDescription;
 
   String? countryOfOrigin;
+
+  double? stock;
 
   int mostSearch;
 
@@ -156,6 +171,8 @@ abstract class Product implements _i1.SerializableModel {
     double? discount,
     String? discountType,
     double? discountValue,
+    String? shortDescription,
+    String? description,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
@@ -164,6 +181,7 @@ abstract class Product implements _i1.SerializableModel {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
+    double? stock,
     int? mostSearch,
     int? mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -182,6 +200,8 @@ abstract class Product implements _i1.SerializableModel {
       'discount': discount,
       if (discountType != null) 'discountType': discountType,
       if (discountValue != null) 'discountValue': discountValue,
+      if (shortDescription != null) 'shortDescription': shortDescription,
+      if (description != null) 'description': description,
       'isAvailable': isAvailable,
       'addedAt': addedAt.toJson(),
       'subcategory': subcategory.toJson(),
@@ -191,6 +211,7 @@ abstract class Product implements _i1.SerializableModel {
       if (quantityDescription != null)
         'quantityDescription': quantityDescription,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
+      if (stock != null) 'stock': stock,
       'mostSearch': mostSearch,
       'mostPurchases': mostPurchases,
       if (bogoFreeProductIds != null)
@@ -219,6 +240,8 @@ class _ProductImpl extends Product {
     required double discount,
     String? discountType,
     double? discountValue,
+    String? shortDescription,
+    String? description,
     required bool isAvailable,
     required DateTime addedAt,
     required List<String> subcategory,
@@ -227,6 +250,7 @@ class _ProductImpl extends Product {
     double? baseQuantity,
     String? quantityDescription,
     String? countryOfOrigin,
+    double? stock,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -241,6 +265,8 @@ class _ProductImpl extends Product {
          discount: discount,
          discountType: discountType,
          discountValue: discountValue,
+         shortDescription: shortDescription,
+         description: description,
          isAvailable: isAvailable,
          addedAt: addedAt,
          subcategory: subcategory,
@@ -249,6 +275,7 @@ class _ProductImpl extends Product {
          baseQuantity: baseQuantity,
          quantityDescription: quantityDescription,
          countryOfOrigin: countryOfOrigin,
+         stock: stock,
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
          bogoFreeProductIds: bogoFreeProductIds,
@@ -269,6 +296,8 @@ class _ProductImpl extends Product {
     double? discount,
     Object? discountType = _Undefined,
     Object? discountValue = _Undefined,
+    Object? shortDescription = _Undefined,
+    Object? description = _Undefined,
     bool? isAvailable,
     DateTime? addedAt,
     List<String>? subcategory,
@@ -277,6 +306,7 @@ class _ProductImpl extends Product {
     Object? baseQuantity = _Undefined,
     Object? quantityDescription = _Undefined,
     Object? countryOfOrigin = _Undefined,
+    Object? stock = _Undefined,
     int? mostSearch,
     int? mostPurchases,
     Object? bogoFreeProductIds = _Undefined,
@@ -294,6 +324,10 @@ class _ProductImpl extends Product {
       discountValue: discountValue is double?
           ? discountValue
           : this.discountValue,
+      shortDescription: shortDescription is String?
+          ? shortDescription
+          : this.shortDescription,
+      description: description is String? ? description : this.description,
       isAvailable: isAvailable ?? this.isAvailable,
       addedAt: addedAt ?? this.addedAt,
       subcategory: subcategory ?? this.subcategory.map((e0) => e0).toList(),
@@ -306,6 +340,7 @@ class _ProductImpl extends Product {
       countryOfOrigin: countryOfOrigin is String?
           ? countryOfOrigin
           : this.countryOfOrigin,
+      stock: stock is double? ? stock : this.stock,
       mostSearch: mostSearch ?? this.mostSearch,
       mostPurchases: mostPurchases ?? this.mostPurchases,
       bogoFreeProductIds: bogoFreeProductIds is List<String>?

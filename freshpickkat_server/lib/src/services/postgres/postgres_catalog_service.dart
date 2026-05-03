@@ -480,11 +480,13 @@ class PostgresCatalogService {
           productId: productRow.id!.toString(),
           productName: productRow.name,
           category: category.name,
+          shortDescription: productRow.shortDescription,
+          description: productRow.description,
           imageUrl: productRow.primaryImageUrl ?? '',
           price: salePrice,
           realPrice: listPrice,
           discount: double.parse(discountPercent.toStringAsFixed(2)),
-          discountType: discountValue > 0 ? 'percentage' : null,
+          discountType: productRow.discountType,
           discountValue: discountValue > 0
               ? double.parse(discountValue.toStringAsFixed(2))
               : null,
