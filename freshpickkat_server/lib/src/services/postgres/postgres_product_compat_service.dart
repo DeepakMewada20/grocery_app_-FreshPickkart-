@@ -276,6 +276,7 @@ class PostgresProductCompatService {
               cleanNullableString(product.quantityDescription) ??
               cleanNullableString(product.quantity),
           stock: product.stock,
+          stockUnit: cleanNullableString(product.stockUnit),
           discountType: product.discountType,
           mostSearchCount: product.mostSearch,
           mostPurchaseCount: product.mostPurchases,
@@ -352,6 +353,7 @@ class PostgresProductCompatService {
             cleanNullableString(product.quantityDescription) ??
             cleanNullableString(product.quantity),
         stock: product.stock,
+        stockUnit: cleanNullableString(product.stockUnit),
         discountType: product.discountType,
         mostSearchCount: product.mostSearch,
         mostPurchaseCount: product.mostPurchases,

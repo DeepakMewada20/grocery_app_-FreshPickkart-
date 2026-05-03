@@ -36,6 +36,7 @@ abstract class Product implements _i1.SerializableModel {
     this.quantityDescription,
     this.countryOfOrigin,
     this.stock,
+    this.stockUnit,
     required this.mostSearch,
     required this.mostPurchases,
     this.bogoFreeProductIds,
@@ -63,6 +64,7 @@ abstract class Product implements _i1.SerializableModel {
     String? quantityDescription,
     String? countryOfOrigin,
     double? stock,
+    String? stockUnit,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -95,6 +97,7 @@ abstract class Product implements _i1.SerializableModel {
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
       countryOfOrigin: jsonSerialization['countryOfOrigin'] as String?,
       stock: (jsonSerialization['stock'] as num?)?.toDouble(),
+      stockUnit: jsonSerialization['stockUnit'] as String?,
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
       bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
@@ -150,6 +153,8 @@ abstract class Product implements _i1.SerializableModel {
 
   double? stock;
 
+  String? stockUnit;
+
   int mostSearch;
 
   int mostPurchases;
@@ -182,6 +187,7 @@ abstract class Product implements _i1.SerializableModel {
     String? quantityDescription,
     String? countryOfOrigin,
     double? stock,
+    String? stockUnit,
     int? mostSearch,
     int? mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -212,6 +218,7 @@ abstract class Product implements _i1.SerializableModel {
         'quantityDescription': quantityDescription,
       if (countryOfOrigin != null) 'countryOfOrigin': countryOfOrigin,
       if (stock != null) 'stock': stock,
+      if (stockUnit != null) 'stockUnit': stockUnit,
       'mostSearch': mostSearch,
       'mostPurchases': mostPurchases,
       if (bogoFreeProductIds != null)
@@ -251,6 +258,7 @@ class _ProductImpl extends Product {
     String? quantityDescription,
     String? countryOfOrigin,
     double? stock,
+    String? stockUnit,
     required int mostSearch,
     required int mostPurchases,
     List<String>? bogoFreeProductIds,
@@ -276,6 +284,7 @@ class _ProductImpl extends Product {
          quantityDescription: quantityDescription,
          countryOfOrigin: countryOfOrigin,
          stock: stock,
+         stockUnit: stockUnit,
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
          bogoFreeProductIds: bogoFreeProductIds,
@@ -307,6 +316,7 @@ class _ProductImpl extends Product {
     Object? quantityDescription = _Undefined,
     Object? countryOfOrigin = _Undefined,
     Object? stock = _Undefined,
+    Object? stockUnit = _Undefined,
     int? mostSearch,
     int? mostPurchases,
     Object? bogoFreeProductIds = _Undefined,
@@ -341,6 +351,7 @@ class _ProductImpl extends Product {
           ? countryOfOrigin
           : this.countryOfOrigin,
       stock: stock is double? ? stock : this.stock,
+      stockUnit: stockUnit is String? ? stockUnit : this.stockUnit,
       mostSearch: mostSearch ?? this.mostSearch,
       mostPurchases: mostPurchases ?? this.mostPurchases,
       bogoFreeProductIds: bogoFreeProductIds is List<String>?

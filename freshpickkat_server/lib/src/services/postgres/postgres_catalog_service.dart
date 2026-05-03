@@ -500,6 +500,8 @@ class PostgresCatalogService {
           baseQuantity: productRow.baseQuantity,
           quantityDescription: productRow.quantityDescription,
           countryOfOrigin: productRow.countryOfOrigin,
+          stock: productRow.stock,
+          stockUnit: productRow.stockUnit,
           mostSearch: productRow.mostSearchCount,
           mostPurchases: productRow.mostPurchaseCount,
           bogoFreeProductIds: bogoFreeProductIds?.isEmpty == true

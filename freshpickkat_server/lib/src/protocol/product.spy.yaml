@@ -20,6 +20,7 @@ fields:
     quantityDescription: String?
     countryOfOrigin: String?
     stock: double?
+    stockUnit: String?
     mostSearch: int
     mostPurchases: int
     bogoFreeProductIds: List<String>?

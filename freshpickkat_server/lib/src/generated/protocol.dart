@@ -3358,6 +3358,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'double?',
         ),
         _i2.ColumnDefinition(
+          name: 'stockUnit',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
           name: 'discountType',
           columnType: _i2.ColumnType.text,
           isNullable: true,

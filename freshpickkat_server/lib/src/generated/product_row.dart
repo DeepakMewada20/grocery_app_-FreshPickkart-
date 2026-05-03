@@ -27,6 +27,7 @@ abstract class ProductRow
     this.baseQuantity,
     this.quantityDescription,
     this.stock,
+    this.stockUnit,
     this.discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
@@ -53,6 +54,7 @@ abstract class ProductRow
     double? baseQuantity,
     String? quantityDescription,
     double? stock,
+    String? stockUnit,
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
@@ -80,6 +82,7 @@ abstract class ProductRow
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
       stock: (jsonSerialization['stock'] as num?)?.toDouble(),
+      stockUnit: jsonSerialization['stockUnit'] as String?,
       discountType: jsonSerialization['discountType'] as String?,
       mostSearchCount: jsonSerialization['mostSearchCount'] as int?,
       mostPurchaseCount: jsonSerialization['mostPurchaseCount'] as int?,
@@ -127,6 +130,8 @@ abstract class ProductRow
 
   double? stock;
 
+  String? stockUnit;
+
   String? discountType;
 
   int mostSearchCount;
@@ -160,6 +165,7 @@ abstract class ProductRow
     double? baseQuantity,
     String? quantityDescription,
     double? stock,
+    String? stockUnit,
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
@@ -185,6 +191,7 @@ abstract class ProductRow
       if (quantityDescription != null)
         'quantityDescription': quantityDescription,
       if (stock != null) 'stock': stock,
+      if (stockUnit != null) 'stockUnit': stockUnit,
       if (discountType != null) 'discountType': discountType,
       'mostSearchCount': mostSearchCount,
       'mostPurchaseCount': mostPurchaseCount,
@@ -246,6 +253,7 @@ class _ProductRowImpl extends ProductRow {
     double? baseQuantity,
     String? quantityDescription,
     double? stock,
+    String? stockUnit,
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
@@ -266,6 +274,7 @@ class _ProductRowImpl extends ProductRow {
          baseQuantity: baseQuantity,
          quantityDescription: quantityDescription,
          stock: stock,
+         stockUnit: stockUnit,
          discountType: discountType,
          mostSearchCount: mostSearchCount,
          mostPurchaseCount: mostPurchaseCount,
@@ -292,6 +301,7 @@ class _ProductRowImpl extends ProductRow {
     Object? baseQuantity = _Undefined,
     Object? quantityDescription = _Undefined,
     Object? stock = _Undefined,
+    Object? stockUnit = _Undefined,
     Object? discountType = _Undefined,
     int? mostSearchCount,
     int? mostPurchaseCount,
@@ -321,6 +331,7 @@ class _ProductRowImpl extends ProductRow {
           ? quantityDescription
           : this.quantityDescription,
       stock: stock is double? ? stock : this.stock,
+      stockUnit: stockUnit is String? ? stockUnit : this.stockUnit,
       discountType: discountType is String? ? discountType : this.discountType,
       mostSearchCount: mostSearchCount ?? this.mostSearchCount,
       mostPurchaseCount: mostPurchaseCount ?? this.mostPurchaseCount,
@@ -396,6 +407,11 @@ class ProductRowUpdateTable extends _i1.UpdateTable<ProductRowTable> {
 
   _i1.ColumnValue<double, double> stock(double? value) => _i1.ColumnValue(
     table.stock,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> stockUnit(String? value) => _i1.ColumnValue(
+    table.stockUnit,
     value,
   );
 
@@ -486,6 +502,10 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
       'stock',
       this,
     );
+    stockUnit = _i1.ColumnString(
+      'stockUnit',
+      this,
+    );
     discountType = _i1.ColumnString(
       'discountType',
       this,
@@ -545,6 +565,8 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDouble stock;
 
+  late final _i1.ColumnString stockUnit;
+
   late final _i1.ColumnString discountType;
 
   late final _i1.ColumnInt mostSearchCount;
@@ -573,6 +595,7 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
     baseQuantity,
     quantityDescription,
     stock,
+    stockUnit,
     discountType,
     mostSearchCount,
     mostPurchaseCount,

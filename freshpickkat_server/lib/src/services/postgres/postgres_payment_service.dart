@@ -402,7 +402,7 @@ class PostgresPaymentService {
           final variant = await ProductVariantRow.db.findById(session, item.productVariantId!);
           if (variant != null) {
             final vUnit = variant.quantityUnit.toLowerCase();
-            final pUnit = (product.baseUnit ?? 'unit').toLowerCase();
+            final pUnit = (product.stockUnit ?? product.baseUnit ?? 'unit').toLowerCase();
             final inGrams = variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
             final inBase = inGrams / (unitConversions[pUnit] ?? 1.0);
             deduction = inBase * item.quantity;
@@ -416,8 +416,12 @@ class PostgresPaymentService {
         final newStock = product.stock! - deduction;
         bool shouldDisable = false;
         
-        final minRequired = product.baseQuantity ?? 0.0;
-        if (newStock <= 0 || newStock < minRequired) {
+        final bUnit = (product.baseUnit ?? 'unit').toLowerCase();
+        final sUnit = (product.stockUnit ?? product.baseUnit ?? 'unit').toLowerCase();
+        final minGrams = (product.baseQuantity ?? 0.0) * (unitConversions[bUnit] ?? 1.0);
+        final minRequiredInStockUnit = minGrams / (unitConversions[sUnit] ?? 1.0);
+
+        if (newStock <= 0 || newStock < minRequiredInStockUnit) {
           shouldDisable = true;
         }
 

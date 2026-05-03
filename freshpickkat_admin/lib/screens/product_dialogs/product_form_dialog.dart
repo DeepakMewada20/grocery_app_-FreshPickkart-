@@ -91,6 +91,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late List<VariantDraft> extraVariants;
   late String discountType;
   late String baseUnit;
+  late String stockUnit;
   final bogoFreeProductIds = <String>{};
   final selectedBogoProducts = <String, Product>{};
   final bogoFreeProductQuantities = <String, String>{};
@@ -158,6 +159,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     discountType = product?.discountType == 'flat' ? 'flat' : 'percentage';
     baseUnit = product?.baseUnit ?? _parseQuantityUnit(product?.quantity ?? '');
+    stockUnit = product?.stockUnit ?? baseUnit;
     isAvailable = product?.isAvailable ?? true;
 
     selectedCategory = product?.category;
@@ -656,6 +658,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         stock: stockCtrl.text.trim().isEmpty
             ? null
             : double.tryParse(stockCtrl.text.trim()),
+        stockUnit: stockCtrl.text.trim().isEmpty ? null : stockUnit,
         bogoFreeProductIds:
             product?.bogoFreeProductIds?.toList() ??
             bogoFreeProductIds.toList(),
@@ -691,7 +694,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         stock: stockCtrl.text.trim().isEmpty
             ? null
             : double.tryParse(stockCtrl.text.trim()),
-        bogoFreeProductIds: bogoFreeProductIds.toList(),
+        stockUnit: stockCtrl.text.trim().isEmpty ? null : stockUnit,
+        bogoFreeProductIds: selectedBogoProducts.keys.toList(),
         variants: variants,
         addedAt: DateTime.now(),
         mostSearch: 0,
@@ -896,7 +900,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: ModernTextField(
                   controller: quantityValueCtrl,
                   labelText: 'Quantity',
@@ -925,6 +929,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               ),
               const SizedBox(width: 12),
               Expanded(
+                flex: 2,
                 child: DropdownButtonFormField<String>(
                   initialValue: baseUnit,
                   decoration: const InputDecoration(
@@ -968,23 +973,32 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             ],
           ),
           const SizedBox(height: 12),
-          ModernTextField(
-            controller: quantityDescriptionCtrl,
-            labelText: 'Quantity Description (Optional)',
-            hintText: 'e.g., 10-12 pieces',
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
+                flex: 3,
+                child: ModernTextField(
+                  controller: quantityDescriptionCtrl,
+                  labelText: 'Quantity Description (Optional)',
+                  hintText: 'e.g., 10-12 pieces',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
                 child: ModernTextField(
                   controller: countryOfOriginCtrl,
                   labelText: 'Country of Origin (Optional)',
                   hintText: 'e.g., India',
                 ),
               ),
-              const SizedBox(width: 12),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
               Expanded(
+                flex: 3,
                 child: ModernTextField(
                   controller: stockCtrl,
                   labelText: 'Stock (Optional)',
@@ -992,6 +1006,36 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  initialValue: stockUnit,
+                  decoration: const InputDecoration(
+                    labelText: 'Unit',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'gm', child: Text('gm')),
+                    DropdownMenuItem(value: 'kg', child: Text('kg')),
+                    DropdownMenuItem(value: 'litre', child: Text('litre')),
+                    DropdownMenuItem(value: 'ml', child: Text('ml')),
+                    DropdownMenuItem(value: 'pc', child: Text('pc')),
+                    DropdownMenuItem(value: 'pack', child: Text('pack')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        stockUnit = value;
+                      });
+                    }
+                  },
                 ),
               ),
             ],
