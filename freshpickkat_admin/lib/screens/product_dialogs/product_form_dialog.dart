@@ -106,6 +106,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   String? selectedCategory;
   final selectedSubcategories = <String>{};
   String? subcategoryError;
+  String? categoryError;
 
   AdminCategoryOfferController get _categoryOfferController =>
       AdminCategoryOfferController.instance;
@@ -799,7 +800,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 selectedCategory = value;
                 selectedSubcategories.clear();
                 subcategoryError = null;
+                categoryError = null;
               });
+            },
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please select a category';
+              }
+              return null;
             },
           ),
           if (selectedCategory != null) ...[
@@ -835,7 +843,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             Stack(
               alignment: Alignment.topRight,
               children: [
-                ImagePreview(imageUrl: imageCtrl.text.trim()),
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: ImagePreview(
+                    imageUrl: imageCtrl.text.trim(),
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.cancel, color: Colors.red),
                   onPressed: () => setState(() => imageCtrl.clear()),

@@ -334,7 +334,8 @@ class PostgresCatalogService {
     if (orderedProductIds.isEmpty) return const [];
 
     final productIds = orderedProductIds
-        .map((id) => parseUuid(id, fieldName: 'productId'))
+        .map((id) => tryParseUuid(id))
+        .whereType<UuidValue>()
         .toSet();
 
     final products = await ProductRow.db.find(

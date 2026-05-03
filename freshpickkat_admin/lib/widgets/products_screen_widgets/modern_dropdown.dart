@@ -8,6 +8,7 @@ class ModernDropdown<T> extends StatelessWidget {
     required this.onChanged,
     this.labelText,
     this.hintText,
+    this.validator,
   });
 
   final T? value;
@@ -15,6 +16,7 @@ class ModernDropdown<T> extends StatelessWidget {
   final void Function(T?) onChanged;
   final String? labelText;
   final String? hintText;
+  final String? Function(T?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,7 @@ class ModernDropdown<T> extends StatelessWidget {
       isExpanded: true,
       items: items,
       onChanged: onChanged,
+      validator: validator,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,

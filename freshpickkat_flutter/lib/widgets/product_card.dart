@@ -181,8 +181,8 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                           child: widget.enableHero
                               ? Hero(
-                                  tag:
-                                      'product_${widget.product.productId}_$hashCode',
+tag:
+                                        'product_${widget.product.productId}',
                                   child: Image.network(
                                     displayProduct.imageUrl,
                                     fit: BoxFit.cover,

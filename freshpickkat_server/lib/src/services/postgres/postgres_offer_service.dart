@@ -95,18 +95,17 @@ class PostgresOfferService {
     );
     if (rows.isEmpty) return false;
 
-    final now = DateTime.now().toUtc();
-    await BogoOfferRow.db.update(
+    final offerId = rows.first.id;
+    if (offerId == null) return false;
+
+    await BogoOfferRewardRow.db.deleteWhere(
       session,
-      rows
-          .map(
-            (row) => row.copyWith(
-              status: 'inactive',
-              deactivatedAt: now,
-              updatedAt: now,
-            ),
-          )
-          .toList(),
+      where: (t) => t.bogoOfferId.equals(offerId),
+    );
+
+    await BogoOfferRow.db.deleteWhere(
+      session,
+      where: (t) => t.id.equals(offerId),
     );
     return true;
   }
@@ -254,14 +253,10 @@ class PostgresOfferService {
 
     final row = await ComboOfferRow.db.findById(session, parsedId);
     if (row == null) return false;
-    final now = DateTime.now().toUtc();
-    await ComboOfferRow.db.updateRow(
+
+    await ComboOfferRow.db.deleteWhere(
       session,
-      row.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
-        updatedAt: now,
-      ),
+      where: (t) => t.id.equals(parsedId),
     );
     return true;
   }

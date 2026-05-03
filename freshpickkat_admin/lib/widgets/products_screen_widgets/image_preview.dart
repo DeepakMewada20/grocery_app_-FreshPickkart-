@@ -4,12 +4,14 @@ class ImagePreview extends StatelessWidget {
   const ImagePreview({
     super.key,
     required this.imageUrl,
-    this.height = 180,
+    this.height = 150,
+    this.width,
     this.fit = BoxFit.cover,
   });
 
   final String imageUrl;
   final double height;
+  final double? width;
   final BoxFit fit;
 
   @override
@@ -19,7 +21,7 @@ class ImagePreview extends StatelessWidget {
       child: Image.network(
         imageUrl,
         height: height,
-        width: double.infinity,
+        width: width ?? double.infinity,
         fit: fit,
         errorBuilder: (_, _, _) => Container(
           height: height,

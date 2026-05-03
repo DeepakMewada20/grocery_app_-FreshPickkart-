@@ -208,17 +208,9 @@ class PostgresDeliveryService {
     final parsedId = tryParseUuid(ruleId);
     if (parsedId == null) return false;
 
-    final row = await DeliveryRuleRow.db.findById(session, parsedId);
-    if (row == null) return false;
-
-    final now = DateTime.now().toUtc();
-    await DeliveryRuleRow.db.updateRow(
+    await DeliveryRuleRow.db.deleteWhere(
       session,
-      row.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
-        updatedAt: now,
-      ),
+      where: (t) => t.id.equals(parsedId),
     );
     return true;
   }

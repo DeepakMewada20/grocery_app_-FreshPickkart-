@@ -169,8 +169,15 @@ class PostgresCouponService {
     return true;
   }
 
-  Future<bool> deleteCoupon(Session session, String code) {
-    return setCouponActive(session, code, false);
+  Future<bool> deleteCoupon(Session session, String code) async {
+    final normalizedCode = code.trim().toUpperCase();
+    if (normalizedCode.isEmpty) return false;
+
+    await CouponRow.db.deleteWhere(
+      session,
+      where: (t) => t.code.equals(normalizedCode),
+    );
+    return true;
   }
 
   Future<CouponValidationResult> applyCoupon(

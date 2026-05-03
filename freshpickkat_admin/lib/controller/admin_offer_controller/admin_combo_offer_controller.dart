@@ -33,15 +33,19 @@ class AdminComboOfferController extends GetxController {
   }
 
   void _upsertLocal(ComboOffer offer) {
+    print('DEBUG COMBO: _upsertLocal called with comboId: ${offer.comboId}');
     final normalized = offer.copyWith(comboId: _ensureComboId(offer));
     final index = comboOffers.indexWhere(
       (item) => item.comboId == normalized.comboId,
     );
+    print('DEBUG COMBO: Found existing index: $index');
     if (index == -1) {
       comboOffers.add(normalized);
+      print('DEBUG COMBO: Added new offer, list length: ${comboOffers.length}');
       totalCount.value++;
     } else {
       comboOffers[index] = normalized;
+      print('DEBUG COMBO: Updated existing offer at index: $index');
     }
   }
 
@@ -126,22 +130,27 @@ class AdminComboOfferController extends GetxController {
 
   Future<bool> createComboOffer(ComboOffer offer) async {
     try {
+      print('DEBUG COMBO: createComboOffer called with comboId: ${offer.comboId}');
       final normalizedOffer = offer.copyWith(comboId: _ensureComboId(offer));
+      print('DEBUG COMBO: Normalized comboId: ${normalizedOffer.comboId}');
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
+      print('DEBUG COMBO: Calling API...');
       final result = await client.comboOffer.upsertComboOffer(
         normalizedOffer,
         uid,
         idToken,
       );
+      print('DEBUG COMBO: API result: $result');
       if (result) {
         _upsertLocal(normalizedOffer);
+        print('DEBUG COMBO: _upsertLocal called, current list length: ${comboOffers.length}');
       }
       return result;
     } catch (e) {
-      print('Error creating combo offer: $e');
+      print('DEBUG COMBO: Error creating combo offer: $e');
       return false;
     }
   }

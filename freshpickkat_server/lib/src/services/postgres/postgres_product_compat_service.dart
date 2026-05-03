@@ -37,6 +37,7 @@ class PostgresProductCompatService {
     Session session, {
     int limit = 10,
     String? lastProductName,
+    String? lastProductId,
     String? category,
     List<String>? subcategories,
     String sortBy = 'name',
@@ -82,10 +83,10 @@ class PostgresProductCompatService {
       ''',
       parameters: QueryParameters.named({
         ...resolvedFilters.parameters,
-        'lastProductName': cleanNullableString(lastProductName),
-        'lastProductId': cleanNullableString(lastProductName) == null
-            ? null
-            : '00000000-0000-0000-0000-000000000000',
+        if (lastProductName != null) ...{
+          'lastProductName': lastProductName,
+          'lastProductId': lastProductId ?? '00000000-0000-0000-0000-000000000000',
+        },
         'limit': pageSize,
       }),
     );
@@ -538,8 +539,8 @@ class PostgresProductCompatService {
       if (categoryRow?.id == null) {
         return const _ResolvedProductFilters(noResults: true);
       }
-      clauses.add('AND p."categoryId" = @categoryId');
-      params['categoryId'] = categoryRow!.id;
+      clauses.add('AND p."categoryId" = @categoryId::uuid');
+      params['categoryId'] = categoryRow!.id.toString();
     }
 
     final normalizedSubcategories = (subcategories ?? const <String>[])
@@ -560,7 +561,7 @@ class PostgresProductCompatService {
           FROM product_sub_category psc
           JOIN sub_category sc ON sc.id = psc."subCategoryId"
           WHERE psc."productId" = p.id
-            AND psc."subCategoryId" = ANY(@subCategoryIds)
+            AND psc."subCategoryId" = ANY(@subCategoryIds::uuid[])
             AND sc.status = 'active'
         )
       ''');
@@ -655,7 +656,13 @@ class PostgresProductCompatService {
           label:
               cleanNullableString(variant.quantityDescription) ??
               '${variant.quantityValue} ${variant.quantityUnit}'.trim(),
-          sku: cleanNullableString(variant.variantId),
+          sku: (() {
+            final sku = cleanNullableString(variant.variantId);
+            if (sku == null || sku.isEmpty || sku.toLowerCase() == 'default') {
+              return '${productId.toString()}-default';
+            }
+            return sku;
+          })(),
           quantityValue: variant.quantityValue,
           quantityUnit: variant.quantityUnit.trim(),
           quantityDescription: cleanNullableString(variant.quantityDescription),

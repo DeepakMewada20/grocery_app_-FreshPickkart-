@@ -97,6 +97,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
           ),
           Expanded(
             child: Obx(() {
+              print('DEBUG UI: BOGO offers list length: ${_controller.bogoOffers.length}');
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
                   onRetry: () =>

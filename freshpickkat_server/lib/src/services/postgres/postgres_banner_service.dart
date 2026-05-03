@@ -229,17 +229,9 @@ class PostgresBannerService {
     final parsedId = tryParseUuid(bannerId);
     if (parsedId == null) return;
 
-    final row = await BannerRow.db.findById(session, parsedId);
-    if (row == null) return;
-
-    final now = DateTime.now().toUtc();
-    await BannerRow.db.updateRow(
+    await BannerRow.db.deleteWhere(
       session,
-      row.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
-        updatedAt: now,
-      ),
+      where: (t) => t.id.equals(parsedId),
     );
   }
 
