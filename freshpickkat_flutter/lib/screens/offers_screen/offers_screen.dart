@@ -245,13 +245,18 @@ class _OffersScreenState extends State<OffersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 8,
+                        ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                color: AppTheme.primaryGreen.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(
@@ -348,6 +353,7 @@ class _OffersScreenState extends State<OffersScreen> {
                     itemBuilder: (context, index) {
                       return ProductCard(
                         product: products[index],
+                        heroTagSuffix: '_offers',
                         onAddPressed: () {},
                       );
                     },

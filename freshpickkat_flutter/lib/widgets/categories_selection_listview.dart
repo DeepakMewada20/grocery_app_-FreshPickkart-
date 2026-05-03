@@ -146,6 +146,7 @@ class _CategoriesSelectionListviewState
                   margin: const EdgeInsets.only(right: 12),
                   child: ProductCard(
                     product: p,
+                    heroTagSuffix: '_trending',
                     onAddPressed: () {},
                   ),
                 );

@@ -19,6 +19,7 @@ class ProductCard extends StatefulWidget {
   final VoidCallback? onAddPressed;
   final VoidCallback? onTap;
   final bool enableHero;
+  final String? heroTagSuffix;
   final double? titleFontSize;
   final double? priceFontSize;
   final double? quantityFontSize;
@@ -30,6 +31,7 @@ class ProductCard extends StatefulWidget {
     this.onAddPressed,
     this.onTap,
     this.enableHero = true,
+    this.heroTagSuffix,
     this.titleFontSize,
     this.priceFontSize,
     this.quantityFontSize,
@@ -87,7 +89,9 @@ class _ProductCardState extends State<ProductCard> {
           (item.variantId ?? 'default') == _selectedVariantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
-    final offer = BogoController.instance.getOfferForProduct(product.productId!);
+    final offer = BogoController.instance.getOfferForProduct(
+      product.productId!,
+    );
     final isEligible =
         offer == null ||
         isBogoTriggerVariantEligible(
@@ -181,8 +185,8 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                           child: widget.enableHero
                               ? Hero(
-tag:
-                                        'product_${widget.product.productId}',
+                                  tag:
+                                      'product_${widget.product.productId}${widget.heroTagSuffix ?? ''}',
                                   child: Image.network(
                                     displayProduct.imageUrl,
                                     fit: BoxFit.cover,

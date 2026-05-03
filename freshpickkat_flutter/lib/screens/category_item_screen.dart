@@ -433,6 +433,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           final p = productController.allProducts[index];
           return ProductCard(
             product: p,
+            heroTagSuffix: '_category_grid',
             onAddPressed: () {},
           );
         },

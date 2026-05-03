@@ -108,6 +108,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
                     final p = searchController.searchResults[index];
                     return ProductCard(
                       product: p,
+                      heroTagSuffix: '_search',
                       onAddPressed: () {
                         // Logic handled within ProductCard usually
                       },
@@ -179,6 +180,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
                     final p = searchController.suggestions[index];
                     return ProductCard(
                       product: p,
+                      heroTagSuffix: '_search',
                       onAddPressed: () {
                         // Logic handled within ProductCard usually
                       },

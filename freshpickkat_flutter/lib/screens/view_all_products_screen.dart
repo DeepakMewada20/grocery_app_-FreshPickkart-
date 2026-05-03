@@ -110,7 +110,10 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final p = products[index];
-                return ProductCard(product: p);
+                return ProductCard(
+                  product: p,
+                  heroTagSuffix: '_view_all',
+                );
               },
             ),
           );

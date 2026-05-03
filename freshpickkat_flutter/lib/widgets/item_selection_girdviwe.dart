@@ -39,6 +39,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
         final p = products[index];
         return ProductCard(
           product: p,
+          heroTagSuffix: '_grid',
           onAddPressed: () {},
         );
       },

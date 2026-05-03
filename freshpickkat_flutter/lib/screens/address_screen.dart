@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/address_utils.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -37,7 +38,8 @@ class _AddressScreenState extends State<AddressScreen>
   bool _showCustomAddress = false;
   int? _selectedIndex;
   String? _errorMessage;
-  List<geo.Placemark> _nearbyPlacemarks = [];
+  // TODO: Uncomment if needed for nearby addresses feature
+  // List<geo.Placemark> _nearbyPlacemarks = [];
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -55,7 +57,8 @@ class _AddressScreenState extends State<AddressScreen>
       _nameController.text = userController.userName.value;
     }
     _initAnimations();
-    _getCurrentLocation();
+    // TODO: Uncomment if needed - auto fetch current location
+    // _getCurrentLocation();
   }
 
   void _initAnimations() {
@@ -94,104 +97,107 @@ class _AddressScreenState extends State<AddressScreen>
     _slideController.forward();
   }
 
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-      _errorMessage = null;
-    });
+  // TODO: Uncomment if needed
+  // Future<void> _getCurrentLocation() async {
+  //   setState(() {
+  //     _isLoadingLocation = true;
+  //     _errorMessage = null;
+  //   });
+  //
+  //   try {
+  //     // Check if location service is enabled
+  //     bool serviceEnabled = await _location.serviceEnabled();
+  //     if (!serviceEnabled) {
+  //       serviceEnabled = await _location.requestService();
+  //       if (!serviceEnabled) {
+  //         setState(() {
+  //           _isLoadingLocation = false;
+  //           _errorMessage = 'Please enable location services';
+  //         });
+  //         return;
+  //       }
+  //     }
+  //
+  //     // Check permissions
+  //     PermissionStatus permissionGranted = await _location.hasPermission();
+  //     if (permissionGranted == PermissionStatus.denied) {
+  //       permissionGranted = await _location.requestPermission();
+  //       if (permissionGranted != PermissionStatus.granted) {
+  //         setState(() {
+  //           _isLoadingLocation = false;
+  //           _errorMessage = 'Location permission required';
+  //         });
+  //         return;
+  //       }
+  //     }
+  //
+  //     // Get current location
+  //     LocationData locationData = await _location.getLocation();
+  //
+  //     // Get nearby addresses using reverse geocoding
+  //     await _getNearbyAddresses(
+  //       locationData.latitude!,
+  //       locationData.longitude!,
+  //     );
+  //     GetStorage().write('delivery_location_type', 'current');
+  //
+  //     setState(() {
+  //       _isLoadingLocation = false;
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       _isLoadingLocation = false;
+  //       _errorMessage = 'Failed to get location: ${e.toString()}';
+  //     });
+  //     debugPrint('Location error: $e');
+  //   }
+  // }
 
-    try {
-      // Check if location service is enabled
-      bool serviceEnabled = await _location.serviceEnabled();
-      if (!serviceEnabled) {
-        serviceEnabled = await _location.requestService();
-        if (!serviceEnabled) {
-          setState(() {
-            _isLoadingLocation = false;
-            _errorMessage = 'Please enable location services';
-          });
-          return;
-        }
-      }
+  // TODO: Uncomment if needed
+  // Future<void> _getNearbyAddresses(double lat, double lng) async {
+  //   try {
+  //     List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+  //       lat,
+  //       lng,
+  //     );
+  //
+  //     setState(() {
+  //       _nearbyPlacemarks = placemarks.take(6).toList();
+  //       if (_nearbyPlacemarks.isNotEmpty) {
+  //         _selectedIndex = 0;
+  //       }
+  //     });
+  //   } catch (e) {
+  //     debugPrint('Geocoding error: $e');
+  //     setState(() {
+  //       _errorMessage = 'Failed to get nearby addresses';
+  //     });
+  //   }
+  // }
 
-      // Check permissions
-      PermissionStatus permissionGranted = await _location.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
-        permissionGranted = await _location.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
-          setState(() {
-            _isLoadingLocation = false;
-            _errorMessage = 'Location permission required';
-          });
-          return;
-        }
-      }
-
-      // Get current location
-      LocationData locationData = await _location.getLocation();
-
-      // Get nearby addresses using reverse geocoding
-      await _getNearbyAddresses(
-        locationData.latitude!,
-        locationData.longitude!,
-      );
-      GetStorage().write('delivery_location_type', 'current');
-
-      setState(() {
-        _isLoadingLocation = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingLocation = false;
-        _errorMessage = 'Failed to get location: ${e.toString()}';
-      });
-      debugPrint('Location error: $e');
-    }
-  }
-
-  Future<void> _getNearbyAddresses(double lat, double lng) async {
-    try {
-      List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
-        lat,
-        lng,
-      );
-
-      setState(() {
-        _nearbyPlacemarks = placemarks.take(6).toList();
-        if (_nearbyPlacemarks.isNotEmpty) {
-          _selectedIndex = 0;
-        }
-      });
-    } catch (e) {
-      debugPrint('Geocoding error: $e');
-      setState(() {
-        _errorMessage = 'Failed to get nearby addresses';
-      });
-    }
-  }
-
-  String _formatAddress(geo.Placemark placemark) {
-    List<String> parts = [];
-
-    if (placemark.street != null && placemark.street!.isNotEmpty) {
-      parts.add(placemark.street!);
-    }
-    if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
-      parts.add(placemark.subLocality!);
-    }
-    if (placemark.locality != null && placemark.locality!.isNotEmpty) {
-      parts.add(placemark.locality!);
-    }
-    if (placemark.administrativeArea != null &&
-        placemark.administrativeArea!.isNotEmpty) {
-      parts.add(placemark.administrativeArea!);
-    }
-    if (placemark.postalCode != null && placemark.postalCode!.isNotEmpty) {
-      parts.add(placemark.postalCode!);
-    }
-
-    return parts.join(', ');
-  }
+  // TODO: Uncomment if needed
+  // String _formatAddress(geo.Placemark placemark) {
+  //   List<String> parts = [];
+  //
+  //   if (placemark.street != null && placemark.street!.isNotEmpty) {
+  //     parts.add(placemark.street!);
+  //   }
+  //   if (placemark.subLocality != null && placemark.subLocality!.isNotEmpty) {
+  //     parts.add(placemark.subLocality!);
+  //   }
+  //   if (placemark.locality != null && placemark.locality!.isNotEmpty) {
+  //     parts.add(placemark.locality!);
+  //   }
+  //   if (placemark.administrativeArea != null &&
+  //       placemark.administrativeArea!.isNotEmpty) {
+  //     parts.add(placemark.administrativeArea!);
+  //   }
+  //   if (placemark.postalCode != null && placemark.postalCode!.isNotEmpty) {
+  //     parts.add(placemark.postalCode!);
+  //   }
+  //
+  //   return parts.join(', ');
+  // }
 
   Future<void> _saveAddress() async {
     // Validate name
@@ -231,10 +237,10 @@ class _AddressScreenState extends State<AddressScreen>
     }
 
     // Validate address selection if not custom
-    if (!_showCustomAddress &&
-        (_selectedIndex == null || _nearbyPlacemarks.isEmpty)) {
+    // TODO: Update validation for map-based selection
+    if (!_showCustomAddress && _streetController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Please select an address';
+        _errorMessage = 'Please select an address from map';
       });
       return;
     }
@@ -257,20 +263,19 @@ class _AddressScreenState extends State<AddressScreen>
           country: 'India', // Default or add field
         );
       } else {
-        GetStorage().write('delivery_location_type', 'current');
-        final p = _nearbyPlacemarks[_selectedIndex!];
-        // Try to get location for the selected placemark if possible, or use current location
+        GetStorage().write('delivery_location_type', 'saved');
+        // Get current location for coordinates
         LocationData? loc;
         try {
           loc = await _location.getLocation();
         } catch (_) {}
 
         address = Address(
-          street: AddressUtils.extractStreetAndColony(p),
-          city: p.locality ?? '',
-          state: p.administrativeArea ?? '',
-          zipCode: p.postalCode ?? '',
-          country: p.country ?? '',
+          street: _streetController.text.trim(),
+          city: _cityController.text.trim(),
+          state: _stateController.text.trim(),
+          zipCode: _zipController.text.trim(),
+          country: 'India',
           latitude: loc?.latitude,
           longitude: loc?.longitude,
         );
@@ -388,6 +393,41 @@ class _AddressScreenState extends State<AddressScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Select from Map Button
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LocationPickerScreen(
+                                      isCheckoutMode: false,
+                                    ),
+                                  ),
+                                );
+                                if (result != null && result is Address && mounted) {
+                                  // Populate form with selected address
+                                  setState(() {
+                                    _streetController.text = result.street ?? '';
+                                    _cityController.text = result.city ?? '';
+                                    _stateController.text = result.state ?? '';
+                                    _zipController.text = result.zipCode ?? '';
+                                    _showCustomAddress = false;
+                                  });
+                                }
+                              },
+                              icon: const Icon(Icons.map),
+                              label: const Text('Select from Map'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                           // Name field
                           _buildLabel('Your Name *'),
                           const SizedBox(height: 8),
@@ -416,14 +456,14 @@ class _AddressScreenState extends State<AddressScreen>
                           ),
                           const SizedBox(height: 12),
 
-                          // Current location button
-                          if (!_isLoadingLocation && _nearbyPlacemarks.isEmpty)
-                            _buildLocationButton(),
+                          // TODO: Uncomment if needed - current location button
+                          // if (!_isLoadingLocation && _nearbyPlacemarks.isEmpty)
+                          //   _buildLocationButton(),
 
-                          // Nearby addresses
-                          if (_nearbyPlacemarks.isNotEmpty &&
-                              !_showCustomAddress)
-                            ..._buildNearbyAddresses(),
+                          // TODO: Uncomment if needed - nearby addresses
+                          // if (_nearbyPlacemarks.isNotEmpty &&
+                          //     !_showCustomAddress)
+                          //   ..._buildNearbyAddresses(),
 
                           // Custom address option
                           const SizedBox(height: 16),
@@ -700,126 +740,128 @@ class _AddressScreenState extends State<AddressScreen>
     );
   }
 
-  Widget _buildLocationButton() {
-    return InkWell(
-      onTap: _getCurrentLocation,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Color(0xFF1B8A4C).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Color(0xFF1B8A4C).withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1B8A4C),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.my_location,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Use Current Location',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'We\'ll detect nearby addresses',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[600],
-              size: 16,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // TODO: Uncomment if needed - location button
+  // Widget _buildLocationButton() {
+  //   return InkWell(
+  //     onTap: _getCurrentLocation,
+  //     borderRadius: BorderRadius.circular(12),
+  //     child: Container(
+  //       padding: const EdgeInsets.all(16),
+  //       decoration: BoxDecoration(
+  //         color: Color(0xFF1B8A4C).withValues(alpha: 0.1),
+  //         borderRadius: BorderRadius.circular(12),
+  //         border: Border.all(
+  //           color: Color(0xFF1B8A4C).withValues(alpha: 0.3),
+  //         ),
+  //       ),
+  //       child: Row(
+  //         children: [
+  //           Container(
+  //             padding: const EdgeInsets.all(10),
+  //             decoration: const BoxDecoration(
+  //               color: Color(0xFF1B8A4C),
+  //               shape: BoxShape.circle,
+  //             ),
+  //             child: const Icon(
+  //               Icons.my_location,
+  //               color: Colors.white,
+  //               size: 20,
+  //             ),
+  //           ),
+  //           const SizedBox(width: 12),
+  //           const Expanded(
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Text(
+  //                   'Use Current Location',
+  //                   style: TextStyle(
+  //                     fontSize: 15,
+  //                     fontWeight: FontWeight.w600,
+  //                     color: Colors.white,
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: 2),
+  //                 Text(
+  //                   'We\'ll detect nearby addresses',
+  //                   style: TextStyle(
+  //                     fontSize: 13,
+  //                     color: Colors.white70,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           Icon(
+  //             Icons.arrow_forward_ios,
+  //             color: Colors.grey[600],
+  //             size: 16,
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  List<Widget> _buildNearbyAddresses() {
-    List<Widget> list = [];
-    for (int i = 0; i < _nearbyPlacemarks.length; i++) {
-      final placemark = _nearbyPlacemarks[i];
-      bool isSelected = _selectedIndex == i;
-      String formattedAddress = _formatAddress(placemark);
-      list.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedIndex = i;
-                _errorMessage = null;
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Color(0xFF1B8A4C).withValues(alpha: 0.1)
-                    : const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? Color(0xFF1B8A4C) : Colors.grey[600]!,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isSelected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: isSelected ? Color(0xFF1B8A4C) : Colors.white70,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      formattedAddress,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? Colors.white : Colors.white70,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return list;
-  }
+  // TODO: Uncomment if needed - nearby addresses list
+  // List<Widget> _buildNearbyAddresses() {
+  //   List<Widget> list = [];
+  //   for (int i = 0; i < _nearbyPlacemarks.length; i++) {
+  //     final placemark = _nearbyPlacemarks[i];
+  //     bool isSelected = _selectedIndex == i;
+  //     String formattedAddress = _formatAddress(placemark);
+  //     list.add(
+  //       Padding(
+  //         padding: const EdgeInsets.only(bottom: 12),
+  //         child: InkWell(
+  //           onTap: () {
+  //             setState(() {
+  //               _selectedIndex = i;
+  //               _errorMessage = null;
+  //             });
+  //           },
+  //           borderRadius: BorderRadius.circular(12),
+  //           child: Container(
+  //             padding: const EdgeInsets.all(16),
+  //             decoration: BoxDecoration(
+  //               color: isSelected
+  //                   ? Color(0xFF1B8A4C).withValues(alpha: 0.1)
+  //                   : const Color(0xFF1A1A1A),
+  //               borderRadius: BorderRadius.circular(12),
+  //               border: Border.all(
+  //                 color: isSelected ? Color(0xFF1B8A4C) : Colors.grey[600]!,
+  //                 width: isSelected ? 2 : 1,
+  //               ),
+  //             ),
+  //             child: Row(
+  //               children: [
+  //                 Icon(
+  //                   isSelected
+  //                       ? Icons.radio_button_checked
+  //                       : Icons.radio_button_off,
+  //                   color: isSelected ? Color(0xFF1B8A4C) : Colors.white70,
+  //                   size: 22,
+  //                 ),
+  //                 const SizedBox(width: 12),
+  //                 Expanded(
+  //                   child: Text(
+  //                     formattedAddress,
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       color: isSelected ? Colors.white : Colors.white70,
+  //                       fontWeight: isSelected
+  //                           ? FontWeight.w600
+  //                           : FontWeight.w400,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     );
+  //   }
+  //   return list;
+  // }
 }

@@ -31,7 +31,7 @@ class LocationPickerScreen extends StatefulWidget {
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   late GoogleMapController _mapController;
 
-  // Current selected location
+  // Current selected location (center of map)
   late LatLng _selectedLocation;
 
   // Form controllers
@@ -43,6 +43,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   bool _isLoadingLocation = false;
   bool _isGeocoding = false;
   Address? _currentAddress;
+  bool _mapIsMoving = false; // Track if user is dragging map
 
   final OrderController _orderController = OrderController.instance;
   final UserController _userController = UserController.instance;
@@ -127,6 +128,25 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         setState(() => _isGeocoding = false);
       }
     }
+  }
+
+  /// Handle camera movement - track when user is dragging
+  void _onCameraMove(CameraPosition position) {
+    if (mounted) {
+      setState(() {
+        _mapIsMoving = true;
+        _selectedLocation = position.target;
+      });
+    }
+  }
+
+  /// Handle when user stops dragging map - fetch address for center location
+  Future<void> _onCameraIdle() async {
+    if (mounted) {
+      setState(() => _mapIsMoving = false);
+    }
+    // Fetch address for the new center location
+    await _geocodeSelectedLocation();
   }
 
   void _animateMapToLocation() {
@@ -231,28 +251,42 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             onMapCreated: (controller) {
               _mapController = controller;
             },
-            markers: {
-              Marker(
-                markerId: const MarkerId('selected_location'),
-                position: _selectedLocation,
-                draggable: true,
-                onDragEnd: (newLocation) {
-                  setState(() => _selectedLocation = newLocation);
-                  _geocodeSelectedLocation();
-                },
-              ),
-            },
-            onCameraMove: (CameraPosition position) {
-              _selectedLocation = position.target;
-            },
+            markers: const {}, // No markers - use fixed center icon instead
+            onCameraMove: _onCameraMove, // Track map movement
+            onCameraIdle: _onCameraIdle, // Fetch address when movement stops
           ),
 
-          // Center marker pin icon
+          // Center marker pin icon (fixed - shows selected location)
           const Center(
             child: Icon(
               Icons.location_on,
-              size: 40,
+              size: 45,
               color: Colors.red,
+            ),
+          ),
+
+          // Instructions text at top
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _mapIsMoving
+                    ? 'Moving...'
+                    : 'Drag the map to select your location',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
 

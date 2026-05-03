@@ -230,13 +230,32 @@ class PostgresOrderService {
       '''
       SELECT COUNT(*) AS "totalCount"
       FROM customer_order
-      WHERE "userId" = @userId
+      WHERE "userId" = @userId::uuid
       ''',
-      parameters: QueryParameters.named({'userId': appUser.id}),
+      parameters: QueryParameters.named({'userId': appUser.id.toString()}),
     );
     final totalCount = totalCountResult.isEmpty
         ? 0
         : asInt(totalCountResult.first.toColumnMap()['totalCount']);
+
+    var whereClause = 'WHERE "userId" = @userId::uuid';
+    final params = <String, dynamic>{
+      'userId': appUser.id.toString(),
+      'limit': pageSize + 1,
+    };
+
+    if (cursor != null) {
+      whereClause += '''
+        AND (
+          "orderedAt" < @cursorOrderedAt::timestamp
+          OR (
+            "orderedAt" = @cursorOrderedAt::timestamp
+            AND id::text < @cursorOrderId::text
+          )
+        )''';
+      params['cursorOrderedAt'] = cursor.orderedAt.toIso8601String();
+      params['cursorOrderId'] = cursor.orderId;
+    }
 
     final orderPageResult = await session.db.unsafeQuery(
       '''
@@ -244,24 +263,11 @@ class PostgresOrderService {
         id::text AS "orderId",
         "orderedAt" AS "orderedAt"
       FROM customer_order
-      WHERE "userId" = @userId
-        AND (
-          @cursorOrderedAt IS NULL
-          OR "orderedAt" < @cursorOrderedAt
-          OR (
-            "orderedAt" = @cursorOrderedAt
-            AND id::text < @cursorOrderId
-          )
-        )
+      $whereClause
       ORDER BY "orderedAt" DESC, id DESC
       LIMIT @limit
       ''',
-      parameters: QueryParameters.named({
-        'userId': appUser.id,
-        'cursorOrderedAt': cursor?.orderedAt,
-        'cursorOrderId': cursor?.orderId,
-        'limit': pageSize + 1,
-      }),
+      parameters: QueryParameters.named(params),
     );
 
     final orderedIds = <String>[];
