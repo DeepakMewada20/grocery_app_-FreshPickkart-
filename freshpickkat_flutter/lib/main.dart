@@ -6,7 +6,6 @@ import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
-import 'package:freshpickkat_flutter/screens/address_screen.dart';
 import 'package:freshpickkat_flutter/screens/checkout_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
@@ -91,7 +90,8 @@ class MyApp extends StatelessWidget {
           );
         },
         routes: {
-          '/address': (context) => const AddressScreen(),
+          // '/address' route removed - using EditProfileScreen instead
+          // '/address': (context) => const AddressScreen(),
           '/checkout': (context) => const CheckoutScreen(),
           '/home': (context) => const MainScreen(),
           '/login': (context) => const PhoneAuthScreen(),

@@ -3,12 +3,19 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final String title;
+  final String successAction;
+
+  const EditProfileScreen({
+    super.key,
+    this.title = 'Edit Profile',
+    this.successAction = 'goBack',
+  });
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -54,22 +61,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _cityController.text = address.city;
       _stateController.text = address.state;
       _zipController.text = address.zipCode;
-    }
-  }
-
-  Future<void> _openLocationPicker() async {
-    final currentAddress = UserController.instance.shippingAddress.value;
-    final result = await Get.to(
-      () => LocationPickerScreen(
-        isCheckoutMode: false,
-        initialAddress: currentAddress,
-        addressLabel: 'Home',
-      ),
-    );
-
-    // If location was picked, reload the address fields
-    if (result != null || mounted) {
-      _loadExistingAddress();
     }
   }
 
@@ -142,14 +133,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // Update address
       await userController.updateAddress(address);
 
-      Get.back();
-      Get.snackbar(
-        'Success',
-        'Profile updated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
+      // Set delivery location type
+      GetStorage().write('delivery_location_type', 'saved');
+
+      // Handle success action based on source
+      if (widget.successAction == 'navigateHome') {
+        // For new user setup - show success and navigate home
+        Get.offAllNamed('/home');
+        Get.snackbar(
+          'Success',
+          'Profile saved successfully!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
+      } else {
+        // For edit profile from more screen - go back with snackbar
+        Get.back();
+        Get.snackbar(
+          'Success',
+          'Profile updated successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
+      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -197,22 +205,80 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Use Current Location Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _openLocationPicker(),
-                  icon: const Icon(Icons.my_location),
-                  label: const Text('Use Current Location'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+              // Location Display Card (Always Visible)
+              Obx(() {
+                final address = UserController.instance.shippingAddress.value;
+                final hasAddress = address != null && address.street.isNotEmpty;
+                return Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: hasAddress 
+                          ? Colors.green.withValues(alpha: 0.5) 
+                          : Colors.grey.withValues(alpha: 0.3),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: hasAddress ? Colors.green : Colors.grey,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              hasAddress ? 'Selected Location' : 'No Location Selected',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              hasAddress 
+                                  ? '${address.street}, ${address.city}, ${address.state} - ${address.zipCode}'
+                                  : 'Tap "Select from Map" to add your address',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white54 : Colors.grey[600],
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          hasAddress ? 'Change' : 'Add',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
 
+              const SizedBox(height: 16),
+
+              // Address Form
               AddressFormWidget(
                 key: _addressFormKey,
                 showTitle: false,

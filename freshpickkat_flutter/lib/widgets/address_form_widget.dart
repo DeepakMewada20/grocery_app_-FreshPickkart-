@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as geo;
-import 'package:freshpickkat_flutter/utils/address_utils.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:get/get.dart';
 
 class AddressFormWidget extends StatefulWidget {
   final bool showTitle;
@@ -76,40 +79,6 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         widget.instructionsController ?? TextEditingController();
   }
 
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-    });
-
-    try {
-      final location = await AddressUtils.getCurrentLocation();
-      await _getNearbyAddresses(location.latitude, location.longitude);
-      setState(() {
-        _isLoadingLocation = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingLocation = false;
-      });
-      debugPrint('Location error: $e');
-    }
-  }
-
-  Future<void> _getNearbyAddresses(double lat, double lng) async {
-    try {
-      final placemarks = await AddressUtils.getNearbyAddresses(lat, lng);
-      setState(() {
-        _nearbyPlacemarks = placemarks;
-        if (_nearbyPlacemarks.isNotEmpty) {
-          _selectedIndex = 0;
-          _showCustomAddress = false;
-        }
-      });
-    } catch (e) {
-      debugPrint('Geocoding error: $e');
-    }
-  }
-
   @override
   void dispose() {
     if (widget.nameController == null) _nameController.dispose();
@@ -143,7 +112,19 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Obx(() {
+      final address = UserController.instance.shippingAddress.value;
+      if (address != null && address.street.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_streetController.text.isEmpty) {
+            _streetController.text = address.street;
+            _cityController.text = address.city;
+            _stateController.text = address.state;
+            _zipController.text = address.zipCode;
+          }
+        });
+      }
+      return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -170,7 +151,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           ),
           const SizedBox(height: 24),
 
-          // Location section
+// Location section
           Row(
             children: [
               _buildLabel('Select Address *'),
@@ -190,99 +171,58 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           ),
           const SizedBox(height: 12),
 
-          // Current location button
-          if (!_isLoadingLocation &&
-              _nearbyPlacemarks.isEmpty &&
-              !_showCustomAddress)
-            _buildLocationButton(),
+          // Location button - opens map picker
+          _buildLocationButton(),
 
-          // Nearby addresses
-          if (_nearbyPlacemarks.isNotEmpty && !_showCustomAddress)
-            ..._buildNearbyAddresses(),
+        // TODO: Uncomment if needed - custom address option (removed for map-only selection)
+        // Custom address fields
+        // if (_showCustomAddress) ...[
+        //   const SizedBox(height: 12),
+        //   _buildTextField(
+        //     controller: _streetController,
+        //     hint: 'Street Address',
+        //     icon: Icons.add_home_work_outlined,
+        //     errorText: _fieldErrors['street'],
+        //     fieldKey: 'street',
+        //   ),
+        //   const SizedBox(height: 12),
+        //   _buildTextField(
+        //     controller: _cityController,
+        //     hint: 'City',
+        //     icon: Icons.location_city,
+        //     errorText: _fieldErrors['city'],
+        //     fieldKey: 'city',
+        //   ),
+        //   const SizedBox(height: 12),
+        //   Row(
+        //     children: [
+        //       Expanded(
+        //         child: _buildTextField(
+        //           controller: _stateController,
+        //           hint: 'State',
+        //           icon: Icons.map_outlined,
+        //           errorText: _fieldErrors['state'],
+        //           fieldKey: 'state',
+        //         ),
+        //       ),
+        //       const SizedBox(width: 12),
+        //       Expanded(
+        //         child: _buildTextField(
+        //           controller: _zipController,
+        //           hint: 'Zip Code',
+        //           icon: Icons.numbers,
+        //           errorText: _fieldErrors['zipCode'],
+        //           fieldKey: 'zipCode',
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ],
+// ],
+        // ]
 
-          // Custom address option
-          if (_nearbyPlacemarks.isNotEmpty || _showCustomAddress) ...[
-            const SizedBox(height: 16),
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _showCustomAddress = !_showCustomAddress;
-                  if (!_showCustomAddress && _nearbyPlacemarks.isNotEmpty) {
-                    _selectedIndex = 0;
-                  }
-                });
-              },
-              icon: Icon(
-                _showCustomAddress
-                    ? Icons.location_on
-                    : Icons.edit_location_alt,
-                size: 20,
-              ),
-              label: Text(
-                _showCustomAddress
-                    ? 'Use detected location'
-                    : 'Enter custom address',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: widget.isDarkTheme
-                    ? Colors.white70
-                    : const Color(0xFF00B894),
-              ),
-            ),
-          ],
-
-          // Custom address fields
-          if (_showCustomAddress) ...[
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _streetController,
-              hint: 'Street Address',
-              icon: Icons.add_home_work_outlined,
-              errorText: _fieldErrors['street'],
-              fieldKey: 'street',
-            ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _cityController,
-              hint: 'City',
-              icon: Icons.location_city,
-              errorText: _fieldErrors['city'],
-              fieldKey: 'city',
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _stateController,
-                    hint: 'State',
-                    icon: Icons.map_outlined,
-                    errorText: _fieldErrors['state'],
-                    fieldKey: 'state',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _zipController,
-                    hint: 'Zip Code',
-                    icon: Icons.numbers,
-                    errorText: _fieldErrors['zipCode'],
-                    fieldKey: 'zipCode',
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          const SizedBox(height: 24),
-
-          // Optional fields
-          _buildLabel('Additional Details (Optional)'),
+        // Optional fields (always visible - map provides the address)
+        _buildLabel('Additional Details (Optional)'),
           const SizedBox(height: 12),
 
           _buildTextField(
@@ -310,6 +250,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         ],
       ),
     );
+    });
   }
 
   Widget _buildLabel(String text) {
@@ -445,7 +386,21 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
 
   Widget _buildLocationButton() {
     return InkWell(
-      onTap: _getCurrentLocation,
+      onTap: () async {
+        final result = await Get.to(
+          () => LocationPickerScreen(
+            isCheckoutMode: false,
+          ),
+        );
+        if (result != null && result is Address) {
+          setState(() {
+            _streetController.text = result.street;
+            _cityController.text = result.city;
+            _stateController.text = result.state;
+            _zipController.text = result.zipCode;
+          });
+        }
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -482,7 +437,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Use Current Location',
+                    'Select from Map',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -491,7 +446,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'We\'ll detect nearby addresses',
+                    'Choose your location on the map',
                     style: TextStyle(
                       fontSize: 13,
                       color: _getHintColor(),
@@ -511,86 +466,4 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     );
   }
 
-  List<Widget> _buildNearbyAddresses() {
-    List<Widget> list = [];
-    for (int i = 0; i < _nearbyPlacemarks.length; i++) {
-      final placemark = _nearbyPlacemarks[i];
-      bool isSelected = _selectedIndex == i;
-      String formattedAddress = AddressUtils.formatAddress(placemark);
-
-      list.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () {
-              final placemark = _nearbyPlacemarks[i];
-              setState(() {
-                _selectedIndex = i;
-                // Auto-populate the controllers with selected address data
-                _streetController.text = AddressUtils.extractStreetAndColony(
-                  placemark,
-                );
-                _cityController.text = placemark.locality ?? '';
-                _stateController.text = placemark.administrativeArea ?? '';
-                _zipController.text = placemark.postalCode ?? '';
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? (widget.isDarkTheme
-                          ? Color(0xFF1B8A4C).withValues(alpha: 0.2)
-                          : const Color(0xFF00B894).withValues(alpha: 0.1))
-                    : _getBgColor(),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? (widget.isDarkTheme
-                            ? Color(0xFF1B8A4C)
-                            : const Color(0xFF00B894))
-                      : (widget.isDarkTheme
-                            ? Colors.grey[700]!
-                            : Colors.grey[300]!),
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isSelected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: isSelected
-                        ? (widget.isDarkTheme
-                              ? Color(0xFF1B8A4C)
-                              : const Color(0xFF00B894))
-                        : (widget.isDarkTheme
-                              ? Colors.grey[600]
-                              : Colors.grey[400]),
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      formattedAddress,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? _getTextColor() : _getLabelColor(),
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return list;
   }
-}

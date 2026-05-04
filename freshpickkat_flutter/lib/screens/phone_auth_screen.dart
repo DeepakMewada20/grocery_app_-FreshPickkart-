@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
@@ -262,8 +263,16 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
             Get.offAllNamed('/home');
           }
         } else {
-          // First time user or missing profile data, go to AddressScreen
-          Navigator.pushReplacementNamed(context, '/address');
+          // First time user or missing profile data, go to EditProfileScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const EditProfileScreen(
+                title: 'Setup Your Profile',
+                successAction: 'navigateHome',
+              ),
+            ),
+          );
         }
       },
     );
@@ -302,8 +311,16 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
             Get.offAllNamed('/home');
           }
         } else {
-          // First time user or missing profile data, go to AddressScreen
-          Navigator.pushReplacementNamed(context, '/address');
+          // First time user or missing profile data, go to EditProfileScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const EditProfileScreen(
+                title: 'Setup Your Profile',
+                successAction: 'navigateHome',
+              ),
+            ),
+          );
         }
       }
     } else {

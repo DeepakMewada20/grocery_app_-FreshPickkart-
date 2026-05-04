@@ -190,15 +190,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
     try {
       if (widget.isCheckoutMode) {
-        // Checkout mode: save to OrderController (temporary)
         _orderController.setTempDeliveryAddress(address);
-        _showSnackBar('Delivery address selected');
         Get.back();
       } else {
-        // Profile mode: save to UserController (permanent)
-        // Update user's shipping address in database
         _userController.shippingAddress.value = address;
-        _showSnackBar('Address saved to profile');
         Get.back();
       }
     } catch (e) {
