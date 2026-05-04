@@ -155,7 +155,18 @@ class ProductProviderController extends GetxController {
         isMoreDataAvailable.value = false;
       }
 
-      allProducts.addAll(newProducts);
+      final existingIds = allProducts
+          .map((p) => p.productId)
+          .whereType<String>()
+          .toSet();
+
+      for (final product in newProducts) {
+        final id = product.productId;
+        if (id != null && !existingIds.contains(id)) {
+          allProducts.add(product);
+          existingIds.add(id);
+        }
+      }
 
       if (isInitialFetch) {
         _productCache[key] = List.from(allProducts);

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -7,21 +6,117 @@ import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:get/get.dart';
 
-class HomeBannerWithHorizontalItem extends StatelessWidget {
+class HomeBannerWithHorizontalItem extends StatefulWidget {
   final double height;
   const HomeBannerWithHorizontalItem({required this.height, super.key});
 
   @override
+  State<HomeBannerWithHorizontalItem> createState() =>
+      _HomeBannerWithHorizontalItemState();
+}
+
+class _HomeBannerWithHorizontalItemState
+    extends State<HomeBannerWithHorizontalItem> {
+  List<Product> _displayProducts = [];
+  bool _isFetchingProducts = false;
+  List<String> _lastProductIds = [];
+  ImageProvider? _cachedBannerImage;
+  String? _lastBannerUrl;
+
+  @override
+  void initState() {
+    super.initState();
+
+    ever(
+      BannerController.instance.homeTopImageBanners,
+      (_) => _handleBannerChange(),
+    );
+
+    if (BannerController.instance.homeTopImageBanners.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleBannerChange();
+      });
+    }
+  }
+
+  void _handleBannerChange() {
+    final banner =
+        BannerController.instance.homeTopImageBanners.firstOrNull;
+
+    if (banner == null || banner.linkedProductIds == null) {
+      return;
+    }
+
+    if (banner.imageUrl != _lastBannerUrl) {
+      _lastBannerUrl = banner.imageUrl;
+      final image = NetworkImage(banner.imageUrl);
+      _cachedBannerImage = image;
+      precacheImage(image, context);
+    }
+
+    final productIds = banner.linkedProductIds!;
+
+    if (productIds.isEmpty) {
+      setState(() {
+        _displayProducts = [];
+        _isFetchingProducts = false;
+      });
+      return;
+    }
+
+    final alreadyFetched = productIds.length == _lastProductIds.length &&
+        productIds.every((id) => _lastProductIds.contains(id));
+
+    if (!alreadyFetched && !_isFetchingProducts) {
+      _lastProductIds = productIds;
+      _fetchBannerProducts(productIds);
+    } else {
+      _updateDisplayProducts(productIds);
+    }
+  }
+
+  Future<void> _fetchBannerProducts(List<String> productIds) async {
+    if (!mounted) return;
+    setState(() => _isFetchingProducts = true);
+
+    await ProductProviderController.instance.fetchProductsByIds(productIds);
+
+    if (!mounted) return;
+    _updateDisplayProducts(productIds);
+    setState(() => _isFetchingProducts = false);
+  }
+
+  void _updateDisplayProducts(List<String> productIds) {
+    final allProducts = ProductProviderController.instance.allProducts;
+    final products = allProducts
+        .where((p) => productIds.contains(p.productId) && p.productId != null)
+        .toList()
+        .cast<Product>();
+
+    final seen = <String>{};
+    final uniqueProducts = <Product>[];
+    for (final p in products) {
+      final id = p.productId;
+      if (id != null && seen.add(id)) {
+        uniqueProducts.add(p);
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _displayProducts = uniqueProducts;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final bannerController = BannerController.instance;
-    final productController = ProductProviderController.instance;
 
     return SliverToBoxAdapter(
       child: Obx(() {
-        // 🔍 Get the banner provided by server (already filtered Festive > Base)
         final banner = bannerController.homeTopImageBanners.firstOrNull;
-
-        final bannerHeight = height * 0.4;
+        final bannerHeight = widget.height * 0.4;
 
         return Container(
           margin: const EdgeInsets.only(top: 16),
@@ -30,18 +125,21 @@ class HomeBannerWithHorizontalItem extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              /// 🖼️ BACKGROUND IMAGE (DYNAMIC)
               Positioned.fill(
                 child: banner != null
-                    ? Image.network(
-                        banner.imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const _ShimmerBox();
-                        },
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(color: Colors.grey[200]),
+                    ? RepaintBoundary(
+                        child: Image(
+                          key: ValueKey(_lastBannerUrl),
+                          image: _cachedBannerImage ??
+                              NetworkImage(banner.imageUrl),
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const _ShimmerBox();
+                          },
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(color: Colors.grey[200]),
+                        ),
                       )
                     : Container(
                         decoration: const BoxDecoration(
@@ -55,38 +153,15 @@ class HomeBannerWithHorizontalItem extends StatelessWidget {
                       ),
               ),
 
-              /// 🧱 HORIZONTAL ITEMS (OVERLAP)
               Positioned(
                 bottom: 7,
                 left: 0,
                 right: 0,
                 child: SizedBox(
                   height: 130,
-                  child: Builder(
-                    builder: (context) {
-                      if (banner == null) {
-                        // Fallback to top 5 products if no dynamic banner
-                        final products = productController.allProducts
-                            .take(5)
-                            .toList();
-                        return _ProductList(products: products);
-                      }
-
-                      // Fetch linked products for the banner
-                      final productIds = banner.linkedProductIds!;
-                      productController.fetchProductsByIds(productIds);
-
-                      final products = productController.allProducts
-                          .where((p) => productIds.contains(p.productId))
-                          .toList();
-
-                      if (products.isEmpty && productController.isLoading.value) {
-                        return _ShimmerProductList();
-                      }
-
-                      return _ProductList(products: products);
-                    },
-                  ),
+                  child: banner == null
+                      ? _buildFallbackProducts()
+                      : _buildProductSection(),
                 ),
               ),
             ],
@@ -94,6 +169,26 @@ class HomeBannerWithHorizontalItem extends StatelessWidget {
         );
       }),
     );
+  }
+
+  Widget _buildFallbackProducts() {
+    final productController = ProductProviderController.instance;
+    return Obx(() {
+      final products = productController.allProducts.take(5).toList();
+      return _ProductList(products: products);
+    });
+  }
+
+  Widget _buildProductSection() {
+    if (_isFetchingProducts && _displayProducts.isEmpty) {
+      return _ShimmerProductList();
+    }
+
+    if (_displayProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return _ProductList(products: _displayProducts);
   }
 }
 

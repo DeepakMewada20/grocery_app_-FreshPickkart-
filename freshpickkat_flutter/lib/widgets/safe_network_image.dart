@@ -22,7 +22,6 @@ class SafeNetworkImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveUrl = (url ?? '').trim();
 
-    // 🛡️ Guard against empty or malformed URLs that trigger ArgumentError in Image.network
     if (effectiveUrl.isEmpty || !effectiveUrl.startsWith('http')) {
       return _buildFallback(context);
     }
@@ -32,6 +31,8 @@ class SafeNetworkImage extends StatelessWidget {
       fit: fit,
       width: width,
       height: height,
+      cacheWidth: width?.toInt(),
+      cacheHeight: height?.toInt(),
       errorBuilder: (context, error, stackTrace) =>
           errorWidget ?? _buildFallback(context),
       loadingBuilder: (context, child, loadingProgress) {

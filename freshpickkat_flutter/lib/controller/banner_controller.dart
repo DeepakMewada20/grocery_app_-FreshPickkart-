@@ -24,6 +24,24 @@ class BannerController extends GetxController {
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
 
+  Future<void> loadHomeTopImageBannersIfEmpty() async {
+    if (_isFetching) return;
+    if (homeTopImageBanners.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    _isFetching = true;
+    try {
+      final banners = await _client.banner.getBanners(
+        screen: 'home_top_image',
+        activeOnly: true,
+      );
+      homeTopImageBanners.assignAll(banners);
+    } catch (e) {
+      debugPrint('Error loading home top image banners: $e');
+    } finally {
+      _isFetching = false;
+    }
+  }
 
   Future<void> loadHomeBannersIfEmpty() async {
     if (_isFetching) return;

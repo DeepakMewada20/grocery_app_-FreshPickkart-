@@ -35,6 +35,8 @@ class _HomePageState extends State<HomePage>
     super.initState();
     _scrollController.addListener(_storeScrollOffset);
 
+    bannerController.loadHomeTopImageBannersIfEmpty();
+
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;
       if (networkController.isConnected.value) {

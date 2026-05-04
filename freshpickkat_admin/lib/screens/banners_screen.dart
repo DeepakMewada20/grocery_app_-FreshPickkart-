@@ -202,8 +202,8 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  void _showAddBannerDialog() {
-    showModalBottomSheet(
+  void _showAddBannerDialog() async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -215,8 +215,8 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  void _showEditBannerDialog(client.Banner banner) {
-    showModalBottomSheet(
+  void _showEditBannerDialog(client.Banner banner) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -666,6 +666,7 @@ enum BannerMode { normal, homeTopImage }
 class _BannerSheetState extends State<_BannerSheet> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   final productController = AdminProductController.instance;
   
   String? _imageUrl;
@@ -686,6 +687,9 @@ class _BannerSheetState extends State<_BannerSheet> {
   bool _isBaseImage = false;
   bool _isUploading = false;
   bool _isSubmitting = false;
+  bool _isSaved = false;
+  bool _isClosing = false;
+  final List<String> _uploadedUrlsInSession = [];
   String? _lastAutoTitle;
 
   BannerMode _mode = BannerMode.normal;
@@ -698,6 +702,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     if (widget.banner != null) {
       _titleController.text = widget.banner!.title;
       _imageUrl = widget.banner!.imageUrl;
+      _imageUrlController.text = widget.banner!.imageUrl;
       _type = widget.banner!.type;
       _offerId = widget.banner!.offerId;
       _categoryId = widget.banner!.categoryId;
@@ -733,12 +738,43 @@ class _BannerSheetState extends State<_BannerSheet> {
   @override
   void dispose() {
     _titleController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _cleanupImages() async {
+    for (final url in _uploadedUrlsInSession) {
+      await AdminImageUploadService.deleteImage(url);
+    }
+    _uploadedUrlsInSession.clear();
+  }
+
+  Future<void> _onCancel() async {
+    if (_isClosing) return;
+    if (_isSaved) {
+      Navigator.pop(context);
+      return;
+    }
+
+    setState(() => _isClosing = true);
+
+    if (_uploadedUrlsInSession.isNotEmpty) {
+      await _cleanupImages();
+    }
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) _onCancel();
+      },
+      child: Container(
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -772,7 +808,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _onCancel,
                   icon: const Icon(Icons.close),
                 ),
               ],
@@ -980,6 +1016,7 @@ class _BannerSheetState extends State<_BannerSheet> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -1116,6 +1153,11 @@ class _BannerSheetState extends State<_BannerSheet> {
   }
 
   Widget _buildImagePicker() {
+    final hasImage = _imageUrlController.text.trim().isNotEmpty || _imageUrl != null;
+    final displayUrl = _imageUrlController.text.trim().isNotEmpty
+        ? _imageUrlController.text.trim()
+        : _imageUrl;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1124,6 +1166,43 @@ class _BannerSheetState extends State<_BannerSheet> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
+        TextFormField(
+          controller: _imageUrlController,
+          decoration: const InputDecoration(
+            labelText: 'Image URL',
+            hintText: 'Paste image link here',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.link),
+          ),
+          onChanged: (value) {
+            setState(() {
+              if (value.trim().isNotEmpty) {
+                _imageUrl = value.trim();
+              } else {
+                _imageUrl = null;
+              }
+            });
+          },
+          validator: (v) {
+            final url = _imageUrlController.text.trim();
+            if (url.isEmpty && _imageUrl == null) {
+              return 'Please provide an image URL or upload an image';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 12),
+        const Center(
+          child: Text(
+            'OR',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         InkWell(
           onTap: _isUploading ? null : _uploadImage,
           child: Container(
@@ -1136,14 +1215,51 @@ class _BannerSheetState extends State<_BannerSheet> {
             ),
             child: _isUploading
                 ? const Center(child: CircularProgressIndicator())
-                : _imageUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          _imageUrl!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
+                : hasImage
+                    ? Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              displayUrl!,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.broken_image, size: 40, color: Colors.grey[400]),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Invalid image URL',
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+                                onPressed: () {
+                                  setState(() {
+                                    _imageUrlController.clear();
+                                    _imageUrl = null;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1159,14 +1275,6 @@ class _BannerSheetState extends State<_BannerSheet> {
                       ),
           ),
         ),
-        if (_imageUrl != null) ...[
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: _isUploading ? null : _uploadImage,
-            icon: const Icon(Icons.edit, size: 16),
-            label: const Text('Change Image'),
-          ),
-        ],
       ],
     );
   }
@@ -1303,7 +1411,11 @@ class _BannerSheetState extends State<_BannerSheet> {
         aspectRatio: aspectRatio,
       );
       if (url != null && mounted) {
-        setState(() => _imageUrl = url);
+        setState(() {
+          _imageUrl = url;
+          _imageUrlController.text = url;
+          _uploadedUrlsInSession.add(url);
+        });
       }
     } finally {
       if (mounted) {
@@ -1317,7 +1429,8 @@ class _BannerSheetState extends State<_BannerSheet> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate() || _imageUrl == null) return;
+    final imageUrl = _imageUrlController.text.trim();
+    if (!_formKey.currentState!.validate() || imageUrl.isEmpty) return;
 
     if (_selectedPlacements.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1329,7 +1442,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     final banner = AppBanner(
       bannerId: widget.banner?.bannerId,
       title: _titleController.text.trim(),
-      imageUrl: _imageUrl!,
+      imageUrl: imageUrl,
       type: _type,
       offerId: _offerId,
       categoryId: _categoryId,
@@ -1351,7 +1464,10 @@ class _BannerSheetState extends State<_BannerSheet> {
     setState(() => _isSubmitting = true);
     try {
       await widget.onSave(banner);
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        _isSaved = true;
+        Navigator.pop(context);
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
