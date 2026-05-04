@@ -140,14 +140,18 @@ class _CategoriesSelectionListviewState
                 }
 
                 final p = products[index];
-                // Show regular ProductCard
+                final uniqueKey = '${p.productId}_trending_$index';
                 return Container(
                   width: 160,
                   margin: const EdgeInsets.only(right: 12),
-                  child: ProductCard(
-                    product: p,
-                    heroTagSuffix: '_trending',
-                    onAddPressed: () {},
+                  child: KeyedSubtree(
+                    key: ValueKey(uniqueKey),
+                    child: ProductCard(
+                      product: p,
+                      enableHero: false,
+                      heroTagSuffix: '_trending',
+                      onAddPressed: () {},
+                    ),
                   ),
                 );
               },

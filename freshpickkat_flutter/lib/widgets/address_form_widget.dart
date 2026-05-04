@@ -38,10 +38,10 @@ class AddressFormWidget extends StatefulWidget {
 }
 
 class _AddressFormWidgetState extends State<AddressFormWidget> {
-  bool _isLoadingLocation = false;
-  bool _showCustomAddress = false;
+  final bool _isLoadingLocation = false;
+  final bool _showCustomAddress = false;
   int? _selectedIndex;
-  List<geo.Placemark> _nearbyPlacemarks = [];
+  final List<geo.Placemark> _nearbyPlacemarks = [];
 
   // Field-level error tracking
   final Map<String, String?> _fieldErrors = {

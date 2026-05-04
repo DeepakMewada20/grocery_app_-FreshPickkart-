@@ -38,22 +38,22 @@ class PostgresCatalogService {
       JOIN category c ON c.id = p."categoryId"
       WHERE p.status = 'active'
         AND c.status = 'active'
-        AND (@categoryId IS NULL OR p."categoryId" = @categoryId)
+        AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
         AND (
-          @subCategoryId IS NULL OR EXISTS (
+          @subCategoryId::uuid IS NULL OR EXISTS (
             SELECT 1
             FROM product_sub_category psc
             JOIN sub_category sc ON sc.id = psc."subCategoryId"
             WHERE psc."productId" = p.id
-              AND psc."subCategoryId" = @subCategoryId
+              AND psc."subCategoryId" = @subCategoryId::uuid
               AND sc.status = 'active'
           )
         )
         AND (
-          @cursorCreatedAt IS NULL
-          OR p."createdAt" < @cursorCreatedAt
+          @cursorCreatedAt::timestamp IS NULL
+          OR p."createdAt" < @cursorCreatedAt::timestamp
           OR (
-            p."createdAt" = @cursorCreatedAt
+            p."createdAt" = @cursorCreatedAt::timestamp
             AND p.id::text < @cursorProductId
           )
         )
@@ -118,7 +118,7 @@ class PostgresCatalogService {
     String? pageToken,
     String? categoryId,
     String? subCategoryId,
-    double similarityThreshold = 0.2,
+    double similarityThreshold = 0.05,
   }) async {
     final normalizedQuery = query.trim();
     if (normalizedQuery.length < 2) {
@@ -160,15 +160,15 @@ class PostgresCatalogService {
         WHERE p.status = 'active'
           AND c.status = 'active'
           AND psd."searchText" ILIKE '%' || @query || '%'
-          AND similarity(psd."searchText", @query) > @threshold
-          AND (@categoryId IS NULL OR p."categoryId" = @categoryId)
+          AND similarity(psd."searchText", @query) > @threshold::float8
+          AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
           AND (
-            @subCategoryId IS NULL OR EXISTS (
+            @subCategoryId::uuid IS NULL OR EXISTS (
               SELECT 1
               FROM product_sub_category psc
               JOIN sub_category sc ON sc.id = psc."subCategoryId"
               WHERE psc."productId" = p.id
-                AND psc."subCategoryId" = @subCategoryId
+                AND psc."subCategoryId" = @subCategoryId::uuid
                 AND sc.status = 'active'
             )
           )
@@ -179,14 +179,14 @@ class PostgresCatalogService {
         "sourceCreatedAt"
       FROM ranked
       WHERE (
-        @cursorRank IS NULL
-        OR "rank" < @cursorRank
+        @cursorRank::float8 IS NULL
+        OR "rank" < @cursorRank::float8
         OR (
-          "rank" = @cursorRank
+          "rank" = @cursorRank::float8
           AND (
-            "sourceCreatedAt" < @cursorCreatedAt
+            "sourceCreatedAt" < @cursorCreatedAt::timestamp
             OR (
-              "sourceCreatedAt" = @cursorCreatedAt
+              "sourceCreatedAt" = @cursorCreatedAt::timestamp
               AND "productId" < @cursorProductId
             )
           )
@@ -302,15 +302,15 @@ class PostgresCatalogService {
       WHERE p.status = 'active'
         AND c.status = 'active'
         AND psd."searchText" ILIKE '%' || @query || '%'
-        AND similarity(psd."searchText", @query) > @threshold
-        AND (@categoryId IS NULL OR p."categoryId" = @categoryId)
+        AND similarity(psd."searchText", @query) > @threshold::float8
+        AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
         AND (
-          @subCategoryId IS NULL OR EXISTS (
+          @subCategoryId::uuid IS NULL OR EXISTS (
             SELECT 1
             FROM product_sub_category psc
             JOIN sub_category sc ON sc.id = psc."subCategoryId"
             WHERE psc."productId" = p.id
-              AND psc."subCategoryId" = @subCategoryId
+              AND psc."subCategoryId" = @subCategoryId::uuid
               AND sc.status = 'active'
           )
         )

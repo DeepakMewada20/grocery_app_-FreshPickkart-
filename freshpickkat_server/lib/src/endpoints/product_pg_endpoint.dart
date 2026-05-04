@@ -34,7 +34,7 @@ class ProductPgEndpoint extends Endpoint {
     String? pageToken,
     String? categoryId,
     String? subCategoryId,
-    double similarityThreshold = 0.2,
+    double similarityThreshold = 0.05,
   }) {
     return _catalogService.searchActiveProducts(
       session,

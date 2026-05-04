@@ -170,8 +170,19 @@ class ProductEndpoint extends Endpoint {
     return _pgProducts.getProductSuggestions(session, query);
   }
 
-  Future<List<Product>> searchProducts(Session session, String query) {
-    return _pgProducts.searchProducts(session, query);
+  Future<ProductPage> searchProducts(
+    Session session,
+    String query, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final result = await _pgProducts.searchProductsPage(
+      session,
+      query: query,
+      limit: limit,
+      pageToken: pageToken,
+    );
+    return result;
   }
 
   Future<int> migrateProducts(

@@ -467,7 +467,7 @@ Future<void> showAddSubcategoryDialog({
                     ),
                     const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Parent Category',
                         border: OutlineInputBorder(),

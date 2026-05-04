@@ -1424,12 +1424,19 @@ class EndpointProduct extends _i1.EndpointRef {
         {'query': query},
       );
 
-  _i2.Future<List<_i35.Product>> searchProducts(String query) =>
-      caller.callServerEndpoint<List<_i35.Product>>(
-        'product',
-        'searchProducts',
-        {'query': query},
-      );
+  _i2.Future<_i36.ProductPage> searchProducts(
+    String query, {
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i36.ProductPage>(
+    'product',
+    'searchProducts',
+    {
+      'query': query,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
 
   _i2.Future<int> migrateProducts(
     String firebaseUid,

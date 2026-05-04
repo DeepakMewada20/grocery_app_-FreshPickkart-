@@ -3849,10 +3849,12 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<List<_i36.Product>> searchProducts(
+  _i3.Future<_i37.ProductPage> searchProducts(
     _i1.TestSessionBuilder sessionBuilder,
-    String query,
-  ) async {
+    String query, {
+    required int limit,
+    String? pageToken,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -3864,7 +3866,11 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'searchProducts',
-          parameters: _i1.testObjectToJson({'query': query}),
+          parameters: _i1.testObjectToJson({
+            'query': query,
+            'limit': limit,
+            'pageToken': pageToken,
+          }),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3872,7 +3878,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i36.Product>>);
+                as _i3.Future<_i37.ProductPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

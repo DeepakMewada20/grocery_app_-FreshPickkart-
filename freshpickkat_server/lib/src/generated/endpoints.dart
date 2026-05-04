@@ -3041,6 +3041,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -3050,6 +3060,8 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['product'] as _i16.ProductEndpoint).searchProducts(
                     session,
                     params['query'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
                   ),
         ),
         'migrateProducts': _i1.MethodConnector(

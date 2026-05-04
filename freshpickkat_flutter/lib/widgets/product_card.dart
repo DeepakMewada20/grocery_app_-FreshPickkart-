@@ -30,7 +30,7 @@ class ProductCard extends StatefulWidget {
     required this.product,
     this.onAddPressed,
     this.onTap,
-    this.enableHero = true,
+    this.enableHero = false,
     this.heroTagSuffix,
     this.titleFontSize,
     this.priceFontSize,

@@ -241,6 +241,20 @@ class PostgresProductCompatService {
     return page.products;
   }
 
+  Future<ProductPage> searchProductsPage(
+    Session session, {
+    required String query,
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    return _catalog.searchActiveProducts(
+      session,
+      query: query,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
   Future<String?> uploadProduct(
     Session session,
     Product product,

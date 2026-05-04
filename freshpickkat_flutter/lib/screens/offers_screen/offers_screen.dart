@@ -351,8 +351,9 @@ class _OffersScreenState extends State<OffersScreen> {
                         ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
+                      final p = products[index];
                       return ProductCard(
-                        product: products[index],
+                        product: p,
                         heroTagSuffix: '_offers',
                         onAddPressed: () {},
                       );
