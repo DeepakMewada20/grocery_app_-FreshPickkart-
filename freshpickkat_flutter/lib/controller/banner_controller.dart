@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -17,6 +17,9 @@ class BannerController extends GetxController {
   final cartPageBanners = <client.Banner>[].obs;
   final checkoutPageBanners = <client.Banner>[].obs;
   final productPageBanners = <client.Banner>[].obs;
+ 
+  // Cache for image providers to ensure reuse across the session
+  final Map<String, ImageProvider> _imageProviderCache = {};
 
   final isLoading = false.obs;
   final error = Rx<String?>(null);
@@ -72,6 +75,13 @@ class BannerController extends GetxController {
       homeTopBanners.assignAll(results[0].where((b) => !b.screenPlacements.contains('home_top_image')));
       homeTopImageBanners.assignAll(results[1]);
       homeMiddleBanners.assignAll(results[2]);
+
+      // Precache images for immediate reuse
+      if (results[1].isNotEmpty && Get.context != null) {
+        for (var b in results[1]) {
+          precacheImage(getImageProvider(b.imageUrl), Get.context!);
+        }
+      }
     } catch (e) {
       error.value = e.toString();
       debugPrint('Error loading home banners: $e');
@@ -161,5 +171,13 @@ class BannerController extends GetxController {
   /// Central tap handler — delegates to BannerNavigationHelper
   Future<void> onBannerTap(client.Banner banner) async {
     await BannerNavigationHelper.navigate(banner);
+  }
+
+  /// Gets or creates an ImageProvider for a banner image URL
+  ImageProvider getImageProvider(String imageUrl) {
+    if (!_imageProviderCache.containsKey(imageUrl)) {
+      _imageProviderCache[imageUrl] = NetworkImage(imageUrl);
+    }
+    return _imageProviderCache[imageUrl]!;
   }
 }

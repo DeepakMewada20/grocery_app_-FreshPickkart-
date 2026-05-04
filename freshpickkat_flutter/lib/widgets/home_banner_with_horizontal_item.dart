@@ -20,8 +20,6 @@ class _HomeBannerWithHorizontalItemState
   List<Product> _displayProducts = [];
   bool _isFetchingProducts = false;
   List<String> _lastProductIds = [];
-  ImageProvider? _cachedBannerImage;
-  String? _lastBannerUrl;
 
   @override
   void initState() {
@@ -33,9 +31,7 @@ class _HomeBannerWithHorizontalItemState
     );
 
     if (BannerController.instance.homeTopImageBanners.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handleBannerChange();
-      });
+      _handleBannerChange();
     }
   }
 
@@ -47,12 +43,8 @@ class _HomeBannerWithHorizontalItemState
       return;
     }
 
-    if (banner.imageUrl != _lastBannerUrl) {
-      _lastBannerUrl = banner.imageUrl;
-      final image = NetworkImage(banner.imageUrl);
-      _cachedBannerImage = image;
-      precacheImage(image, context);
-    }
+    // No need to manually cache image provider, ImageCache handles it
+    // Removed precacheImage logic to prevent rebuilding during first frame
 
     final productIds = banner.linkedProductIds!;
 
@@ -127,19 +119,12 @@ class _HomeBannerWithHorizontalItemState
             children: [
               Positioned.fill(
                 child: banner != null
-                    ? RepaintBoundary(
-                        child: Image(
-                          key: ValueKey(_lastBannerUrl),
-                          image: _cachedBannerImage ??
-                              NetworkImage(banner.imageUrl),
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const _ShimmerBox();
-                          },
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(color: Colors.grey[200]),
-                        ),
+                    ? Image(
+                        image: bannerController.getImageProvider(banner.imageUrl),
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(color: Colors.grey[200]),
                       )
                     : Container(
                         decoration: const BoxDecoration(

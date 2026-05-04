@@ -35,23 +35,6 @@ class SafeNetworkImage extends StatelessWidget {
       cacheHeight: height?.toInt(),
       errorBuilder: (context, error, stackTrace) =>
           errorWidget ?? _buildFallback(context),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return placeholder ??
-            Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                ),
-              ),
-            );
-      },
     );
   }
 
