@@ -523,26 +523,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               Text(
                                 order.deliveryAddress.street,
                                 style: AdminTextStyles.body(context),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                '${order.deliveryAddress.city}, ${order.deliveryAddress.state}',
-                                style: TextStyle(
-                                  color: AdminAppTheme.getTextSecondaryColor(
-                                    context,
+                              if (order.deliveryAddress.city.isNotEmpty ||
+                                  order.deliveryAddress.state.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(top: 4.h),
+                                  child: Text(
+                                    '${order.deliveryAddress.city}${order.deliveryAddress.city.isNotEmpty && order.deliveryAddress.state.isNotEmpty ? ", " : ""}${order.deliveryAddress.state}',
+                                    style: AdminTextStyles.caption(context),
                                   ),
                                 ),
-                              ),
-                              Text(
-                                '${order.deliveryAddress.zipCode}, ${order.deliveryAddress.country}',
-                                style: TextStyle(
-                                  color: AdminAppTheme.getTextSecondaryColor(
-                                    context,
+                              if (order.deliveryAddress.zipCode.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(top: 2.h),
+                                  child: Text(
+                                    'PIN: ${order.deliveryAddress.zipCode}',
+                                    style: AdminTextStyles.caption(context),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

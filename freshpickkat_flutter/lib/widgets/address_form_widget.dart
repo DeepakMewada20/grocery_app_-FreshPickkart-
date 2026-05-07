@@ -44,6 +44,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
   final bool _showCustomAddress = false;
   int? _selectedIndex;
   final List<geo.Placemark> _nearbyPlacemarks = [];
+  Address? _selectedAddress;
 
   // Field-level error tracking
   final Map<String, String?> _fieldErrors = {
@@ -119,6 +120,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
       if (address != null && address.street.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_streetController.text.isEmpty) {
+            _selectedAddress = address;
             _streetController.text = address.street;
             _cityController.text = address.city;
             _stateController.text = address.state;
@@ -394,10 +396,16 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         );
         if (result != null && result is Address) {
           setState(() {
+            _selectedAddress = result;
             _streetController.text = result.street;
             _cityController.text = result.city;
             _stateController.text = result.state;
             _zipController.text = result.zipCode;
+          });
+          widget.onAddressFetched({
+            'address': result,
+            'latitude': result.latitude,
+            'longitude': result.longitude,
           });
         }
       },
@@ -437,7 +445,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    'Select from Map',
+                    _selectedAddress != null
+                        ? 'Location Selected'
+                        : 'Select from Map',
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
@@ -448,12 +458,14 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'Choose your location on the map',
+                    _selectedAddress != null
+                        ? _selectedAddress!.street
+                        : 'Choose your location on the map',
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: _getHintColor(),
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

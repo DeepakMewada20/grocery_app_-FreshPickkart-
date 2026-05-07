@@ -236,11 +236,13 @@ class CatalogCategoriesTab extends StatelessWidget {
               Navigator.pop(context);
               try {
                 await onConfirm();
-                if (context.mounted)
+                if (context.mounted) {
                   _showCatalogSnackBar(context, 'Deleted successfully');
+                }
               } catch (e) {
-                if (context.mounted)
+                if (context.mounted) {
                   _showCatalogSnackBar(context, 'Delete failed: $e');
+                }
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -385,8 +387,9 @@ Future<void> showAddCategoryDialog({
                           } catch (e) {
                             setSheetState(() => imageError = e.toString());
                           } finally {
-                            if (context.mounted)
+                            if (context.mounted) {
                               setSheetState(() => isUploadingImage = false);
+                            }
                           }
                         }();
                       },
@@ -651,8 +654,9 @@ Future<void> showAddSubcategoryDialog({
                           } catch (e) {
                             setSheetState(() => imageError = e.toString());
                           } finally {
-                            if (context.mounted)
+                            if (context.mounted) {
                               setSheetState(() => isUploadingImage = false);
+                            }
                           }
                         }();
                       },

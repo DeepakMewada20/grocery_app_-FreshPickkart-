@@ -36,6 +36,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _instructionsController;
 
   bool _isSaving = false;
+  double? _latitude;
+  double? _longitude;
   final _addressFormKey = GlobalKey();
 
   @override
@@ -64,6 +66,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _cityController.text = address.city;
       _stateController.text = address.state;
       _zipController.text = address.zipCode;
+      _latitude = address.latitude;
+      _longitude = address.longitude;
     }
   }
 
@@ -131,6 +135,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         state: state,
         zipCode: zip,
         country: 'India',
+        latitude: _latitude,
+        longitude: _longitude,
       );
 
       // Update address
@@ -321,7 +327,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   floorController: _floorController,
                   instructionsController: _instructionsController,
                   onAddressFetched: (addressData) {
-                    // Handle address data if needed
+                    if (addressData['latitude'] != null) {
+                      _latitude = addressData['latitude'] as double?;
+                      _longitude = addressData['longitude'] as double?;
+                    }
                   },
                 ),
 

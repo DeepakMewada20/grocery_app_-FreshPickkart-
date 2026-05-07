@@ -511,8 +511,8 @@ class PostgresOrderService {
         Order(
           orderId: order.orderNumber,
           userId: appUser?.firebaseUid ?? order.userId.toString(),
-          userName: appUser?.name,
-          userPhone: appUser?.phoneNumber ?? '',
+          userName: address.recipientName ?? appUser?.name,
+          userPhone: address.phoneNumber ?? appUser?.phoneNumber ?? '',
           items: mappedItems,
           itemCount: order.itemCount,
           totalAmount: order.totalAmount,

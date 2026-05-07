@@ -400,11 +400,15 @@ class _LiveDeliveryMapPreviewScreenState
                   SizedBox(height: 4.h),
                   Text(
                     destination == null
-                        ? 'Destination: not available'
-                        : 'Destination: ${widget.order.deliveryAddress.street}, ${widget.order.deliveryAddress.city}',
-                    maxLines: 2,
+                        ? 'Destination: Coordinates not found for this address'
+                        : 'Destination: ${widget.order.deliveryAddress.street}${widget.order.deliveryAddress.city.isNotEmpty ? ", ${widget.order.deliveryAddress.city}" : ""}',
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 13.sp.clamp(11.0, 15.0),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),

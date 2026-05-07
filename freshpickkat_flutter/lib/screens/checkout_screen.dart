@@ -147,9 +147,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       userController.shippingAddress.value,
     );
 
-    if (deliveryAddress == null) {
+    if (deliveryAddress == null ||
+        deliveryAddress.latitude == null ||
+        deliveryAddress.longitude == null) {
       _setProcessing(false);
-      _openLocationPicker(initialAddress: null);
+      _openLocationPicker(initialAddress: deliveryAddress);
+      // Give the user a hint why the picker opened
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This address needs a map location. Please pick your location on the map.',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
       return;
     }
 
@@ -1216,6 +1227,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 onPressed: () => _openLocationPicker(initialAddress: null),
               ),
             ] else ...[
+              if (displayAddress.latitude == null ||
+                  displayAddress.longitude == null)
+                Container(
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: Colors.amber.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          color: Colors.amber.shade700, size: 20.sp),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Text(
+                          'Location coordinates missing for this address. Please update it on the map for accurate delivery.',
+                          style: TextStyle(
+                            color: Colors.amber.shade900,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            _openLocationPicker(initialAddress: displayAddress),
+                        child: Text('Update'),
+                      ),
+                    ],
+                  ),
+                ),
               if (tempAddress != null)
                 Container(
                   padding: EdgeInsets.symmetric(
