@@ -8,6 +8,7 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
@@ -120,12 +121,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            'Delivery tracking armed. Push will send after first live location.',
+            'Order moved to out for delivery and customer notified.',
           ),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
+        ),
+      );
+
+      await Get.to(
+        () => LiveDeliveryMapPreviewScreen(
+          order: order.copyWith(status: 'out_for_delivery'),
         ),
       );
     } catch (e) {
@@ -1310,6 +1317,17 @@ class _OrderCard extends StatelessWidget {
           onPressed: () => onStatusChanged('delivered'),
         ),
       );
+      buttons.add(
+        _lifecycleButton(
+          context: context,
+          label: 'Track Order',
+          color: Colors.blueGrey,
+          icon: Icons.map_outlined,
+          onPressed: () {
+            Get.to(() => LiveDeliveryMapPreviewScreen(order: order));
+          },
+        ),
+      );
     }
 
     if (buttons.isEmpty) {
@@ -1420,7 +1438,7 @@ class _DetailSection extends StatelessWidget {
                 style: AdminTextStyles.sectionTitle(context),
               ),
             ),
-            if (trailing != null) trailing!,
+            trailing ?? const SizedBox.shrink(),
           ],
         ),
         SizedBox(height: 12.h),
