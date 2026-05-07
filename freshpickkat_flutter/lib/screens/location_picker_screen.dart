@@ -193,10 +193,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     try {
       if (widget.isCheckoutMode) {
         _orderController.setTempDeliveryAddress(address);
-        Get.back();
+        if (_orderController.saveAddressForFuture.value) {
+          _userController.updateAddress(address);
+        }
+        Get.back(result: address);
       } else {
         _userController.shippingAddress.value = address;
-        Get.back();
+        Get.back(result: address);
       }
     } catch (e) {
       _showSnackBar('Failed to save address: $e', isError: true);

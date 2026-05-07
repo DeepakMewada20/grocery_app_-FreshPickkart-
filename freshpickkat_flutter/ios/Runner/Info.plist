@@ -51,6 +51,10 @@
 		<string>We need access to detect your country code</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>We need your location to suggest nearby delivery addresses</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>We need your location to suggest nearby delivery addresses even when the app is in background.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>We need your location to suggest nearby delivery addresses even when the app is in background.</string>
 		<key>MAPS_API_KEY</key>
 		<string>$(MAPS_API_KEY)</string>
 	</dict>

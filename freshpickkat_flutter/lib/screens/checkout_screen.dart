@@ -1170,9 +1170,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildAddressSection(ColorScheme cs) {
-    final address = userController.shippingAddress.value;
-
     return Obx(() {
+      final address = userController.shippingAddress.value;
       final tempAddress = orderController.tempDeliveryAddress.value;
       final displayAddress = tempAddress ?? address;
 
