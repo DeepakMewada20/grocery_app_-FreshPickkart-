@@ -12,5 +12,6 @@ class NetworkService {
     return await _internetConnection.hasInternetAccess;
   }
 
-  Stream<InternetStatus> get onStatusChange => _internetConnection.onStatusChange;
+  Stream<InternetStatus> get onStatusChange =>
+      _internetConnection.onStatusChange;
 }

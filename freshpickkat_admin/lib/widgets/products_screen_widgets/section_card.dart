@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
 class SectionCard extends StatelessWidget {
   const SectionCard({
@@ -24,25 +27,31 @@ class SectionCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: padding ?? const EdgeInsets.all(16),
+        padding: padding ?? AdminResponsive.cardPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[700],
+                Icon(
+                  icon,
+                  size: 18.sp.clamp(16.0, 20.0),
+                  color: Colors.grey[600],
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.cardTitle(
+                      context,
+                    ).copyWith(color: Colors.grey[700]),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 14.h),
             child,
           ],
         ),

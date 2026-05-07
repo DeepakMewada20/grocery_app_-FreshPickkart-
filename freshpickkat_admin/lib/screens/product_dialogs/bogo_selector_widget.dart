@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class BogoSelectorWidget extends StatelessWidget {
@@ -24,45 +26,77 @@ class BogoSelectorWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Expanded(
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 360;
+            final title = Expanded(
               child: Text(
                 'Free Products (Pick one or more)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AdminTextStyles.cardTitle(context),
               ),
-            ),
-            FilledButton.tonalIcon(
+            );
+            final button = FilledButton.tonalIcon(
               onPressed: canBrowse ? onBrowsePressed : null,
-              icon: const Icon(Icons.grid_view_rounded, size: 18),
+              icon: Icon(Icons.grid_view_rounded, size: 18.r),
               label: Text(
                 selectedProducts.isEmpty ? 'Browse Products' : 'Edit',
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            );
+            if (isCompact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Free Products (Pick one or more)',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.cardTitle(context),
+                  ),
+                  SizedBox(height: 8.h),
+                  button,
+                ],
+              );
+            }
+            return Row(
+              children: [
+                title,
+                SizedBox(width: 8.w),
+                button,
+              ],
+            );
+          },
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         if (!canBrowse)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
               color: Colors.amber.shade50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(color: Colors.amber.shade200),
             ),
-            child: const Text('Select the main product category first.'),
+            child: Text(
+              'Select the main product category first.',
+              style: AdminTextStyles.body(context),
+            ),
           )
         else if (selectedProducts.isEmpty && unresolvedIds.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
               color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: const Text('No free products selected yet.'),
+            child: Text(
+              'No free products selected yet.',
+              style: AdminTextStyles.body(context),
+            ),
           )
         else
           Column(
@@ -79,11 +113,11 @@ class BogoSelectorWidget extends StatelessWidget {
                     ? normalizedConfiguredQuantity
                     : product.quantity;
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(10),
+                  margin: EdgeInsets.only(bottom: 10.h),
+                  padding: EdgeInsets.all(10.r),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14.r),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: Column(
@@ -91,10 +125,10 @@ class BogoSelectorWidget extends StatelessWidget {
                       Row(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             child: Container(
-                              width: 52,
-                              height: 52,
+                              width: 52.r,
+                              height: 52.r,
                               color: Colors.grey.shade100,
                               child: product.imageUrl.isEmpty
                                   ? const Icon(Icons.image_outlined)
@@ -110,7 +144,7 @@ class BogoSelectorWidget extends StatelessWidget {
                                     ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,13 +153,13 @@ class BogoSelectorWidget extends StatelessWidget {
                                   product.productName,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: AdminTextStyles.cardTitle(context),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4.h),
                                 Text(
                                   '${product.category} • Pack: ${product.quantity}',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(color: Colors.grey.shade700),
                                 ),
                               ],
@@ -139,33 +173,36 @@ class BogoSelectorWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 10.h,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(color: Colors.green.shade100),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.scale_rounded,
-                              size: 18,
+                              size: 18.r,
                               color: Colors.green.shade700,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             Expanded(
                               child: Text(
                                 'Free quantity: $freeQuantity',
-                                style: TextStyle(
-                                  color: Colors.green.shade700,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AdminTextStyles.caption(context)
+                                    .copyWith(
+                                      color: Colors.green.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
                             ),
                           ],

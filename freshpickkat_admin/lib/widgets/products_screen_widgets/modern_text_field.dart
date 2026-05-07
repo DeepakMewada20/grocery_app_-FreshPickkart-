@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ModernTextField extends StatelessWidget {
   const ModernTextField({
@@ -44,15 +45,12 @@ class ModernTextField extends StatelessWidget {
         hintText: hintText,
         prefixText: prefixText,
         suffixText: suffixText,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20.sp) : null,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 14,
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 13.h),
       ),
     );
   }

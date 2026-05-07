@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -419,30 +422,30 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   }) {
     return InkWell(
       onTap: _isSubmitting ? null : onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14.r),
       child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14.r),
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 38.r,
+              height: 38.r,
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.calendar_today,
-                size: 18,
+                size: 18.r,
                 color: Colors.green,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,19 +453,21 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 12,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.caption(context).copyWith(
                       fontWeight: FontWeight.w600,
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3.h),
                   Text(
                     _formatDate(value),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.cardTitle(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -478,10 +483,10 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
@@ -495,20 +500,18 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                   children: [
                     Text(
                       'Trigger Product',
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: AdminTextStyles.caption(context).copyWith(
                         fontWeight: FontWeight.w600,
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       trigger?.productName ??
                           'Select the product customers must buy',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
+                      style: AdminTextStyles.cardTitle(context).copyWith(
                         fontWeight: FontWeight.w700,
                         color: trigger == null
                             ? Colors.grey.shade700
@@ -518,7 +521,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               FilledButton.tonalIcon(
                 onPressed: _isSubmitting
                     ? null
@@ -539,14 +542,14 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             ],
           ),
           if (trigger != null) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: 14.h),
             Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14.r),
                   child: Container(
-                    width: 64,
-                    height: 64,
+                    width: 64.r,
+                    height: 64.r,
                     color: Colors.grey.shade100,
                     child: trigger.imageUrl.isEmpty
                         ? const Icon(Icons.image_outlined)
@@ -558,7 +561,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -568,36 +571,33 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                         trigger.category,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: AdminTextStyles.caption(context).copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.grey.shade600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         trigger.quantity,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AdminTextStyles.body(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w600),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6.h),
                       Text(
                         '₹${trigger.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: AdminTextStyles.body(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14.h),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -625,9 +625,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                           },
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 SizedBox(
-                  width: 140,
+                  width: 140.w.clamp(112.0, 150.0).toDouble(),
                   child: TextFormField(
                     initialValue: '1',
                     enabled: false,
@@ -751,14 +751,14 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         title: Text(isEditing ? 'Edit BOGO Offer' : 'Add BOGO Offer'),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: FilledButton.icon(
               onPressed: _isSubmitting ? null : _save,
               icon: _isSubmitting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? SizedBox(
+                      width: 16.r,
+                      height: 16.r,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.check),
               label: Text(isEditing ? 'Update' : 'Create'),
@@ -772,112 +772,128 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             : LayoutBuilder(
                 builder: (context, constraints) {
                   final isNarrow = constraints.maxWidth < 680;
-                  return NestedScrollView(
-                    headerSliverBuilder: (context, innerBoxIsScrolled) {
-                      return [
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                          sliver: SliverToBoxAdapter(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildTriggerSection(context),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildDateCard(
-                                        label: 'Start Date',
-                                        value: _startDate,
-                                        onTap: () => _selectDate(true),
+                  final pagePadding = AdminResponsive.pagePadding(context);
+                  final controlsHeight = (isNarrow ? 116.h : 104.h)
+                      .clamp(98.0, 136.0)
+                      .toDouble();
+                  return AdminResponsive.constrainContent(
+                    context: context,
+                    maxWidth: AdminResponsive.maxFormWidth,
+                    child: NestedScrollView(
+                      headerSliverBuilder: (context, innerBoxIsScrolled) {
+                        return [
+                          SliverPadding(
+                            padding: pagePadding.copyWith(bottom: 0),
+                            sliver: SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildTriggerSection(context),
+                                  SizedBox(height: 12.h),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildDateCard(
+                                          label: 'Start Date',
+                                          value: _startDate,
+                                          onTap: () => _selectDate(true),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildDateCard(
-                                        label: 'End Date',
-                                        value: _endDate,
-                                        onTap: () => _selectDate(false),
+                                      SizedBox(width: 12.w),
+                                      Expanded(
+                                        child: _buildDateCard(
+                                          label: 'End Date',
+                                          value: _endDate,
+                                          onTap: () => _selectDate(false),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                _SelectedProductsSummary(
-                                  selectedProducts: _buildSelections(),
-                                  onRemove: (id) {
-                                    setState(() {
-                                      _selectedProductsById.remove(id);
-                                      _selectedFreeQuantitiesById.remove(id);
-                                    });
+                                    ],
+                                  ),
+                                  SizedBox(height: 16.h),
+                                  _SelectedProductsSummary(
+                                    selectedProducts: _buildSelections(),
+                                    onRemove: (id) {
+                                      setState(() {
+                                        _selectedProductsById.remove(id);
+                                        _selectedFreeQuantitiesById.remove(id);
+                                      });
+                                    },
+                                  ),
+                                  SizedBox(height: 12.h),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _PinnedControlsHeaderDelegate(
+                              minExtentValue: controlsHeight,
+                              maxExtentValue: controlsHeight,
+                              child: Container(
+                                color: Theme.of(
+                                  context,
+                                ).scaffoldBackgroundColor,
+                                child: ProductSearchAndCategoryControls(
+                                  searchHintText: 'Search free products...',
+                                  onSearchChanged: (value) {
+                                    _searchCtrl.text = value;
+                                    setState(() {});
                                   },
+                                  categoryOptions: categoryOptions,
+                                  selectedCategory: _selectedCategory ?? '',
+                                  onCategorySelected: (value) {
+                                    _searchFocusNode.unfocus();
+                                    _loadProductsForCategory(value);
+                                  },
+                                  padding: EdgeInsets.fromLTRB(
+                                    pagePadding.horizontal / 2,
+                                    6.h,
+                                    pagePadding.horizontal / 2,
+                                    6.h,
+                                  ),
+                                  searchToCategorySpacing: 8.h,
+                                  categoryHeight: 32.h
+                                      .clamp(30.0, 36.0)
+                                      .toDouble(),
                                 ),
-                                const SizedBox(height: 12),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _PinnedControlsHeaderDelegate(
-                            minExtentValue: 104,
-                            maxExtentValue: 104,
-                            child: Container(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              child: ProductSearchAndCategoryControls(
-                                searchHintText: 'Search free products...',
-                                onSearchChanged: (value) {
-                                  _searchCtrl.text = value;
-                                  setState(() {});
-                                },
-                                categoryOptions: categoryOptions,
-                                selectedCategory: _selectedCategory ?? '',
-                                onCategorySelected: (value) {
-                                  _searchFocusNode.unfocus();
-                                  _loadProductsForCategory(value);
-                                },
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  6,
-                                  16,
-                                  6,
-                                ),
-                                searchToCategorySpacing: 8,
-                                categoryHeight: 32,
                               ),
                             ),
                           ),
-                        ),
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                          sliver: SliverToBoxAdapter(
-                            child: Text(
-                              _selectedCategory == null
-                                  ? 'Select a category to load free products'
-                                  : 'Free products in $_selectedCategory (${filteredProducts.length})',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                          SliverPadding(
+                            padding: EdgeInsets.fromLTRB(
+                              pagePadding.horizontal / 2,
+                              8.h,
+                              pagePadding.horizontal / 2,
+                              12.h,
+                            ),
+                            sliver: SliverToBoxAdapter(
+                              child: Text(
+                                _selectedCategory == null
+                                    ? 'Select a category to load free products'
+                                    : 'Free products in $_selectedCategory (${filteredProducts.length})',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AdminTextStyles.sectionTitle(context),
                               ),
                             ),
                           ),
+                        ];
+                      },
+                      body: Padding(
+                        padding: pagePadding.copyWith(top: 0),
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            final category = _selectedCategory;
+                            if (category == null || category.trim().isEmpty) {
+                              return;
+                            }
+                            await _loadProductsForCategory(
+                              category,
+                              showLoader: false,
+                            );
+                          },
+                          child: _buildContent(filteredProducts, isNarrow),
                         ),
-                      ];
-                    },
-                    body: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          final category = _selectedCategory;
-                          if (category == null || category.trim().isEmpty) {
-                            return;
-                          }
-                          await _loadProductsForCategory(
-                            category,
-                            showLoader: false,
-                          );
-                        },
-                        child: _buildContent(filteredProducts, isNarrow),
                       ),
                     ),
                   );
@@ -891,10 +907,14 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
+        children: [
+          SizedBox(height: 96.h),
           Center(
-            child: Text('Select a category first to browse free products.'),
+            child: Text(
+              'Select a category first to browse free products.',
+              textAlign: TextAlign.center,
+              style: AdminTextStyles.body(context),
+            ),
           ),
         ],
       );
@@ -903,9 +923,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     if (_isLoading && !_isRefreshingProducts) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
-          Center(child: CircularProgressIndicator()),
+        children: [
+          SizedBox(height: 96.h),
+          const Center(child: CircularProgressIndicator()),
         ],
       );
     }
@@ -914,9 +934,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          const SizedBox(height: 120),
+          SizedBox(height: 96.h),
           SizedBox(
-            height: 260,
+            height: 260.h.clamp(220.0, 300.0).toDouble(),
             child: AdminStateView.error(
               message: _errorMessage,
               onRetry: () => _loadProductsForCategory(_selectedCategory!),
@@ -930,9 +950,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          const SizedBox(height: 120),
+          SizedBox(height: 96.h),
           SizedBox(
-            height: 260,
+            height: 260.h.clamp(220.0, 300.0).toDouble(),
             child: AdminStateView.empty(
               title: 'No products found',
               message: 'Try a different category or search term.',
@@ -947,7 +967,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       return ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: filteredProducts.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => SizedBox(height: 12.h),
         itemBuilder: (context, index) {
           final product = filteredProducts[index];
           return _ProductSelectionTile(
@@ -970,11 +990,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 280,
-        mainAxisExtent: 214,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 280.w.clamp(240.0, 320.0).toDouble(),
+        mainAxisExtent: 226.h.clamp(204.0, 252.0).toDouble(),
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
       ),
       itemCount: filteredProducts.length,
       itemBuilder: (context, index) {
@@ -1187,6 +1207,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isNarrow = constraints.maxWidth < 680;
+        final spacing = AdminSpacing.md;
         final headerContent = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -1196,7 +1217,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildCategoryDropdown(categories),
-                  const SizedBox(height: 12),
+                  SizedBox(height: spacing),
                   FilledButton.tonalIcon(
                     onPressed: _selectedCategory == null
                         ? null
@@ -1210,7 +1231,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
               Row(
                 children: [
                   Expanded(child: _buildCategoryDropdown(categories)),
-                  const SizedBox(width: 12),
+                  SizedBox(width: spacing),
                   FilledButton.tonalIcon(
                     onPressed: _selectedCategory == null
                         ? null
@@ -1220,7 +1241,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                   ),
                 ],
               ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing),
             TextField(
               controller: _searchCtrl,
               focusNode: _searchFocusNode,
@@ -1236,11 +1257,13 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                         },
                         icon: const Icon(Icons.close),
                       ),
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AdminSpacing.lg),
             _SelectedProductsSummary(
               selectedProducts: _buildSelections(),
               onRemove: (id) {
@@ -1250,12 +1273,14 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AdminSpacing.lg),
             Text(
               _selectedCategory == null
                   ? 'Select a category to load products'
                   : 'Products in $_selectedCategory (${filteredProducts.length})',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AdminTextStyles.sectionTitle(context),
             ),
           ],
         );
@@ -1265,10 +1290,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
             title: const Text('Select BOGO Free Products'),
             actions: [
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                 child: FilledButton.icon(
                   onPressed: () {
                     Navigator.pop(context, _buildSelections());
@@ -1295,21 +1317,27 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
                   ),
                 );
 
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      header,
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: _buildContent(
-                          filteredProducts,
-                          isNarrow,
-                          bottomPadding: isKeyboardOpen ? 24 : 0,
+                return AdminResponsive.constrainContent(
+                  context: context,
+                  maxWidth: AdminResponsive.maxFormWidth,
+                  child: Padding(
+                    padding: AdminResponsive.pagePadding(context),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        header,
+                        SizedBox(height: spacing),
+                        Expanded(
+                          child: _buildContent(
+                            filteredProducts,
+                            isNarrow,
+                            bottomPadding: isKeyboardOpen
+                                ? 24.h
+                                : AdminResponsive.bottomInset(context),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -1351,8 +1379,12 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     double bottomPadding = 0,
   }) {
     if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
-      return const Center(
-        child: Text('Select category first to browse products.'),
+      return Center(
+        child: Text(
+          'Select category first to browse products.',
+          textAlign: TextAlign.center,
+          style: AdminTextStyles.body(context),
+        ),
       );
     }
 
@@ -1368,8 +1400,12 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     }
 
     if (filteredProducts.isEmpty) {
-      return const Center(
-        child: Text('No products found for this category/search.'),
+      return Center(
+        child: Text(
+          'No products found for this category/search.',
+          textAlign: TextAlign.center,
+          style: AdminTextStyles.body(context),
+        ),
       );
     }
 
@@ -1378,7 +1414,7 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
         padding: EdgeInsets.only(bottom: bottomPadding),
         itemCount: filteredProducts.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => SizedBox(height: 12.h),
         itemBuilder: (context, index) {
           final product = filteredProducts[index];
           return _ProductSelectionTile(
@@ -1402,11 +1438,11 @@ class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
     return GridView.builder(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
       padding: EdgeInsets.only(bottom: bottomPadding),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 280,
-        mainAxisExtent: 214,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 280.w.clamp(240.0, 320.0).toDouble(),
+        mainAxisExtent: 226.h.clamp(204.0, 252.0).toDouble(),
+        crossAxisSpacing: 12.w,
+        mainAxisSpacing: 12.h,
       ),
       itemCount: filteredProducts.length,
       itemBuilder: (context, index) {
@@ -1448,11 +1484,11 @@ class _ProductSelectionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(16.r),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isSelected ? Colors.green : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -1466,10 +1502,10 @@ class _ProductSelectionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   child: Container(
-                    width: 64,
-                    height: 64,
+                    width: 64.r,
+                    height: 64.r,
                     color: Colors.grey.shade100,
                     child: product.imageUrl.isEmpty
                         ? const Icon(Icons.image_not_supported_outlined)
@@ -1482,7 +1518,7 @@ class _ProductSelectionTile extends StatelessWidget {
                           ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1491,17 +1527,19 @@ class _ProductSelectionTile extends StatelessWidget {
                         product.productName,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: AdminTextStyles.cardTitle(context),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         product.quantity,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.grey.shade700),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4.h),
                       Text(
                         '₹${product.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: AdminTextStyles.body(context).copyWith(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1513,7 +1551,7 @@ class _ProductSelectionTile extends StatelessWidget {
               ],
             ),
             if (isSelected) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               TextFormField(
                 key: ValueKey(
                   'picker_free_quantity_${product.productId ?? ''}',
@@ -1529,7 +1567,7 @@ class _ProductSelectionTile extends StatelessWidget {
                       'Base pack: ${product.baseQuantity != null && product.baseUnit != null ? '${product.baseQuantity == product.baseQuantity!.truncateToDouble() ? product.baseQuantity!.toInt() : product.baseQuantity} ${product.baseUnit}' : product.quantity}',
                   prefixIcon: const Icon(Icons.scale_rounded),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
               ),
@@ -1593,15 +1631,17 @@ class _SelectedProductsSummary extends StatelessWidget {
     if (selectedProducts.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(color: Colors.grey.shade300),
         ),
-        child: const Text(
+        child: Text(
           'No free products selected yet.',
-          style: TextStyle(fontWeight: FontWeight.w500),
+          style: AdminTextStyles.body(
+            context,
+          ).copyWith(fontWeight: FontWeight.w500),
         ),
       );
     }
@@ -1611,34 +1651,34 @@ class _SelectedProductsSummary extends StatelessWidget {
       children: [
         Text(
           'Selected Products (${selectedProducts.length})',
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          style: AdminTextStyles.cardTitle(context),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10.h),
         SizedBox(
-          height: 128,
+          height: 128.h.clamp(116.0, 146.0).toDouble(),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: selectedProducts.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            separatorBuilder: (_, _) => SizedBox(width: 10.w),
             itemBuilder: (context, index) {
               final product = selectedProducts[index];
               final productId = product.product.productId;
 
               return Container(
-                width: 250,
-                padding: const EdgeInsets.all(10),
+                width: 250.w.clamp(220.0, 280.0).toDouble(),
+                padding: EdgeInsets.all(10.r),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16.r),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       child: Container(
-                        width: 56,
-                        height: 56,
+                        width: 56.r,
+                        height: 56.r,
                         color: Colors.grey.shade100,
                         child: product.product.imageUrl.isEmpty
                             ? const Icon(Icons.image_outlined)
@@ -1653,7 +1693,7 @@ class _SelectedProductsSummary extends StatelessWidget {
                               ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1664,21 +1704,21 @@ class _SelectedProductsSummary extends StatelessWidget {
                             product.product.productName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: AdminTextStyles.cardTitle(context),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4.h),
                           Text(
                             'Pack: ${product.product.quantity}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2.h),
                           Text(
                             'Free: ${product.freeQuantity}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: AdminTextStyles.caption(context).copyWith(
                               color: Colors.green.shade700,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1690,13 +1730,13 @@ class _SelectedProductsSummary extends StatelessWidget {
                       onPressed: productId == null
                           ? null
                           : () => onRemove(productId),
-                      constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
+                      constraints: BoxConstraints(
+                        minWidth: 36.r,
+                        minHeight: 36.r,
                       ),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.close),
+                      icon: Icon(Icons.close, size: 20.r),
                     ),
                   ],
                 ),

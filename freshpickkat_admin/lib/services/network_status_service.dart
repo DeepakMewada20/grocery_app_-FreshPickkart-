@@ -7,7 +7,7 @@ class NetworkStatusService {
   static final NetworkStatusService instance = NetworkStatusService._internal();
 
   final NetworkService _networkService = NetworkService();
-  
+
   Stream<bool> get onStatusChange => _networkService.onStatusChange
       .map((status) => status == InternetStatus.connected)
       .distinct();

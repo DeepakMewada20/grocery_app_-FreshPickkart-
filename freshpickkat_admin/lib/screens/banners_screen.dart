@@ -9,6 +9,9 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupo
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/catalog_widgets/catalog_shared_widgets.dart';
@@ -67,7 +70,12 @@ class _BannersScreenState extends State<BannersScreen>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(
+              AdminResponsive.pageHorizontalPadding(context),
+              12.h,
+              AdminResponsive.pageHorizontalPadding(context),
+              8.h,
+            ),
             child: Column(
               children: [
                 TextField(
@@ -100,17 +108,20 @@ class _BannersScreenState extends State<BannersScreen>
                     });
                   },
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
                 SizedBox(
-                  height: 34,
+                  height: 36.h.clamp(34.0, 42.0),
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
                       _buildFilterChip('All', null),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       _buildFilterChip('Standard', BannerMode.normal),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Home Top Image', BannerMode.homeTopImage),
+                      SizedBox(width: 8.w),
+                      _buildFilterChip(
+                        'Home Top Image',
+                        BannerMode.homeTopImage,
+                      ),
                     ],
                   ),
                 ),
@@ -130,22 +141,23 @@ class _BannersScreenState extends State<BannersScreen>
                 return const Center(child: CircularProgressIndicator());
               }
 
-                final banners = _controller.banners.where((b) {
-                  final matchesQuery = b.title.toLowerCase().contains(_searchQuery) ||
-                      b.screenPlacements.toLowerCase().contains(_searchQuery);
-                  
-                  // Filter by mode if selected
-                  bool matchesMode = true;
-                  final isHero = b.screenPlacements.contains('home_top_image');
-                  
-                  if (_filterMode == BannerMode.homeTopImage) {
-                    matchesMode = isHero;
-                  } else if (_filterMode == BannerMode.normal) {
-                    matchesMode = !isHero;
-                  }
-                  
-                  return matchesQuery && matchesMode;
-                }).toList();
+              final banners = _controller.banners.where((b) {
+                final matchesQuery =
+                    b.title.toLowerCase().contains(_searchQuery) ||
+                    b.screenPlacements.toLowerCase().contains(_searchQuery);
+
+                // Filter by mode if selected
+                bool matchesMode = true;
+                final isHero = b.screenPlacements.contains('home_top_image');
+
+                if (_filterMode == BannerMode.homeTopImage) {
+                  matchesMode = isHero;
+                } else if (_filterMode == BannerMode.normal) {
+                  matchesMode = !isHero;
+                }
+
+                return matchesQuery && matchesMode;
+              }).toList();
 
               if (banners.isEmpty) {
                 return Center(
@@ -171,8 +183,12 @@ class _BannersScreenState extends State<BannersScreen>
                 onRefresh: () => _controller.loadBanners(force: true),
                 child: ListView.builder(
                   controller: _scrollController,
+                  padding: AdminResponsive.pagePadding(context).copyWith(
+                    bottom: AdminResponsive.bottomInset(context) + 78.h,
+                  ),
                   itemCount:
-                      banners.length + (_controller.isLoadingMore.value ? 1 : 0),
+                      banners.length +
+                      (_controller.isLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index >= banners.length) {
                       return const Padding(
@@ -189,8 +205,11 @@ class _BannersScreenState extends State<BannersScreen>
                       ),
                       onEdit: () => _showEditBannerDialog(banner),
                       onDelete: () => _showDeleteConfirmation(banner),
-                      onPriorityChange: (priority) => _controller
-                          .updateBannerPriority(banner.bannerId ?? '', priority),
+                      onPriorityChange: (priority) =>
+                          _controller.updateBannerPriority(
+                            banner.bannerId ?? '',
+                            priority,
+                          ),
                     );
                   },
                 ),
@@ -207,6 +226,7 @@ class _BannersScreenState extends State<BannersScreen>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      constraints: AdminResponsive.bottomSheetConstraints(context),
       builder: (context) => _BannerSheet(
         onSave: (banner) async {
           await _controller.createBanner(banner);
@@ -220,6 +240,7 @@ class _BannersScreenState extends State<BannersScreen>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      constraints: AdminResponsive.bottomSheetConstraints(context),
       builder: (context) => _BannerSheet(
         banner: banner,
         onSave: (updated) async {
@@ -238,9 +259,11 @@ class _BannersScreenState extends State<BannersScreen>
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Delete Banner'),
-            content: banner.isBaseImage 
-              ? const Text('This is a Base Image and cannot be deleted. You must make another banner the Base Image first.')
-              : Text('Are you sure you want to delete "${banner.title}"?'),
+            content: banner.isBaseImage
+                ? const Text(
+                    'This is a Base Image and cannot be deleted. You must make another banner the Base Image first.',
+                  )
+                : Text('Are you sure you want to delete "${banner.title}"?'),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
@@ -249,24 +272,27 @@ class _BannersScreenState extends State<BannersScreen>
               if (!banner.isBaseImage)
                 TextButton(
                   onPressed: isDeleting
-                    ? null
-                    : () async {
-                        setDialogState(() => isDeleting = true);
-                        await _controller.deleteBanner(banner.bannerId ?? '');
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        messenger.showSnackBar(
-                          const SnackBar(content: Text('Banner deleted')),
-                        );
-                      },
-                child: isDeleting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
+                      ? null
+                      : () async {
+                          setDialogState(() => isDeleting = true);
+                          await _controller.deleteBanner(banner.bannerId ?? '');
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Banner deleted')),
+                          );
+                        },
+                  child: isDeleting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                ),
             ],
           ),
         );
@@ -330,15 +356,15 @@ class _BannerCard extends StatelessWidget {
         .toList();
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: EdgeInsets.only(bottom: 10.h),
       child: Column(
         children: [
           ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                width: 60,
-                height: 60,
+                width: 60.r.clamp(52.0, 70.0),
+                height: 60.r.clamp(52.0, 70.0),
                 color: Colors.grey[200],
                 child: banner.imageUrl.isNotEmpty
                     ? Image.network(
@@ -352,120 +378,125 @@ class _BannerCard extends StatelessWidget {
             ),
             title: Text(
               banner.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Builder(builder: (context) {
-                  final isHero = banner.screenPlacements.contains('home_top_image');
-                  return Row(
-                    children: [
-                      if (!isHero) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[100],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            _getTypeLabel(banner.type),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[700],
+                Builder(
+                  builder: (context) {
+                    final isHero = banner.screenPlacements.contains(
+                      'home_top_image',
+                    );
+                    return Wrap(
+                      spacing: 8.w,
+                      runSpacing: 6.h,
+                      children: [
+                        if (!isHero) ...[
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _getTypeLabel(banner.type),
+                              style: TextStyle(
+                                fontSize: 12.sp.clamp(10.0, 13.0),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange[100],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Priority: ${banner.priority}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orange[700],
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Priority: ${banner.priority}',
+                              style: TextStyle(
+                                fontSize: 12.sp.clamp(10.0, 13.0),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange[700],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
+                        if (isHero) ...[
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.indigo[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Products: ${banner.linkedProductIds?.length ?? 0}',
+                              style: TextStyle(
+                                fontSize: 12.sp.clamp(10.0, 13.0),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (isValid && banner.active) ...[
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'LIVE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (banner.isBaseImage) ...[
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.purple[100],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'BASE',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple[900],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                      if (isHero) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.indigo[100],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Products: ${banner.linkedProductIds?.length ?? 0}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.indigo[700],
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (isValid && banner.active) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'LIVE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (banner.isBaseImage) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.purple[100],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'BASE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple[900],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  );
-                }),
-                const SizedBox(height: 4),
+                    );
+                  },
+                ),
+                SizedBox(height: 4.h),
                 Wrap(
                   spacing: 4,
                   children: placements.map((p) {
@@ -546,11 +577,16 @@ class _BannerCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 6.h,
               children: [
                 if (banner.isBaseImage)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.purple[50],
                       borderRadius: BorderRadius.circular(6),
@@ -563,17 +599,29 @@ class _BannerCard extends StatelessWidget {
                         SizedBox(width: 4),
                         Text(
                           'PERMANENT BASE IMAGE',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.purple),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
                         ),
                       ],
                     ),
                   )
                 else ...[
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 14.sp.clamp(12.0, 16.0),
+                    color: Colors.grey[600],
+                  ),
                   Text(
                     '${_formatDate(banner.startDate)} - ${_formatDate(banner.endDate)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.sp.clamp(10.0, 13.0),
+                      color: Colors.grey[600],
+                    ),
                   ),
                 ],
               ],
@@ -583,7 +631,6 @@ class _BannerCard extends StatelessWidget {
       ),
     );
   }
-
 
   void _showPriorityDialog(BuildContext context) {
     int selectedPriority = banner.priority;
@@ -655,7 +702,7 @@ class _BannerSheet extends StatefulWidget {
   final client.Banner? banner;
   final Function(client.Banner) onSave;
 
-  const _BannerSheet({this.banner, required this.onSave,});
+  const _BannerSheet({this.banner, required this.onSave});
 
   @override
   State<_BannerSheet> createState() => _BannerSheetState();
@@ -668,7 +715,7 @@ class _BannerSheetState extends State<_BannerSheet> {
   final _titleController = TextEditingController();
   final _imageUrlController = TextEditingController();
   final productController = AdminProductController.instance;
-  
+
   String? _imageUrl;
   String _type = 'offer';
   String? _offerId;
@@ -693,7 +740,7 @@ class _BannerSheetState extends State<_BannerSheet> {
   String? _lastAutoTitle;
 
   BannerMode _mode = BannerMode.normal;
- 
+
   bool get isEditing => widget.banner != null;
 
   @override
@@ -716,15 +763,16 @@ class _BannerSheetState extends State<_BannerSheet> {
       _active = widget.banner!.active;
       _isBaseImage = widget.banner!.isBaseImage;
       _linkedProductIds = widget.banner!.linkedProductIds ?? [];
-      
+
       final placements = widget.banner!.screenPlacements
           .split(',')
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
           .toList();
       _selectedPlacements = placements.toSet();
-      
-      if (_selectedPlacements.contains('home_top_image') && _selectedPlacements.length == 1) {
+
+      if (_selectedPlacements.contains('home_top_image') &&
+          _selectedPlacements.length == 1) {
         _mode = BannerMode.homeTopImage;
       } else {
         _mode = BannerMode.normal;
@@ -775,248 +823,299 @@ class _BannerSheetState extends State<_BannerSheet> {
         if (!didPop) _onCancel();
       },
       child: Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 12.h),
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isEditing ? 'Edit Banner' : 'Add Banner',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            SizedBox(height: 16.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isEditing ? 'Edit Banner' : 'Add Banner',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.sectionTitle(context),
                   ),
-                ),
-                IconButton(
-                  onPressed: _onCancel,
-                  icon: const Icon(Icons.close),
-                ),
-              ],
+                  IconButton(
+                    onPressed: _onCancel,
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SegmentedButton<BannerMode>(
-                      segments: const [
-                        ButtonSegment(
-                          value: BannerMode.normal,
-                          label: Text('Standard Banner'),
-                          icon: Icon(Icons.dashboard_outlined),
+            const Divider(),
+            Flexible(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: AdminResponsive.cardPadding(context),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SegmentedButton<BannerMode>(
+                        showSelectedIcon: !AdminResponsive.isSmallPhone(
+                          context,
                         ),
-                        ButtonSegment(
-                          value: BannerMode.homeTopImage,
-                          label: Text('Home Top Image'),
-                          icon: Icon(Icons.image_outlined),
+                        segments: const [
+                          ButtonSegment(
+                            value: BannerMode.normal,
+                            label: Text('Standard Banner'),
+                            icon: Icon(Icons.dashboard_outlined),
+                          ),
+                          ButtonSegment(
+                            value: BannerMode.homeTopImage,
+                            label: Text('Home Top Image'),
+                            icon: Icon(Icons.image_outlined),
+                          ),
+                        ],
+                        selected: {_mode},
+                        onSelectionChanged: (newSelection) {
+                          setState(() {
+                            _mode = newSelection.first;
+                            if (_mode == BannerMode.homeTopImage) {
+                              _selectedPlacements = {'home_top_image'};
+                            } else if (_selectedPlacements.contains(
+                                  'home_top_image',
+                                ) &&
+                                _selectedPlacements.length == 1) {
+                              _selectedPlacements = {'home_top'};
+                            }
+                            _applyAutoTitleIfEmpty();
+                          });
+                        },
+                      ),
+                      SizedBox(height: 20.h),
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Banner Title',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.title),
+                        ),
+                        validator: (v) =>
+                            (v == null || v.isEmpty) ? 'Enter title' : null,
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildImagePicker(),
+                      if (_mode == BannerMode.normal) ...[
+                        SizedBox(height: 16.h),
+                        DropdownButtonFormField<String>(
+                          initialValue: _type,
+                          decoration: const InputDecoration(
+                            labelText: 'Banner Type',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.category_outlined),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'offer',
+                              child: Text('Offer'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'category',
+                              child: Text('Category'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'product',
+                              child: Text('Product'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'combo',
+                              child: Text('Combo'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'coupon',
+                              child: Text('Coupon'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'external_link',
+                              child: Text('External Link'),
+                            ),
+                          ],
+                          onChanged: (v) => setState(() {
+                            _type = v ?? 'offer';
+                            _applyAutoTitleIfEmpty();
+                          }),
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildTargetField(),
+                      ],
+                      if (_mode == BannerMode.homeTopImage) ...[
+                        SizedBox(height: 16.h),
+                        _buildLinkedProductsSection(),
+                        SizedBox(height: 16.h),
+                        SwitchListTile(
+                          title: const Text('Is Base Image'),
+                          subtitle: const Text(
+                            'Always visible if no festive banner is active',
+                          ),
+                          value: _isBaseImage,
+                          onChanged: (v) => setState(() {
+                            _isBaseImage = v;
+                            if (_isBaseImage) _active = true;
+                          }),
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ],
-                      selected: {_mode},
-                      onSelectionChanged: (newSelection) {
-                        setState(() {
-                          _mode = newSelection.first;
-                          if (_mode == BannerMode.homeTopImage) {
-                            _selectedPlacements = {'home_top_image'};
-                          } else if (_selectedPlacements.contains('home_top_image') && _selectedPlacements.length == 1) {
-                            _selectedPlacements = {'home_top'};
-                          }
-                          _applyAutoTitleIfEmpty();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Banner Title',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Enter title' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildImagePicker(),
-                    if (_mode == BannerMode.normal) ...[
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        initialValue: _type,
-                        decoration: const InputDecoration(
-                          labelText: 'Banner Type',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.category_outlined),
+                      if (!_isBaseImage) ...[
+                        SizedBox(height: 16.h),
+                        const Text(
+                          'Scheduling & Status:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'offer', child: Text('Offer')),
-                          DropdownMenuItem(value: 'category', child: Text('Category')),
-                          DropdownMenuItem(value: 'product', child: Text('Product')),
-                          DropdownMenuItem(value: 'combo', child: Text('Combo')),
-                          DropdownMenuItem(value: 'coupon', child: Text('Coupon')),
-                          DropdownMenuItem(value: 'external_link', child: Text('External Link')),
-                        ],
-                        onChanged: (v) => setState(() {
-                          _type = v ?? 'offer';
-                          _applyAutoTitleIfEmpty();
-                        }),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTargetField(),
-                    ],
-                    if (_mode == BannerMode.homeTopImage) ...[
-                      const SizedBox(height: 16),
-                      _buildLinkedProductsSection(),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: const Text('Is Base Image'),
-                        subtitle: const Text('Always visible if no festive banner is active'),
-                        value: _isBaseImage,
-                        onChanged: (v) => setState(() {
-                          _isBaseImage = v;
-                          if (_isBaseImage) _active = true;
-                        }),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-                    if (!_isBaseImage) ...[
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Scheduling & Status:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
+                        SizedBox(height: 16.h),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final startDate = InkWell(
                               onTap: () => _selectDate(true),
                               child: InputDecorator(
-                                decoration:
-                                    const InputDecoration(labelText: 'Start Date'),
-                                child: Text(_formatDate(_startDate)),
+                                decoration: const InputDecoration(
+                                  labelText: 'Start Date',
+                                ),
+                                child: Text(
+                                  _formatDate(_startDate),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: InkWell(
+                            );
+                            final endDate = InkWell(
                               onTap: () => _selectDate(false),
                               child: InputDecorator(
-                                decoration:
-                                    const InputDecoration(labelText: 'End Date'),
-                                child: Text(_formatDate(_endDate)),
+                                decoration: const InputDecoration(
+                                  labelText: 'End Date',
+                                ),
+                                child: Text(
+                                  _formatDate(_endDate),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                            );
+                            if (constraints.maxWidth < 420) {
+                              return Column(
+                                children: [
+                                  startDate,
+                                  SizedBox(height: 12.h),
+                                  endDate,
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                Expanded(child: startDate),
+                                SizedBox(width: 16.w),
+                                Expanded(child: endDate),
+                              ],
+                            );
+                          },
+                        ),
+                        SizedBox(height: 16.h),
+                        SwitchListTile(
+                          title: const Text('Active'),
+                          value: _active,
+                          onChanged: (v) => setState(() => _active = v),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ],
+                      if (_mode == BannerMode.normal) ...[
+                        SizedBox(height: 16.h),
+                        const Text(
+                          'Screen Placements:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8.h),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildPlacementChip(
+                              'home_top',
+                              'Home Top (Scroll)',
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: const Text('Active'),
-                        value: _active,
-                        onChanged: (v) => setState(() => _active = v),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-                    if (_mode == BannerMode.normal) ...[
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Screen Placements:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _buildPlacementChip('home_top', 'Home Top (Scroll)'),
-                          _buildPlacementChip('home_middle', 'Home Middle'),
-                          _buildPlacementChip('category_page', 'Category'),
-                          _buildPlacementChip('product_page', 'Product'),
-                          _buildPlacementChip('cart_page', 'Cart'),
-                          _buildPlacementChip('checkout_page', 'Checkout'),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<int>(
-                        initialValue: _priority,
-                        decoration: const InputDecoration(
-                          labelText: 'Priority',
-                          border: OutlineInputBorder(),
+                            _buildPlacementChip('home_middle', 'Home Middle'),
+                            _buildPlacementChip('category_page', 'Category'),
+                            _buildPlacementChip('product_page', 'Product'),
+                            _buildPlacementChip('cart_page', 'Cart'),
+                            _buildPlacementChip('checkout_page', 'Checkout'),
+                          ],
                         ),
-                        items: List.generate(10, (i) => i + 1)
-                            .map(
-                              (p) =>
-                                  DropdownMenuItem(value: p, child: Text('Priority $p')),
-                            )
-                            .toList(),
-                        onChanged: (v) => setState(() => _priority = v ?? 1),
-                      ),
-                    ],
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isSubmitting ? null : _save,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        SizedBox(height: 16.h),
+                        DropdownButtonFormField<int>(
+                          initialValue: _priority,
+                          decoration: const InputDecoration(
+                            labelText: 'Priority',
+                            border: OutlineInputBorder(),
                           ),
-                        ),
-                        child: _isSubmitting
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
+                          items: List.generate(10, (i) => i + 1)
+                              .map(
+                                (p) => DropdownMenuItem(
+                                  value: p,
+                                  child: Text('Priority $p'),
                                 ),
                               )
-                            : Text(
-                                isEditing ? 'Update Banner' : 'Create Banner',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              .toList(),
+                          onChanged: (v) => setState(() => _priority = v ?? 1),
+                        ),
+                      ],
+                      SizedBox(height: 28.h),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50.h.clamp(46.0, 56.0),
+                        child: ElevatedButton(
+                          onPressed: _isSubmitting ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  isEditing ? 'Update Banner' : 'Create Banner',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -1041,57 +1140,75 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Linked Products', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        const Text(
+          'Linked Products',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8.h),
         Wrap(
           spacing: 8,
           runSpacing: 4,
           children: _linkedProductIds.map((id) {
-            final product = productController.products.firstWhereOrNull((p) => p.productId == id);
+            final product = productController.products.firstWhereOrNull(
+              (p) => p.productId == id,
+            );
             return Chip(
-              avatar: product != null 
-                ? CircleAvatar(
-                    backgroundImage: NetworkImage(product.imageUrl),
-                  )
-                : null,
-              label: Text(product?.productName ?? id),
+              avatar: product != null
+                  ? CircleAvatar(
+                      backgroundImage: NetworkImage(product.imageUrl),
+                    )
+                  : null,
+              label: Text(
+                product?.productName ?? id,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               onDeleted: () => setState(() => _linkedProductIds.remove(id)),
             );
           }).toList(),
         ),
         TextButton.icon(
           onPressed: () async {
-            final results = await ProductSelectionDialog.showMultiSelectBottomSheet(
-              context: context,
-              title: 'Select Featured Products',
-              initialSelections: _linkedProductIds.map((id) {
-                final p = productController.products.firstWhereOrNull((p) => p.productId == id);
-                return ProductSelectionResult(
-                  product: p ?? Product(
-                    productId: id,
-                    productName: 'Loading...',
-                    category: '',
-                    imageUrl: '',
-                    price: 0,
-                    realPrice: 0,
-                    discount: 0,
-                    isAvailable: true,
-                    addedAt: DateTime.now(),
-                    subcategory: [],
-                    quantity: '',
-                    mostSearch: 0,
-                    mostPurchases: 0,
-                  ),
+            final results =
+                await ProductSelectionDialog.showMultiSelectBottomSheet(
+                  context: context,
+                  title: 'Select Featured Products',
+                  initialSelections: _linkedProductIds.map((id) {
+                    final p = productController.products.firstWhereOrNull(
+                      (p) => p.productId == id,
+                    );
+                    return ProductSelectionResult(
+                      product:
+                          p ??
+                          Product(
+                            productId: id,
+                            productName: 'Loading...',
+                            category: '',
+                            imageUrl: '',
+                            price: 0,
+                            realPrice: 0,
+                            discount: 0,
+                            isAvailable: true,
+                            addedAt: DateTime.now(),
+                            subcategory: [],
+                            quantity: '',
+                            mostSearch: 0,
+                            mostPurchases: 0,
+                          ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
-            );
             if (results != null) {
-              setState(() => _linkedProductIds = results.map((r) => r.productId).toList());
+              setState(
+                () => _linkedProductIds = results
+                    .map((r) => r.productId)
+                    .toList(),
+              );
             }
           },
           icon: const Icon(Icons.add),
           label: const Text('Add Products'),
-        )
+        ),
       ],
     );
   }
@@ -1153,7 +1270,8 @@ class _BannerSheetState extends State<_BannerSheet> {
   }
 
   Widget _buildImagePicker() {
-    final hasImage = _imageUrlController.text.trim().isNotEmpty || _imageUrl != null;
+    final hasImage =
+        _imageUrlController.text.trim().isNotEmpty || _imageUrl != null;
     final displayUrl = _imageUrlController.text.trim().isNotEmpty
         ? _imageUrlController.text.trim()
         : _imageUrl;
@@ -1165,7 +1283,7 @@ class _BannerSheetState extends State<_BannerSheet> {
           'Banner Image',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         TextFormField(
           controller: _imageUrlController,
           decoration: const InputDecoration(
@@ -1191,7 +1309,7 @@ class _BannerSheetState extends State<_BannerSheet> {
             return null;
           },
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         const Center(
           child: Text(
             'OR',
@@ -1202,12 +1320,12 @@ class _BannerSheetState extends State<_BannerSheet> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         InkWell(
           onTap: _isUploading ? null : _uploadImage,
           child: Container(
             width: double.infinity,
-            height: 180,
+            height: AdminResponsive.isLandscape(context) ? 140.h : 180.h,
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
@@ -1216,63 +1334,74 @@ class _BannerSheetState extends State<_BannerSheet> {
             child: _isUploading
                 ? const Center(child: CircularProgressIndicator())
                 : hasImage
-                    ? Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              displayUrl!,
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.broken_image, size: 40, color: Colors.grey[400]),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Invalid image URL',
-                                      style: TextStyle(color: Colors.grey[600]),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                                onPressed: () {
-                                  setState(() {
-                                    _imageUrlController.clear();
-                                    _imageUrl = null;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_a_photo_outlined,
-                              size: 40, color: Colors.grey[400]),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tap to upload image',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
+                ? Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          displayUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  size: 40.sp.clamp(30.0, 44.0),
+                                  color: Colors.grey[400],
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  'Invalid image URL',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.cancel,
+                              color: Colors.red,
+                              size: 20.sp,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _imageUrlController.clear();
+                                _imageUrl = null;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_a_photo_outlined,
+                        size: 40.sp.clamp(30.0, 44.0),
+                        color: Colors.grey[400],
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'Tap to upload image',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ],
@@ -1287,7 +1416,12 @@ class _BannerSheetState extends State<_BannerSheet> {
         initialValue: _categoryId,
         decoration: const InputDecoration(labelText: 'Category'),
         items: categories
-            .map((c) => DropdownMenuItem(value: c.categoryName, child: Text(c.categoryName)))
+            .map(
+              (c) => DropdownMenuItem(
+                value: c.categoryName,
+                child: Text(c.categoryName),
+              ),
+            )
             .toList(),
         onChanged: (v) => setState(() => _categoryId = v),
       );
@@ -1295,16 +1429,27 @@ class _BannerSheetState extends State<_BannerSheet> {
   }
 
   Widget _buildProductPicker() {
-    final product = productController.products.firstWhereOrNull((p) => p.productId == _productId);
+    final product = productController.products.firstWhereOrNull(
+      (p) => p.productId == _productId,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Target Product', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
+        const Text(
+          'Target Product',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8.h),
         if (product != null)
           Chip(
-            avatar: CircleAvatar(backgroundImage: NetworkImage(product.imageUrl)),
-            label: Text(product.productName),
+            avatar: CircleAvatar(
+              backgroundImage: NetworkImage(product.imageUrl),
+            ),
+            label: Text(
+              product.productName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             onDeleted: () => setState(() => _productId = null),
           ),
         TextButton.icon(
@@ -1328,31 +1473,50 @@ class _BannerSheetState extends State<_BannerSheet> {
     final couponController = AdminCouponController.instance;
     return Obx(() {
       final coupons = couponController.coupons;
-      final selectedCoupon = coupons.firstWhereOrNull((c) => c.code == _couponCode);
-      
+      final selectedCoupon = coupons.firstWhereOrNull(
+        (c) => c.code == _couponCode,
+      );
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Coupon', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          const Text(
+            'Select Coupon',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8.h),
           DropdownButtonFormField<String>(
             initialValue: _couponCode,
+            isExpanded: true,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.local_offer_outlined),
             ),
-            items: coupons.map((c) => DropdownMenuItem(
-              value: c.code,
-              child: Text('${c.code} (${c.description})'),
-            )).toList(),
+            items: coupons
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c.code,
+                    child: Text(
+                      '${c.code} (${c.description})',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
             onChanged: (v) => setState(() => _couponCode = v),
           ),
           if (selectedCoupon != null)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: EdgeInsets.only(top: 8.h),
               child: Text(
                 'Min Amount: ₹${selectedCoupon.minOrderAmount} • Discount: ₹${selectedCoupon.discountValue ?? 0}',
-                style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12.sp.clamp(10.0, 13.0),
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
         ],
@@ -1366,9 +1530,15 @@ class _BannerSheetState extends State<_BannerSheet> {
       final combos = offerController.comboOffers;
       return DropdownButtonFormField<String>(
         initialValue: _comboId,
+        isExpanded: true,
         decoration: const InputDecoration(labelText: 'Combo'),
         items: combos
-            .map((c) => DropdownMenuItem(value: c.comboId, child: Text(c.name)))
+            .map(
+              (c) => DropdownMenuItem(
+                value: c.comboId,
+                child: Text(c.name, overflow: TextOverflow.ellipsis),
+              ),
+            )
             .toList(),
         onChanged: (v) => setState(() => _comboId = v),
       );

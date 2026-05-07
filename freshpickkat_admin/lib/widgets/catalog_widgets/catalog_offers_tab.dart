@@ -11,10 +11,13 @@ import 'package:freshpickkat_admin/screens/combo_offers_screen.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class CatalogOffersTab extends StatefulWidget {
@@ -437,8 +440,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     ? product.quantity
                     : product.quantity;
                 return Container(
-                  width: 164,
-                  padding: const EdgeInsets.all(10),
+                  width: 164.w.clamp(148.0, 190.0).toDouble(),
+                  padding: EdgeInsets.all(10.r),
                   decoration: BoxDecoration(
                     color: AdminAppTheme.getSuccessColor(
                       context,
@@ -455,13 +458,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
                           product.imageUrl,
-                          width: 42,
-                          height: 42,
+                          width: 42.r,
+                          height: 42.r,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(
-                                width: 42,
-                                height: 42,
+                                width: 42.r,
+                                height: 42.r,
                                 color: AdminAppTheme.getTextSecondaryColor(
                                   context,
                                 ).withValues(alpha: 0.15),
@@ -473,7 +476,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                               ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8.w),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -780,8 +783,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 runSpacing: 10,
                 children: categoryProducts.map((product) {
                   return Container(
-                    width: 164,
-                    padding: const EdgeInsets.all(10),
+                    width: 164.w.clamp(148.0, 190.0).toDouble(),
+                    padding: EdgeInsets.all(10.r),
                     decoration: BoxDecoration(
                       color: AdminAppTheme.getSuccessColor(
                         context,
@@ -798,13 +801,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           borderRadius: BorderRadius.circular(10),
                           child: Image.network(
                             product.imageUrl,
-                            width: 42,
-                            height: 42,
+                            width: 42.r,
+                            height: 42.r,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
-                                  width: 42,
-                                  height: 42,
+                                  width: 42.r,
+                                  height: 42.r,
                                   color: AdminAppTheme.getTextSecondaryColor(
                                     context,
                                   ).withValues(alpha: 0.15),
@@ -816,7 +819,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1445,7 +1448,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           onRefresh: widget.onRefresh,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: AdminResponsive.pagePadding(
+              context,
+            ).copyWith(bottom: AdminResponsive.bottomInset(context) + 76.h),
             children: [
               SizedBox(
                 height: 96,
@@ -1604,7 +1609,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               ProductSearchAndCategoryControls(
                 searchHintText: 'Search product or offer',
                 onSearchChanged: widget.onOfferSearchChanged,
@@ -1612,7 +1617,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 selectedCategory: widget.offerCategoryFilter,
                 onCategorySelected: widget.onOfferCategoryChanged,
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14.h),
               Row(
                 children: [
                   Expanded(
@@ -1622,10 +1627,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           : widget.offerTypeFilter == 'category_offer'
                           ? 'Category Offers'
                           : 'Products by Offer',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: AdminTextStyles.sectionTitle(context),
                     ),
                   ),
                   Text(
@@ -1640,7 +1642,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               if (widget.offerTypeFilter == 'combo_offer' &&
                   visibleComboOffers.isEmpty)
                 const Card(
@@ -1702,7 +1704,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: AdminResponsive.cardPadding(context),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1710,12 +1712,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                             borderRadius: BorderRadius.circular(12),
                             child: Image.network(
                               product.imageUrl,
-                              width: 64,
-                              height: 64,
+                              width: 64.r.clamp(54.0, 72.0).toDouble(),
+                              height: 64.r.clamp(54.0, 72.0).toDouble(),
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => Container(
-                                width: 64,
-                                height: 64,
+                                width: 64.r.clamp(54.0, 72.0).toDouble(),
+                                height: 64.r.clamp(54.0, 72.0).toDouble(),
                                 color: AdminAppTheme.getTextSecondaryColor(
                                   context,
                                 ).withValues(alpha: 0.15),
@@ -1724,19 +1726,23 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12.w),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   product.productName,
-                                  style: const TextStyle(
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 15,
+                                    fontSize: 15.sp
+                                        .clamp(13.0, 16.0)
+                                        .toDouble(),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4.h),
                                 Text(
                                   '${product.category} • ${product.quantity}',
                                   style: TextStyle(
@@ -1745,7 +1751,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6.h),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 6,
@@ -1796,7 +1802,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8.h),
                                 Text(
                                   '₹${product.price.toStringAsFixed(0)} • MRP ₹${product.realPrice.toStringAsFixed(0)}',
                                 ),
@@ -1804,7 +1810,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                             ),
                           ),
                           if (hasActions) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8.w),
                             PopupMenuButton<String>(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(

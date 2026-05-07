@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/theme/admin_theme_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AdminAppearanceSection extends StatelessWidget {
   const AdminAppearanceSection({super.key});
@@ -14,24 +17,24 @@ class AdminAppearanceSection extends StatelessWidget {
       final currentMode = controller.themeMode.value;
       return Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AdminResponsive.cardPadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Appearance',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: cs.onSurface,
-                ),
+                style: AdminTextStyles.sectionTitle(
+                  context,
+                ).copyWith(fontWeight: FontWeight.w800, color: cs.onSurface),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Text(
                 'Choose how the admin app should look.',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: cs.onSurfaceVariant),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               _ThemeOptionTile(
                 title: 'Light',
                 subtitle: 'Bright interface for daytime use',
@@ -39,7 +42,7 @@ class AdminAppearanceSection extends StatelessWidget {
                 selected: currentMode == ThemeMode.light,
                 onTap: () => controller.setThemeMode(ThemeMode.light),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               _ThemeOptionTile(
                 title: 'Dark',
                 subtitle: 'Reduced glare for low-light work',
@@ -47,7 +50,7 @@ class AdminAppearanceSection extends StatelessWidget {
                 selected: currentMode == ThemeMode.dark,
                 onTap: () => controller.setThemeMode(ThemeMode.dark),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               _ThemeOptionTile(
                 title: 'System default',
                 subtitle: 'Follow the device setting',
@@ -88,7 +91,7 @@ class _ThemeOptionTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
           color: selected ? accent.withValues(alpha: 0.08) : cs.surface,
           borderRadius: BorderRadius.circular(18),
@@ -100,30 +103,37 @@ class _ThemeOptionTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 42.r,
+              height: 42.r,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: accent),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: cs.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     subtitle,
-                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 12.sp.clamp(10.0, 13.0),
+                    ),
                   ),
                 ],
               ),

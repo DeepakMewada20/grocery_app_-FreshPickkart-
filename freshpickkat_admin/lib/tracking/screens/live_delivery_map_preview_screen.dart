@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/tracking/controllers/live_delivery_map_controller.dart';
 import 'package:freshpickkat_admin/tracking/models/order_tracking_snapshot.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../widgets/admin_app_bar.dart';
@@ -140,6 +143,7 @@ class _LiveDeliveryMapPreviewScreenState
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final horizontalInset = AdminResponsive.pageHorizontalPadding(context);
 
     return Scaffold(
       appBar: AdminAppBar(
@@ -184,16 +188,33 @@ class _LiveDeliveryMapPreviewScreenState
               },
             ),
             Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: _buildMapControls(cs),
+              top: 12.h,
+              left: horizontalInset,
+              right: horizontalInset,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: AdminResponsive.maxContentWidth,
+                  ),
+                  child: _buildMapControls(cs),
+                ),
+              ),
             ),
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: _buildStatusCard(snapshot, destination, cs),
+              left: horizontalInset,
+              right: horizontalInset,
+              bottom: AdminResponsive.bottomInset(context),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: AdminResponsive.maxDialogWidth,
+                    maxHeight: AdminResponsive.mapBottomCardMaxHeight(context),
+                  ),
+                  child: _buildStatusCard(snapshot, destination, cs),
+                ),
+              ),
             ),
           ],
         );
@@ -247,10 +268,10 @@ class _LiveDeliveryMapPreviewScreenState
       elevation: 8,
       borderRadius: BorderRadius.circular(18),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         child: Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: 10.w,
+          runSpacing: 10.h,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             OutlinedButton.icon(
@@ -318,17 +339,20 @@ class _LiveDeliveryMapPreviewScreenState
       color: cs.surface,
       borderRadius: BorderRadius.circular(24),
       shadowColor: Colors.black.withValues(alpha: 0.18),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(16.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 42.r,
+                  height: 42.r,
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -340,27 +364,26 @@ class _LiveDeliveryMapPreviewScreenState
                     color: statusColor,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.58,
+                  ),
                   child: Text(
                     liveStatus,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: cs.onSurface,
-                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AdminTextStyles.cardTitle(context),
                   ),
                 ),
-                if (_controller.hasArrivingSoonFlag) const SizedBox(width: 8),
                 if (_controller.hasArrivingSoonFlag)
                   _BadgeChip(label: 'Arriving soon', color: Colors.green),
-                const SizedBox(width: 8),
                 _BadgeChip(label: sla.label, color: sla.color),
               ],
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14.h),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(18),
@@ -370,41 +393,56 @@ class _LiveDeliveryMapPreviewScreenState
                 children: [
                   Text(
                     'Order: ${widget.order.orderId}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: cs.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     destination == null
                         ? 'Destination: not available'
                         : 'Destination: ${widget.order.deliveryAddress.street}, ${widget.order.deliveryAddress.city}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _MetricTile(
-                    label: 'Distance',
-                    value: distance <= 999
-                        ? '${distance.toStringAsFixed(0)} m'
-                        : '${(distance / 1000).toStringAsFixed(1)} km',
-                    icon: Icons.straighten_rounded,
-                    accent: Colors.indigo,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _MetricTile(
-                    label: 'ETA',
-                    value: etaLabel,
-                    icon: Icons.schedule_rounded,
-                    accent: Colors.deepOrange,
-                  ),
-                ),
-              ],
+            SizedBox(height: 12.h),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final distanceTile = _MetricTile(
+                  label: 'Distance',
+                  value: distance <= 999
+                      ? '${distance.toStringAsFixed(0)} m'
+                      : '${(distance / 1000).toStringAsFixed(1)} km',
+                  icon: Icons.straighten_rounded,
+                  accent: Colors.indigo,
+                );
+                final etaTile = _MetricTile(
+                  label: 'ETA',
+                  value: etaLabel,
+                  icon: Icons.schedule_rounded,
+                  accent: Colors.deepOrange,
+                );
+                if (constraints.maxWidth < 360) {
+                  return Column(
+                    children: [
+                      distanceTile,
+                      SizedBox(height: 10.h),
+                      etaTile,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: distanceTile),
+                    SizedBox(width: 12.w),
+                    Expanded(child: etaTile),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -470,17 +508,19 @@ class _BadgeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: 12.sp.clamp(10.0, 13.0),
         ),
       ),
     );
@@ -503,7 +543,7 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
@@ -512,15 +552,15 @@ class _MetricTile extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 34.r,
+            height: 34.r,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 18, color: accent),
+            child: Icon(icon, size: 18.sp.clamp(16.0, 20.0), color: accent),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,11 +569,11 @@ class _MetricTile extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12,
+                    fontSize: 12.sp.clamp(10.0, 13.0),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2.h),
                 Text(
                   value,
                   maxLines: 1,

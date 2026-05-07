@@ -130,7 +130,9 @@ class AdminComboOfferController extends GetxController {
 
   Future<bool> createComboOffer(ComboOffer offer) async {
     try {
-      print('DEBUG COMBO: createComboOffer called with comboId: ${offer.comboId}');
+      print(
+        'DEBUG COMBO: createComboOffer called with comboId: ${offer.comboId}',
+      );
       final normalizedOffer = offer.copyWith(comboId: _ensureComboId(offer));
       print('DEBUG COMBO: Normalized comboId: ${normalizedOffer.comboId}');
       final uid = AdminSessionService.requireUid();
@@ -146,7 +148,9 @@ class AdminComboOfferController extends GetxController {
       print('DEBUG COMBO: API result: $result');
       if (result) {
         _upsertLocal(normalizedOffer);
-        print('DEBUG COMBO: _upsertLocal called, current list length: ${comboOffers.length}');
+        print(
+          'DEBUG COMBO: _upsertLocal called, current list length: ${comboOffers.length}',
+        );
       }
       return result;
     } catch (e) {

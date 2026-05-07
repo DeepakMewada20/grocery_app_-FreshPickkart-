@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-enum AdminAppBarStyle {
-  primary,
-  surface,
-  transparent,
-}
+enum AdminAppBarStyle { primary, surface, transparent }
 
 class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
   const AdminAppBar({
@@ -60,7 +57,8 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
       bottom: bottom,
       leading: leading,
-      toolbarHeight: toolbarHeight ?? kToolbarHeight,
+      toolbarHeight: toolbarHeight ?? 58.h.clamp(54.0, 66.0),
+      titleSpacing: 12.w,
       centerTitle: centerTitle,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,

@@ -14,6 +14,9 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import 'bogo_product_picker_screen.dart';
 import 'combo_offers_screen.dart';
@@ -251,8 +254,8 @@ class _OffersScreenState extends State<OffersScreen> {
                               ),
                             ),
                           Positioned(
-                            right: 16,
-                            bottom: 16,
+                            right: 16.w,
+                            bottom: AdminResponsive.bottomInset(context),
                             child: _OfferFabMenu(
                               isExpanded: _isOfferFabExpanded,
                               onToggle: _toggleOfferFab,
@@ -342,122 +345,130 @@ class _OffersDashboardTab extends StatelessWidget {
       final activeBanners = banners.where((banner) => banner.active).length;
       final liveOfferPrograms = liveBogo + liveCategory + liveCombo;
 
-      return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        children: [
-          const Text(
-            'Offers Dashboard',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Offers, banners, and delivery rules ka quick summary',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-          ),
-          const SizedBox(height: 16),
-          _DashboardCardGrid(
-            cards: [
-              CatalogStatCard(
-                title: 'Coupons',
-                value: '${coupons.length}',
-                icon: Icons.sell_outlined,
-                color: const Color(0xFF315C73),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveCoupons',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-              CatalogStatCard(
-                title: 'Offers',
-                value: '${totalBogo + totalCategoryOffers + totalComboOffers}',
-                icon: Icons.local_offer_outlined,
-                color: const Color(0xFF2F6F4F),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveOfferPrograms',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-              CatalogStatCard(
-                title: 'Delivery Rules',
-                value: '$totalDeliveryRules',
-                icon: Icons.local_shipping_outlined,
-                color: const Color(0xFF7C4D12),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveDelivery',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-              CatalogStatCard(
-                title: 'Banners',
-                value: '$totalBanners',
-                icon: Icons.image_outlined,
-                color: const Color(0xFF6A4C93),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Active',
-                    value: '$activeBanners',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _DashboardSection(
-            title: 'Offer Programs',
-            subtitle: 'BOGO, category, aur combo offers ka breakdown',
-            cards: [
-              CatalogStatCard(
-                title: 'BOGO',
-                value: '$totalBogo',
-                icon: Icons.card_giftcard,
-                color: const Color(0xFF2B7A78),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveBogo',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-              CatalogStatCard(
-                title: 'Category',
-                value: '$totalCategoryOffers',
-                icon: Icons.category_outlined,
-                color: const Color(0xFF3A5F6F),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveCategory',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-              CatalogStatCard(
-                title: 'Combo',
-                value: '$totalComboOffers',
-                icon: Icons.widgets_outlined,
-                color: const Color(0xFF4F7D63),
-                breakdown: [
-                  CatalogStatBreakdown(
-                    label: 'Live',
-                    value: '$liveCombo',
-                    color: Colors.green.shade700,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+      return AdminResponsive.constrainContent(
+        context: context,
+        child: ListView(
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
+          children: [
+            Text(
+              'Offers Dashboard',
+              style: AdminTextStyles.screenTitle(context),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              'Offers, banners, and delivery rules ka quick summary',
+              style: AdminTextStyles.body(
+                context,
+              ).copyWith(color: Colors.grey.shade700),
+            ),
+            SizedBox(height: 16.h),
+            _DashboardCardGrid(
+              cards: [
+                CatalogStatCard(
+                  title: 'Coupons',
+                  value: '${coupons.length}',
+                  icon: Icons.sell_outlined,
+                  color: const Color(0xFF315C73),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveCoupons',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+                CatalogStatCard(
+                  title: 'Offers',
+                  value:
+                      '${totalBogo + totalCategoryOffers + totalComboOffers}',
+                  icon: Icons.local_offer_outlined,
+                  color: const Color(0xFF2F6F4F),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveOfferPrograms',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+                CatalogStatCard(
+                  title: 'Delivery Rules',
+                  value: '$totalDeliveryRules',
+                  icon: Icons.local_shipping_outlined,
+                  color: const Color(0xFF7C4D12),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveDelivery',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+                CatalogStatCard(
+                  title: 'Banners',
+                  value: '$totalBanners',
+                  icon: Icons.image_outlined,
+                  color: const Color(0xFF6A4C93),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Active',
+                      value: '$activeBanners',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 20.h),
+            _DashboardSection(
+              title: 'Offer Programs',
+              subtitle: 'BOGO, category, aur combo offers ka breakdown',
+              cards: [
+                CatalogStatCard(
+                  title: 'BOGO',
+                  value: '$totalBogo',
+                  icon: Icons.card_giftcard,
+                  color: const Color(0xFF2B7A78),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveBogo',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+                CatalogStatCard(
+                  title: 'Category',
+                  value: '$totalCategoryOffers',
+                  icon: Icons.category_outlined,
+                  color: const Color(0xFF3A5F6F),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveCategory',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+                CatalogStatCard(
+                  title: 'Combo',
+                  value: '$totalComboOffers',
+                  icon: Icons.widgets_outlined,
+                  color: const Color(0xFF4F7D63),
+                  breakdown: [
+                    CatalogStatBreakdown(
+                      label: 'Live',
+                      value: '$liveCombo',
+                      color: Colors.green.shade700,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       );
     });
   }
@@ -481,11 +492,13 @@ class _DashboardSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          style: AdminTextStyles.sectionTitle(
+            context,
+          ).copyWith(fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4.h),
         Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         _DashboardCardGrid(cards: cards),
       ],
     );
@@ -501,14 +514,20 @@ class _DashboardCardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        const crossAxisCount = 2;
+        final crossAxisCount = AdminResponsive.gridColumns(
+          constraints.maxWidth,
+          minColumns: constraints.maxWidth < 360 ? 1 : 2,
+          minTileWidth: 220,
+          maxColumns: 4,
+        );
+        final spacing = 12.w;
         final itemWidth =
-            (constraints.maxWidth - ((crossAxisCount - 1) * 12)) /
+            (constraints.maxWidth - ((crossAxisCount - 1) * spacing)) /
             crossAxisCount;
 
         return Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: spacing,
+          runSpacing: 12.h,
           children: cards
               .map((card) => SizedBox(width: itemWidth, child: card))
               .toList(),

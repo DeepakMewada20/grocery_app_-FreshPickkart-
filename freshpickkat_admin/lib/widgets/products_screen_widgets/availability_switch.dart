@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
 class AvailabilitySwitch extends StatelessWidget {
   const AvailabilitySwitch({
@@ -20,23 +23,29 @@ class AvailabilitySwitch extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(
-                  value ? Icons.check_circle : Icons.cancel_outlined,
-                  size: 20,
-                  color: value ? Colors.green : Colors.grey,
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Available for Order',
-                  style: TextStyle(fontSize: 15),
-                ),
-              ],
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(
+                    value ? Icons.check_circle : Icons.cancel_outlined,
+                    size: 20.sp.clamp(18.0, 22.0),
+                    color: value ? Colors.green : Colors.grey,
+                  ),
+                  SizedBox(width: AdminSpacing.md),
+                  Expanded(
+                    child: Text(
+                      'Available for Order',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.body(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Switch(value: value, onChanged: onChanged),
           ],

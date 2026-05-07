@@ -8,6 +8,8 @@ import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.d
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_tab.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -82,7 +84,9 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   void _syncFetchedScopeCache(String scope) {
     _fetchedCategoryScope = scope;
-    _categoryProductCache[scope] = List<Product>.from(_productController.products);
+    _categoryProductCache[scope] = List<Product>.from(
+      _productController.products,
+    );
   }
 
   void _syncAllKnownProductCaches() {
@@ -125,8 +129,11 @@ class _ProductsScreenState extends State<ProductsScreen>
         product: null,
         categories: _categoryController.categories,
         onSubmit: (result) async {
-          final createdProduct = await _productController.addProduct(result.product);
-          if (createdProduct?.productId != null && result.bogoSelections != null) {
+          final createdProduct = await _productController.addProduct(
+            result.product,
+          );
+          if (createdProduct?.productId != null &&
+              result.bogoSelections != null) {
             await _saveBogoOfferConfiguration(
               triggerProductId: createdProduct!.productId!,
               selections: result.bogoSelections!,
@@ -316,8 +323,11 @@ class _ProductsScreenState extends State<ProductsScreen>
       return _categoryProductCache[_selectedCategory]!;
     }
 
-    final allProducts = _categoryProductCache['All'] ?? _productController.products;
-    return allProducts.where((product) => product.category == _selectedCategory).toList();
+    final allProducts =
+        _categoryProductCache['All'] ?? _productController.products;
+    return allProducts
+        .where((product) => product.category == _selectedCategory)
+        .toList();
   }
 
   bool _isCategoryFabExpanded = false;
@@ -338,10 +348,7 @@ class _ProductsScreenState extends State<ProductsScreen>
     if (!mounted) return;
 
     if (action == 'category') {
-      showAddCategoryDialog(
-        context: context,
-        controller: _categoryController,
-      );
+      showAddCategoryDialog(context: context, controller: _categoryController);
     } else {
       showAddSubcategoryDialog(
         context: context,
@@ -394,8 +401,8 @@ class _ProductsScreenState extends State<ProductsScreen>
                 enablePagination: _selectedCategory == _fetchedCategoryScope,
               ),
               Positioned(
-                right: 16,
-                bottom: 16,
+                right: 16.w,
+                bottom: AdminResponsive.bottomInset(context),
                 child: FloatingActionButton.extended(
                   key: const ValueKey('add_product_fab'),
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -427,12 +434,14 @@ class _ProductsScreenState extends State<ProductsScreen>
                 Positioned.fill(
                   child: GestureDetector(
                     onTap: _toggleCategoryFab,
-                    child: Container(color: Colors.black.withValues(alpha: 0.05)),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.05),
+                    ),
                   ),
                 ),
               Positioned(
-                right: 16,
-                bottom: 16,
+                right: 16.w,
+                bottom: AdminResponsive.bottomInset(context),
                 child: _CategoryFabMenu(
                   key: const ValueKey('category_fab_menu'),
                   isExpanded: _isCategoryFabExpanded,
@@ -512,7 +521,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
             onTap: () => widget.onSelected('subcategory'),
             index: 1,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _buildMenuItem(
             label: 'Add Category',
             icon: Icons.category_outlined,
@@ -520,7 +529,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
             onTap: () => widget.onSelected('category'),
             index: 0,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
         ],
         FloatingActionButton.extended(
           onPressed: widget.onToggle,
@@ -554,7 +563,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
@@ -571,7 +580,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               FloatingActionButton.small(
                 onPressed: onTap,
                 backgroundColor: color,

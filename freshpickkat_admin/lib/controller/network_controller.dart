@@ -5,14 +5,16 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 
 class NetworkController extends GetxController {
   final RxBool hasError = false.obs;
-  
+
   VoidCallback? lastFailedRequestRetry;
   StreamSubscription? _connectionSubscription;
 
   @override
   void onInit() {
     super.onInit();
-    _connectionSubscription = InternetConnection().onStatusChange.listen((status) {
+    _connectionSubscription = InternetConnection().onStatusChange.listen((
+      status,
+    ) {
       if (status == InternetStatus.connected) {
         if (hasError.value && lastFailedRequestRetry != null) {
           retryLastRequest();

@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -17,11 +19,13 @@ Future<void> showAddComboOfferDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      padding: EdgeInsets.fromLTRB(
+        AdminResponsive.pageHorizontalPadding(context),
+        0,
+        AdminResponsive.pageHorizontalPadding(context),
+        MediaQuery.viewInsetsOf(context).bottom + 12.h,
       ),
       child: _ComboOfferDialog(
         onSave: (offer) async {
@@ -42,11 +46,13 @@ Future<void> showEditComboOfferDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      padding: EdgeInsets.fromLTRB(
+        AdminResponsive.pageHorizontalPadding(context),
+        0,
+        AdminResponsive.pageHorizontalPadding(context),
+        MediaQuery.viewInsetsOf(context).bottom + 12.h,
       ),
       child: _ComboOfferDialog(
         offer: offer,
@@ -1011,7 +1017,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final sheetHeight = MediaQuery.sizeOf(context).height * 0.82;
+    final sheetHeight =
+        MediaQuery.sizeOf(context).height *
+        (AdminResponsive.isLandscape(context) ? 0.92 : 0.82);
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1023,13 +1031,13 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
                 child: _buildSheetHeader(),
               ),
               const Divider(height: 1),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1177,7 +1185,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 16.h),
                   child: Row(
                     children: [
                       Expanded(

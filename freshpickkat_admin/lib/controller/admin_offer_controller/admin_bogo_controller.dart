@@ -24,7 +24,9 @@ class AdminBogoController extends GetxController {
   final totalCount = 0.obs;
 
   void _upsertLocal(BogoOffer offer) {
-    print('DEBUG BOGO: _upsertLocal called with triggerProductId: ${offer.triggerProductId}');
+    print(
+      'DEBUG BOGO: _upsertLocal called with triggerProductId: ${offer.triggerProductId}',
+    );
     final index = bogoOffers.indexWhere(
       (item) => item.triggerProductId == offer.triggerProductId,
     );
@@ -138,7 +140,9 @@ class AdminBogoController extends GetxController {
 
   Future<bool> upsertOffer(BogoOffer offer) async {
     try {
-      print('DEBUG BOGO: upsertOffer called with triggerProductId: ${offer.triggerProductId}');
+      print(
+        'DEBUG BOGO: upsertOffer called with triggerProductId: ${offer.triggerProductId}',
+      );
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
@@ -147,7 +151,9 @@ class AdminBogoController extends GetxController {
       await client.bogo.upsertOffer(offer, uid, idToken);
       print('DEBUG BOGO: API call successful');
       _upsertLocal(offer);
-      print('DEBUG BOGO: _upsertLocal called, current list length: ${bogoOffers.length}');
+      print(
+        'DEBUG BOGO: _upsertLocal called, current list length: ${bogoOffers.length}',
+      );
       return true;
     } catch (e) {
       print('DEBUG BOGO: Error upserting BOGO offer: $e');

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_admin/widgets/network_error_widget.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductFilterOption {
   final String value;
@@ -31,7 +35,7 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
     required this.categoryOptions,
     required this.selectedCategory,
     required this.onCategorySelected,
-    this.padding = const EdgeInsets.fromLTRB(16, 12, 16, 8),
+    this.padding = EdgeInsets.zero,
     this.searchToCategorySpacing = 10,
     this.categoryHeight = 34,
   });
@@ -39,7 +43,14 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding,
+      padding: padding == EdgeInsets.zero
+          ? EdgeInsets.fromLTRB(
+              AdminResponsive.pageHorizontalPadding(context),
+              12.h,
+              AdminResponsive.pageHorizontalPadding(context),
+              8.h,
+            )
+          : padding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -69,13 +80,13 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
             ),
             onChanged: onSearchChanged,
           ),
-          SizedBox(height: searchToCategorySpacing),
+          SizedBox(height: searchToCategorySpacing.h),
           SizedBox(
-            height: categoryHeight,
+            height: categoryHeight.h.clamp(34.0, 42.0),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: categoryOptions.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => SizedBox(width: 8.w),
               itemBuilder: (context, index) {
                 final option = categoryOptions[index];
                 final isSelected = selectedCategory == option.value;
@@ -91,13 +102,13 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
                       backgroundColor: Colors.white,
                       selectedColor: Colors.green.withValues(alpha: 0.12),
                       labelStyle: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp.clamp(10.0, 13.0),
                         fontWeight: FontWeight.w600,
                         color: isSelected
                             ? Colors.green.shade800
                             : Colors.grey.shade800,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 4.w),
                     ),
                   ),
                   child: CatalogOfferFilterChip(
@@ -236,20 +247,25 @@ class ProductsListArea extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            controller: scrollController,
-            padding: const EdgeInsets.all(12),
-            physics: const AlwaysScrollableScrollPhysics(),
-            itemCount:
-                visible.length +
-                (enablePagination && (hasMore || isLoadingMore || error != null)
-                    ? 1
-                    : 0),
-            itemBuilder: (context, index) {
-              if (index >= visible.length) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = AdminResponsive.productListColumnsForWidth(
+                constraints.maxWidth,
+              );
+              final itemCount =
+                  visible.length +
+                  (enablePagination &&
+                          (hasMore || isLoadingMore || error != null)
+                      ? 1
+                      : 0);
+              final listPadding = AdminResponsive.pagePadding(
+                context,
+              ).copyWith(bottom: AdminResponsive.bottomInset(context) + 76.h);
+
+              Widget paginationTile() {
                 if (productController.networkController.hasError.value) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     child: NetworkErrorWidget(
                       onRetry: () => productController.networkController
                           .retryLastRequest(),
@@ -258,7 +274,7 @@ class ProductsListArea extends StatelessWidget {
                 }
                 if (error != null) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
                     child: Column(
                       children: [
                         Text(
@@ -266,7 +282,7 @@ class ProductsListArea extends StatelessWidget {
                           style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         ElevatedButton(
                           onPressed: () => productController.loadMore(),
                           child: const Text('Retry'),
@@ -275,18 +291,22 @@ class ProductsListArea extends StatelessWidget {
                     ),
                   );
                 }
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  child: const Center(child: CircularProgressIndicator()),
                 );
               }
 
-              final product = visible[index];
-              final productId = product.productId ?? '';
-              final isSelected = selectedProductIds.contains(productId);
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
+              Widget itemAt(int index) {
+                if (index >= visible.length) return paginationTile();
+                final product = visible[index];
+                final productId = product.productId ?? '';
+                final isSelected = selectedProductIds.contains(productId);
+                return _ProductAdminCard(
+                  product: product,
+                  isSelected: isSelected,
+                  showActionMenu: showActionMenu,
+                  isSelectionMode: onSelectProduct != null,
                   onTap: () {
                     if (onSelectProduct != null) {
                       onSelectProduct!(product);
@@ -294,47 +314,164 @@ class ProductsListArea extends StatelessWidget {
                     }
                     onOpenEditProductDialog?.call(product);
                   },
-                  isThreeLine: true,
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(product.imageUrl),
-                    onBackgroundImageError: (_, _) {},
+                  onEdit: () => onOpenEditProductDialog?.call(product),
+                  onDelete: () => onDeleteProduct?.call(product),
+                );
+              }
+
+              if (columns == 1) {
+                return ListView.builder(
+                  controller: scrollController,
+                  padding: listPadding,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: itemCount,
+                  itemBuilder: (context, index) => Padding(
+                    padding: EdgeInsets.only(bottom: 10.h),
+                    child: itemAt(index),
                   ),
-                  title: Text(product.productName),
-                  subtitle: Text(
-                    '${product.category} • ${product.quantity}\n'
-                    '₹${product.price.toStringAsFixed(0)} | '
-                    '${product.isAvailable ? 'Available' : 'Out of stock'}',
-                  ),
-                  trailing: onSelectProduct != null
-                      ? Icon(
-                          isSelected ? Icons.check_circle : Icons.chevron_right,
-                          color: isSelected ? Colors.green : Colors.grey,
-                        )
-                      : showActionMenu
-                      ? PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              onOpenEditProductDialog?.call(product);
-                            } else if (value == 'delete') {
-                              onDeleteProduct?.call(product);
-                            }
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Text('Delete'),
-                            ),
-                          ],
-                        )
-                      : null,
+                );
+              }
+
+              return GridView.builder(
+                controller: scrollController,
+                padding: listPadding,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: itemCount,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 12.w,
+                  mainAxisSpacing: 12.h,
+                  childAspectRatio: constraints.maxWidth > 980 ? 1.85 : 1.65,
                 ),
+                itemBuilder: (context, index) => itemAt(index),
               );
             },
           );
         })(),
       );
     });
+  }
+}
+
+class _ProductAdminCard extends StatelessWidget {
+  const _ProductAdminCard({
+    required this.product,
+    required this.isSelected,
+    required this.showActionMenu,
+    required this.isSelectionMode,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Product product;
+  final bool isSelected;
+  final bool showActionMenu;
+  final bool isSelectionMode;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final statusColor = product.isAvailable ? Colors.green : Colors.redAccent;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.all(12.r),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: SizedBox.square(
+                  dimension: 64.r.clamp(52.0, 72.0),
+                  child: Image.network(
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      color: cs.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: cs.onSurfaceVariant,
+                        size: 22.sp,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AutoSizeText(
+                      product.productName,
+                      maxLines: 2,
+                      minFontSize: 11,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.cardTitle(context),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      '${product.category} • ${product.quantity}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.caption(context),
+                    ),
+                    SizedBox(height: 8.h),
+                    Wrap(
+                      spacing: 8.w,
+                      runSpacing: 6.h,
+                      children: [
+                        CatalogInlineBadge(
+                          label: '₹${product.price.toStringAsFixed(0)}',
+                          color: Colors.green.shade700,
+                        ),
+                        CatalogInlineBadge(
+                          label: product.isAvailable
+                              ? 'Available'
+                              : 'Out of stock',
+                          color: statusColor,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              if (isSelectionMode)
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.chevron_right,
+                  color: isSelected ? Colors.green : Colors.grey,
+                )
+              else if (showActionMenu)
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      onEdit();
+                    } else if (value == 'delete') {
+                      onDelete();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

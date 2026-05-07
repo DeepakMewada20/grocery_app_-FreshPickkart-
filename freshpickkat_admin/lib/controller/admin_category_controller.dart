@@ -72,7 +72,9 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
         await _client.category.uploadCategory(category, uid, idToken);
       });
       await loadCategories();
@@ -85,7 +87,9 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
         await _client.category.updateCategory(oldName, category, uid, idToken);
       });
       await loadCategories();
@@ -98,7 +102,9 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
         await _client.category.deleteCategory(categoryName, uid, idToken);
       });
       await loadCategories();
@@ -111,7 +117,9 @@ class AdminCategoryController extends GetxController {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
         await _client.subCategory.uploadSubCategory(subCategory, uid, idToken);
       });
       await loadCategories();
@@ -120,12 +128,24 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<void> updateSubCategory(String categoryName, String oldSubName, SubCategory subCategory) async {
+  Future<void> updateSubCategory(
+    String categoryName,
+    String oldSubName,
+    SubCategory subCategory,
+  ) async {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
-        await _client.subCategory.updateSubCategory(categoryName, oldSubName, subCategory, uid, idToken);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        await _client.subCategory.updateSubCategory(
+          categoryName,
+          oldSubName,
+          subCategory,
+          uid,
+          idToken,
+        );
       });
       await loadCategories();
     } catch (e) {
@@ -133,12 +153,22 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<void> deleteSubCategory(String categoryName, String subCategoryName) async {
+  Future<void> deleteSubCategory(
+    String categoryName,
+    String subCategoryName,
+  ) async {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
-        await _client.subCategory.deleteSubCategory(categoryName, subCategoryName, uid, idToken);
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        await _client.subCategory.deleteSubCategory(
+          categoryName,
+          subCategoryName,
+          uid,
+          idToken,
+        );
       });
       await loadCategories();
     } catch (e) {

@@ -23,8 +23,7 @@ class AuthWrapper extends StatefulWidget {
   State<AuthWrapper> createState() => _AuthWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper>
-    with WidgetsBindingObserver {
+class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
   final _authService = AdminAuthService();
 
   StreamSubscription<User?>? _userSubscription;

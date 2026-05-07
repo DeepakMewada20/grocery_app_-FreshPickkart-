@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
 class SubcategorySelector extends StatelessWidget {
   final List<List<String>> options;
@@ -17,11 +19,13 @@ class SubcategorySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (options.isEmpty) {
-      return const Align(
+      return Align(
         alignment: Alignment.centerLeft,
         child: Text(
           'No subcategories found for selected category',
-          style: TextStyle(color: Colors.redAccent),
+          style: AdminTextStyles.body(
+            context,
+          ).copyWith(color: Colors.redAccent),
         ),
       );
     }
@@ -29,32 +33,41 @@ class SubcategorySelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
             'Subcategories',
-            style: TextStyle(fontWeight: FontWeight.w600),
+            style: AdminTextStyles.cardTitle(context),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8.h),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 8.w,
+          runSpacing: 8.h,
           children: options.map((bunch) {
             final isBunchSelected = bunch.every(
               (item) => selected.contains(item),
             );
 
             return FilterChip(
-              label: Text(bunch.join(', ')),
+              label: Text(
+                bunch.join(', '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               selected: isBunchSelected,
               onSelected: (checked) => onToggleBunch(bunch, checked),
             );
           }).toList(),
         ),
         if (errorText != null) ...[
-          const SizedBox(height: 6),
-          Text(errorText!, style: const TextStyle(color: Colors.red)),
+          SizedBox(height: 6.h),
+          Text(
+            errorText!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AdminTextStyles.caption(context).copyWith(color: Colors.red),
+          ),
         ],
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AdminThemeTokens {
   // Primary Colors
@@ -94,12 +95,12 @@ class AdminAppTheme {
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        toolbarHeight: 64,
+        toolbarHeight: 60.h.clamp(54.0, 68.0),
         surfaceTintColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           color: Colors.white,
-          fontSize: 20,
+          fontSize: 18.sp.clamp(16.0, 21.0),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -198,77 +199,77 @@ class AdminAppTheme {
       textTheme: TextTheme(
         displayLarge: TextStyle(
           color: textPrimary,
-          fontSize: 32,
+          fontSize: 32.sp.clamp(26.0, 36.0),
           fontWeight: FontWeight.w700,
         ),
         displayMedium: TextStyle(
           color: textPrimary,
-          fontSize: 28,
+          fontSize: 28.sp.clamp(23.0, 32.0),
           fontWeight: FontWeight.w700,
         ),
         displaySmall: TextStyle(
           color: textPrimary,
-          fontSize: 24,
+          fontSize: 24.sp.clamp(20.0, 28.0),
           fontWeight: FontWeight.w700,
         ),
         headlineLarge: TextStyle(
           color: textPrimary,
-          fontSize: 22,
+          fontSize: 22.sp.clamp(18.0, 25.0),
           fontWeight: FontWeight.w700,
         ),
         headlineMedium: TextStyle(
           color: textPrimary,
-          fontSize: 20,
+          fontSize: 20.sp.clamp(17.0, 23.0),
           fontWeight: FontWeight.w600,
         ),
         headlineSmall: TextStyle(
           color: textPrimary,
-          fontSize: 18,
+          fontSize: 18.sp.clamp(16.0, 21.0),
           fontWeight: FontWeight.w600,
         ),
         titleLarge: TextStyle(
           color: textPrimary,
-          fontSize: 16,
+          fontSize: 16.sp.clamp(14.0, 18.0),
           fontWeight: FontWeight.w600,
         ),
         titleMedium: TextStyle(
           color: textPrimary,
-          fontSize: 14,
+          fontSize: 14.sp.clamp(12.0, 16.0),
           fontWeight: FontWeight.w600,
         ),
         titleSmall: TextStyle(
           color: textPrimary,
-          fontSize: 12,
+          fontSize: 12.sp.clamp(10.0, 14.0),
           fontWeight: FontWeight.w600,
         ),
         bodyLarge: TextStyle(
           color: textPrimary,
-          fontSize: 16,
+          fontSize: 16.sp.clamp(14.0, 18.0),
           fontWeight: FontWeight.w400,
         ),
         bodyMedium: TextStyle(
           color: textPrimary,
-          fontSize: 14,
+          fontSize: 14.sp.clamp(12.0, 16.0),
           fontWeight: FontWeight.w400,
         ),
         bodySmall: TextStyle(
           color: textSecondary,
-          fontSize: 12,
+          fontSize: 12.sp.clamp(10.0, 14.0),
           fontWeight: FontWeight.w400,
         ),
         labelLarge: TextStyle(
           color: textPrimary,
-          fontSize: 14,
+          fontSize: 14.sp.clamp(12.0, 16.0),
           fontWeight: FontWeight.w600,
         ),
         labelMedium: TextStyle(
           color: textPrimary,
-          fontSize: 12,
+          fontSize: 12.sp.clamp(10.0, 14.0),
           fontWeight: FontWeight.w600,
         ),
         labelSmall: TextStyle(
           color: textSecondary,
-          fontSize: 10,
+          fontSize: 10.sp.clamp(9.0, 12.0),
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -277,7 +278,7 @@ class AdminAppTheme {
           backgroundColor: AdminThemeTokens.primary,
           foregroundColor: Colors.white,
           elevation: isDark ? 0 : 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 11.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -286,7 +287,7 @@ class AdminAppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AdminThemeTokens.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 9.h),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -296,7 +297,7 @@ class AdminAppTheme {
           side: BorderSide(
             color: isDark ? AdminThemeTokens.darkBorder : scheme.outlineVariant,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 11.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

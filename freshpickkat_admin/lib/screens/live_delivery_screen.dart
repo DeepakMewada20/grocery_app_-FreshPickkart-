@@ -4,6 +4,9 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
 import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -49,34 +52,42 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         if (order == null) {
           return RefreshIndicator(
             onRefresh: _controller.loadActiveDeliveries,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(20),
-              children: [
-                _buildHeader(theme),
-                const SizedBox(height: 16),
-                _buildEmptyState(theme),
-              ],
+            child: AdminResponsive.constrainContent(
+              context: context,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AdminResponsive.pagePadding(context),
+                children: [
+                  _buildHeader(theme),
+                  SizedBox(height: 16.h),
+                  _buildEmptyState(theme),
+                ],
+              ),
             ),
           );
         }
 
         return RefreshIndicator(
           onRefresh: _controller.loadActiveDeliveries,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            children: [
-              _buildHeader(theme),
-              const SizedBox(height: 16),
-              _buildTrackingStatusCard(theme),
-              const SizedBox(height: 16),
-              _buildOrderCard(order, theme),
-              const SizedBox(height: 16),
-              _buildAddressCard(order, theme),
-              const SizedBox(height: 16),
-              _buildHintCard(theme),
-            ],
+          child: AdminResponsive.constrainContent(
+            context: context,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: AdminResponsive.pagePadding(
+                context,
+              ).copyWith(bottom: AdminResponsive.bottomInset(context)),
+              children: [
+                _buildHeader(theme),
+                SizedBox(height: 16.h),
+                _buildTrackingStatusCard(theme),
+                SizedBox(height: 16.h),
+                _buildOrderCard(order, theme),
+                SizedBox(height: 16.h),
+                _buildAddressCard(order, theme),
+                SizedBox(height: 16.h),
+                _buildHintCard(theme),
+              ],
+            ),
           ),
         );
       }),
@@ -85,7 +96,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
 
   Widget _buildHeader(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.green.shade700, Colors.green.shade500],
@@ -93,23 +104,31 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.delivery_dining, color: Colors.white, size: 34),
-          const SizedBox(width: 14),
+          Icon(
+            Icons.delivery_dining,
+            color: Colors.white,
+            size: 34.sp.clamp(28.0, 38.0),
+          ),
+          SizedBox(width: 14.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Active rider order',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AdminTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(color: Colors.white),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   'This tab only shows orders that are currently out for delivery.',
+                  maxLines: AdminResponsive.isLandscape(context) ? 2 : 3,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
@@ -134,13 +153,14 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         subtitle: message,
         icon: active ? Icons.sensors : Icons.sensors_off,
         iconColor: active ? Colors.green : Colors.grey,
-        child: Row(
+        child: Wrap(
+          spacing: 10.w,
+          runSpacing: 8.h,
           children: [
             _ChipLabel(
               label: active ? 'Tracking active' : 'Tracking stopped',
               color: active ? Colors.green : Colors.grey,
             ),
-            const SizedBox(width: 10),
             if (_trackingController.activeOrderId.value != null)
               _ChipLabel(
                 label: 'Order ${_trackingController.activeOrderId.value}',
@@ -192,27 +212,30 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14.h),
           _InfoRow(label: 'Items', value: '${order.itemCount}'),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _InfoRow(
             label: 'Delivery person',
             value: order.deliveryPersonName?.isNotEmpty == true
                 ? order.deliveryPersonName!
                 : 'Not assigned',
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () =>
                   Get.to(() => LiveDeliveryMapPreviewScreen(order: order)),
               icon: const Icon(Icons.map_outlined),
-              label: const Text('Open Live Map'),
+              label: const Text(
+                'Open Live Map',
+                overflow: TextOverflow.ellipsis,
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -259,13 +282,15 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         children: [
           Text(
             addressText,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colorScheme.onSurface,
             ),
           ),
           if (address.latitude != null && address.longitude != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               'Lat: ${address.latitude!.toStringAsFixed(6)}, Lng: ${address.longitude!.toStringAsFixed(6)}',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -286,6 +311,10 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
       iconColor: Colors.blueGrey,
       child: Text(
         'Open the customer map only when needed. Tracking starts automatically once the order is marked out for delivery and stops as soon as it is delivered.',
+        maxLines: AdminResponsive.isLandscape(context) ? 3 : null,
+        overflow: AdminResponsive.isLandscape(context)
+            ? TextOverflow.ellipsis
+            : null,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
@@ -295,7 +324,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
 
   Widget _buildEmptyState(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -304,17 +333,17 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         children: [
           Icon(
             Icons.delivery_dining_outlined,
-            size: 72,
+            size: 66.sp.clamp(48.0, 72.0),
             color: Colors.grey.shade400,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Text(
             'No active deliveries',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'Move an order to out_for_delivery from the Orders tab to start rider tracking.',
             textAlign: TextAlign.center,
@@ -355,7 +384,7 @@ class _SectionCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
@@ -373,27 +402,31 @@ class _SectionCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(10.r),
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: iconColor),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.sectionTitle(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2.h),
                     Text(
                       subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -403,7 +436,7 @@ class _SectionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           child,
         ],
       ),
@@ -421,28 +454,44 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 110,
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 360;
+        final labelText = Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurface,
-            ),
+        );
+        final valueText = Text(
+          value,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ),
-      ],
+        );
+        if (compact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              labelText,
+              SizedBox(height: 2.h),
+              valueText,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 116.w.clamp(92.0, 128.0), child: labelText),
+            Expanded(child: valueText),
+          ],
+        );
+      },
     );
   }
 }
@@ -456,17 +505,19 @@ class _ChipLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: 12.sp.clamp(10.0, 13.0),
         ),
       ),
     );

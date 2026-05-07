@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 
@@ -71,36 +72,39 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
           }
           return RefreshIndicator(
             onRefresh: _reload,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: rows.length,
-              itemBuilder: (context, index) {
-                final row = rows[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    isThreeLine: true,
-                    title: Text(
-                      '${row.action} ${row.entityType}',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      'Entity: ${row.entityId}\nActor: ${row.actorUid}',
-                    ),
-                    trailing: SizedBox(
-                      width: 95,
-                      child: Text(
-                        row.createdAt.replaceFirst('T', '\n'),
-                        textAlign: TextAlign.end,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade700,
+            child: AdminResponsive.constrainContent(
+              context: context,
+              child: ListView.builder(
+                padding: AdminResponsive.pagePadding(context),
+                itemCount: rows.length,
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      isThreeLine: true,
+                      title: Text(
+                        '${row.action} ${row.entityType}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        'Entity: ${row.entityId}\nActor: ${row.actorUid}',
+                      ),
+                      trailing: SizedBox(
+                        width: 96,
+                        child: Text(
+                          row.createdAt.replaceFirst('T', '\n'),
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade700,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           );
         },

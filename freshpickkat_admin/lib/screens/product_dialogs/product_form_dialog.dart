@@ -15,6 +15,8 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'variant_draft.dart';
 import 'variant_editor.dart';
@@ -147,8 +149,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     stockCtrl = TextEditingController(
       text: product?.stock != null
           ? (product!.stock == product!.stock!.toInt()
-              ? product!.stock!.toInt().toString()
-              : product!.stock!.toString())
+                ? product!.stock!.toInt().toString()
+                : product!.stock!.toString())
           : '',
     );
     priceCtrl = TextEditingController(text: product?.price.toString() ?? '');
@@ -464,26 +466,33 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     final discountPercent = (discount / mrp * 100);
 
     return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: EdgeInsets.only(top: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: Colors.green.shade50,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.green.shade200),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_offer, size: 14, color: Colors.green.shade700),
-          const SizedBox(width: 6),
-          Text(
-            discountType == 'flat'
-                ? '₹${discount.toStringAsFixed(0)} off'
-                : '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
-            style: TextStyle(
-              color: Colors.green.shade700,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Icon(
+            Icons.local_offer,
+            size: 14.sp.clamp(12.0, 16.0),
+            color: Colors.green.shade700,
+          ),
+          SizedBox(width: 6.w),
+          Flexible(
+            child: Text(
+              discountType == 'flat'
+                  ? '₹${discount.toStringAsFixed(0)} off'
+                  : '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontSize: 12.sp.clamp(10.0, 13.0),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -712,45 +721,71 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       body: SafeArea(
         child: Form(
           key: formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    20,
-                    20,
-                    MediaQuery.of(context).viewInsets.bottom + 20,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildBasicInfoSection(),
-                      const SizedBox(height: 12),
-                      _buildImageSection(),
-                      const SizedBox(height: 12),
-                      _buildQuantitySection(),
-                      const SizedBox(height: 12),
-                      _buildPricingSection(),
-                      const SizedBox(height: 12),
-                      _buildVariantsSection(),
-                      const SizedBox(height: 12),
-                      _buildOffersSection(),
-                      const SizedBox(height: 12),
-                      AvailabilitySwitch(
-                        value: isAvailable,
-                        onChanged: (value) =>
-                            setState(() => isAvailable = value),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: EdgeInsets.fromLTRB(
+                        AdminResponsive.pageHorizontalPadding(context),
+                        16.h,
+                        AdminResponsive.pageHorizontalPadding(context),
+                        MediaQuery.viewInsetsOf(context).bottom + 20.h,
                       ),
-                      const SizedBox(height: 20),
-                    ],
+                      child: AdminResponsive.constrainContent(
+                        context: context,
+                        maxWidth: AdminResponsive.maxFormWidth,
+                        child: Column(
+                          children: [
+                            _buildBasicInfoSection(),
+                            SizedBox(height: 12.h),
+                            _buildImageSection(),
+                            SizedBox(height: 12.h),
+                            _buildQuantitySection(),
+                            SizedBox(height: 12.h),
+                            _buildPricingSection(),
+                            SizedBox(height: 12.h),
+                            _buildVariantsSection(),
+                            SizedBox(height: 12.h),
+                            _buildOffersSection(),
+                            SizedBox(height: 12.h),
+                            AvailabilitySwitch(
+                              value: isAvailable,
+                              onChanged: (value) =>
+                                  setState(() => isAvailable = value),
+                            ),
+                            SizedBox(height: 20.h),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: _buildActionButtons(),
-              ),
-            ],
+                  Material(
+                    color: Theme.of(context).colorScheme.surface,
+                    elevation: 8,
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          AdminResponsive.pageHorizontalPadding(context),
+                          10.h,
+                          AdminResponsive.pageHorizontalPadding(context),
+                          12.h,
+                        ),
+                        child: AdminResponsive.constrainContent(
+                          context: context,
+                          maxWidth: AdminResponsive.maxFormWidth,
+                          child: _buildActionButtons(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -844,11 +879,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               alignment: Alignment.topRight,
               children: [
                 SizedBox(
-                  width: 120,
-                  height: 120,
-                  child: ImagePreview(
-                    imageUrl: imageCtrl.text.trim(),
-                  ),
+                  width: 120.r.clamp(96.0, 132.0),
+                  height: 120.r.clamp(96.0, 132.0),
+                  child: ImagePreview(imageUrl: imageCtrl.text.trim()),
                 ),
                 IconButton(
                   icon: const Icon(Icons.cancel, color: Colors.red),
@@ -910,147 +943,127 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       title: 'Quantity',
       child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          CompactFieldRow(
             children: [
-              Expanded(
-                flex: 3,
-                child: ModernTextField(
-                  controller: quantityValueCtrl,
-                  labelText: 'Quantity',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
-                  onChanged: (_) {
-                    _recalculateMrpFromQuantity(
-                      quantityCtrl: quantityValueCtrl,
-                      newUnit: baseUnit,
-                      mrpCtrlRef: mrpCtrl,
-                      originalMrp: product?.realPrice ?? 0,
-                      originalQuantity:
-                          product?.baseQuantity ??
-                          _parseQuantityValue(product?.quantity ?? ''),
-                      originalUnit:
-                          product?.baseUnit ??
-                          _parseQuantityUnit(product?.quantity ?? ''),
-                    );
-                    _syncVariantBasePricing();
-                    setState(() {});
-                  },
+              ModernTextField(
+                controller: quantityValueCtrl,
+                labelText: 'Quantity',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                onChanged: (_) {
+                  _recalculateMrpFromQuantity(
+                    quantityCtrl: quantityValueCtrl,
+                    newUnit: baseUnit,
+                    mrpCtrlRef: mrpCtrl,
+                    originalMrp: product?.realPrice ?? 0,
+                    originalQuantity:
+                        product?.baseQuantity ??
+                        _parseQuantityValue(product?.quantity ?? ''),
+                    originalUnit:
+                        product?.baseUnit ??
+                        _parseQuantityUnit(product?.quantity ?? ''),
+                  );
+                  _syncVariantBasePricing();
+                  setState(() {});
+                },
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  initialValue: baseUnit,
-                  decoration: const InputDecoration(
-                    labelText: 'Unit',
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(),
+              DropdownButtonFormField<String>(
+                initialValue: baseUnit,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Unit',
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'gm', child: Text('gm')),
-                    DropdownMenuItem(value: 'kg', child: Text('kg')),
-                    DropdownMenuItem(value: 'litre', child: Text('litre')),
-                    DropdownMenuItem(value: 'ml', child: Text('ml')),
-                    DropdownMenuItem(value: 'pc', child: Text('pc')),
-                    DropdownMenuItem(value: 'pack', child: Text('pack')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        baseUnit = value;
-                        _recalculateMrpFromQuantity(
-                          quantityCtrl: quantityValueCtrl,
-                          newUnit: baseUnit,
-                          mrpCtrlRef: mrpCtrl,
-                          originalMrp: product?.realPrice ?? 0,
-                          originalQuantity:
-                              product?.baseQuantity ??
-                              _parseQuantityValue(product?.quantity ?? ''),
-                          originalUnit:
-                              product?.baseUnit ??
-                              _parseQuantityUnit(product?.quantity ?? ''),
-                        );
-                        _syncVariantBasePricing();
-                      });
-                    }
-                  },
+                  border: OutlineInputBorder(),
                 ),
+                items: const [
+                  DropdownMenuItem(value: 'gm', child: Text('gm')),
+                  DropdownMenuItem(value: 'kg', child: Text('kg')),
+                  DropdownMenuItem(value: 'litre', child: Text('litre')),
+                  DropdownMenuItem(value: 'ml', child: Text('ml')),
+                  DropdownMenuItem(value: 'pc', child: Text('pc')),
+                  DropdownMenuItem(value: 'pack', child: Text('pack')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      baseUnit = value;
+                      _recalculateMrpFromQuantity(
+                        quantityCtrl: quantityValueCtrl,
+                        newUnit: baseUnit,
+                        mrpCtrlRef: mrpCtrl,
+                        originalMrp: product?.realPrice ?? 0,
+                        originalQuantity:
+                            product?.baseQuantity ??
+                            _parseQuantityValue(product?.quantity ?? ''),
+                        originalUnit:
+                            product?.baseUnit ??
+                            _parseQuantityUnit(product?.quantity ?? ''),
+                      );
+                      _syncVariantBasePricing();
+                    });
+                  }
+                },
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
+          SizedBox(height: 12.h),
+          CompactFieldRow(
             children: [
-              Expanded(
-                flex: 3,
-                child: ModernTextField(
-                  controller: quantityDescriptionCtrl,
-                  labelText: 'Quantity Description (Optional)',
-                  hintText: 'e.g., 10-12 pieces',
-                ),
+              ModernTextField(
+                controller: quantityDescriptionCtrl,
+                labelText: 'Quantity Description (Optional)',
+                hintText: 'e.g., 10-12 pieces',
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ModernTextField(
-                  controller: countryOfOriginCtrl,
-                  labelText: 'Country of Origin (Optional)',
-                  hintText: 'e.g., India',
-                ),
+              ModernTextField(
+                controller: countryOfOriginCtrl,
+                labelText: 'Country of Origin (Optional)',
+                hintText: 'e.g., India',
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
+          SizedBox(height: 12.h),
+          CompactFieldRow(
             children: [
-              Expanded(
-                flex: 3,
-                child: ModernTextField(
-                  controller: stockCtrl,
-                  labelText: 'Stock (Optional)',
-                  hintText: 'e.g., 50',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+              ModernTextField(
+                controller: stockCtrl,
+                labelText: 'Stock (Optional)',
+                hintText: 'e.g., 50',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  initialValue: stockUnit,
-                  decoration: const InputDecoration(
-                    labelText: 'Unit',
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(),
+              DropdownButtonFormField<String>(
+                initialValue: stockUnit,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Unit',
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'gm', child: Text('gm')),
-                    DropdownMenuItem(value: 'kg', child: Text('kg')),
-                    DropdownMenuItem(value: 'litre', child: Text('litre')),
-                    DropdownMenuItem(value: 'ml', child: Text('ml')),
-                    DropdownMenuItem(value: 'pc', child: Text('pc')),
-                    DropdownMenuItem(value: 'pack', child: Text('pack')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        stockUnit = value;
-                      });
-                    }
-                  },
+                  border: OutlineInputBorder(),
                 ),
+                items: const [
+                  DropdownMenuItem(value: 'gm', child: Text('gm')),
+                  DropdownMenuItem(value: 'kg', child: Text('kg')),
+                  DropdownMenuItem(value: 'litre', child: Text('litre')),
+                  DropdownMenuItem(value: 'ml', child: Text('ml')),
+                  DropdownMenuItem(value: 'pc', child: Text('pc')),
+                  DropdownMenuItem(value: 'pack', child: Text('pack')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      stockUnit = value;
+                    });
+                  }
+                },
               ),
             ],
           ),
@@ -1065,80 +1078,70 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       title: 'Pricing',
       child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          CompactFieldRow(
             children: [
-              Expanded(
-                child: ModernTextField(
-                  controller: priceCtrl,
-                  labelText: 'Selling Price',
-                  prefixText: '₹ ',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  validator: _numberValidator,
-                  onChanged: (_) => setState(() {}),
+              ModernTextField(
+                controller: priceCtrl,
+                labelText: 'Selling Price',
+                prefixText: '₹ ',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
+                validator: _numberValidator,
+                onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ModernTextField(
-                  controller: mrpCtrl,
-                  labelText: 'MRP',
-                  prefixText: '₹ ',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  onChanged: (_) {
-                    _syncVariantBasePricing();
-                    setState(() {});
-                  },
-                  validator: _numberValidator,
+              ModernTextField(
+                controller: mrpCtrl,
+                labelText: 'MRP',
+                prefixText: '₹ ',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
+                onChanged: (_) {
+                  _syncVariantBasePricing();
+                  setState(() {});
+                },
+                validator: _numberValidator,
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(height: 12.h),
+          CompactFieldRow(
             children: [
-              Expanded(
-                child: ModernDropdown<String>(
-                  value: discountType,
-                  labelText: 'Type',
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'percentage',
-                      child: Text('Percentage (%)'),
-                    ),
-                    DropdownMenuItem(value: 'flat', child: Text('Flat (₹)')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        discountType = value;
-                      });
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Discount',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 16,
-                    ),
+              ModernDropdown<String>(
+                value: discountType,
+                labelText: 'Type',
+                items: const [
+                  DropdownMenuItem(
+                    value: 'percentage',
+                    child: Text('Percentage (%)'),
                   ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _discountValueLabel(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
+                  DropdownMenuItem(value: 'flat', child: Text('Flat (₹)')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      discountType = value;
+                    });
+                  }
+                },
+              ),
+              InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Discount',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _discountValueLabel(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -1453,41 +1456,53 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+    final cancelButton = OutlinedButton(
+      onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+      style: OutlinedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: const Text('Cancel', overflow: TextOverflow.ellipsis),
+    );
+    final saveButton = FilledButton(
+      onPressed: _isSubmitting ? null : _handleSave,
+      style: FilledButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: _isSubmitting
+          ? SizedBox(
+              width: 20.r,
+              height: 20.r,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(
+              isEditMode ? 'Update Product' : 'Save Product',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            child: const Text('Cancel'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
-          child: FilledButton(
-            onPressed: _isSubmitting ? null : _handleSave,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(isEditMode ? 'Update Product' : 'Save Product'),
-          ),
-        ),
-      ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 360) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              saveButton,
+              SizedBox(height: 8.h),
+              cancelButton,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: cancelButton),
+            SizedBox(width: 12.w),
+            Expanded(flex: 2, child: saveButton),
+          ],
+        );
+      },
     );
   }
 

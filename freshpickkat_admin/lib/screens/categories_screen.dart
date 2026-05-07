@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
@@ -53,55 +56,72 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
         return RefreshIndicator(
           onRefresh: _controller.loadCategories,
-          child: ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              const Text(
-                'Categories',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              if (categories.isEmpty)
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No categories yet'),
-                  ),
-                )
-              else
-                ...categories.map(
-                  (category) => Card(
-                    child: ListTile(
-                      title: Text(category.categoryName),
-                      subtitle: Text(
-                        'Mapped subcategories: ${category.subCategory.length}',
+          child: AdminResponsive.constrainContent(
+            context: context,
+            child: ListView(
+              padding: AdminResponsive.pagePadding(
+                context,
+              ).copyWith(bottom: AdminResponsive.bottomInset(context) + 112.h),
+              children: [
+                Text(
+                  'Categories',
+                  style: AdminTextStyles.sectionTitle(context),
+                ),
+                SizedBox(height: 8.h),
+                if (categories.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No categories yet'),
+                    ),
+                  )
+                else
+                  ...categories.map(
+                    (category) => Card(
+                      child: ListTile(
+                        title: Text(
+                          category.categoryName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          'Mapped subcategories: ${category.subCategory.length}',
+                        ),
                       ),
                     ),
                   ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Subcategories',
+                  style: AdminTextStyles.sectionTitle(context),
                 ),
-              const SizedBox(height: 16),
-              const Text(
-                'Subcategories',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              if (subCategories.isEmpty)
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No subcategories yet'),
-                  ),
-                )
-              else
-                ...subCategories.map(
-                  (sub) => Card(
-                    child: ListTile(
-                      title: Text(sub.subCategoriesName.join(', ')),
-                      subtitle: Text('Category: ${sub.categoryId}'),
+                SizedBox(height: 8.h),
+                if (subCategories.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No subcategories yet'),
+                    ),
+                  )
+                else
+                  ...subCategories.map(
+                    (sub) => Card(
+                      child: ListTile(
+                        title: Text(
+                          sub.subCategoriesName.join(', '),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          'Category: ${sub.categoryId}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       }),
@@ -142,28 +162,33 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              constraints: AdminResponsive.dialogConstraints(context),
               title: const Text('Add Category'),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Category name',
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Category name',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: imageCtrl,
-                      decoration: const InputDecoration(labelText: 'Image URL'),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                  ],
+                      SizedBox(height: 10.h),
+                      TextFormField(
+                        controller: imageCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Image URL',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -244,45 +269,56 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              constraints: AdminResponsive.dialogConstraints(context),
               title: const Text('Add Subcategory'),
-              content: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Category'),
-                      items: _controller.categories
-                          .map(
-                            (c) => DropdownMenuItem(
-                              value: c.categoryName,
-                              child: Text(c.categoryName),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setDialogState(() {
-                          selectedCategory = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: nameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Subcategory name',
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedCategory,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Category',
+                        ),
+                        items: _controller.categories
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.categoryName,
+                                child: Text(
+                                  c.categoryName,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setDialogState(() {
+                            selectedCategory = value;
+                          });
+                        },
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: imageCtrl,
-                      decoration: const InputDecoration(labelText: 'Image URL'),
-                    ),
-                  ],
+                      SizedBox(height: 10.h),
+                      TextFormField(
+                        controller: nameCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Subcategory name',
+                        ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                      ),
+                      SizedBox(height: 10.h),
+                      TextFormField(
+                        controller: imageCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Image URL',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [

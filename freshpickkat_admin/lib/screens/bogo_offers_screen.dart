@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
@@ -6,6 +7,8 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
@@ -70,23 +73,31 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddBogoScreen,
-        icon: const Icon(Icons.add),
-        label: const Text('Add BOGO Offer'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: AdminResponsive.bottomInset(context)),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddBogoScreen,
+          icon: const Icon(Icons.add),
+          label: Text(
+            'Add BOGO Offer',
+            overflow: TextOverflow.ellipsis,
+            style: AdminTextStyles.button(context),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: AdminResponsive.pagePadding(context).copyWith(bottom: 6.h),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search BOGO offers...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
+                isDense: true,
               ),
               onChanged: (value) {
                 setState(() {
@@ -97,7 +108,6 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
           ),
           Expanded(
             child: Obx(() {
-              print('DEBUG UI: BOGO offers list length: ${_controller.bogoOffers.length}');
               if (_controller.networkController.hasError.value) {
                 return NetworkErrorWidget(
                   onRetry: () =>
@@ -132,88 +142,119 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
               }).length;
 
               if (bogoOffers.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.card_giftcard,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No BOGO offers found',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 18),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap + to create a new BOGO offer',
-                        style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                      ),
-                    ],
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: AdminResponsive.pagePadding(context).copyWith(
+                    bottom: AdminResponsive.bottomInset(context) + 96.h,
                   ),
+                  children: [
+                    SizedBox(height: 96.h),
+                    Icon(
+                      Icons.card_giftcard,
+                      size: 56.r,
+                      color: Colors.grey[400],
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'No BOGO offers found',
+                      textAlign: TextAlign.center,
+                      style: AdminTextStyles.sectionTitle(
+                        context,
+                      ).copyWith(color: Colors.grey[700]),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Tap + to create a new BOGO offer',
+                      textAlign: TextAlign.center,
+                      style: AdminTextStyles.body(
+                        context,
+                      ).copyWith(color: Colors.grey[600]),
+                    ),
+                  ],
                 );
               }
 
-              return ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(bottom: 88),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-                    child: SizedBox(
-                      height: 96,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          CatalogStatCard(
-                            title: 'All BOGO',
-                            value: '$totalBogoCount',
-                            icon: Icons.card_giftcard,
-                            color: const Color(0xFFB45309),
-                            breakdown: [
-                              CatalogStatBreakdown(
-                                label: 'Active',
-                                value: '$activeCount',
-                                color: Colors.green.shade700,
-                              ),
-                              CatalogStatBreakdown(
-                                label: 'Inactive',
-                                value: '$inactiveCount',
-                                color: Colors.redAccent.shade200,
-                              ),
-                            ],
-                            compact: true,
-                          ),
-                          const SizedBox(width: 10),
-                          CatalogStatCard(
-                            title: 'Live Now',
-                            value: '$liveCount',
-                            icon: Icons.bolt_rounded,
-                            color: const Color(0xFF0F766E),
-                            compact: true,
-                          ),
-                        ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final pagePadding = AdminResponsive.pagePadding(context);
+                  return AdminResponsive.constrainContent(
+                    context: context,
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: pagePadding.copyWith(
+                        top: 4.h,
+                        bottom: AdminResponsive.bottomInset(context) + 96.h,
                       ),
+                      children: [
+                        Wrap(
+                          spacing: 10.w,
+                          runSpacing: 10.h,
+                          children: [
+                            SizedBox(
+                              width: constraints.maxWidth < 520
+                                  ? constraints.maxWidth
+                                  : 260.w.clamp(220.0, 300.0).toDouble(),
+                              child: CatalogStatCard(
+                                title: 'All BOGO',
+                                value: '$totalBogoCount',
+                                icon: Icons.card_giftcard,
+                                color: const Color(0xFFB45309),
+                                breakdown: [
+                                  CatalogStatBreakdown(
+                                    label: 'Active',
+                                    value: '$activeCount',
+                                    color: Colors.green.shade700,
+                                  ),
+                                  CatalogStatBreakdown(
+                                    label: 'Inactive',
+                                    value: '$inactiveCount',
+                                    color: Colors.redAccent.shade200,
+                                  ),
+                                ],
+                                compact: true,
+                              ),
+                            ),
+                            SizedBox(
+                              width: constraints.maxWidth < 520
+                                  ? constraints.maxWidth
+                                  : 220.w.clamp(200.0, 280.0).toDouble(),
+                              child: CatalogStatCard(
+                                title: 'Live Now',
+                                value: '$liveCount',
+                                icon: Icons.bolt_rounded,
+                                color: const Color(0xFF0F766E),
+                                compact: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12.h),
+                        ...bogoOffers.map((offer) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 10.h),
+                            child: _BogoOfferCard(
+                              offer: offer,
+                              resolvedTriggerProduct:
+                                  _resolvedTriggerProductsById[offer
+                                      .triggerProductId],
+                              onToggle: (isActive) =>
+                                  _toggleBogoOffer(offer, isActive),
+                              onEdit: () => _showEditBogoScreen(offer),
+                              onDelete: () => _showDeleteConfirmation(offer),
+                            ),
+                          );
+                        }),
+                        if (_controller.isLoadingMore.value)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                  ...bogoOffers.map((offer) {
-                    return _BogoOfferCard(
-                      offer: offer,
-                      resolvedTriggerProduct:
-                          _resolvedTriggerProductsById[offer.triggerProductId],
-                      onToggle: (isActive) => _toggleBogoOffer(offer, isActive),
-                      onEdit: () => _showEditBogoScreen(offer),
-                      onDelete: () => _showDeleteConfirmation(offer),
-                    );
-                  }),
-                  if (_controller.isLoadingMore.value)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                ],
+                  );
+                },
               );
             }),
           ),
@@ -336,7 +377,12 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Delete BOGO Offer'),
-            content: Text('Are you sure you want to delete this BOGO offer?'),
+            content: ConstrainedBox(
+              constraints: AdminResponsive.dialogConstraints(context),
+              child: const SingleChildScrollView(
+                child: Text('Are you sure you want to delete this BOGO offer?'),
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
@@ -437,12 +483,16 @@ class _BogoOfferCard extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: EdgeInsets.zero,
       child: ListTile(
+        contentPadding: AdminResponsive.cardPadding(context),
+        minLeadingWidth: 42.w,
         leading: CircleAvatar(
+          radius: 20.r,
           backgroundColor: offer.isActive ? Colors.red[100] : Colors.grey[300],
           child: Icon(
             Icons.card_giftcard,
+            size: 20.r,
             color: offer.isActive ? Colors.red : Colors.grey,
           ),
         ),
@@ -450,7 +500,9 @@ class _BogoOfferCard extends StatelessWidget {
           offer.offerTitle.trim().isNotEmpty
               ? offer.offerTitle
               : _fallbackTitle(offer, triggerVariant),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AdminTextStyles.cardTitle(context),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,31 +512,30 @@ class _BogoOfferCard extends StatelessWidget {
                 'Trigger: ${triggerProduct.productName}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: AdminTextStyles.caption(context),
               )
             else
               Text(
                 'Trigger Product ID: ${offer.triggerProductId}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: AdminTextStyles.caption(context),
               ),
-            const SizedBox(height: 4),
+            SizedBox(height: 6.h),
             Wrap(
-              spacing: 4,
-              runSpacing: 4,
+              spacing: 6.w,
+              runSpacing: 6.h,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
                   decoration: BoxDecoration(
                     color: Colors.red[100],
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6.r),
                   ),
                   child: Text(
                     'Buy 1 Get ${offer.freeProductIds.length} Free',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp.clamp(10.0, 13.0),
                       fontWeight: FontWeight.bold,
                       color: Colors.red[700],
                     ),
@@ -494,20 +545,22 @@ class _BogoOfferCard extends StatelessWidget {
                     (offer.triggerBaseQuantity != null &&
                         offer.triggerBaseUnit != null))
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 7.w,
+                      vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.blue[100],
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
                       triggerVariant != null
                           ? 'Variant: ${triggerVariant.quantityValue == triggerVariant.quantityValue.truncateToDouble() ? triggerVariant.quantityValue.toInt() : triggerVariant.quantityValue} ${triggerVariant.quantityUnit}'
                           : 'Variant: ${offer.triggerBaseQuantity} ${offer.triggerBaseUnit}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp.clamp(10.0, 13.0),
                         fontWeight: FontWeight.bold,
                         color: Colors.blue[700],
                       ),
@@ -515,18 +568,18 @@ class _BogoOfferCard extends StatelessWidget {
                   ),
                 if (isValid && offer.isActive)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 7.w,
+                      vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.green[100],
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6.r),
                     ),
-                    child: const Text(
+                    child: Text(
                       'LIVE',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 10.sp.clamp(9.0, 11.0),
                         fontWeight: FontWeight.bold,
                         color: Colors.green,
                       ),

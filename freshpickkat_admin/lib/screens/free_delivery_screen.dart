@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../widgets/network_error_widget.dart';
@@ -45,40 +48,43 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
 
         return RefreshIndicator(
           onRefresh: () => _controller.loadDeliveryData(force: true),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _DeliveryConfigCard(
-                config: _controller.deliveryConfig.value,
-                onEdit: _showConfigDialog,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Special Rules',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+          child: AdminResponsive.constrainContent(
+            context: context,
+            child: ListView(
+              padding: AdminResponsive.pagePadding(
+                context,
+              ).copyWith(bottom: AdminResponsive.bottomInset(context) + 78.h),
+              children: [
+                _DeliveryConfigCard(
+                  config: _controller.deliveryConfig.value,
+                  onEdit: _showConfigDialog,
                 ),
-              ),
-              const SizedBox(height: 8),
-              if (_controller.deliveryRules.isEmpty)
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No special delivery rules configured'),
+                SizedBox(height: 16.h),
+                Text(
+                  'Special Rules',
+                  style: AdminTextStyles.sectionTitle(context),
+                ),
+                SizedBox(height: 8.h),
+                if (_controller.deliveryRules.isEmpty)
+                  const Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No special delivery rules configured'),
+                    ),
+                  ),
+                ..._controller.deliveryRules.map(
+                  (rule) => _DeliveryRuleCard(
+                    rule: rule,
+                    onToggle: (isActive) => _controller.toggleDeliveryRule(
+                      rule.ruleId ?? '',
+                      isActive,
+                    ),
+                    onEdit: () => _showRuleDialog(rule: rule),
+                    onDelete: () => _deleteRule(rule),
                   ),
                 ),
-              ..._controller.deliveryRules.map(
-                (rule) => _DeliveryRuleCard(
-                  rule: rule,
-                  onToggle: (isActive) => _controller.toggleDeliveryRule(
-                    rule.ruleId ?? '',
-                    isActive,
-                  ),
-                  onEdit: () => _showRuleDialog(rule: rule),
-                  onDelete: () => _deleteRule(rule),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }),
@@ -92,7 +98,8 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       context: context,
       builder: (context) => _DeliveryConfigDialog(
         config: config,
-        onSave: (updatedConfig) => _controller.saveDeliveryConfig(updatedConfig),
+        onSave: (updatedConfig) =>
+            _controller.saveDeliveryConfig(updatedConfig),
       ),
     );
   }
@@ -138,10 +145,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
 }
 
 class _DeliveryConfigCard extends StatelessWidget {
-  const _DeliveryConfigCard({
-    required this.config,
-    required this.onEdit,
-  });
+  const _DeliveryConfigCard({required this.config, required this.onEdit});
 
   final DeliveryConfig? config;
   final VoidCallback onEdit;
@@ -161,9 +165,8 @@ class _DeliveryConfigCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Base Delivery Setup',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       IconButton(
@@ -173,7 +176,9 @@ class _DeliveryConfigCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('Base fee: ₹${config!.baseDeliveryFee.toStringAsFixed(0)}'),
+                  Text(
+                    'Base fee: ₹${config!.baseDeliveryFee.toStringAsFixed(0)}',
+                  ),
                   Text(
                     'Free threshold: ${config!.freeDeliveryThreshold != null ? '₹${config!.freeDeliveryThreshold!.toStringAsFixed(0)}' : 'Not set'}',
                   ),
@@ -239,10 +244,7 @@ class _DeliveryRuleCard extends StatelessWidget {
 }
 
 class _DeliveryConfigDialog extends StatefulWidget {
-  const _DeliveryConfigDialog({
-    required this.config,
-    required this.onSave,
-  });
+  const _DeliveryConfigDialog({required this.config, required this.onSave});
 
   final DeliveryConfig config;
   final Future<bool> Function(DeliveryConfig) onSave;
@@ -294,85 +296,97 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      constraints: AdminResponsive.dialogConstraints(context),
       title: const Text('Delivery Configuration'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _baseFeeController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Base delivery fee'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _baseFeeController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Base delivery fee'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _freeThresholdController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Free delivery threshold',
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _freeThresholdController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Free delivery threshold',
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Delivery Slabs',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _slabs.add(
-                          _DeliverySlabDraft(
-                            minCtrl: TextEditingController(),
-                            maxCtrl: TextEditingController(),
-                            feeCtrl: TextEditingController(),
-                          ),
-                        );
-                      });
-                    },
-                    child: const Text('Add Slab'),
-                  ),
-                ],
-              ),
-              ..._slabs.map(
-                (slab) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: slab.minCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Min'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: slab.maxCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Max'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: slab.feeCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Fee'),
-                        ),
-                      ),
-                    ],
+            ),
+            SizedBox(height: 16.h),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Delivery Slabs',
+                    style: AdminTextStyles.cardTitle(context),
                   ),
                 ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _slabs.add(
+                        _DeliverySlabDraft(
+                          minCtrl: TextEditingController(),
+                          maxCtrl: TextEditingController(),
+                          feeCtrl: TextEditingController(),
+                        ),
+                      );
+                    });
+                  },
+                  child: const Text('Add Slab'),
+                ),
+              ],
+            ),
+            ..._slabs.map(
+              (slab) => Padding(
+                padding: EdgeInsets.only(bottom: 8.h),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final fields = [
+                      TextField(
+                        controller: slab.minCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Min'),
+                      ),
+                      TextField(
+                        controller: slab.maxCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Max'),
+                      ),
+                      TextField(
+                        controller: slab.feeCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Fee'),
+                      ),
+                    ];
+                    if (constraints.maxWidth < 420) {
+                      return Column(
+                        children: [
+                          fields[0],
+                          SizedBox(height: 8.h),
+                          fields[1],
+                          SizedBox(height: 8.h),
+                          fields[2],
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: fields[0]),
+                        SizedBox(width: 8.w),
+                        Expanded(child: fields[1]),
+                        SizedBox(width: 8.w),
+                        Expanded(child: fields[2]),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       actions: [
@@ -425,10 +439,7 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
 }
 
 class _DeliveryRuleDialog extends StatefulWidget {
-  const _DeliveryRuleDialog({
-    required this.onSave,
-    this.rule,
-  });
+  const _DeliveryRuleDialog({required this.onSave, this.rule});
 
   final DeliveryRule? rule;
   final Future<bool> Function(DeliveryRule) onSave;
@@ -454,7 +465,9 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
     super.initState();
     final rule = widget.rule;
     _nameController = TextEditingController(text: rule?.name ?? '');
-    _descriptionController = TextEditingController(text: rule?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: rule?.description ?? '',
+    );
     _feeController = TextEditingController(
       text: rule?.deliveryFee.toStringAsFixed(0) ?? '0',
     );
@@ -483,94 +496,112 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.rule == null ? 'Add Delivery Rule' : 'Edit Delivery Rule'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Rule name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _ruleType,
-                decoration: const InputDecoration(labelText: 'Rule type'),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'special_event',
-                    child: Text('Special Event'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'user_rule',
-                    child: Text('User Rule'),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _ruleType = value ?? 'special_event'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _targetUserType,
-                decoration: const InputDecoration(labelText: 'Target user'),
-                items: const [
-                  DropdownMenuItem(value: 'all', child: Text('All users')),
-                  DropdownMenuItem(value: 'new_user', child: Text('New users')),
-                  DropdownMenuItem(value: 'specific_order', child: Text('Specific Order')),
-                ],
-                onChanged: (value) => setState(() => _targetUserType = value ?? 'all'),
-              ),
-              if (_targetUserType == 'specific_order') ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _targetOrderCountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Order Count (e.g., 5 for 5th order)'),
+      constraints: AdminResponsive.dialogConstraints(context),
+      title: Text(
+        widget.rule == null ? 'Add Delivery Rule' : 'Edit Delivery Rule',
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Rule name'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+            SizedBox(height: 12.h),
+            DropdownButtonFormField<String>(
+              initialValue: _ruleType,
+              decoration: const InputDecoration(labelText: 'Rule type'),
+              items: const [
+                DropdownMenuItem(
+                  value: 'special_event',
+                  child: Text('Special Event'),
+                ),
+                DropdownMenuItem(value: 'user_rule', child: Text('User Rule')),
+              ],
+              onChanged: (value) =>
+                  setState(() => _ruleType = value ?? 'special_event'),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _targetUserType,
+              decoration: const InputDecoration(labelText: 'Target user'),
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('All users')),
+                DropdownMenuItem(value: 'new_user', child: Text('New users')),
+                DropdownMenuItem(
+                  value: 'specific_order',
+                  child: Text('Specific Order'),
                 ),
               ],
-              const SizedBox(height: 12),
+              onChanged: (value) =>
+                  setState(() => _targetUserType = value ?? 'all'),
+            ),
+            if (_targetUserType == 'specific_order') ...[
+              SizedBox(height: 12.h),
               TextField(
-                controller: _feeController,
+                controller: _targetOrderCountController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Delivery fee'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _priorityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Priority'),
-              ),
-              const SizedBox(height: 12),
-              if (_ruleType != 'user_rule')
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _pickDate(isStart: true),
-                        child: Text(
-                          'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _pickDate(isStart: false),
-                        child: Text(
-                          'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                        ),
-                      ),
-                    ),
-                  ],
+                decoration: const InputDecoration(
+                  labelText: 'Order Count (e.g., 5 for 5th order)',
                 ),
+              ),
             ],
-          ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _feeController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Delivery fee'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _priorityController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Priority'),
+            ),
+            SizedBox(height: 12.h),
+            if (_ruleType != 'user_rule')
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final start = OutlinedButton(
+                    onPressed: () => _pickDate(isStart: true),
+                    child: Text(
+                      'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                  final end = OutlinedButton(
+                    onPressed: () => _pickDate(isStart: false),
+                    child: Text(
+                      'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                  if (constraints.maxWidth < 420) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        start,
+                        SizedBox(height: 8.h),
+                        end,
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: start),
+                      SizedBox(width: 8.w),
+                      Expanded(child: end),
+                    ],
+                  );
+                },
+              ),
+          ],
         ),
       ),
       actions: [
@@ -603,8 +634,8 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
       deliveryFee: double.tryParse(_feeController.text.trim()) ?? 0,
       priority: int.tryParse(_priorityController.text.trim()) ?? 1,
       targetUserType: _targetUserType,
-      targetOrderCount: _targetUserType == 'specific_order' 
-          ? int.tryParse(_targetOrderCountController.text.trim()) 
+      targetOrderCount: _targetUserType == 'specific_order'
+          ? int.tryParse(_targetOrderCountController.text.trim())
           : null,
       isActive: widget.rule?.isActive ?? true,
       startDate: _startDate,

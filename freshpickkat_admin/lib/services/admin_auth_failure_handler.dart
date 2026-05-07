@@ -17,10 +17,7 @@ class AdminAuthFailureHandler {
         text.contains('login required');
   }
 
-  static Future<void> handle(
-    Object error, {
-    String? fallbackMessage,
-  }) async {
+  static Future<void> handle(Object error, {String? fallbackMessage}) async {
     if (_isHandling) return;
     _isHandling = true;
 

@@ -3,7 +3,10 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupo
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class CatalogCouponsTab extends StatelessWidget {
@@ -62,62 +65,79 @@ class CatalogCouponsTab extends StatelessWidget {
 
       return RefreshIndicator(
         onRefresh: controller.loadCoupons,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-          children: [
-            const Text(
-              'Coupons',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Coupon codes, coupon types, and active campaign summary',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                CatalogStatCard(
-                  title: 'All Coupons',
-                  value: '${coupons.length}',
-                  icon: Icons.sell_outlined,
-                  color: const Color(0xFF315C73),
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveCoupons',
-                      color: Colors.green.shade700,
-                    ),
-                    CatalogStatBreakdown(
-                      label: 'Inactive',
-                      value: '$inactiveCoupons',
-                      color: Colors.redAccent.shade200,
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Visible',
-                  value: '${visibleCoupons.length}',
-                  icon: Icons.visibility_outlined,
-                  color: const Color(0xFF7C4D12),
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Search Match',
-                      value: '${visibleCoupons.length}',
-                      color: Colors.blueGrey.shade700,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
+        child: AdminResponsive.constrainContent(
+          context: context,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: AdminResponsive.pagePadding(
+              context,
+            ).copyWith(bottom: AdminResponsive.bottomInset(context) + 78.h),
+            children: [
+              Text('Coupons', style: AdminTextStyles.screenTitle(context)),
+              SizedBox(height: 6.h),
+              Text(
+                'Coupon codes, coupon types, and active campaign summary',
+                style: AdminTextStyles.body(
+                  context,
+                ).copyWith(color: Colors.grey.shade700),
+              ),
+              SizedBox(height: 16.h),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth < 360 ? 1 : 2;
+                  final spacing = 12.w;
+                  final width =
+                      (constraints.maxWidth - ((columns - 1) * spacing)) /
+                      columns;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: 12.h,
+                    children: [
+                      SizedBox(
+                        width: width,
+                        child: CatalogStatCard(
+                          title: 'All Coupons',
+                          value: '${coupons.length}',
+                          icon: Icons.sell_outlined,
+                          color: const Color(0xFF315C73),
+                          breakdown: [
+                            CatalogStatBreakdown(
+                              label: 'Live',
+                              value: '$liveCoupons',
+                              color: Colors.green.shade700,
+                            ),
+                            CatalogStatBreakdown(
+                              label: 'Inactive',
+                              value: '$inactiveCoupons',
+                              color: Colors.redAccent.shade200,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: width,
+                        child: CatalogStatCard(
+                          title: 'Visible',
+                          value: '${visibleCoupons.length}',
+                          icon: Icons.visibility_outlined,
+                          color: const Color(0xFF7C4D12),
+                          breakdown: [
+                            CatalogStatBreakdown(
+                              label: 'Search Match',
+                              value: '${visibleCoupons.length}',
+                              color: Colors.blueGrey.shade700,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              SizedBox(height: 16.h),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final search = TextField(
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search),
                       hintText: 'Search coupon code or description',
@@ -125,160 +145,171 @@ class CatalogCouponsTab extends StatelessWidget {
                       isDense: true,
                     ),
                     onChanged: onSearchChanged,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: onCreateCoupon,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Coupon List',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                  );
+                  final create = FilledButton.icon(
+                    onPressed: onCreateCoupon,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create'),
+                  );
+                  if (constraints.maxWidth < 420) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        search,
+                        SizedBox(height: 10.h),
+                        create,
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: search),
+                      SizedBox(width: 12.w),
+                      create,
+                    ],
+                  );
+                },
+              ),
+              SizedBox(height: 16.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Coupon List',
+                      style: AdminTextStyles.sectionTitle(context),
                     ),
                   ),
-                ),
-                Text(
-                  '${visibleCoupons.length} items',
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (visibleCoupons.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(18),
-                  child: Text('No matching coupons'),
-                ),
-              )
-            else
-              ...visibleCoupons.map((coupon) {
-                final statusColor = catalogCouponStatusColor(coupon);
-                final valueLabel = catalogCouponValueLabel(coupon);
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
+                  Text(
+                    '${visibleCoupons.length} items',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              if (visibleCoupons.isEmpty)
+                const Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    coupon.code,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    coupon.description,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Switch(
-                              value: coupon.isActive,
-                              onChanged: (value) => controller.setCouponActive(
-                                coupon.code,
-                                value,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            CatalogInlineBadge(
-                              label: catalogCouponStatusLabel(coupon),
-                              color: statusColor,
-                            ),
-                            CatalogInlineBadge(
-                              label: _couponTypeLabel(coupon),
-                              color: const Color(0xFF4E5D6C),
-                            ),
-                            CatalogInlineBadge(
-                              label: valueLabel,
-                              color: const Color(0xFF8B5E34),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: Wrap(
-                            spacing: 14,
-                            runSpacing: 8,
+                    padding: EdgeInsets.all(18),
+                    child: Text('No matching coupons'),
+                  ),
+                )
+              else
+                ...visibleCoupons.map((coupon) {
+                  final statusColor = catalogCouponStatusColor(coupon);
+                  final valueLabel = catalogCouponValueLabel(coupon);
+                  return Card(
+                    margin: EdgeInsets.only(bottom: 12.h),
+                    child: Padding(
+                      padding: AdminResponsive.cardPadding(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Min order ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
-                              ),
-                              Text('Used ${coupon.usedCount}'),
-                              if (coupon.maxDiscount != null)
-                                Text(
-                                  'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      coupon.code,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      coupon.description,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade800,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              if (coupon.usageLimit != null)
-                                Text('Limit ${coupon.usageLimit}'),
+                              ),
+                              SizedBox(width: 12.w),
+                              Switch(
+                                value: coupon.isActive,
+                                onChanged: (value) => controller
+                                    .setCouponActive(coupon.code, value),
+                              ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
-                                style: TextStyle(color: Colors.grey.shade700),
+                          SizedBox(height: 10.h),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              CatalogInlineBadge(
+                                label: catalogCouponStatusLabel(coupon),
+                                color: statusColor,
                               ),
+                              CatalogInlineBadge(
+                                label: _couponTypeLabel(coupon),
+                                color: const Color(0xFF4E5D6C),
+                              ),
+                              CatalogInlineBadge(
+                                label: valueLabel,
+                                color: const Color(0xFF8B5E34),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(12.r),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade300),
                             ),
-                            IconButton(
-                              onPressed: () => onEditCoupon(coupon),
-                              icon: const Icon(Icons.edit_outlined),
-                              tooltip: 'Edit',
+                            child: Wrap(
+                              spacing: 14,
+                              runSpacing: 8,
+                              children: [
+                                Text(
+                                  'Min order ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                                ),
+                                Text('Used ${coupon.usedCount}'),
+                                if (coupon.maxDiscount != null)
+                                  Text(
+                                    'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                                  ),
+                                if (coupon.usageLimit != null)
+                                  Text('Limit ${coupon.usageLimit}'),
+                              ],
                             ),
-                            IconButton(
-                              onPressed: () => onDeleteCoupon(coupon),
-                              icon: const Icon(Icons.delete_outline),
-                              tooltip: 'Delete',
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          SizedBox(height: 10.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => onEditCoupon(coupon),
+                                icon: const Icon(Icons.edit_outlined),
+                                tooltip: 'Edit',
+                              ),
+                              IconButton(
+                                onPressed: () => onDeleteCoupon(coupon),
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
-          ],
+                  );
+                }),
+            ],
+          ),
         ),
       );
     });
@@ -294,6 +325,7 @@ Future<void> showAddCouponDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (sheetContext) {
       return _CouponFormBottomSheet(
         onSave: (coupon) async {
@@ -486,59 +518,61 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     required DateTime value,
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: _isSaving ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF315C73).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.calendar_today,
-                  size: 18,
-                  color: Color(0xFF315C73),
-                ),
+    return InkWell(
+      onTap: _isSaving ? null : onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38.r,
+              height: 38.r,
+              decoration: BoxDecoration(
+                color: const Color(0xFF315C73).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      catalogDateLabel(value),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+              child: Icon(
+                Icons.calendar_today,
+                size: 18.sp.clamp(16.0, 20.0),
+                color: const Color(0xFF315C73),
               ),
-            ],
-          ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.sp.clamp(10.0, 13.0),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  SizedBox(height: 3.h),
+                  Text(
+                    catalogDateLabel(value),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14.sp.clamp(12.0, 15.0),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -550,10 +584,11 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     final canEditCode = !isEditing;
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+      padding: EdgeInsets.fromLTRB(
+        AdminResponsive.pageHorizontalPadding(context),
+        0,
+        AdminResponsive.pageHorizontalPadding(context),
+        MediaQuery.viewInsetsOf(context).bottom + 16,
       ),
       child: Form(
         key: _formKey,
@@ -610,7 +645,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     return Column(
                       children: [
                         codeField,
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12.h),
                         typeField,
                       ],
                     );
@@ -620,13 +655,13 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(child: codeField),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12.w),
                       Expanded(child: typeField),
                     ],
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               TextFormField(
                 controller: _descCtrl,
                 decoration: const InputDecoration(
@@ -638,7 +673,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                 validator: (value) =>
                     (value == null || value.trim().isEmpty) ? 'Required' : null,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               TextFormField(
                 controller: _discountValueCtrl,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -674,7 +709,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                         : null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
               ],
               if (_couponType == 'PRODUCT_BASED') ...[
                 TextFormField(
@@ -693,93 +728,80 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
               ],
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              _CouponAdaptiveRow(
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _minOrderCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        labelText: 'Min Order',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        prefixText: '₹',
-                      ),
-                      validator: _catalogNumberValidator,
+                  TextFormField(
+                    controller: _minOrderCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
+                    decoration: const InputDecoration(
+                      labelText: 'Min Order',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      prefixText: '₹',
+                    ),
+                    validator: _catalogNumberValidator,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _maxDiscountCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        labelText: 'Max Discount',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        prefixText: '₹',
-                        hintText: 'Optional',
-                      ),
+                  TextFormField(
+                    controller: _maxDiscountCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Max Discount',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      prefixText: '₹',
+                      hintText: 'Optional',
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              SizedBox(height: 16.h),
+              _CouponAdaptiveRow(
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _usageLimitCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Usage Limit',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        hintText: 'Optional',
-                      ),
+                  TextFormField(
+                    controller: _usageLimitCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Usage Limit',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      hintText: 'Optional',
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SwitchListTile(
-                      contentPadding: const EdgeInsets.only(left: 8),
-                      value: _isActive,
-                      dense: true,
-                      selected: _isActive,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      title: Text(
-                        _isActive ? 'Active' : 'Inactive',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _isActive = value;
-                        });
-                      },
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.only(left: 8.w),
+                    value: _isActive,
+                    dense: true,
+                    selected: _isActive,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Colors.grey.shade300),
                     ),
+                    title: Text(
+                      _isActive ? 'Active' : 'Inactive',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _isActive = value;
+                      });
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
+              SizedBox(height: 16.h),
+              _CouponAdaptiveRow(
                 children: [
                   _buildDateCard(
                     label: 'Start Date',
                     value: _startDate,
                     onTap: () => _pickDate(true),
                   ),
-                  const SizedBox(width: 12),
                   _buildDateCard(
                     label: 'End Date',
                     value: _endDate,
@@ -787,51 +809,46 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              Row(
+              SizedBox(height: 24.h),
+              _CouponAdaptiveRow(
+                collapseWidth: 360,
+                reverseWhenCollapsed: true,
+                flexes: const [1, 2],
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving
-                          ? null
-                          : () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  OutlinedButton(
+                    onPressed: _isSaving ? null : () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text('Cancel'),
                     ),
+                    child: const Text('Cancel'),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: FilledButton(
-                      onPressed: _isSaving ? null : _handleSave,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: const Color(0xFF315C73),
+                  FilledButton(
+                    onPressed: _isSaving ? null : _handleSave,
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              isEditing ? 'Update Coupon' : 'Create Coupon',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                      backgroundColor: const Color(0xFF315C73),
                     ),
+                    child: _isSaving
+                        ? SizedBox(
+                            height: 20.r,
+                            width: 20.r,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            isEditing ? 'Update Coupon' : 'Create Coupon',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
                   ),
                 ],
               ),
@@ -885,6 +902,52 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
   }
 }
 
+class _CouponAdaptiveRow extends StatelessWidget {
+  const _CouponAdaptiveRow({
+    required this.children,
+    this.collapseWidth = 420,
+    this.reverseWhenCollapsed = false,
+    this.flexes,
+  });
+
+  final List<Widget> children;
+  final double collapseWidth;
+  final bool reverseWhenCollapsed;
+  final List<int>? flexes;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final gap = 12.w;
+        final orderedChildren = reverseWhenCollapsed
+            ? children.reversed.toList()
+            : children;
+        if (constraints.maxWidth < collapseWidth) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < orderedChildren.length; i++) ...[
+                if (i > 0) SizedBox(height: gap),
+                orderedChildren[i],
+              ],
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) SizedBox(width: gap),
+              Expanded(flex: flexes?[i] ?? 1, child: children[i]),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
 Future<void> showEditCouponDialog({
   required BuildContext context,
   required AdminCouponController controller,
@@ -895,6 +958,7 @@ Future<void> showEditCouponDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (sheetContext) {
       return _CouponFormBottomSheet(
         initialCoupon: coupon,

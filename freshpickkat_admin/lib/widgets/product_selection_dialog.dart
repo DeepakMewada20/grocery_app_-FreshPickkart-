@@ -3,7 +3,10 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductSelectionResult {
   final Product product;
@@ -67,6 +70,7 @@ class ProductSelectionDialog extends StatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
+      constraints: AdminResponsive.bottomSheetConstraints(context),
       builder: (context) => ProductSelectionDialog(
         title: title,
         excludedProductIds: excludedProductIds,
@@ -89,6 +93,7 @@ class ProductSelectionDialog extends StatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
+      constraints: AdminResponsive.bottomSheetConstraints(context),
       builder: (context) => ProductSelectionDialog(
         title: title,
         excludedProductIds: excludedProductIds,
@@ -275,9 +280,15 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
       context: context,
       useSafeArea: true,
       showDragHandle: true,
+      constraints: AdminResponsive.bottomSheetConstraints(context),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(
+            AdminResponsive.pageHorizontalPadding(context),
+            8.h,
+            AdminResponsive.pageHorizontalPadding(context),
+            AdminResponsive.bottomInset(context),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -287,19 +298,21 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               Text(
                 product.productName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AdminAppTheme.getTextSecondaryColor(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12.h),
               Flexible(
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: variants.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => SizedBox(height: 8.h),
                   itemBuilder: (context, index) {
                     final variant = variants[index];
                     return ListTile(
@@ -386,22 +399,22 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
     if (widget.useBottomSheetPresentation) {
       final screenHeight = MediaQuery.sizeOf(context).height;
       return SizedBox(
-        height: screenHeight * 0.86,
+        height:
+            screenHeight * (AdminResponsive.isLandscape(context) ? 0.92 : 0.86),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                padding: EdgeInsets.fromLTRB(4.w, 4.h, 4.w, 8.h),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         widget.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AdminTextStyles.sectionTitle(context),
                       ),
                     ),
                     IconButton(
@@ -416,12 +429,14 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                 SafeArea(
                   top: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+                    padding: EdgeInsets.fromLTRB(4.w, 8.h, 4.w, 0),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
                             '${_selectedResults.length} selected',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: AdminAppTheme.getTextSecondaryColor(
                                 context,
@@ -451,7 +466,16 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
 
     return AlertDialog(
       title: Text(widget.title),
-      content: SizedBox(width: 640, height: 520, child: content),
+      constraints: AdminResponsive.dialogConstraints(context),
+      content: SizedBox(
+        width: MediaQuery.sizeOf(
+          context,
+        ).width.clamp(280.0, AdminResponsive.maxDialogWidth).toDouble(),
+        height:
+            MediaQuery.sizeOf(context).height *
+            (AdminResponsive.isLandscape(context) ? 0.72 : 0.62),
+        child: content,
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),

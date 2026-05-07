@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
@@ -63,160 +67,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return RefreshIndicator(
           onRefresh: _controller.loadDashboard,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const Text(
-                'Seller Overview',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Today and overall order performance',
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 20),
-              GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.15,
-                children: [
-                  _statCard(
-                    title: 'Today Orders',
-                    value: '${stats.todayOrders}',
-                    icon: Icons.shopping_bag_outlined,
-                    color: Colors.blue,
-                  ),
-                  _statCard(
-                    title: 'Today Revenue',
-                    value: _asCurrency(stats.todayRevenue),
-                    icon: Icons.currency_rupee_outlined,
-                    color: Colors.green,
-                  ),
-                  _statCard(
-                    title: 'Pending',
-                    value: '${stats.pendingOrders}',
-                    icon: Icons.schedule_outlined,
-                    color: Colors.orange,
-                  ),
-                  _statCard(
-                    title: 'Delivered',
-                    value: '${stats.deliveredOrders}',
-                    icon: Icons.check_circle_outline,
-                    color: Colors.teal,
-                  ),
-                  _statCard(
-                    title: 'Total Orders',
-                    value: '${stats.totalOrders}',
-                    icon: Icons.receipt_long_outlined,
-                    color: Colors.indigo,
-                  ),
-                  _statCard(
-                    title: 'Total Revenue',
-                    value: _asCurrency(stats.totalRevenue),
-                    icon: Icons.savings_outlined,
-                    color: Colors.pink,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final cards = [
+                _statCard(
+                  title: 'Today Orders',
+                  value: '${stats.todayOrders}',
+                  icon: Icons.shopping_bag_outlined,
+                  color: Colors.blue,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Analytics & Insights',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                _statCard(
+                  title: 'Today Revenue',
+                  value: _asCurrency(stats.todayRevenue),
+                  icon: Icons.currency_rupee_outlined,
+                  color: Colors.green,
+                ),
+                _statCard(
+                  title: 'Pending',
+                  value: '${stats.pendingOrders}',
+                  icon: Icons.schedule_outlined,
+                  color: Colors.orange,
+                ),
+                _statCard(
+                  title: 'Delivered',
+                  value: '${stats.deliveredOrders}',
+                  icon: Icons.check_circle_outline,
+                  color: Colors.teal,
+                ),
+                _statCard(
+                  title: 'Total Orders',
+                  value: '${stats.totalOrders}',
+                  icon: Icons.receipt_long_outlined,
+                  color: Colors.indigo,
+                ),
+                _statCard(
+                  title: 'Total Revenue',
+                  value: _asCurrency(stats.totalRevenue),
+                  icon: Icons.savings_outlined,
+                  color: Colors.pink,
+                ),
+              ];
+
+              return ListView(
+                padding: AdminResponsive.pagePadding(context),
+                children: [
+                  AdminResponsive.constrainContent(
+                    context: context,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Seller Overview',
+                          style: AdminTextStyles.screenTitle(context),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      _analyticsRow(
-                        'Cancellation Rate',
-                        '${analytics.cancellationRate.toStringAsFixed(1)}%',
-                        Icons.cancel_outlined,
-                        Colors.red,
-                      ),
-                      const Divider(height: 24),
-                      _analyticsRow(
-                        'Low Stock Items (<=5)',
-                        '${analytics.lowStockCount}',
-                        Icons.inventory_2_outlined,
-                        Colors.orange,
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Top Products',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        SizedBox(height: 6.h),
+                        Text(
+                          'Today and overall order performance',
+                          style: AdminTextStyles.caption(context),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (topProducts.isEmpty)
-                        const Text('No data available')
-                      else
-                        ...topProducts.take(5).map((e) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
+                        SizedBox(height: 18.h),
+                        LayoutBuilder(
+                          builder: (context, gridConstraints) {
+                            final columns = AdminResponsive.statColumnsForWidth(
+                              gridConstraints.maxWidth,
+                            );
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: cards.length,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: columns,
+                                    mainAxisSpacing: 12.h,
+                                    crossAxisSpacing: 12.w,
+                                    childAspectRatio: columns == 2
+                                        ? 1.12
+                                        : 1.42,
+                                  ),
+                              itemBuilder: (context, index) => cards[index],
+                            );
+                          },
+                        ),
+                        SizedBox(height: 16.h),
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Padding(
+                            padding: AdminResponsive.cardPadding(context),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.star_outline,
-                                    color: Colors.blue,
-                                  ),
+                                Text(
+                                  'Analytics & Insights',
+                                  style: AdminTextStyles.sectionTitle(context),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        e.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 15,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        'Sold ${e.mostPurchases} times',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                SizedBox(height: 16.h),
+                                _analyticsRow(
+                                  'Cancellation Rate',
+                                  '${analytics.cancellationRate.toStringAsFixed(1)}%',
+                                  Icons.cancel_outlined,
+                                  Colors.red,
                                 ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'Low Stock Items (<=5)',
+                                  '${analytics.lowStockCount}',
+                                  Icons.inventory_2_outlined,
+                                  Colors.orange,
+                                ),
+                                SizedBox(height: 24.h),
+                                Text(
+                                  'Top Products',
+                                  style: AdminTextStyles.cardTitle(context),
+                                ),
+                                SizedBox(height: 12.h),
+                                if (topProducts.isEmpty)
+                                  const Text('No data available')
+                                else
+                                  ...topProducts.take(5).map((e) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.star_outline,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  e.name,
+                                                  style:
+                                                      AdminTextStyles.cardTitle(
+                                                        context,
+                                                      ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  'Sold ${e.mostPurchases} times',
+                                                  style:
+                                                      AdminTextStyles.caption(
+                                                        context,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
                               ],
                             ),
-                          );
-                        }),
-                    ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         );
       }),
@@ -238,31 +269,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AdminResponsive.cardPadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 22.r),
             ),
             const Spacer(),
-            Text(
+            AutoSizeText(
               value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: AdminTextStyles.statValue(context),
+              maxLines: 1,
+              minFontSize: 14,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               title,
               style: TextStyle(
                 color: Colors.grey.shade600,
-                fontSize: 13,
+                fontSize: 12.sp.clamp(10.0, 14.0),
                 fontWeight: FontWeight.w500,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -274,23 +310,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8.r),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: 20.r),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            style: AdminTextStyles.body(
+              context,
+            ).copyWith(fontWeight: FontWeight.w600),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        SizedBox(width: 8.w),
+        Flexible(
+          flex: 0,
+          child: Text(
+            value,
+            style: AdminTextStyles.cardTitle(context),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

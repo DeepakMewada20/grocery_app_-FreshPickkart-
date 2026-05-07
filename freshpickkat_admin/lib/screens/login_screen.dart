@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -192,37 +195,40 @@ class _LoginScreenState extends State<LoginScreen>
             }
 
             return AlertDialog(
+              constraints: AdminResponsive.dialogConstraints(context),
               title: const Text('Reset Password'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _resetIdentityCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    onChanged: (_) {
-                      if (statusMessage == null) return;
-                      setDialogState(() {
-                        statusMessage = null;
-                        isErrorMessage = false;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      labelText: 'Username or Email',
-                      hintText: 'Enter your username or email',
-                    ),
-                  ),
-                  if (statusMessage != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      statusMessage!,
-                      style: TextStyle(
-                        color: isErrorMessage
-                            ? AdminAppTheme.getErrorColor(context)
-                            : AdminAppTheme.getSuccessColor(context),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _resetIdentityCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (_) {
+                        if (statusMessage == null) return;
+                        setDialogState(() {
+                          statusMessage = null;
+                          isErrorMessage = false;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Username or Email',
+                        hintText: 'Enter your username or email',
                       ),
                     ),
+                    if (statusMessage != null) ...[
+                      SizedBox(height: 12.h),
+                      Text(
+                        statusMessage!,
+                        style: TextStyle(
+                          color: isErrorMessage
+                              ? AdminAppTheme.getErrorColor(context)
+                              : AdminAppTheme.getSuccessColor(context),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -438,51 +444,66 @@ class _LoginScreenState extends State<LoginScreen>
       initialIndex: _awaitingEmailVerification ? 1 : 0,
       child: Scaffold(
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AdminAppTheme.getSuccessColor(
-                      context,
-                    ).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.admin_panel_settings,
-                    color: AdminAppTheme.getSuccessColor(context),
-                    size: 52,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'FreshPickKart Admin',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Single Admin (ADMIN_SELLER)',
-                  style: TextStyle(
-                    color: AdminAppTheme.getTextSecondaryColor(context),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const TabBar(
-                  tabs: [
-                    Tab(text: 'Login'),
-                    Tab(text: 'First Setup'),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 520.w),
+              child: Padding(
+                padding: AdminResponsive.pagePadding(context),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: AdminResponsive.isLandscape(context) ? 8.h : 24.h,
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(14.r),
+                      decoration: BoxDecoration(
+                        color: AdminAppTheme.getSuccessColor(
+                          context,
+                        ).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.admin_panel_settings,
+                        color: AdminAppTheme.getSuccessColor(context),
+                        size: AdminResponsive.isLandscape(context)
+                            ? 42.sp
+                            : 52.sp.clamp(44.0, 56.0),
+                      ),
+                    ),
+                    SizedBox(height: 14.h),
+                    Text(
+                      'FreshPickKart Admin',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.screenTitle(
+                        context,
+                      ).copyWith(fontSize: 26.sp.clamp(20.0, 28.0).toDouble()),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      'Single Admin (ADMIN_SELLER)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
+                    const TabBar(
+                      tabs: [
+                        Tab(text: 'Login'),
+                        Tab(text: 'First Setup'),
+                      ],
+                    ),
+                    SizedBox(height: 12.h),
+                    Expanded(
+                      child: TabBarView(
+                        children: [_buildLoginTab(), _buildSetupTab()],
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: TabBarView(
-                    children: [_buildLoginTab(), _buildSetupTab()],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -494,6 +515,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Form(
       key: _loginFormKey,
       child: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           TextFormField(
             controller: _loginUsernameCtrl,
@@ -503,14 +525,14 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             validator: _validateLoginIdentity,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: _loginPasswordCtrl,
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
             validator: _validatePassword,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -518,9 +540,9 @@ class _LoginScreenState extends State<LoginScreen>
               child: const Text('Forgot Password'),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           SizedBox(
-            height: 52,
+            height: 52.h.clamp(48.0, 56.0),
             child: ElevatedButton(
               onPressed: _isLoading ? null : _login,
               style: ElevatedButton.styleFrom(
@@ -528,10 +550,10 @@ class _LoginScreenState extends State<LoginScreen>
                 foregroundColor: Colors.white,
               ),
               child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
+                  ? SizedBox(
+                      width: 20.r,
+                      height: 20.r,
+                      child: const CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Colors.white,
                       ),
@@ -548,6 +570,7 @@ class _LoginScreenState extends State<LoginScreen>
     return Form(
       key: _setupFormKey,
       child: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           TextFormField(
             controller: _setupUsernameCtrl,
@@ -558,7 +581,7 @@ class _LoginScreenState extends State<LoginScreen>
             validator: _validateSetupUsername,
             enabled: !_awaitingEmailVerification,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: _setupEmailCtrl,
             decoration: const InputDecoration(labelText: 'Admin Email'),
@@ -566,7 +589,7 @@ class _LoginScreenState extends State<LoginScreen>
             validator: _validateEmail,
             enabled: !_awaitingEmailVerification,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: _setupPasswordCtrl,
             decoration: const InputDecoration(labelText: 'Password'),
@@ -574,7 +597,7 @@ class _LoginScreenState extends State<LoginScreen>
             validator: _validatePassword,
             enabled: !_awaitingEmailVerification,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           TextFormField(
             controller: _setupConfirmPasswordCtrl,
             decoration: const InputDecoration(labelText: 'Confirm Password'),
@@ -582,10 +605,10 @@ class _LoginScreenState extends State<LoginScreen>
             validator: _validateConfirmPassword,
             enabled: !_awaitingEmailVerification,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           if (!_awaitingEmailVerification)
             SizedBox(
-              height: 52,
+              height: 52.h.clamp(48.0, 56.0),
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _startSetup,
                 style: ElevatedButton.styleFrom(
@@ -593,10 +616,10 @@ class _LoginScreenState extends State<LoginScreen>
                   foregroundColor: Colors.white,
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        width: 20.r,
+                        height: 20.r,
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
@@ -608,24 +631,24 @@ class _LoginScreenState extends State<LoginScreen>
             Text(
               'Verification pending for ${_pendingSetupEmail ?? _setupEmailCtrl.text.trim()}',
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6.h),
             Text(
               'Click the verification link in email. App will auto-login after verification.',
               style: TextStyle(
                 color: AdminAppTheme.getTextSecondaryColor(context),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             SizedBox(
-              height: 46,
+              height: 46.h.clamp(42.0, 50.0),
               child: OutlinedButton(
                 onPressed: _isLoading ? null : _resendVerificationEmail,
                 child: const Text('Resend Verification Email'),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10.h),
             SizedBox(
-              height: 46,
+              height: 46.h.clamp(42.0, 50.0),
               child: TextButton(
                 onPressed: _isLoading ? null : _cancelPendingSetup,
                 child: const Text('Start Over'),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 
@@ -15,11 +17,13 @@ Future<void> showAddCategoryOfferDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      padding: EdgeInsets.fromLTRB(
+        AdminResponsive.pageHorizontalPadding(context),
+        0,
+        AdminResponsive.pageHorizontalPadding(context),
+        MediaQuery.viewInsetsOf(context).bottom + 12.h,
       ),
       child: _CategoryOfferDialog(
         onSave: (offer) async {
@@ -40,11 +44,13 @@ Future<void> showEditCategoryOfferDialog({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + 12,
+      padding: EdgeInsets.fromLTRB(
+        AdminResponsive.pageHorizontalPadding(context),
+        0,
+        AdminResponsive.pageHorizontalPadding(context),
+        MediaQuery.viewInsetsOf(context).bottom + 12.h,
       ),
       child: _CategoryOfferDialog(
         offer: offer,
@@ -577,7 +583,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   Widget build(BuildContext context) {
     final categories = AdminCategoryController.instance.categories;
 
-    final sheetHeight = MediaQuery.sizeOf(context).height * 0.82;
+    final sheetHeight =
+        MediaQuery.sizeOf(context).height *
+        (AdminResponsive.isLandscape(context) ? 0.92 : 0.82);
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -589,13 +597,13 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
                 child: _buildSheetHeader(),
               ),
               const Divider(height: 1),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 20.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -753,7 +761,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 16.h),
                   child: Row(
                     children: [
                       Expanded(

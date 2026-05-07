@@ -6,6 +6,7 @@ import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 
 import 'dashboard_screen.dart';
 import 'orders_screen.dart';
@@ -49,59 +50,126 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final useRail =
+        AdminResponsive.isTablet(context) ||
+        (AdminResponsive.isLandscape(context) &&
+            MediaQuery.sizeOf(context).width >= 700);
+    final content = IndexedStack(
+      index: _selectedIndex,
+      children: List.generate(_screens.length, (index) {
+        if (index == _selectedIndex) {
+          _builtScreens[index] = true;
+        }
+        return _builtScreens[index] ? _screens[index] : const SizedBox.shrink();
+      }),
+    );
+
+    if (useRail) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                selectedIndex: _selectedIndex,
+                labelType: NavigationRailLabelType.all,
+                minWidth: AdminResponsive.isDesktopLike(context) ? 96 : 78,
+                groupAlignment: -0.85,
+                onDestinationSelected: _selectTab,
+                destinations: _railDestinations,
+              ),
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: content),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: List.generate(_screens.length, (index) {
-          if (index == _selectedIndex) {
-            _builtScreens[index] = true;
-          }
-          return _builtScreens[index]
-              ? _screens[index]
-              : const SizedBox.shrink();
-        }),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.delivery_dining_outlined),
-            selectedIcon: Icon(Icons.delivery_dining),
-            label: 'Live',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Products',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.local_offer_outlined),
-            selectedIcon: Icon(Icons.local_offer),
-            label: 'Offers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+      body: content,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          labelBehavior: MediaQuery.sizeOf(context).width < 370
+              ? NavigationDestinationLabelBehavior.onlyShowSelected
+              : NavigationDestinationLabelBehavior.alwaysShow,
+          onDestinationSelected: _selectTab,
+          destinations: _barDestinations,
+        ),
       ),
     );
   }
+
+  void _selectTab(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  static const _barDestinations = [
+    NavigationDestination(
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard),
+      label: 'Dashboard',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.receipt_long_outlined),
+      selectedIcon: Icon(Icons.receipt_long),
+      label: 'Orders',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.delivery_dining_outlined),
+      selectedIcon: Icon(Icons.delivery_dining),
+      label: 'Live',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.inventory_2_outlined),
+      selectedIcon: Icon(Icons.inventory_2),
+      label: 'Products',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.local_offer_outlined),
+      selectedIcon: Icon(Icons.local_offer),
+      label: 'Offers',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.settings_outlined),
+      selectedIcon: Icon(Icons.settings),
+      label: 'Settings',
+    ),
+  ];
+
+  static const _railDestinations = [
+    NavigationRailDestination(
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard),
+      label: Text('Dashboard'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.receipt_long_outlined),
+      selectedIcon: Icon(Icons.receipt_long),
+      label: Text('Orders'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.delivery_dining_outlined),
+      selectedIcon: Icon(Icons.delivery_dining),
+      label: Text('Live'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.inventory_2_outlined),
+      selectedIcon: Icon(Icons.inventory_2),
+      label: Text('Products'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.local_offer_outlined),
+      selectedIcon: Icon(Icons.local_offer),
+      label: Text('Offers'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.settings_outlined),
+      selectedIcon: Icon(Icons.settings),
+      label: Text('Settings'),
+    ),
+  ];
 }

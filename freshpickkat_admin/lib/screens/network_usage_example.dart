@@ -3,13 +3,14 @@ import 'package:get/get.dart';
 import '../controller/network_controller.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import '../utils/admin_responsive.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 
 // Example Controller
 class ExampleProductController extends GetxController {
   final NetworkController networkController = Get.put(NetworkController());
-  
+
   final RxBool isLoading = false.obs;
   final RxList<String> products = <String>[].obs; // Mock product data
 
@@ -83,13 +84,21 @@ class ExampleUsageScreen extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
-          itemCount: controller.products.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(controller.products[index]),
-            );
-          },
+        return AdminResponsive.constrainContent(
+          context: context,
+          child: ListView.builder(
+            padding: AdminResponsive.pagePadding(context),
+            itemCount: controller.products.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(
+                  controller.products[index],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            },
+          ),
         );
       }),
     );

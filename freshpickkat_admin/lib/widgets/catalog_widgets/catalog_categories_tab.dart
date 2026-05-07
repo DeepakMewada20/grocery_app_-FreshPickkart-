@@ -6,7 +6,10 @@ import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widget
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_picker_button.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_preview.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/modern_text_field.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 
@@ -45,12 +48,20 @@ class CatalogCategoriesTab extends StatelessWidget {
         onRefresh: controller.loadCategories,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context) + 88.h),
           children: [
             LayoutBuilder(
               builder: (context, constraints) {
-                final cardWidth = (constraints.maxWidth - 12) / 2;
-                return Row(
+                final columns = constraints.maxWidth < 360 ? 1 : 2;
+                final spacing = 12.w;
+                final cardWidth =
+                    (constraints.maxWidth - ((columns - 1) * spacing)) /
+                    columns;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: 12.h,
                   children: [
                     SizedBox(
                       width: cardWidth,
@@ -61,7 +72,6 @@ class CatalogCategoriesTab extends StatelessWidget {
                         color: Colors.green,
                       ),
                     ),
-                    const SizedBox(width: 12),
                     SizedBox(
                       width: cardWidth,
                       child: CatalogStatCard(
@@ -75,12 +85,9 @@ class CatalogCategoriesTab extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Categories',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
+            SizedBox(height: 20.h),
+            Text('Categories', style: AdminTextStyles.sectionTitle(context)),
+            SizedBox(height: 10.h),
             if (categories.isEmpty)
               const Card(
                 child: Padding(
@@ -91,13 +98,17 @@ class CatalogCategoriesTab extends StatelessWidget {
             else
               ...categories.map(
                 (category) => Card(
-                  margin: const EdgeInsets.only(bottom: 10),
+                  margin: EdgeInsets.only(bottom: 10.h),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundImage: NetworkImage(category.categoryImageUrl),
                       onBackgroundImageError: (_, _) {},
                     ),
-                    title: Text(category.categoryName),
+                    title: Text(
+                      category.categoryName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: Text(
                       '${category.subCategory.length} mapped subcategories',
                     ),
@@ -113,25 +124,31 @@ class CatalogCategoriesTab extends StatelessWidget {
                           _confirmDelete(
                             context: context,
                             title: 'Delete Category',
-                            message: 'Are you sure you want to delete "${category.categoryName}"?',
-                            onConfirm: () => controller.deleteCategory(category.categoryName),
+                            message:
+                                'Are you sure you want to delete "${category.categoryName}"?',
+                            onConfirm: () => controller.deleteCategory(
+                              category.categoryName,
+                            ),
                           );
                         }
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-            const SizedBox(height: 20),
-            const Text(
-              'Subcategories',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 10),
+            SizedBox(height: 20.h),
+            Text('Subcategories', style: AdminTextStyles.sectionTitle(context)),
+            SizedBox(height: 10.h),
             if (subCategories.isEmpty)
               const Card(
                 child: Padding(
@@ -142,13 +159,21 @@ class CatalogCategoriesTab extends StatelessWidget {
             else
               ...subCategories.map(
                 (subCategory) => Card(
-                  margin: const EdgeInsets.only(bottom: 10),
+                  margin: EdgeInsets.only(bottom: 10.h),
                   child: ListTile(
                     leading: const CircleAvatar(
                       child: Icon(Icons.account_tree_outlined),
                     ),
-                    title: Text(subCategory.subCategoriesName.join(', ')),
-                    subtitle: Text('Category: ${subCategory.categoryId}'),
+                    title: Text(
+                      subCategory.subCategoriesName.join(', '),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      'Category: ${subCategory.categoryId}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (value) {
                         if (value == 'edit') {
@@ -161,14 +186,24 @@ class CatalogCategoriesTab extends StatelessWidget {
                           _confirmDelete(
                             context: context,
                             title: 'Delete Subcategory',
-                            message: 'Are you sure you want to delete "${subCategory.subCategoriesName.first}"?',
-                            onConfirm: () => controller.deleteSubCategory(subCategory.categoryId, subCategory.subCategoriesName.first),
+                            message:
+                                'Are you sure you want to delete "${subCategory.subCategoriesName.first}"?',
+                            onConfirm: () => controller.deleteSubCategory(
+                              subCategory.categoryId,
+                              subCategory.subCategoriesName.first,
+                            ),
                           );
                         }
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.red))),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -192,15 +227,20 @@ class CatalogCategoriesTab extends StatelessWidget {
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               try {
                 await onConfirm();
-                if (context.mounted) _showCatalogSnackBar(context, 'Deleted successfully');
+                if (context.mounted)
+                  _showCatalogSnackBar(context, 'Deleted successfully');
               } catch (e) {
-                if (context.mounted) _showCatalogSnackBar(context, 'Delete failed: $e');
+                if (context.mounted)
+                  _showCatalogSnackBar(context, 'Delete failed: $e');
               }
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -221,7 +261,9 @@ Future<void> showAddCategoryDialog({
   final isEdit = categoryToEdit != null;
   final formKey = GlobalKey<FormState>();
   final nameCtrl = TextEditingController(text: categoryToEdit?.categoryName);
-  final imageCtrl = TextEditingController(text: categoryToEdit?.categoryImageUrl);
+  final imageCtrl = TextEditingController(
+    text: categoryToEdit?.categoryImageUrl,
+  );
   String? imageError;
   var isUploadingImage = false;
   var isSaving = false;
@@ -229,6 +271,8 @@ Future<void> showAddCategoryDialog({
   await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -239,9 +283,9 @@ Future<void> showAddCategoryDialog({
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 20,
-              right: 20,
-              top: 20,
+              left: AdminResponsive.pageHorizontalPadding(context),
+              right: AdminResponsive.pageHorizontalPadding(context),
+              top: 20.h,
             ),
             child: SingleChildScrollView(
               child: Form(
@@ -252,48 +296,54 @@ Future<void> showAddCategoryDialog({
                   children: [
                     Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 40.w,
+                        height: 4.h,
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     Text(
                       isEdit ? 'Edit Category' : 'Add New Category',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: AdminTextStyles.sectionTitle(context),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     ModernTextField(
                       controller: nameCtrl,
                       labelText: 'Category Name',
                       hintText: 'Enter category name',
                       validator: (value) =>
-                          (value == null || value.trim().isEmpty) ? 'Required' : null,
+                          (value == null || value.trim().isEmpty)
+                          ? 'Required'
+                          : null,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     if (imageCtrl.text.trim().isNotEmpty) ...[
                       Center(
                         child: Stack(
                           alignment: Alignment.topRight,
                           children: [
                             SizedBox(
-                              width: 120,
-                              height: 120,
+                              width: 120.r.clamp(96.0, 132.0),
+                              height: 120.r.clamp(96.0, 132.0),
                               child: ImagePreview(
-                                imageUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                                imageUrl: imageCtrl.text
+                                    .trim()
+                                    .replaceAll('"', '')
+                                    .replaceAll("'", ""),
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.cancel, color: Colors.red),
-                              onPressed: () => setSheetState(() => imageCtrl.clear()),
+                              onPressed: () =>
+                                  setSheetState(() => imageCtrl.clear()),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                     ],
                     ModernTextField(
                       controller: imageCtrl,
@@ -303,7 +353,7 @@ Future<void> showAddCategoryDialog({
                         imageError = null;
                       }),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     ImagePickerButton(
                       isUploading: isUploadingImage,
                       label: 'Upload Image',
@@ -314,46 +364,62 @@ Future<void> showAddCategoryDialog({
                             imageError = null;
                           });
                           try {
-                            final source = await AdminImageUploadService.pickImageSource(context);
+                            final source =
+                                await AdminImageUploadService.pickImageSource(
+                                  context,
+                                );
                             if (source == null) return;
-                            final url = await AdminImageUploadService.pickCropAndUploadImage(
-                              source: source,
-                              folder: 'categories',
-                              toolbarTitle: 'Crop Image',
-                              aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-                            );
+                            final url =
+                                await AdminImageUploadService.pickCropAndUploadImage(
+                                  source: source,
+                                  folder: 'categories',
+                                  toolbarTitle: 'Crop Image',
+                                  aspectRatio: const CropAspectRatio(
+                                    ratioX: 1,
+                                    ratioY: 1,
+                                  ),
+                                );
                             if (url != null && context.mounted) {
                               setSheetState(() => imageCtrl.text = url);
                             }
                           } catch (e) {
                             setSheetState(() => imageError = e.toString());
                           } finally {
-                            if (context.mounted) setSheetState(() => isUploadingImage = false);
+                            if (context.mounted)
+                              setSheetState(() => isUploadingImage = false);
                           }
                         }();
                       },
                     ),
                     if (imageError != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Text(
                         imageError!,
                         style: const TextStyle(color: Colors.red, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    SizedBox(height: 26.h),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: (isSaving || isUploadingImage)
                           ? null
                           : () async {
                               if (formKey.currentState!.validate()) {
-                                final cleanImageUrl = imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", "");
+                                final cleanImageUrl = imageCtrl.text
+                                    .trim()
+                                    .replaceAll('"', '')
+                                    .replaceAll("'", "");
                                 if (cleanImageUrl.isEmpty) {
-                                  setSheetState(() => imageError = 'Please upload or provide an image');
+                                  setSheetState(
+                                    () => imageError =
+                                        'Please upload or provide an image',
+                                  );
                                   return;
                                 }
 
@@ -366,18 +432,27 @@ Future<void> showAddCategoryDialog({
                                   final category = Category(
                                     categoryName: nameCtrl.text.trim(),
                                     categoryImageUrl: cleanImageUrl,
-                                    subCategory: categoryToEdit?.subCategory ?? {},
+                                    subCategory:
+                                        categoryToEdit?.subCategory ?? {},
                                   );
 
                                   if (isEdit) {
-                                    await controller.updateCategory(categoryToEdit.categoryName, category);
+                                    await controller.updateCategory(
+                                      categoryToEdit.categoryName,
+                                      category,
+                                    );
                                   } else {
                                     await controller.uploadCategory(category);
                                   }
 
                                   if (context.mounted) {
                                     Navigator.pop(context);
-                                    _showCatalogSnackBar(context, isEdit ? 'Category updated' : 'Category added');
+                                    _showCatalogSnackBar(
+                                      context,
+                                      isEdit
+                                          ? 'Category updated'
+                                          : 'Category added',
+                                    );
                                   }
                                 } catch (error) {
                                   setSheetState(() {
@@ -391,11 +466,17 @@ Future<void> showAddCategoryDialog({
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
-                          : Text(isEdit ? 'Update Category' : 'Save Category', style: const TextStyle(fontSize: 16)),
+                          : Text(
+                              isEdit ? 'Update Category' : 'Save Category',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                   ],
                 ),
               ),
@@ -419,9 +500,14 @@ Future<void> showAddSubcategoryDialog({
 
   final isEdit = subcategoryToEdit != null;
   final formKey = GlobalKey<FormState>();
-  String selectedCategory = subcategoryToEdit?.categoryId ?? controller.categories.first.categoryName;
-  final nameCtrl = TextEditingController(text: subcategoryToEdit?.subCategoriesName.first);
-  final imageCtrl = TextEditingController(text: subcategoryToEdit?.subCategoriesUrl);
+  String selectedCategory =
+      subcategoryToEdit?.categoryId ?? controller.categories.first.categoryName;
+  final nameCtrl = TextEditingController(
+    text: subcategoryToEdit?.subCategoriesName.first,
+  );
+  final imageCtrl = TextEditingController(
+    text: subcategoryToEdit?.subCategoriesUrl,
+  );
   String? imageError;
   var isUploadingImage = false;
   var isSaving = false;
@@ -429,6 +515,8 @@ Future<void> showAddSubcategoryDialog({
   await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
+    constraints: AdminResponsive.bottomSheetConstraints(context),
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -439,9 +527,9 @@ Future<void> showAddSubcategoryDialog({
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 20,
-              right: 20,
-              top: 20,
+              left: AdminResponsive.pageHorizontalPadding(context),
+              right: AdminResponsive.pageHorizontalPadding(context),
+              top: 20.h,
             ),
             child: SingleChildScrollView(
               child: Form(
@@ -452,60 +540,78 @@ Future<void> showAddSubcategoryDialog({
                   children: [
                     Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 40.w,
+                        height: 4.h,
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     Text(
                       isEdit ? 'Edit Subcategory' : 'Add New Subcategory',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: AdminTextStyles.sectionTitle(context),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                     DropdownButtonFormField<String>(
                       initialValue: selectedCategory,
+                      isExpanded: true,
                       decoration: const InputDecoration(
                         labelText: 'Parent Category',
                         border: OutlineInputBorder(),
                       ),
                       items: controller.categories
-                          .map((c) => DropdownMenuItem(value: c.categoryName, child: Text(c.categoryName)))
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c.categoryName,
+                              child: Text(
+                                c.categoryName,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
                           .toList(),
-                      onChanged: isEdit ? null : (val) => setSheetState(() => selectedCategory = val!),
+                      onChanged: isEdit
+                          ? null
+                          : (val) =>
+                                setSheetState(() => selectedCategory = val!),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     ModernTextField(
                       controller: nameCtrl,
                       labelText: 'Subcategory Name',
                       hintText: 'Enter subcategory name',
                       validator: (value) =>
-                          (value == null || value.trim().isEmpty) ? 'Required' : null,
+                          (value == null || value.trim().isEmpty)
+                          ? 'Required'
+                          : null,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     if (imageCtrl.text.trim().isNotEmpty) ...[
                       Center(
                         child: Stack(
                           alignment: Alignment.topRight,
                           children: [
                             SizedBox(
-                              width: 120,
-                              height: 120,
+                              width: 120.r.clamp(96.0, 132.0),
+                              height: 120.r.clamp(96.0, 132.0),
                               child: ImagePreview(
-                                imageUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                                imageUrl: imageCtrl.text
+                                    .trim()
+                                    .replaceAll('"', '')
+                                    .replaceAll("'", ""),
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.cancel, color: Colors.red),
-                              onPressed: () => setSheetState(() => imageCtrl.clear()),
+                              onPressed: () =>
+                                  setSheetState(() => imageCtrl.clear()),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
                     ],
                     ModernTextField(
                       controller: imageCtrl,
@@ -513,7 +619,7 @@ Future<void> showAddSubcategoryDialog({
                       hintText: 'Paste link or upload below',
                       onChanged: (_) => setSheetState(() {}),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     ImagePickerButton(
                       isUploading: isUploadingImage,
                       label: 'Upload Image',
@@ -524,40 +630,50 @@ Future<void> showAddSubcategoryDialog({
                             imageError = null;
                           });
                           try {
-                            final source = await AdminImageUploadService.pickImageSource(context);
+                            final source =
+                                await AdminImageUploadService.pickImageSource(
+                                  context,
+                                );
                             if (source == null) return;
-                            final url = await AdminImageUploadService.pickCropAndUploadImage(
-                              source: source,
-                              folder: 'subcategories',
-                              toolbarTitle: 'Crop Image',
-                              aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-                            );
+                            final url =
+                                await AdminImageUploadService.pickCropAndUploadImage(
+                                  source: source,
+                                  folder: 'subcategories',
+                                  toolbarTitle: 'Crop Image',
+                                  aspectRatio: const CropAspectRatio(
+                                    ratioX: 1,
+                                    ratioY: 1,
+                                  ),
+                                );
                             if (url != null && context.mounted) {
                               setSheetState(() => imageCtrl.text = url);
                             }
                           } catch (e) {
                             setSheetState(() => imageError = e.toString());
                           } finally {
-                            if (context.mounted) setSheetState(() => isUploadingImage = false);
+                            if (context.mounted)
+                              setSheetState(() => isUploadingImage = false);
                           }
                         }();
                       },
                     ),
                     if (imageError != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8.h),
                       Text(
                         imageError!,
                         style: const TextStyle(color: Colors.red, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    SizedBox(height: 26.h),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: (isSaving || isUploadingImage)
                           ? null
@@ -572,7 +688,10 @@ Future<void> showAddSubcategoryDialog({
                                   final subCategory = SubCategory(
                                     categoryId: selectedCategory,
                                     subCategoriesName: [nameCtrl.text.trim()],
-                                    subCategoriesUrl: imageCtrl.text.trim().replaceAll('"', '').replaceAll("'", ""),
+                                    subCategoriesUrl: imageCtrl.text
+                                        .trim()
+                                        .replaceAll('"', '')
+                                        .replaceAll("'", ""),
                                   );
 
                                   if (isEdit) {
@@ -582,12 +701,19 @@ Future<void> showAddSubcategoryDialog({
                                       subCategory,
                                     );
                                   } else {
-                                    await controller.uploadSubCategory(subCategory);
+                                    await controller.uploadSubCategory(
+                                      subCategory,
+                                    );
                                   }
 
                                   if (context.mounted) {
                                     Navigator.pop(context);
-                                    _showCatalogSnackBar(context, isEdit ? 'Subcategory updated' : 'Subcategory added');
+                                    _showCatalogSnackBar(
+                                      context,
+                                      isEdit
+                                          ? 'Subcategory updated'
+                                          : 'Subcategory added',
+                                    );
                                   }
                                 } catch (error) {
                                   setSheetState(() {
@@ -601,11 +727,19 @@ Future<void> showAddSubcategoryDialog({
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
-                          : Text(isEdit ? 'Update Subcategory' : 'Save Subcategory', style: const TextStyle(fontSize: 16)),
+                          : Text(
+                              isEdit
+                                  ? 'Update Subcategory'
+                                  : 'Save Subcategory',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                   ],
                 ),
               ),
@@ -618,5 +752,7 @@ Future<void> showAddSubcategoryDialog({
 }
 
 void _showCatalogSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+  );
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AdminStateView extends StatelessWidget {
   const AdminStateView({
@@ -49,48 +52,41 @@ class AdminStateView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
+        padding: AdminSpacing.all(16),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 420.w),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 56,
-              color: AdminAppTheme.getTextSecondaryColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurface,
+            children: [
+              Icon(
+                icon,
+                size: 52.r,
+                color: AdminAppTheme.getTextSecondaryColor(context),
               ),
-            ),
-            if (message != null && message!.trim().isNotEmpty) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 14.h),
               Text(
-                message!,
+                title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AdminAppTheme.getTextSecondaryColor(context),
+                style: AdminTextStyles.sectionTitle(context),
+              ),
+              if (message != null && message!.trim().isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                Text(
+                  message!,
+                  textAlign: TextAlign.center,
+                  style: AdminTextStyles.caption(context),
                 ),
-              ),
+              ],
+              if (onRetry != null) ...[
+                SizedBox(height: 18.h),
+                ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: Icon(Icons.refresh, size: 18.r),
+                  label: const Text('Retry'),
+                ),
+              ],
             ],
-            if (onRetry != null) ...[
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Retry'),
-              ),
-            ],
-          ],
           ),
         ),
       ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'variant_draft.dart';
 
@@ -27,21 +30,24 @@ class VariantListEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Primary pack uses the main quantity and pricing fields above. Add more packs here.',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: AdminTextStyles.caption(context),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
         if (variants.isEmpty)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
               color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: const Text('No additional variants added yet.'),
+            child: Text(
+              'No additional variants added yet.',
+              style: AdminTextStyles.body(context),
+            ),
           )
         else
           Column(
@@ -129,21 +135,21 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
     final discountPercent = hasDiscount ? (discount / mrp * 100) : 0.0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Variant',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: AdminTextStyles.cardTitle(context),
                 ),
               ),
               IconButton(
@@ -166,7 +172,7 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
                 },
               ),
               SizedBox(
-                width: 100,
+                width: 104.w.clamp(92.0, 118.0).toDouble(),
                 child: DropdownButtonFormField<String>(
                   initialValue: _unit,
                   decoration: const InputDecoration(
@@ -192,14 +198,14 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           ModernTextField(
             controller: widget.draft.quantityDescriptionCtrl,
             labelText: 'Quantity Description (Optional)',
             hintText: 'e.g., 10-12 pieces',
             onChanged: (_) => widget.onChanged(),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           CompactFieldRow(
             children: [
               ModernTextField(
@@ -223,36 +229,39 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
             ],
           ),
           if (hasDiscount) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(8.r),
                 border: Border.all(color: Colors.green.shade200),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.local_offer,
-                    size: 14,
+                    size: 14.r,
                     color: Colors.green.shade700,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: Text(
+                      '${discountPercent.toStringAsFixed(0)}% off (₹${discount.toStringAsFixed(0)})',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AdminTextStyles.caption(context).copyWith(
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           SwitchListTile(
             value: widget.draft.isAvailable,
             onChanged: (value) {

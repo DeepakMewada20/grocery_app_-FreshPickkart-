@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ImagePreview extends StatelessWidget {
   const ImagePreview({
@@ -16,22 +17,27 @@ class ImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedHeight = height.h.clamp(96.0, height);
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Image.network(
         imageUrl,
-        height: height,
+        height: resolvedHeight,
         width: width ?? double.infinity,
         fit: fit,
         errorBuilder: (_, _, _) => Container(
-          height: height,
+          height: resolvedHeight,
           alignment: Alignment.center,
           color: Colors.grey[100],
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 8),
+              Icon(
+                Icons.broken_image,
+                size: 48.sp.clamp(32.0, 48.0),
+                color: Colors.grey[400],
+              ),
+              SizedBox(height: 8.h),
               Text(
                 'Image unavailable',
                 style: TextStyle(color: Colors.grey[500]),

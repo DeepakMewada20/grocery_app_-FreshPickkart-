@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -58,38 +61,46 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: cs.primary,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+        child: SingleChildScrollView(
+          padding: AdminResponsive.pagePadding(context),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(20.r),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Icon(
+                  Icons.shopping_bag,
+                  size: 80.r.clamp(58.0, 88.0).toDouble(),
+                  color: Colors.green,
+                ),
               ),
-              child: const Icon(
-                Icons.shopping_bag,
-                size: 80,
-                color: Colors.green,
+              SizedBox(height: 24.h),
+              Text(
+                'FreshPickKart',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AdminTextStyles.screenTitle(context).copyWith(
+                  color: Colors.white,
+                  fontSize: 30.sp.clamp(24.0, 34.0).toDouble(),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'FreshPickKart',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              SizedBox(height: 8.h),
+              Text(
+                'Admin Panel',
+                textAlign: TextAlign.center,
+                style: AdminTextStyles.sectionTitle(
+                  context,
+                ).copyWith(color: Colors.white70),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Admin Panel',
-              style: TextStyle(fontSize: 18, color: Colors.white70),
-            ),
-            const SizedBox(height: 40),
-            const CircularProgressIndicator(color: Colors.white),
-          ],
+              SizedBox(height: 40.h),
+              const CircularProgressIndicator(color: Colors.white),
+            ],
+          ),
         ),
       ),
     );

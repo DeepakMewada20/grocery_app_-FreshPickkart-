@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
 class ErrorMessage extends StatelessWidget {
   const ErrorMessage({super.key, required this.message});
@@ -8,19 +10,23 @@ class ErrorMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(8.r),
       decoration: BoxDecoration(
         color: Colors.red[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 16, color: Colors.red[700]),
-          const SizedBox(width: 8),
+          Icon(Icons.error_outline, size: 16.r, color: Colors.red[700]),
+          SizedBox(width: 8.w),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(fontSize: 12, color: Colors.red[700]),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: AdminTextStyles.caption(
+                context,
+              ).copyWith(color: Colors.red[700]),
             ),
           ),
         ],
