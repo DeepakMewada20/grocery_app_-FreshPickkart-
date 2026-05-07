@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ViewAllCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -19,13 +21,13 @@ class ViewAllCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: cs.outlineVariant, width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 8.r,
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
@@ -33,20 +35,22 @@ class ViewAllCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              AutoSizeText(
                 text,
-                style: const TextStyle(
+                maxLines: 1,
+                minFontSize: 10,
+                style: TextStyle(
                   color: AppTheme.primaryGreen,
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Icon(
+              SizedBox(height: 8.h),
+              Icon(
                 Icons.arrow_forward,
                 color: AppTheme.primaryGreen,
-                size: 22,
+                size: 22.r,
               ),
             ],
           ),

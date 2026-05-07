@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 /// Displays a full list of products in a grid. The [sortBy] value is forwarded
@@ -86,7 +88,7 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
           if (isLoading.value) {
             return ProductGridShimmer(
               itemCount: 6,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             );
           }
           if (products.isEmpty) {
@@ -99,20 +101,22 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.59,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final p = products[index];
-                return ProductCard(
-                  product: p,
-                  heroTagSuffix: '_view_all',
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return GridView.builder(
+                  gridDelegate: AppResponsive.productGridDelegate(
+                    context,
+                    constraints.maxWidth,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final p = products[index];
+                    return ProductCard(
+                      product: p,
+                      heroTagSuffix: '_view_all',
+                    );
+                  },
                 );
               },
             ),

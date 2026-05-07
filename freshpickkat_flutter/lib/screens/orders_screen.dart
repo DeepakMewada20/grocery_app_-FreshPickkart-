@@ -1,9 +1,13 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/controller/order_controller.dart';
-import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
-import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
+import 'package:freshpickkat_flutter/controller/order_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -68,71 +72,80 @@ class _OrdersScreenState extends State<OrdersScreen> {
         return RefreshIndicator(
           onRefresh: orderController.fetchOrders,
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: AppResponsive.pagePadding(context).copyWith(
+              bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+            ),
             itemCount: orderController.orders.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => SizedBox(height: 12.h),
             itemBuilder: (context, index) {
               final order = orderController.orders[index];
-              return InkWell(
-                onTap: () {
-                  Get.to(() => OrderDetailScreen(orderId: order.orderId));
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: cs.outlineVariant),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Order ${order.orderId}',
+              return AppResponsive.constrainContent(
+                context: context,
+                child: InkWell(
+                  onTap: () {
+                    Get.to(() => OrderDetailScreen(orderId: order.orderId));
+                  },
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: Container(
+                    padding: EdgeInsets.all(16.r),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(color: cs.outlineVariant),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AutoSizeText(
+                                'Order ${order.orderId}',
+                                style: TextStyle(
+                                  color: cs.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                ),
+                                minFontSize: 10,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            AutoSizeText(
+                              'INR ${order.finalAmount.toStringAsFixed(0)}',
                               style: TextStyle(
                                 color: cs.onSurface,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 14.sp,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              minFontSize: 10,
+                              maxLines: 1,
                             ),
-                          ),
-                          Text(
-                            'INR ${order.finalAmount.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              color: cs.onSurface,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Placed on ${_formatDate(order.orderedAt)}',
-                        style: TextStyle(
-                          color: cs.onSurface.withValues(alpha: 0.6),
-                          fontSize: 12,
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _buildStatusChip(
-                            'Order: ${order.status}',
-                            _statusColor(order.status),
-                          ),
-                          _buildStatusChip(
-                            'Payment: ${order.paymentStatus}',
-                            _statusColor(order.paymentStatus),
-                          ),
-                        ],
-                      ),
-                    ],
+                        SizedBox(height: 8.h),
+                        Text(
+                          'Placed on ${_formatDate(order.orderedAt)}',
+                          style: AppTextStyles.caption(context),
+                        ),
+                        SizedBox(height: 12.h),
+                        Wrap(
+                          spacing: 8.w,
+                          runSpacing: 8.h,
+                          children: [
+                            _buildStatusChip(
+                              'Order: ${order.status}',
+                              _statusColor(order.status),
+                            ),
+                            _buildStatusChip(
+                              'Payment: ${order.paymentStatus}',
+                              _statusColor(order.paymentStatus),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -144,60 +157,74 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildEmptyState(ColorScheme cs) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.shopping_bag_outlined,
-              color: AppTheme.primaryGreen,
-              size: 64,
-            ),
+    return SingleChildScrollView(
+      padding: AppResponsive.pagePadding(context),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight:
+              MediaQuery.sizeOf(context).height -
+              kToolbarHeight -
+              MediaQuery.paddingOf(context).vertical -
+              48.h,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(24.r),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.shopping_bag_outlined,
+                  color: AppTheme.primaryGreen,
+                  size: 64.r,
+                ),
+              ),
+              SizedBox(height: 24.h),
+              Text(
+                'No Orders Yet',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'Your order history will appear here\nonce you make a purchase.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  color: cs.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'No Orders Yet',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Your order history will appear here\nonce you make a purchase.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: cs.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Text(
+      child: AutoSizeText(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 12,
+          fontSize: 12.sp,
           fontWeight: FontWeight.w600,
         ),
+        minFontSize: 9,
+        maxLines: 1,
       ),
     );
   }

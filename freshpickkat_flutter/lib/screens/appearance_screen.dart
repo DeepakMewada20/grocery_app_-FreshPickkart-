@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 class AppearanceScreen extends StatelessWidget {
   const AppearanceScreen({super.key});
@@ -23,157 +26,169 @@ class AppearanceScreen extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Theme Mode Section ──────────────────────────────────────────
-            Text(
-              'Theme Mode',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: cs.onSurface,
+        padding: AppResponsive.pagePadding(context).copyWith(
+          bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+        ),
+        child: AppResponsive.constrainContent(
+          context: context,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Theme Mode Section ──────────────────────────────────────────
+              Text(
+                'Theme Mode',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Obx(
-              () => Row(
+              SizedBox(height: 12.h),
+              Obx(
+                () => Row(
+                  children: [
+                    _ThemeModeChip(
+                      icon: Icons.brightness_auto_outlined,
+                      label: 'System',
+                      selected: themeController.themeMode == ThemeMode.system,
+                      onTap: () =>
+                          themeController.setThemeMode(ThemeMode.system),
+                    ),
+                    SizedBox(width: 10.w),
+                    _ThemeModeChip(
+                      icon: Icons.light_mode_outlined,
+                      label: 'Light',
+                      selected: themeController.themeMode == ThemeMode.light,
+                      onTap: () =>
+                          themeController.setThemeMode(ThemeMode.light),
+                    ),
+                    SizedBox(width: 10.w),
+                    _ThemeModeChip(
+                      icon: Icons.dark_mode_outlined,
+                      label: 'Dark',
+                      selected: themeController.themeMode == ThemeMode.dark,
+                      onTap: () => themeController.setThemeMode(ThemeMode.dark),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 32.h),
+
+              // ── Light Theme Presets Section ─────────────────────────────────
+              Row(
                 children: [
-                  _ThemeModeChip(
-                    icon: Icons.brightness_auto_outlined,
-                    label: 'System',
-                    selected: themeController.themeMode == ThemeMode.system,
-                    onTap: () => themeController.setThemeMode(ThemeMode.system),
+                  Text(
+                    'Light Theme Color',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface,
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  _ThemeModeChip(
-                    icon: Icons.light_mode_outlined,
-                    label: 'Light',
-                    selected: themeController.themeMode == ThemeMode.light,
-                    onTap: () => themeController.setThemeMode(ThemeMode.light),
-                  ),
-                  const SizedBox(width: 10),
-                  _ThemeModeChip(
-                    icon: Icons.dark_mode_outlined,
-                    label: 'Dark',
-                    selected: themeController.themeMode == ThemeMode.dark,
-                    onTap: () => themeController.setThemeMode(ThemeMode.dark),
+                  SizedBox(width: 6.w),
+                  Flexible(
+                    child: Text(
+                      '(Light mode only)',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── Light Theme Presets Section ─────────────────────────────────
-            Row(
-              children: [
-                Text(
-                  'Light Theme Color',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: cs.onSurface,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '(Light mode only)',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: cs.onSurface.withValues(alpha: 0.4),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Obx(
-              () => Column(
-                children: [
-                  _PresetCard(
-                    preset: LightThemePreset.sageGreen,
-                    emoji: '🌿',
-                    name: 'Sage Green',
-                    subtitle: 'Fresh & natural',
-                    scaffold: const Color(0xFFF7F9F4),
-                    card: const Color(0xFFEFF5EC),
-                    text: const Color(0xFF1C2B1E),
-                    selected:
-                        themeController.lightPreset ==
+              SizedBox(height: 14.h),
+              Obx(
+                () => Column(
+                  children: [
+                    _PresetCard(
+                      preset: LightThemePreset.sageGreen,
+                      emoji: '🌿',
+                      name: 'Sage Green',
+                      subtitle: 'Fresh & natural',
+                      scaffold: const Color(0xFFF7F9F4),
+                      card: const Color(0xFFEFF5EC),
+                      text: const Color(0xFF1C2B1E),
+                      selected:
+                          themeController.lightPreset ==
+                          LightThemePreset.sageGreen,
+                      onTap: () => themeController.setLightPreset(
                         LightThemePreset.sageGreen,
-                    onTap: () => themeController.setLightPreset(
-                      LightThemePreset.sageGreen,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _PresetCard(
-                    preset: LightThemePreset.warmCream,
-                    emoji: '🍞',
-                    name: 'Warm Cream',
-                    subtitle: 'Cozy & inviting',
-                    scaffold: const Color(0xFFFBF7F0),
-                    card: const Color(0xFFF5EDE0),
-                    text: const Color(0xFF2C1E0F),
-                    selected:
-                        themeController.lightPreset ==
+                    SizedBox(height: 10.h),
+                    _PresetCard(
+                      preset: LightThemePreset.warmCream,
+                      emoji: '🍞',
+                      name: 'Warm Cream',
+                      subtitle: 'Cozy & inviting',
+                      scaffold: const Color(0xFFFBF7F0),
+                      card: const Color(0xFFF5EDE0),
+                      text: const Color(0xFF2C1E0F),
+                      selected:
+                          themeController.lightPreset ==
+                          LightThemePreset.warmCream,
+                      onTap: () => themeController.setLightPreset(
                         LightThemePreset.warmCream,
-                    onTap: () => themeController.setLightPreset(
-                      LightThemePreset.warmCream,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _PresetCard(
-                    preset: LightThemePreset.skyBlue,
-                    emoji: '🩵',
-                    name: 'Sky Blue',
-                    subtitle: 'Cool & refreshing',
-                    scaffold: const Color(0xFFF0F6FC),
-                    card: const Color(0xFFE3F0FA),
-                    text: const Color(0xFF0D2137),
-                    selected:
-                        themeController.lightPreset == LightThemePreset.skyBlue,
-                    onTap: () => themeController.setLightPreset(
-                      LightThemePreset.skyBlue,
+                    SizedBox(height: 10.h),
+                    _PresetCard(
+                      preset: LightThemePreset.skyBlue,
+                      emoji: '🩵',
+                      name: 'Sky Blue',
+                      subtitle: 'Cool & refreshing',
+                      scaffold: const Color(0xFFF0F6FC),
+                      card: const Color(0xFFE3F0FA),
+                      text: const Color(0xFF0D2137),
+                      selected:
+                          themeController.lightPreset ==
+                          LightThemePreset.skyBlue,
+                      onTap: () => themeController.setLightPreset(
+                        LightThemePreset.skyBlue,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _PresetCard(
-                    preset: LightThemePreset.roseBlush,
-                    emoji: '🌸',
-                    name: 'Rose Blush',
-                    subtitle: 'Soft & delicate',
-                    scaffold: const Color(0xFFFDF5F7),
-                    card: const Color(0xFFF8E8EE),
-                    text: const Color(0xFF2E0F1A),
-                    selected:
-                        themeController.lightPreset ==
+                    SizedBox(height: 10.h),
+                    _PresetCard(
+                      preset: LightThemePreset.roseBlush,
+                      emoji: '🌸',
+                      name: 'Rose Blush',
+                      subtitle: 'Soft & delicate',
+                      scaffold: const Color(0xFFFDF5F7),
+                      card: const Color(0xFFF8E8EE),
+                      text: const Color(0xFF2E0F1A),
+                      selected:
+                          themeController.lightPreset ==
+                          LightThemePreset.roseBlush,
+                      onTap: () => themeController.setLightPreset(
                         LightThemePreset.roseBlush,
-                    onTap: () => themeController.setLightPreset(
-                      LightThemePreset.roseBlush,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  _PresetCard(
-                    preset: LightThemePreset.lavender,
-                    emoji: '💜',
-                    name: 'Lavender',
-                    subtitle: 'Calm & elegant',
-                    scaffold: const Color(0xFFF6F3FC),
-                    card: const Color(0xFFEDE8F8),
-                    text: const Color(0xFF1A1030),
-                    selected:
-                        themeController.lightPreset ==
+                    SizedBox(height: 10.h),
+                    _PresetCard(
+                      preset: LightThemePreset.lavender,
+                      emoji: '💜',
+                      name: 'Lavender',
+                      subtitle: 'Calm & elegant',
+                      scaffold: const Color(0xFFF6F3FC),
+                      card: const Color(0xFFEDE8F8),
+                      text: const Color(0xFF1A1030),
+                      selected:
+                          themeController.lightPreset ==
+                          LightThemePreset.lavender,
+                      onTap: () => themeController.setLightPreset(
                         LightThemePreset.lavender,
-                    onTap: () => themeController.setLightPreset(
-                      LightThemePreset.lavender,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+              SizedBox(height: 24.h),
+            ],
+          ),
         ),
       ),
     );
@@ -205,12 +220,12 @@ class _ThemeModeChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
             color: selected
                 ? AppTheme.primaryGreen
                 : cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
               color: selected ? AppTheme.primaryGreen : cs.outlineVariant,
             ),
@@ -222,16 +237,18 @@ class _ThemeModeChip extends StatelessWidget {
                 color: selected
                     ? Colors.white
                     : cs.onSurface.withValues(alpha: 0.6),
-                size: 22,
+                size: 22.r,
               ),
-              const SizedBox(height: 4),
-              Text(
+              SizedBox(height: 4.h),
+              AutoSizeText(
                 label,
                 style: TextStyle(
                   color: selected ? Colors.white : cs.onSurface,
-                  fontSize: 11,
+                  fontSize: 11.sp,
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
+                minFontSize: 8,
+                maxLines: 1,
               ),
             ],
           ),
@@ -275,10 +292,10 @@ class _PresetCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: selected ? AppTheme.primaryGreen : cs.outlineVariant,
             width: selected ? 2.0 : 1.0,
@@ -288,11 +305,11 @@ class _PresetCard extends StatelessWidget {
           children: [
             // ── Mini preview ─────────────────────────────────────────────────
             Container(
-              width: 72,
-              height: 52,
+              width: 72.w.clamp(58.0, 82.0).toDouble(),
+              height: 52.h.clamp(42.0, 58.0).toDouble(),
               decoration: BoxDecoration(
                 color: scaffold,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.r),
                 border: Border.all(color: Colors.black12),
               ),
               child: Column(
@@ -300,82 +317,87 @@ class _PresetCard extends StatelessWidget {
                 children: [
                   // Simulated card strip
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    height: 10,
+                    margin: EdgeInsets.symmetric(horizontal: 6.w),
+                    height: 10.h,
                     decoration: BoxDecoration(
                       color: card,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    height: 7,
+                    margin: EdgeInsets.symmetric(horizontal: 10.w),
+                    height: 7.h,
                     decoration: BoxDecoration(
                       color: card,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6.h),
                   // Simulated green button
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 14),
-                    height: 7,
+                    margin: EdgeInsets.symmetric(horizontal: 14.w),
+                    height: 7.h,
                     decoration: BoxDecoration(
                       color: AppTheme.primaryGreen,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16.w),
             // ── Info ─────────────────────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     '$emoji  $name',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
                       color: cs.onSurface,
                     ),
+                    minFontSize: 11,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3.h),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: cs.onSurface.withValues(alpha: 0.5),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   // Swatches
                   Row(
                     children: [
                       _Swatch(color: scaffold),
-                      const SizedBox(width: 5),
+                      SizedBox(width: 5.w),
                       _Swatch(color: card),
-                      const SizedBox(width: 5),
+                      SizedBox(width: 5.w),
                       _Swatch(color: text),
-                      const SizedBox(width: 5),
+                      SizedBox(width: 5.w),
                       _Swatch(color: AppTheme.primaryGreen),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8.w),
             // ── Checkmark ────────────────────────────────────────────────────
             AnimatedOpacity(
               opacity: selected ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: const Icon(
+              child: Icon(
                 Icons.check_circle,
                 color: AppTheme.primaryGreen,
-                size: 24,
+                size: 24.r,
               ),
             ),
           ],
@@ -392,8 +414,8 @@ class _Swatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 16,
-      height: 16,
+      width: 16.r,
+      height: 16.r,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,

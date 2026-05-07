@@ -1,21 +1,20 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../models/delivery_location.dart';
-import '../repositories/firestore_order_tracking_repository.dart';
+import '../models/order_tracking_snapshot.dart';
+import '../repositories/server_order_tracking_repository.dart';
 
 class DeliveryLocationSenderService {
-  DeliveryLocationSenderService({FirestoreOrderTrackingRepository? repository})
-    : _repository = repository ?? FirestoreOrderTrackingRepository();
+  DeliveryLocationSenderService({ServerOrderTrackingRepository? repository})
+    : _repository = repository ?? ServerOrderTrackingRepository();
 
-  final FirestoreOrderTrackingRepository _repository;
+  final ServerOrderTrackingRepository _repository;
   final Random _random = Random();
 
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
-  _orderSubscription;
+  StreamSubscription<OrderTrackingSnapshot?>? _orderSubscription;
   Timer? _updateTimer;
   String? _activeOrderId;
   TrackingCoordinate? _lastRawPosition;
@@ -44,20 +43,18 @@ class DeliveryLocationSenderService {
     _forceTracking = forceTracking;
     _onFirstPublish = onFirstPublish;
     _orderSubscription = _repository
-        .orderDoc(orderId)
-        .snapshots()
+        .watchOrder(orderId)
         .listen(_handleOrderSnapshot);
   }
 
-  void _handleOrderSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data();
-    if (data == null) {
+  void _handleOrderSnapshot(OrderTrackingSnapshot? snapshot) {
+    if (snapshot == null) {
       stop();
       return;
     }
 
-    final status = data['status']?.toString() ?? 'placed';
-    final trackingEnabled = data['trackingEnabled'] == true;
+    final status = snapshot.status;
+    final trackingEnabled = snapshot.trackingEnabled;
 
     if (status == 'delivered' || status == 'cancelled') {
       stop();

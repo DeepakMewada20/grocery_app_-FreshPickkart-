@@ -3,8 +3,7 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class ComboOfferController extends GetxController {
-  static ComboOfferController get instance =>
-      Get.find<ComboOfferController>();
+  static ComboOfferController get instance => Get.find<ComboOfferController>();
 
   final Client _client = ServerpodClient().client;
 
@@ -15,7 +14,6 @@ class ComboOfferController extends GetxController {
 
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
-
 
   Future<void> fetchActiveComboOffersIfEmpty() async {
     if (_isFetching) return;

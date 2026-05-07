@@ -19,10 +19,9 @@ class CheckoutSession {
 class CheckoutService {
   CheckoutService._();
 
-  static CheckoutService get instance =>
-      Get.isRegistered<CheckoutService>()
-          ? Get.find<CheckoutService>()
-          : Get.put(CheckoutService._(), permanent: true);
+  static CheckoutService get instance => Get.isRegistered<CheckoutService>()
+      ? Get.find<CheckoutService>()
+      : Get.put(CheckoutService._(), permanent: true);
 
   final _orderService = OrderService.instance;
   final Random _random = Random.secure();

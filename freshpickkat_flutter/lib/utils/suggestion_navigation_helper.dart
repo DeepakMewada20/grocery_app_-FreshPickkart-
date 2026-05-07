@@ -31,13 +31,14 @@ class SuggestionNavigationHelper {
         break;
       case 'category':
         _navigateToCategory(
-          firstAction?.payload?['categoryId'] ?? firstAction?.payload?['categoryName'],
+          firstAction?.payload?['categoryId'] ??
+              firstAction?.payload?['categoryName'],
         );
         break;
       case 'combo':
         final comboId = suggestion.comboId ?? firstAction?.comboId;
         if (comboId != null) {
-           Get.to(() => ComboOffersScreen(highlightComboId: comboId));
+          Get.to(() => ComboOffersScreen(highlightComboId: comboId));
         }
         break;
       case 'coupon':
@@ -72,15 +73,18 @@ class SuggestionNavigationHelper {
   static void _navToProduct(String? productId, String? variantId) {
     if (productId == null) return;
 
-    final product = ProductProviderController.instance.allProducts.firstWhereOrNull(
-      (p) => p.productId == productId,
-    );
+    final product = ProductProviderController.instance.allProducts
+        .firstWhereOrNull(
+          (p) => p.productId == productId,
+        );
 
     if (product != null) {
-      Get.to(() => ProductDetailScreen(
-            product: product,
-            initialVariantId: variantId,
-          ));
+      Get.to(
+        () => ProductDetailScreen(
+          product: product,
+          initialVariantId: variantId,
+        ),
+      );
     }
   }
 
@@ -89,16 +93,22 @@ class SuggestionNavigationHelper {
     client.BasketSuggestionAction? action,
   ) {
     final productId =
-        suggestion.productId ?? action?.productId ?? action?.payload?['productId'];
+        suggestion.productId ??
+        action?.productId ??
+        action?.payload?['productId'];
     if (productId == null || productId.trim().isEmpty) {
       return;
     }
 
-    final product = ProductProviderController.instance.allProducts.firstWhereOrNull(
-      (p) => p.productId == productId,
-    );
+    final product = ProductProviderController.instance.allProducts
+        .firstWhereOrNull(
+          (p) => p.productId == productId,
+        );
     if (product == null) {
-      _navToProduct(productId, action?.variantId ?? action?.payload?['variantId']);
+      _navToProduct(
+        productId,
+        action?.variantId ?? action?.payload?['variantId'],
+      );
       return;
     }
 

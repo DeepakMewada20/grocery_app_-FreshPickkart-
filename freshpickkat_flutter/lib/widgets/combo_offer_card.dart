@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
@@ -32,7 +34,7 @@ class ComboOfferCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final cartController = CartController.instance;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     final discountLabel = comboDiscountBadgeText(
       combo.discountType,
@@ -54,7 +56,7 @@ class ComboOfferCard extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: isHighlighted ? AppTheme.primaryGreen : cs.outlineVariant,
           width: isHighlighted ? 2 : 1,
@@ -64,7 +66,7 @@ class ComboOfferCard extends StatelessWidget {
                 BoxShadow(
                   color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                   blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4.h),
                 ),
               ]
             : [],
@@ -73,9 +75,9 @@ class ComboOfferCard extends StatelessWidget {
         children: [
           InkWell(
             onTap: onTap,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -85,34 +87,36 @@ class ComboOfferCard extends StatelessWidget {
                       children: [
                         if (!isCompactVariant) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
                             ),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryGreen,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(10.r),
                             ),
-                            child: Text(
+                            child: AutoSizeText(
                               discountLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontSize: 13.sp,
                               ),
+                              minFontSize: 9,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10.h),
                         ],
-                        Text(
+                        AutoSizeText(
                           combo.name,
                           style: TextStyle(
                             color: cs.onSurface,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 16.sp,
                           ),
+                          minFontSize: 12,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -122,7 +126,7 @@ class ComboOfferCard extends StatelessWidget {
                             combo.description!,
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12,
+                              fontSize: 12.sp,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -132,15 +136,15 @@ class ComboOfferCard extends StatelessWidget {
                             'Tap to review bundled products in this combo deal.',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12,
+                              fontSize: 12.sp,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10.h),
                         Wrap(
-                          spacing: 12,
-                          runSpacing: 6,
+                          spacing: 12.w,
+                          runSpacing: 6.h,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
@@ -148,14 +152,14 @@ class ComboOfferCard extends StatelessWidget {
                               style: TextStyle(
                                 color: AppTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 18.sp,
                               ),
                             ),
                             Text(
                               'Sell ₹${originalUnitTotal.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface,
-                                fontSize: 13,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -163,7 +167,7 @@ class ComboOfferCard extends StatelessWidget {
                               'MRP ₹${mrpUnitTotal.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface.withValues(alpha: 0.4),
-                                fontSize: 13,
+                                fontSize: 13.sp,
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),
@@ -172,12 +176,13 @@ class ComboOfferCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12.w),
                   Icon(
                     isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     color: cs.onSurface.withValues(alpha: 0.5),
+                    size: 24.r,
                   ),
                 ],
               ),
@@ -189,12 +194,12 @@ class ComboOfferCard extends StatelessWidget {
               height: productStripHeight,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12.r),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: EdgeInsets.only(
-                      right: index == products.length - 1 ? 0 : 12,
+                      right: index == products.length - 1 ? 0 : 12.w,
                     ),
                     child: SizedBox(
                       width: productCardWidth,
@@ -206,7 +211,7 @@ class ComboOfferCard extends StatelessWidget {
             ),
             if (!isCompactVariant)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -219,7 +224,7 @@ class ComboOfferCard extends StatelessWidget {
                         backgroundColor: AppTheme.primaryGreen,
                         colorText: Colors.white,
                         duration: const Duration(seconds: 2),
-                        margin: const EdgeInsets.all(16),
+                        margin: EdgeInsets.all(16.r),
                       );
                     },
                     icon: const Icon(Icons.add_shopping_cart),
@@ -228,7 +233,7 @@ class ComboOfferCard extends StatelessWidget {
                       backgroundColor: AppTheme.primaryGreen,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                     ),
                   ),
@@ -238,11 +243,12 @@ class ComboOfferCard extends StatelessWidget {
           if (isExpanded && products.isEmpty) ...[
             Divider(color: cs.outlineVariant, height: 1),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.r),
               child: Text(
                 'Products loading...',
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5),
+                  fontSize: 13.sp,
                 ),
               ),
             ),

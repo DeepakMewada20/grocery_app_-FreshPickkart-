@@ -11,6 +11,7 @@ import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/services/data_initialization_service.dart';
 import 'package:freshpickkat_flutter/widgets/lazy_indexed_stack.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class MainScreen extends StatefulWidget {
@@ -85,23 +86,23 @@ class _MainScreenState extends State<MainScreen> {
           // Icon: slightly larger & brighter on selection, but NOT green
           selectedIconTheme: IconThemeData(
             color: selectedIconColor,
-            size: 26,
+            size: 26.r,
           ),
           unselectedIconTheme: IconThemeData(
             color: unselectedIconColor,
-            size: 23,
+            size: 23.r,
           ),
 
           // Label: only label turns green when selected
-          selectedLabelStyle: const TextStyle(
+          selectedLabelStyle: TextStyle(
             color: AppTheme.primaryGreen,
             fontWeight: FontWeight.w600,
-            fontSize: 11,
+            fontSize: 11.sp,
           ),
           unselectedLabelStyle: TextStyle(
             color: unselectedIconColor,
             fontWeight: FontWeight.normal,
-            fontSize: 11,
+            fontSize: 11.sp,
           ),
 
           items: [

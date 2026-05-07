@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -17,6 +18,9 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
@@ -104,9 +108,14 @@ class _BasketScreenState extends State<BasketScreen> {
                       final banners = BannerController.instance.cartPageBanners;
                       if (banners.isEmpty) return const SizedBox.shrink();
                       return Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 4),
+                        padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
                         child: NetworkBannerWidget(
-                          height: 130,
+                          height: AppResponsive.bannerHeight(
+                            context,
+                            ratio: 0.32,
+                            min: 112,
+                            max: 150,
+                          ),
                           banners: banners,
                           autoScrollInterval: const Duration(seconds: 4),
                           autoScrollDuration: const Duration(milliseconds: 500),
@@ -179,11 +188,11 @@ class _BasketScreenState extends State<BasketScreen> {
     return Column(
       children: [
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
+          margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
             color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: bogoOffer != null
                   ? offerTheme.badgeBorder
@@ -197,10 +206,10 @@ class _BasketScreenState extends State<BasketScreen> {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     child: Container(
-                      width: 80,
-                      height: 80,
+                      width: 76.r,
+                      height: 76.r,
                       color: cs.surface,
                       child: SafeNetworkImage(
                         url: item.product.imageUrl,
@@ -213,18 +222,18 @@ class _BasketScreenState extends State<BasketScreen> {
                       top: 0,
                       left: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(4.r),
                         decoration: BoxDecoration(
                           color: offerTheme.badge,
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(8),
+                          borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(8.r),
                           ),
                         ),
                         child: Text(
                           'BOGO',
                           style: TextStyle(
                             color: offerTheme.onBadge,
-                            fontSize: 10,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -232,61 +241,91 @@ class _BasketScreenState extends State<BasketScreen> {
                     ),
                 ],
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 14.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       item.product.productName,
                       style: TextStyle(
                         color: cs.onSurface,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
+                      minFontSize: 12,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4.h),
                     Text(
                       productFullQuantityLabel(item.product),
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.5),
-                        fontSize: 14,
+                        fontSize: 14.sp,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                    SizedBox(height: 8.h),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final price = Wrap(
+                          spacing: 8.w,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Text(
+                            AutoSizeText(
                               '₹${item.product.price.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface,
-                                fontSize: 18,
+                                fontSize: 18.sp,
                                 fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 1,
+                              minFontSize: 12,
                             ),
-                            if (item.product.realPrice >
-                                item.product.price) ...[
-                              const SizedBox(width: 8),
-                              Text(
+                            if (item.product.realPrice > item.product.price)
+                              AutoSizeText(
                                 '₹${item.product.realPrice.formatPrice}',
                                 style: TextStyle(
                                   color: cs.onSurface.withValues(alpha: 0.4),
-                                  fontSize: 14,
+                                  fontSize: 14.sp,
                                   decoration: TextDecoration.lineThrough,
+                                ),
+                                maxLines: 1,
+                                minFontSize: 10,
+                              ),
+                          ],
+                        );
+                        if (constraints.maxWidth < 230) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              price,
+                              SizedBox(height: 8.h),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: _buildRegularQuantitySelector(
+                                  cartController,
+                                  item,
+                                  cs,
                                 ),
                               ),
                             ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(child: price),
+                            SizedBox(width: 8.w),
+                            _buildRegularQuantitySelector(
+                              cartController,
+                              item,
+                              cs,
+                            ),
                           ],
-                        ),
-                        _buildRegularQuantitySelector(cartController, item, cs),
-                      ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -296,47 +335,52 @@ class _BasketScreenState extends State<BasketScreen> {
         ),
         if (bogoOffer != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
             child: Column(
               children: [
                 if (freeProduct != null)
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8.r),
                     decoration: BoxDecoration(
                       color: offerTheme.badgeSoft,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(color: offerTheme.badgeBorder),
                     ),
                     child: Row(
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(8.r),
                           child: SafeNetworkImage(
                             url: freeProduct.imageUrl,
-                            width: 40,
-                            height: 40,
+                            width: 40.r,
+                            height: 40.r,
                             fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12.w),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 'FREE: ${freeProduct.productName}',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 13.sp,
                                   fontWeight: FontWeight.bold,
                                   color: offerTheme.badge,
                                 ),
+                                maxLines: 2,
+                                minFontSize: 10,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 '${freeProductQuantity ?? freeProduct.quantity} x ${item.quantity}',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 11.sp,
                                   color: cs.onSurface.withValues(alpha: 0.7),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -372,13 +416,13 @@ class _BasketScreenState extends State<BasketScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: offerTheme.badge,
                       foregroundColor: offerTheme.onBadge,
-                      minimumSize: const Size(double.infinity, 40),
+                      minimumSize: Size(double.infinity, 40.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10.r),
                       ),
                     ),
                   ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
               ],
             ),
           ),
@@ -573,20 +617,20 @@ class _BasketScreenState extends State<BasketScreen> {
               item.product,
               variantId: item.variantId,
             ),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Icon(Icons.remove, color: cs.onPrimary, size: 20),
+              padding: EdgeInsets.all(9.r),
+              child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
             child: Text(
               '${item.quantity}',
               style: TextStyle(
                 color: cs.onPrimary,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 15.sp,
               ),
             ),
           ),
@@ -595,10 +639,10 @@ class _BasketScreenState extends State<BasketScreen> {
               item.product,
               variantId: item.variantId,
             ),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Icon(Icons.add, color: cs.onPrimary, size: 20),
+              padding: EdgeInsets.all(9.r),
+              child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
             ),
           ),
         ],
@@ -621,29 +665,29 @@ class _BasketScreenState extends State<BasketScreen> {
         children: [
           InkWell(
             onTap: () => cartController.decrementComboGroup(group.comboId),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Icon(Icons.remove, color: cs.onPrimary, size: 20),
+              padding: EdgeInsets.all(9.r),
+              child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
             child: Text(
               '${group.bundleQuantity}',
               style: TextStyle(
                 color: cs.onPrimary,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 15.sp,
               ),
             ),
           ),
           InkWell(
             onTap: () => cartController.incrementComboGroup(group.comboId),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Icon(Icons.add, color: cs.onPrimary, size: 20),
+              padding: EdgeInsets.all(9.r),
+              child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
             ),
           ),
         ],
@@ -656,11 +700,11 @@ class _BasketScreenState extends State<BasketScreen> {
         cartController.isPricingStale.value ||
         cartController.cartPricing.value?.deliveryPricing == null;
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -670,18 +714,18 @@ class _BasketScreenState extends State<BasketScreen> {
             'Bill Details',
             style: TextStyle(
               color: cs.onSurface,
-              fontSize: 18,
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           _buildBillRow(
             'MRP Total',
             '₹${cartController.mrpTotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.productDiscountTotal > 0) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             _buildBillRow(
               'Product Discount',
               '-₹${cartController.productDiscountTotal.formatPrice}',
@@ -690,7 +734,7 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
           ],
           if (cartController.comboDiscountTotal > 0) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             _buildBillRow(
               'Combo Savings',
               '-₹${cartController.comboDiscountTotal.formatPrice}',
@@ -699,7 +743,7 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
           ],
           if (cartController.bogoDiscountTotal > 0) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             _buildBillRow(
               'BOGO Savings',
               '-₹${cartController.bogoDiscountTotal.formatPrice}',
@@ -707,14 +751,14 @@ class _BasketScreenState extends State<BasketScreen> {
               cs: cs,
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _buildBillRow(
             'Items Total (Combo Applied)',
             '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.couponDiscount > 0) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             _buildBillRow(
               'Coupon Discount',
               '-₹${cartController.couponDiscount.formatPrice}',
@@ -722,7 +766,7 @@ class _BasketScreenState extends State<BasketScreen> {
               cs: cs,
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _buildBillRow(
             showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
             cartController.deliveryFee == 0
@@ -734,7 +778,7 @@ class _BasketScreenState extends State<BasketScreen> {
             cs: cs,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: 16.h),
             child: Divider(color: cs.outlineVariant),
           ),
           _buildBillRow(
@@ -760,20 +804,27 @@ class _BasketScreenState extends State<BasketScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isTotal ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
-            fontSize: isTotal ? 18 : 16,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+        Expanded(
+          child: Text(
+            label,
+            style: AppTextStyles.receiptLabel(context, total: isTotal),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            color: effectiveValueColor,
-            fontSize: isTotal ? 20 : 16,
-            fontWeight: FontWeight.bold,
+        SizedBox(width: 12.w),
+        Flexible(
+          child: AutoSizeText(
+            value,
+            textAlign: TextAlign.end,
+            style: AppTextStyles.receiptValue(
+              context,
+              total: isTotal,
+              color: effectiveValueColor,
+            ),
+            maxLines: 1,
+            minFontSize: 11,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -786,15 +837,15 @@ class _BasketScreenState extends State<BasketScreen> {
     ColorScheme cs,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: cs.outlineVariant)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            blurRadius: 10.r,
+            offset: Offset(0, -5.h),
           ),
         ],
       ),
@@ -805,44 +856,56 @@ class _BasketScreenState extends State<BasketScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryGreen,
           foregroundColor: cs.onPrimary,
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: Size(double.infinity, 56.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
           ),
           elevation: 0,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '₹${cartController.totalAmount.formatPrice}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AutoSizeText(
+                    '₹${cartController.totalAmount.formatPrice}',
+                    maxLines: 1,
+                    minFontSize: 12,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Text(
-                  'TOTAL AMOUNT',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
+                  AutoSizeText(
+                    'TOTAL AMOUNT',
+                    maxLines: 1,
+                    minFontSize: 8,
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const Row(
+            SizedBox(width: 12.w),
+            Row(
               children: [
-                Text(
+                AutoSizeText(
                   'PROCEED',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  minFontSize: 12,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios, size: 16),
+                SizedBox(width: 8.w),
+                Icon(Icons.arrow_forward_ios, size: 16.r),
               ],
             ),
           ],

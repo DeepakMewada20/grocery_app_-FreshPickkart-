@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 import '../controllers/order_tracking_controller.dart';
 import '../models/order_tracking_snapshot.dart';
@@ -147,11 +150,17 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                 unawaited(_focusCamera());
               },
             ),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: _buildStatusCard(snapshot, cs),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SafeArea(
+                minimum: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: AppResponsive.isLandscape(context) ? 560 : 640,
+                  ),
+                  child: _buildStatusCard(snapshot, cs),
+                ),
+              ),
             ),
           ],
         );
@@ -220,10 +229,10 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     return Material(
       elevation: 10,
       color: cs.surface,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24.r),
       shadowColor: Colors.black.withValues(alpha: 0.18),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -231,8 +240,8 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
             Row(
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 42.r,
+                  height: 42.r,
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -242,20 +251,24 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                         ? Icons.local_shipping_rounded
                         : Icons.info_outline_rounded,
                     color: statusColor,
+                    size: 22.r,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
                 Expanded(
-                  child: Text(
+                  child: AutoSizeText(
                     statusText,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: cs.onSurface,
+                      fontSize: 15.sp,
                     ),
+                    minFontSize: 11,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (_controller.hasArrivingSoonFlag)
-                  const SizedBox(width: 8),
+                if (_controller.hasArrivingSoonFlag) SizedBox(width: 8.w),
                 if (_controller.hasArrivingSoonFlag)
                   _BadgeChip(
                     label: 'Arriving soon',
@@ -263,30 +276,40 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                   ),
               ],
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _MetricTile(
-                    label: 'Distance',
-                    value:
-                        distance <= 999
-                            ? '${distance.toStringAsFixed(0)} m'
-                            : '${(distance / 1000).toStringAsFixed(1)} km',
-                    icon: Icons.straighten_rounded,
-                    accent: Colors.indigo,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _MetricTile(
-                    label: 'ETA',
-                    value: etaLabel,
-                    icon: Icons.schedule_rounded,
-                    accent: Colors.deepOrange,
-                  ),
-                ),
-              ],
+            SizedBox(height: 14.h),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final distanceTile = _MetricTile(
+                  label: 'Distance',
+                  value: distance <= 999
+                      ? '${distance.toStringAsFixed(0)} m'
+                      : '${(distance / 1000).toStringAsFixed(1)} km',
+                  icon: Icons.straighten_rounded,
+                  accent: Colors.indigo,
+                );
+                final etaTile = _MetricTile(
+                  label: 'ETA',
+                  value: etaLabel,
+                  icon: Icons.schedule_rounded,
+                  accent: Colors.deepOrange,
+                );
+                if (constraints.maxWidth < 330) {
+                  return Column(
+                    children: [
+                      distanceTile,
+                      SizedBox(height: 10.h),
+                      etaTile,
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: distanceTile),
+                    SizedBox(width: 12.w),
+                    Expanded(child: etaTile),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -318,18 +341,20 @@ class _BadgeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18.r),
       ),
-      child: Text(
+      child: AutoSizeText(
         label,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: 12.sp,
         ),
+        minFontSize: 9,
+        maxLines: 1,
       ),
     );
   }
@@ -351,24 +376,24 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: accent.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 34.r,
+            height: 34.r,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
             ),
-            child: Icon(icon, size: 18, color: accent),
+            child: Icon(icon, size: 18.r, color: accent),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,19 +402,21 @@ class _MetricTile extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
+                SizedBox(height: 2.h),
+                AutoSizeText(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
+                    fontSize: 14.sp,
                   ),
+                  minFontSize: 10,
                 ),
               ],
             ),

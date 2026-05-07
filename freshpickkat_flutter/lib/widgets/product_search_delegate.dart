@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/search_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class ProductSearchDelegate extends SearchDelegate<String> {
@@ -96,7 +99,11 @@ class ProductSearchDelegate extends SearchDelegate<String> {
           return Center(
             child: Text(
               'No products found.',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+              style: TextStyle(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
           );
         }
@@ -113,45 +120,47 @@ class ProductSearchDelegate extends SearchDelegate<String> {
           },
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Search Results',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    style: AppTextStyles.sectionTitle(context),
                   ),
-                  const SizedBox(height: 12),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.58,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: searchController.searchResults.length + (searchController.hasMoreResults.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= searchController.searchResults.length) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
-                        );
-                      }
-                      final p = searchController.searchResults[index];
-                      final uniqueKey = '${p.productId}_search_$index';
-                      return KeyedSubtree(
-                        key: ValueKey(uniqueKey),
-                        child: ProductCard(
-                          product: p,
-                          enableHero: false,
-                          heroTagSuffix: '_search_$index',
-                          onAddPressed: () {},
+                  SizedBox(height: 12.h),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: AppResponsive.productGridDelegate(
+                          context,
+                          constraints.maxWidth,
                         ),
+                        itemCount:
+                            searchController.searchResults.length +
+                            (searchController.hasMoreResults.value ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= searchController.searchResults.length) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF1B8A4C),
+                              ),
+                            );
+                          }
+                          final p = searchController.searchResults[index];
+                          final uniqueKey = '${p.productId}_search_$index';
+                          return KeyedSubtree(
+                            key: ValueKey(uniqueKey),
+                            child: ProductCard(
+                              product: p,
+                              enableHero: false,
+                              heroTagSuffix: '_search_$index',
+                              onAddPressed: () {},
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -187,45 +196,47 @@ class ProductSearchDelegate extends SearchDelegate<String> {
           },
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Suggestions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    style: AppTextStyles.sectionTitle(context),
                   ),
-                  const SizedBox(height: 12),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.58,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: searchController.suggestions.length + (searchController.hasMoreSuggestions.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= searchController.suggestions.length) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
-                        );
-                      }
-                      final p = searchController.suggestions[index];
-                      final uniqueKey = '${p.productId}_suggestion_$index';
-                      return KeyedSubtree(
-                        key: ValueKey(uniqueKey),
-                        child: ProductCard(
-                          product: p,
-                          enableHero: false,
-                          heroTagSuffix: '_suggestion_$index',
-                          onAddPressed: () {},
+                  SizedBox(height: 12.h),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: AppResponsive.productGridDelegate(
+                          context,
+                          constraints.maxWidth,
                         ),
+                        itemCount:
+                            searchController.suggestions.length +
+                            (searchController.hasMoreSuggestions.value ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= searchController.suggestions.length) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF1B8A4C),
+                              ),
+                            );
+                          }
+                          final p = searchController.suggestions[index];
+                          final uniqueKey = '${p.productId}_suggestion_$index';
+                          return KeyedSubtree(
+                            key: ValueKey(uniqueKey),
+                            child: ProductCard(
+                              product: p,
+                              enableHero: false,
+                              heroTagSuffix: '_suggestion_$index',
+                              onAddPressed: () {},
+                            ),
+                          );
+                        },
                       );
                     },
                   ),

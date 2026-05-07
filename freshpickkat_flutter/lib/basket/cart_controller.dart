@@ -1716,8 +1716,7 @@ class CartController extends GetxController {
 
     final offer = BogoController.instance.activeOffers.firstWhereOrNull(
       (candidate) =>
-          candidate.isActive &&
-          candidate.triggerProductId == triggerProductId,
+          candidate.isActive && candidate.triggerProductId == triggerProductId,
     );
     if (offer == null || offer.freeProductIds.isEmpty) return;
     final isEligible = isBogoTriggerVariantEligible(

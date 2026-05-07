@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  cloud_firestore
   connectivity_plus
   desktop_webview_window
   file_selector_windows

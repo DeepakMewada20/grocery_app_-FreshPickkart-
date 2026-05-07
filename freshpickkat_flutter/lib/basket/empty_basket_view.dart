@@ -8,6 +8,7 @@ import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
@@ -26,9 +27,9 @@ class EmptyBasketView extends StatelessWidget {
       final best = cart.bestBasketSuggestion.value;
       final suggestions =
           cart.isBasketSuggestionsLoading.value &&
-                  cart.oldBasketSuggestions.isNotEmpty
-              ? cart.oldBasketSuggestions.toList()
-              : cart.basketSuggestions.toList();
+              cart.oldBasketSuggestions.isNotEmpty
+          ? cart.oldBasketSuggestions.toList()
+          : cart.basketSuggestions.toList();
       final products = ProductProviderController.instance.allProducts;
       final productMap = {
         for (final product in products)
@@ -351,18 +352,20 @@ class _CategoryChips extends StatelessWidget {
     }
 
     final items = categories.take(6).toList();
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.9,
-      ),
-      itemBuilder: (context, index) {
-        return _CategoryTile(category: items[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: AppResponsive.categoryGridDelegate(
+            context,
+            constraints.maxWidth,
+          ),
+          itemBuilder: (context, index) {
+            return _CategoryTile(category: items[index]);
+          },
+        );
       },
     );
   }
@@ -484,14 +487,17 @@ class _BuyAgainCard extends StatelessWidget {
     final theme = Theme.of(context);
     final displayProduct = _resolveDisplayProduct();
     final imageUrl = displayProduct?.imageUrl ?? suggestion.thumbnailUrl;
-    final title = displayProduct?.productName ?? suggestion.title ?? suggestion.message;
+    final title =
+        displayProduct?.productName ?? suggestion.title ?? suggestion.message;
     final quantityLabel = displayProduct != null
         ? productFullQuantityLabel(displayProduct)
         : (suggestion.subtitle?.trim().isNotEmpty == true
               ? suggestion.subtitle!
               : 'Previously ordered');
     final hasOffer = displayProduct != null && hasProductOffer(displayProduct);
-    final showMrp = displayProduct != null && displayProduct.realPrice > displayProduct.price;
+    final showMrp =
+        displayProduct != null &&
+        displayProduct.realPrice > displayProduct.price;
 
     return Material(
       color: Colors.transparent,
@@ -504,7 +510,9 @@ class _BuyAgainCard extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 theme.colorScheme.surface,
-                theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.72),
+                theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.72,
+                ),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -613,10 +621,10 @@ class _BuyAgainCard extends StatelessWidget {
                             ),
                             fontSize: 10.2,
                             decoration: TextDecoration.lineThrough,
-                            decorationColor:
-                                theme.colorScheme.onSurface.withValues(
-                              alpha: 0.35,
-                            ),
+                            decorationColor: theme.colorScheme.onSurface
+                                .withValues(
+                                  alpha: 0.35,
+                                ),
                           ),
                         ),
                       ),

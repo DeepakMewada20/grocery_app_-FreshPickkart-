@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class EnvConfig {
   /// The base URL for the Serverpod API.
-  /// 
+  ///
   /// Priority:
   /// 1. --dart-define=API_BASE_URL=...
   /// 2. Smart defaults based on platform (localhost for web, 10.0.2.2 for Android emulator)
@@ -28,7 +28,7 @@ class EnvConfig {
 
     // ignore: avoid_print
     print('⚠️ API_BASE_URL not set. Using smart default: $defaultUrl');
-    
+
     return defaultUrl;
   }
 

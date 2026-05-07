@@ -3,10 +3,13 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 /// Screen shown when user taps an "offer" type banner.
@@ -186,7 +189,7 @@ class _OffersScreenState extends State<OffersScreen> {
           if (isLoading && !hasData) {
             return ProductGridShimmer(
               itemCount: 6,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             );
           }
 
@@ -198,32 +201,32 @@ class _OffersScreenState extends State<OffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(28),
+                    padding: EdgeInsets.all(28.r),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.local_offer_outlined,
-                      size: 56,
+                      size: 56.r,
                       color: cs.onSurface.withValues(alpha: 0.3),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.h),
                   Text(
                     'No offers right now',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 20,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Text(
                     'Check back soon for exciting deals.',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 14,
+                      fontSize: 14.sp,
                     ),
                   ),
                 ],
@@ -232,7 +235,7 @@ class _OffersScreenState extends State<OffersScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: Column(
               children: [
                 // ── Smart Analysis Section ──────────────────────────────────
@@ -245,41 +248,44 @@ class _OffersScreenState extends State<OffersScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 8,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 4.w,
+                          vertical: 8.h,
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(6.r),
                               decoration: BoxDecoration(
                                 color: AppTheme.primaryGreen.withValues(
                                   alpha: 0.1,
                                 ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Icon(
                                 Icons.auto_awesome_rounded,
-                                size: 16,
+                                size: 16.r,
                                 color: AppTheme.primaryGreen,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Smart Analysis for You',
-                              style: TextStyle(
-                                color: cs.onSurface,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
+                            SizedBox(width: 10.w),
+                            Expanded(
+                              child: Text(
+                                'Smart Analysis for You',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.sectionTitle(
+                                  context,
+                                ).copyWith(fontSize: 16.sp),
                               ),
                             ),
                           ],
                         ),
                       ),
                       SizedBox(
-                        height: 185,
+                        height: AppResponsive.horizontalProductListHeight(
+                          context,
+                        ).clamp(170.h, 220.h).toDouble(),
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           clipBehavior: Clip.none,
@@ -287,34 +293,32 @@ class _OffersScreenState extends State<OffersScreen> {
                           itemBuilder: (context, i) => SuggestionCard(
                             suggestion: suggestions[i],
                             index: i,
-                            width: MediaQuery.of(context).size.width * 0.85,
+                            width: (MediaQuery.sizeOf(context).width * 0.85)
+                                .clamp(280.w, 520.w),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24.h),
                       Text(
                         'All Offers',
-                        style: TextStyle(
-                          color: cs.onSurface,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
+                        style: AppTextStyles.sectionTitle(
+                          context,
+                        ).copyWith(fontSize: 16.sp),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10.h),
                     ],
                   );
                 }),
 
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 10.h,
                   ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14.r),
                   ),
                   child: Obx(() {
                     final count = _filteredProducts.length;
@@ -322,10 +326,10 @@ class _OffersScreenState extends State<OffersScreen> {
                       children: [
                         Icon(
                           Icons.local_offer_outlined,
-                          size: 18,
+                          size: 18.r,
                           color: AppTheme.primaryGreen,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
                             '$count deal${count == 1 ? '' : 's'} available',
@@ -339,23 +343,24 @@ class _OffersScreenState extends State<OffersScreen> {
                     );
                   }),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 Expanded(
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.59,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        gridDelegate: AppResponsive.productGridDelegate(
+                          context,
+                          constraints.maxWidth,
                         ),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final p = products[index];
-                      return ProductCard(
-                        product: p,
-                        heroTagSuffix: '_offers',
-                        onAddPressed: () {},
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final p = products[index];
+                          return ProductCard(
+                            product: p,
+                            heroTagSuffix: '_offers',
+                            onAddPressed: () {},
+                          );
+                        },
                       );
                     },
                   ),

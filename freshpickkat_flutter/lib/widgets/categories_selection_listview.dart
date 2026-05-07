@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class CategoriesSelectionListview extends StatefulWidget {
@@ -60,13 +63,13 @@ class _CategoriesSelectionListviewState
 
       if (isLoading) {
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: EdgeInsets.symmetric(vertical: 28.h),
           child: SizedBox(
-            height: 260,
+            height: AppResponsive.horizontalProductListHeight(context),
             child: HorizontalProductListShimmer(
-              height: 260,
+              height: AppResponsive.horizontalProductListHeight(context),
               itemCount: 5,
-              itemWidth: 160,
+              itemWidth: AppResponsive.horizontalCardWidth(context),
             ),
           ),
         );
@@ -80,16 +83,15 @@ class _CategoriesSelectionListviewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 16, left: 12, right: 12),
+            padding: EdgeInsets.only(top: 16.h, left: 12.w, right: 12.w),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.titalWord,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    widget.titalWord,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.sectionTitle(context),
                   ),
                 ),
                 TextButton(
@@ -113,16 +115,16 @@ class _CategoriesSelectionListviewState
             ),
           ),
           SizedBox(
-            height: 289,
+            height: AppResponsive.horizontalProductListHeight(context),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               itemCount: itemCount,
               itemBuilder: (context, index) {
                 // Show ViewAllCard as last item
                 if (index == itemCount - 1) {
                   return SizedBox(
-                    width: 160,
+                    width: AppResponsive.horizontalCardWidth(context),
                     child: ViewAllCard(
                       onTap: () {
                         Navigator.push(
@@ -142,8 +144,8 @@ class _CategoriesSelectionListviewState
                 final p = products[index];
                 final uniqueKey = '${p.productId}_trending_$index';
                 return Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(right: 12),
+                  width: AppResponsive.horizontalCardWidth(context),
+                  margin: EdgeInsets.only(right: 12.w),
                   child: KeyedSubtree(
                     key: ValueKey(uniqueKey),
                     child: ProductCard(

@@ -18,7 +18,7 @@ class SearchProviderController extends GetxController {
   final isLoadingResults = false.obs;
   final isLoadingMore = false.obs;
   final errorMessage = ''.obs;
-  
+
   final hasMoreSuggestions = false.obs;
   final hasMoreResults = false.obs;
   String? _nextPageTokenSuggestions;
@@ -35,7 +35,7 @@ class SearchProviderController extends GetxController {
       suggestions.clear();
       return;
     }
-    
+
     _currentQuery = query;
     if (_isFetchingSuggestions) return;
 
@@ -85,7 +85,7 @@ class SearchProviderController extends GetxController {
       searchResults.clear();
       return;
     }
-    
+
     _currentQuery = query;
     if (_isFetchingResults) return;
 

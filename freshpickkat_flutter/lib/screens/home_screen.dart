@@ -11,6 +11,8 @@ import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
@@ -87,7 +89,8 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     super.build(context);
     final productController = ProductProviderController.instance;
-    var height = MediaQuery.of(context).size.height;
+    final height = MediaQuery.sizeOf(context).height;
+    final headerSpacer = AppResponsive.isLandscape(context) ? 126.h : 170.h;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -95,8 +98,8 @@ class _HomePageState extends State<HomePage>
         children: [
           RefreshIndicator(
             onRefresh: _onRefresh,
-            edgeOffset: 170, // Show below the expanded header
-            displacement: 40,
+            edgeOffset: headerSpacer,
+            displacement: 40.h,
             child: Obx(() {
               final hasData = productController.hasData;
 
@@ -122,8 +125,8 @@ class _HomePageState extends State<HomePage>
                   controller: _scrollController,
                   slivers: [
                     // Space for fixed header
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 170),
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: headerSpacer),
                     ),
 
                     if (!hasData)
@@ -156,7 +159,7 @@ class _HomePageState extends State<HomePage>
                       // OFFER BANNER (home_top)
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 12),
+                          padding: EdgeInsets.only(top: 12.h),
                           child: Obx(() {
                             final bannerController = BannerController.instance;
                             final banners = bannerController.homeTopBanners;
@@ -166,7 +169,12 @@ class _HomePageState extends State<HomePage>
                             }
 
                             return NetworkBannerWidget(
-                              height: 180,
+                              height: AppResponsive.bannerHeight(
+                                context,
+                                ratio: 0.42,
+                                min: 130,
+                                max: 190,
+                              ),
                               banners: banners,
                               autoScrollInterval: const Duration(seconds: 3),
                               autoScrollDuration: const Duration(
@@ -189,7 +197,12 @@ class _HomePageState extends State<HomePage>
                             midContent: middleBanners.isEmpty
                                 ? null
                                 : NetworkBannerWidget(
-                                    height: 180,
+                                    height: AppResponsive.bannerHeight(
+                                      context,
+                                      ratio: 0.42,
+                                      min: 130,
+                                      max: 190,
+                                    ),
                                     banners: middleBanners,
                                     autoScrollInterval: const Duration(
                                       seconds: 4,
@@ -206,12 +219,10 @@ class _HomePageState extends State<HomePage>
                       if (productController.isLoading.value)
                         SliverToBoxAdapter(
                           child: SizedBox(
-                            height: 400,
+                            height: 400.h,
                             child: ProductGridShimmer(
                               itemCount: 6,
-                              crossAxisCount: 3,
-                              childAspectRatio: 0.458,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
                             ),
                           ),
                         ),
@@ -220,7 +231,7 @@ class _HomePageState extends State<HomePage>
                       if (!productController.isMoreDataAvailable.value)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.all(20),
+                            padding: EdgeInsets.all(20.r),
                             child: Center(
                               child: Builder(
                                 builder: (context) => Text(
@@ -232,7 +243,7 @@ class _HomePageState extends State<HomePage>
                                         ).colorScheme.onSurface.withValues(
                                           alpha: 0.4,
                                         ),
-                                    fontSize: 14,
+                                    fontSize: 14.sp,
                                   ),
                                 ),
                               ),
@@ -251,7 +262,13 @@ class _HomePageState extends State<HomePage>
             animation: _scrollController,
             builder: (context, child) {
               return FreshPickKartHeader(
-                scrollOffset: _scrollController.hasClients ? _scrollController.positions.first.pixels : 0,
+                expandedHeight: headerSpacer,
+                collapsedHeight: AppResponsive.isLandscape(context)
+                    ? kToolbarHeight + 42.h
+                    : kToolbarHeight + 60.h,
+                scrollOffset: _scrollController.hasClients
+                    ? _scrollController.positions.first.pixels
+                    : 0,
               );
             },
           ),

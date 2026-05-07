@@ -17,7 +17,7 @@ class BannerController extends GetxController {
   final cartPageBanners = <client.Banner>[].obs;
   final checkoutPageBanners = <client.Banner>[].obs;
   final productPageBanners = <client.Banner>[].obs;
- 
+
   // Cache for image providers to ensure reuse across the session
   final Map<String, ImageProvider> _imageProviderCache = {};
 
@@ -72,7 +72,9 @@ class BannerController extends GetxController {
         _client.banner.getBanners(screen: 'home_middle', activeOnly: true),
       ]);
 
-      homeTopBanners.assignAll(results[0].where((b) => !b.screenPlacements.contains('home_top_image')));
+      homeTopBanners.assignAll(
+        results[0].where((b) => !b.screenPlacements.contains('home_top_image')),
+      );
       homeTopImageBanners.assignAll(results[1]);
       homeMiddleBanners.assignAll(results[2]);
 
@@ -112,7 +114,10 @@ class BannerController extends GetxController {
 
     try {
       isLoading.value = true;
-      final banners = await _client.banner.getBanners(screen: screen, activeOnly: true);
+      final banners = await _client.banner.getBanners(
+        screen: screen,
+        activeOnly: true,
+      );
       targetList.assignAll(banners);
     } catch (e) {
       debugPrint('Error loading banners for $screen: $e');
@@ -152,10 +157,16 @@ class BannerController extends GetxController {
     await loadHomeBanners();
     // Other screens will load on demand, but if forceRefresh is true, we might want to refresh what's already loaded
     if (forceRefresh) {
-      if (categoryPageBanners.isNotEmpty) await loadBannersForScreen('category_page');
+      if (categoryPageBanners.isNotEmpty) {
+        await loadBannersForScreen('category_page');
+      }
       if (cartPageBanners.isNotEmpty) await loadBannersForScreen('cart_page');
-      if (checkoutPageBanners.isNotEmpty) await loadBannersForScreen('checkout_page');
-      if (productPageBanners.isNotEmpty) await loadBannersForScreen('product_page');
+      if (checkoutPageBanners.isNotEmpty) {
+        await loadBannersForScreen('checkout_page');
+      }
+      if (productPageBanners.isNotEmpty) {
+        await loadBannersForScreen('product_page');
+      }
     }
   }
 

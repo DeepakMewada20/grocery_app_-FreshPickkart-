@@ -11,7 +11,8 @@ List<ProductVariant> sortedProductVariants(Product product) {
   return [
     ProductVariant(
       variantId: 'default',
-      quantityValue: product.baseQuantity ?? _parseQuantityValue(product.quantity),
+      quantityValue:
+          product.baseQuantity ?? _parseQuantityValue(product.quantity),
       quantityUnit: product.baseUnit ?? _parseQuantityUnit(product.quantity),
       quantityDescription: product.quantityDescription,
       price: product.price,
@@ -35,7 +36,9 @@ String _parseQuantityUnit(String text) {
   if (lower.contains('kg')) return 'kg';
   if (lower.contains('litre') || lower.contains('l')) return 'litre';
   if (lower.contains('ml')) return 'ml';
-  if (lower.contains('pc') || lower.contains('piece') || lower.contains('pcs')) {
+  if (lower.contains('pc') ||
+      lower.contains('piece') ||
+      lower.contains('pcs')) {
     return 'pc';
   }
   if (lower.contains('pack')) return 'pack';
@@ -53,7 +56,8 @@ String formatQuantityString(double quantityValue, String quantityUnit) {
 }
 
 String productBaseQuantityLabel(Product product) {
-  final quantityValue = product.baseQuantity ?? _parseQuantityValue(product.quantity);
+  final quantityValue =
+      product.baseQuantity ?? _parseQuantityValue(product.quantity);
   final quantityUnit = product.baseUnit ?? _parseQuantityUnit(product.quantity);
   return formatQuantityString(quantityValue, quantityUnit);
 }

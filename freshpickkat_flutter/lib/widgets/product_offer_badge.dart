@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
@@ -112,7 +114,7 @@ class ProductOfferBadge extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: offerTheme.badge,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(borderRadius.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -120,13 +122,15 @@ class ProductOfferBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: Text(
+      child: AutoSizeText(
         label,
         style: TextStyle(
           color: offerTheme.onBadge,
-          fontSize: fontSize,
+          fontSize: fontSize.sp,
           fontWeight: FontWeight.w700,
         ),
+        minFontSize: 7,
+        maxLines: 1,
       ),
     );
   }

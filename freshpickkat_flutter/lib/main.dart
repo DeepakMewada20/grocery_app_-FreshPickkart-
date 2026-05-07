@@ -25,8 +25,10 @@ import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_cart_suggestion_banner.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -70,36 +72,47 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = ThemeController.instance;
 
-    return Obx(
-      () => GetMaterialApp(
-        title: 'FreshPickKart',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme(themeController.lightPreset),
-        darkTheme: AppTheme.darkTheme(),
-        themeMode: themeController.themeMode,
-        home: const ModernSplashScreen(),
-        navigatorObservers: [appRouteObserver],
-        builder: (context, child) {
-          if (child == null) return const SizedBox.shrink();
-          return Stack(
-            children: [
-              child,
-              const BogoCartSuggestionBanner(),
-              const NetworkStatusBanner(),
-            ],
-          );
-        },
-        routes: {
-          // '/address' route removed - using EditProfileScreen instead
-          // '/address': (context) => const AddressScreen(),
-          '/checkout': (context) => const CheckoutScreen(),
-          '/home': (context) => const MainScreen(),
-          '/login': (context) => const PhoneAuthScreen(),
-          '/phone-auth': (context) => const PhoneAuthScreen(),
-          '/offers': (context) => const OffersScreen(),
-          '/combo-offers': (context) => const ComboOffersScreen(),
-          '/coupons': (context) => const CouponsScreen(),
-        },
+    return ScreenUtilInit(
+      designSize: AppResponsive.designSize,
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, _) => Obx(
+        () => GetMaterialApp(
+          title: 'FreshPickKart',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme(themeController.lightPreset),
+          darkTheme: AppTheme.darkTheme(),
+          themeMode: themeController.themeMode,
+          home: const ModernSplashScreen(),
+          navigatorObservers: [appRouteObserver],
+          builder: (context, child) {
+            if (child == null) return const SizedBox.shrink();
+            final mediaQuery = MediaQuery.of(context);
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                textScaler: AppResponsive.clampedTextScaler(context),
+              ),
+              child: Stack(
+                children: [
+                  child,
+                  const BogoCartSuggestionBanner(),
+                  const NetworkStatusBanner(),
+                ],
+              ),
+            );
+          },
+          routes: {
+            // '/address' route removed - using EditProfileScreen instead
+            // '/address': (context) => const AddressScreen(),
+            '/checkout': (context) => const CheckoutScreen(),
+            '/home': (context) => const MainScreen(),
+            '/login': (context) => const PhoneAuthScreen(),
+            '/phone-auth': (context) => const PhoneAuthScreen(),
+            '/offers': (context) => const OffersScreen(),
+            '/combo-offers': (context) => const ComboOffersScreen(),
+            '/coupons': (context) => const CouponsScreen(),
+          },
+        ),
       ),
     );
   }

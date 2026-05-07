@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class OfferBanner extends StatefulWidget {
   final List<OfferBannerItem> banners;
@@ -89,7 +90,7 @@ class _OfferBannerState extends State<OfferBanner> {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
+              padding: EdgeInsets.symmetric(horizontal: 6.w),
               child: _buildBannerCard(widget.banners[bannerIndex]),
             ),
           );
@@ -103,17 +104,17 @@ class _OfferBannerState extends State<OfferBanner> {
       onTap: banner.onTap,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Image.asset(
             banner.imagePath,
             fit: BoxFit.cover,
@@ -126,8 +127,8 @@ class _OfferBannerState extends State<OfferBanner> {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: const Center(
-                  child: Icon(Icons.image, size: 60, color: Colors.white30),
+                child: Center(
+                  child: Icon(Icons.image, size: 60.r, color: Colors.white30),
                 ),
               );
             },

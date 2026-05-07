@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/product_search_delegate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({super.key});
@@ -129,37 +130,41 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
         );
       },
       child: Container(
-        height: 45,
+        height: 45.h.clamp(40.0, 50.0),
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
         decoration: BoxDecoration(
           color: isDark ? Colors.black : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
           children: [
             Icon(
               Icons.search,
               color: isDark ? Colors.white : Colors.black54,
-              size: 22,
+              size: 22.r,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10.w),
             Expanded(
               child: ClipRect(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
                   transitionBuilder: (child, animation) {
-                    final isIncoming = child.key == ValueKey<int>(_currentHintIndex);
+                    final isIncoming =
+                        child.key == ValueKey<int>(_currentHintIndex);
                     return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: isIncoming ? const Offset(0, 1.2) : const Offset(0, -1.2),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeInOutCubic,
-                        ),
-                      ),
+                      position:
+                          Tween<Offset>(
+                            begin: isIncoming
+                                ? const Offset(0, 1.2)
+                                : const Offset(0, -1.2),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOutCubic,
+                            ),
+                          ),
                       child: FadeTransition(
                         opacity: animation,
                         child: child,
@@ -173,7 +178,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
                       hints[_currentHintIndex],
                       style: TextStyle(
                         color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 15,
+                        fontSize: 15.sp,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

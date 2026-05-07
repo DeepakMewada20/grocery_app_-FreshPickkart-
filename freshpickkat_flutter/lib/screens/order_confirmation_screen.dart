@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/payment_status_widget.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
   final String orderId;
@@ -95,6 +100,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             ? Center(child: Text(_error!))
             : SafeArea(
                 child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+                  ),
                   child: Column(
                     children: [
                       _buildSuccessHeader(cs),
@@ -105,39 +113,46 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                             begin: const Offset(0, 0.15),
                             end: Offset.zero,
                           ).animate(_fadeAnimation),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Column(
-                              children: [
-                                if (_order?.paymentStatus != 'paid' &&
-                                    _order?.razorpayPaymentId != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: PaymentStatusWidget(
-                                      orderId: _order!.orderId,
-                                      paymentId: _order!.razorpayPaymentId!,
-                                      amount: _order!.finalAmount,
-                                      onSuccess: () {
-                                        _fetchOrder();
-                                      },
-                                      onFailed: () {
-                                        _fetchOrder();
-                                      },
+                          child: AppResponsive.constrainContent(
+                            context: context,
+                            maxWidth: AppResponsive.maxCheckoutWidth,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppResponsive.pageHorizontalPadding(
+                                  context,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  if (_order?.paymentStatus != 'paid' &&
+                                      _order?.razorpayPaymentId != null)
+                                    Padding(
+                                      padding: EdgeInsets.only(bottom: 16.h),
+                                      child: PaymentStatusWidget(
+                                        orderId: _order!.orderId,
+                                        paymentId: _order!.razorpayPaymentId!,
+                                        amount: _order!.finalAmount,
+                                        onSuccess: () {
+                                          _fetchOrder();
+                                        },
+                                        onFailed: () {
+                                          _fetchOrder();
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                _buildOrderInfoCard(cs),
-                                const SizedBox(height: 16),
-                                _buildProductsCard(cs),
-                                const SizedBox(height: 16),
-                                _buildDeliveryAddressCard(cs),
-                                const SizedBox(height: 16),
-                                _buildTotalAmountCard(cs),
-                                const SizedBox(height: 24),
-                                _buildViewDetailsButton(cs),
-                                const SizedBox(height: 12),
-                                _buildContinueShoppingButton(cs),
-                                const SizedBox(height: 24),
-                              ],
+                                  _buildOrderInfoCard(cs),
+                                  SizedBox(height: 16.h),
+                                  _buildProductsCard(cs),
+                                  SizedBox(height: 16.h),
+                                  _buildDeliveryAddressCard(cs),
+                                  SizedBox(height: 16.h),
+                                  _buildTotalAmountCard(cs),
+                                  SizedBox(height: 24.h),
+                                  _buildViewDetailsButton(cs),
+                                  SizedBox(height: 12.h),
+                                  _buildContinueShoppingButton(cs),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -156,7 +171,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 40, bottom: 32),
+      padding: EdgeInsets.only(top: 36.h, bottom: 30.h),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -178,19 +193,22 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               );
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           FadeTransition(
             opacity: _fadeAnimation,
-            child: const Text(
+            child: AutoSizeText(
               'Order Placed Successfully!',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 22,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
               ),
+              minFontSize: 16,
+              maxLines: 2,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
@@ -199,7 +217,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   : 'Payment Pending',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 16,
+                fontSize: 16.sp,
               ),
             ),
           ),
@@ -213,10 +231,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final estimatedDelivery = order.orderedAt.add(const Duration(days: 3));
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -233,14 +251,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             value: order.orderId,
             cs: cs,
           ),
-          const Divider(height: 24),
+          Divider(height: 24.h),
           _buildInfoRow(
             icon: Icons.calendar_today_outlined,
             label: 'Order Date',
             value: _formatDate(order.orderedAt),
             cs: cs,
           ),
-          const Divider(height: 24),
+          Divider(height: 24.h),
           _buildInfoRow(
             icon: Icons.local_shipping_outlined,
             label: 'Estimated Delivery',
@@ -248,7 +266,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs: cs,
             valueColor: Colors.green.shade700,
           ),
-          const Divider(height: 24),
+          Divider(height: 24.h),
           _buildInfoRow(
             icon: Icons.info_outline,
             label: 'Status',
@@ -271,15 +289,15 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     return Row(
       children: [
         Container(
-          width: 36,
-          height: 36,
+          width: 36.r,
+          height: 36.r,
           decoration: BoxDecoration(
             color: cs.primaryContainer.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10.r),
           ),
-          child: Icon(icon, size: 18, color: cs.primary),
+          child: Icon(icon, size: 18.r, color: cs.primary),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12.w),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,14 +309,17 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   color: cs.onSurface.withValues(alpha: 0.6),
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
+              SizedBox(height: 2.h),
+              AutoSizeText(
                 value,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.w600,
                   color: valueColor ?? cs.onSurface,
                 ),
+                minFontSize: 10,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -347,10 +368,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     }).toList();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -364,19 +385,21 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.shopping_bag_outlined, size: 20, color: cs.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Ordered Products (${order.itemCount})',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface,
+              Icon(Icons.shopping_bag_outlined, size: 20.r, color: cs.primary),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  'Ordered Products (${order.itemCount})',
+                  style: AppTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(fontSize: 16.sp),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           ...groupedRegular.map((entry) => _buildOrderItem(entry, cs)),
           ...comboGroups.map((group) => _buildOrderComboGroup(group, cs)),
         ],
@@ -387,35 +410,26 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   Widget _buildOrderItem(_GroupedOrderItem entry, ColorScheme cs) {
     final item = entry.item;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 52.r,
+            height: 52.r,
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10.r),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: item.productImage.isNotEmpty
-                  ? Image.network(
-                      item.productImage,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.image_outlined,
-                        color: cs.onSurface.withValues(alpha: 0.3),
-                      ),
-                    )
-                  : Icon(
-                      Icons.image_outlined,
-                      color: cs.onSurface.withValues(alpha: 0.3),
-                    ),
+              borderRadius: BorderRadius.circular(10.r),
+              child: SafeNetworkImage(
+                url: item.productImage,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +437,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 Text(
                   item.productName,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface,
                   ),
@@ -434,41 +448,49 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   Text(
                     item.variantLabel!,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       color: cs.onSurface.withValues(alpha: 0.5),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   'Qty: ${item.quantity}',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 12.sp,
                     color: cs.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 ...entry.freeItems.map(
                   (freeItem) => Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: AutoSizeText(
                       'FREE: ${freeItem.productName} x${freeItem.quantity}',
                       style: TextStyle(
                         color: Colors.green.shade700,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                       ),
+                      minFontSize: 9,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          Text(
+          SizedBox(width: 8.w),
+          AutoSizeText(
             'INR ${item.totalPrice.toStringAsFixed(0)}',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.bold,
               color: cs.onSurface,
             ),
+            minFontSize: 10,
+            maxLines: 1,
           ),
         ],
       ),
@@ -477,12 +499,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildOrderComboGroup(_GroupedOrderCombo group, ColorScheme cs) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,23 +520,29 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     ),
                   ),
                 ),
-                Text(
-                  comboDiscountBadgeText(
-                    group.discountType,
-                    group.discountValue,
-                  ),
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                SizedBox(width: 8.w),
+                Flexible(
+                  child: AutoSizeText(
+                    comboDiscountBadgeText(
+                      group.discountType,
+                      group.discountValue,
+                    ),
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    minFontSize: 9,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             ...group.items.map(
               (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: 6.h),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -523,33 +551,39 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                         '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13,
+                          fontSize: 13.sp,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
+                    SizedBox(width: 8.w),
+                    AutoSizeText(
                       'INR ${item.totalPrice.toStringAsFixed(0)}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.75),
-                        fontSize: 13,
+                        fontSize: 13.sp,
                       ),
+                      minFontSize: 10,
+                      maxLines: 1,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Combo total x${group.bundleQuantity}',
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    'Combo total x${group.bundleQuantity}',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
+                SizedBox(width: 8.w),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -564,7 +598,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                       'INR ${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -583,10 +617,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final address = order.deliveryAddress;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -600,28 +634,28 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.location_on_outlined, size: 20, color: cs.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Delivery Address',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface,
+              Icon(Icons.location_on_outlined, size: 20.r, color: cs.primary),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  'Delivery Address',
+                  style: AppTextStyles.sectionTitle(
+                    context,
+                  ).copyWith(fontSize: 16.sp),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.person_outline,
-                size: 18,
+                size: 18.r,
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,6 +667,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       order.userPhone,
@@ -640,22 +676,24 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                         fontSize: 13,
                         color: cs.onSurface.withValues(alpha: 0.6),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.home_outlined,
-                size: 18,
+                size: 18.r,
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Text(
                   _formatAddress(address),
@@ -677,7 +715,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final order = _order!;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -685,7 +723,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs.primaryContainer.withValues(alpha: 0.5),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
         children: [
@@ -695,7 +733,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs: cs,
           ),
           if (order.discountAmount > 0) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             _buildBillRow(
               'Discount',
               '-INR ${order.discountAmount.toStringAsFixed(0)}',
@@ -703,7 +741,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               valueColor: Colors.green,
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildBillRow(
             'Delivery Fee',
             order.deliveryFee == 0
@@ -716,21 +754,23 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Paid',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface,
+              Expanded(
+                child: Text(
+                  'Total Paid',
+                  style: AppTextStyles.receiptLabel(context, total: true),
                 ),
               ),
-              Text(
+              SizedBox(width: 12.w),
+              AutoSizeText(
                 'INR ${order.finalAmount.toStringAsFixed(0)}',
+                textAlign: TextAlign.right,
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
                   color: cs.primary,
                 ),
+                minFontSize: 13,
+                maxLines: 1,
               ),
             ],
           ),
@@ -748,20 +788,25 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: cs.onSurface.withValues(alpha: 0.7),
+        Expanded(
+          child: Text(
+            label,
+            style: AppTextStyles.receiptLabel(context),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        Text(
+        SizedBox(width: 12.w),
+        AutoSizeText(
           value,
+          textAlign: TextAlign.right,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 14.sp,
             fontWeight: FontWeight.w600,
             color: valueColor ?? cs.onSurface,
           ),
+          minFontSize: 10,
+          maxLines: 1,
         ),
       ],
     );
@@ -773,20 +818,22 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       child: ElevatedButton.icon(
         onPressed: _navigateToOrderDetails,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: 16.h),
           backgroundColor: cs.primary,
           foregroundColor: cs.onPrimary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
         icon: const Icon(Icons.receipt_long_outlined),
-        label: const Text(
+        label: AutoSizeText(
           'View Order Details',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
           ),
+          minFontSize: 12,
+          maxLines: 1,
         ),
       ),
     );
@@ -798,20 +845,22 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       child: OutlinedButton.icon(
         onPressed: _continueShopping,
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: 16.h),
           side: BorderSide(color: cs.primary),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
           ),
         ),
         icon: Icon(Icons.shopping_bag_outlined, color: cs.primary),
-        label: Text(
+        label: AutoSizeText(
           'Continue Shopping',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
             color: cs.primary,
           ),
+          minFontSize: 12,
+          maxLines: 1,
         ),
       ),
     );

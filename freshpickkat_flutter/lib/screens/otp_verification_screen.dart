@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
@@ -218,11 +219,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final pinWidth = ((MediaQuery.sizeOf(context).width - 64.w) / 6)
+        .clamp(38.w, 56.w)
+        .toDouble();
     final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 60,
-      textStyle: const TextStyle(
-        fontSize: 24,
+      width: pinWidth,
+      height: 60.h.clamp(50.0, 62.0),
+      textStyle: TextStyle(
+        fontSize: 24.sp,
         fontWeight: FontWeight.bold,
         color: Color(0xFF2D3436),
       ),
@@ -273,12 +278,17 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
               opacity: _fadeAnimation,
               child: SlideTransition(
                 position: _slideAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    24.w,
+                    24.h,
+                    24.w,
+                    24.h + viewInsets.bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
 
                       // Title
                       const Text(
@@ -289,7 +299,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                           color: Color(0xFF2D3436),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12.h),
 
                       // Subtitle with phone number
                       Row(
@@ -314,7 +324,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40.h),
 
                       // OTP Input
                       Center(
@@ -367,7 +377,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                         ),
                       ],
 
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32.h),
 
                       // Resend OTP
                       Center(
@@ -401,12 +411,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                               ),
                       ),
 
-                      const Spacer(),
+                      SizedBox(height: 32.h),
 
                       // Verify Button
                       SizedBox(
                         width: double.infinity,
-                        height: 56,
+                        height: 56.h.clamp(50.0, 62.0),
                         child: ElevatedButton(
                           onPressed: _isVerifying ? null : _verifyOTP,
                           style: ElevatedButton.styleFrom(
@@ -428,7 +438,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20.h),
                     ],
                   ),
                 ),

@@ -3,8 +3,7 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
 class BogoController extends GetxController {
-  static BogoController get instance =>
-      Get.find<BogoController>();
+  static BogoController get instance => Get.find<BogoController>();
 
   final Client _client = ServerpodClient().client;
   final RxList<BogoOffer> activeOffers = <BogoOffer>[].obs;
@@ -12,7 +11,6 @@ class BogoController extends GetxController {
 
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
-
 
   Future<void> fetchActiveOffersIfEmpty() async {
     if (_isFetching) return;

@@ -7,6 +7,9 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
@@ -167,11 +170,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         ),
         title: Text(
           widget.categoryName,
-          style: TextStyle(
-            color: cs.onSurface,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.screenTitle(context),
         ),
         actions: [
           IconButton(
@@ -207,7 +208,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         .toList();
 
     return Container(
-      width: 90,
+      width: AppResponsive.railWidth(context),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         border: Border(right: BorderSide(color: cs.outlineVariant)),
@@ -256,13 +257,13 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 7.w),
         decoration: BoxDecoration(
           color: isSelected ? cs.surface : Colors.transparent,
           border: Border(
             left: BorderSide(
               color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-              width: 4,
+              width: 4.w,
             ),
           ),
         ),
@@ -273,8 +274,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               child: imageUrl != null
                   ? Image.network(
                       imageUrl,
-                      height: 50,
-                      width: 50,
+                      height: 48.r,
+                      width: 48.r,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.image,
@@ -282,13 +283,17 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                       ),
                     )
                   : Container(
-                      height: 50,
-                      width: 50,
+                      height: 48.r,
+                      width: 48.r,
                       color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                      child: Icon(icon, color: AppTheme.primaryGreen, size: 28),
+                      child: Icon(
+                        icon,
+                        color: AppTheme.primaryGreen,
+                        size: 26.r,
+                      ),
                     ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -296,7 +301,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 color: isSelected
                     ? cs.onSurface
                     : cs.onSurface.withValues(alpha: 0.6),
-                fontSize: 10,
+                fontSize: 10.sp,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -307,30 +312,40 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   }
 
   Widget _buildOfferBanner() {
-    return SizedBox(
-      width: double.infinity,
-      child: Obx(() {
-        final bannerController = BannerController.instance;
-        final banners = bannerController.categoryPageBanners.where((b) {
-          final bCatId = b.categoryId;
-          if (bCatId == null) return false;
-          return bCatId.trim().toLowerCase() ==
-              widget.categoryName.trim().toLowerCase();
-        }).toList();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: double.infinity,
+          child: Obx(() {
+            final bannerController = BannerController.instance;
+            final banners = bannerController.categoryPageBanners.where((b) {
+              final bCatId = b.categoryId;
+              if (bCatId == null) return false;
+              return bCatId.trim().toLowerCase() ==
+                  widget.categoryName.trim().toLowerCase();
+            }).toList();
 
-        if (banners.isEmpty) {
-          return const SizedBox.shrink();
-        }
+            if (banners.isEmpty) {
+              return const SizedBox.shrink();
+            }
 
-        return NetworkBannerWidget(
-          height: 140,
-          banners: banners,
-          fullWidth: true,
-          autoScrollInterval: const Duration(seconds: 4),
-          autoScrollDuration: const Duration(milliseconds: 500),
-          onBannerTap: (banner) => bannerController.onBannerTap(banner),
+            return NetworkBannerWidget(
+              height: AppResponsive.bannerHeight(
+                context,
+                ratio: 0.30,
+                min: 104,
+                max: 150,
+                availableWidth: constraints.maxWidth,
+              ),
+              banners: banners,
+              fullWidth: true,
+              autoScrollInterval: const Duration(seconds: 4),
+              autoScrollDuration: const Duration(milliseconds: 500),
+              onBannerTap: (banner) => bannerController.onBannerTap(banner),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 
@@ -345,10 +360,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     ];
 
     return SizedBox(
-      height: 50,
+      height: 50.h.clamp(44.0, 56.0),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
@@ -357,7 +372,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               _selectedFilterSub.trim().toLowerCase();
 
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: EdgeInsets.only(right: 8.w),
             child: ChoiceChip(
               label: Text(filter),
               selected: isSelected,
@@ -370,11 +385,11 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 color: isSelected
                     ? Colors.white
                     : cs.onSurface.withValues(alpha: 0.7),
-                fontSize: 12,
+                fontSize: 12.sp,
               ),
               side: BorderSide.none,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20.r),
               ),
             ),
           );
@@ -391,7 +406,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       if (!hasData) {
         return ProductGridShimmer(
           itemCount: 6,
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.r),
         );
       }
 
@@ -405,36 +420,38 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       }
 
       // Has data -> show content (bottom banner handled globally)
-      return GridView.builder(
-        controller: _itemsScrollController,
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.44,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount:
-            productController.allProducts.length +
-            (productController.isMoreDataAvailable.value ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == productController.allProducts.length) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: 180,
-                  child: ProductGridShimmer(itemCount: 2),
-                ),
-              ),
-            );
-          }
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return GridView.builder(
+            controller: _itemsScrollController,
+            padding: EdgeInsets.all(12.r),
+            gridDelegate: AppResponsive.productGridDelegate(
+              context,
+              constraints.maxWidth,
+            ),
+            itemCount:
+                productController.allProducts.length +
+                (productController.isMoreDataAvailable.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == productController.allProducts.length) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.r),
+                    child: SizedBox(
+                      height: 180.h,
+                      child: const ProductGridShimmer(itemCount: 2),
+                    ),
+                  ),
+                );
+              }
 
-          final p = productController.allProducts[index];
-          return ProductCard(
-            product: p,
-            heroTagSuffix: '_category_grid',
-            onAddPressed: () {},
+              final p = productController.allProducts[index];
+              return ProductCard(
+                product: p,
+                heroTagSuffix: '_category_grid',
+                onAddPressed: () {},
+              );
+            },
           );
         },
       );

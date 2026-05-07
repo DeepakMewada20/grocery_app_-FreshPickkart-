@@ -85,6 +85,12 @@ order:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:
+orderTracking:
+  - getTrackingForUser:
+  - getTrackingForAdmin:
+  - seedUserLocation:
+  - updateTrackingEnabled:
+  - updateRiderLocation:
 payment:
   - createPaymentOrder:
   - verifyPayment:

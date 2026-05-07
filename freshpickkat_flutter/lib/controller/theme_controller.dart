@@ -325,9 +325,11 @@ class AppSuggestionTheme extends ThemeExtension<AppSuggestionTheme> {
       savingBadgeText:
           Color.lerp(savingBadgeText, other.savingBadgeText, t) ??
           savingBadgeText,
-      chipBackground: Color.lerp(chipBackground, other.chipBackground, t) ?? chipBackground,
+      chipBackground:
+          Color.lerp(chipBackground, other.chipBackground, t) ?? chipBackground,
       chipText: Color.lerp(chipText, other.chipText, t) ?? chipText,
-      ctaBackground: Color.lerp(ctaBackground, other.ctaBackground, t) ?? ctaBackground,
+      ctaBackground:
+          Color.lerp(ctaBackground, other.ctaBackground, t) ?? ctaBackground,
       ctaText: Color.lerp(ctaText, other.ctaText, t) ?? ctaText,
       iconColor: Color.lerp(iconColor, other.iconColor, t) ?? iconColor,
     );

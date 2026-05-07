@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
@@ -15,6 +16,8 @@ import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -46,7 +49,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     // Initialize the controller with the initial product
     _controllerTag =
         'product_detail_${widget.product.productId}_${UniqueKey()}';
-    _selectedVariantId = widget.initialVariantId ?? inferProductVariantId(widget.product);
+    _selectedVariantId =
+        widget.initialVariantId ?? inferProductVariantId(widget.product);
     _controller = Get.put(
       ProductDetailController(widget.product),
       tag: _controllerTag,
@@ -88,7 +92,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           (item.variantId ?? 'default') == _selectedVariantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
-    final offer = BogoController.instance.getOfferForProduct(product.productId!);
+    final offer = BogoController.instance.getOfferForProduct(
+      product.productId!,
+    );
     final isEligible =
         offer == null ||
         isBogoTriggerVariantEligible(
@@ -193,376 +199,409 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         extendBodyBehindAppBar: true,
         body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product Image Section
-              Stack(
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.width,
-                    width: double.infinity,
-                    color: Colors.white,
-                    child: Image.network(
-                      product.imageUrl,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ],
-              ),
+          child: AppResponsive.constrainContent(
+            context: context,
+            maxWidth: AppResponsive.maxDetailWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product Image Section
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final screenHeight = MediaQuery.sizeOf(context).height;
+                    final imageHeight = AppResponsive.isLandscape(context)
+                        ? (screenHeight * 0.58).clamp(220.h, 360.h).toDouble()
+                        : constraints.maxWidth.clamp(280.w, 500.h).toDouble();
+                    return Container(
+                      height: imageHeight,
+                      width: double.infinity,
+                      color: Colors.white,
+                      child: Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
+                ),
 
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if ((product.countryOfOrigin ?? '').trim().isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12),
+                Padding(
+                  padding: EdgeInsets.all(16.r),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((product.countryOfOrigin ?? '').trim().isNotEmpty)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.public_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                              SizedBox(width: 6.w),
+                              Flexible(
+                                child: Text(
+                                  'Country of Origin: ${product.countryOfOrigin}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.public_rounded,
-                              color: Colors.white,
-                              size: 14,
+                      SizedBox(height: 12.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AutoSizeText(
+                                  displayProduct.productName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 3,
+                                  minFontSize: 18,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  productFullQuantityLabel(displayProduct),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Country of Origin: ${product.countryOfOrigin}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          // We need to pass the *current* product to the cart controller
+                          Obx(
+                            () => _buildAddButton(
+                              displayProduct,
+                              _cartController.getProductQuantity(
+                                product.productId,
+                                variantId: _selectedVariantId,
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                      if (variants.length > 1)
+                        Wrap(
+                          spacing: 8.w,
+                          runSpacing: 8.h,
+                          children: variants
+                              .map(
+                                (variant) => ChoiceChip(
+                                  label: Text(
+                                    formatQuantityString(
+                                      variant.quantityValue,
+                                      variant.quantityUnit,
+                                    ),
+                                  ),
+                                  selected:
+                                      variant.variantId == _selectedVariantId,
+                                  onSelected: (_) {
+                                    setState(() {
+                                      _selectedVariantId = variant.variantId;
+                                    });
+                                  },
+                                  selectedColor: const Color(0xFF1B8A4C),
+                                  labelStyle: TextStyle(
+                                    color:
+                                        variant.variantId == _selectedVariantId
+                                        ? Colors.white
+                                        : Colors.white70,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  backgroundColor: Colors.white10,
+                                  side: BorderSide(
+                                    color:
+                                        variant.variantId == _selectedVariantId
+                                        ? const Color(0xFF1B8A4C)
+                                        : Colors.white24,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      if (variants.length > 1) SizedBox(height: 12.h),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            Text(
+                              '₹${displayProduct.price.formatPrice}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'M.R.P: ₹${displayProduct.realPrice.formatPrice}',
+                              style: const TextStyle(
+                                color: Colors.white60,
+                                fontSize: 14,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                            if (hasProductOffer(displayProduct)) ...[
+                              SizedBox(width: 12.w),
+                              Text(
+                                buildProductOfferLabel(displayProduct),
+                                style: TextStyle(
+                                  color: productOfferColor(context),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
+                      if (isBogoProduct(displayProduct))
+                        Container(
+                          margin: EdgeInsets.only(top: 12.h),
+                          padding: EdgeInsets.all(14.r),
+                          decoration: BoxDecoration(
+                            color: offerTheme.badgeSoft,
+                            borderRadius: BorderRadius.circular(18.r),
+                            border: Border.all(color: offerTheme.badgeBorder),
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                displayProduct.productName,
-                                style: const TextStyle(
+                                'BOGO free product',
+                                style: TextStyle(
+                                  color: offerTheme.badge,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: 6.h),
+                              Text(
+                                selectedQuantity == 0
+                                    ? 'Add this item to choose 1 free product from ${displayProduct.bogoFreeProductIds?.length ?? 0} options.'
+                                    : selectedFreeProduct == null
+                                    ? 'Choose your free product now.'
+                                    : 'Selected free product for this offer.',
+                                style: TextStyle(
+                                  color: cs.onSurface,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (selectedQuantity > 0) ...[
+                                SizedBox(height: 12.h),
+                                if (selectedFreeProduct != null)
+                                  Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          width: 54.r,
+                                          height: 54.r,
+                                          color: cs.surface,
+                                          child: Image.network(
+                                            selectedFreeProduct.imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return Icon(
+                                                    Icons.broken_image_outlined,
+                                                    color: cs.onSurface
+                                                        .withValues(
+                                                          alpha: 0.4,
+                                                        ),
+                                                  );
+                                                },
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12.w),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              selectedFreeProduct.productName,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: cs.onSurface,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              _selectedBogoFreeQuantity(
+                                                displayProduct,
+                                                selectedFreeProduct,
+                                              ),
+                                              style: TextStyle(
+                                                color: cs.onSurface.withValues(
+                                                  alpha: 0.68,
+                                                ),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                SizedBox(height: 12.h),
+                                FilledButton.tonalIcon(
+                                  onPressed: () =>
+                                      _openBogoSelectionSheet(displayProduct),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: offerTheme.badge,
+                                    foregroundColor: offerTheme.onBadge,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.card_giftcard_outlined,
+                                  ),
+                                  label: Text(
+                                    selectedFreeProduct == null
+                                        ? 'Choose Free Product'
+                                        : 'Change Free Product',
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: 4.h),
+                      const Text(
+                        '(Inclusive of all taxes)',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
+                      SizedBox(height: 12.h),
+                      const Divider(color: Colors.white24),
+                      SizedBox(height: 12.h),
+
+                      Text(
+                        'Related Products',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildRelatedProducts(displayProduct),
+
+                      // 🎯 Product Page Banners
+                      Obx(() {
+                        final banners =
+                            BannerController.instance.productPageBanners;
+                        if (banners.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: EdgeInsets.only(top: 20.h),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Special Deals For You',
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 24,
+                                  fontSize: 16.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                productFullQuantityLabel(displayProduct),
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
+                              SizedBox(height: 12.h),
+                              NetworkBannerWidget(
+                                height: AppResponsive.bannerHeight(
+                                  context,
+                                  ratio: 0.34,
+                                  min: 124,
+                                  max: 170,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // We need to pass the *current* product to the cart controller
-                        Obx(
-                          () => _buildAddButton(
-                            displayProduct,
-                            _cartController.getProductQuantity(
-                              product.productId,
-                              variantId: _selectedVariantId,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (variants.length > 1)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: variants
-                            .map(
-                              (variant) => ChoiceChip(
-                                label: Text(
-                                  formatQuantityString(
-                                    variant.quantityValue,
-                                    variant.quantityUnit,
-                                  ),
-                                ),
-                                selected:
-                                    variant.variantId == _selectedVariantId,
-                                onSelected: (_) {
-                                  setState(() {
-                                    _selectedVariantId = variant.variantId;
-                                  });
-                                },
-                                selectedColor: const Color(0xFF1B8A4C),
-                                labelStyle: TextStyle(
-                                  color: variant.variantId == _selectedVariantId
-                                      ? Colors.white
-                                      : Colors.white70,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                backgroundColor: Colors.white10,
-                                side: BorderSide(
-                                  color: variant.variantId == _selectedVariantId
-                                      ? const Color(0xFF1B8A4C)
-                                      : Colors.white24,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    if (variants.length > 1) const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          Text(
-                            '₹${displayProduct.price.formatPrice}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'M.R.P: ₹${displayProduct.realPrice.formatPrice}',
-                            style: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 14,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                          if (hasProductOffer(displayProduct)) ...[
-                            const SizedBox(width: 12),
-                            Text(
-                              buildProductOfferLabel(displayProduct),
-                              style: TextStyle(
-                                color: productOfferColor(context),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    if (isBogoProduct(displayProduct))
-                      Container(
-                        margin: const EdgeInsets.only(top: 12),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: offerTheme.badgeSoft,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: offerTheme.badgeBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'BOGO free product',
-                              style: TextStyle(
-                                color: offerTheme.badge,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              selectedQuantity == 0
-                                  ? 'Add this item to choose 1 free product from ${displayProduct.bogoFreeProductIds?.length ?? 0} options.'
-                                  : selectedFreeProduct == null
-                                  ? 'Choose your free product now.'
-                                  : 'Selected free product for this offer.',
-                              style: TextStyle(
-                                color: cs.onSurface,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (selectedQuantity > 0) ...[
-                              const SizedBox(height: 12),
-                              if (selectedFreeProduct != null)
-                                Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Container(
-                                        width: 54,
-                                        height: 54,
-                                        color: cs.surface,
-                                        child: Image.network(
-                                          selectedFreeProduct.imageUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Icon(
-                                                  Icons.broken_image_outlined,
-                                                  color: cs.onSurface
-                                                      .withValues(
-                                                        alpha: 0.4,
-                                                      ),
-                                                );
-                                              },
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            selectedFreeProduct.productName,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: cs.onSurface,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            _selectedBogoFreeQuantity(
-                                              displayProduct,
-                                              selectedFreeProduct,
-                                            ),
-                                            style: TextStyle(
-                                              color: cs.onSurface.withValues(
-                                                alpha: 0.68,
-                                              ),
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              const SizedBox(height: 12),
-                              FilledButton.tonalIcon(
-                                onPressed: () =>
-                                    _openBogoSelectionSheet(displayProduct),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: offerTheme.badge,
-                                  foregroundColor: offerTheme.onBadge,
-                                ),
-                                icon: const Icon(Icons.card_giftcard_outlined),
-                                label: Text(
-                                  selectedFreeProduct == null
-                                      ? 'Choose Free Product'
-                                      : 'Change Free Product',
+                                banners: banners,
+                                autoScrollInterval: const Duration(seconds: 4),
+                                autoScrollDuration: const Duration(
+                                  milliseconds: 500,
                                 ),
                               ),
                             ],
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '(Inclusive of all taxes)',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(color: Colors.white24),
-                    const SizedBox(height: 12),
-
-                    const Text(
-                      'Related Products',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildRelatedProducts(displayProduct),
-
-                    // 🎯 Product Page Banners
-                    Obx(() {
-                      final banners =
-                          BannerController.instance.productPageBanners;
-                      if (banners.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Special Deals For You',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            NetworkBannerWidget(
-                              height: 150,
-                              banners: banners,
-                              autoScrollInterval:
-                                  const Duration(seconds: 4),
-                              autoScrollDuration:
-                                  const Duration(milliseconds: 500),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: Obx(() {
           if (_authController.isLoggedIn) {
             return const SizedBox.shrink();
           }
-          return GestureDetector(
-            onTap: () {
-              ProtectedNavigationHelper.navigateTo(
-                routeName: Get.currentRoute,
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1E88E5),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.calendar_today, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text(
-                    'Subscribe Now',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+          return SafeArea(
+            top: false,
+            child: GestureDetector(
+              onTap: () {
+                ProtectedNavigationHelper.navigateTo(
+                  routeName: Get.currentRoute,
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E88E5),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(16.r),
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today, color: Colors.white, size: 22.r),
+                    SizedBox(width: 12.w),
+                    Flexible(
+                      child: AutoSizeText(
+                        'Subscribe Now',
+                        maxLines: 1,
+                        minFontSize: 13,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -574,58 +613,60 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildAddButton(Product product, int quantity) {
     if (quantity == 0) {
       return SizedBox(
-        height: 36,
+        height: 36.h.clamp(34.0, 42.0),
         child: OutlinedButton(
           onPressed: () => _handleAddToCart(product),
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFF1B8A4C),
             side: const BorderSide(color: Color(0xFF1B8A4C), width: 1.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8.r),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
           ),
-          child: const Text(
+          child: AutoSizeText(
             '+ Add',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            maxLines: 1,
+            minFontSize: 11,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
           ),
         ),
       );
     } else {
       return Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        height: 36.h.clamp(34.0, 42.0),
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
         decoration: BoxDecoration(
           color: const Color(0xFF1B8A4C),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
               onTap: () => _decrementQuantity(product),
-              borderRadius: BorderRadius.circular(4),
-              child: const Padding(
-                padding: EdgeInsets.all(10.0),
-                child: Icon(Icons.remove, color: Colors.white, size: 18),
+              borderRadius: BorderRadius.circular(4.r),
+              child: Padding(
+                padding: EdgeInsets.all(10.r),
+                child: Icon(Icons.remove, color: Colors.white, size: 18.r),
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Text(
               '$quantity',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 16.sp,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             InkWell(
               onTap: () => _incrementQuantity(product),
-              borderRadius: BorderRadius.circular(4),
-              child: const Padding(
-                padding: EdgeInsets.all(10.0),
-                child: Icon(Icons.add, color: Colors.white, size: 18),
+              borderRadius: BorderRadius.circular(4.r),
+              child: Padding(
+                padding: EdgeInsets.all(10.r),
+                child: Icon(Icons.add, color: Colors.white, size: 18.r),
               ),
             ),
           ],
@@ -652,15 +693,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     return SizedBox(
-      height: 290,
+      height: AppResponsive.horizontalProductListHeight(context),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: relatedProducts.length,
         itemBuilder: (context, index) {
           final p = relatedProducts[index];
           return Container(
-            width: 160,
-            margin: const EdgeInsets.only(right: 12),
+            width: AppResponsive.horizontalCardWidth(context),
+            margin: EdgeInsets.only(right: 12.w),
             child: ProductCard(
               product: p,
               enableHero: false,

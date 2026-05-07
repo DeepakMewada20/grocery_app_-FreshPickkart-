@@ -5,6 +5,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/services/location_service.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   /// If true, saves to OrderController (temp checkout address)
@@ -223,6 +225,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isLandscape = AppResponsive.isLandscape(context);
+    final viewInsets = MediaQuery.viewInsetsOf(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -262,11 +266,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Instructions text at top
           Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
+            top: 16.h,
+            left: 16.w,
+            right: 16.w,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(8),
@@ -275,9 +279,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 _mapIsMoving
                     ? 'Moving...'
                     : 'Drag the map to select your location',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -296,9 +300,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Bottom sheet with form and buttons
           DraggableScrollableSheet(
-            initialChildSize: 0.35,
-            minChildSize: 0.35,
-            maxChildSize: 0.85,
+            initialChildSize: isLandscape ? 0.62 : 0.35,
+            minChildSize: isLandscape ? 0.48 : 0.35,
+            maxChildSize: isLandscape ? 0.95 : 0.85,
             builder: (context, scrollController) {
               return Container(
                 decoration: BoxDecoration(
@@ -310,22 +314,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 child: SingleChildScrollView(
                   controller: scrollController,
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.fromLTRB(
+                      20.w,
+                      20.h,
+                      20.w,
+                      20.h + viewInsets.bottom,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Handle bar
                         Center(
                           child: Container(
-                            width: 40,
-                            height: 5,
+                            width: 40.w,
+                            height: 5.h,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20.h),
 
                         // Use Current Location Button
                         SizedBox(
@@ -337,13 +346,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             icon: const Icon(Icons.my_location),
                             label: const Text('Use Current Location'),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20.h),
 
                         // Street Address
                         Text(
@@ -353,7 +362,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             color: cs.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         TextField(
                           controller: _streetController,
                           decoration: InputDecoration(
@@ -364,7 +373,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             prefixIcon: const Icon(Icons.location_on_outlined),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
 
                         // Building/Apartment
                         Text(
@@ -374,7 +383,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             color: cs.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         TextField(
                           controller: _buildingController,
                           decoration: InputDecoration(
@@ -385,7 +394,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             prefixIcon: const Icon(Icons.location_city),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
 
                         // Landmark
                         Text(
@@ -395,7 +404,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             color: cs.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         TextField(
                           controller: _landmarkController,
                           decoration: InputDecoration(
@@ -406,7 +415,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             prefixIcon: const Icon(Icons.map_outlined),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16.h),
 
                         // Save for future checkbox (only in checkout mode)
                         if (widget.isCheckoutMode)
@@ -426,7 +435,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             );
                           }),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
 
                         // Confirm Button
                         SizedBox(
@@ -434,15 +443,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           child: ElevatedButton(
                             onPressed: _isGeocoding ? null : _confirmLocation,
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
                               backgroundColor: cs.primary,
                               foregroundColor: cs.onPrimary,
                               disabledBackgroundColor: Colors.grey[300],
                             ),
                             child: Text(
                               _isGeocoding ? 'Loading...' : 'Confirm Location',
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: TextStyle(
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

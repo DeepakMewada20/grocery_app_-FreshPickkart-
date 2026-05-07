@@ -33,23 +33,36 @@ class SafeNetworkImage extends StatelessWidget {
       height: height,
       cacheWidth: width?.toInt(),
       cacheHeight: height?.toInt(),
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return placeholder ?? _buildFallback(context, showIcon: false);
+      },
       errorBuilder: (context, error, stackTrace) =>
           errorWidget ?? _buildFallback(context),
     );
   }
 
-  Widget _buildFallback(BuildContext context) {
+  Widget _buildFallback(BuildContext context, {bool showIcon = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
       color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
       child: Center(
-        child: Icon(
-          Icons.image_outlined,
-          size: (width != null && width! > 0) ? width! * 0.5 : 24,
-          color: isDark ? Colors.white24 : Colors.grey[400],
-        ),
+        child: showIcon
+            ? Icon(
+                Icons.image_outlined,
+                size: (width != null && width! > 0) ? width! * 0.5 : 24,
+                color: isDark ? Colors.white24 : Colors.grey[400],
+              )
+            : SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: isDark ? Colors.white24 : Colors.grey[400],
+                ),
+              ),
       ),
     );
   }

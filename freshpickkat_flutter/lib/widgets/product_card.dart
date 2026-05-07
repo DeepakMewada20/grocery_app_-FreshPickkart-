@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -13,6 +14,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -145,11 +149,11 @@ class _ProductCardState extends State<ProductCard> {
               Get.to(() => ProductDetailScreen(product: displayProduct));
             }
           },
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Container(
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
                 color: cs.outlineVariant,
                 width: 1,
@@ -157,8 +161,8 @@ class _ProductCardState extends State<ProductCard> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  blurRadius: 10.r,
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
@@ -176,12 +180,12 @@ class _ProductCardState extends State<ProductCard> {
                         decoration: BoxDecoration(
                           color: cs.surfaceContainerHighest,
                           borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16),
+                            top: Radius.circular(16.r),
                           ),
                         ),
                         child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16.r),
                           ),
                           child: widget.enableHero
                               ? Hero(
@@ -194,7 +198,7 @@ class _ProductCardState extends State<ProductCard> {
                                       return Center(
                                         child: Icon(
                                           Icons.image_not_supported_outlined,
-                                          size: 40,
+                                          size: 36.r,
                                           color: Colors.grey[400],
                                         ),
                                       );
@@ -208,7 +212,7 @@ class _ProductCardState extends State<ProductCard> {
                                     return Center(
                                       child: Icon(
                                         Icons.image_not_supported_outlined,
-                                        size: 40,
+                                        size: 36.r,
                                         color: Colors.grey[400],
                                       ),
                                     );
@@ -222,7 +226,7 @@ class _ProductCardState extends State<ProductCard> {
                           left: 8,
                           child: ProductOfferBadge(
                             product: displayProduct,
-                            fontSize: 10,
+                            fontSize: 10.sp.clamp(8.0, 11.0),
                           ),
                         ),
                     ],
@@ -232,20 +236,21 @@ class _ProductCardState extends State<ProductCard> {
                 // Product details section
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: AppSpacing.all(8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Product title
-                        Text(
+                        AutoSizeText(
                           widget.product.productName,
-                          style: GoogleFonts.poppins(
-                            color: cs.onSurface,
-                            fontSize: widget.titleFontSize ?? 12,
-                            fontWeight: FontWeight.w600,
-                            height: 1.2,
+                          style: AppTextStyles.productTitle(context).copyWith(
+                            fontSize:
+                                widget.titleFontSize?.sp ??
+                                AppTextStyles.productTitle(context).fontSize,
                           ),
                           maxLines: 2,
+                          minFontSize: 9,
+                          stepGranularity: 0.5,
                           overflow: TextOverflow.ellipsis,
                         ),
 
@@ -258,18 +263,22 @@ class _ProductCardState extends State<ProductCard> {
                           children: [
                             if (variants.length > 1) ...[
                               SizedBox(
-                                height: 24,
+                                height: 26.h.clamp(22.0, 30.0),
                                 child: DropdownButton<String>(
                                   value: _selectedVariantId,
                                   isExpanded: true,
                                   isDense: true,
-                                  iconSize: 14,
+                                  iconSize: 14.r,
                                   underline: const SizedBox.shrink(),
                                   style: GoogleFonts.inter(
                                     color: cs.onSurface.withValues(
                                       alpha: 0.5,
                                     ),
-                                    fontSize: widget.quantityFontSize ?? 10,
+                                    fontSize:
+                                        widget.quantityFontSize?.sp ??
+                                        AppTextStyles.productQuantity(
+                                          context,
+                                        ).fontSize,
                                     fontWeight: FontWeight.w400,
                                   ),
                                   dropdownColor: cs.surface,
@@ -296,53 +305,77 @@ class _ProductCardState extends State<ProductCard> {
                                 ),
                               ),
                             ] else ...[
-                              Text(
+                              AutoSizeText(
                                 productFullQuantityLabel(displayProduct),
-                                style: GoogleFonts.inter(
-                                  color: cs.onSurface.withValues(alpha: 0.5),
-                                  fontSize: widget.quantityFontSize ?? 10,
-                                ),
+                                style:
+                                    AppTextStyles.productQuantity(
+                                      context,
+                                    ).copyWith(
+                                      fontSize:
+                                          widget.quantityFontSize?.sp ??
+                                          AppTextStyles.productQuantity(
+                                            context,
+                                          ).fontSize,
+                                    ),
                                 maxLines: 1,
+                                minFontSize: 8,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4.h),
 
                             Row(
                               children: [
-                                Text(
-                                  '₹${displayProduct.price.formatPrice}',
-                                  style: GoogleFonts.inter(
-                                    color: const Color(0xFF4CAF50),
-                                    fontSize: widget.priceFontSize ?? 14,
-                                    fontWeight: FontWeight.bold,
+                                Flexible(
+                                  flex: 3,
+                                  child: AutoSizeText(
+                                    '₹${displayProduct.price.formatPrice}',
+                                    style:
+                                        AppTextStyles.productPrice(
+                                          context,
+                                        ).copyWith(
+                                          fontSize:
+                                              widget.priceFontSize?.sp ??
+                                              AppTextStyles.productPrice(
+                                                context,
+                                              ).fontSize,
+                                        ),
+                                    maxLines: 1,
+                                    minFontSize: 10,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 if (displayProduct.realPrice >
                                     displayProduct.price) ...[
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '₹${displayProduct.realPrice.formatPrice}',
-                                    style: GoogleFonts.inter(
-                                      color: cs.onSurface.withValues(
-                                        alpha: 0.35,
-                                      ),
-                                      fontSize: widget.realPriceFontSize ?? 10,
-                                      decoration: TextDecoration.lineThrough,
-                                      decorationColor: cs.onSurface.withValues(
-                                        alpha: 0.35,
-                                      ),
+                                  SizedBox(width: 6.w),
+                                  Flexible(
+                                    flex: 2,
+                                    child: AutoSizeText(
+                                      '₹${displayProduct.realPrice.formatPrice}',
+                                      style:
+                                          AppTextStyles.productMrp(
+                                            context,
+                                          ).copyWith(
+                                            fontSize:
+                                                widget.realPriceFontSize?.sp ??
+                                                AppTextStyles.productMrp(
+                                                  context,
+                                                ).fontSize,
+                                          ),
+                                      maxLines: 1,
+                                      minFontSize: 8,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4.h),
 
                             // Add button or Quantity selector
                             SizedBox(
                               width: double.infinity,
-                              height: 32,
+                              height: 32.h.clamp(30.0, 36.0),
                               child: !displayProduct.isAvailable
                                   ? _buildNotAvailableButton(cs)
                                   : Obx(() {
@@ -374,19 +407,19 @@ class _ProductCardState extends State<ProductCard> {
     // White bg with dark text — works on both light and dark themes
     return Material(
       color: cs.inverseSurface,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(8.r),
       child: InkWell(
         onTap: _handleAddToCart,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         child: Container(
           alignment: Alignment.center,
-          child: Text(
+          child: AutoSizeText(
             'ADD',
-            style: GoogleFonts.poppins(
+            style: AppTextStyles.button(context).copyWith(
               color: cs.onInverseSurface,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
             ),
+            maxLines: 1,
+            minFontSize: 10,
           ),
         ),
       ),
@@ -398,16 +431,16 @@ class _ProductCardState extends State<ProductCard> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         border: Border.all(color: cs.outlineVariant),
       ),
-      child: Text(
+      child: AutoSizeText(
         'Not Available',
-        style: GoogleFonts.poppins(
+        style: AppTextStyles.button(context).copyWith(
           color: cs.onSurface.withOpacity(0.5),
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
         ),
+        maxLines: 1,
+        minFontSize: 8,
       ),
     );
   }
@@ -416,12 +449,12 @@ class _ProductCardState extends State<ProductCard> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
           ),
         ],
       ),
@@ -430,26 +463,28 @@ class _ProductCardState extends State<ProductCard> {
         children: [
           InkWell(
             onTap: _decrement,
-            borderRadius: BorderRadius.circular(4),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Icon(Icons.remove, color: Colors.white, size: 16),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+              child: Icon(Icons.remove, color: Colors.white, size: 16.r),
             ),
           ),
-          Text(
+          AutoSizeText(
             '$quantity',
             style: GoogleFonts.inter(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontSize: 12.sp,
             ),
+            maxLines: 1,
+            minFontSize: 10,
           ),
           InkWell(
             onTap: _increment,
-            borderRadius: BorderRadius.circular(4),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Icon(Icons.add, color: Colors.white, size: 16),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+              child: Icon(Icons.add, color: Colors.white, size: 16.r),
             ),
           ),
         ],

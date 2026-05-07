@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart' as server;
 
 import 'delivery_location.dart';
 
@@ -22,46 +22,37 @@ class OrderTrackingSnapshot {
   bool get canTrack => status == 'out_for_delivery' && trackingEnabled;
   bool get isDelivered => status == 'delivered';
 
-  factory OrderTrackingSnapshot.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
-    final data = doc.data() ?? <String, dynamic>{};
+  factory OrderTrackingSnapshot.fromServer(server.OrderTrackingData data) {
     return OrderTrackingSnapshot(
-      orderId: doc.id,
-      status: data['status']?.toString() ?? 'placed',
-      trackingEnabled: data['trackingEnabled'] == true,
-      userLocation: _readDeliveryLocation(data['userLocation']),
-      riderLocation: _readTrackingCoordinate(data['riderLocation']),
-      updatedAt: _readTimestamp(data['updatedAt']),
+      orderId: data.orderId,
+      status: data.status,
+      trackingEnabled: data.trackingEnabled,
+      userLocation: _readDeliveryLocation(data),
+      riderLocation: _readTrackingCoordinate(data),
+      updatedAt: data.updatedAt,
     );
   }
 
-  static DeliveryLocation? _readDeliveryLocation(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return DeliveryLocation.fromMap(value);
-    }
-    if (value is Map) {
-      return DeliveryLocation.fromMap(Map<String, dynamic>.from(value));
-    }
-    return null;
+  static DeliveryLocation? _readDeliveryLocation(
+    server.OrderTrackingData data,
+  ) {
+    final lat = data.userLatitude;
+    final lng = data.userLongitude;
+    if (lat == null || lng == null) return null;
+    return DeliveryLocation(
+      lat: lat,
+      lng: lng,
+      address: data.userAddress ?? '',
+      type: data.userLocationType ?? 'saved',
+    );
   }
 
-  static TrackingCoordinate? _readTrackingCoordinate(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return TrackingCoordinate.fromMap(value);
-    }
-    if (value is Map) {
-      return TrackingCoordinate.fromMap(Map<String, dynamic>.from(value));
-    }
-    return null;
-  }
-
-  static DateTime? _readTimestamp(dynamic value) {
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
-    if (value is String && value.isNotEmpty) {
-      return DateTime.tryParse(value);
-    }
-    return null;
+  static TrackingCoordinate? _readTrackingCoordinate(
+    server.OrderTrackingData data,
+  ) {
+    final lat = data.riderLatitude;
+    final lng = data.riderLongitude;
+    if (lat == null || lng == null) return null;
+    return TrackingCoordinate(lat: lat, lng: lng);
   }
 }

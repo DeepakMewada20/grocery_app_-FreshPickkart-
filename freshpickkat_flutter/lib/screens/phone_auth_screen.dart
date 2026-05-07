@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
@@ -396,11 +397,15 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final pinWidth = ((MediaQuery.sizeOf(context).width - 64.w) / 6)
+        .clamp(38.w, 50.w)
+        .toDouble();
     final defaultPinTheme = PinTheme(
-      width: 50,
-      height: 56,
-      textStyle: const TextStyle(
-        fontSize: 22,
+      width: pinWidth,
+      height: 56.h.clamp(48.0, 58.0),
+      textStyle: TextStyle(
+        fontSize: 22.sp,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
@@ -435,6 +440,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     );
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: GestureDetector(
         onTap: () {
@@ -449,19 +455,24 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                   children: [
                     Expanded(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: EdgeInsets.fromLTRB(
+                          24.w,
+                          24.h,
+                          24.w,
+                          24.h + viewInsets.bottom,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             //app logo
-                            const SizedBox(height: 40),
+                            SizedBox(height: 32.h),
                             Center(
                               child: Image.asset(
                                 'lib/assets/images/name_logo.png',
-                                height: 80,
+                                height: 80.h.clamp(58.0, 86.0),
                               ),
                             ),
-                            const SizedBox(height: 40),
+                            SizedBox(height: 32.h),
 
                             // Welcome text
                             SlideTransition(
@@ -490,7 +501,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 50),
+                            SizedBox(height: 40.h),
 
                             // Phone Number Input
                             SlideTransition(
@@ -525,7 +536,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12.h),
                                   Container(
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF1A1A1A),
@@ -550,9 +561,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                 left: Radius.circular(16),
                                               ),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 18,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 16.w,
+                                              vertical: 18.h,
                                             ),
                                             child: Row(
                                               children: [
@@ -565,7 +576,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                   ),
                                                 ),
                                                 if (!_showOtpInput) ...[
-                                                  const SizedBox(width: 4),
+                                                  SizedBox(width: 4.w),
                                                   Icon(
                                                     Icons.arrow_drop_down,
                                                     color: Colors.white70,
@@ -576,8 +587,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                           ),
                                         ),
                                         Container(
-                                          width: 1,
-                                          height: 30,
+                                          width: 1.w,
+                                          height: 30.h,
                                           color: Colors.grey[600],
                                         ),
                                         Expanded(
@@ -598,9 +609,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                               ),
                                               border: InputBorder.none,
                                               contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 18,
+                                                  EdgeInsets.symmetric(
+                                                    horizontal: 16.w,
+                                                    vertical: 18.h,
                                                   ),
                                             ),
                                             inputFormatters: [
@@ -628,7 +639,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
                             // OTP Input Section
                             if (_showOtpInput) ...[
-                              const SizedBox(height: 40),
+                              SizedBox(height: 32.h),
                               SlideTransition(
                                 position: _otpSlideAnimation,
                                 child: Column(
@@ -642,7 +653,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         color: Colors.white70,
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12.h),
                                     Text(
                                       'Enter the 6-digit code sent to $_phoneNumber',
                                       style: TextStyle(
@@ -650,7 +661,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         color: Colors.white70,
                                       ),
                                     ),
-                                    const SizedBox(height: 20),
+                                    SizedBox(height: 20.h),
                                     Center(
                                       child: Pinput(
                                         controller: _otpController,
@@ -671,7 +682,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 20),
+                                    SizedBox(height: 20.h),
                                     Center(
                                       child: _resendTimer > 0
                                           ? Text(
@@ -686,9 +697,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                   ? null
                                                   : _resendOTP,
                                               child: _isLoading
-                                                  ? const SizedBox(
-                                                      width: 16,
-                                                      height: 16,
+                                                  ? SizedBox(
+                                                      width: 16.r,
+                                                      height: 16.r,
                                                       child:
                                                           CircularProgressIndicator(
                                                             strokeWidth: 2,
@@ -717,9 +728,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
                             // Error message
                             if (_errorMessage != null) ...[
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16.h),
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: EdgeInsets.all(12.r),
                                 decoration: BoxDecoration(
                                   color: Colors.red.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
@@ -735,7 +746,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                       size: 16,
                                       color: Colors.red[700],
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8.w),
                                     Expanded(
                                       child: Text(
                                         _errorMessage!,
@@ -754,11 +765,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(
-                        left: 24.0,
-                        right: 24.0,
-                        bottom: 24.0,
-                        top: 8.0,
+                      padding: EdgeInsets.only(
+                        left: 24.w,
+                        right: 24.w,
+                        bottom: 24.h + viewInsets.bottom,
+                        top: 8.h,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -766,7 +777,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                           // Action Button
                           SizedBox(
                             width: double.infinity,
-                            height: 56,
+                            height: 56.h.clamp(50.0, 62.0),
                             child: ElevatedButton(
                               onPressed: _isLoading || _isVerifying
                                   ? null
@@ -781,9 +792,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                 disabledBackgroundColor: Colors.grey[300],
                               ),
                               child: _isLoading || _isVerifying
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
+                                  ? SizedBox(
+                                      width: 24.r,
+                                      height: 24.r,
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2.5,
@@ -802,7 +813,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                             ),
                           ),
                           if (!_showOtpInput) ...[
-                            const SizedBox(height: 20),
+                            SizedBox(height: 20.h),
                             // Terms
                             Center(
                               child: Text(

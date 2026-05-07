@@ -5,6 +5,7 @@ import '../services/notification_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_order_service.dart';
+import '../services/postgres/postgres_order_tracking_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
 
 class OrderEndpoint extends Endpoint {
@@ -16,6 +17,7 @@ class OrderEndpoint extends Endpoint {
   static const String paymentPaid = 'paid';
 
   final PostgresOrderService _orders = PostgresOrderService();
+  final PostgresOrderTrackingService _tracking = PostgresOrderTrackingService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
@@ -156,6 +158,20 @@ class OrderEndpoint extends Endpoint {
       cancellationReason: cancellationReason,
     );
     if (!updated) return false;
+
+    if (newStatus == statusOutForDelivery) {
+      await _tracking.updateTrackingEnabled(
+        session,
+        orderNumber: orderId,
+        enabled: true,
+      );
+    } else if (newStatus == statusDelivered || newStatus == statusCancelled) {
+      await _tracking.updateTrackingEnabled(
+        session,
+        orderNumber: orderId,
+        enabled: false,
+      );
+    }
 
     await _audit.write(
       session,

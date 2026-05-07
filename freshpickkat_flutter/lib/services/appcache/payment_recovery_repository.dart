@@ -77,8 +77,8 @@ class PaymentRecoveryRepository {
 
   static PaymentRecoveryRepository get instance =>
       Get.isRegistered<PaymentRecoveryRepository>()
-          ? Get.find<PaymentRecoveryRepository>()
-          : Get.put(PaymentRecoveryRepository._(), permanent: true);
+      ? Get.find<PaymentRecoveryRepository>()
+      : Get.put(PaymentRecoveryRepository._(), permanent: true);
 
   static const String _localPendingPaymentsKey = 'pending_payment_recovery_v1';
 

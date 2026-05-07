@@ -3,7 +3,9 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class HomeBannerWithHorizontalItem extends StatefulWidget {
@@ -36,8 +38,7 @@ class _HomeBannerWithHorizontalItemState
   }
 
   void _handleBannerChange() {
-    final banner =
-        BannerController.instance.homeTopImageBanners.firstOrNull;
+    final banner = BannerController.instance.homeTopImageBanners.firstOrNull;
 
     if (banner == null || banner.linkedProductIds == null) {
       return;
@@ -56,7 +57,8 @@ class _HomeBannerWithHorizontalItemState
       return;
     }
 
-    final alreadyFetched = productIds.length == _lastProductIds.length &&
+    final alreadyFetched =
+        productIds.length == _lastProductIds.length &&
         productIds.every((id) => _lastProductIds.contains(id));
 
     if (!alreadyFetched && !_isFetchingProducts) {
@@ -108,10 +110,19 @@ class _HomeBannerWithHorizontalItemState
     return SliverToBoxAdapter(
       child: Obx(() {
         final banner = bannerController.homeTopImageBanners.firstOrNull;
-        final bannerHeight = widget.height * 0.4;
+        final width = MediaQuery.sizeOf(context).width;
+        final productStripHeight = AppResponsive.isLandscape(context)
+            ? 104.h
+            : 130.h;
+        final bannerHeight = (width * 0.62)
+            .clamp(
+              productStripHeight + 34.h,
+              AppResponsive.isLandscape(context) ? 190.h : 320.h,
+            )
+            .toDouble();
 
         return Container(
-          margin: const EdgeInsets.only(top: 16),
+          margin: EdgeInsets.only(top: 16.h),
           height: bannerHeight,
           width: double.infinity,
           child: Stack(
@@ -120,7 +131,9 @@ class _HomeBannerWithHorizontalItemState
               Positioned.fill(
                 child: banner != null
                     ? Image(
-                        image: bannerController.getImageProvider(banner.imageUrl),
+                        image: bannerController.getImageProvider(
+                          banner.imageUrl,
+                        ),
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                         errorBuilder: (context, error, stackTrace) =>
@@ -139,11 +152,11 @@ class _HomeBannerWithHorizontalItemState
               ),
 
               Positioned(
-                bottom: 7,
+                bottom: 7.h,
                 left: 0,
                 right: 0,
                 child: SizedBox(
-                  height: 130,
+                  height: productStripHeight,
                   child: banner == null
                       ? _buildFallbackProducts()
                       : _buildProductSection(),
@@ -186,7 +199,7 @@ class _ProductList extends StatelessWidget {
     if (products.isEmpty) return const SizedBox.shrink();
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       itemCount: products.length,
       itemBuilder: (context, index) {
         return _ProductBannerCard(product: products[index]);
@@ -200,14 +213,14 @@ class _ShimmerProductList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       itemCount: 5,
       itemBuilder: (context, index) {
         return Container(
-          width: 100,
-          margin: const EdgeInsets.only(right: 12),
+          width: AppResponsive.isLandscape(context) ? 86.w : 100.w,
+          margin: EdgeInsets.only(right: 12.w),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             color: Colors.grey[300],
           ),
           child: const _ShimmerBox(),
@@ -229,20 +242,20 @@ class _ProductBannerCard extends StatelessWidget {
         Get.to(() => ProductDetailScreen(product: product));
       },
       child: Container(
-        width: 100,
-        margin: const EdgeInsets.only(right: 12),
+        width: AppResponsive.isLandscape(context) ? 86.w : 100.w,
+        margin: EdgeInsets.only(right: 12.w),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
             BoxShadow(
               color: Colors.black26,
-              blurRadius: 6,
-              offset: Offset(0, 3),
+              blurRadius: 6.r,
+              offset: Offset(0, 3.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -268,12 +281,12 @@ class _ProductBannerCard extends StatelessWidget {
                   left: 6,
                   child: ProductOfferBadge(
                     product: product,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 3.h,
                     ),
-                    fontSize: 9,
-                    borderRadius: 6,
+                    fontSize: 9.sp,
+                    borderRadius: 6.r,
                   ),
                 ),
             ],

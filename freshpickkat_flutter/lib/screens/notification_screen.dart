@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -39,10 +42,22 @@ class NotificationScreen extends StatelessWidget {
       body: Obx(() {
         final notifications = notificationController.notifications;
         if (notifications.isEmpty) {
-          return Center(
-            child: Text(
-              'No notifications yet',
-              style: Theme.of(context).textTheme.titleMedium,
+          return SingleChildScrollView(
+            padding: AppResponsive.pagePadding(context),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight:
+                    MediaQuery.sizeOf(context).height -
+                    kToolbarHeight -
+                    MediaQuery.paddingOf(context).vertical -
+                    48.h,
+              ),
+              child: Center(
+                child: Text(
+                  'No notifications yet',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
             ),
           );
         }
@@ -52,90 +67,101 @@ class NotificationScreen extends StatelessWidget {
             AppOfferTheme.fallback(Theme.of(context).brightness);
 
         return ListView.separated(
-          padding: const EdgeInsets.all(16),
+          padding: AppResponsive.pagePadding(context).copyWith(
+            bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+          ),
           itemCount: notifications.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => SizedBox(height: 12.h),
           itemBuilder: (context, index) {
             final notification = notifications[index];
             final hasProduct = notification.product != null;
 
-            return Material(
-              color: offerTheme.badgeSoft,
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: hasProduct ? () => _openProduct(notification) : null,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: offerTheme.badge,
-                          borderRadius: BorderRadius.circular(14),
+            return AppResponsive.constrainContent(
+              context: context,
+              child: Material(
+                color: offerTheme.badgeSoft,
+                borderRadius: BorderRadius.circular(18.r),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18.r),
+                  onTap: hasProduct ? () => _openProduct(notification) : null,
+                  child: Padding(
+                    padding: EdgeInsets.all(16.r),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 46.r,
+                          height: 46.r,
+                          decoration: BoxDecoration(
+                            color: offerTheme.badge,
+                            borderRadius: BorderRadius.circular(14.r),
+                          ),
+                          child: Icon(
+                            Icons.notifications_active_outlined,
+                            color: offerTheme.onBadge,
+                            size: 22.r,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.notifications_active_outlined,
-                          color: offerTheme.onBadge,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    notification.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w700),
+                        SizedBox(width: 14.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      notification.title,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
+                                  SizedBox(width: 8.w),
+                                  AutoSizeText(
+                                    _formatTimestamp(notification.createdAt),
+                                    textAlign: TextAlign.right,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.62),
+                                        ),
+                                    minFontSize: 9,
+                                    maxLines: 1,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 6.h),
+                              Text(
+                                notification.message,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              if (hasProduct) ...[
+                                SizedBox(height: 10.h),
                                 Text(
-                                  _formatTimestamp(notification.createdAt),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  'Tap to open product',
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.62),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              notification.message,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            if (hasProduct) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                'Tap to open product',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

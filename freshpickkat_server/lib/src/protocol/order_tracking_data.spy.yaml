@@ -1,0 +1,12 @@
+class: OrderTrackingData
+fields:
+  orderId: String
+  status: String
+  trackingEnabled: bool
+  userLatitude: double?
+  userLongitude: double?
+  userAddress: String?
+  userLocationType: String?
+  riderLatitude: double?
+  riderLongitude: double?
+  updatedAt: DateTime?

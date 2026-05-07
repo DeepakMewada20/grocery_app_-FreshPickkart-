@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -17,7 +18,9 @@ class SingleCardBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? Colors.white.withValues(alpha: 0.92) : const Color(0xFF111111);
+    final textPrimary = isDark
+        ? Colors.white.withValues(alpha: 0.92)
+        : const Color(0xFF111111);
     final textSecondary = isDark
         ? Colors.white.withValues(alpha: 0.45)
         : const Color(0xFF888888);
@@ -26,7 +29,7 @@ class SingleCardBody extends StatelessWidget {
     final type = s.type;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -34,7 +37,7 @@ class SingleCardBody extends StatelessWidget {
             children: [
               if (isBest) ...[
                 const BestBadge(),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
               ],
               if (action != null)
                 Flexible(
@@ -49,13 +52,13 @@ class SingleCardBody extends StatelessWidget {
                 SaveBadge(amount: s.savingAmount!, accent: accent),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w700,
-              fontSize: 13.5,
+              fontSize: 13.5.sp,
               height: 1.3,
               letterSpacing: -0.1,
             ),
@@ -63,34 +66,35 @@ class SingleCardBody extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           if ((s.subtitle ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 3),
+            SizedBox(height: 3.h),
             Text(
               s.subtitle!,
               style: TextStyle(
                 color: textSecondary,
-                fontSize: 11,
+                fontSize: 11.sp,
                 height: 1.3,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          
+
           const Spacer(),
 
           // Variant comparison and other specific UI is now handled in the bottom row to save space
-
           Row(
             children: [
               if (type == 'combo' && s.comboId != null)
                 _ComboThumbs(comboId: s.comboId!, s: s)
               else if (s.thumbnailUrl != null)
                 _Thumb(url: s.thumbnailUrl!),
-                
-              const SizedBox(width: 8),
+
+              SizedBox(width: 8.w),
 
               // Variant Comparison logic moved here
-              if (s.metadata != null && s.metadata!.containsKey('curLabel') && s.metadata!.containsKey('vLabel'))
+              if (s.metadata != null &&
+                  s.metadata!.containsKey('curLabel') &&
+                  s.metadata!.containsKey('vLabel'))
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -103,10 +107,13 @@ class SingleCardBody extends StatelessWidget {
                     ),
                   ),
                 )
-              else if (type == 'coupon' || type == 'delivery' || action?.type == 'coupon' || action?.type == 'delivery')
+              else if (type == 'coupon' ||
+                  type == 'delivery' ||
+                  action?.type == 'coupon' ||
+                  action?.type == 'delivery')
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
                     child: SuggestionProgressBar(
                       current: s.progressCurrent ?? 0,
                       target: s.progressTarget ?? 0,
@@ -117,7 +124,7 @@ class SingleCardBody extends StatelessWidget {
               else
                 const Spacer(),
 
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               CTAButton(
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
@@ -132,15 +139,24 @@ class SingleCardBody extends StatelessWidget {
 
   IconData _getIcon(String type) {
     switch (type) {
-      case 'coupon': return Icons.confirmation_number_rounded;
-      case 'delivery': return Icons.local_shipping_rounded;
-      case 'variant': return Icons.trending_up_rounded;
-      case 'combo': return Icons.layers_rounded;
-      case 'bogo': return Icons.card_giftcard_rounded;
-      case 'reorder': return Icons.replay_rounded;
-      case 'category': return Icons.category_rounded;
-      case 'product': return Icons.local_offer_rounded;
-      default: return Icons.star_rounded;
+      case 'coupon':
+        return Icons.confirmation_number_rounded;
+      case 'delivery':
+        return Icons.local_shipping_rounded;
+      case 'variant':
+        return Icons.trending_up_rounded;
+      case 'combo':
+        return Icons.layers_rounded;
+      case 'bogo':
+        return Icons.card_giftcard_rounded;
+      case 'reorder':
+        return Icons.replay_rounded;
+      case 'category':
+        return Icons.category_rounded;
+      case 'product':
+        return Icons.local_offer_rounded;
+      default:
+        return Icons.star_rounded;
     }
   }
 }
@@ -155,9 +171,9 @@ class _ComboThumbs extends StatelessWidget {
     return Obx(() {
       final combos = ComboOfferController.instance.activeComboOffers;
       final combo = combos.firstWhereOrNull((c) => c.comboId == comboId);
-      
+
       final urls = <String>[];
-      
+
       if (combo != null) {
         final productIds = combo.comboProducts.map((p) => p.productId).toList();
         final products = ProductProviderController.instance.allProducts
@@ -175,9 +191,9 @@ class _ComboThumbs extends StatelessWidget {
           }
         }
       }
-      
+
       if (urls.isEmpty && s.thumbnailUrl != null) {
-         urls.add(s.thumbnailUrl!);
+        urls.add(s.thumbnailUrl!);
       }
 
       return OverlappingThumbs(imageUrls: urls);
@@ -192,17 +208,17 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 40.r,
+      height: 40.r,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         child: SafeNetworkImage(
-          url: url, 
+          url: url,
           fit: BoxFit.cover,
         ),
       ),

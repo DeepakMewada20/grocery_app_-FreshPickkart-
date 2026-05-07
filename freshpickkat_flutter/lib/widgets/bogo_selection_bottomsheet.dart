@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class BogoSelectionBottomSheet extends StatefulWidget {
@@ -57,8 +59,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
       (product) => product.productId == widget.triggerProductId,
     );
     final offer = bogoController.getOfferForProduct(widget.triggerProductId);
-    final eligibleVariants =
-        triggerProduct != null && offer != null
+    final eligibleVariants = triggerProduct != null && offer != null
         ? eligibleBogoTriggerVariants(triggerProduct, offer)
         : const <ProductVariant>[];
     final isSelectionEnabled =
@@ -85,295 +86,317 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
         ?.bogoFreeProductId;
 
     return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: AppResponsive.sheetConstraints(context),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: offerTheme.badgeSoft,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.local_offer_rounded,
-                        size: 16,
-                        color: offerTheme.badge,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'BOGO Gift',
-                        style: TextStyle(
-                          color: offerTheme.badge,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Get.back(),
-                  icon: Icon(Icons.close, color: cs.onSurface),
-                ),
-              ],
-            ),
-            Text(
-              isSelectionEnabled
-                  ? 'Choose your free product'
-                  : 'Free product locked for this pack',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: cs.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              helperMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: cs.onSurface.withValues(alpha: 0.68),
-              ),
-            ),
-            if (eligibleVariants.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: cs.outlineVariant),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      isSelectionEnabled
-                          ? 'Eligible trigger packs'
-                          : 'Upgrade trigger pack',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: cs.onSurface,
-                        fontWeight: FontWeight.w800,
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isSelectionEnabled
-                          ? 'This offer works on these packs. You can switch here if needed.'
-                          : 'Choose one of these packs to unlock your free product.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurface.withValues(alpha: 0.7),
+                      decoration: BoxDecoration(
+                        color: offerTheme.badgeSoft,
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: eligibleVariants.map((variant) {
-                        final isCurrent =
-                            variant.variantId == _currentTriggerVariantId;
-                        return ChoiceChip(
-                          label: Text(
-                            formatBogoTriggerVariantLabel(variant),
-                          ),
-                          selected: isCurrent,
-                          onSelected: _isSwitchingVariant
-                              ? null
-                              : (selected) async {
-                                  if (!selected || isCurrent) return;
-                                  final switched =
-                                      await _switchTriggerVariant(
-                                        variant.variantId,
-                                      );
-                                  if (!switched || !mounted) return;
-                                  setState(() {
-                                    _currentTriggerVariantId = variant.variantId;
-                                  });
-                                },
-                        );
-                      }).toList(growable: false),
-                    ),
-                    if (_isSwitchingVariant) ...[
-                      const SizedBox(height: 10),
-                      Row(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: offerTheme.badge,
-                            ),
+                          Icon(
+                            Icons.local_offer_rounded,
+                            size: 16.r,
+                            color: offerTheme.badge,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 6.w),
                           Text(
-                            'Updating cart pack...',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: cs.onSurface.withValues(alpha: 0.7),
+                            'BOGO Gift',
+                            style: TextStyle(
+                              color: offerTheme.badge,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Icon(Icons.close, color: cs.onSurface),
+                    ),
                   ],
                 ),
-              ),
-            ],
-            const SizedBox(height: 18),
-            if (eligibleProducts.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  'No eligible products found.',
+                Text(
+                  isSelectionEnabled
+                      ? 'Choose your free product'
+                      : 'Free product locked for this pack',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  helperMessage,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: cs.onSurface.withValues(alpha: 0.68),
                   ),
                 ),
-              )
-            else
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: eligibleProducts.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final product = eligibleProducts[index];
-                    final isSelected =
-                        product.productId == selectedFreeProductId;
-                    final displayQuantity = bogoController
-                        .freeProductQuantityLabel(
-                          widget.triggerProductId,
-                          product.productId ?? '',
-                          fallback: product.quantity,
-                        );
-
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? offerTheme.badgeSoft
-                            : cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: isSelected
-                              ? offerTheme.badgeBorder
-                              : cs.outlineVariant,
-                          width: isSelected ? 1.5 : 1,
+                if (eligibleVariants.isNotEmpty) ...[
+                  SizedBox(height: 16.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(14.r),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(18.r),
+                      border: Border.all(color: cs.outlineVariant),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isSelectionEnabled
+                              ? 'Eligible trigger packs'
+                              : 'Upgrade trigger pack',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: cs.onSurface,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              width: 64,
-                              height: 64,
-                              color: cs.surface,
-                              child: product.imageUrl.isEmpty
-                                  ? Icon(
-                                      Icons.image_not_supported_outlined,
-                                      color: cs.onSurface.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    )
-                                  : Image.network(
-                                      product.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return Icon(
-                                              Icons.broken_image_outlined,
-                                              color: cs.onSurface.withValues(
-                                                alpha: 0.4,
-                                              ),
-                                            );
-                                          },
-                                    ),
-                            ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          isSelectionEnabled
+                              ? 'This offer works on these packs. You can switch here if needed.'
+                              : 'Choose one of these packs to unlock your free product.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurface.withValues(alpha: 0.7),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.productName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: cs.onSurface,
-                                    fontWeight: FontWeight.w700,
+                        ),
+                        SizedBox(height: 12.h),
+                        Wrap(
+                          spacing: 8.w,
+                          runSpacing: 8.h,
+                          children: eligibleVariants
+                              .map((variant) {
+                                final isCurrent =
+                                    variant.variantId ==
+                                    _currentTriggerVariantId;
+                                return ChoiceChip(
+                                  label: Text(
+                                    formatBogoTriggerVariantLabel(variant),
                                   ),
+                                  selected: isCurrent,
+                                  onSelected: _isSwitchingVariant
+                                      ? null
+                                      : (selected) async {
+                                          if (!selected || isCurrent) return;
+                                          final switched =
+                                              await _switchTriggerVariant(
+                                                variant.variantId,
+                                              );
+                                          if (!switched || !mounted) return;
+                                          setState(() {
+                                            _currentTriggerVariantId =
+                                                variant.variantId;
+                                          });
+                                        },
+                                );
+                              })
+                              .toList(growable: false),
+                        ),
+                        if (_isSwitchingVariant) ...[
+                          SizedBox(height: 10.h),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 16.r,
+                                height: 16.r,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: offerTheme.badge,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  displayQuantity,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: cs.onSurface.withValues(alpha: 0.7),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  isSelectionEnabled
-                                      ? 'FREE with this offer'
-                                      : 'Available on eligible trigger packs',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: offerTheme.badge,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          FilledButton(
-                            onPressed: !isSelectionEnabled
-                                ? null
-                                : () {
-                                    cartController.setBogoSelection(
-                                      widget.triggerProductId,
-                                      product.productId,
-                                      triggerVariantId: _currentTriggerVariantId,
-                                    );
-                                    Get.back();
-                                  },
-                            style: FilledButton.styleFrom(
-                              backgroundColor: offerTheme.badge,
-                              foregroundColor: offerTheme.onBadge,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
                               ),
-                            ),
-                            child: Text(
-                              !isSelectionEnabled
-                                  ? 'Unavailable'
-                                  : (isSelected ? 'Selected' : 'Choose'),
-                            ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Updating cart pack...',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: cs.onSurface.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
+                      ],
+                    ),
+                  ),
+                ],
+                SizedBox(height: 18.h),
+                if (eligibleProducts.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    child: Text(
+                      'No eligible products found.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurface.withValues(alpha: 0.68),
                       ),
-                    );
-                  },
-                ),
-              ),
-          ],
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight:
+                          MediaQuery.sizeOf(context).height *
+                          (AppResponsive.isLandscape(context) ? 0.42 : 0.44),
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: eligibleProducts.length,
+                      separatorBuilder: (_, _) => SizedBox(height: 12.h),
+                      itemBuilder: (context, index) {
+                        final product = eligibleProducts[index];
+                        final isSelected =
+                            product.productId == selectedFreeProductId;
+                        final displayQuantity = bogoController
+                            .freeProductQuantityLabel(
+                              widget.triggerProductId,
+                              product.productId ?? '',
+                              fallback: product.quantity,
+                            );
+
+                        return Container(
+                          padding: EdgeInsets.all(12.r),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? offerTheme.badgeSoft
+                                : cs.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(18.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? offerTheme.badgeBorder
+                                  : cs.outlineVariant,
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14.r),
+                                child: Container(
+                                  width: 64.r,
+                                  height: 64.r,
+                                  color: cs.surface,
+                                  child: product.imageUrl.isEmpty
+                                      ? Icon(
+                                          Icons.image_not_supported_outlined,
+                                          color: cs.onSurface.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          product.imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: cs.onSurface
+                                                      .withValues(
+                                                        alpha: 0.4,
+                                                      ),
+                                                );
+                                              },
+                                        ),
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      product.productName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            color: cs.onSurface,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      displayQuantity,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: cs.onSurface.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    Text(
+                                      isSelectionEnabled
+                                          ? 'FREE with this offer'
+                                          : 'Available on eligible trigger packs',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: offerTheme.badge,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              FilledButton(
+                                onPressed: !isSelectionEnabled
+                                    ? null
+                                    : () {
+                                        cartController.setBogoSelection(
+                                          widget.triggerProductId,
+                                          product.productId,
+                                          triggerVariantId:
+                                              _currentTriggerVariantId,
+                                        );
+                                        Get.back();
+                                      },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: offerTheme.badge,
+                                  foregroundColor: offerTheme.onBadge,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 14.w,
+                                    vertical: 12.h,
+                                  ),
+                                ),
+                                child: Text(
+                                  !isSelectionEnabled
+                                      ? 'Unavailable'
+                                      : (isSelected ? 'Selected' : 'Choose'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );

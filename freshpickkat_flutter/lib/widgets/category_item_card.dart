@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryItemCard extends StatelessWidget {
   final String itemName;
@@ -23,7 +25,7 @@ class CategoryItemCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -34,7 +36,7 @@ class CategoryItemCard extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   color: isDark
                       ? const Color(0xFF2E2E2E)
                       : const Color(0xFFE8F5E9), // light green tint
@@ -46,7 +48,7 @@ class CategoryItemCard extends StatelessWidget {
                         ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all(6.r),
                   child: _buildImage(imagePath),
                 ),
               ),
@@ -55,16 +57,18 @@ class CategoryItemCard extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 4),
+                padding: EdgeInsets.only(top: 4.h),
                 child: Align(
                   alignment: Alignment.topCenter,
-                  child: Text(
+                  child: AutoSizeText(
                     itemName,
                     textAlign: TextAlign.center,
                     maxLines: 3,
+                    minFontSize: 9,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 12,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
                       height: 1.2,
                     ),
@@ -87,7 +91,7 @@ class CategoryItemCard extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => Center(
           child: Icon(
             Icons.broken_image,
-            size: 40,
+            size: 36.r,
             color: Colors.grey[400],
           ),
         ),
@@ -99,7 +103,7 @@ class CategoryItemCard extends StatelessWidget {
       errorBuilder: (context, error, stackTrace) => Center(
         child: Icon(
           Icons.broken_image,
-          size: 40,
+          size: 36.r,
           color: Colors.grey[400],
         ),
       ),

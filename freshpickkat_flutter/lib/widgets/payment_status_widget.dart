@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
@@ -209,40 +211,42 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: _getBorderColor(), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildStatusIcon(),
-          const SizedBox(height: 12),
-          Text(
+          SizedBox(height: 12.h),
+          AutoSizeText(
             _statusMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w600,
               color: _getTextColor(),
             ),
+            minFontSize: 11,
+            maxLines: 3,
           ),
           if (_status == PaymentStatus.pending) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             _buildRetryButton(),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               'Auto-checking every 10 seconds',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 11.sp,
                 color: Colors.grey.shade600,
               ),
             ),
           ],
           if (_status == PaymentStatus.failed) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             _buildSupportButton(),
           ],
         ],
@@ -277,25 +281,25 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       return ScaleTransition(
         scale: _pulseAnimation,
         child: Container(
-          width: 60,
-          height: 60,
+          width: 60.r,
+          height: 60.r,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 32, color: color),
+          child: Icon(icon, size: 32.r, color: color),
         ),
       );
     }
 
     return Container(
-      width: 60,
-      height: 60,
+      width: 60.r,
+      height: 60.r,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 32, color: color),
+      child: Icon(icon, size: 32.r, color: color),
     );
   }
 
@@ -305,22 +309,26 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
         ),
       ),
       icon: _isRetrying
-          ? const SizedBox(
-              width: 18,
-              height: 18,
+          ? SizedBox(
+              width: 18.r,
+              height: 18.r,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Colors.white,
               ),
             )
-          : const Icon(Icons.refresh, size: 18),
-      label: Text(_isRetrying ? 'Retrying...' : 'Retry Now'),
+          : Icon(Icons.refresh, size: 18.r),
+      label: AutoSizeText(
+        _isRetrying ? 'Retrying...' : 'Retry Now',
+        maxLines: 1,
+        minFontSize: 11,
+      ),
     );
   }
 
@@ -336,12 +344,12 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.red,
         side: const BorderSide(color: Colors.red),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10.r),
         ),
       ),
-      icon: const Icon(Icons.support_agent, size: 18),
+      icon: Icon(Icons.support_agent, size: 18.r),
       label: const Text('Contact Support'),
     );
   }
@@ -399,25 +407,25 @@ class PendingPaymentsBadge extends StatelessWidget {
       }
 
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: Colors.orange,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.pending_actions,
               color: Colors.white,
-              size: 14,
+              size: 14.r,
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4.w),
             Text(
               'Payment Pending',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 10,
+                fontSize: 10.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),

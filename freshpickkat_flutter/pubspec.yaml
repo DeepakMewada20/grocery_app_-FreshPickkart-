@@ -39,6 +39,8 @@ dependencies:
   firebase_messaging: ^16.1.1
   pinput: ^6.0.2
   google_fonts: ^6.3.3
+  flutter_screenutil: ^5.9.3
+  auto_size_text: ^3.0.0
   firebase_core: ^4.4.0
   geolocator: ^13.0.2
   google_maps_flutter: ^2.12.1
@@ -50,7 +52,6 @@ dependencies:
   flutter_sim_data: ^1.0.5
   location: ^8.0.1
   geocoding: ^4.0.0
-  cloud_firestore: ^6.1.2
   razorpay_flutter_customui: ^1.4.2
   url_launcher: ^6.3.2
 

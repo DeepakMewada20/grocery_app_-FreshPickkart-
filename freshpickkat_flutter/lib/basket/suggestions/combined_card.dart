@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -29,7 +30,7 @@ class CombinedCardBody extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(14.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,7 +38,7 @@ class CombinedCardBody extends StatelessWidget {
             children: [
               if (isBest) ...[
                 const BestBadge(),
-                const SizedBox(width: 6),
+                SizedBox(width: 6.w),
               ],
               Flexible(
                 child: SuggestionActionChip(
@@ -51,32 +52,32 @@ class CombinedCardBody extends StatelessWidget {
                 SaveBadge(amount: s.savingAmount!, accent: accent),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Text(
             s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w800,
-              fontSize: 13,
+              fontSize: 13.sp,
               height: 1.25,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           if ((s.subtitle ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               s.subtitle!,
               style: TextStyle(
                 color: textPrimary.withValues(alpha: 0.7),
-                fontSize: 11.5,
+                fontSize: 11.5.sp,
                 height: 1.2,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
 
           // Action steps indicators
           Row(
@@ -91,9 +92,9 @@ class CombinedCardBody extends StatelessWidget {
                   ),
                   if (!isLast)
                     Container(
-                      width: 12,
+                      width: 12.w,
                       height: 1,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      margin: EdgeInsets.symmetric(horizontal: 4.w),
                       color: accent.withValues(alpha: 0.3),
                     ),
                 ],
@@ -112,7 +113,7 @@ class CombinedCardBody extends StatelessWidget {
               if (hasCouponOrDelivery)
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
                     child: SuggestionProgressBar(
                       current: s.progressCurrent ?? 0,
                       target: s.progressTarget ?? 0,
@@ -241,15 +242,15 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 40.r,
+      height: 40.r,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(10.r),
         child: SafeNetworkImage(
           url: url,
           fit: BoxFit.cover,

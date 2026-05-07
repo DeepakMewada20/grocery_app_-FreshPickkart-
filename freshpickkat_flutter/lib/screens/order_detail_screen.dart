@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/refund_service.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart';
 
 class _GroupedOrderItem {
@@ -155,30 +159,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildContent(ColorScheme cs) {
     final order = _order!;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(order, cs),
-          const SizedBox(height: 20),
-          _buildStatusTimeline(order, cs),
-          if (order.status == 'out_for_delivery')
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: _buildTrackingCard(order, cs),
-            ),
-          if (_canCancelOrder(order) || _showRefundStatus(order))
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: _buildActionsCard(order, cs),
-            ),
-          const SizedBox(height: 16),
-          _buildAddress(order, cs),
-          const SizedBox(height: 16),
-          _buildItems(order, cs),
-          const SizedBox(height: 16),
-          _buildTotals(order, cs),
-        ],
+      padding: AppResponsive.pagePadding(context).copyWith(
+        bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: AppResponsive.constrainContent(
+        context: context,
+        maxWidth: AppResponsive.maxDetailWidth,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(order, cs),
+            SizedBox(height: 20.h),
+            _buildStatusTimeline(order, cs),
+            if (order.status == 'out_for_delivery')
+              Padding(
+                padding: EdgeInsets.only(top: 16.h),
+                child: _buildTrackingCard(order, cs),
+              ),
+            if (_canCancelOrder(order) || _showRefundStatus(order))
+              Padding(
+                padding: EdgeInsets.only(top: 16.h),
+                child: _buildActionsCard(order, cs),
+              ),
+            SizedBox(height: 16.h),
+            _buildAddress(order, cs),
+            SizedBox(height: 16.h),
+            _buildItems(order, cs),
+            SizedBox(height: 16.h),
+            _buildTotals(order, cs),
+          ],
+        ),
       ),
     );
   }
@@ -188,10 +198,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final currentIndex = _getStatusIndex(order.status);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -199,14 +209,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Order Progress',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.sectionTitle(context),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           SizedBox(
-            height: 80,
+            height: AppResponsive.isSmallPhone(context) ? 74.h : 86.h,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
@@ -221,8 +228,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       children: [
                         // Status Point
                         Container(
-                          width: 40,
-                          height: 40,
+                          width: 38.r,
+                          height: 38.r,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isCompleted || isCurrent
@@ -231,7 +238,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             border: isCurrent
                                 ? Border.all(
                                     color: Colors.green,
-                                    width: 3,
+                                    width: 2.5.r,
                                   )
                                 : null,
                           ),
@@ -245,25 +252,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               color: isCompleted || isCurrent
                                   ? Colors.white
                                   : cs.outlineVariant,
-                              size: isCurrent ? 20 : 16,
+                              size: isCurrent ? 19.r : 15.r,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         // Status Label
                         Expanded(
-                          child: Text(
+                          child: AutoSizeText(
                             _getStatusLabel(status),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: isCompleted || isCurrent
                                   ? Colors.green
                                   : cs.onSurface.withValues(alpha: 0.5),
-                              fontSize: 11,
+                              fontSize: 11.sp,
                               fontWeight: isCompleted || isCurrent
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
+                            minFontSize: 8,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -275,23 +283,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           // Progress indicator line
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4.r),
             child: LinearProgressIndicator(
               value: (currentIndex + 1) / timeline.length,
-              minHeight: 6,
+              minHeight: 6.h,
               backgroundColor: cs.outlineVariant,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             '${((currentIndex + 1) / timeline.length * 100).toStringAsFixed(0)}% Complete',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.6),
-              fontSize: 12,
+              fontSize: 12.sp,
             ),
           ),
         ],
@@ -301,41 +309,43 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildHeader(Order order, ColorScheme cs) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AutoSizeText(
             'Order ID: ${order.orderId}',
-            style: TextStyle(
-              color: cs.onSurface,
+            style: AppTextStyles.body(context).copyWith(
               fontWeight: FontWeight.bold,
             ),
+            maxLines: 2,
+            minFontSize: 11,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'Placed on ${_formatDate(order.orderedAt)}',
-            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
+            style: AppTextStyles.caption(context),
           ),
-          const SizedBox(height: 12),
-          Row(
+          SizedBox(height: 12.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
             children: [
               _buildStatusChip(
                 'Order: ${order.status}',
                 _statusColor(order.status),
               ),
-              const SizedBox(width: 8),
               _buildStatusChip(
                 'Payment: ${order.paymentStatus}',
                 _statusColor(order.paymentStatus),
               ),
               if (_showRefundStatus(order)) ...[
-                const SizedBox(width: 8),
                 _buildStatusChip(
                   'Refund: ${_refundLabel(order)}',
                   _refundStatusColor(order),
@@ -350,25 +360,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildActionsCard(Order order, ColorScheme cs) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_showRefundStatus(order))
-            Text(
+            AutoSizeText(
               'Refund Status: ${_refundLabel(order)}',
               style: TextStyle(
                 color: _refundStatusColor(order),
                 fontWeight: FontWeight.w700,
               ),
+              maxLines: 2,
+              minFontSize: 11,
             ),
           if (_showRefundStatus(order) && _canCancelOrder(order))
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
           if (_canCancelOrder(order))
             SizedBox(
               width: double.infinity,
@@ -384,10 +396,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildTrackingCard(Order order, ColorScheme cs) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -395,17 +407,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Your order is on the way',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.sectionTitle(
+              context,
+            ).copyWith(fontSize: 16.sp),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             'Open the live map only when you want to follow the rider.',
-            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+            style: AppTextStyles.caption(context),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -423,19 +434,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Text(
+      child: AutoSizeText(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 12,
+          fontSize: 12.sp,
           fontWeight: FontWeight.w600,
         ),
+        minFontSize: 9,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -443,10 +457,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildAddress(Order order, ColorScheme cs) {
     final address = order.deliveryAddress;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -454,15 +468,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Delivery Address',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.sectionTitle(
+              context,
+            ).copyWith(fontSize: 16.sp),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             _formatAddress(address),
-            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+            style: AppTextStyles.caption(context),
           ),
         ],
       ),
@@ -508,10 +521,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }).toList();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -519,12 +532,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Items (${order.itemCount})',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.sectionTitle(
+              context,
+            ).copyWith(fontSize: 16.sp),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           ...groupedRegular.map((entry) => _buildOrderRegularItem(entry, cs)),
           ...comboGroups.map((group) => _buildOrderComboGroup(group, cs)),
         ],
@@ -535,7 +547,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildOrderRegularItem(_GroupedOrderItem entry, ColorScheme cs) {
     final item = entry.item;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -545,29 +557,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Expanded(
                 child: Text(
                   '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
-                  style: TextStyle(color: cs.onSurface),
+                  style: AppTextStyles.body(context),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
+              SizedBox(width: 8.w),
+              AutoSizeText(
                 'INR ${item.totalPrice.toStringAsFixed(0)}',
                 style: TextStyle(
                   color: cs.onSurface,
                   fontWeight: FontWeight.w600,
+                  fontSize: 14.sp,
                 ),
+                minFontSize: 11,
+                maxLines: 1,
               ),
             ],
           ),
           ...entry.freeItems.map(
             (freeItem) => Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
+              padding: EdgeInsets.only(top: 4.h),
+              child: AutoSizeText(
                 'FREE: ${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
                 style: TextStyle(
                   color: Colors.green.shade700,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
+                minFontSize: 9,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),
@@ -578,12 +598,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildOrderComboGroup(_GroupedOrderCombo group, ColorScheme cs) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -600,23 +620,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                 ),
-                Text(
-                  comboDiscountBadgeText(
-                    group.discountType,
-                    group.discountValue,
-                  ),
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                SizedBox(width: 8.w),
+                Flexible(
+                  child: AutoSizeText(
+                    comboDiscountBadgeText(
+                      group.discountType,
+                      group.discountValue,
+                    ),
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    minFontSize: 9,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             ...group.items.map(
               (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: 6.h),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -625,33 +651,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13,
+                          fontSize: 13.sp,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
+                    SizedBox(width: 8.w),
+                    AutoSizeText(
                       'INR ${item.totalPrice.toStringAsFixed(0)}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.75),
-                        fontSize: 13,
+                        fontSize: 13.sp,
                       ),
+                      minFontSize: 10,
+                      maxLines: 1,
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Combo total x${group.bundleQuantity}',
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    'Combo total x${group.bundleQuantity}',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
+                SizedBox(width: 8.w),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -666,7 +698,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       'INR ${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -682,10 +714,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildTotals(Order order, ColorScheme cs) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -693,12 +725,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Bill Summary',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.sectionTitle(
+              context,
+            ).copyWith(fontSize: 16.sp),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _buildRow(
             'Item Total',
             'INR ${order.totalAmount.toStringAsFixed(0)}',
@@ -706,44 +737,50 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           if (order.couponApplied != null && order.couponApplied!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.symmetric(vertical: 8.h),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12.r),
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(8.r),
                   border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Coupon Applied',
-                          style: TextStyle(
-                            color: cs.onSurface.withValues(alpha: 0.6),
-                            fontSize: 12,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Coupon Applied',
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.6),
+                              fontSize: 12.sp,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          order.couponApplied!.toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.green.shade700,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                          SizedBox(height: 4.h),
+                          AutoSizeText(
+                            order.couponApplied!.toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                            ),
+                            minFontSize: 10,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    SizedBox(width: 8.w),
                     Text(
                       '-INR ${order.discountAmount.toStringAsFixed(0)}',
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 16.sp,
                       ),
                     ),
                   ],
@@ -765,7 +802,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             cs,
             valueColor: order.deliveryFee == 0 ? Colors.green : cs.onSurface,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Divider(color: cs.outlineVariant),
           _buildRow(
             'Paid',
@@ -786,25 +823,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     Color? valueColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isTotal
-                  ? cs.onSurface
-                  : cs.onSurface.withValues(alpha: 0.6),
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.receiptLabel(context, total: isTotal),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
+          SizedBox(width: 12.w),
+          AutoSizeText(
             value,
-            style: TextStyle(
-              color: valueColor ?? cs.onSurface,
-              fontWeight: FontWeight.bold,
+            textAlign: TextAlign.right,
+            style: AppTextStyles.receiptValue(
+              context,
+              total: isTotal,
+              color: valueColor,
             ),
+            minFontSize: 11,
+            maxLines: 1,
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'dart:math' as math;
-
 
 class ModernSplashScreen extends StatefulWidget {
   const ModernSplashScreen({super.key});
@@ -143,6 +145,9 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isLandscape = AppResponsive.isLandscape(context);
+    final logoSize = (isLandscape ? 92.0 : 140.0).r;
+    final skylineBottom = isLandscape ? 48.h : 80.h;
 
     return Scaffold(
       body: Container(
@@ -163,7 +168,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           children: [
             // City skyline background - positioned above loading area
             Positioned(
-              bottom: 80,
+              bottom: skylineBottom,
               left: 0,
               right: 0,
               child: _buildCitySkyline(size),
@@ -174,7 +179,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Spacer(flex: 2),
+                  Spacer(flex: isLandscape ? 1 : 2),
 
                   // Centered logo with subtle pulse
                   ScaleTransition(
@@ -190,8 +195,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                           );
                         },
                         child: Container(
-                          width: 140,
-                          height: 140,
+                          width: logoSize,
+                          height: logoSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
@@ -208,7 +213,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               ),
                             ],
                           ),
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12.r),
                           child: Image.asset(
                             'lib/assets/images/name_logo.png',
                             fit: BoxFit.contain,
@@ -218,7 +223,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  SizedBox(height: isLandscape ? 16.h : 30.h),
 
                   // Simple text animation
                   SlideTransition(
@@ -228,21 +233,24 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                       child: Column(
                         children: [
                           // App name
-                          const Text(
+                          AutoSizeText(
                             'FreshPickKart',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 34,
+                              fontSize: (isLandscape ? 28 : 34).sp,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               letterSpacing: 1.5,
                             ),
+                            minFontSize: 20,
+                            maxLines: 1,
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10.h),
                           // Tagline
                           Text(
                             'Fresh Groceries, Delivered Fast',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.w400,
                               color: Colors.white.withOpacity(0.85),
                               letterSpacing: 0.5,
@@ -253,19 +261,19 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                     ),
                   ),
 
-                  const Spacer(flex: 3),
+                  Spacer(flex: isLandscape ? 2 : 3),
 
                   // Loading text - at the very bottom
                   FadeTransition(
                     opacity: _textOpacity,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 25),
+                      padding: EdgeInsets.only(bottom: 25.h),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(
-                            width: 16,
-                            height: 16,
+                            width: 16.r,
+                            height: 16.r,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -273,13 +281,15 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Delivering freshness...',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withOpacity(0.8),
+                          SizedBox(width: 12.w),
+                          Flexible(
+                            child: Text(
+                              'Delivering freshness...',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
                             ),
                           ),
                         ],
@@ -296,8 +306,13 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
   }
 
   Widget _buildCitySkyline(Size size) {
+    final isLandscape = size.width > size.height;
+    final skylineHeight = (size.height * (isLandscape ? 0.34 : 0.24))
+        .clamp(110.0, 200.0)
+        .toDouble();
+    final scale = (size.width / 390).clamp(0.72, 1.15).toDouble();
     return SizedBox(
-      height: 200,
+      height: skylineHeight,
       width: size.width,
       child: Stack(
         clipBehavior: Clip.none,
@@ -311,13 +326,13 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _buildBuilding(50, 70, const Color(0xFF0A4A25)),
-                _buildBuilding(40, 55, const Color(0xFF0B5028)),
-                _buildBuilding(55, 85, const Color(0xFF0A4A25)),
-                _buildBuilding(45, 60, const Color(0xFF0B5028)),
-                _buildBuilding(50, 75, const Color(0xFF0A4A25)),
-                _buildBuilding(40, 50, const Color(0xFF0B5028)),
-                _buildBuilding(55, 80, const Color(0xFF0A4A25)),
+                _buildBuilding(50 * scale, 70 * scale, const Color(0xFF0A4A25)),
+                _buildBuilding(40 * scale, 55 * scale, const Color(0xFF0B5028)),
+                _buildBuilding(55 * scale, 85 * scale, const Color(0xFF0A4A25)),
+                _buildBuilding(45 * scale, 60 * scale, const Color(0xFF0B5028)),
+                _buildBuilding(50 * scale, 75 * scale, const Color(0xFF0A4A25)),
+                _buildBuilding(40 * scale, 50 * scale, const Color(0xFF0B5028)),
+                _buildBuilding(55 * scale, 80 * scale, const Color(0xFF0A4A25)),
               ],
             ),
           ),
@@ -325,29 +340,57 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           // Foreground buildings with more detail
           Positioned(
             bottom: 40,
-            left: 20,
-            child: _buildDetailedBuilding(55, 90, const Color(0xFF063D1E)),
-          ),
-          Positioned(bottom: 40, left: 90, child: _buildGroceryStore()),
-          Positioned(
-            bottom: 40,
-            left: 180,
-            child: _buildDetailedBuilding(50, 75, const Color(0xFF074422)),
+            left: 20 * scale,
+            child: _buildDetailedBuilding(
+              55 * scale,
+              90 * scale,
+              const Color(0xFF063D1E),
+            ),
           ),
           Positioned(
             bottom: 40,
-            right: 100,
-            child: _buildDetailedBuilding(45, 85, const Color(0xFF063D1E)),
+            left: 90 * scale,
+            child: _buildGroceryStore(scale),
           ),
           Positioned(
             bottom: 40,
-            right: 20,
-            child: _buildDetailedBuilding(55, 70, const Color(0xFF074422)),
+            left: 180 * scale,
+            child: _buildDetailedBuilding(
+              50 * scale,
+              75 * scale,
+              const Color(0xFF074422),
+            ),
+          ),
+          Positioned(
+            bottom: 40,
+            right: 100 * scale,
+            child: _buildDetailedBuilding(
+              45 * scale,
+              85 * scale,
+              const Color(0xFF063D1E),
+            ),
+          ),
+          Positioned(
+            bottom: 40,
+            right: 20 * scale,
+            child: _buildDetailedBuilding(
+              55 * scale,
+              70 * scale,
+              const Color(0xFF074422),
+            ),
           ),
 
           // Trees
-          Positioned(bottom: 35, left: 160, child: _buildTree(35)),
-          Positioned(bottom: 35, right: 160, child: _buildTree(30)),
+          Positioned(
+            bottom: 35,
+            left: 160 * scale,
+            child: _buildTree(35 * scale),
+          ),
+          Positioned(
+            bottom: 35,
+            right: 160 * scale,
+            child: _buildTree(30 * scale),
+          ),
 
           // Ground
           Positioned(
@@ -378,7 +421,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                 left:
                     size.width * 0.5 +
                     (_vehiclePosition.value * size.width * 0.45) -
-                    28,
+                    28.r,
                 child: Transform.translate(
                   offset: Offset(0, _bounceAnimation.value),
                   child: _buildDeliveryScooter(),
@@ -474,10 +517,10 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     );
   }
 
-  Widget _buildGroceryStore() {
+  Widget _buildGroceryStore([double scale = 1]) {
     return Container(
-      width: 70,
-      height: 75,
+      width: 70 * scale,
+      height: 75 * scale,
       decoration: BoxDecoration(
         color: const Color(0xFF2ECC71),
         borderRadius: const BorderRadius.only(
@@ -490,7 +533,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
         children: [
           // Awning
           Container(
-            height: 16,
+            height: 16 * scale,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -503,23 +546,24 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                 topRight: Radius.circular(5),
               ),
             ),
-            child: const Center(
-              child: Text(
+            child: Center(
+              child: AutoSizeText(
                 'FRESH',
                 style: TextStyle(
-                  fontSize: 8,
+                  fontSize: (8 * scale).clamp(6.0, 9.0).toDouble(),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 1,
                 ),
+                maxLines: 1,
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6 * scale),
           // Store window
           Container(
-            width: 50,
-            height: 40,
+            width: 50 * scale,
+            height: 40 * scale,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.9),
               borderRadius: BorderRadius.circular(3),
@@ -533,16 +577,24 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
               children: [
                 Icon(
                   Icons.shopping_basket,
-                  size: 18,
+                  size: 18 * scale,
                   color: Colors.green.shade700,
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2 * scale),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.apple, size: 10, color: Colors.red.shade400),
-                    const SizedBox(width: 4),
-                    Icon(Icons.eco, size: 10, color: Colors.green.shade400),
+                    Icon(
+                      Icons.apple,
+                      size: 10 * scale,
+                      color: Colors.red.shade400,
+                    ),
+                    SizedBox(width: 4 * scale),
+                    Icon(
+                      Icons.eco,
+                      size: 10 * scale,
+                      color: Colors.green.shade400,
+                    ),
                   ],
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
@@ -238,7 +239,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 6.w),
                   child: _buildBannerCard(banner),
                 ),
               );
@@ -247,23 +248,23 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
         ),
         // Dot indicators
         if (widget.banners.length > 1) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(widget.banners.length, (index) {
               final isActive = (_currentPage % widget.banners.length) == index;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: isActive ? 20 : 6,
-                height: 6,
+                margin: EdgeInsets.symmetric(horizontal: 3.w),
+                width: isActive ? 20.w : 6.w,
+                height: 6.h,
                 decoration: BoxDecoration(
                   color: isActive
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(
                           context,
                         ).colorScheme.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(3.r),
                 ),
               );
             }),
@@ -278,17 +279,17 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
       onTap: () => _handleTap(banner),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -308,13 +309,13 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.image,
-                            size: 40,
+                            size: 40.r,
                             color: Colors.white30,
                           ),
                           if (banner.title.isNotEmpty) ...[
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8.h),
                             Text(
                               banner.title,
                               style: const TextStyle(color: Colors.white70),
@@ -332,30 +333,30 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                 bottom: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8.w,
+                    vertical: 4.h,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Tap to explore',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(width: 4),
+                      SizedBox(width: 4.w),
                       Icon(
                         Icons.arrow_forward_ios,
                         color: Colors.white,
-                        size: 10,
+                        size: 10.r,
                       ),
                     ],
                   ),

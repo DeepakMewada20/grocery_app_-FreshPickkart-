@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 
@@ -83,27 +87,27 @@ class _CouponsScreenState extends State<CouponsScreen> {
         elevation: 0,
         title: Text(
           'Available Coupons',
-          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
+          style: AppTextStyles.screenTitle(context),
         ),
         centerTitle: true,
         actions: [
           if (!_initialLoad && _error == null)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
+              padding: EdgeInsets.only(right: 16.w),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 4.h,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Text(
                   '${_coupons.length}',
                   style: TextStyle(
                     color: AppTheme.primaryGreen,
-                    fontSize: 13,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -120,22 +124,24 @@ class _CouponsScreenState extends State<CouponsScreen> {
             ? ListView(
                 physics: const ClampingScrollPhysics(),
                 children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.sizeOf(context).height * 0.55,
+                    ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.error_outline,
-                            size: 64,
-                            color: cs.onSurface.withOpacity(0.3),
+                            size: 64.r,
+                            color: cs.onSurface.withValues(alpha: 0.3),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           Text(
                             _error!,
                             style: TextStyle(
-                              color: cs.onSurface.withOpacity(0.5),
+                              color: cs.onSurface.withValues(alpha: 0.5),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -149,40 +155,43 @@ class _CouponsScreenState extends State<CouponsScreen> {
             ? ListView(
                 physics: const ClampingScrollPhysics(),
                 children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.sizeOf(context).height * 0.55,
+                    ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(28),
+                            padding: EdgeInsets.all(28.r),
                             decoration: BoxDecoration(
                               color: cs.surfaceContainerHighest,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.local_offer_outlined,
-                              size: 56,
-                              color: cs.onSurface.withOpacity(0.25),
+                              size: 56.r,
+                              color: cs.onSurface.withValues(alpha: 0.25),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24.h),
                           Text(
                             'No Coupons Available',
                             style: GoogleFonts.poppins(
                               color: cs.onSurface,
-                              fontSize: 20,
+                              fontSize: 20.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8.h),
                           Text(
                             'Check back soon for exciting offers!',
                             style: TextStyle(
-                              color: cs.onSurface.withOpacity(0.5),
-                              fontSize: 14,
+                              color: cs.onSurface.withValues(alpha: 0.5),
+                              fontSize: 14.sp,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -193,24 +202,29 @@ class _CouponsScreenState extends State<CouponsScreen> {
             : CustomScrollView(
                 physics: const ClampingScrollPhysics(),
                 slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(child: SizedBox(height: 16.h)),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppResponsive.pageHorizontalPadding(context),
+                    ),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: CouponListCard(
-                            coupon: _coupons[index],
-                            isDark: isDark,
-                            isHighlighted: _isHighlighted(_coupons[index]),
+                          padding: EdgeInsets.only(bottom: 16.h),
+                          child: AppResponsive.constrainContent(
+                            context: context,
+                            child: CouponListCard(
+                              coupon: _coupons[index],
+                              isDark: isDark,
+                              isHighlighted: _isHighlighted(_coupons[index]),
+                            ),
                           ),
                         ),
                         childCount: _coupons.length,
                       ),
                     ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  SliverToBoxAdapter(child: SizedBox(height: 32.h)),
                 ],
               ),
       ),
@@ -267,7 +281,7 @@ class CouponListCard extends StatelessWidget {
           color: isHighlighted
               ? _accentColor.withValues(alpha: 0.06)
               : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isHighlighted ? _accentColor : cs.outlineVariant,
             width: isHighlighted ? 2 : 1,
@@ -277,7 +291,7 @@ class CouponListCard extends StatelessWidget {
                   BoxShadow(
                     color: _accentColor.withValues(alpha: 0.2),
                     blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4.h),
                   ),
                 ]
               : [],
@@ -286,21 +300,24 @@ class CouponListCard extends StatelessWidget {
           children: [
             // ─── Top ───
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 14.h),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Icon
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: 50.r,
+                    height: 50.r,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [_accentColor, _accentColor.withOpacity(0.65)],
+                        colors: [
+                          _accentColor,
+                          _accentColor.withValues(alpha: 0.65),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(14.r),
                     ),
                     child: Builder(
                       builder: (context) {
@@ -310,32 +327,35 @@ class CouponListCard extends StatelessWidget {
                               ? Icons.local_shipping_rounded
                               : Icons.discount_rounded,
                           color: cs.onPrimary,
-                          size: 24,
+                          size: 24.r,
                         );
                       },
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14.w),
                   // Code + description
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AutoSizeText(
                           coupon.code,
                           style: GoogleFonts.poppins(
                             color: cs.onSurface,
-                            fontSize: 17,
+                            fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
                           ),
+                          minFontSize: 12,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 3),
+                        SizedBox(height: 3.h),
                         Text(
                           coupon.description,
                           style: TextStyle(
-                            color: cs.onSurface.withOpacity(0.55),
-                            fontSize: 12.5,
+                            color: cs.onSurface.withValues(alpha: 0.55),
+                            fontSize: 12.5.sp,
                             height: 1.4,
                           ),
                           maxLines: 2,
@@ -344,24 +364,26 @@ class CouponListCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   // Category badge
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
-                      color: _accentColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
+                      color: _accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
-                    child: Text(
+                    child: AutoSizeText(
                       coupon.isDeliveryDiscount ? 'Delivery' : 'Price',
                       style: TextStyle(
                         color: _accentColor,
-                        fontSize: 10,
+                        fontSize: 10.sp,
                         fontWeight: FontWeight.bold,
                       ),
+                      minFontSize: 8,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -374,13 +396,13 @@ class CouponListCard extends StatelessWidget {
                 Transform.translate(
                   offset: const Offset(-1, 0),
                   child: Container(
-                    width: 20,
-                    height: 20,
+                    width: 20.r,
+                    height: 20.r,
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _accentColor.withOpacity(0.3),
+                        color: _accentColor.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -395,7 +417,7 @@ class CouponListCard extends StatelessWidget {
                         children: List.generate(
                           count,
                           (_) => Container(
-                            width: 4,
+                            width: 4.w,
                             height: 1.5,
                             decoration: BoxDecoration(
                               color: cs.outlineVariant,
@@ -410,13 +432,13 @@ class CouponListCard extends StatelessWidget {
                 Transform.translate(
                   offset: const Offset(1, 0),
                   child: Container(
-                    width: 20,
-                    height: 20,
+                    width: 20.r,
+                    height: 20.r,
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: _accentColor.withOpacity(0.3),
+                        color: _accentColor.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -427,94 +449,61 @@ class CouponListCard extends StatelessWidget {
 
             // ─── Bottom ───
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 14,
-                      runSpacing: 6,
-                      children: [
+              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 16.h),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final details = Wrap(
+                    spacing: 14.w,
+                    runSpacing: 8.h,
+                    children: [
+                      _detail(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Min. Order',
+                        value: '₹${coupon.minOrderAmount.formatPrice}',
+                        cs: cs,
+                      ),
+                      if (coupon.discountValue != null)
                         _detail(
-                          icon: Icons.shopping_bag_outlined,
-                          label: 'Min. Order',
-                          value: '₹${coupon.minOrderAmount.formatPrice}',
+                          icon: coupon.type == 'PERCENTAGE_DISCOUNT'
+                              ? Icons.percent
+                              : Icons.currency_rupee,
+                          label: 'Discount',
+                          value: coupon.type == 'PERCENTAGE_DISCOUNT'
+                              ? '${coupon.discountValue!.formatPrice}% OFF'
+                              : '₹${coupon.discountValue!.formatPrice} OFF',
                           cs: cs,
                         ),
-                        if (coupon.discountValue != null)
-                          _detail(
-                            icon: coupon.type == 'PERCENTAGE_DISCOUNT'
-                                ? Icons.percent
-                                : Icons.currency_rupee,
-                            label: 'Discount',
-                            value: coupon.type == 'PERCENTAGE_DISCOUNT'
-                                ? '${coupon.discountValue!.formatPrice}% OFF'
-                                : '₹${coupon.discountValue!.formatPrice} OFF',
-                            cs: cs,
-                          ),
-                        if (coupon.maxDiscount != null)
-                          _detail(
-                            icon: Icons.trending_down_rounded,
-                            label: 'Upto',
-                            value: '₹${coupon.maxDiscount!.formatPrice}',
-                            cs: cs,
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Copy button
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          _accentColor,
-                          _accentColor.withOpacity(0.75),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _copyCode(context),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 9,
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final cs = Theme.of(context).colorScheme;
-                              return Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.copy_rounded,
-                                    color: cs.onPrimary,
-                                    size: 15,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Copy Code',
-                                    style: TextStyle(
-                                      color: cs.onPrimary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
+                      if (coupon.maxDiscount != null)
+                        _detail(
+                          icon: Icons.trending_down_rounded,
+                          label: 'Upto',
+                          value: '₹${coupon.maxDiscount!.formatPrice}',
+                          cs: cs,
                         ),
-                      ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                  final copyButton = _CopyCouponButton(
+                    accentColor: _accentColor,
+                    onTap: () => _copyCode(context),
+                  );
+                  if (constraints.maxWidth < 330) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        details,
+                        SizedBox(height: 12.h),
+                        copyButton,
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: details),
+                      SizedBox(width: 12.w),
+                      copyButton,
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -532,30 +521,92 @@ class CouponListCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: cs.onSurface.withOpacity(0.4)),
-        const SizedBox(width: 4),
+        Icon(icon, size: 12.r, color: cs.onSurface.withValues(alpha: 0.4)),
+        SizedBox(width: 4.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
               style: TextStyle(
-                color: cs.onSurface.withOpacity(0.4),
-                fontSize: 9,
+                color: cs.onSurface.withValues(alpha: 0.4),
+                fontSize: 9.sp,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            Text(
+            AutoSizeText(
               value,
               style: GoogleFonts.poppins(
                 color: cs.onSurface,
-                fontSize: 11.5,
+                fontSize: 11.5.sp,
                 fontWeight: FontWeight.bold,
               ),
+              minFontSize: 9,
+              maxLines: 1,
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _CopyCouponButton extends StatelessWidget {
+  const _CopyCouponButton({
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            accentColor,
+            accentColor.withValues(alpha: 0.75),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.copy_rounded,
+                  color: cs.onPrimary,
+                  size: 15.r,
+                ),
+                SizedBox(width: 6.w),
+                AutoSizeText(
+                  'Copy Code',
+                  style: TextStyle(
+                    color: cs.onPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.sp,
+                  ),
+                  minFontSize: 10,
+                  maxLines: 1,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

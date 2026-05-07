@@ -3,7 +3,9 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class NetworkErrorWidget extends StatefulWidget {
@@ -193,7 +195,6 @@ class NetworkStatusBanner extends StatelessWidget {
       );
     });
   }
-
 
   Widget _buildTopBanner(NetworkController controller) {
     return ClipRect(
@@ -675,110 +676,80 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
     required Color baseColor,
     required Color highlightColor,
   }) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.55,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(12),
+    Widget shimmerBox({
+      double? height,
+      double? width,
+      BorderRadius? borderRadius,
+    }) {
+      final radius = borderRadius ?? BorderRadius.circular(4.r);
+      return Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(color: baseColor, borderRadius: radius),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: ShaderMask(
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                begin: Alignment(_animation.value - 1, 0),
+                end: Alignment(_animation.value + 1, 0),
+                colors: [baseColor, highlightColor, baseColor],
+                stops: const [0.0, 0.5, 1.0],
+              ).createShader(bounds);
+            },
+            blendMode: BlendMode.srcIn,
+            child: Container(color: baseColor),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: baseColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: AppResponsive.productGridDelegate(
+            context,
+            constraints.maxWidth,
+            dense: true,
+            spacing: 8,
+          ),
+          itemCount: 6,
+          itemBuilder: (context, index) {
+            return Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: shimmerBox(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(12.r),
+                      ),
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
-                    child: ShaderMask(
-                      shaderCallback: (bounds) {
-                        return LinearGradient(
-                          begin: Alignment(_animation.value - 1, 0),
-                          end: Alignment(_animation.value + 1, 0),
-                          colors: [baseColor, highlightColor, baseColor],
-                          stops: const [0.0, 0.5, 1.0],
-                        ).createShader(bounds);
-                      },
-                      blendMode: BlendMode.srcIn,
-                      child: Container(color: baseColor),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(6.r),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          shimmerBox(height: 8.h, width: 50.w),
+                          SizedBox(height: 4.h),
+                          shimmerBox(height: 6.h, width: 30.w),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 8,
-                      width: 50,
-                      decoration: BoxDecoration(
-                        color: baseColor,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: ShaderMask(
-                          shaderCallback: (bounds) {
-                            return LinearGradient(
-                              begin: Alignment(_animation.value - 1, 0),
-                              end: Alignment(_animation.value + 1, 0),
-                              colors: [baseColor, highlightColor, baseColor],
-                              stops: const [0.0, 0.5, 1.0],
-                            ).createShader(bounds);
-                          },
-                          blendMode: BlendMode.srcIn,
-                          child: Container(color: baseColor),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      height: 6,
-                      width: 30,
-                      decoration: BoxDecoration(
-                        color: baseColor,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: ShaderMask(
-                          shaderCallback: (bounds) {
-                            return LinearGradient(
-                              begin: Alignment(_animation.value - 1, 0),
-                              end: Alignment(_animation.value + 1, 0),
-                              colors: [baseColor, highlightColor, baseColor],
-                              stops: const [0.0, 0.5, 1.0],
-                            ).createShader(bounds);
-                          },
-                          blendMode: BlendMode.srcIn,
-                          child: Container(color: baseColor),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

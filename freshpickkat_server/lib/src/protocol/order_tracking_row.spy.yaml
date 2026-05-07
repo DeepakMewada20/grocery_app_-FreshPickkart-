@@ -1,0 +1,19 @@
+class: OrderTrackingRow
+serverOnly: true
+table: order_tracking
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
+  trackingEnabled: bool, default=false
+  userLatitude: double?
+  userLongitude: double?
+  userAddress: String?
+  userLocationType: String?
+  riderLatitude: double?
+  riderLongitude: double?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  order_tracking_order_idx:
+    fields: orderId
+    unique: true

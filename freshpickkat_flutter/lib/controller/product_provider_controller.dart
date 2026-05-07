@@ -35,7 +35,6 @@ class ProductProviderController extends GetxController {
     return '${currentCategory.value}|$sub|${currentSortBy.value}';
   }
 
-
   Future<void> fetchProductsIfEmpty() async {
     if (_isFetching) return;
     if (allProducts.isNotEmpty) return;

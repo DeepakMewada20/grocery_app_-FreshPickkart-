@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 
 class GroceryLoadingAnimation extends StatefulWidget {
@@ -91,12 +92,14 @@ class SuggestionSkeletonCard extends StatelessWidget {
     final suggestionTheme = Theme.of(context).extension<AppSuggestionTheme>();
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.82,
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-      padding: const EdgeInsets.all(14),
+      width: (MediaQuery.sizeOf(context).width * 0.82)
+          .clamp(280.0, 340.0)
+          .toDouble(),
+      margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+      padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
         color: suggestionTheme?.cardBackground ?? cs.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
           color: suggestionTheme?.cardBorder ?? cs.outlineVariant,
           width: 1,
@@ -107,21 +110,21 @@ class SuggestionSkeletonCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const _ShimmerWidget(width: 36, height: 36, borderRadius: 18),
-              const SizedBox(width: 10),
+              _ShimmerWidget(width: 36.r, height: 36.r, borderRadius: 18.r),
+              SizedBox(width: 10.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _ShimmerWidget(
                       width: double.infinity,
-                      height: 14,
+                      height: 14.h,
                       borderRadius: 4,
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6.h),
                     _ShimmerWidget(
-                      width: 120,
-                      height: 14,
+                      width: 120.w,
+                      height: 14.h,
                       borderRadius: 4,
                     ),
                   ],
@@ -129,25 +132,25 @@ class SuggestionSkeletonCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           _ShimmerWidget(
             width: double.infinity,
-            height: 6,
+            height: 6.h,
             borderRadius: 3,
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           _ShimmerWidget(
-            width: 100,
-            height: 10,
+            width: 100.w,
+            height: 10.h,
             borderRadius: 4,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               _ShimmerWidget(
-                width: 80,
-                height: 36,
+                width: 80.w,
+                height: 36.h,
                 borderRadius: 8,
               ),
             ],
@@ -164,10 +167,10 @@ class SuggestionSkeletonSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180,
+      height: 180.h.clamp(166.0, 210.0).toDouble(),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
         itemCount: 3,
         itemBuilder: (context, index) {
           return const SuggestionSkeletonCard();
@@ -220,14 +223,14 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
                 offset: Offset(_moveAnimation.value, 0),
                 child: Icon(
                   Icons.shopping_cart_outlined,
-                  size: 60,
+                  size: 60.r,
                   color: Colors.green,
                 ),
               );
             },
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           AnimatedBuilder(
             animation: _controller,
@@ -237,27 +240,27 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
                 children: [
                   Opacity(
                     opacity: _fadeAnimation.value,
-                    child: const Icon(
+                    child: Icon(
                       Icons.circle,
-                      size: 8,
+                      size: 8.r,
                       color: Colors.green,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6.w),
                   Opacity(
                     opacity: 1 - _fadeAnimation.value,
-                    child: const Icon(
+                    child: Icon(
                       Icons.circle,
-                      size: 8,
+                      size: 8.r,
                       color: Colors.green,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: 6.w),
                   Opacity(
                     opacity: _fadeAnimation.value,
-                    child: const Icon(
+                    child: Icon(
                       Icons.circle,
-                      size: 8,
+                      size: 8.r,
                       color: Colors.green,
                     ),
                   ),
@@ -266,10 +269,10 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
             },
           ),
 
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8.h),
+          Text(
             "Loading products...",
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey),
           ),
         ],
       ),

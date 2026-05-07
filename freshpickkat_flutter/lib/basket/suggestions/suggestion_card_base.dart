@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 class SuggestionCardBase extends StatefulWidget {
   final client.BasketSuggestion suggestion;
@@ -70,23 +72,30 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
         child: GestureDetector(
           onTap: widget.onTap,
           child: Container(
-            width: widget.width ?? MediaQuery.of(context).size.width * 0.82,
-            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            width:
+                widget.width ??
+                (MediaQuery.sizeOf(context).width * 0.82)
+                    .clamp(
+                      280.0,
+                      AppResponsive.isTablet(context) ? 360.0 : 340.0,
+                    )
+                    .toDouble(),
+            margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
               border: Border.all(color: borderColor, width: 1),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
                   blurRadius: 14,
                   spreadRadius: 0,
-                  offset: const Offset(0, 4),
+                  offset: Offset(0, 4.h),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20.r),
               child: Stack(
                 children: [
                   Row(

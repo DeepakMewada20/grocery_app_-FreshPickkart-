@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/modal/home_category_modal.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/category_header_widget.dart';
 import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryGridSection extends StatelessWidget {
   final HomeCategoryModal category;
@@ -25,33 +27,36 @@ class CategoryGridSection extends StatelessWidget {
         ),
         // Grid View
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: category.homePageCategoryItem.length,
-            itemBuilder: (context, index) {
-              final item = category.homePageCategoryItem[index];
-              return CategoryItemCard(
-                itemName: item['name'] ?? 'Item',
-                imagePath: item['image'] ?? 'lib/assets/images/Fruits_.avif',
-                onTap: () {
-                  // Handle item tap
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${item['name']} tapped!')),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: AppResponsive.categoryGridDelegate(
+                  context,
+                  constraints.maxWidth,
+                ),
+                itemCount: category.homePageCategoryItem.length,
+                itemBuilder: (context, index) {
+                  final item = category.homePageCategoryItem[index];
+                  return CategoryItemCard(
+                    itemName: item['name'] ?? 'Item',
+                    imagePath:
+                        item['image'] ?? 'lib/assets/images/Fruits_.avif',
+                    onTap: () {
+                      // Handle item tap
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${item['name']} tapped!')),
+                      );
+                    },
                   );
                 },
               );
             },
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16.h),
       ],
     );
   }

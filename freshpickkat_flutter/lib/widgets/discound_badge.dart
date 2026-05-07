@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DiscountBadge extends StatelessWidget {
   final String discount;
@@ -16,10 +18,10 @@ class DiscountBadge extends StatelessWidget {
         ClipPath(
           clipper: ZigzagClipper(),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+            padding: EdgeInsets.fromLTRB(10.w, 6.h, 10.w, 10.h),
             decoration: BoxDecoration(
               color: const Color(0xFFFFEB3B),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),
@@ -28,38 +30,42 @@ class DiscountBadge extends StatelessWidget {
                 ),
               ],
             ),
-            child: Text(
+            child: AutoSizeText(
               discount,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.bold,
                 height: 1.1,
               ),
               textAlign: TextAlign.center,
+              minFontSize: 8,
+              maxLines: 2,
             ),
           ),
         ),
         // Optional label badge below
         if (label != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: const BoxDecoration(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
               color: Color(0xFFFFEB3B),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(4),
+                bottomLeft: Radius.circular(4.r),
+                bottomRight: Radius.circular(4.r),
               ),
             ),
-            child: Text(
+            child: AutoSizeText(
               label!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
-                fontSize: 9,
+                fontSize: 9.sp,
                 fontWeight: FontWeight.w600,
                 height: 1.0,
               ),
               textAlign: TextAlign.center,
+              minFontSize: 7,
+              maxLines: 1,
             ),
           ),
       ],

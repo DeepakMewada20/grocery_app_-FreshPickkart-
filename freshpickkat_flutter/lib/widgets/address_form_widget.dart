@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
@@ -124,24 +126,23 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           }
         });
       }
-      return SingleChildScrollView(
-      child: Column(
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.showTitle) ...[
             Text(
               'Select Your Address',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: _getTextColor(),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
           ],
           // Name field
           _buildLabel('Your Name *'),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           _buildTextField(
             controller: _nameController,
             hint: 'Enter your full name',
@@ -149,9 +150,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             errorText: _fieldErrors['name'],
             fieldKey: 'name',
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
 
-// Location section
+          // Location section
           Row(
             children: [
               _buildLabel('Select Address *'),
@@ -161,7 +162,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                    strokeWidth: 2.r,
                     color: widget.isDarkTheme
                         ? Colors.white
                         : const Color(0xFF00B894),
@@ -169,75 +170,75 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           // Location button - opens map picker
           _buildLocationButton(),
 
-        // TODO: Uncomment if needed - custom address option (removed for map-only selection)
-        // Custom address fields
-        // if (_showCustomAddress) ...[
-        //   const SizedBox(height: 12),
-        //   _buildTextField(
-        //     controller: _streetController,
-        //     hint: 'Street Address',
-        //     icon: Icons.add_home_work_outlined,
-        //     errorText: _fieldErrors['street'],
-        //     fieldKey: 'street',
-        //   ),
-        //   const SizedBox(height: 12),
-        //   _buildTextField(
-        //     controller: _cityController,
-        //     hint: 'City',
-        //     icon: Icons.location_city,
-        //     errorText: _fieldErrors['city'],
-        //     fieldKey: 'city',
-        //   ),
-        //   const SizedBox(height: 12),
-        //   Row(
-        //     children: [
-        //       Expanded(
-        //         child: _buildTextField(
-        //           controller: _stateController,
-        //           hint: 'State',
-        //           icon: Icons.map_outlined,
-        //           errorText: _fieldErrors['state'],
-        //           fieldKey: 'state',
-        //         ),
-        //       ),
-        //       const SizedBox(width: 12),
-        //       Expanded(
-        //         child: _buildTextField(
-        //           controller: _zipController,
-        //           hint: 'Zip Code',
-        //           icon: Icons.numbers,
-        //           errorText: _fieldErrors['zipCode'],
-        //           fieldKey: 'zipCode',
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ],
-// ],
-        // ]
+          // TODO: Uncomment if needed - custom address option (removed for map-only selection)
+          // Custom address fields
+          // if (_showCustomAddress) ...[
+          //   const SizedBox(height: 12),
+          //   _buildTextField(
+          //     controller: _streetController,
+          //     hint: 'Street Address',
+          //     icon: Icons.add_home_work_outlined,
+          //     errorText: _fieldErrors['street'],
+          //     fieldKey: 'street',
+          //   ),
+          //   const SizedBox(height: 12),
+          //   _buildTextField(
+          //     controller: _cityController,
+          //     hint: 'City',
+          //     icon: Icons.location_city,
+          //     errorText: _fieldErrors['city'],
+          //     fieldKey: 'city',
+          //   ),
+          //   const SizedBox(height: 12),
+          //   Row(
+          //     children: [
+          //       Expanded(
+          //         child: _buildTextField(
+          //           controller: _stateController,
+          //           hint: 'State',
+          //           icon: Icons.map_outlined,
+          //           errorText: _fieldErrors['state'],
+          //           fieldKey: 'state',
+          //         ),
+          //       ),
+          //       const SizedBox(width: 12),
+          //       Expanded(
+          //         child: _buildTextField(
+          //           controller: _zipController,
+          //           hint: 'Zip Code',
+          //           icon: Icons.numbers,
+          //           errorText: _fieldErrors['zipCode'],
+          //           fieldKey: 'zipCode',
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ],
+          // ],
+          // ]
 
-        // Optional fields (always visible - map provides the address)
-        _buildLabel('Additional Details (Optional)'),
-          const SizedBox(height: 12),
+          // Optional fields (always visible - map provides the address)
+          _buildLabel('Additional Details (Optional)'),
+          SizedBox(height: 12.h),
 
           _buildTextField(
             controller: _floorController,
             hint: 'Floor / Apartment number',
             icon: Icons.apartment_outlined,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           _buildTextField(
             controller: _landmarkController,
             hint: 'Nearby landmark',
             icon: Icons.place_outlined,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
 
           _buildTextField(
             controller: _instructionsController,
@@ -246,10 +247,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             maxLines: 2,
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: 32.h),
         ],
-      ),
-    );
+      );
     });
   }
 
@@ -257,7 +257,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: 14.sp,
         fontWeight: FontWeight.w600,
         color: _getLabelColor(),
       ),
@@ -278,7 +278,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         Container(
           decoration: BoxDecoration(
             color: _getBgColor(),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12.r),
             border: errorText != null
                 ? Border.all(color: Colors.red.withValues(alpha: 0.5))
                 : null,
@@ -286,15 +286,15 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: TextStyle(fontSize: 15, color: _getTextColor()),
+            style: TextStyle(fontSize: 15.sp, color: _getTextColor()),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: _getHintColor(), fontSize: 14),
-              prefixIcon: Icon(icon, color: Colors.grey[600], size: 22),
+              hintStyle: TextStyle(color: _getHintColor(), fontSize: 14.sp),
+              prefixIcon: Icon(icon, color: Colors.grey[600], size: 22.r),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.w,
+                vertical: 16.h,
               ),
             ),
             onChanged: (value) {
@@ -305,12 +305,12 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           ),
         ),
         if (errorText != null) ...[
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             errorText,
             style: TextStyle(
               color: Colors.red[widget.isDarkTheme ? 400 : 600],
-              fontSize: 12,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -403,12 +403,12 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: widget.isDarkTheme
               ? Color(0xFF1B8A4C).withValues(alpha: 0.15)
               : const Color(0xFF00B894).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: widget.isDarkTheme
                 ? Color(0xFF1B8A4C).withValues(alpha: 0.3)
@@ -418,39 +418,43 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10.r),
               decoration: BoxDecoration(
                 color: widget.isDarkTheme
                     ? Color(0xFF1B8A4C)
                     : const Color(0xFF00B894),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.my_location,
                 color: Colors.white,
-                size: 20,
+                size: 20.r,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     'Select from Map',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
                       color: _getTextColor(),
                     ),
+                    maxLines: 1,
+                    minFontSize: 11,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2.h),
                   Text(
                     'Choose your location on the map',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.sp,
                       color: _getHintColor(),
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -458,12 +462,11 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             Icon(
               Icons.arrow_forward_ios,
               color: Colors.grey[widget.isDarkTheme ? 600 : 400],
-              size: 16,
+              size: 16.r,
             ),
           ],
         ),
       ),
     );
   }
-
-  }
+}

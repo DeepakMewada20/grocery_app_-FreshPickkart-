@@ -5,12 +5,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PaymentConfig {
-  static const String razorpayKeyId =
-      String.fromEnvironment('RAZORPAY_KEY_ID');
-  static const String functionsRegion =
-      String.fromEnvironment('FIREBASE_FUNCTIONS_REGION');
-  static const String razorpayKeyEndpoint =
-      String.fromEnvironment('RAZORPAY_KEY_ENDPOINT');
+  static const String razorpayKeyId = String.fromEnvironment('RAZORPAY_KEY_ID');
+  static const String functionsRegion = String.fromEnvironment(
+    'FIREBASE_FUNCTIONS_REGION',
+  );
+  static const String razorpayKeyEndpoint = String.fromEnvironment(
+    'RAZORPAY_KEY_ENDPOINT',
+  );
 
   static String? _cachedKeyId;
 
@@ -22,8 +23,7 @@ class PaymentConfig {
 
   static Future<String?> getRazorpayKeyId() async {
     if (razorpayKeyId.isNotEmpty) return razorpayKeyId;
-    final envKey =
-        dotenv.env['RAZORPAY_KEY_ID'] ?? dotenv.env['RAZORPAY_KEY'];
+    final envKey = dotenv.env['RAZORPAY_KEY_ID'] ?? dotenv.env['RAZORPAY_KEY'];
     if (envKey != null && envKey.isNotEmpty) return envKey;
     if (_cachedKeyId != null && _cachedKeyId!.isNotEmpty) {
       return _cachedKeyId;
@@ -45,8 +45,9 @@ class PaymentConfig {
       final app = Firebase.app();
       final projectId = app.options.projectId;
       if (projectId.trim().isEmpty) return null;
-      final region =
-          functionsRegion.isNotEmpty ? functionsRegion : 'us-central1';
+      final region = functionsRegion.isNotEmpty
+          ? functionsRegion
+          : 'us-central1';
       return 'https://$region-$projectId.cloudfunctions.net/getRazorpayKeyId';
     } catch (_) {
       return null;

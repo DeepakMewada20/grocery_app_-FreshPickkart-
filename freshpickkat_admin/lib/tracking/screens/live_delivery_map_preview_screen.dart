@@ -350,8 +350,7 @@ class _LiveDeliveryMapPreviewScreenState
                     ),
                   ),
                 ),
-                if (_controller.hasArrivingSoonFlag)
-                  const SizedBox(width: 8),
+                if (_controller.hasArrivingSoonFlag) const SizedBox(width: 8),
                 if (_controller.hasArrivingSoonFlag)
                   _BadgeChip(label: 'Arriving soon', color: Colors.green),
                 const SizedBox(width: 8),
@@ -389,10 +388,9 @@ class _LiveDeliveryMapPreviewScreenState
                 Expanded(
                   child: _MetricTile(
                     label: 'Distance',
-                    value:
-                        distance <= 999
-                            ? '${distance.toStringAsFixed(0)} m'
-                            : '${(distance / 1000).toStringAsFixed(1)} km',
+                    value: distance <= 999
+                        ? '${distance.toStringAsFixed(0)} m'
+                        : '${(distance / 1000).toStringAsFixed(1)} km',
                     icon: Icons.straighten_rounded,
                     accent: Colors.indigo,
                   ),

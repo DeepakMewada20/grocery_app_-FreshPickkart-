@@ -6,14 +6,14 @@ import 'package:get/get.dart';
 
 import '../models/delivery_location.dart';
 import '../models/order_tracking_snapshot.dart';
-import '../repositories/firestore_order_tracking_repository.dart';
+import '../repositories/server_order_tracking_repository.dart';
 
 class OrderTrackingController extends GetxController {
   OrderTrackingController({
-    FirestoreOrderTrackingRepository? repository,
-  }) : _repository = repository ?? FirestoreOrderTrackingRepository();
+    ServerOrderTrackingRepository? repository,
+  }) : _repository = repository ?? ServerOrderTrackingRepository();
 
-  final FirestoreOrderTrackingRepository _repository;
+  final ServerOrderTrackingRepository _repository;
 
   final Rxn<OrderTrackingSnapshot> tracking = Rxn<OrderTrackingSnapshot>();
   final Rxn<LatLng> riderPosition = Rxn<LatLng>();

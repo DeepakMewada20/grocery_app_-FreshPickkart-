@@ -5,8 +5,10 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 /// Screen shown when user taps a "combo" type banner.
@@ -96,9 +98,9 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
         child: Obx(() {
           if (_comboController.isLoading.value &&
               _comboController.activeComboOffers.isEmpty) {
-            return const ProductGridShimmer(
+            return ProductGridShimmer(
               itemCount: 4,
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             );
           }
 
@@ -110,32 +112,32 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(28),
+                    padding: EdgeInsets.all(28.r),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.shopping_basket_outlined,
-                      size: 56,
+                      size: 56.r,
                       color: cs.onSurface.withValues(alpha: 0.3),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.h),
                   Text(
                     'No combo deals right now',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 20,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8.h),
                   Text(
                     'Check back soon for exciting bundle deals.',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 14,
+                      fontSize: 14.sp,
                     ),
                   ),
                 ],
@@ -144,18 +146,18 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             child: Column(
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 10.h,
                   ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14.r),
                   ),
                   child: Obx(() {
                     final count = _comboController.activeComboOffers.length;
@@ -163,10 +165,10 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                       children: [
                         Icon(
                           Icons.shopping_basket_outlined,
-                          size: 18,
+                          size: 18.r,
                           color: AppTheme.primaryGreen,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
                             '$count combo${count == 1 ? '' : 's'} available',
@@ -180,27 +182,31 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                     );
                   }),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
                 Expanded(
-                  child: ListView.builder(
-                    itemCount: combos.length,
-                    itemBuilder: (context, index) {
-                      final combo = combos[index];
-                      final isSelected = combo.comboId == _selectedComboId;
-                      final products = _getProductsForCombo(combo);
-                      return ComboOfferCard(
-                        combo: combo,
-                        products: products,
-                        isExpanded: isSelected,
-                        isHighlighted: isSelected,
-                        onTap: () => setState(() {
-                          _selectedComboId = _selectedComboId == combo.comboId
-                              ? null
-                              : combo.comboId;
-                        }),
-                        margin: const EdgeInsets.only(bottom: 16),
-                      );
-                    },
+                  child: AppResponsive.constrainContent(
+                    context: context,
+                    maxWidth: AppResponsive.maxReadableWidth,
+                    child: ListView.builder(
+                      itemCount: combos.length,
+                      itemBuilder: (context, index) {
+                        final combo = combos[index];
+                        final isSelected = combo.comboId == _selectedComboId;
+                        final products = _getProductsForCombo(combo);
+                        return ComboOfferCard(
+                          combo: combo,
+                          products: products,
+                          isExpanded: isSelected,
+                          isHighlighted: isSelected,
+                          onTap: () => setState(() {
+                            _selectedComboId = _selectedComboId == combo.comboId
+                                ? null
+                                : combo.comboId;
+                          }),
+                          margin: EdgeInsets.only(bottom: 16.h),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

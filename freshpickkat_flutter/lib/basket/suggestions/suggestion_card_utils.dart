@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 
 class SuggestionProgressBar extends StatelessWidget {
@@ -16,7 +18,7 @@ class SuggestionProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (target <= 0) return const SizedBox.shrink();
-    
+
     final progress = (current / target).clamp(0.0, 1.0);
     final remaining = (target - current).clamp(0, double.infinity).toInt();
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -34,7 +36,7 @@ class SuggestionProgressBar extends StatelessWidget {
                 child: Text(
                   '₹$remaining more',
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 10.5.sp,
                     color: cs.onSurface.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w500,
                   ),
@@ -46,24 +48,24 @@ class SuggestionProgressBar extends StatelessWidget {
               Text(
                 'Unlocked',
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: 10.5.sp,
                   color: accent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6.h),
         // Custom gradient progress bar
         LayoutBuilder(
           builder: (context, constraints) {
             final barWidth = constraints.maxWidth;
             return Container(
-              height: 4,
+              height: 4.h,
               width: barWidth,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.r),
               ),
               child: TweenAnimationBuilder<double>(
                 tween: Tween<double>(begin: 0, end: progress),
@@ -75,9 +77,9 @@ class SuggestionProgressBar extends StatelessWidget {
                     child: FractionallySizedBox(
                       widthFactor: value,
                       child: Container(
-                        height: 4,
+                        height: 4.h,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10.r),
                           gradient: LinearGradient(
                             colors: [
                               accent.withValues(alpha: 0.5),
@@ -98,7 +100,6 @@ class SuggestionProgressBar extends StatelessWidget {
   }
 }
 
-
 class OverlappingThumbs extends StatelessWidget {
   final List<String> imageUrls;
   final double size;
@@ -112,38 +113,38 @@ class OverlappingThumbs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrls.isEmpty) return const SizedBox.shrink();
-    
+
     // Take up to 4 images for a richer look if available
     final displayImages = imageUrls.take(4).toList();
     final overlap = size * 0.55;
 
     return SizedBox(
-      height: size + 4, // Extra space for shadows
-      width: size + (displayImages.length - 1) * overlap + 4,
+      height: size.r + 4.h,
+      width: size.r + (displayImages.length - 1) * overlap.w + 4.w,
       child: Stack(
         clipBehavior: Clip.none,
         children: displayImages.asMap().entries.map((entry) {
           final idx = entry.key;
           final url = entry.value;
-          
+
           return Positioned(
-            left: idx * overlap,
+            left: (idx * overlap).w,
             child: Container(
-              width: size,
-              height: size,
+              width: size.r,
+              height: size.r,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
                 border: Border.all(
-                  color: Colors.white, 
-                  width: 2,
+                  color: Colors.white,
+                  width: 2.r,
                   strokeAlign: BorderSide.strokeAlignOutside,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.12),
                     blurRadius: 6,
-                    offset: const Offset(1, 2),
+                    offset: Offset(1.w, 2.h),
                   ),
                 ],
               ),
@@ -189,50 +190,54 @@ class VariantComparisonView extends StatelessWidget {
       children: [
         // Current variant pill (muted)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
           decoration: BoxDecoration(
             color: dimBg,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              AutoSizeText(
                 curLabel,
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: 9.5.sp,
                   color: dimText,
                   fontWeight: FontWeight.w500,
                 ),
+                minFontSize: 7,
+                maxLines: 1,
               ),
-              const SizedBox(height: 1),
-              Text(
+              SizedBox(height: 1.h),
+              AutoSizeText(
                 '\u20b9$curPrice',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: dimText,
                   fontWeight: FontWeight.w700,
                 ),
+                minFontSize: 8,
+                maxLines: 1,
               ),
             ],
           ),
         ),
         // Arrow
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          padding: EdgeInsets.symmetric(horizontal: 6.w),
           child: Icon(
             Icons.arrow_forward_ios_rounded,
-            size: 10,
+            size: 10.r,
             color: accent.withValues(alpha: 0.5),
           ),
         ),
         // Suggested variant pill (highlighted)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
           decoration: BoxDecoration(
             color: accent.withValues(alpha: isDark ? 0.15 : 0.08),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
             border: Border.all(
               color: accent.withValues(alpha: isDark ? 0.3 : 0.2),
               width: 1,
@@ -242,22 +247,26 @@ class VariantComparisonView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              AutoSizeText(
                 vLabel,
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: 9.5.sp,
                   color: accent.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
                 ),
+                minFontSize: 7,
+                maxLines: 1,
               ),
-              const SizedBox(height: 1),
-              Text(
+              SizedBox(height: 1.h),
+              AutoSizeText(
                 '\u20b9$vPrice',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: accent,
                   fontWeight: FontWeight.w800,
                 ),
+                minFontSize: 8,
+                maxLines: 1,
               ),
             ],
           ),
