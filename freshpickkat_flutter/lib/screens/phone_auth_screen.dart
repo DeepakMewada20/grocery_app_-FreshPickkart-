@@ -397,7 +397,6 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    final viewInsets = MediaQuery.viewInsetsOf(context);
     final pinWidth = ((MediaQuery.sizeOf(context).width - 64.w) / 6)
         .clamp(38.w, 50.w)
         .toDouble();
@@ -459,7 +458,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                           24.w,
                           24.h,
                           24.w,
-                          24.h + viewInsets.bottom,
+                          24.h,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -768,7 +767,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                       padding: EdgeInsets.only(
                         left: 24.w,
                         right: 24.w,
-                        bottom: 24.h + viewInsets.bottom,
+                        bottom: 24.h,
                         top: 8.h,
                       ),
                       child: Column(
