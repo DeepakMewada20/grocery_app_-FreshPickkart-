@@ -6,6 +6,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart' hide CartItem;
 import 'package:freshpickkat_flutter/config/payment_config.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
+import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
@@ -634,10 +635,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
 
         if (freeProduct != null) {
+          final freeLabel = BogoController.instance.freeProductQuantityLabel(
+            item.product.productId ?? '',
+            freeProduct.productId ?? '',
+            fallback: productFullQuantityLabel(freeProduct),
+          );
           items.add(
             OrderItem(
               productId: freeProduct.productId!,
-              variantLabel: productFullQuantityLabel(freeProduct),
+              variantLabel: freeLabel,
               productName: freeProduct.productName,
               productImage: freeProduct.imageUrl,
               quantity: item.quantity, // 1 free for every 1 trigger
@@ -1443,6 +1449,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         : productProvider.allProducts.firstWhereOrNull(
             (p) => p.productId == item.bogoFreeProductId,
           );
+    final freeLabel = freeProduct != null
+        ? BogoController.instance.freeProductQuantityLabel(
+            item.product.productId ?? '',
+            freeProduct.productId ?? '',
+            fallback: productFullQuantityLabel(freeProduct),
+          )
+        : null;
 
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
@@ -1478,7 +1491,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (freeProduct != null) ...[
             SizedBox(height: 4.h),
             Text(
-              'FREE: ${freeProduct.productName} (${productFullQuantityLabel(freeProduct)}) x${item.quantity}',
+              'FREE: ${freeProduct.productName} ($freeLabel) x${item.quantity}',
               style: TextStyle(
                 color: Colors.green.shade700,
                 fontSize: 12.sp,

@@ -1,4 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -97,8 +99,21 @@ class BogoController extends GetxController {
     String freeProductId, {
     required String fallback,
   }) {
-    // Note: In the new architecture, we rely on the variant's own description.
-    // The quantity string has been removed from the protocol.
+    final config = getFreeProductConfig(triggerProductId, freeProductId);
+    if (config != null && config.variantId != null) {
+      final product = Get.find<ProductProviderController>().allProducts.firstWhereOrNull(
+        (p) => p.productId == config.productId,
+      );
+      if (product != null) {
+        final variant = resolveProductVariant(product, variantId: config.variantId);
+        final qty = variant.quantityValue == variant.quantityValue.truncateToDouble()
+            ? variant.quantityValue.toInt().toString()
+            : variant.quantityValue.toString();
+        final label = '$qty ${variant.quantityUnit}';
+        final desc = variant.quantityDescription?.trim();
+        return desc != null && desc.isNotEmpty ? '$label ($desc)' : label;
+      }
+    }
     final normalizedFallback = fallback.trim();
     return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
   }
