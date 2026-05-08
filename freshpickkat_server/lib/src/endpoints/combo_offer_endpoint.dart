@@ -74,6 +74,13 @@ class ComboOfferEndpoint extends Endpoint {
     return _offers.getActiveComboOffers(session);
   }
 
+  Future<List<ComboOffer>> getActiveComboOffersForProducts(
+    Session session,
+    List<String> productIds,
+  ) async {
+    return _offers.getActiveComboOffersForProducts(session, productIds);
+  }
+
   Future<List<ComboOffer>> getAllComboOffers(
     Session session,
     String firebaseUid,

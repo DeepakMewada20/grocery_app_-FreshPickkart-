@@ -427,6 +427,17 @@ class PostgresCatalogService {
           .add(reward.rewardProductId.toString());
     }
 
+    // Fetch active category offers
+    final categoryOffers = await CategoryOfferRow.db.find(
+      session,
+      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+    );
+    final activeCategoryOffers = categoryOffers.where(
+      (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
+    ).toList();
+    // Sort by priority (higher first)
+    activeCategoryOffers.sort((a, b) => b.priority.compareTo(a.priority));
+
     final hydrated = <Product>[];
     for (final productId in orderedProductIds) {
       final productRow = productById[productId];
@@ -467,14 +478,41 @@ class PostgresCatalogService {
         ),
       );
 
-      final salePrice = defaultVariant?.salePrice ?? 0.0;
+      double salePrice = defaultVariant?.salePrice ?? 0.0;
       final listPrice = defaultVariant?.listPrice ?? salePrice;
+      String? resolvedDiscountType = productRow.discountType;
+      double? resolvedDiscountValue;
+
+      // 1. Check for Category Offer first
+      final applicableCategoryOffer = activeCategoryOffers.where((o) => o.categoryId == productRow.categoryId).firstOrNull;
+      if (applicableCategoryOffer != null) {
+        double categoryOfferPrice = salePrice;
+        if (applicableCategoryOffer.discountType == 'percentage') {
+          categoryOfferPrice = listPrice * (1 - (applicableCategoryOffer.discountValue / 100));
+        } else if (applicableCategoryOffer.discountType == 'flat') {
+          categoryOfferPrice = listPrice - applicableCategoryOffer.discountValue;
+        }
+
+        // If category offer gives a better price, use it
+        if (categoryOfferPrice < salePrice) {
+          salePrice = categoryOfferPrice;
+          resolvedDiscountType = applicableCategoryOffer.discountType;
+          resolvedDiscountValue = applicableCategoryOffer.discountValue;
+        }
+      }
+
+      // 2. Check for BOGO (Dominant for display)
+      final bogoFreeProductIds = bogoRewardsByProduct[productId]?.toList()
+        ?..sort();
+      
+      if (bogoFreeProductIds != null && bogoFreeProductIds.isNotEmpty) {
+        resolvedDiscountType = 'bogo';
+      }
+
       final discountValue = listPrice > salePrice ? listPrice - salePrice : 0.0;
       final discountPercent = listPrice > 0 && discountValue > 0
           ? (discountValue / listPrice) * 100
           : 0.0;
-      final bogoFreeProductIds = bogoRewardsByProduct[productId]?.toList()
-        ?..sort();
 
       hydrated.add(
         Product(
@@ -487,10 +525,10 @@ class PostgresCatalogService {
           price: salePrice,
           realPrice: listPrice,
           discount: double.parse(discountPercent.toStringAsFixed(2)),
-          discountType: productRow.discountType,
-          discountValue: discountValue > 0
+          discountType: resolvedDiscountType,
+          discountValue: resolvedDiscountValue ?? (discountValue > 0
               ? double.parse(discountValue.toStringAsFixed(2))
-              : null,
+              : null),
           isAvailable:
               productRow.status == 'active' &&
               (defaultVariant == null || defaultVariant.isAvailable),

@@ -72,6 +72,20 @@ class BogoEndpoint extends Endpoint {
     return _offers.getActiveBogoOffers(session);
   }
 
+  Future<protocol.BogoOffer?> getActiveOfferForProduct(
+    Session session,
+    String productId,
+  ) async {
+    return _offers.getBogoOfferForProduct(session, productId);
+  }
+
+  Future<List<protocol.BogoOffer>> getActiveBogoOffersForProducts(
+    Session session,
+    List<String> productIds,
+  ) async {
+    return _offers.getActiveBogoOffersForProducts(session, productIds);
+  }
+
   Future<protocol.BogoOffer?> getOfferForProduct(
     Session session,
     String triggerProductId,

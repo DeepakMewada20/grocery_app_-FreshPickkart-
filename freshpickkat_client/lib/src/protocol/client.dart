@@ -365,6 +365,21 @@ class EndpointBogo extends _i1.EndpointRef {
         {},
       );
 
+  _i2.Future<_i10.BogoOffer?> getActiveOfferForProduct(String productId) =>
+      caller.callServerEndpoint<_i10.BogoOffer?>(
+        'bogo',
+        'getActiveOfferForProduct',
+        {'productId': productId},
+      );
+
+  _i2.Future<List<_i10.BogoOffer>> getActiveBogoOffersForProducts(
+    List<String> productIds,
+  ) => caller.callServerEndpoint<List<_i10.BogoOffer>>(
+    'bogo',
+    'getActiveBogoOffersForProducts',
+    {'productIds': productIds},
+  );
+
   _i2.Future<_i10.BogoOffer?> getOfferForProduct(
     String triggerProductId,
     String firebaseUid,
@@ -591,6 +606,14 @@ class EndpointComboOffer extends _i1.EndpointRef {
         'getActiveComboOffers',
         {},
       );
+
+  _i2.Future<List<_i17.ComboOffer>> getActiveComboOffersForProducts(
+    List<String> productIds,
+  ) => caller.callServerEndpoint<List<_i17.ComboOffer>>(
+    'comboOffer',
+    'getActiveComboOffersForProducts',
+    {'productIds': productIds},
+  );
 
   _i2.Future<List<_i17.ComboOffer>> getAllComboOffers(
     String firebaseUid,

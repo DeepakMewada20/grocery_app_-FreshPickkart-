@@ -1127,6 +1127,68 @@ class _BogoEndpoint {
     });
   }
 
+  _i3.Future<_i11.BogoOffer?> getActiveOfferForProduct(
+    _i1.TestSessionBuilder sessionBuilder,
+    String productId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'bogo',
+            method: 'getActiveOfferForProduct',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'bogo',
+          methodName: 'getActiveOfferForProduct',
+          parameters: _i1.testObjectToJson({'productId': productId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.BogoOffer?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i11.BogoOffer>> getActiveBogoOffersForProducts(
+    _i1.TestSessionBuilder sessionBuilder,
+    List<String> productIds,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'bogo',
+            method: 'getActiveBogoOffersForProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'bogo',
+          methodName: 'getActiveBogoOffersForProducts',
+          parameters: _i1.testObjectToJson({'productIds': productIds}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i11.BogoOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i11.BogoOffer?> getOfferForProduct(
     _i1.TestSessionBuilder sessionBuilder,
     String triggerProductId,
@@ -1696,6 +1758,37 @@ class _ComboOfferEndpoint {
           endpointPath: 'comboOffer',
           methodName: 'getActiveComboOffers',
           parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i18.ComboOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i18.ComboOffer>> getActiveComboOffersForProducts(
+    _i1.TestSessionBuilder sessionBuilder,
+    List<String> productIds,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'comboOffer',
+            method: 'getActiveComboOffersForProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'comboOffer',
+          methodName: 'getActiveComboOffersForProducts',
+          parameters: _i1.testObjectToJson({'productIds': productIds}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

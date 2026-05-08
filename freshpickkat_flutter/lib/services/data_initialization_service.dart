@@ -32,8 +32,6 @@ class DataInitializationService extends GetxService {
 
       await Future.wait([
         _initBanners(),
-        _initBogoOffers(),
-        _initComboOffers(),
         _initInitialProducts(),
       ]);
 
@@ -64,21 +62,7 @@ class DataInitializationService extends GetxService {
     }
   }
 
-  Future<void> _initBogoOffers() async {
-    try {
-      await BogoController.instance.fetchActiveOffersIfEmpty();
-    } catch (e) {
-      debugPrint('Error init bogo offers: $e');
-    }
-  }
 
-  Future<void> _initComboOffers() async {
-    try {
-      await ComboOfferController.instance.fetchActiveComboOffersIfEmpty();
-    } catch (e) {
-      debugPrint('Error init combo offers: $e');
-    }
-  }
 
   Future<void> _initInitialProducts() async {
     try {

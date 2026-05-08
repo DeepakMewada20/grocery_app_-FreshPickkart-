@@ -24,6 +24,8 @@ bogo:
   - getAllOffers:
   - getOffersPage:
   - getActiveOffers:
+  - getActiveOfferForProduct:
+  - getActiveBogoOffersForProducts:
   - getOfferForProduct:
 category:
   - getCategories:
@@ -43,6 +45,7 @@ comboOffer:
   - upsertComboOffer:
   - deleteComboOffer:
   - getActiveComboOffers:
+  - getActiveComboOffersForProducts:
   - getAllComboOffers:
   - getComboOffersPage:
   - setComboOfferActive:

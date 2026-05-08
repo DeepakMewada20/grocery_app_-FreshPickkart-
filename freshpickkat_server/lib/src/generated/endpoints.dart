@@ -780,6 +780,44 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['bogo'] as _i5.BogoEndpoint)
                   .getActiveOffers(session),
         ),
+        'getActiveOfferForProduct': _i1.MethodConnector(
+          name: 'getActiveOfferForProduct',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint)
+                  .getActiveOfferForProduct(
+                    session,
+                    params['productId'],
+                  ),
+        ),
+        'getActiveBogoOffersForProducts': _i1.MethodConnector(
+          name: 'getActiveBogoOffersForProducts',
+          params: {
+            'productIds': _i1.ParameterDescription(
+              name: 'productIds',
+              type: _i1.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint)
+                  .getActiveBogoOffersForProducts(
+                    session,
+                    params['productIds'],
+                  ),
+        ),
         'getOfferForProduct': _i1.MethodConnector(
           name: 'getOfferForProduct',
           params: {
@@ -1229,6 +1267,25 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['comboOffer'] as _i9.ComboOfferEndpoint)
                   .getActiveComboOffers(session),
+        ),
+        'getActiveComboOffersForProducts': _i1.MethodConnector(
+          name: 'getActiveComboOffersForProducts',
+          params: {
+            'productIds': _i1.ParameterDescription(
+              name: 'productIds',
+              type: _i1.getType<List<String>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i9.ComboOfferEndpoint)
+                  .getActiveComboOffersForProducts(
+                    session,
+                    params['productIds'],
+                  ),
         ),
         'getAllComboOffers': _i1.MethodConnector(
           name: 'getAllComboOffers',

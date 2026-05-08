@@ -682,6 +682,9 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i57.BogoOffer>(e)).toList()
           as T;
     }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    }
     if (t == List<_i58.Category>) {
       return (data as List).map((e) => deserialize<_i58.Category>(e)).toList()
           as T;
@@ -745,9 +748,6 @@ class Protocol extends _i1.SerializationManager {
     if (t == List<_i67.Product>) {
       return (data as List).map((e) => deserialize<_i67.Product>(e)).toList()
           as T;
-    }
-    if (t == List<String>) {
-      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
     if (t == _i1.getType<List<String>?>()) {
       return (data != null

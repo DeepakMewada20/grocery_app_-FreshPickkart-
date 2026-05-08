@@ -162,10 +162,6 @@ class CartController extends GetxController {
       (_) => _scheduleCartValidation(),
     );
     ever(
-      ComboOfferController.instance.activeComboOffers,
-      (_) => _scheduleCartValidation(),
-    );
-    ever(
       ProductProviderController.instance.allProducts,
       (_) {
         _refreshBogoSuggestion();
@@ -637,13 +633,12 @@ class CartController extends GetxController {
     final productsFuture = productIds.isEmpty
         ? Future.value(const <Product>[])
         : client.product.getProductsByIds(productIds);
-    final bogoFuture = BogoController.instance.activeOffers.isNotEmpty
-        ? Future.value(BogoController.instance.activeOffers.toList())
-        : client.bogo.getActiveOffers();
-    final comboFuture =
-        ComboOfferController.instance.activeComboOffers.isNotEmpty
-        ? Future.value(ComboOfferController.instance.activeComboOffers.toList())
-        : client.comboOffer.getActiveComboOffers();
+    final bogoFuture = productIds.isEmpty
+        ? Future.value(const <BogoOffer>[])
+        : client.bogo.getActiveBogoOffersForProducts(productIds);
+    final comboFuture = productIds.isEmpty
+        ? Future.value(const <ComboOffer>[])
+        : client.comboOffer.getActiveComboOffersForProducts(productIds);
 
     final responses = await Future.wait([
       productsFuture,
@@ -657,6 +652,22 @@ class CartController extends GetxController {
     };
     final activeBogoOffers = responses[1] as List<BogoOffer>;
     final activeComboOffers = responses[2] as List<ComboOffer>;
+
+    // Update caches in controllers
+    final bogoController = BogoController.instance;
+    for (final offer in activeBogoOffers) {
+      if (!bogoController.activeOffers
+          .any((o) => o.triggerProductId == offer.triggerProductId)) {
+        bogoController.activeOffers.add(offer);
+      }
+    }
+    final comboController = ComboOfferController.instance;
+    for (final offer in activeComboOffers) {
+      if (!comboController.activeComboOffers
+          .any((o) => o.comboId == offer.comboId)) {
+        comboController.activeComboOffers.add(offer);
+      }
+    }
 
     final normalized = <CartItem>[];
     final comboItems = storedCart

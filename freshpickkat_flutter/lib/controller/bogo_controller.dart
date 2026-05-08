@@ -64,6 +64,24 @@ class BogoController extends GetxController {
     );
   }
 
+  Future<BogoOffer?> fetchOfferForProduct(String productId) async {
+    final existing = getOfferForProduct(productId);
+    if (existing != null) return existing;
+
+    try {
+      final offer = await _client.bogo.getActiveOfferForProduct(productId);
+      if (offer != null) {
+        if (!activeOffers.any((o) => o.triggerProductId == productId)) {
+          activeOffers.add(offer);
+        }
+      }
+      return offer;
+    } catch (e) {
+      print('Error fetching BOGO offer for product $productId: $e');
+      return null;
+    }
+  }
+
   BogoFreeProduct? getFreeProductConfig(
     String triggerProductId,
     String freeProductId,

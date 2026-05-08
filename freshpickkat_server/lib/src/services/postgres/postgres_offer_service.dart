@@ -179,6 +179,27 @@ class PostgresOfferService {
     return hydrated.isEmpty ? null : hydrated.first;
   }
 
+  Future<List<BogoOffer>> getActiveBogoOffersForProducts(
+    Session session,
+    List<String> triggerProductIds,
+  ) async {
+    final parsedIds = triggerProductIds
+        .map((id) => tryParseUuid(id))
+        .whereType<UuidValue>()
+        .toSet();
+    if (parsedIds.isEmpty) return const [];
+
+    final rows = await BogoOfferRow.db.find(
+      session,
+      where: (t) => t.triggerProductId.inSet(parsedIds) & t.status.equals('active'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    final now = DateTime.now().toUtc();
+    final activeRows = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt));
+    return _hydrateBogoOffers(session, activeRows.toList());
+  }
+
   Future<bool> upsertComboOffer(Session session, ComboOffer offer) async {
     return session.db.transaction<bool>((transaction) async {
       ComboOfferRow? row;
@@ -280,6 +301,34 @@ class PostgresOfferService {
       orderDescending: true,
     );
     return _hydrateComboOffers(session, rows);
+  }
+
+  Future<List<ComboOffer>> getActiveComboOffersForProducts(
+    Session session,
+    List<String> productIds,
+  ) async {
+    final parsedIds = productIds
+        .map((id) => tryParseUuid(id))
+        .whereType<UuidValue>()
+        .toSet();
+    if (parsedIds.isEmpty) return const [];
+
+    final itemRows = await ComboOfferItemRow.db.find(
+      session,
+      where: (t) => t.productId.inSet(parsedIds),
+    );
+    final comboIds = itemRows.map((r) => r.comboOfferId).toSet();
+    if (comboIds.isEmpty) return const [];
+
+    final rows = await ComboOfferRow.db.find(
+      session,
+      where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
+      orderBy: (t) => t.priority,
+      orderDescending: true,
+    );
+    final now = DateTime.now().toUtc();
+    final activeRows = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt));
+    return _hydrateComboOffers(session, activeRows.toList());
   }
 
   Future<ComboOfferPage> getComboOffersPage(

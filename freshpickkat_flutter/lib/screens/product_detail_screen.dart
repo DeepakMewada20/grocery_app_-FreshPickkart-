@@ -84,17 +84,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _showBogoSelectionIfNeeded(Product product) async {
     final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
     if (!isBogoProduct(product) || product.productId == null) return;
-    await BogoController.instance.fetchActiveOffersIfEmpty();
-
-    final cartItem = _cartController.cartItems.firstWhereOrNull(
-      (item) =>
-          item.product.productId == product.productId &&
-          (item.variantId ?? 'default') == _selectedVariantId,
-    );
-    if (cartItem?.bogoFreeProductId != null) return;
-    final offer = BogoController.instance.getOfferForProduct(
+    final offer = await BogoController.instance.fetchOfferForProduct(
       product.productId!,
     );
+
+    final cartItem = _cartItemForProduct(product);
+    if (cartItem?.bogoFreeProductId != null) return;
+    
     final isEligible =
         offer == null ||
         isBogoTriggerVariantEligible(
@@ -127,7 +123,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _openBogoSelectionSheet(Product product) async {
     if (!isBogoProduct(product) || product.productId == null) return;
-    await BogoController.instance.fetchActiveOffersIfEmpty();
+    await BogoController.instance.fetchOfferForProduct(product.productId!);
     Get.bottomSheet(
       BogoSelectionBottomSheet(
         triggerProductId: product.productId!,
