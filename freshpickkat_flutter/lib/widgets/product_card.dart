@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -51,15 +53,37 @@ class _ProductCardState extends State<ProductCard> {
   final CartController _cartController = CartController.instance;
   bool _isPressed = false;
   late String _selectedVariantId;
+  StreamSubscription? _cartSubscription;
 
   @override
   void initState() {
     super.initState();
     _selectedVariantId = inferProductVariantId(widget.product);
+    _cartSubscription = _cartController.cartItems.listen((_) {
+      _syncSelectedVariantFromCart();
+    });
+  }
+
+  @override
+  void dispose() {
+    _cartSubscription?.cancel();
+    super.dispose();
   }
 
   Product get _displayProduct =>
       applyVariantToProduct(widget.product, variantId: _selectedVariantId);
+
+  void _syncSelectedVariantFromCart() {
+    if (!mounted) return;
+    final cartItem = _cartController.cartItems.firstWhereOrNull(
+      (item) => item.product.productId == widget.product.productId,
+    );
+    if (cartItem == null) return;
+    final actualVariantId = cartItem.variantId ?? inferProductVariantId(widget.product);
+    if (actualVariantId != _selectedVariantId) {
+      setState(() => _selectedVariantId = actualVariantId);
+    }
+  }
 
   void _increment() {
     _cartController.addItem(widget.product, variantId: _selectedVariantId);
