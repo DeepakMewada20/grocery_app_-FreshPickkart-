@@ -23,7 +23,6 @@ import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
-import 'package:freshpickkat_flutter/widgets/bogo_cart_suggestion_banner.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
@@ -95,7 +94,6 @@ class MyApp extends StatelessWidget {
               child: Stack(
                 children: [
                   child,
-                  const BogoCartSuggestionBanner(),
                   const NetworkStatusBanner(),
                 ],
               ),

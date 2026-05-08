@@ -152,11 +152,9 @@ class CartController extends GetxController {
     super.onInit();
     // Listen to cart changes and sync with server
     ever(cartItems, (_) {
-      _refreshBogoSuggestion();
       _updateDeliveryFeeEstimate();
       _scheduleCartRefresh();
     });
-    ever(BogoController.instance.activeOffers, (_) => _refreshBogoSuggestion());
     ever(
       BogoController.instance.activeOffers,
       (_) => _scheduleCartValidation(),
@@ -164,7 +162,6 @@ class CartController extends GetxController {
     ever(
       ProductProviderController.instance.allProducts,
       (_) {
-        _refreshBogoSuggestion();
         _scheduleCartValidation();
       },
     );
@@ -1234,9 +1231,6 @@ class CartController extends GetxController {
       );
     }
 
-    if (triggerBogoSuggestion && comboId == null) {
-      _maybeSuggestBogoForFreeProduct(selectedProduct);
-    }
     _scheduleCartRefresh();
   }
 
@@ -1539,121 +1533,6 @@ class CartController extends GetxController {
     );
     removeItem(suggestion.freeProduct);
     bogoSuggestion.value = null;
-  }
-
-  void _maybeSuggestBogoForFreeProduct(Product addedProduct) {
-    final suggestion = _buildSuggestionForFreeProduct(addedProduct);
-    if (suggestion != null) {
-      bogoSuggestion.value = suggestion;
-      return;
-    }
-
-    _refreshBogoSuggestion();
-  }
-
-  void _refreshBogoSuggestion() {
-    final current = bogoSuggestion.value;
-    if (current != null && _isSuggestionStillValid(current)) {
-      final refreshedTrigger =
-          _findProductById(current.triggerProduct.productId) ??
-          current.triggerProduct;
-      final refreshedFree =
-          _findProductById(current.freeProduct.productId) ??
-          current.freeProduct;
-      bogoSuggestion.value = BogoCartSuggestion(
-        offer: current.offer,
-        triggerProduct: refreshedTrigger,
-        triggerVariantId: current.triggerVariantId,
-        freeProduct: refreshedFree,
-      );
-      return;
-    }
-
-    bogoSuggestion.value = null;
-    for (final item in regularCartItems) {
-      final suggestion = _buildSuggestionForFreeProduct(item.product);
-      if (suggestion != null) {
-        bogoSuggestion.value = suggestion;
-        break;
-      }
-    }
-  }
-
-  bool _isSuggestionStillValid(BogoCartSuggestion suggestion) {
-    final freeId = suggestion.freeProduct.productId;
-    final triggerId = suggestion.triggerProduct.productId;
-    if (freeId == null || triggerId == null) return false;
-    if (!isBogoTriggerVariantEligible(
-      suggestion.triggerProduct,
-      offer: suggestion.offer,
-      selectedVariantId: suggestion.triggerVariantId,
-    )) {
-      return false;
-    }
-
-    final freeItem = cartItems.firstWhereOrNull(
-      (item) => item.product.productId == freeId && item.comboId == null,
-    );
-    if (freeItem == null || freeItem.quantity <= 0) return false;
-
-    final triggerItem = cartItems.firstWhereOrNull(
-      (item) =>
-          item.product.productId == triggerId &&
-          (item.variantId ?? 'default') ==
-              (suggestion.triggerVariantId ?? 'default') &&
-          item.comboId == null,
-    );
-    if (triggerItem?.bogoFreeProductId == freeId) return false;
-    if (triggerItem?.bogoFreeProductId != null &&
-        triggerItem!.bogoFreeProductId != freeId) {
-      return false;
-    }
-
-    return suggestion.offer.isActive &&
-        suggestion.offer.freeProductIds.contains(freeId);
-  }
-
-  BogoCartSuggestion? _buildSuggestionForFreeProduct(Product freeProduct) {
-    final freeProductId = freeProduct.productId;
-    if (freeProductId == null) return null;
-
-    final offer = BogoController.instance.activeOffers.firstWhereOrNull(
-      (candidate) =>
-          candidate.isActive &&
-          candidate.freeProductIds.contains(freeProductId),
-    );
-    if (offer == null) return null;
-
-    final triggerProduct = _findProductById(offer.triggerProductId);
-    if (triggerProduct == null) return null;
-
-    final triggerItem = cartItems.firstWhereOrNull(
-      (item) =>
-          item.product.productId == offer.triggerProductId &&
-          item.bogoFreeProductId == null &&
-          item.comboId == null &&
-          isBogoTriggerVariantEligible(
-            triggerProduct,
-            offer: offer,
-            selectedVariantId: item.variantId,
-          ),
-    );
-    if (triggerItem == null) return null;
-    if (triggerItem.bogoFreeProductId == freeProductId) return null;
-    if (triggerItem.bogoFreeProductId != null &&
-        triggerItem.bogoFreeProductId != freeProductId) {
-      return null;
-    }
-
-    return BogoCartSuggestion(
-      offer: offer,
-      triggerProduct: applyVariantToProduct(
-        triggerProduct,
-        variantId: triggerItem.variantId,
-      ),
-      triggerVariantId: triggerItem.variantId,
-      freeProduct: freeProduct,
-    );
   }
 
   Product? _findProductById(String? productId, {String? variantId}) {
