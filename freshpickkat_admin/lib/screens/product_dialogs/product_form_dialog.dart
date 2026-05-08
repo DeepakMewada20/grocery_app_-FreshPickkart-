@@ -429,10 +429,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       final productId = p.productId;
       if (productId == null || productId.trim().isEmpty) continue;
       nextProducts[productId] = p;
-      freeProductQuantities[productId] = _normalizeBogoFreeQuantity(
-        selection.freeQuantity,
-        fallback: p.quantity,
-      );
     }
 
     resolvedProducts
@@ -1532,7 +1528,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             if (p == null) return null;
             return BogoProductSelection(
               product: p,
-              freeQuantity: bogoFreeProductQuantities[productId] ?? p.quantity,
+              variant: null, // Default to null for this legacy entry point
             );
           })
           .whereType<BogoProductSelection>()

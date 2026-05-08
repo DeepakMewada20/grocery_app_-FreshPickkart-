@@ -587,7 +587,7 @@ class PostgresOfferService {
                 .map(
                   (reward) => BogoFreeProduct(
                     productId: reward.rewardProductId.toString(),
-                    quantity: reward.quantity.toString(),
+                    variantId: reward.rewardVariantId?.toString(),
                   ),
                 )
                 .toList(),
@@ -754,24 +754,15 @@ class PostgresOfferService {
     required BogoOffer offer,
     required Transaction transaction,
   }) async {
-    final rawItems = offer.freeProducts?.isNotEmpty == true
-        ? offer.freeProducts!
-        : offer.freeProductIds
-              .map((productId) => BogoFreeProduct(productId: productId))
-              .toList();
-
-    final desiredRows = <_RewardSpec>[];
-    for (final item in rawItems) {
-      final productId = tryParseUuid(item.productId);
-      if (productId == null) continue;
-      final quantity = int.tryParse(item.quantity ?? '') ?? 1;
-      desiredRows.add(
-        _RewardSpec(
-          productId: productId,
-          quantity: quantity <= 0 ? 1 : quantity,
-        ),
-      );
-    }
+    final freeProducts = offer.freeProducts ?? [];
+    final desiredRows = freeProducts
+        .map(
+          (p) => _RewardSpec(
+            productId: UuidValue.fromString(p.productId),
+            variantId: p.variantId != null ? UuidValue.fromString(p.variantId!) : null,
+          ),
+        )
+        .toList();
 
     final existing = await BogoOfferRewardRow.db.find(
       session,
@@ -786,14 +777,13 @@ class PostgresOfferService {
       );
     }
 
-    for (final reward in desiredRows) {
+    for (final spec in desiredRows) {
       await BogoOfferRewardRow.db.insertRow(
         session,
         BogoOfferRewardRow(
           bogoOfferId: offerId,
-          rewardProductId: reward.productId,
-          rewardVariantId: null,
-          quantity: reward.quantity,
+          rewardProductId: spec.productId,
+          rewardVariantId: spec.variantId,
           createdAt: DateTime.now().toUtc(),
         ),
         transaction: transaction,
@@ -950,8 +940,11 @@ class PostgresOfferService {
 }
 
 class _RewardSpec {
-  _RewardSpec({required this.productId, required this.quantity});
+  _RewardSpec({
+    required this.productId,
+    this.variantId,
+  });
 
   final UuidValue productId;
-  final int quantity;
+  final UuidValue? variantId;
 }

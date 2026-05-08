@@ -1080,7 +1080,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         .map(
           (s) => BogoFreeProduct(
             productId: s.product.productId!,
-            quantity: s.freeQuantity,
+            variantId: s.variant?.variantId,
           ),
         )
         .toList();

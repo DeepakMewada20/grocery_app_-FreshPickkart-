@@ -97,15 +97,8 @@ class BogoController extends GetxController {
     String freeProductId, {
     required String fallback,
   }) {
-    final configuredQuantity = getFreeProductConfig(
-      triggerProductId,
-      freeProductId,
-    )?.quantity?.trim();
-
-    if (configuredQuantity != null && configuredQuantity.isNotEmpty) {
-      return configuredQuantity;
-    }
-
+    // Note: In the new architecture, we rely on the variant's own description.
+    // The quantity string has been removed from the protocol.
     final normalizedFallback = fallback.trim();
     return normalizedFallback.isEmpty ? '1 item' : normalizedFallback;
   }

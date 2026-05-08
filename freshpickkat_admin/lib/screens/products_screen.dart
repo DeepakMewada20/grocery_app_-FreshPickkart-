@@ -212,7 +212,7 @@ class _ProductsScreenState extends State<ProductsScreen>
         .map(
           (s) => BogoFreeProduct(
             productId: s.product.productId!,
-            quantity: s.freeQuantity,
+            variantId: s.variant?.variantId,
           ),
         )
         .toList();

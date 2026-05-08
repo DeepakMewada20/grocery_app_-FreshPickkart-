@@ -1,0 +1,69 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "bogo_offer_reward",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "quantity",
+          "quantityLabel"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"quantity\" of table \"bogo_offer_reward\" will be dropped.",
+            "table": "bogo_offer_reward",
+            "columns": [
+              "quantity"
+            ],
+            "destrucive": true
+          },
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"quantityLabel\" of table \"bogo_offer_reward\" will be dropped.",
+            "table": "bogo_offer_reward",
+            "columns": [
+              "quantityLabel"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"quantity\" of table \"bogo_offer_reward\" will be dropped.",
+      "table": "bogo_offer_reward",
+      "columns": [
+        "quantity"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"quantityLabel\" of table \"bogo_offer_reward\" will be dropped.",
+      "table": "bogo_offer_reward",
+      "columns": [
+        "quantityLabel"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

@@ -1,39 +1,31 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
-import 'package:freshpickkat_admin/services/admin_session_service.dart';
-import 'package:freshpickkat_admin/services/serverpod_client.dart';
-import 'package:freshpickkat_admin/screens/product_dialogs/products_list_content.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
-import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class BogoProductSelection {
   final Product product;
-  final String freeQuantity;
+  final ProductVariant? variant;
 
   const BogoProductSelection({
     required this.product,
-    required this.freeQuantity,
-  });
-}
-
-class BogoProductPickerScreen extends StatefulWidget {
-  final String? initialCategory;
-  final List<BogoProductSelection> initiallySelectedProducts;
-
-  const BogoProductPickerScreen({
-    super.key,
-    required this.initiallySelectedProducts,
-    this.initialCategory,
+    this.variant,
   });
 
-  @override
-  State<BogoProductPickerScreen> createState() =>
-      _BogoProductPickerScreenState();
+  String get displayLabel {
+    if (variant == null) return product.quantity;
+    final quantity = variant!.quantityValue == variant!.quantityValue.truncateToDouble()
+        ? variant!.quantityValue.toInt().toString()
+        : variant!.quantityValue.toString();
+    final unit = variant!.quantityUnit;
+    final desc = variant!.quantityDescription?.trim();
+    return desc != null && desc.isNotEmpty ? '$quantity $unit ($desc)' : '$quantity $unit';
+  }
 }
 
 class BogoOfferEditorScreen extends StatefulWidget {
@@ -61,19 +53,13 @@ class BogoOfferEditorScreen extends StatefulWidget {
 }
 
 class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
-  final _searchCtrl = TextEditingController();
-  final _searchFocusNode = FocusNode();
   final _selectedProductsById = <String, Product>{};
-  final _selectedFreeQuantitiesById = <String, String>{};
+  final _selectedVariantsById = <String, ProductVariant?>{};
   final _productController = AdminProductController.instance;
   final _categoryController = AdminCategoryController.instance;
 
-  List<Product> _categoryProducts = [];
-  bool _isLoading = false;
-  bool _isRefreshingProducts = false;
   bool _isBootstrapping = true;
   bool _isSubmitting = false;
-  String? _errorMessage;
   String? _selectedCategory;
   Product? _selectedTriggerProduct;
   String? _selectedTriggerVariantId;
@@ -85,10 +71,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      FocusManager.instance.primaryFocus?.unfocus();
-    });
     _bootstrap();
   }
 
@@ -107,10 +89,30 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         _endDate = offer.endDate;
         _selectedTriggerVariantId = offer.triggerVariantId;
 
-        _selectedTriggerProduct = _productController.products.firstWhere(
+        _selectedTriggerProduct = _productController.products.firstWhereOrNull(
           (p) => p.productId == offer.triggerProductId,
-          orElse: () => Product(
-            productId: offer.triggerProductId,
+        ) ?? Product(
+          productId: offer.triggerProductId,
+          productName: 'Unknown Product',
+          category: '',
+          imageUrl: '',
+          price: 0,
+          realPrice: 0,
+          discount: 0,
+          isAvailable: true,
+          addedAt: offer.createdAt,
+          subcategory: const [],
+          quantity: '',
+          mostSearch: 0,
+          mostPurchases: 0,
+        );
+
+        final freeProducts = offer.freeProducts ?? const <BogoFreeProduct>[];
+        for (final freeProductId in offer.freeProductIds) {
+          final product = _productController.products.firstWhereOrNull(
+            (p) => p.productId == freeProductId,
+          ) ?? Product(
+            productId: freeProductId,
             productName: 'Unknown Product',
             category: '',
             imageUrl: '',
@@ -123,110 +125,30 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             quantity: '',
             mostSearch: 0,
             mostPurchases: 0,
-          ),
-        );
-
-        final freeProducts = offer.freeProducts ?? const <BogoFreeProduct>[];
-        for (final freeProductId in offer.freeProductIds) {
-          final product = _productController.products.firstWhere(
-            (p) => p.productId == freeProductId,
-            orElse: () => Product(
-              productId: freeProductId,
-              productName: 'Unknown Product',
-              category: '',
-              imageUrl: '',
-              price: 0,
-              realPrice: 0,
-              discount: 0,
-              isAvailable: true,
-              addedAt: offer.createdAt,
-              subcategory: const [],
-              quantity: '',
-              mostSearch: 0,
-              mostPurchases: 0,
-            ),
           );
           _selectedProductsById[freeProductId] = product;
+          
           final configured = freeProducts
               .where((item) => item.productId == freeProductId)
               .cast<BogoFreeProduct?>()
-              .firstWhere((_) => true, orElse: () => null);
-          _selectedFreeQuantitiesById[freeProductId] =
-              _normalizeFreeQuantityCount(configured?.quantity);
+              .firstWhereOrNull((_) => true);
+          
+          if (configured?.variantId != null) {
+            _selectedVariantsById[freeProductId] = product.variants?.firstWhereOrNull(
+              (v) => v.variantId == configured!.variantId,
+            );
+          } else {
+            _selectedVariantsById[freeProductId] = null;
+          }
         }
 
-        _selectedCategory =
-            _selectedTriggerProduct?.category.trim().isNotEmpty == true
+        _selectedCategory = _selectedTriggerProduct?.category.trim().isNotEmpty == true
             ? _selectedTriggerProduct!.category
             : null;
-      }
-
-      if (_selectedCategory != null && _selectedCategory!.trim().isNotEmpty) {
-        await _loadProductsForCategory(_selectedCategory!);
       }
     } finally {
       if (mounted) {
         setState(() => _isBootstrapping = false);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadProductsForCategory(
-    String category, {
-    bool showLoader = true,
-  }) async {
-    setState(() {
-      _isLoading = showLoader;
-      _isRefreshingProducts = !showLoader;
-      _errorMessage = null;
-      _selectedCategory = category;
-    });
-
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-
-      final products = <Product>[];
-      String? pageToken;
-
-      do {
-        final page = await ServerpodAdminClient().client.product
-            .getProductsPage(
-              firebaseUid: uid,
-              idToken: idToken,
-              category: category,
-              sortBy: 'name',
-              limit: 100,
-              pageToken: pageToken,
-            );
-        products.addAll(page.products);
-        pageToken = page.nextPageToken;
-      } while (pageToken != null);
-
-      if (!mounted) return;
-      setState(() {
-        _categoryProducts = products;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isRefreshingProducts = false;
-        });
       }
     }
   }
@@ -243,12 +165,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       final triggerId = product.productId;
       if (triggerId != null) {
         _selectedProductsById.remove(triggerId);
-        _selectedFreeQuantitiesById.remove(triggerId);
+        _selectedVariantsById.remove(triggerId);
       }
     });
-    if (product.category.trim().isNotEmpty) {
-      _loadProductsForCategory(product.category);
-    }
   }
 
   List<ProductVariant> _triggerVariants(Product? product) {
@@ -296,40 +215,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     return '$quantity ${variant.quantityUnit}';
   }
 
-  String _basePackLabel(Product product) {
-    final baseQuantity = product.baseQuantity;
-    final baseUnit = product.baseUnit;
-    if (baseQuantity != null &&
-        baseQuantity > 0 &&
-        baseUnit != null &&
-        baseUnit.trim().isNotEmpty) {
-      final formattedQuantity = baseQuantity == baseQuantity.truncateToDouble()
-          ? baseQuantity.toInt().toString()
-          : baseQuantity.toString();
-      return '$formattedQuantity ${baseUnit.trim()}';
-    }
-
-    final fallback = product.quantity.trim();
-    return fallback.isEmpty ? '1 item' : fallback;
-  }
-
-  int _parseFreeQuantityCount(String? value) {
-    final normalized = value?.trim() ?? '';
-    if (normalized.isEmpty) return 1;
-
-    final multiplierMatch = RegExp(r'^(\d+)\s*x\b').firstMatch(normalized);
-    if (multiplierMatch != null) {
-      return int.tryParse(multiplierMatch.group(1)!) ?? 1;
-    }
-
-    final directNumber = int.tryParse(normalized);
-    if (directNumber != null && directNumber > 0) {
-      return directNumber;
-    }
-
-    return 1;
-  }
-
   String _buildOfferTitle({
     required ProductVariant? triggerVariant,
     required int freeProductCount,
@@ -340,52 +225,41 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     return '$buyLabel, Get $freeProductCount Free';
   }
 
-  void _toggleSelection(Product product) {
-    final id = product.productId;
-    if (id == null) return;
-    if (_selectedTriggerProduct?.productId == id) return;
-
-    setState(() {
-      if (_selectedProductsById.containsKey(id)) {
-        _selectedProductsById.remove(id);
-        _selectedFreeQuantitiesById.remove(id);
-      } else {
-        _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
-          _selectedFreeQuantitiesById[id],
+  Future<void> _selectFreeProducts() async {
+    final results = await ProductSelectionDialog.showMultiSelectBottomSheet(
+      context: context,
+      title: 'Select Free Products',
+      initialCategory: _selectedCategory,
+      initialSelections: _selectedProductsById.entries.map((e) {
+        return ProductSelectionResult(
+          product: e.value,
+          variant: _selectedVariantsById[e.key],
         );
-      }
-    });
-  }
+      }).toList(),
+    );
 
-  void _updateFreeQuantity(Product product, String quantity) {
-    final id = product.productId;
-    if (id == null) return;
-    setState(() {
-      _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(quantity);
-    });
-  }
-
-  String _normalizeFreeQuantityCount(String? value) {
-    return _parseFreeQuantityCount(value).toString();
-  }
-
-  String _buildFreeQuantityLabel(Product product, String? countValue) {
-    final count = _parseFreeQuantityCount(countValue);
-    final packLabel = _basePackLabel(product);
-    if (count <= 1) return packLabel;
-    return '$count x $packLabel';
+    if (results != null) {
+      setState(() {
+        _selectedProductsById.clear();
+        _selectedVariantsById.clear();
+        for (final r in results) {
+          final id = r.productId;
+          if (id.isNotEmpty && id != _selectedTriggerProduct?.productId) {
+            _selectedProductsById[id] = r.product;
+            _selectedVariantsById[id] = r.variant;
+          }
+        }
+      });
+    }
   }
 
   List<BogoProductSelection> _buildSelections() {
     return _selectedProductsById.entries.map((entry) {
       final product = entry.value;
+      final variant = _selectedVariantsById[entry.key];
       return BogoProductSelection(
         product: product,
-        freeQuantity: _buildFreeQuantityLabel(
-          product,
-          _selectedFreeQuantitiesById[entry.key],
-        ),
+        variant: variant,
       );
     }).toList();
   }
@@ -436,7 +310,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               width: 38.r,
               height: 38.r,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.08),
+                color: Colors.green.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
@@ -528,10 +402,10 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                     : () async {
                         final selected =
                             await ProductSelectionDialog.showBottomSheet(
-                              context: context,
-                              title: 'Select Trigger Product',
-                              initialCategory: _selectedCategory,
-                            );
+                               context: context,
+                               title: 'Select Trigger Product',
+                               initialCategory: _selectedCategory,
+                             );
                         if (selected != null) {
                           _selectTriggerProduct(selected);
                         }
@@ -598,46 +472,27 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               ],
             ),
             SizedBox(height: 14.h),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _defaultTriggerVariantId(trigger),
-                    decoration: const InputDecoration(
-                      labelText: 'Trigger Pack',
-                      border: OutlineInputBorder(),
+            DropdownButtonFormField<String>(
+              initialValue: _defaultTriggerVariantId(trigger),
+              decoration: const InputDecoration(
+                labelText: 'Trigger Pack',
+                border: OutlineInputBorder(),
+              ),
+              items: _triggerVariants(trigger)
+                  .map(
+                    (variant) => DropdownMenuItem(
+                      value: variant.variantId,
+                      child: Text(_variantLabel(variant)),
                     ),
-                    items: _triggerVariants(trigger)
-                        .map(
-                          (variant) => DropdownMenuItem(
-                            value: variant.variantId,
-                            child: Text(_variantLabel(variant)),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: _isSubmitting
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _selectedTriggerVariantId = value;
-                            });
-                          },
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                SizedBox(
-                  width: 140.w.clamp(112.0, 150.0).toDouble(),
-                  child: TextFormField(
-                    initialValue: '1',
-                    enabled: false,
-                    decoration: const InputDecoration(
-                      labelText: 'Min Qty',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ],
+                  )
+                  .toList(),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _selectedTriggerVariantId = value;
+                      });
+                    },
             ),
           ],
         ],
@@ -686,7 +541,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
           .map(
             (selection) => BogoFreeProduct(
               productId: selection.product.productId!,
-              quantity: selection.freeQuantity,
+              variantId: selection.variant?.variantId,
             ),
           )
           .toList(),
@@ -726,26 +581,6 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categoryOptions = <ProductFilterOption>[
-      ..._categoryController.categories
-          .map(
-            (category) => ProductFilterOption(
-              value: category.categoryName,
-              label: category.categoryName,
-            ),
-          )
-          .toList()
-        ..sort((a, b) => a.label.compareTo(b.label)),
-    ];
-    final query = _searchCtrl.text.toLowerCase().trim();
-    final filteredProducts = _categoryProducts.where((product) {
-      if (_selectedTriggerProduct?.productId == product.productId) return false;
-      if (query.isEmpty) return true;
-      return product.productName.toLowerCase().contains(query) ||
-          product.quantity.toLowerCase().contains(query) ||
-          product.category.toLowerCase().contains(query);
-    }).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit BOGO Offer' : 'Add BOGO Offer'),
@@ -769,851 +604,57 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       body: SafeArea(
         child: _isBootstrapping
             ? const Center(child: CircularProgressIndicator())
-            : LayoutBuilder(
-                builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 680;
-                  final pagePadding = AdminResponsive.pagePadding(context);
-                  final controlsHeight = (isNarrow ? 116.h : 104.h)
-                      .clamp(98.0, 136.0)
-                      .toDouble();
-                  return AdminResponsive.constrainContent(
-                    context: context,
-                    maxWidth: AdminResponsive.maxFormWidth,
-                    child: NestedScrollView(
-                      headerSliverBuilder: (context, innerBoxIsScrolled) {
-                        return [
-                          SliverPadding(
-                            padding: pagePadding.copyWith(bottom: 0),
-                            sliver: SliverToBoxAdapter(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildTriggerSection(context),
-                                  SizedBox(height: 12.h),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _buildDateCard(
-                                          label: 'Start Date',
-                                          value: _startDate,
-                                          onTap: () => _selectDate(true),
-                                        ),
-                                      ),
-                                      SizedBox(width: 12.w),
-                                      Expanded(
-                                        child: _buildDateCard(
-                                          label: 'End Date',
-                                          value: _endDate,
-                                          onTap: () => _selectDate(false),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 16.h),
-                                  _SelectedProductsSummary(
-                                    selectedProducts: _buildSelections(),
-                                    onRemove: (id) {
-                                      setState(() {
-                                        _selectedProductsById.remove(id);
-                                        _selectedFreeQuantitiesById.remove(id);
-                                      });
-                                    },
-                                  ),
-                                  SizedBox(height: 12.h),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SliverPersistentHeader(
-                            pinned: true,
-                            delegate: _PinnedControlsHeaderDelegate(
-                              minExtentValue: controlsHeight,
-                              maxExtentValue: controlsHeight,
-                              child: Container(
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
-                                child: ProductSearchAndCategoryControls(
-                                  searchHintText: 'Search free products...',
-                                  onSearchChanged: (value) {
-                                    _searchCtrl.text = value;
-                                    setState(() {});
-                                  },
-                                  categoryOptions: categoryOptions,
-                                  selectedCategory: _selectedCategory ?? '',
-                                  onCategorySelected: (value) {
-                                    _searchFocusNode.unfocus();
-                                    _loadProductsForCategory(value);
-                                  },
-                                  padding: EdgeInsets.fromLTRB(
-                                    pagePadding.horizontal / 2,
-                                    6.h,
-                                    pagePadding.horizontal / 2,
-                                    6.h,
-                                  ),
-                                  searchToCategorySpacing: 8.h,
-                                  categoryHeight: 32.h
-                                      .clamp(30.0, 36.0)
-                                      .toDouble(),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SliverPadding(
-                            padding: EdgeInsets.fromLTRB(
-                              pagePadding.horizontal / 2,
-                              8.h,
-                              pagePadding.horizontal / 2,
-                              12.h,
-                            ),
-                            sliver: SliverToBoxAdapter(
-                              child: Text(
-                                _selectedCategory == null
-                                    ? 'Select a category to load free products'
-                                    : 'Free products in $_selectedCategory (${filteredProducts.length})',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AdminTextStyles.sectionTitle(context),
-                              ),
-                            ),
-                          ),
-                        ];
-                      },
-                      body: Padding(
-                        padding: pagePadding.copyWith(top: 0),
-                        child: RefreshIndicator(
-                          onRefresh: () async {
-                            final category = _selectedCategory;
-                            if (category == null || category.trim().isEmpty) {
-                              return;
-                            }
-                            await _loadProductsForCategory(
-                              category,
-                              showLoader: false,
-                            );
-                          },
-                          child: _buildContent(filteredProducts, isNarrow),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-      ),
-    );
-  }
-
-  Widget _buildContent(List<Product> filteredProducts, bool isNarrow) {
-    if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: 96.h),
-          Center(
-            child: Text(
-              'Select a category first to browse free products.',
-              textAlign: TextAlign.center,
-              style: AdminTextStyles.body(context),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_isLoading && !_isRefreshingProducts) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: 96.h),
-          const Center(child: CircularProgressIndicator()),
-        ],
-      );
-    }
-
-    if (_errorMessage != null) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: 96.h),
-          SizedBox(
-            height: 260.h.clamp(220.0, 300.0).toDouble(),
-            child: AdminStateView.error(
-              message: _errorMessage,
-              onRetry: () => _loadProductsForCategory(_selectedCategory!),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (filteredProducts.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(height: 96.h),
-          SizedBox(
-            height: 260.h.clamp(220.0, 300.0).toDouble(),
-            child: AdminStateView.empty(
-              title: 'No products found',
-              message: 'Try a different category or search term.',
-              icon: Icons.search_off_outlined,
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (isNarrow) {
-      return ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: filteredProducts.length,
-        separatorBuilder: (_, _) => SizedBox(height: 12.h),
-        itemBuilder: (context, index) {
-          final product = filteredProducts[index];
-          return _ProductSelectionTile(
-            product: product,
-            isSelected:
-                product.productId != null &&
-                _selectedProductsById.containsKey(product.productId),
-            onTap: () => _toggleSelection(product),
-            freeQuantity: product.productId == null
-                ? product.quantity
-                : _normalizeFreeQuantityCount(
-                    _selectedFreeQuantitiesById[product.productId],
-                  ),
-            onFreeQuantityChanged: (value) =>
-                _updateFreeQuantity(product, value),
-          );
-        },
-      );
-    }
-
-    return GridView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 280.w.clamp(240.0, 320.0).toDouble(),
-        mainAxisExtent: 226.h.clamp(204.0, 252.0).toDouble(),
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 12.h,
-      ),
-      itemCount: filteredProducts.length,
-      itemBuilder: (context, index) {
-        final product = filteredProducts[index];
-        return _ProductSelectionTile(
-          product: product,
-          isSelected:
-              product.productId != null &&
-              _selectedProductsById.containsKey(product.productId),
-          onTap: () => _toggleSelection(product),
-          freeQuantity: product.productId == null
-              ? product.quantity
-              : _normalizeFreeQuantityCount(
-                  _selectedFreeQuantitiesById[product.productId],
-                ),
-          onFreeQuantityChanged: (value) => _updateFreeQuantity(product, value),
-        );
-      },
-    );
-  }
-}
-
-class _BogoProductPickerScreenState extends State<BogoProductPickerScreen> {
-  final _client = ServerpodAdminClient().client;
-  final _searchCtrl = TextEditingController();
-  final _searchFocusNode = FocusNode();
-  final _selectedProductsById = <String, Product>{};
-  final _selectedFreeQuantitiesById = <String, String>{};
-
-  List<Product> _categoryProducts = [];
-  bool _isLoading = false;
-  String? _errorMessage;
-  String? _selectedCategory;
-
-  @override
-  void initState() {
-    super.initState();
-    for (final selection in widget.initiallySelectedProducts) {
-      final product = selection.product;
-      final id = product.productId;
-      if (id != null) {
-        _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
-          selection.freeQuantity,
-        );
-      }
-    }
-    _selectedCategory = widget.initialCategory;
-    if (_selectedCategory != null && _selectedCategory!.trim().isNotEmpty) {
-      _loadProductsForCategory(_selectedCategory!);
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadProductsForCategory(String category) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-      _selectedCategory = category;
-    });
-
-    try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-
-      final products = <Product>[];
-      String? pageToken;
-
-      do {
-        final page = await _client.product.getProductsPage(
-          firebaseUid: uid,
-          idToken: idToken,
-          category: category,
-          sortBy: 'name',
-          limit: 100,
-          pageToken: pageToken,
-        );
-        products.addAll(page.products);
-        pageToken = page.nextPageToken;
-      } while (pageToken != null);
-
-      if (!mounted) return;
-      setState(() {
-        _categoryProducts = products;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _toggleSelection(Product product) {
-    final id = product.productId;
-    if (id == null) return;
-
-    setState(() {
-      if (_selectedProductsById.containsKey(id)) {
-        _selectedProductsById.remove(id);
-        _selectedFreeQuantitiesById.remove(id);
-      } else {
-        _selectedProductsById[id] = product;
-        _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(
-          _selectedFreeQuantitiesById[id],
-        );
-      }
-    });
-  }
-
-  void _updateFreeQuantity(Product product, String quantity) {
-    final id = product.productId;
-    if (id == null) return;
-
-    setState(() {
-      _selectedFreeQuantitiesById[id] = _normalizeFreeQuantityCount(quantity);
-    });
-  }
-
-  String _normalizeFreeQuantityCount(String? value) {
-    return _parseFreeQuantityCount(value).toString();
-  }
-
-  String _basePackLabel(Product product) {
-    final baseQuantity = product.baseQuantity;
-    final baseUnit = product.baseUnit;
-    if (baseQuantity != null &&
-        baseQuantity > 0 &&
-        baseUnit != null &&
-        baseUnit.trim().isNotEmpty) {
-      final formattedQuantity = baseQuantity == baseQuantity.truncateToDouble()
-          ? baseQuantity.toInt().toString()
-          : baseQuantity.toString();
-      return '$formattedQuantity ${baseUnit.trim()}';
-    }
-
-    final fallback = product.quantity.trim();
-    return fallback.isEmpty ? '1 item' : fallback;
-  }
-
-  int _parseFreeQuantityCount(String? value) {
-    final normalized = value?.trim() ?? '';
-    if (normalized.isEmpty) return 1;
-
-    final multiplierMatch = RegExp(r'^(\d+)\s*x\b').firstMatch(normalized);
-    if (multiplierMatch != null) {
-      return int.tryParse(multiplierMatch.group(1)!) ?? 1;
-    }
-
-    final directNumber = int.tryParse(normalized);
-    if (directNumber != null && directNumber > 0) {
-      return directNumber;
-    }
-
-    return 1;
-  }
-
-  String _buildFreeQuantityLabel(Product product, String? countValue) {
-    final count = _parseFreeQuantityCount(countValue);
-    final packLabel = _basePackLabel(product);
-    if (count <= 1) return packLabel;
-    return '$count x $packLabel';
-  }
-
-  List<BogoProductSelection> _buildSelections() {
-    return _selectedProductsById.entries.map((entry) {
-      final product = entry.value;
-      return BogoProductSelection(
-        product: product,
-        freeQuantity: _buildFreeQuantityLabel(
-          product,
-          _selectedFreeQuantitiesById[entry.key],
-        ),
-      );
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final categories =
-        AdminCategoryController.instance.categories
-            .map((category) => category.categoryName)
-            .toList()
-          ..sort();
-    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
-    final isKeyboardOpen = keyboardInset > 0;
-
-    final query = _searchCtrl.text.toLowerCase().trim();
-    final filteredProducts = _categoryProducts.where((product) {
-      if (query.isEmpty) return true;
-      return product.productName.toLowerCase().contains(query) ||
-          product.quantity.toLowerCase().contains(query) ||
-          product.category.toLowerCase().contains(query);
-    }).toList();
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 680;
-        final spacing = AdminSpacing.md;
-        final headerContent = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isNarrow)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildCategoryDropdown(categories),
-                  SizedBox(height: spacing),
-                  FilledButton.tonalIcon(
-                    onPressed: _selectedCategory == null
-                        ? null
-                        : () => _loadProductsForCategory(_selectedCategory!),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh'),
-                  ),
-                ],
-              )
-            else
-              Row(
-                children: [
-                  Expanded(child: _buildCategoryDropdown(categories)),
-                  SizedBox(width: spacing),
-                  FilledButton.tonalIcon(
-                    onPressed: _selectedCategory == null
-                        ? null
-                        : () => _loadProductsForCategory(_selectedCategory!),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh'),
-                  ),
-                ],
-              ),
-            SizedBox(height: spacing),
-            TextField(
-              controller: _searchCtrl,
-              focusNode: _searchFocusNode,
-              decoration: InputDecoration(
-                hintText: 'Search within selected category...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchCtrl.text.isEmpty
-                    ? null
-                    : IconButton(
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() {});
-                        },
-                        icon: const Icon(Icons.close),
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            SizedBox(height: AdminSpacing.lg),
-            _SelectedProductsSummary(
-              selectedProducts: _buildSelections(),
-              onRemove: (id) {
-                setState(() {
-                  _selectedProductsById.remove(id);
-                  _selectedFreeQuantitiesById.remove(id);
-                });
-              },
-            ),
-            SizedBox(height: AdminSpacing.lg),
-            Text(
-              _selectedCategory == null
-                  ? 'Select a category to load products'
-                  : 'Products in $_selectedCategory (${filteredProducts.length})',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AdminTextStyles.sectionTitle(context),
-            ),
-          ],
-        );
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Select BOGO Free Products'),
-            actions: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context, _buildSelections());
-                  },
-                  icon: const Icon(Icons.check),
-                  label: Text('Use (${_selectedProductsById.length})'),
-                ),
-              ),
-            ],
-          ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, bodyConstraints) {
-                final header = ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: isKeyboardOpen
-                        ? bodyConstraints.maxHeight * 0.42
-                        : bodyConstraints.maxHeight,
-                  ),
-                  child: SingleChildScrollView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.manual,
-                    child: headerContent,
-                  ),
-                );
-
-                return AdminResponsive.constrainContent(
-                  context: context,
-                  maxWidth: AdminResponsive.maxFormWidth,
-                  child: Padding(
-                    padding: AdminResponsive.pagePadding(context),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            : AdminResponsive.constrainContent(
+                context: context,
+                maxWidth: AdminResponsive.maxFormWidth,
+                child: ListView(
+                  padding: AdminResponsive.pagePadding(context),
+                  children: [
+                    _buildTriggerSection(context),
+                    SizedBox(height: 16.h),
+                    Row(
                       children: [
-                        header,
-                        SizedBox(height: spacing),
                         Expanded(
-                          child: _buildContent(
-                            filteredProducts,
-                            isNarrow,
-                            bottomPadding: isKeyboardOpen
-                                ? 24.h
-                                : AdminResponsive.bottomInset(context),
+                          child: _buildDateCard(
+                            label: 'Start Date',
+                            value: _startDate,
+                            onTap: () => _selectDate(true),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _buildDateCard(
+                            label: 'End Date',
+                            value: _endDate,
+                            onTap: () => _selectDate(false),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCategoryDropdown(List<String> categories) {
-    return DropdownButtonFormField<String>(
-      initialValue: categories.contains(_selectedCategory)
-          ? _selectedCategory
-          : null,
-      isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Category',
-        border: OutlineInputBorder(),
-      ),
-      items: categories
-          .map(
-            (category) => DropdownMenuItem<String>(
-              value: category,
-              child: Text(category, overflow: TextOverflow.ellipsis),
-            ),
-          )
-          .toList(),
-      onChanged: (value) {
-        if (value == null) return;
-        _loadProductsForCategory(value);
-      },
-    );
-  }
-
-  Widget _buildContent(
-    List<Product> filteredProducts,
-    bool isNarrow, {
-    double bottomPadding = 0,
-  }) {
-    if (_selectedCategory == null || _selectedCategory!.trim().isEmpty) {
-      return Center(
-        child: Text(
-          'Select category first to browse products.',
-          textAlign: TextAlign.center,
-          style: AdminTextStyles.body(context),
-        ),
-      );
-    }
-
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_errorMessage != null) {
-      return AdminStateView.error(
-        message: _errorMessage,
-        onRetry: () => _loadProductsForCategory(_selectedCategory!),
-      );
-    }
-
-    if (filteredProducts.isEmpty) {
-      return Center(
-        child: Text(
-          'No products found for this category/search.',
-          textAlign: TextAlign.center,
-          style: AdminTextStyles.body(context),
-        ),
-      );
-    }
-
-    if (isNarrow) {
-      return ListView.separated(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-        padding: EdgeInsets.only(bottom: bottomPadding),
-        itemCount: filteredProducts.length,
-        separatorBuilder: (_, _) => SizedBox(height: 12.h),
-        itemBuilder: (context, index) {
-          final product = filteredProducts[index];
-          return _ProductSelectionTile(
-            product: product,
-            isSelected:
-                product.productId != null &&
-                _selectedProductsById.containsKey(product.productId),
-            onTap: () => _toggleSelection(product),
-            freeQuantity: product.productId == null
-                ? product.quantity
-                : _normalizeFreeQuantityCount(
-                    _selectedFreeQuantitiesById[product.productId],
-                  ),
-            onFreeQuantityChanged: (value) =>
-                _updateFreeQuantity(product, value),
-          );
-        },
-      );
-    }
-
-    return GridView.builder(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 280.w.clamp(240.0, 320.0).toDouble(),
-        mainAxisExtent: 226.h.clamp(204.0, 252.0).toDouble(),
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 12.h,
-      ),
-      itemCount: filteredProducts.length,
-      itemBuilder: (context, index) {
-        final product = filteredProducts[index];
-        return _ProductSelectionTile(
-          product: product,
-          isSelected:
-              product.productId != null &&
-              _selectedProductsById.containsKey(product.productId),
-          onTap: () => _toggleSelection(product),
-          freeQuantity: product.productId == null
-              ? product.quantity
-              : _normalizeFreeQuantityCount(
-                  _selectedFreeQuantitiesById[product.productId],
-                ),
-          onFreeQuantityChanged: (value) => _updateFreeQuantity(product, value),
-        );
-      },
-    );
-  }
-}
-
-class _ProductSelectionTile extends StatelessWidget {
-  final Product product;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final String freeQuantity;
-  final ValueChanged<String> onFreeQuantityChanged;
-
-  const _ProductSelectionTile({
-    required this.product,
-    required this.isSelected,
-    required this.onTap,
-    required this.freeQuantity,
-    required this.onFreeQuantityChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        padding: EdgeInsets.all(12.r),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isSelected ? Colors.green : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-          color: isSelected ? Colors.green.shade50 : Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Container(
-                    width: 64.r,
-                    height: 64.r,
-                    color: Colors.grey.shade100,
-                    child: product.imageUrl.isEmpty
-                        ? const Icon(Icons.image_not_supported_outlined)
-                        : Image.network(
-                            product.imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.broken_image_outlined);
-                            },
-                          ),
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.productName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AdminTextStyles.cardTitle(context),
+                    SizedBox(height: 20.h),
+                    _SelectedProductsSummary(
+                      selectedProducts: _buildSelections(),
+                      onRemove: (id) {
+                        setState(() {
+                          _selectedProductsById.remove(id);
+                          _selectedVariantsById.remove(id);
+                        });
+                      },
+                    ),
+                    SizedBox(height: 12.h),
+                    Center(
+                      child: FilledButton.tonalIcon(
+                        onPressed: _isSubmitting ? null : _selectFreeProducts,
+                        icon: const Icon(Icons.add_shopping_cart_rounded),
+                        label: const Text('Add Free Products'),
                       ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        product.quantity,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey.shade700),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        '₹${product.price.toStringAsFixed(0)}',
-                        style: AdminTextStyles.body(context).copyWith(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Checkbox(value: isSelected, onChanged: (_) => onTap()),
-              ],
-            ),
-            if (isSelected) ...[
-              SizedBox(height: 12.h),
-              TextFormField(
-                key: ValueKey(
-                  'picker_free_quantity_${product.productId ?? ''}',
-                ),
-                initialValue: freeQuantity,
-                autofocus: false,
-                onChanged: onFreeQuantityChanged,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Free Qty Count',
-                  hintText: '1',
-                  helperText:
-                      'Base pack: ${product.baseQuantity != null && product.baseUnit != null ? '${product.baseQuantity == product.baseQuantity!.truncateToDouble() ? product.baseQuantity!.toInt() : product.baseQuantity} ${product.baseUnit}' : product.quantity}',
-                  prefixIcon: const Icon(Icons.scale_rounded),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                    ),
+                    SizedBox(height: 32.h),
+                  ],
                 ),
               ),
-            ],
-          ],
-        ),
       ),
     );
-  }
-}
-
-class _PinnedControlsHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _PinnedControlsHeaderDelegate({
-    required this.minExtentValue,
-    required this.maxExtentValue,
-    required this.child,
-  });
-
-  final double minExtentValue;
-  final double maxExtentValue;
-  final Widget child;
-
-  @override
-  double get minExtent => minExtentValue;
-
-  @override
-  double get maxExtent => maxExtentValue;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return ClipRect(
-      child: SizedBox.expand(
-        child: Align(alignment: Alignment.topCenter, child: child),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _PinnedControlsHeaderDelegate oldDelegate) {
-    return minExtentValue != oldDelegate.minExtentValue ||
-        maxExtentValue != oldDelegate.maxExtentValue ||
-        child != oldDelegate.child;
   }
 }
 
@@ -1661,8 +702,8 @@ class _SelectedProductsSummary extends StatelessWidget {
             itemCount: selectedProducts.length,
             separatorBuilder: (_, _) => SizedBox(width: 10.w),
             itemBuilder: (context, index) {
-              final product = selectedProducts[index];
-              final productId = product.product.productId;
+              final selection = selectedProducts[index];
+              final productId = selection.product.productId;
 
               return Container(
                 width: 250.w.clamp(220.0, 280.0).toDouble(),
@@ -1680,10 +721,10 @@ class _SelectedProductsSummary extends StatelessWidget {
                         width: 56.r,
                         height: 56.r,
                         color: Colors.grey.shade100,
-                        child: product.product.imageUrl.isEmpty
+                        child: selection.product.imageUrl.isEmpty
                             ? const Icon(Icons.image_outlined)
                             : Image.network(
-                                product.product.imageUrl,
+                                selection.product.imageUrl,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Icon(
@@ -1701,21 +742,14 @@ class _SelectedProductsSummary extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            product.product.productName,
+                            selection.product.productName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AdminTextStyles.cardTitle(context),
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            'Pack: ${product.product.quantity}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            'Free: ${product.freeQuantity}',
+                            'Pack: ${selection.displayLabel}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AdminTextStyles.caption(context).copyWith(

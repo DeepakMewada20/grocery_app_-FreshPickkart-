@@ -1,4 +1,5 @@
 class: BogoFreeProduct
 fields:
   productId: String
-  quantity: String?
+  variantId: String?
+  displayLabel: String?
