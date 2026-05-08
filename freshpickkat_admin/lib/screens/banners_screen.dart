@@ -1572,7 +1572,7 @@ class _BannerSheetState extends State<_BannerSheet> {
 
       final isHomeTopImage = _mode == BannerMode.homeTopImage;
       final aspectRatio = isHomeTopImage
-          ? const CropAspectRatio(ratioX: 1.3, ratioY: 1)
+          ? const CropAspectRatio(ratioX: 1.2, ratioY: 1)
           : const CropAspectRatio(ratioX: 16, ratioY: 9);
 
       final url = await AdminImageUploadService.pickCropAndUploadImage(

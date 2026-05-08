@@ -112,12 +112,12 @@ class _HomeBannerWithHorizontalItemState
         final banner = bannerController.homeTopImageBanners.firstOrNull;
         final width = MediaQuery.sizeOf(context).width;
         final productStripHeight = AppResponsive.isLandscape(context)
-            ? 104.h
-            : 130.h;
-        final bannerHeight = (width * 0.62)
+            ? 80.h
+            : 100.h;
+        final bannerHeight = (width / 1.2)
             .clamp(
               productStripHeight + 34.h,
-              AppResponsive.isLandscape(context) ? 190.h : 320.h,
+              AppResponsive.isLandscape(context) ? 280.h : 450.h,
             )
             .toDouble();
 
