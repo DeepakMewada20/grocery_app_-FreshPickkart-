@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -6,6 +8,7 @@ import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
+import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 
 import 'dashboard_screen.dart';
@@ -46,6 +49,13 @@ class _MainScreenState extends State<MainScreen> {
     Get.lazyPut(() => AdminDashboardController());
     Get.lazyPut(() => AdminCouponController());
     Get.lazyPut(() => LiveDeliveryController());
+    unawaited(_startRealtime());
+  }
+
+  Future<void> _startRealtime() async {
+    try {
+      await AdminRealtimeService.instance.start();
+    } catch (_) {}
   }
 
   @override

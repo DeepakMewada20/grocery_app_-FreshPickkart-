@@ -4,8 +4,8 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
-import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/services/notification_service.dart';
 import 'package:get/get.dart';
 
 class DataInitializationService extends GetxService {
@@ -74,8 +74,8 @@ class DataInitializationService extends GetxService {
 
   Future<void> _initNotifications() async {
     try {
-      await NotificationController.instance.init();
-      await NotificationController.instance.openPendingTrackingLaunchIfAny();
+      await NotificationService.init();
+      await NotificationService.openPendingTrackingLaunchIfAny();
     } catch (e) {
       debugPrint('Error init notifications: $e');
     }

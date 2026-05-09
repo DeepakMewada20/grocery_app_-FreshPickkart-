@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/screens/auth_wrapper.dart';
 import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
+import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/theme/admin_theme_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -19,6 +20,7 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Get.put(DeliveryTrackingController(), permanent: true);
+  Get.put(AdminRealtimeService(), permanent: true);
   Get.put(AdminThemeController(), permanent: true);
 
   runApp(const FreshPickKatAdmin());

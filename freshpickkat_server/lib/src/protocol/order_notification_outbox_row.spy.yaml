@@ -1,0 +1,24 @@
+class: OrderNotificationOutboxRow
+serverOnly: true
+table: order_notification_outbox
+fields:
+  id: UuidValue?, defaultPersist=random
+  dedupeKey: String
+  eventType: String
+  orderId: String
+  userId: String?
+  status: String?
+  payloadJson: String
+  attemptCount: int, default=0
+  lastError: String?
+  processedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  order_notification_outbox_dedupe_idx:
+    fields: dedupeKey
+    unique: true
+  order_notification_outbox_pending_idx:
+    fields: processedAt, createdAt, id
+  order_notification_outbox_user_pending_idx:
+    fields: userId, processedAt, createdAt, id

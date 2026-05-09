@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../notification_service.dart';
+import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 
@@ -196,6 +196,14 @@ class PostgresRefundService {
         transaction: transaction,
       );
     });
+
+    if (normalizedStatus == 'processed') {
+      await OrderOutboxService.instance.enqueueRefundProcessed(
+        session: session,
+        orderId: order.orderNumber,
+        userId: order.userId.toString(),
+      );
+    }
   }
 
   Future<RefundRecord> _initiateRefundForOrder(
@@ -286,14 +294,11 @@ class PostgresRefundService {
     });
 
     final mapped = _mapRefundRecord(refund, order.orderNumber);
-    try {
-      await NotificationService.notifyUserStatusUpdate(
-        session: session,
-        userId: order.userId.toString(),
-        orderId: order.orderNumber,
-        status: 'cancelled',
-      );
-    } catch (_) {}
+    await OrderOutboxService.instance.enqueueRefundProcessed(
+      session: session,
+      orderId: order.orderNumber,
+      userId: order.userId.toString(),
+    );
     return mapped;
   }
 

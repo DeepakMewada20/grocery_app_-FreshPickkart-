@@ -17,6 +17,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/data_initialization_service.dart';
+import 'package:freshpickkat_flutter/services/order_realtime_service.dart';
 import 'package:freshpickkat_flutter/tracking/controllers/order_tracking_controller.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
@@ -58,6 +59,7 @@ void main() async {
   Get.lazyPut(() => ComboOfferController(), fenix: true);
   Get.lazyPut(() => CartController(), fenix: true);
   Get.lazyPut(() => NotificationController(), fenix: true);
+  Get.put(OrderRealtimeService(), permanent: true);
   Get.lazyPut(() => OrderRecoveryService(), fenix: true);
   Get.lazyPut(() => OrderTrackingController(), fenix: true);
 

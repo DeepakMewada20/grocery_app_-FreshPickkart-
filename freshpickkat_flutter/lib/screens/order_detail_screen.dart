@@ -75,10 +75,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _isLoading = true;
   bool _isCancelling = false;
   String? _error;
+  Worker? _ordersWorker;
 
   @override
   void initState() {
     super.initState();
+    _ordersWorker = ever(OrderController.instance.orders, (_) {
+      _syncFromList();
+    });
     _fetch();
   }
 
@@ -100,6 +104,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         }
       });
     }
+  }
+
+  void _syncFromList() {
+    if (!mounted) return;
+
+    Order? updated;
+    for (final order in OrderController.instance.orders) {
+      if (order.orderId == widget.orderId) {
+        updated = order;
+        break;
+      }
+    }
+    if (updated == null) return;
+
+    setState(() {
+      _order = updated;
+    });
+  }
+
+  @override
+  void dispose() {
+    _ordersWorker?.dispose();
+    _ordersWorker = null;
+    super.dispose();
   }
 
   @override

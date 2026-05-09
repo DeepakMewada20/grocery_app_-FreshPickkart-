@@ -88,6 +88,10 @@ order:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:
+orderRealtime:
+  - watchAdminOrders:
+  - watchDashboardUpdates:
+  - watchUserOrders:
 orderTracking:
   - getTrackingForUser:
   - getTrackingForAdmin:

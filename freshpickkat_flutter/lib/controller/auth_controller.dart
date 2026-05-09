@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
+import 'package:freshpickkat_flutter/services/order_realtime_service.dart';
 import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
@@ -84,6 +85,11 @@ class AuthController extends GetxController {
       CartController.instance.markInitialized();
 
       NotificationController.instance.syncTokenWithServer();
+      try {
+        await OrderRealtimeService.instance.startForCurrentUser();
+      } catch (e) {
+        debugPrint('Error starting order realtime: $e');
+      }
 
       final pendingProduct = getPendingProductToAdd();
       if (pendingProduct != null) {
@@ -231,6 +237,7 @@ class AuthController extends GetxController {
     CategoryProviderController.instance.clearCache();
     BogoController.instance.clearCache();
     ComboOfferController.instance.clearCache();
+    await OrderRealtimeService.instance.stop();
 
     await _auth.signOut();
   }

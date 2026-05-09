@@ -1,45 +1,27 @@
-import 'dart:convert';
-
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart' show AppUserRow;
-import 'firebase_service.dart';
-import 'postgres/postgres_support.dart';
+import '../generated/protocol.dart' show OrderRealtimeEvent;
+import 'firebase_notification_service.dart';
 
 class NotificationService {
-  static const String _fcmScope =
-      'https://www.googleapis.com/auth/firebase.messaging';
+  static final FirebaseNotificationService _service =
+      FirebaseNotificationService();
 
   static Future<void> sendToToken({
     required String token,
     required String title,
     required String body,
     Map<String, String>? data,
-  }) async {
-    await _sendMessage({
-      'message': {
-        'token': token,
-        'notification': {'title': title, 'body': body},
-        ...?data,
-      },
-    });
-  }
+  }) =>
+      _service.sendToToken(token: token, title: title, body: body, data: data);
 
   static Future<void> sendToTopic({
     required String topic,
     required String title,
     required String body,
     Map<String, String>? data,
-  }) async {
-    await _sendMessage({
-      'message': {
-        'topic': topic,
-        'notification': {'title': title, 'body': body},
-        ...?data,
-      },
-    });
-  }
+  }) =>
+      _service.sendToTopic(topic: topic, title: title, body: body, data: data);
 
   static Future<void> notifyUserPaymentSuccess({
     Session? session,
@@ -47,121 +29,64 @@ class NotificationService {
     required String orderId,
     required double amount,
     int? itemCount,
-  }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
-
-    final title = 'Payment successful';
-    final body = itemCount == null
-        ? 'Order $orderId confirmed. Amount paid INR ${amount.toStringAsFixed(0)}.'
-        : 'Order $orderId confirmed ($itemCount items). Paid INR ${amount.toStringAsFixed(0)}.';
-
-    await sendToToken(
-      token: token,
-      title: title,
-      body: body,
-      data: {'orderId': orderId, 'type': 'order_paid'},
-    );
-  }
+  }) =>
+      _service.sendUserPaymentSuccess(
+        session: session,
+        userId: userId,
+        orderId: orderId,
+        amount: amount,
+        itemCount: itemCount,
+      );
 
   static Future<void> notifyUserStatusUpdate({
     Session? session,
     required String userId,
     required String orderId,
     required String status,
-  }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
-
-    final title = 'Order update';
-    final body = 'Order $orderId status updated to $status.';
-
-    await sendToToken(
-      token: token,
-      title: title,
-      body: body,
-      data: {'orderId': orderId, 'type': 'order_status'},
-    );
-  }
+  }) =>
+      _service.sendUserStatusUpdate(
+        session: session,
+        userId: userId,
+        orderId: orderId,
+        status: status,
+      );
 
   static Future<void> notifyDeliveryStarted({
     Session? session,
     required String userId,
     required String orderId,
-  }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
-
-    await sendToToken(
-      token: token,
-      title: 'Track your order | Apna order track karein',
-      body:
-          'Your order is on the way. Track your order in the app.\n'
-          'Aapka order raste me hai. App me live location dekhein.',
-      data: {
-        'orderId': orderId,
-        'type': 'delivery_started',
-        'screen': 'track_order',
-      },
-    );
-  }
+  }) =>
+      _service.sendDeliveryStarted(
+        session: session,
+        userId: userId,
+        orderId: orderId,
+      );
 
   static Future<void> notifyAdminNewOrder({
     required String orderId,
     required double amount,
     int? itemCount,
-  }) async {
-    final title = 'New paid order';
-    final body = itemCount == null
-        ? 'Order $orderId paid. Amount INR ${amount.toStringAsFixed(0)}.'
-        : 'Order $orderId paid ($itemCount items). INR ${amount.toStringAsFixed(0)}.';
-
-    await sendToTopic(
-      topic: 'admin',
-      title: title,
-      body: body,
-      data: {'orderId': orderId, 'type': 'admin_new_order'},
-    );
-  }
-
-  static Future<String?> _getUserFcmToken(
-    String userId, {
-    Session? session,
-  }) async {
-    final activeSession = session;
-    if (activeSession == null) return null;
-
-    final normalized = userId.trim();
-    if (normalized.isEmpty) return null;
-
-    final parsedId = tryParseUuid(normalized);
-    final user = await AppUserRow.db.findFirstRow(
-      activeSession,
-      where: (t) => parsedId == null
-          ? t.firebaseUid.equals(normalized) & t.status.equals('active')
-          : (t.firebaseUid.equals(normalized) & t.status.equals('active')) |
-                (t.id.equals(parsedId) & t.status.equals('active')),
-    );
-    return user?.fcmToken;
-  }
-
-  static Future<void> _sendMessage(Map<String, dynamic> payload) async {
-    final credentials = await FirebaseService.getServiceAccountCredentials();
-    final client = await clientViaServiceAccount(credentials, [_fcmScope]);
-    try {
-      final uri = Uri.parse(
-        'https://fcm.googleapis.com/v1/projects/${FirebaseService.projectId}/messages:send',
+  }) =>
+      _service.sendAdminNewOrder(
+        orderId: orderId,
+        amount: amount,
+        itemCount: itemCount,
       );
-      final response = await client.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
+
+  static Future<void> notifyForEvent(
+    Session session,
+    OrderRealtimeEvent event, {
+    required double amount,
+    int? itemCount,
+    bool isDeliveryStarted = false,
+    bool isRefundProcessed = false,
+  }) =>
+      _service.sendForEvent(
+        session,
+        event,
+        amount: amount,
+        itemCount: itemCount,
+        isDeliveryStarted: isDeliveryStarted,
+        isRefundProcessed: isRefundProcessed,
       );
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        // Swallow errors for now; can be logged if needed.
-      }
-    } finally {
-      client.close();
-    }
-  }
 }

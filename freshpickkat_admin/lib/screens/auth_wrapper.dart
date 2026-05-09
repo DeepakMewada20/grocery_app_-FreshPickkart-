@@ -6,6 +6,7 @@ import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/services/admin_notification_service.dart';
+import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
 import 'package:freshpickkat_admin/services/network_status_service.dart';
 
 enum _AuthViewState {
@@ -93,6 +94,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
 
     if (!mounted) return;
     if (user == null) {
+      await AdminRealtimeService.instance.stop();
       setState(() {
         _viewState = _AuthViewState.login;
         _authorizedUid = null;

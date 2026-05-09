@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
 import '../services/business/validation_service.dart';
-import '../services/notification_service.dart';
+import '../services/order_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_order_service.dart';
@@ -182,26 +182,13 @@ class OrderEndpoint extends Endpoint {
       metadata: {'newStatus': newStatus},
     );
 
-    if (existingOrder.userId.isNotEmpty) {
-      if (newStatus == statusOutForDelivery) {
-        try {
-          await NotificationService.notifyDeliveryStarted(
-            session: session,
-            userId: existingOrder.userId,
-            orderId: orderId,
-          );
-        } catch (_) {}
-      } else {
-        try {
-          await NotificationService.notifyUserStatusUpdate(
-            session: session,
-            userId: existingOrder.userId,
-            orderId: orderId,
-            status: newStatus,
-          );
-        } catch (_) {}
-      }
-    }
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    await OrderOutboxService.instance.enqueueOrderStatusChanged(
+      session: session,
+      orderId: orderId,
+      userId: updatedOrder?.userId,
+      status: newStatus,
+    );
 
     return true;
   }
@@ -228,6 +215,20 @@ class OrderEndpoint extends Endpoint {
       gatewayPaymentId: razorpayPaymentId,
     );
     if (!updated) return false;
+
+    if (paymentStatus == paymentPaid) {
+      final order = await _orders.getOrderById(session, orderId);
+      if (order != null) {
+        await OrderOutboxService.instance.enqueueOrderPaid(
+          session: session,
+          orderId: orderId,
+          userId: order.userId,
+          status: order.status,
+          amount: order.finalAmount,
+          itemCount: order.itemCount,
+        );
+      }
+    }
 
     await _audit.write(
       session,
@@ -259,7 +260,19 @@ class OrderEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    return _orders.confirmOrder(session, orderId);
+    final updated = await _orders.confirmOrder(session, orderId);
+    if (updated) {
+      final order = await _orders.getOrderById(session, orderId);
+      if (order != null) {
+        await OrderOutboxService.instance.enqueueOrderStatusChanged(
+          session: session,
+          orderId: orderId,
+          userId: order.userId,
+          status: 'confirmed',
+        );
+      }
+    }
+    return updated;
   }
 
   Future<bool> cancelOrder(
@@ -275,12 +288,24 @@ class OrderEndpoint extends Endpoint {
       firebaseUid: userId,
       idToken: idToken,
     );
-    return _orders.cancelOrder(
+    final updated = await _orders.cancelOrder(
       session,
       orderId,
       userId,
       reason: reason,
     );
+    if (updated) {
+      final order = await _orders.getOrderById(session, orderId);
+      if (order != null) {
+        await OrderOutboxService.instance.enqueueOrderStatusChanged(
+          session: session,
+          orderId: orderId,
+          userId: order.userId,
+          status: 'cancelled',
+        );
+      }
+    }
+    return updated;
   }
 
   Future<bool> assignDeliveryPerson(

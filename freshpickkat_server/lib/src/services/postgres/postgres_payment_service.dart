@@ -2,7 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
-import '../notification_service.dart';
+import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 
@@ -135,6 +135,16 @@ class PostgresPaymentService {
 
       if (paymentRow.paymentStatus == 'paid' &&
           resolvedOrderRow.paymentStatus == 'paid') {
+        await OrderOutboxService.instance.enqueueOrderPaid(
+          session: session,
+          orderId: resolvedOrderRow.orderNumber,
+          userId: resolvedOrderRow.userId.toString(),
+          status: resolvedOrderRow.orderStatus == 'placed'
+              ? 'confirmed'
+              : resolvedOrderRow.orderStatus,
+          amount: resolvedOrderRow.finalAmount,
+          itemCount: resolvedOrderRow.itemCount,
+        );
         return PaymentVerifyResult(
           success: true,
           verified: true,
@@ -189,6 +199,17 @@ class PostgresPaymentService {
       await _processPaidOrderAnalytics(
         session,
         orderNumber: resolvedOrderRow.orderNumber,
+      );
+
+      await OrderOutboxService.instance.enqueueOrderPaid(
+        session: session,
+        orderId: resolvedOrderRow.orderNumber,
+        userId: resolvedOrderRow.userId.toString(),
+        status: resolvedOrderRow.orderStatus == 'placed'
+            ? 'confirmed'
+            : resolvedOrderRow.orderStatus,
+        amount: resolvedOrderRow.finalAmount,
+        itemCount: resolvedOrderRow.itemCount,
       );
 
       await _finalizeSuccessfulPaymentSideEffects(
@@ -350,41 +371,6 @@ class PostgresPaymentService {
       session,
       where: (t) => t.userId.equals(order.userId),
     );
-
-    final amount = order.finalAmount;
-    final itemCount = order.itemCount == 0 ? null : order.itemCount;
-    final userId = order.userId.toString();
-
-    if (userId.isNotEmpty) {
-      try {
-        await NotificationService.notifyUserPaymentSuccess(
-          session: session,
-          userId: userId,
-          orderId: order.orderNumber,
-          amount: amount,
-          itemCount: itemCount,
-        );
-      } catch (_) {}
-
-      if (order.orderStatus == 'placed' || order.orderStatus == 'pending') {
-        try {
-          await NotificationService.notifyUserStatusUpdate(
-            session: session,
-            userId: userId,
-            orderId: order.orderNumber,
-            status: 'confirmed',
-          );
-        } catch (_) {}
-      }
-    }
-
-    try {
-      await NotificationService.notifyAdminNewOrder(
-        orderId: order.orderNumber,
-        amount: amount,
-        itemCount: itemCount,
-      );
-    } catch (_) {}
 
     await _deductStockForOrderItems(session, order.id!);
   }

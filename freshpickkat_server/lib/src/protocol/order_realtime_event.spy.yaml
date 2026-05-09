@@ -1,0 +1,7 @@
+class: OrderRealtimeEvent
+fields:
+  eventType: String
+  orderId: String
+  status: String?
+  userId: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
