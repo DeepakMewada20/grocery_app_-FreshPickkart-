@@ -135,8 +135,9 @@ class PostgresOfferService {
 
     final offset = int.tryParse(pageToken ?? '') ?? 0;
     final safeOffset = offset.clamp(0, offers.length);
-    final end = (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
-        .clamp(0, offers.length);
+    final end =
+        (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
+            .clamp(0, offers.length);
 
     return BogoOfferPage(
       offers: offers.sublist(safeOffset, end),
@@ -153,7 +154,9 @@ class PostgresOfferService {
       orderBy: (t) => t.createdAt,
       orderDescending: true,
     );
-    final activeRows = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt));
+    final activeRows = rows.where(
+      (row) => _isWithinWindow(now, row.startsAt, row.endsAt),
+    );
     return _hydrateBogoOffers(session, activeRows.toList());
   }
 
@@ -173,7 +176,9 @@ class PostgresOfferService {
       orderDescending: true,
     );
     final now = DateTime.now().toUtc();
-    final active = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt)).toList();
+    final active = rows
+        .where((row) => _isWithinWindow(now, row.startsAt, row.endsAt))
+        .toList();
     if (active.isEmpty) return null;
     final hydrated = await _hydrateBogoOffers(session, [active.first]);
     return hydrated.isEmpty ? null : hydrated.first;
@@ -191,12 +196,15 @@ class PostgresOfferService {
 
     final rows = await BogoOfferRow.db.find(
       session,
-      where: (t) => t.triggerProductId.inSet(parsedIds) & t.status.equals('active'),
+      where: (t) =>
+          t.triggerProductId.inSet(parsedIds) & t.status.equals('active'),
       orderBy: (t) => t.createdAt,
       orderDescending: true,
     );
     final now = DateTime.now().toUtc();
-    final activeRows = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt));
+    final activeRows = rows.where(
+      (row) => _isWithinWindow(now, row.startsAt, row.endsAt),
+    );
     return _hydrateBogoOffers(session, activeRows.toList());
   }
 
@@ -290,7 +298,9 @@ class PostgresOfferService {
       orderBy: (t) => t.priority,
       orderDescending: true,
     );
-    final filtered = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt)).toList();
+    final filtered = rows
+        .where((row) => _isWithinWindow(now, row.startsAt, row.endsAt))
+        .toList();
     return _hydrateComboOffers(session, filtered);
   }
 
@@ -327,7 +337,9 @@ class PostgresOfferService {
       orderDescending: true,
     );
     final now = DateTime.now().toUtc();
-    final activeRows = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt));
+    final activeRows = rows.where(
+      (row) => _isWithinWindow(now, row.startsAt, row.endsAt),
+    );
     return _hydrateComboOffers(session, activeRows.toList());
   }
 
@@ -345,8 +357,9 @@ class PostgresOfferService {
 
     final offset = int.tryParse(pageToken ?? '') ?? 0;
     final safeOffset = offset.clamp(0, offers.length);
-    final end = (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
-        .clamp(0, offers.length);
+    final end =
+        (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
+            .clamp(0, offers.length);
 
     return ComboOfferPage(
       offers: offers.sublist(safeOffset, end),
@@ -493,7 +506,9 @@ class PostgresOfferService {
       orderBy: (t) => t.priority,
       orderDescending: true,
     );
-    final filtered = rows.where((row) => _isWithinWindow(now, row.startsAt, row.endsAt)).toList();
+    final filtered = rows
+        .where((row) => _isWithinWindow(now, row.startsAt, row.endsAt))
+        .toList();
     return _hydrateCategoryOffers(session, filtered);
   }
 
@@ -520,8 +535,9 @@ class PostgresOfferService {
 
     final offset = int.tryParse(pageToken ?? '') ?? 0;
     final safeOffset = offset.clamp(0, offers.length);
-    final end = (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
-        .clamp(0, offers.length);
+    final end =
+        (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
+            .clamp(0, offers.length);
 
     return CategoryOfferPage(
       offers: offers.sublist(safeOffset, end),
@@ -570,35 +586,35 @@ class PostgresOfferService {
           .add(reward);
     }
 
-    return rows
-        .map((row) {
-          final rowRewards = rewardsByOffer[row.id!.toString()] ?? const <BogoOfferRewardRow>[];
-          return BogoOffer(
-            offerId: row.id!.toString(),
-            triggerProductId: row.triggerProductId.toString(),
-            triggerVariantId: row.triggerVariantId?.toString(),
-            minTriggerQuantity: row.minTriggerQuantity,
-            triggerBaseQuantity: row.triggerBaseQuantity,
-            triggerBaseUnit: row.triggerBaseUnit,
-            freeProductIds: rowRewards
-                .map((reward) => reward.rewardProductId.toString())
-                .toList(),
-            freeProducts: rowRewards
-                .map(
-                  (reward) => BogoFreeProduct(
-                    productId: reward.rewardProductId.toString(),
-                    variantId: reward.rewardVariantId?.toString(),
-                  ),
-                )
-                .toList(),
-            offerTitle: row.title,
-            isActive: row.status == 'active',
-            startDate: row.startsAt,
-            endDate: row.endsAt,
-            createdAt: row.createdAt,
-          );
-        })
-        .toList();
+    return rows.map((row) {
+      final rowRewards =
+          rewardsByOffer[row.id!.toString()] ?? const <BogoOfferRewardRow>[];
+      return BogoOffer(
+        offerId: row.id!.toString(),
+        triggerProductId: row.triggerProductId.toString(),
+        triggerVariantId: row.triggerVariantId?.toString(),
+        minTriggerQuantity: row.minTriggerQuantity,
+        triggerBaseQuantity: row.triggerBaseQuantity,
+        triggerBaseUnit: row.triggerBaseUnit,
+        freeProductIds: rowRewards
+            .map((reward) => reward.rewardProductId.toString())
+            .toList(),
+        freeProducts: rowRewards
+            .map(
+              (reward) => BogoFreeProduct(
+                productId: reward.rewardProductId.toString(),
+                variantId: reward.rewardVariantId?.toString(),
+                freeQuantity: reward.freeQuantity,
+              ),
+            )
+            .toList(),
+        offerTitle: row.title,
+        isActive: row.status == 'active',
+        startDate: row.startsAt,
+        endDate: row.endsAt,
+        createdAt: row.createdAt,
+      );
+    }).toList();
   }
 
   Future<List<ComboOffer>> _hydrateComboOffers(
@@ -630,38 +646,37 @@ class PostgresOfferService {
           .add(item);
     }
 
-    return rows
-        .map((row) {
-          final comboItems = itemsByCombo[row.id!.toString()] ?? const <ComboOfferItemRow>[];
-          comboItems.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-          return ComboOffer(
-            comboId: row.id!.toString(),
-            name: row.name,
-            description: row.description,
-            comboProducts: comboItems
-                .map(
-                  (item) => ComboProductItem(
-                    productId: item.productId.toString(),
-                    productName: productNameById[item.productId.toString()],
-                    quantity: item.quantity,
-                    variantId: item.productVariantId?.toString(),
-                  ),
-                )
-                .toList(),
-            discountType: row.discountType,
-            discountValue: row.discountValue,
-            minQuantityPerProduct: row.minQuantityPerProduct,
-            startDate: row.startsAt,
-            endDate: row.endsAt,
-            isActive: row.status == 'active',
-            priority: row.priority,
-            maxUsagePerUser: row.maxUsagePerUser ?? 0,
-            usageCount: row.usedCount,
-            maxTotalUsage: row.maxUsageTotal,
-            createdAt: row.createdAt,
-          );
-        })
-        .toList();
+    return rows.map((row) {
+      final comboItems =
+          itemsByCombo[row.id!.toString()] ?? const <ComboOfferItemRow>[];
+      comboItems.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      return ComboOffer(
+        comboId: row.id!.toString(),
+        name: row.name,
+        description: row.description,
+        comboProducts: comboItems
+            .map(
+              (item) => ComboProductItem(
+                productId: item.productId.toString(),
+                productName: productNameById[item.productId.toString()],
+                quantity: item.quantity,
+                variantId: item.productVariantId?.toString(),
+              ),
+            )
+            .toList(),
+        discountType: row.discountType,
+        discountValue: row.discountValue,
+        minQuantityPerProduct: row.minQuantityPerProduct,
+        startDate: row.startsAt,
+        endDate: row.endsAt,
+        isActive: row.status == 'active',
+        priority: row.priority,
+        maxUsagePerUser: row.maxUsagePerUser ?? 0,
+        usageCount: row.usedCount,
+        maxTotalUsage: row.maxUsageTotal,
+        createdAt: row.createdAt,
+      );
+    }).toList();
   }
 
   Future<List<CategoryOffer>> _hydrateCategoryOffers(
@@ -703,30 +718,28 @@ class PostgresOfferService {
           .add(exclusion.productId.toString());
     }
 
-    return rows
-        .map((row) {
-          final category = categoryById[row.categoryId.toString()];
-          final categoryName = category?.name ?? row.categoryId.toString();
-          return CategoryOffer(
-            offerId: row.id!.toString(),
-            name: row.name,
-            description: row.description,
-            categoryId: categoryName,
-            categoryName: categoryName,
-            discountType: row.discountType,
-            discountValue: row.discountValue,
-            maxDiscount: row.maxDiscountAmount,
-            minOrderAmount: row.minOrderAmount,
-            productIds: scopeIdsByOffer[row.id!.toString()],
-            excludeProductIds: exclusionIdsByOffer[row.id!.toString()],
-            startDate: row.startsAt,
-            endDate: row.endsAt,
-            isActive: row.status == 'active',
-            priority: row.priority,
-            createdAt: row.createdAt,
-          );
-        })
-        .toList();
+    return rows.map((row) {
+      final category = categoryById[row.categoryId.toString()];
+      final categoryName = category?.name ?? row.categoryId.toString();
+      return CategoryOffer(
+        offerId: row.id!.toString(),
+        name: row.name,
+        description: row.description,
+        categoryId: categoryName,
+        categoryName: categoryName,
+        discountType: row.discountType,
+        discountValue: row.discountValue,
+        maxDiscount: row.maxDiscountAmount,
+        minOrderAmount: row.minOrderAmount,
+        productIds: scopeIdsByOffer[row.id!.toString()],
+        excludeProductIds: exclusionIdsByOffer[row.id!.toString()],
+        startDate: row.startsAt,
+        endDate: row.endsAt,
+        isActive: row.status == 'active',
+        priority: row.priority,
+        createdAt: row.createdAt,
+      );
+    }).toList();
   }
 
   Future<BogoOfferRow?> _findBogoByTrigger(
@@ -759,7 +772,10 @@ class PostgresOfferService {
         .map(
           (p) => _RewardSpec(
             productId: UuidValue.fromString(p.productId),
-            variantId: p.variantId != null ? UuidValue.fromString(p.variantId!) : null,
+            variantId: p.variantId != null
+                ? UuidValue.fromString(p.variantId!)
+                : null,
+            freeQuantity: _normalizeFreeQuantity(p.freeQuantity),
           ),
         )
         .toList();
@@ -784,6 +800,7 @@ class PostgresOfferService {
           bogoOfferId: offerId,
           rewardProductId: spec.productId,
           rewardVariantId: spec.variantId,
+          freeQuantity: spec.freeQuantity,
           createdAt: DateTime.now().toUtc(),
         ),
         transaction: transaction,
@@ -891,7 +908,10 @@ class PostgresOfferService {
     }
   }
 
-  Future<CategoryRow?> _resolveCategory(Session session, String rawValue) async {
+  Future<CategoryRow?> _resolveCategory(
+    Session session,
+    String rawValue,
+  ) async {
     final trimmed = rawValue.trim();
     if (trimmed.isEmpty) return null;
 
@@ -937,14 +957,21 @@ class PostgresOfferService {
   bool _isWithinWindow(DateTime now, DateTime startsAt, DateTime endsAt) {
     return !now.isBefore(startsAt) && !now.isAfter(endsAt);
   }
+
+  int _normalizeFreeQuantity(int? quantity) {
+    final value = quantity ?? 1;
+    return value <= 0 ? 1 : value;
+  }
 }
 
 class _RewardSpec {
   _RewardSpec({
     required this.productId,
     this.variantId,
+    required this.freeQuantity,
   });
 
   final UuidValue productId;
   final UuidValue? variantId;
+  final int freeQuantity;
 }

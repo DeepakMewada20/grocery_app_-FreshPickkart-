@@ -1,0 +1,5 @@
+class: OfferSearchPage
+fields:
+  items: List<OfferSearchItem>
+  nextPageToken: String?
+  totalCount: int

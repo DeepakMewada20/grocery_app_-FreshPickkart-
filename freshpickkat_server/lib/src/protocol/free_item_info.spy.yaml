@@ -5,3 +5,4 @@ fields:
   variantId: String?
   quantity: int
   triggerProductId: String?
+  bogoOfferId: String?

@@ -19,6 +19,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     this.variantId,
     required this.quantity,
     this.triggerProductId,
+    this.bogoOfferId,
   });
 
   factory FreeItemInfo({
@@ -27,6 +28,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     String? variantId,
     required int quantity,
     String? triggerProductId,
+    String? bogoOfferId,
   }) = _FreeItemInfoImpl;
 
   factory FreeItemInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -36,6 +38,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       variantId: jsonSerialization['variantId'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
+      bogoOfferId: jsonSerialization['bogoOfferId'] as String?,
     );
   }
 
@@ -49,6 +52,8 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
 
   String? triggerProductId;
 
+  String? bogoOfferId;
+
   /// Returns a shallow copy of this [FreeItemInfo]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -58,6 +63,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     String? variantId,
     int? quantity,
     String? triggerProductId,
+    String? bogoOfferId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -68,6 +74,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
+      if (bogoOfferId != null) 'bogoOfferId': bogoOfferId,
     };
   }
 
@@ -86,12 +93,14 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     String? variantId,
     required int quantity,
     String? triggerProductId,
+    String? bogoOfferId,
   }) : super._(
          productId: productId,
          productName: productName,
          variantId: variantId,
          quantity: quantity,
          triggerProductId: triggerProductId,
+         bogoOfferId: bogoOfferId,
        );
 
   /// Returns a shallow copy of this [FreeItemInfo]
@@ -104,6 +113,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     Object? variantId = _Undefined,
     int? quantity,
     Object? triggerProductId = _Undefined,
+    Object? bogoOfferId = _Undefined,
   }) {
     return FreeItemInfo(
       productId: productId ?? this.productId,
@@ -113,6 +123,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
       triggerProductId: triggerProductId is String?
           ? triggerProductId
           : this.triggerProductId,
+      bogoOfferId: bogoOfferId is String? ? bogoOfferId : this.bogoOfferId,
     );
   }
 }

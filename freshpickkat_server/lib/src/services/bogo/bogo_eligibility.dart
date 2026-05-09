@@ -140,6 +140,12 @@ bool isBogoTriggerEligible({
   );
 
   if (configuredVariant != null) {
+    final selectedSort = selectedVariant.sortOrder ?? 0;
+    final configuredSort = configuredVariant.sortOrder ?? 0;
+    if (selectedSort >= configuredSort) {
+      return true;
+    }
+
     if (_normalizeBogoUnit(selectedVariant.quantityUnit) !=
         _normalizeBogoUnit(configuredVariant.quantityUnit)) {
       return selectedVariant.variantId == configuredVariant.variantId;
@@ -177,6 +183,69 @@ bool isBogoTriggerEligible({
   }
 
   return true;
+}
+
+bool isBogoTriggerEligibleForQuantity({
+  required Product triggerProduct,
+  required BogoOffer offer,
+  required String? selectedVariantId,
+  required int quantity,
+}) {
+  if (quantity < (offer.minTriggerQuantity ?? 1)) {
+    return false;
+  }
+  return isBogoTriggerEligible(
+    triggerProduct: triggerProduct,
+    offer: offer,
+    selectedVariantId: selectedVariantId,
+  );
+}
+
+int bogoBundleCount({
+  required BogoOffer offer,
+  required int triggerQuantity,
+}) {
+  final minQuantity = offer.minTriggerQuantity ?? 1;
+  if (minQuantity <= 0 || triggerQuantity < minQuantity) {
+    return 0;
+  }
+  return triggerQuantity ~/ minQuantity;
+}
+
+int bogoRewardFreeQuantity(BogoFreeProduct reward) {
+  final configured = reward.freeQuantity ?? 1;
+  return configured <= 0 ? 1 : configured;
+}
+
+BogoFreeProduct? findBogoReward(
+  BogoOffer offer, {
+  required String freeProductId,
+  String? freeVariantId,
+}) {
+  final rewards = offer.freeProducts ?? const <BogoFreeProduct>[];
+  for (final reward in rewards) {
+    if (reward.productId != freeProductId) continue;
+    final configuredVariantId = reward.variantId?.trim();
+    if (configuredVariantId == null || configuredVariantId.isEmpty) {
+      return reward;
+    }
+    if (configuredVariantId == freeVariantId?.trim()) {
+      return reward;
+    }
+  }
+  return null;
+}
+
+int calculateBogoFreeQuantity({
+  required BogoOffer offer,
+  required BogoFreeProduct reward,
+  required int triggerQuantity,
+}) {
+  return bogoBundleCount(
+        offer: offer,
+        triggerQuantity: triggerQuantity,
+      ) *
+      bogoRewardFreeQuantity(reward);
 }
 
 List<ProductVariant> eligibleBogoTriggerVariants(

@@ -1,0 +1,7 @@
+class: OfferSearchItem
+fields:
+  offerType: String
+  product: Product?
+  comboOffer: ComboOffer?
+  bogoOffer: BogoOffer?
+  relatedProducts: List<Product>?

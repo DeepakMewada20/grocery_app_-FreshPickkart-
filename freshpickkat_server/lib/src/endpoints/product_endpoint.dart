@@ -5,6 +5,7 @@ import '../services/business/product_business_service.dart';
 import '../services/business/validation_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
+import '../services/postgres/postgres_offer_search_service.dart';
 import '../services/postgres/postgres_product_compat_service.dart';
 
 class ProductEndpoint extends Endpoint {
@@ -13,6 +14,7 @@ class ProductEndpoint extends Endpoint {
   final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
+  final PostgresOfferSearchService _offerSearch = PostgresOfferSearchService();
 
   Future<List<Product>> getProductsByIds(
     Session session,
@@ -185,6 +187,66 @@ class ProductEndpoint extends Endpoint {
       pageToken: pageToken,
     );
     return result;
+  }
+
+  Future<OfferSearchPage> getProductsByOffer(
+    Session session, {
+    required String offerType,
+    String query = '',
+    int limit = 20,
+    String? pageToken,
+  }) {
+    return _offerSearch.getProductsByOffer(
+      session,
+      offerType: offerType,
+      query: query,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
+  Future<OfferSearchPage> getComboProducts(
+    Session session, {
+    String query = '',
+    int limit = 20,
+    String? pageToken,
+  }) {
+    return _offerSearch.getComboProducts(
+      session,
+      query: query,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
+  Future<OfferSearchPage> getBogoProducts(
+    Session session, {
+    String query = '',
+    int limit = 20,
+    String? pageToken,
+  }) {
+    return _offerSearch.getBogoProducts(
+      session,
+      query: query,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
+  Future<OfferSearchPage> searchProductsWithOfferFilters(
+    Session session, {
+    required String query,
+    required String offerFilter,
+    int limit = 20,
+    String? pageToken,
+  }) {
+    return _offerSearch.searchProductsWithOfferFilters(
+      session,
+      query: query,
+      offerFilter: offerFilter,
+      limit: limit,
+      pageToken: pageToken,
+    );
   }
 
   Future<int> migrateProducts(

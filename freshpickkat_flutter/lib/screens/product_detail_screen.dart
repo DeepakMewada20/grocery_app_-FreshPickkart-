@@ -116,11 +116,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     final isEligible =
         offer == null ||
-        isBogoTriggerVariantEligible(
-          widget.product,
-          offer: offer,
-          selectedVariantId: _selectedVariantId,
-        );
+        (isBogoTriggerVariantEligible(
+              widget.product,
+              offer: offer,
+              selectedVariantId: _selectedVariantId,
+            ) &&
+            isBogoTriggerQuantityEligible(offer, cartItem?.quantity ?? 0));
 
     if (isEligible && freeProductIds.length == 1) {
       _cartController.setBogoSelection(

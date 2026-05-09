@@ -101,17 +101,26 @@ class BogoController extends GetxController {
   }) {
     final config = getFreeProductConfig(triggerProductId, freeProductId);
     if (config != null && config.variantId != null) {
-      final product = Get.find<ProductProviderController>().allProducts.firstWhereOrNull(
-        (p) => p.productId == config.productId,
-      );
+      final product = Get.find<ProductProviderController>().allProducts
+          .firstWhereOrNull(
+            (p) => p.productId == config.productId,
+          );
       if (product != null) {
-        final variant = resolveProductVariant(product, variantId: config.variantId);
-        final qty = variant.quantityValue == variant.quantityValue.truncateToDouble()
+        final variant = resolveProductVariant(
+          product,
+          variantId: config.variantId,
+        );
+        final qty =
+            variant.quantityValue == variant.quantityValue.truncateToDouble()
             ? variant.quantityValue.toInt().toString()
             : variant.quantityValue.toString();
         final label = '$qty ${variant.quantityUnit}';
         final desc = variant.quantityDescription?.trim();
-        return desc != null && desc.isNotEmpty ? '$label ($desc)' : label;
+        final packLabel = desc != null && desc.isNotEmpty
+            ? '$label ($desc)'
+            : label;
+        final freeQuantity = config.freeQuantity ?? 1;
+        return freeQuantity > 1 ? '$freeQuantity x $packLabel' : packLabel;
       }
     }
     final normalizedFallback = fallback.trim();

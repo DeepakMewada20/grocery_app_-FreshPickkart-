@@ -2,3 +2,4 @@ class: BogoFreeProduct
 fields:
   productId: String
   variantId: String?
+  freeQuantity: int?

@@ -1,10 +1,20 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../bogo/bogo_eligibility.dart';
 import 'postgres_support.dart';
+import 'postgres_offer_service.dart';
+import 'postgres_product_compat_service.dart';
 
 class PostgresUserService {
-  Future<AppUser?> getUserByFirebaseUid(Session session, String firebaseUid) async {
+  final PostgresOfferService _offerService = PostgresOfferService();
+  final PostgresProductCompatService _productService =
+      PostgresProductCompatService();
+
+  Future<AppUser?> getUserByFirebaseUid(
+    Session session,
+    String firebaseUid,
+  ) async {
     final user = await _findUserByFirebaseUid(
       session,
       firebaseUid,
@@ -103,12 +113,13 @@ class PostgresUserService {
       activeOnly: true,
     );
     if (user?.id == null) return false;
+    final sanitizedCart = await _sanitizeCartBogoSelections(session, cart);
 
     await session.db.transaction<void>((transaction) async {
       await _replaceCart(
         session,
         userId: user!.id!,
-        cart: cart,
+        cart: sanitizedCart,
         transaction: transaction,
       );
       await AppUserRow.db.updateById(
@@ -119,6 +130,75 @@ class PostgresUserService {
       );
     });
     return true;
+  }
+
+  Future<List<CartItem>> _sanitizeCartBogoSelections(
+    Session session,
+    List<CartItem> cart,
+  ) async {
+    final bogoItems = cart
+        .where((item) => item.bogoFreeProductId?.trim().isNotEmpty == true)
+        .toList();
+    if (bogoItems.isEmpty) return cart;
+
+    final productIds = <String>{};
+    for (final item in bogoItems) {
+      productIds.add(item.productId);
+      productIds.add(item.bogoFreeProductId!);
+    }
+    final products = await _productService.getProductsByIds(
+      session,
+      productIds.toList(),
+    );
+    final productById = {
+      for (final product in products)
+        if (product.productId != null) product.productId!: product,
+    };
+    final offers = await _offerService.getActiveBogoOffersForProducts(
+      session,
+      bogoItems.map((item) => item.productId).toSet().toList(),
+    );
+
+    return cart
+        .map((item) {
+          final freeProductId = item.bogoFreeProductId?.trim();
+          if (freeProductId == null || freeProductId.isEmpty) return item;
+
+          final triggerProduct = productById[item.productId];
+          final freeProduct = productById[freeProductId];
+          final offer = offers.firstWhere(
+            (candidate) =>
+                candidate.isActive &&
+                candidate.triggerProductId == item.productId,
+            orElse: () => BogoOffer(
+              triggerProductId: '',
+              freeProductIds: const [],
+              offerTitle: '',
+              isActive: false,
+              startDate: DateTime.fromMillisecondsSinceEpoch(0),
+              endDate: DateTime.fromMillisecondsSinceEpoch(0),
+              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+            ),
+          );
+
+          final reward = offer.triggerProductId.isEmpty
+              ? null
+              : findBogoReward(offer, freeProductId: freeProductId);
+          final valid =
+              triggerProduct != null &&
+              freeProduct != null &&
+              reward != null &&
+              isBogoTriggerEligibleForQuantity(
+                triggerProduct: triggerProduct,
+                offer: offer,
+                selectedVariantId: item.variantId,
+                quantity: item.quantity,
+              );
+
+          if (valid) return item;
+          return item.copyWith(bogoFreeProductId: null);
+        })
+        .toList(growable: false);
   }
 
   Future<bool> updateFcmToken(
@@ -149,7 +229,9 @@ class PostgresUserService {
     final defaultAddress = userId == null
         ? null
         : await _loadDefaultAddress(session, userId);
-    final cart = userId == null ? const <CartItem>[] : await _loadCart(session, userId);
+    final cart = userId == null
+        ? const <CartItem>[]
+        : await _loadCart(session, userId);
     final completedOrdersCount = userId == null
         ? 0
         : await CustomerOrderRow.db.count(

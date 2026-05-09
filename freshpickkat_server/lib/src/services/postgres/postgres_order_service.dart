@@ -4,7 +4,10 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
+import '../bogo/bogo_eligibility.dart';
 import '../analytics/redis_analytics_service.dart';
+import 'postgres_offer_service.dart';
+import 'postgres_product_compat_service.dart';
 import 'postgres_support.dart';
 
 class PostgresOrderService {
@@ -13,6 +16,9 @@ class PostgresOrderService {
   static const String _idempotencyScope = 'order_create';
   static final Random _random = Random();
   final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
+  final PostgresOfferService _offerService = PostgresOfferService();
+  final PostgresProductCompatService _productService =
+      PostgresProductCompatService();
 
   Future<String> createPendingOrder(
     Session session, {
@@ -27,6 +33,10 @@ class PostgresOrderService {
     if (order.items.isEmpty) {
       throw Exception('Order must contain at least one item.');
     }
+    final bogoOfferIdsByFreeItem = await _validateOrderBogoFreeItems(
+      session,
+      order,
+    );
 
     try {
       return await session.db.transaction<String>((transaction) async {
@@ -130,13 +140,16 @@ class PostgresOrderService {
 
         final orderItemRows = order.items.map((item) {
           final productId = parseUuid(item.productId, fieldName: 'productId');
+          final bogoOfferId = item.isFreeItem
+              ? tryParseUuid(bogoOfferIdsByFreeItem[_orderFreeItemKey(item)])
+              : null;
 
           return OrderItemRow(
             orderId: createdOrderId,
             productId: productId,
             productVariantId: tryParseUuid(item.variantId),
             comboOfferId: tryParseUuid(item.comboId),
-            bogoOfferId: null,
+            bogoOfferId: bogoOfferId,
             productNameSnapshot: item.productName.trim(),
             productImageUrlSnapshot: cleanNullableString(item.productImage),
             variantLabelSnapshot: cleanNullableString(item.variantLabel),
@@ -590,6 +603,120 @@ class PostgresOrderService {
       idempotencyKey:
           'direct-${DateTime.now().millisecondsSinceEpoch}-${order.userId}',
     );
+  }
+
+  Future<Map<String, String>> _validateOrderBogoFreeItems(
+    Session session,
+    Order order,
+  ) async {
+    final freeItems = order.items.where((item) => item.isFreeItem).toList();
+    if (freeItems.isEmpty) return const {};
+
+    final paidItems = order.items.where((item) => !item.isFreeItem).toList();
+    final productIds = <String>{};
+    for (final item in order.items) {
+      if (item.productId.trim().isNotEmpty) productIds.add(item.productId);
+      final triggerId = item.triggerProductId?.trim();
+      if (triggerId != null && triggerId.isNotEmpty) productIds.add(triggerId);
+    }
+    final products = await _productService.getProductsByIds(
+      session,
+      productIds.toList(),
+    );
+    final productById = {
+      for (final product in products)
+        if (product.productId != null) product.productId!: product,
+    };
+    final triggerIds = freeItems
+        .map((item) => item.triggerProductId?.trim())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    final offers = await _offerService.getActiveBogoOffersForProducts(
+      session,
+      triggerIds,
+    );
+
+    final offerIdsByFreeItem = <String, String>{};
+    for (final freeItem in freeItems) {
+      if (freeItem.unitPrice != 0 || freeItem.totalPrice != 0) {
+        throw Exception('Invalid free product price.');
+      }
+
+      final triggerId = freeItem.triggerProductId?.trim();
+      if (triggerId == null || triggerId.isEmpty) {
+        throw Exception('Free product is missing trigger product.');
+      }
+
+      final triggerProduct = productById[triggerId];
+      if (triggerProduct == null) {
+        throw Exception('Free product trigger not found.');
+      }
+
+      OrderItem? triggerItem;
+      for (final item in paidItems) {
+        if (item.productId == triggerId) {
+          triggerItem = item;
+          break;
+        }
+      }
+      if (triggerItem == null) {
+        throw Exception('Free product trigger is not in the order.');
+      }
+
+      BogoOffer? offer;
+      for (final candidate in offers) {
+        if (candidate.isActive && candidate.triggerProductId == triggerId) {
+          offer = candidate;
+          break;
+        }
+      }
+      if (offer == null) {
+        throw Exception('Free product offer is not active.');
+      }
+
+      final reward = findBogoReward(
+        offer,
+        freeProductId: freeItem.productId,
+        freeVariantId: freeItem.variantId,
+      );
+      if (reward == null) {
+        throw Exception('Free product is not part of this offer.');
+      }
+
+      if (!isBogoTriggerEligibleForQuantity(
+        triggerProduct: triggerProduct,
+        offer: offer,
+        selectedVariantId: triggerItem.variantId,
+        quantity: triggerItem.quantity,
+      )) {
+        throw Exception('Free product is not unlocked for this order.');
+      }
+
+      final allowedQuantity = calculateBogoFreeQuantity(
+        offer: offer,
+        reward: reward,
+        triggerQuantity: triggerItem.quantity,
+      );
+      if (freeItem.quantity > allowedQuantity) {
+        throw Exception('Free product quantity exceeds offer allowance.');
+      }
+      if (offer.offerId != null) {
+        offerIdsByFreeItem[_orderFreeItemKey(freeItem)] = offer.offerId!;
+      }
+    }
+
+    return offerIdsByFreeItem;
+  }
+
+  String _orderFreeItemKey(OrderItem item) {
+    return [
+      item.productId,
+      item.variantId ?? '',
+      item.triggerProductId ?? '',
+      item.quantity.toString(),
+    ].join('|');
   }
 
   Future<List<Order>> getUserOrders(

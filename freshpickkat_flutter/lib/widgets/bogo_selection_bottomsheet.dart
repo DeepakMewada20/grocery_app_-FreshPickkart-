@@ -59,6 +59,12 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
       (product) => product.productId == widget.triggerProductId,
     );
     final offer = bogoController.getOfferForProduct(widget.triggerProductId);
+    final triggerCartItem = cartController.cartItems.firstWhereOrNull(
+      (item) =>
+          item.product.productId == widget.triggerProductId &&
+          (item.variantId ?? 'default') ==
+              (_currentTriggerVariantId ?? 'default'),
+    );
     final eligibleVariants = triggerProduct != null && offer != null
         ? eligibleBogoTriggerVariants(triggerProduct, offer)
         : const <ProductVariant>[];
@@ -67,23 +73,24 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
             offer != null &&
             widget.freeProductIds.isNotEmpty
         ? isBogoTriggerVariantEligible(
-            triggerProduct,
-            offer: offer,
-            selectedVariantId: _currentTriggerVariantId,
-          )
+                triggerProduct,
+                offer: offer,
+                selectedVariantId: _currentTriggerVariantId,
+              ) &&
+              isBogoTriggerQuantityEligible(
+                offer,
+                triggerCartItem?.quantity ?? 0,
+              )
         : true;
-    final helperMessage =
-        triggerProduct != null && offer != null && !isSelectionEnabled
-        ? buildBogoIneligibleMessage(triggerProduct, offer)
+    final helperMessage = triggerProduct != null && offer != null
+        ? _bogoHelperMessage(
+            triggerProduct: triggerProduct,
+            offer: offer,
+            isSelectionEnabled: isSelectionEnabled,
+            triggerQuantity: triggerCartItem?.quantity ?? 0,
+          )
         : 'Select 1 item from the list below. This gift will be added at ₹0.';
-    final selectedFreeProductId = cartController.cartItems
-        .firstWhereOrNull(
-          (item) =>
-              item.product.productId == widget.triggerProductId &&
-              (item.variantId ?? 'default') ==
-                  (_currentTriggerVariantId ?? 'default'),
-        )
-        ?.bogoFreeProductId;
+    final selectedFreeProductId = triggerCartItem?.bogoFreeProductId;
 
     return SafeArea(
       child: Align(
@@ -416,4 +423,21 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
       }
     }
   }
+}
+
+String _bogoHelperMessage({
+  required Product triggerProduct,
+  required BogoOffer offer,
+  required bool isSelectionEnabled,
+  required int triggerQuantity,
+}) {
+  if (isSelectionEnabled) {
+    return 'Select your FREE product. This gift will be added at ₹0.';
+  }
+  final requiredQuantity = offer.minTriggerQuantity ?? 1;
+  if (triggerQuantity < requiredQuantity) {
+    final remaining = requiredQuantity - triggerQuantity;
+    return 'Add $remaining more item${remaining == 1 ? '' : 's'} to unlock FREE product';
+  }
+  return buildBogoIneligibleMessage(triggerProduct, offer);
 }

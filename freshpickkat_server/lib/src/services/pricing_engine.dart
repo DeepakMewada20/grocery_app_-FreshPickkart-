@@ -84,7 +84,14 @@ class PricingEngine {
     double itemDiscounts = 0;
     final appliedOffersList = <AppliedOfferInfo>[];
     final freeItemsList = <FreeItemInfo>[];
-    final productIds = items.map((i) => i.productId).toSet().toList();
+    final bogoOffers = await _fetchActiveBogoOffers(session);
+    final productIds = items.map((i) => i.productId).toSet();
+    for (final item in items) {
+      final freeProductId = item.bogoFreeProductId?.trim();
+      if (freeProductId != null && freeProductId.isNotEmpty) {
+        productIds.add(freeProductId);
+      }
+    }
     final productMap = await _fetchProducts(session, productIds);
 
     for (final item in items) {
@@ -114,10 +121,16 @@ class PricingEngine {
     result.itemDiscounts = itemDiscounts;
     result.totalSavings += itemDiscounts;
 
-    final bogoOffers = await _fetchActiveBogoOffers(session);
     final categoryOffers = await _fetchActiveCategoryOffers(session);
     final comboOffers = await _fetchActiveComboOffers(session);
     double effectiveSubtotal = subtotal;
+    final unvalidatedBogoSelections = items
+        .where((item) => item.bogoFreeProductId?.trim().isNotEmpty == true)
+        .map(
+          (item) =>
+              '${item.productId}:${item.variantId ?? ''}:${item.bogoFreeProductId}',
+        )
+        .toSet();
 
     for (final offer in bogoOffers) {
       if (!offer.isActive) continue;
@@ -130,25 +143,51 @@ class PricingEngine {
       final matchingTriggerItems = items.where(
         (item) =>
             item.productId == offer.triggerProductId &&
-            isBogoTriggerEligible(
-              triggerProduct: product,
-              offer: offer,
-              selectedVariantId: item.variantId,
-            ) &&
-            item.bogoFreeProductId != null &&
-            offer.freeProductIds.contains(item.bogoFreeProductId),
+            item.bogoFreeProductId != null,
       );
 
       for (final triggerItem in matchingTriggerItems) {
+        unvalidatedBogoSelections.remove(
+          '${triggerItem.productId}:${triggerItem.variantId ?? ''}:${triggerItem.bogoFreeProductId}',
+        );
         final selectedFreeProductId = triggerItem.bogoFreeProductId;
         if (selectedFreeProductId == null) continue;
+        final reward = findBogoReward(
+          offer,
+          freeProductId: selectedFreeProductId,
+        );
+        if (reward == null) {
+          throw ArgumentError(
+            'Selected free product is not part of this offer.',
+          );
+        }
+        if (!isBogoTriggerEligible(
+          triggerProduct: product,
+          offer: offer,
+          selectedVariantId: triggerItem.variantId,
+        )) {
+          throw ArgumentError(_bogoVariantError(product, offer));
+        }
+        if (triggerItem.quantity < (offer.minTriggerQuantity ?? 1)) {
+          final remaining =
+              (offer.minTriggerQuantity ?? 1) - triggerItem.quantity;
+          throw ArgumentError(
+            'Add $remaining more item${remaining == 1 ? '' : 's'} to unlock FREE product',
+          );
+        }
         final freeProduct = productMap[selectedFreeProductId];
         if (freeProduct == null) continue;
 
-        final freeQty = triggerItem.quantity;
+        final freeQty = calculateBogoFreeQuantity(
+          offer: offer,
+          reward: reward,
+          triggerQuantity: triggerItem.quantity,
+        );
         if (freeQty <= 0) continue;
 
-        final discount = freeProduct.price * freeQty;
+        final discount =
+            _resolveItemPrice(freeProduct, variantId: reward.variantId) *
+            freeQty;
         result.bogoDiscount += discount;
         result.totalSavings += discount;
 
@@ -165,12 +204,16 @@ class PricingEngine {
           FreeItemInfo(
             productId: selectedFreeProductId,
             productName: freeProduct.productName,
-            variantId: null,
+            variantId: reward.variantId,
             quantity: freeQty,
             triggerProductId: offer.triggerProductId,
+            bogoOfferId: offer.offerId,
           ),
         );
       }
+    }
+    if (unvalidatedBogoSelections.isNotEmpty) {
+      throw ArgumentError('Selected free product is not eligible.');
     }
 
     for (final offer in categoryOffers) {
@@ -447,14 +490,14 @@ class PricingEngine {
 
   static Future<Map<String, Product>> _fetchProducts(
     Session session,
-    List<String> productIds,
+    Iterable<String> productIds,
   ) async {
     final Map<String, Product> productMap = {};
     if (productIds.isEmpty) return productMap;
 
     final products = await _productService.getProductsByIds(
       session,
-      productIds,
+      productIds.toSet().toList(),
     );
     for (final product in products) {
       final productId = product.productId?.trim();
@@ -476,5 +519,28 @@ class PricingEngine {
 
   static Future<List<ComboOffer>> _fetchActiveComboOffers(Session session) {
     return _offerService.getActiveComboOffers(session);
+  }
+
+  static String _bogoVariantError(Product triggerProduct, BogoOffer offer) {
+    final configured = resolveConfiguredBogoTriggerVariant(
+      triggerProduct,
+      offer,
+    );
+    if (configured != null) {
+      final label = configured.quantityDescription?.trim().isNotEmpty == true
+          ? configured.quantityDescription!.trim()
+          : '${_compactQuantity(configured.quantityValue)} ${configured.quantityUnit}';
+      return 'Offer available only on $label and above';
+    }
+    if (offer.triggerBaseQuantity != null && offer.triggerBaseUnit != null) {
+      return 'Offer available only on ${_compactQuantity(offer.triggerBaseQuantity!)} ${offer.triggerBaseUnit} and above';
+    }
+    return 'Selected pack is not eligible for this offer.';
+  }
+
+  static String _compactQuantity(double value) {
+    return value == value.truncateToDouble()
+        ? value.toInt().toString()
+        : value.toString();
   }
 }

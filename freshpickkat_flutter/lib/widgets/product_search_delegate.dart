@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/search_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/widgets/bogo_offer_card.dart';
+import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -10,6 +14,15 @@ class ProductSearchDelegate extends SearchDelegate<String> {
   SearchProviderController get searchController {
     return SearchProviderController.instance;
   }
+
+  static const _offerFilters = <_OfferFilter>[
+    _OfferFilter('BOGO', 'bogo'),
+    _OfferFilter('Combo', 'combo'),
+    _OfferFilter('Discount', 'discount'),
+    _OfferFilter('Best Seller', 'best_seller'),
+    _OfferFilter('New Arrival', 'new_arrival'),
+    _OfferFilter('Free Delivery', 'free_delivery'),
+  ];
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -62,26 +75,60 @@ class ProductSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    searchController.searchProducts(query);
+    if (searchController.selectedOfferFilter.value.isNotEmpty) {
+      searchController.searchProductsWithOfferFilter(query);
+    } else {
+      searchController.searchProducts(query);
+    }
     return _buildSearchResultsList(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    if (query.length < 2) {
+    if (searchController.selectedOfferFilter.value.isEmpty &&
+        query.length < 2) {
       return Container(
         color: Theme.of(context).scaffoldBackgroundColor,
-        child: Center(
-          child: Text(
-            'Type at least 2 characters to search',
-            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.4)),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildOfferChips(context),
+              SizedBox(height: 18.h),
+              Text(
+                'Trending Searches',
+                style: AppTextStyles.sectionTitle(context),
+              ),
+              SizedBox(height: 10.h),
+              Wrap(
+                spacing: 8.w,
+                runSpacing: 8.h,
+                children: ['Milk', 'Atta', 'Apple', 'Paneer', 'Vegetables']
+                    .map(
+                      (term) => ActionChip(
+                        avatar: const Icon(Icons.trending_up, size: 16),
+                        label: Text(term),
+                        onPressed: () {
+                          query = term;
+                          searchController.searchProducts(term);
+                          showResults(context);
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    searchController.fetchSuggestions(query);
+    if (searchController.selectedOfferFilter.value.isNotEmpty) {
+      searchController.searchProductsWithOfferFilter(query);
+    } else {
+      searchController.fetchSuggestions(query);
+    }
     return _buildSuggestionsList(context);
   }
 
@@ -89,6 +136,9 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Obx(() {
+        if (searchController.selectedOfferFilter.value.isNotEmpty) {
+          return _buildOfferResultsList(context);
+        }
         if (searchController.isLoadingResults.value) {
           return const Center(
             child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
@@ -124,6 +174,8 @@ class ProductSearchDelegate extends SearchDelegate<String> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildOfferChips(context),
+                  SizedBox(height: 16.h),
                   Text(
                     'Search Results',
                     style: AppTextStyles.sectionTitle(context),
@@ -177,6 +229,9 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Obx(() {
+        if (searchController.selectedOfferFilter.value.isNotEmpty) {
+          return _buildOfferResultsList(context);
+        }
         if (searchController.isLoadingSuggestions.value &&
             searchController.suggestions.isEmpty) {
           return const Center(
@@ -200,6 +255,8 @@ class ProductSearchDelegate extends SearchDelegate<String> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildOfferChips(context),
+                  SizedBox(height: 16.h),
                   Text(
                     'Suggestions',
                     style: AppTextStyles.sectionTitle(context),
@@ -248,4 +305,158 @@ class ProductSearchDelegate extends SearchDelegate<String> {
       }),
     );
   }
+
+  Widget _buildOfferChips(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Obx(() {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _offerFilters.map((filter) {
+            final selected =
+                searchController.selectedOfferFilter.value == filter.value;
+            return Padding(
+              padding: EdgeInsets.only(right: 8.w),
+              child: ChoiceChip(
+                selected: selected,
+                label: Text(filter.label),
+                onSelected: (_) {
+                  searchController.selectOfferFilter(
+                    filter.value,
+                    query: query,
+                  );
+                  showResults(context);
+                },
+                selectedColor: const Color(0xFF1B8A4C),
+                backgroundColor: cs.surfaceContainerHighest,
+                labelStyle: TextStyle(
+                  color: selected ? Colors.white : cs.onSurface,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.r),
+                  side: BorderSide(
+                    color: selected
+                        ? const Color(0xFF1B8A4C)
+                        : cs.outlineVariant,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    });
+  }
+
+  Widget _buildOfferResultsList(BuildContext context) {
+    if (searchController.isLoadingResults.value &&
+        searchController.offerResults.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
+      );
+    }
+    if (searchController.offerResults.isEmpty) {
+      return SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildOfferChips(context),
+            SizedBox(height: 48.h),
+            Center(
+              child: Text(
+                'No offers found.',
+                style: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollEndNotification) {
+          final metrics = notification.metrics;
+          if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+            searchController.loadMoreOfferResults();
+          }
+        }
+        return false;
+      },
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildOfferChips(context),
+            SizedBox(height: 16.h),
+            Text('Offer Sections', style: AppTextStyles.sectionTitle(context)),
+            SizedBox(height: 12.h),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount:
+                  searchController.offerResults.length +
+                  (searchController.hasMoreOfferResults.value ? 1 : 0),
+              separatorBuilder: (_, _) => SizedBox(height: 14.h),
+              itemBuilder: (context, index) {
+                if (index >= searchController.offerResults.length) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF1B8A4C),
+                    ),
+                  );
+                }
+                return _buildOfferItem(searchController.offerResults[index]);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOfferItem(OfferSearchItem item) {
+    switch (item.offerType) {
+      case 'combo':
+        final combo = item.comboOffer;
+        if (combo == null) return const SizedBox.shrink();
+        return ComboOfferCard(
+          combo: combo,
+          products: resolveComboProducts(
+            combo,
+            item.relatedProducts ?? const <Product>[],
+          ),
+          isExpanded: true,
+          isHighlighted: false,
+          onTap: () {},
+        );
+      case 'bogo':
+        final product = item.product;
+        final offer = item.bogoOffer;
+        if (product == null || offer == null) return const SizedBox.shrink();
+        return BogoOfferCard(product: product, offer: offer);
+      default:
+        final product = item.product;
+        if (product == null) return const SizedBox.shrink();
+        return ProductCard(
+          product: product,
+          enableHero: false,
+          onAddPressed: () {},
+        );
+    }
+  }
+}
+
+class _OfferFilter {
+  const _OfferFilter(this.label, this.value);
+
+  final String label;
+  final String value;
 }

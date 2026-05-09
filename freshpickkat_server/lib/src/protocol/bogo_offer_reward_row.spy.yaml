@@ -6,6 +6,7 @@ fields:
   bogoOfferId: UuidValue, relation(parent=bogo_offer, onDelete=Cascade)
   rewardProductId: UuidValue, relation(parent=product, onDelete=Restrict)
   rewardVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  freeQuantity: int, default=1
   createdAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:
   bogo_offer_reward_unique_idx:

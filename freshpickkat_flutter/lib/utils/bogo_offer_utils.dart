@@ -115,6 +115,11 @@ bool isBogoTriggerVariantEligible(
   );
 
   if (configuredVariant != null) {
+    if ((selectedVariant.sortOrder ?? 0) >=
+        (configuredVariant.sortOrder ?? 0)) {
+      return true;
+    }
+
     if (!_canCompareBogoUnits(
       selectedVariant.quantityUnit,
       configuredVariant.quantityUnit,
@@ -156,6 +161,41 @@ bool isBogoTriggerVariantEligible(
   }
 
   return true;
+}
+
+bool isBogoTriggerQuantityEligible(BogoOffer offer, int quantity) {
+  final requiredQuantity = offer.minTriggerQuantity ?? 1;
+  return quantity >= (requiredQuantity <= 0 ? 1 : requiredQuantity);
+}
+
+int bogoBundleCount(BogoOffer offer, int triggerQuantity) {
+  final requiredQuantity = offer.minTriggerQuantity ?? 1;
+  if (requiredQuantity <= 0 || triggerQuantity < requiredQuantity) return 0;
+  return triggerQuantity ~/ requiredQuantity;
+}
+
+int bogoRewardFreeQuantity(BogoFreeProduct reward) {
+  final configured = reward.freeQuantity ?? 1;
+  return configured <= 0 ? 1 : configured;
+}
+
+int calculateBogoFreeQuantity({
+  required BogoOffer offer,
+  required BogoFreeProduct reward,
+  required int triggerQuantity,
+}) {
+  return bogoBundleCount(offer, triggerQuantity) *
+      bogoRewardFreeQuantity(reward);
+}
+
+BogoFreeProduct? findBogoReward(
+  BogoOffer offer, {
+  required String freeProductId,
+}) {
+  for (final reward in offer.freeProducts ?? const <BogoFreeProduct>[]) {
+    if (reward.productId == freeProductId) return reward;
+  }
+  return null;
 }
 
 List<ProductVariant> eligibleBogoTriggerVariants(

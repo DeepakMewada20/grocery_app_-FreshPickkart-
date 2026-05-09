@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -11,20 +10,25 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 class BogoProductSelection {
   final Product product;
   final ProductVariant? variant;
+  final int freeQuantity;
 
   const BogoProductSelection({
     required this.product,
     this.variant,
+    this.freeQuantity = 1,
   });
 
   String get displayLabel {
     if (variant == null) return product.quantity;
-    final quantity = variant!.quantityValue == variant!.quantityValue.truncateToDouble()
+    final quantity =
+        variant!.quantityValue == variant!.quantityValue.truncateToDouble()
         ? variant!.quantityValue.toInt().toString()
         : variant!.quantityValue.toString();
     final unit = variant!.quantityUnit;
     final desc = variant!.quantityDescription?.trim();
-    return desc != null && desc.isNotEmpty ? '$quantity $unit ($desc)' : '$quantity $unit';
+    return desc != null && desc.isNotEmpty
+        ? '$quantity $unit ($desc)'
+        : '$quantity $unit';
   }
 }
 
@@ -55,6 +59,7 @@ class BogoOfferEditorScreen extends StatefulWidget {
 class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   final _selectedProductsById = <String, Product>{};
   final _selectedVariantsById = <String, ProductVariant?>{};
+  final _freeQuantitiesById = <String, int>{};
   final _productController = AdminProductController.instance;
   final _categoryController = AdminCategoryController.instance;
 
@@ -63,10 +68,18 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   String? _selectedCategory;
   Product? _selectedTriggerProduct;
   String? _selectedTriggerVariantId;
+  int _requiredTriggerQuantity = 1;
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 365));
 
   bool get isEditing => widget.offer != null;
+
+  T? _firstWhereOrNull<T>(Iterable<T> items, bool Function(T item) test) {
+    for (final item in items) {
+      if (test(item)) return item;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -88,61 +101,76 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
         _startDate = offer.startDate;
         _endDate = offer.endDate;
         _selectedTriggerVariantId = offer.triggerVariantId;
+        _requiredTriggerQuantity = (offer.minTriggerQuantity ?? 1) <= 0
+            ? 1
+            : offer.minTriggerQuantity ?? 1;
 
-        _selectedTriggerProduct = _productController.products.firstWhereOrNull(
-          (p) => p.productId == offer.triggerProductId,
-        ) ?? Product(
-          productId: offer.triggerProductId,
-          productName: 'Unknown Product',
-          category: '',
-          imageUrl: '',
-          price: 0,
-          realPrice: 0,
-          discount: 0,
-          isAvailable: true,
-          addedAt: offer.createdAt,
-          subcategory: const [],
-          quantity: '',
-          mostSearch: 0,
-          mostPurchases: 0,
-        );
+        _selectedTriggerProduct =
+            _firstWhereOrNull(
+              _productController.products,
+              (Product p) => p.productId == offer.triggerProductId,
+            ) ??
+            Product(
+              productId: offer.triggerProductId,
+              productName: 'Unknown Product',
+              category: '',
+              imageUrl: '',
+              price: 0,
+              realPrice: 0,
+              discount: 0,
+              isAvailable: true,
+              addedAt: offer.createdAt,
+              subcategory: const [],
+              quantity: '',
+              mostSearch: 0,
+              mostPurchases: 0,
+            );
 
         final freeProducts = offer.freeProducts ?? const <BogoFreeProduct>[];
         for (final freeProductId in offer.freeProductIds) {
-          final product = _productController.products.firstWhereOrNull(
-            (p) => p.productId == freeProductId,
-          ) ?? Product(
-            productId: freeProductId,
-            productName: 'Unknown Product',
-            category: '',
-            imageUrl: '',
-            price: 0,
-            realPrice: 0,
-            discount: 0,
-            isAvailable: true,
-            addedAt: offer.createdAt,
-            subcategory: const [],
-            quantity: '',
-            mostSearch: 0,
-            mostPurchases: 0,
-          );
+          final product =
+              _firstWhereOrNull(
+                _productController.products,
+                (Product p) => p.productId == freeProductId,
+              ) ??
+              Product(
+                productId: freeProductId,
+                productName: 'Unknown Product',
+                category: '',
+                imageUrl: '',
+                price: 0,
+                realPrice: 0,
+                discount: 0,
+                isAvailable: true,
+                addedAt: offer.createdAt,
+                subcategory: const [],
+                quantity: '',
+                mostSearch: 0,
+                mostPurchases: 0,
+              );
           _selectedProductsById[freeProductId] = product;
-          
-          final configured = freeProducts
-              .where((item) => item.productId == freeProductId)
-              .cast<BogoFreeProduct?>()
-              .firstWhereOrNull((_) => true);
-          
+
+          final configured = _firstWhereOrNull(
+            freeProducts,
+            (BogoFreeProduct item) => item.productId == freeProductId,
+          );
+
           if (configured?.variantId != null) {
-            _selectedVariantsById[freeProductId] = product.variants?.firstWhereOrNull(
-              (v) => v.variantId == configured!.variantId,
+            _selectedVariantsById[freeProductId] = _firstWhereOrNull(
+              product.variants ?? const <ProductVariant>[],
+              (ProductVariant v) => v.variantId == configured!.variantId,
             );
           } else {
             _selectedVariantsById[freeProductId] = null;
           }
+          _freeQuantitiesById[freeProductId] =
+              (configured?.freeQuantity ?? 1) <= 0
+              ? 1
+              : configured?.freeQuantity ?? 1;
         }
 
-        _selectedCategory = _selectedTriggerProduct?.category.trim().isNotEmpty == true
+        _selectedCategory =
+            _selectedTriggerProduct?.category.trim().isNotEmpty == true
             ? _selectedTriggerProduct!.category
             : null;
       }
@@ -217,12 +245,20 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
   String _buildOfferTitle({
     required ProductVariant? triggerVariant,
-    required int freeProductCount,
+    required List<BogoProductSelection> selections,
   }) {
     final buyLabel = triggerVariant == null
-        ? 'Buy 1'
-        : 'Buy 1 of ${_variantLabel(triggerVariant)}';
-    return '$buyLabel, Get $freeProductCount Free';
+        ? 'Buy $_requiredTriggerQuantity'
+        : 'Buy $_requiredTriggerQuantity x ${_variantLabel(triggerVariant)}';
+    final totalFreeQuantity = selections.fold<int>(
+      0,
+      (sum, selection) =>
+          sum + (selection.freeQuantity <= 0 ? 1 : selection.freeQuantity),
+    );
+    if (selections.length == 1 && selections.first.variant != null) {
+      return '$buyLabel, Get ${selections.first.freeQuantity} x ${_variantLabel(selections.first.variant!)} FREE';
+    }
+    return '$buyLabel, Get $totalFreeQuantity FREE';
   }
 
   Future<void> _selectFreeProducts() async {
@@ -247,6 +283,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
           if (id.isNotEmpty && id != _selectedTriggerProduct?.productId) {
             _selectedProductsById[id] = r.product;
             _selectedVariantsById[id] = r.variant;
+            _freeQuantitiesById.putIfAbsent(id, () => 1);
           }
         }
       });
@@ -260,6 +297,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       return BogoProductSelection(
         product: product,
         variant: variant,
+        freeQuantity: _freeQuantitiesById[entry.key] ?? 1,
       );
     }).toList();
   }
@@ -310,7 +348,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               width: 38.r,
               height: 38.r,
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.08),
+                color: Colors.green.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
@@ -402,10 +440,10 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                     : () async {
                         final selected =
                             await ProductSelectionDialog.showBottomSheet(
-                               context: context,
-                               title: 'Select Trigger Product',
-                               initialCategory: _selectedCategory,
-                             );
+                              context: context,
+                              title: 'Select Trigger Product',
+                              initialCategory: _selectedCategory,
+                            );
                         if (selected != null) {
                           _selectTriggerProduct(selected);
                         }
@@ -494,6 +532,23 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                       });
                     },
             ),
+            SizedBox(height: 12.h),
+            TextFormField(
+              key: ValueKey('required_qty_${trigger.productId}'),
+              initialValue: _requiredTriggerQuantity.toString(),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Required Quantity',
+                border: OutlineInputBorder(),
+                helperText: 'Example: Buy 2 eligible packs',
+              ),
+              onChanged: _isSubmitting
+                  ? null
+                  : (value) {
+                      final parsed = int.tryParse(value.trim()) ?? 1;
+                      _requiredTriggerQuantity = parsed <= 0 ? 1 : parsed;
+                    },
+            ),
           ],
         ],
       ),
@@ -531,7 +586,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       offerId: widget.offer?.offerId,
       triggerProductId: _selectedTriggerProduct!.productId!,
       triggerVariantId: _selectedTriggerVariantId,
-      minTriggerQuantity: 1,
+      minTriggerQuantity: _requiredTriggerQuantity <= 0
+          ? 1
+          : _requiredTriggerQuantity,
       triggerBaseQuantity: selectedVariant?.quantityValue,
       triggerBaseUnit: selectedVariant?.quantityUnit,
       freeProductIds: selections
@@ -542,12 +599,15 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
             (selection) => BogoFreeProduct(
               productId: selection.product.productId!,
               variantId: selection.variant?.variantId,
+              freeQuantity: selection.freeQuantity <= 0
+                  ? 1
+                  : selection.freeQuantity,
             ),
           )
           .toList(),
       offerTitle: _buildOfferTitle(
         triggerVariant: selectedVariant,
-        freeProductCount: selections.length,
+        selections: selections,
       ),
       isActive: widget.offer?.isActive ?? true,
       startDate: _startDate,
@@ -638,6 +698,14 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                         setState(() {
                           _selectedProductsById.remove(id);
                           _selectedVariantsById.remove(id);
+                          _freeQuantitiesById.remove(id);
+                        });
+                      },
+                      onQuantityChanged: (id, quantity) {
+                        setState(() {
+                          _freeQuantitiesById[id] = quantity <= 0
+                              ? 1
+                              : quantity;
                         });
                       },
                     ),
@@ -661,10 +729,12 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 class _SelectedProductsSummary extends StatelessWidget {
   final List<BogoProductSelection> selectedProducts;
   final ValueChanged<String> onRemove;
+  final void Function(String productId, int quantity) onQuantityChanged;
 
   const _SelectedProductsSummary({
     required this.selectedProducts,
     required this.onRemove,
+    required this.onQuantityChanged,
   });
 
   @override
@@ -696,7 +766,7 @@ class _SelectedProductsSummary extends StatelessWidget {
         ),
         SizedBox(height: 10.h),
         SizedBox(
-          height: 128.h.clamp(116.0, 146.0).toDouble(),
+          height: 174.h.clamp(156.0, 196.0).toDouble(),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: selectedProducts.length,
@@ -755,6 +825,32 @@ class _SelectedProductsSummary extends StatelessWidget {
                             style: AdminTextStyles.caption(context).copyWith(
                               color: Colors.green.shade700,
                               fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          SizedBox(
+                            width: 132.w.clamp(118.0, 150.0).toDouble(),
+                            child: TextFormField(
+                              key: ValueKey(
+                                'free_qty_${selection.product.productId}',
+                              ),
+                              initialValue: selection.freeQuantity.toString(),
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Free Qty',
+                                isDense: true,
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: productId == null
+                                  ? null
+                                  : (value) {
+                                      final parsed =
+                                          int.tryParse(value.trim()) ?? 1;
+                                      onQuantityChanged(
+                                        productId,
+                                        parsed <= 0 ? 1 : parsed,
+                                      );
+                                    },
                             ),
                           ),
                         ],

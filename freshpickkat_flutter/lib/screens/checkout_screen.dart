@@ -17,6 +17,7 @@ import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
+import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -640,13 +641,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             freeProduct.productId ?? '',
             fallback: productFullQuantityLabel(freeProduct),
           );
+          final offer = BogoController.instance.getOfferForProduct(
+            item.product.productId ?? '',
+          );
+          final reward = offer == null
+              ? null
+              : findBogoReward(offer, freeProductId: freeProduct.productId!);
+          final freeQuantity = offer == null || reward == null
+              ? item.quantity
+              : calculateBogoFreeQuantity(
+                  offer: offer,
+                  reward: reward,
+                  triggerQuantity: item.quantity,
+                );
           items.add(
             OrderItem(
               productId: freeProduct.productId!,
+              variantId: reward?.variantId,
               variantLabel: freeLabel,
               productName: freeProduct.productName,
               productImage: freeProduct.imageUrl,
-              quantity: item.quantity, // 1 free for every 1 trigger
+              quantity: freeQuantity <= 0 ? 1 : freeQuantity,
               unitPrice: 0,
               totalPrice: 0,
               isFreeItem: true,
@@ -1236,8 +1251,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   displayAddress.longitude == null)
                 Container(
                   margin: EdgeInsets.only(bottom: 12.h),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 10.h,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
                     borderRadius: BorderRadius.circular(8.r),
@@ -1245,8 +1262,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded,
-                          color: Colors.amber.shade700, size: 20.sp),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.amber.shade700,
+                        size: 20.sp,
+                      ),
                       SizedBox(width: 10.w),
                       Expanded(
                         child: Text(

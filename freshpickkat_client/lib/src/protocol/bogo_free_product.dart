@@ -16,17 +16,20 @@ abstract class BogoFreeProduct implements _i1.SerializableModel {
   BogoFreeProduct._({
     required this.productId,
     this.variantId,
+    this.freeQuantity,
   });
 
   factory BogoFreeProduct({
     required String productId,
     String? variantId,
+    int? freeQuantity,
   }) = _BogoFreeProductImpl;
 
   factory BogoFreeProduct.fromJson(Map<String, dynamic> jsonSerialization) {
     return BogoFreeProduct(
       productId: jsonSerialization['productId'] as String,
       variantId: jsonSerialization['variantId'] as String?,
+      freeQuantity: jsonSerialization['freeQuantity'] as int?,
     );
   }
 
@@ -34,12 +37,15 @@ abstract class BogoFreeProduct implements _i1.SerializableModel {
 
   String? variantId;
 
+  int? freeQuantity;
+
   /// Returns a shallow copy of this [BogoFreeProduct]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   BogoFreeProduct copyWith({
     String? productId,
     String? variantId,
+    int? freeQuantity,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -47,6 +53,7 @@ abstract class BogoFreeProduct implements _i1.SerializableModel {
       '__className__': 'BogoFreeProduct',
       'productId': productId,
       if (variantId != null) 'variantId': variantId,
+      if (freeQuantity != null) 'freeQuantity': freeQuantity,
     };
   }
 
@@ -62,9 +69,11 @@ class _BogoFreeProductImpl extends BogoFreeProduct {
   _BogoFreeProductImpl({
     required String productId,
     String? variantId,
+    int? freeQuantity,
   }) : super._(
          productId: productId,
          variantId: variantId,
+         freeQuantity: freeQuantity,
        );
 
   /// Returns a shallow copy of this [BogoFreeProduct]
@@ -74,10 +83,12 @@ class _BogoFreeProductImpl extends BogoFreeProduct {
   BogoFreeProduct copyWith({
     String? productId,
     Object? variantId = _Undefined,
+    Object? freeQuantity = _Undefined,
   }) {
     return BogoFreeProduct(
       productId: productId ?? this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
+      freeQuantity: freeQuantity is int? ? freeQuantity : this.freeQuantity,
     );
   }
 }

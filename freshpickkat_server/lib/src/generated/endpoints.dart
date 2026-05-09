@@ -3440,6 +3440,142 @@ class Endpoints extends _i1.EndpointDispatch {
                     pageToken: params['pageToken'],
                   ),
         ),
+        'getProductsByOffer': _i1.MethodConnector(
+          name: 'getProductsByOffer',
+          params: {
+            'offerType': _i1.ParameterDescription(
+              name: 'offerType',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i18.ProductEndpoint)
+                  .getProductsByOffer(
+                    session,
+                    offerType: params['offerType'],
+                    query: params['query'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'getComboProducts': _i1.MethodConnector(
+          name: 'getComboProducts',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i18.ProductEndpoint)
+                  .getComboProducts(
+                    session,
+                    query: params['query'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'getBogoProducts': _i1.MethodConnector(
+          name: 'getBogoProducts',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i18.ProductEndpoint)
+                  .getBogoProducts(
+                    session,
+                    query: params['query'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'searchProductsWithOfferFilters': _i1.MethodConnector(
+          name: 'searchProductsWithOfferFilters',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'offerFilter': _i1.ParameterDescription(
+              name: 'offerFilter',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i18.ProductEndpoint)
+                  .searchProductsWithOfferFilters(
+                    session,
+                    query: params['query'],
+                    offerFilter: params['offerFilter'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
         'migrateProducts': _i1.MethodConnector(
           name: 'migrateProducts',
           params: {

@@ -653,15 +653,17 @@ class CartController extends GetxController {
     // Update caches in controllers
     final bogoController = BogoController.instance;
     for (final offer in activeBogoOffers) {
-      if (!bogoController.activeOffers
-          .any((o) => o.triggerProductId == offer.triggerProductId)) {
+      if (!bogoController.activeOffers.any(
+        (o) => o.triggerProductId == offer.triggerProductId,
+      )) {
         bogoController.activeOffers.add(offer);
       }
     }
     final comboController = ComboOfferController.instance;
     for (final offer in activeComboOffers) {
-      if (!comboController.activeComboOffers
-          .any((o) => o.comboId == offer.comboId)) {
+      if (!comboController.activeComboOffers.any(
+        (o) => o.comboId == offer.comboId,
+      )) {
         comboController.activeComboOffers.add(offer);
       }
     }
@@ -714,7 +716,8 @@ class CartController extends GetxController {
                 baseProduct,
                 offer: offer,
                 selectedVariantId: variant.variantId,
-              ),
+              ) &&
+              isBogoTriggerQuantityEligible(offer, item.quantity),
         );
 
         if (bogoOffer == null ||
@@ -1477,22 +1480,24 @@ class CartController extends GetxController {
         ) ??
         _findProductById(triggerProductId);
     final offer = BogoController.instance.getOfferForProduct(triggerProductId);
-    if (triggerProduct != null &&
-        offer != null &&
-        !isBogoTriggerVariantEligible(
-          triggerProduct,
-          offer: offer,
-          selectedVariantId: triggerVariantId,
-        )) {
-      return;
-    }
-
-    int index = cartItems.indexWhere(
+    final index = cartItems.indexWhere(
       (item) =>
           item.product.productId == triggerProductId &&
           (item.variantId ?? 'default') == (triggerVariantId ?? 'default') &&
           item.comboId == null,
     );
+    final triggerQuantity = index == -1 ? 0 : cartItems[index].quantity;
+    if (triggerProduct != null &&
+        offer != null &&
+        (!isBogoTriggerVariantEligible(
+              triggerProduct,
+              offer: offer,
+              selectedVariantId: triggerVariantId,
+            ) ||
+            !isBogoTriggerQuantityEligible(offer, triggerQuantity))) {
+      return;
+    }
+
     if (index != -1) {
       cartItems[index].bogoFreeProductId = freeProductId;
       cartItems.refresh();
@@ -1609,11 +1614,13 @@ class CartController extends GetxController {
           candidate.isActive && candidate.triggerProductId == triggerProductId,
     );
     if (offer == null || offer.freeProductIds.isEmpty) return;
-    final isEligible = isBogoTriggerVariantEligible(
-      baseProduct,
-      offer: offer,
-      selectedVariantId: resolvedVariantId,
-    );
+    final isEligible =
+        isBogoTriggerVariantEligible(
+          baseProduct,
+          offer: offer,
+          selectedVariantId: resolvedVariantId,
+        ) &&
+        isBogoTriggerQuantityEligible(offer, triggerItem?.quantity ?? 0);
 
     final selectedFreeProductId = triggerItem?.bogoFreeProductId;
     if (selectedFreeProductId != null &&

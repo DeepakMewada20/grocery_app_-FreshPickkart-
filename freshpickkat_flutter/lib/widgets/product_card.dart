@@ -79,7 +79,8 @@ class _ProductCardState extends State<ProductCard> {
       (item) => item.product.productId == widget.product.productId,
     );
     if (cartItem == null) return;
-    final actualVariantId = cartItem.variantId ?? inferProductVariantId(widget.product);
+    final actualVariantId =
+        cartItem.variantId ?? inferProductVariantId(widget.product);
     if (actualVariantId != _selectedVariantId) {
       setState(() => _selectedVariantId = actualVariantId);
     }
@@ -109,7 +110,7 @@ class _ProductCardState extends State<ProductCard> {
   Future<void> _showBogoSelectionIfNeeded(Product product) async {
     final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
     if (!isBogoProduct(product) || product.productId == null) return;
-    
+
     final offer = await BogoController.instance.fetchOfferForProduct(
       product.productId!,
     );
@@ -123,11 +124,12 @@ class _ProductCardState extends State<ProductCard> {
 
     final isEligible =
         offer == null ||
-        isBogoTriggerVariantEligible(
-          widget.product,
-          offer: offer,
-          selectedVariantId: _selectedVariantId,
-        );
+        (isBogoTriggerVariantEligible(
+              widget.product,
+              offer: offer,
+              selectedVariantId: _selectedVariantId,
+            ) &&
+            isBogoTriggerQuantityEligible(offer, cartItem?.quantity ?? 0));
 
     if (isEligible && freeProductIds.length == 1) {
       _cartController.setBogoSelection(

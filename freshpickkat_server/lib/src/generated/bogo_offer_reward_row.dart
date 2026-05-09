@@ -19,14 +19,17 @@ abstract class BogoOfferRewardRow
     required this.bogoOfferId,
     required this.rewardProductId,
     this.rewardVariantId,
+    int? freeQuantity,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  }) : freeQuantity = freeQuantity ?? 1,
+       createdAt = createdAt ?? DateTime.now();
 
   factory BogoOfferRewardRow({
     _i1.UuidValue? id,
     required _i1.UuidValue bogoOfferId,
     required _i1.UuidValue rewardProductId,
     _i1.UuidValue? rewardVariantId,
+    int? freeQuantity,
     DateTime? createdAt,
   }) = _BogoOfferRewardRowImpl;
 
@@ -46,6 +49,7 @@ abstract class BogoOfferRewardRow
           : _i1.UuidValueJsonExtension.fromJson(
               jsonSerialization['rewardVariantId'],
             ),
+      freeQuantity: jsonSerialization['freeQuantity'] as int?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -65,6 +69,8 @@ abstract class BogoOfferRewardRow
 
   _i1.UuidValue? rewardVariantId;
 
+  int freeQuantity;
+
   DateTime createdAt;
 
   @override
@@ -78,6 +84,7 @@ abstract class BogoOfferRewardRow
     _i1.UuidValue? bogoOfferId,
     _i1.UuidValue? rewardProductId,
     _i1.UuidValue? rewardVariantId,
+    int? freeQuantity,
     DateTime? createdAt,
   });
   @override
@@ -88,6 +95,7 @@ abstract class BogoOfferRewardRow
       'bogoOfferId': bogoOfferId.toJson(),
       'rewardProductId': rewardProductId.toJson(),
       if (rewardVariantId != null) 'rewardVariantId': rewardVariantId?.toJson(),
+      'freeQuantity': freeQuantity,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -135,12 +143,14 @@ class _BogoOfferRewardRowImpl extends BogoOfferRewardRow {
     required _i1.UuidValue bogoOfferId,
     required _i1.UuidValue rewardProductId,
     _i1.UuidValue? rewardVariantId,
+    int? freeQuantity,
     DateTime? createdAt,
   }) : super._(
          id: id,
          bogoOfferId: bogoOfferId,
          rewardProductId: rewardProductId,
          rewardVariantId: rewardVariantId,
+         freeQuantity: freeQuantity,
          createdAt: createdAt,
        );
 
@@ -153,6 +163,7 @@ class _BogoOfferRewardRowImpl extends BogoOfferRewardRow {
     _i1.UuidValue? bogoOfferId,
     _i1.UuidValue? rewardProductId,
     Object? rewardVariantId = _Undefined,
+    int? freeQuantity,
     DateTime? createdAt,
   }) {
     return BogoOfferRewardRow(
@@ -162,6 +173,7 @@ class _BogoOfferRewardRowImpl extends BogoOfferRewardRow {
       rewardVariantId: rewardVariantId is _i1.UuidValue?
           ? rewardVariantId
           : this.rewardVariantId,
+      freeQuantity: freeQuantity ?? this.freeQuantity,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -192,6 +204,11 @@ class BogoOfferRewardRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<int, int> freeQuantity(int value) => _i1.ColumnValue(
+    table.freeQuantity,
+    value,
+  );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -215,6 +232,11 @@ class BogoOfferRewardRowTable extends _i1.Table<_i1.UuidValue?> {
       'rewardVariantId',
       this,
     );
+    freeQuantity = _i1.ColumnInt(
+      'freeQuantity',
+      this,
+      hasDefault: true,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -230,6 +252,8 @@ class BogoOfferRewardRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnUuid rewardVariantId;
 
+  late final _i1.ColumnInt freeQuantity;
+
   late final _i1.ColumnDateTime createdAt;
 
   @override
@@ -238,6 +262,7 @@ class BogoOfferRewardRowTable extends _i1.Table<_i1.UuidValue?> {
     bogoOfferId,
     rewardProductId,
     rewardVariantId,
+    freeQuantity,
     createdAt,
   ];
 }
