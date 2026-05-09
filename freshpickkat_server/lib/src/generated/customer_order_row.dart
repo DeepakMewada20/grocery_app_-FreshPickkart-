@@ -37,6 +37,7 @@ abstract class CustomerOrderRow
     this.deliveryPersonName,
     this.deliveryPersonPhone,
     this.deliveryOtp,
+    this.analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -69,6 +70,7 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -122,6 +124,11 @@ abstract class CustomerOrderRow
       deliveryPersonName: jsonSerialization['deliveryPersonName'] as String?,
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
+      analyticsProcessedAt: jsonSerialization['analyticsProcessedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['analyticsProcessedAt'],
+            ),
       orderedAt: jsonSerialization['orderedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['orderedAt']),
@@ -183,6 +190,8 @@ abstract class CustomerOrderRow
 
   String? deliveryOtp;
 
+  DateTime? analyticsProcessedAt;
+
   DateTime orderedAt;
 
   DateTime createdAt;
@@ -218,6 +227,7 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -250,6 +260,8 @@ abstract class CustomerOrderRow
       if (deliveryPersonPhone != null)
         'deliveryPersonPhone': deliveryPersonPhone,
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
+      if (analyticsProcessedAt != null)
+        'analyticsProcessedAt': analyticsProcessedAt?.toJson(),
       'orderedAt': orderedAt.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -317,6 +329,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -343,6 +356,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          deliveryPersonName: deliveryPersonName,
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
+         analyticsProcessedAt: analyticsProcessedAt,
          orderedAt: orderedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -375,6 +389,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? deliveryPersonName = _Undefined,
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
+    Object? analyticsProcessedAt = _Undefined,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -410,6 +425,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
           ? deliveryPersonPhone
           : this.deliveryPersonPhone,
       deliveryOtp: deliveryOtp is String? ? deliveryOtp : this.deliveryOtp,
+      analyticsProcessedAt: analyticsProcessedAt is DateTime?
+          ? analyticsProcessedAt
+          : this.analyticsProcessedAt,
       orderedAt: orderedAt ?? this.orderedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -540,6 +558,12 @@ class CustomerOrderRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<DateTime, DateTime> analyticsProcessedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.analyticsProcessedAt,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> orderedAt(DateTime value) =>
       _i1.ColumnValue(
         table.orderedAt,
@@ -649,6 +673,10 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'deliveryOtp',
       this,
     );
+    analyticsProcessedAt = _i1.ColumnDateTime(
+      'analyticsProcessedAt',
+      this,
+    );
     orderedAt = _i1.ColumnDateTime(
       'orderedAt',
       this,
@@ -710,6 +738,8 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString deliveryOtp;
 
+  late final _i1.ColumnDateTime analyticsProcessedAt;
+
   late final _i1.ColumnDateTime orderedAt;
 
   late final _i1.ColumnDateTime createdAt;
@@ -740,6 +770,7 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     deliveryPersonName,
     deliveryPersonPhone,
     deliveryOtp,
+    analyticsProcessedAt,
     orderedAt,
     createdAt,
     updatedAt,

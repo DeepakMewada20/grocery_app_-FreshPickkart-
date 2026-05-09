@@ -65,9 +65,11 @@ import 'package:freshpickkat_server/src/generated/basket_suggestion_result.dart'
     as _i36;
 import 'package:freshpickkat_server/src/generated/product.dart' as _i37;
 import 'package:freshpickkat_server/src/generated/product_page.dart' as _i38;
-import 'package:freshpickkat_server/src/generated/refund_record.dart' as _i39;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i40;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i41;
+import 'package:freshpickkat_server/src/generated/product_ranking_item.dart'
+    as _i39;
+import 'package:freshpickkat_server/src/generated/refund_record.dart' as _i40;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i41;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i42;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -209,6 +211,8 @@ class TestEndpoints {
 
   late final _ProductPgEndpoint productPg;
 
+  late final _ProductRankingEndpoint productRanking;
+
   late final _RefundEndpoint refund;
 
   late final _SubCategoryEndpoint subCategory;
@@ -288,6 +292,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     productPg = _ProductPgEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    productRanking = _ProductRankingEndpoint(
       endpoints,
       serializationManager,
     );
@@ -4534,6 +4542,172 @@ class _ProductPgEndpoint {
   }
 }
 
+class _ProductRankingEndpoint {
+  _ProductRankingEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<bool> recordProductView(
+    _i1.TestSessionBuilder sessionBuilder,
+    String productId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productRanking',
+            method: 'recordProductView',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productRanking',
+          methodName: 'recordProductView',
+          parameters: _i1.testObjectToJson({'productId': productId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i39.ProductRankingItem>> getTrendingProducts(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productRanking',
+            method: 'getTrendingProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productRanking',
+          methodName: 'getTrendingProducts',
+          parameters: _i1.testObjectToJson({'limit': limit}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i39.ProductRankingItem>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i39.ProductRankingItem>> getMostSellingProducts(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productRanking',
+            method: 'getMostSellingProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productRanking',
+          methodName: 'getMostSellingProducts',
+          parameters: _i1.testObjectToJson({'limit': limit}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i39.ProductRankingItem>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i39.ProductRankingItem>> getMostViewedProducts(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productRanking',
+            method: 'getMostViewedProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productRanking',
+          methodName: 'getMostViewedProducts',
+          parameters: _i1.testObjectToJson({'limit': limit}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i39.ProductRankingItem>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i39.ProductRankingItem>> getFrequentlyReorderedProducts(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int limit,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'productRanking',
+            method: 'getFrequentlyReorderedProducts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'productRanking',
+          methodName: 'getFrequentlyReorderedProducts',
+          parameters: _i1.testObjectToJson({'limit': limit}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i39.ProductRankingItem>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _RefundEndpoint {
   _RefundEndpoint(
     this._endpointDispatch,
@@ -4544,7 +4718,7 @@ class _RefundEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i39.RefundRecord> initiateRefund(
+  _i3.Future<_i40.RefundRecord> initiateRefund(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
     String firebaseUid,
@@ -4573,7 +4747,7 @@ class _RefundEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i39.RefundRecord>);
+                as _i3.Future<_i40.RefundRecord>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4581,7 +4755,7 @@ class _RefundEndpoint {
     });
   }
 
-  _i3.Future<_i39.RefundRecord?> getRefundStatus(
+  _i3.Future<_i40.RefundRecord?> getRefundStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
     String firebaseUid,
@@ -4610,7 +4784,7 @@ class _RefundEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i39.RefundRecord?>);
+                as _i3.Future<_i40.RefundRecord?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4629,7 +4803,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i40.SubCategory>> getSubCategories(
+  _i3.Future<List<_i41.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -4651,7 +4825,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i40.SubCategory>>);
+                as _i3.Future<List<_i41.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -4661,7 +4835,7 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i40.SubCategory subCategory,
+    _i41.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -4700,7 +4874,7 @@ class _SubCategoryEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String categoryName,
     String oldSubName,
-    _i40.SubCategory subCategory,
+    _i41.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -4852,7 +5026,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i41.CartItem> cart,
+    List<_i42.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

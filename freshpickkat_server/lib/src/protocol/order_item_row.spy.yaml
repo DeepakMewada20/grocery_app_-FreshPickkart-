@@ -19,3 +19,7 @@ fields:
 indexes:
   order_item_order_idx:
     fields: orderId
+  order_item_product_idx:
+    fields: productId
+  order_item_product_order_idx:
+    fields: productId, orderId

@@ -31,12 +31,20 @@ abstract class ProductRow
     this.discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
+    int? last7DaysSold,
+    int? last7DaysViews,
+    int? reorderCount,
+    double? trendingScore,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : mostSearchCount = mostSearchCount ?? 0,
        mostPurchaseCount = mostPurchaseCount ?? 0,
+       last7DaysSold = last7DaysSold ?? 0,
+       last7DaysViews = last7DaysViews ?? 0,
+       reorderCount = reorderCount ?? 0,
+       trendingScore = trendingScore ?? 0.0,
        status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -58,6 +66,10 @@ abstract class ProductRow
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
+    int? last7DaysSold,
+    int? last7DaysViews,
+    int? reorderCount,
+    double? trendingScore,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -86,6 +98,10 @@ abstract class ProductRow
       discountType: jsonSerialization['discountType'] as String?,
       mostSearchCount: jsonSerialization['mostSearchCount'] as int?,
       mostPurchaseCount: jsonSerialization['mostPurchaseCount'] as int?,
+      last7DaysSold: jsonSerialization['last7DaysSold'] as int?,
+      last7DaysViews: jsonSerialization['last7DaysViews'] as int?,
+      reorderCount: jsonSerialization['reorderCount'] as int?,
+      trendingScore: (jsonSerialization['trendingScore'] as num?)?.toDouble(),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -138,6 +154,14 @@ abstract class ProductRow
 
   int mostPurchaseCount;
 
+  int last7DaysSold;
+
+  int last7DaysViews;
+
+  int reorderCount;
+
+  double trendingScore;
+
   String status;
 
   DateTime? deactivatedAt;
@@ -169,6 +193,10 @@ abstract class ProductRow
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
+    int? last7DaysSold,
+    int? last7DaysViews,
+    int? reorderCount,
+    double? trendingScore,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -195,6 +223,10 @@ abstract class ProductRow
       if (discountType != null) 'discountType': discountType,
       'mostSearchCount': mostSearchCount,
       'mostPurchaseCount': mostPurchaseCount,
+      'last7DaysSold': last7DaysSold,
+      'last7DaysViews': last7DaysViews,
+      'reorderCount': reorderCount,
+      'trendingScore': trendingScore,
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -257,6 +289,10 @@ class _ProductRowImpl extends ProductRow {
     String? discountType,
     int? mostSearchCount,
     int? mostPurchaseCount,
+    int? last7DaysSold,
+    int? last7DaysViews,
+    int? reorderCount,
+    double? trendingScore,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -278,6 +314,10 @@ class _ProductRowImpl extends ProductRow {
          discountType: discountType,
          mostSearchCount: mostSearchCount,
          mostPurchaseCount: mostPurchaseCount,
+         last7DaysSold: last7DaysSold,
+         last7DaysViews: last7DaysViews,
+         reorderCount: reorderCount,
+         trendingScore: trendingScore,
          status: status,
          deactivatedAt: deactivatedAt,
          createdAt: createdAt,
@@ -305,6 +345,10 @@ class _ProductRowImpl extends ProductRow {
     Object? discountType = _Undefined,
     int? mostSearchCount,
     int? mostPurchaseCount,
+    int? last7DaysSold,
+    int? last7DaysViews,
+    int? reorderCount,
+    double? trendingScore,
     String? status,
     Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
@@ -335,6 +379,10 @@ class _ProductRowImpl extends ProductRow {
       discountType: discountType is String? ? discountType : this.discountType,
       mostSearchCount: mostSearchCount ?? this.mostSearchCount,
       mostPurchaseCount: mostPurchaseCount ?? this.mostPurchaseCount,
+      last7DaysSold: last7DaysSold ?? this.last7DaysSold,
+      last7DaysViews: last7DaysViews ?? this.last7DaysViews,
+      reorderCount: reorderCount ?? this.reorderCount,
+      trendingScore: trendingScore ?? this.trendingScore,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -431,6 +479,27 @@ class ProductRowUpdateTable extends _i1.UpdateTable<ProductRowTable> {
     value,
   );
 
+  _i1.ColumnValue<int, int> last7DaysSold(int value) => _i1.ColumnValue(
+    table.last7DaysSold,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> last7DaysViews(int value) => _i1.ColumnValue(
+    table.last7DaysViews,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> reorderCount(int value) => _i1.ColumnValue(
+    table.reorderCount,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> trendingScore(double value) =>
+      _i1.ColumnValue(
+        table.trendingScore,
+        value,
+      );
+
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,
     value,
@@ -520,6 +589,26 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    last7DaysSold = _i1.ColumnInt(
+      'last7DaysSold',
+      this,
+      hasDefault: true,
+    );
+    last7DaysViews = _i1.ColumnInt(
+      'last7DaysViews',
+      this,
+      hasDefault: true,
+    );
+    reorderCount = _i1.ColumnInt(
+      'reorderCount',
+      this,
+      hasDefault: true,
+    );
+    trendingScore = _i1.ColumnDouble(
+      'trendingScore',
+      this,
+      hasDefault: true,
+    );
     status = _i1.ColumnString(
       'status',
       this,
@@ -573,6 +662,14 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt mostPurchaseCount;
 
+  late final _i1.ColumnInt last7DaysSold;
+
+  late final _i1.ColumnInt last7DaysViews;
+
+  late final _i1.ColumnInt reorderCount;
+
+  late final _i1.ColumnDouble trendingScore;
+
   late final _i1.ColumnString status;
 
   late final _i1.ColumnDateTime deactivatedAt;
@@ -599,6 +696,10 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
     discountType,
     mostSearchCount,
     mostPurchaseCount,
+    last7DaysSold,
+    last7DaysViews,
+    reorderCount,
+    trendingScore,
     status,
     deactivatedAt,
     createdAt,

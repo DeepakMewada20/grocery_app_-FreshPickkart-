@@ -126,6 +126,12 @@ productPg:
   - searchActiveProducts:
   - enqueueSearchRebuild:
   - processPendingSearchRebuildJobs:
+productRanking:
+  - recordProductView:
+  - getTrendingProducts:
+  - getMostSellingProducts:
+  - getMostViewedProducts:
+  - getFrequentlyReorderedProducts:
 refund:
   - initiateRefund:
   - getRefundStatus:

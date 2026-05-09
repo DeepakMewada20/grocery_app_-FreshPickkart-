@@ -14,6 +14,7 @@ import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
@@ -41,6 +42,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final ProductProviderController _productProviderController =
       ProductProviderController.instance;
   final CartController _cartController = CartController.instance;
+  final Client _client = ServerpodClient().client;
   late final ProductDetailController _controller;
   late final String _controllerTag;
   late String _selectedVariantId;
@@ -61,6 +63,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _cartSubscription = _cartController.cartItems.listen((_) {
       _syncSelectedVariantFromCart();
     });
+    _recordProductView();
   }
 
   @override
@@ -76,7 +79,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       (item) => item.product.productId == widget.product.productId,
     );
     if (cartItem == null) return;
-    final actualVariantId = cartItem.variantId ?? inferProductVariantId(widget.product);
+    final actualVariantId =
+        cartItem.variantId ?? inferProductVariantId(widget.product);
     if (actualVariantId != _selectedVariantId) {
       setState(() => _selectedVariantId = actualVariantId);
     }
@@ -109,7 +113,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     final cartItem = _cartItemForProduct(product);
     if (cartItem?.bogoFreeProductId != null) return;
-    
+
     final isEligible =
         offer == null ||
         isBogoTriggerVariantEligible(
@@ -151,6 +155,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       isScrollControlled: true,
     );
+  }
+
+  Future<void> _recordProductView() async {
+    final productId = widget.product.productId;
+    if (productId == null || productId.trim().isEmpty) return;
+    try {
+      await _client.productRanking.recordProductView(productId);
+    } catch (e) {
+      debugPrint('Failed to record product view: $e');
+    }
   }
 
   dynamic _cartItemForProduct(Product product) {

@@ -61,14 +61,16 @@ import 'package:freshpickkat_client/src/protocol/basket_suggestion_result.dart'
     as _i35;
 import 'package:freshpickkat_client/src/protocol/product.dart' as _i36;
 import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i37;
-import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i38;
-import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i39;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i40;
+import 'package:freshpickkat_client/src/protocol/product_ranking_item.dart'
+    as _i38;
+import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i39;
+import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i40;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i41;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i41;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i42;
-import 'protocol.dart' as _i43;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i43;
+import 'protocol.dart' as _i44;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -1681,17 +1683,64 @@ class EndpointProductPg extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointProductRanking extends _i1.EndpointRef {
+  EndpointProductRanking(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'productRanking';
+
+  _i2.Future<bool> recordProductView(String productId) =>
+      caller.callServerEndpoint<bool>(
+        'productRanking',
+        'recordProductView',
+        {'productId': productId},
+      );
+
+  _i2.Future<List<_i38.ProductRankingItem>> getTrendingProducts({
+    required int limit,
+  }) => caller.callServerEndpoint<List<_i38.ProductRankingItem>>(
+    'productRanking',
+    'getTrendingProducts',
+    {'limit': limit},
+  );
+
+  _i2.Future<List<_i38.ProductRankingItem>> getMostSellingProducts({
+    required int limit,
+  }) => caller.callServerEndpoint<List<_i38.ProductRankingItem>>(
+    'productRanking',
+    'getMostSellingProducts',
+    {'limit': limit},
+  );
+
+  _i2.Future<List<_i38.ProductRankingItem>> getMostViewedProducts({
+    required int limit,
+  }) => caller.callServerEndpoint<List<_i38.ProductRankingItem>>(
+    'productRanking',
+    'getMostViewedProducts',
+    {'limit': limit},
+  );
+
+  _i2.Future<List<_i38.ProductRankingItem>> getFrequentlyReorderedProducts({
+    required int limit,
+  }) => caller.callServerEndpoint<List<_i38.ProductRankingItem>>(
+    'productRanking',
+    'getFrequentlyReorderedProducts',
+    {'limit': limit},
+  );
+}
+
+/// {@category Endpoint}
 class EndpointRefund extends _i1.EndpointRef {
   EndpointRefund(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'refund';
 
-  _i2.Future<_i38.RefundRecord> initiateRefund(
+  _i2.Future<_i39.RefundRecord> initiateRefund(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i38.RefundRecord>(
+  ) => caller.callServerEndpoint<_i39.RefundRecord>(
     'refund',
     'initiateRefund',
     {
@@ -1701,11 +1750,11 @@ class EndpointRefund extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i38.RefundRecord?> getRefundStatus(
+  _i2.Future<_i39.RefundRecord?> getRefundStatus(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i38.RefundRecord?>(
+  ) => caller.callServerEndpoint<_i39.RefundRecord?>(
     'refund',
     'getRefundStatus',
     {
@@ -1723,15 +1772,15 @@ class EndpointSubCategory extends _i1.EndpointRef {
   @override
   String get name => 'subCategory';
 
-  _i2.Future<List<_i39.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i39.SubCategory>>(
+  _i2.Future<List<_i40.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i40.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
       );
 
   _i2.Future<bool> uploadSubCategory(
-    _i39.SubCategory subCategory,
+    _i40.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -1747,7 +1796,7 @@ class EndpointSubCategory extends _i1.EndpointRef {
   _i2.Future<bool> updateSubCategory(
     String categoryName,
     String oldSubName,
-    _i39.SubCategory subCategory,
+    _i40.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -1802,7 +1851,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i40.CartItem> cart,
+    List<_i41.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -1827,13 +1876,13 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i41.Caller(client);
-    serverpod_auth_core = _i42.Caller(client);
+    serverpod_auth_idp = _i42.Caller(client);
+    serverpod_auth_core = _i43.Caller(client);
   }
 
-  late final _i41.Caller serverpod_auth_idp;
+  late final _i42.Caller serverpod_auth_idp;
 
-  late final _i42.Caller serverpod_auth_core;
+  late final _i43.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -1856,7 +1905,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i43.Protocol(),
+         _i44.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -1882,6 +1931,7 @@ class Client extends _i1.ServerpodClientShared {
     pricing = EndpointPricing(this);
     product = EndpointProduct(this);
     productPg = EndpointProductPg(this);
+    productRanking = EndpointProductRanking(this);
     refund = EndpointRefund(this);
     subCategory = EndpointSubCategory(this);
     user = EndpointUser(this);
@@ -1922,6 +1972,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointProductPg productPg;
 
+  late final EndpointProductRanking productRanking;
+
   late final EndpointRefund refund;
 
   late final EndpointSubCategory subCategory;
@@ -1949,6 +2001,7 @@ class Client extends _i1.ServerpodClientShared {
     'pricing': pricing,
     'product': product,
     'productPg': productPg,
+    'productRanking': productRanking,
     'refund': refund,
     'subCategory': subCategory,
     'user': user,

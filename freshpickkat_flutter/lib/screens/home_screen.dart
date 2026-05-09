@@ -155,6 +155,18 @@ class _HomePageState extends State<HomePage>
                           sortBy: "best_sellers",
                         ),
                       ),
+                      SliverToBoxAdapter(
+                        child: CategoriesSelectionListview(
+                          titalWord: "Most Viewed",
+                          sortBy: "most_viewed",
+                        ),
+                      ),
+                      SliverToBoxAdapter(
+                        child: CategoriesSelectionListview(
+                          titalWord: "Frequently Reordered",
+                          sortBy: "frequently_reordered",
+                        ),
+                      ),
 
                       // OFFER BANNER (home_top)
                       SliverToBoxAdapter(

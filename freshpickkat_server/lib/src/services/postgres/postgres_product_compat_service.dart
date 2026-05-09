@@ -51,7 +51,7 @@ class PostgresProductCompatService {
     if (resolvedFilters.noResults) return const [];
 
     final orderClause = switch (sortBy) {
-      'trending' => 'p."mostSearchCount" DESC, p.id DESC',
+      'trending' => 'p."trendingScore" DESC, p.id DESC',
       'best_sellers' => 'p."mostPurchaseCount" DESC, p.id DESC',
       _ => 'p.name ASC, p.id ASC',
     };
@@ -85,7 +85,8 @@ class PostgresProductCompatService {
         ...resolvedFilters.parameters,
         if (lastProductName != null) ...{
           'lastProductName': lastProductName,
-          'lastProductId': lastProductId ?? '00000000-0000-0000-0000-000000000000',
+          'lastProductId':
+              lastProductId ?? '00000000-0000-0000-0000-000000000000',
         },
         'limit': pageSize,
       }),
@@ -122,7 +123,7 @@ class PostgresProductCompatService {
     }
 
     final orderClause = switch (sortBy) {
-      'trending' => 'p."mostSearchCount" DESC, p.id DESC',
+      'trending' => 'p."trendingScore" DESC, p.id DESC',
       'best_sellers' => 'p."mostPurchaseCount" DESC, p.id DESC',
       _ => 'p.name ASC, p.id ASC',
     };
@@ -137,6 +138,7 @@ class PostgresProductCompatService {
       SELECT
         p.id::text AS "productId",
         p.name AS "productName",
+        p."trendingScore" AS "trendingScore",
         p."mostSearchCount" AS "mostSearchCount",
         p."mostPurchaseCount" AS "mostPurchaseCount"
       FROM product p
@@ -150,7 +152,9 @@ class PostgresProductCompatService {
       ''',
       parameters: QueryParameters.named({
         ...resolvedFilters.parameters,
-        if (sortBy == 'trending' || sortBy == 'best_sellers')
+        if (sortBy == 'trending')
+          'cursorMetric': cursor == null ? null : asDouble(cursor['metric'])
+        else if (sortBy == 'best_sellers')
           'cursorMetric': cursor == null ? null : asInt(cursor['metric'])
         else
           'cursorName': cursor?['name']?.toString(),
@@ -171,7 +175,7 @@ class PostgresProductCompatService {
         'productId': productId,
         'name': map['productName']?.toString(),
         'metric': sortBy == 'trending'
-            ? asInt(map['mostSearchCount'])
+            ? asDouble(map['trendingScore'])
             : sortBy == 'best_sellers'
             ? asInt(map['mostPurchaseCount'])
             : null,
@@ -503,10 +507,10 @@ class PostgresProductCompatService {
       'trending' =>
         '''
         AND (
-          @cursorMetric::integer IS NULL
-          OR p."mostSearchCount" < @cursorMetric::integer
+          @cursorMetric::double precision IS NULL
+          OR p."trendingScore" < @cursorMetric::double precision
           OR (
-            p."mostSearchCount" = @cursorMetric::integer
+            p."trendingScore" = @cursorMetric::double precision
             AND p.id::text < @cursorProductId::text
           )
         )

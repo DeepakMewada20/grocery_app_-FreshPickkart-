@@ -42,11 +42,32 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
     try {
       isLoading.value = true;
       final sortType = widget.sortBy ?? 'name';
-      final fetched = await _client.product.getProducts(
-        limit: 100,
-        sortBy: sortType,
-      );
-      products.assignAll(fetched);
+      if (sortType == 'trending') {
+        final rankings = await _client.productRanking.getTrendingProducts(
+          limit: 100,
+        );
+        products.assignAll(rankings.map((item) => item.product).toList());
+      } else if (sortType == 'best_sellers') {
+        final rankings = await _client.productRanking.getMostSellingProducts(
+          limit: 100,
+        );
+        products.assignAll(rankings.map((item) => item.product).toList());
+      } else if (sortType == 'most_viewed') {
+        final rankings = await _client.productRanking.getMostViewedProducts(
+          limit: 100,
+        );
+        products.assignAll(rankings.map((item) => item.product).toList());
+      } else if (sortType == 'frequently_reordered') {
+        final rankings = await _client.productRanking
+            .getFrequentlyReorderedProducts(limit: 100);
+        products.assignAll(rankings.map((item) => item.product).toList());
+      } else {
+        final fetched = await _client.product.getProducts(
+          limit: 100,
+          sortBy: sortType,
+        );
+        products.assignAll(fetched);
+      }
     } catch (e) {
       debugPrint('Failed to fetch products: $e');
       Get.snackbar(

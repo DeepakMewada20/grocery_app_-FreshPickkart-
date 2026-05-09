@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
+import '../analytics/redis_analytics_service.dart';
 import 'postgres_support.dart';
 
 class PostgresOrderService {
@@ -11,6 +12,7 @@ class PostgresOrderService {
   static const int _maxLimit = 50;
   static const String _idempotencyScope = 'order_create';
   static final Random _random = Random();
+  final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
 
   Future<String> createPendingOrder(
     Session session, {
@@ -786,6 +788,18 @@ class PostgresOrderService {
           updatedAt: now,
         ),
       );
+    }
+    if (paymentStatus == 'paid') {
+      try {
+        await _analytics.processPaidOrder(session, orderRow.orderNumber);
+      } catch (error, stackTrace) {
+        session.log(
+          'Product analytics processing failed for order ${orderRow.orderNumber}: $error',
+          level: LogLevel.warning,
+          exception: error,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return true;
   }

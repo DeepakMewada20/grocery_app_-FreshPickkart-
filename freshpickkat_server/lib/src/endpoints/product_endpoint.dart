@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../services/analytics/redis_analytics_service.dart';
 import '../services/business/product_business_service.dart';
 import '../services/business/validation_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
@@ -9,6 +10,7 @@ import '../services/postgres/postgres_product_compat_service.dart';
 class ProductEndpoint extends Endpoint {
   final PostgresProductCompatService _pgProducts =
       PostgresProductCompatService();
+  final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
 
@@ -212,11 +214,11 @@ class ProductEndpoint extends Endpoint {
   }
 
   Future<bool> incrementProductSearch(Session session, String productId) {
-    return _pgProducts.incrementProductSearch(session, productId);
+    return _analytics.recordProductView(session, productId);
   }
 
   Future<bool> incrementProductPurchase(Session session, String productId) {
-    return _pgProducts.incrementProductPurchase(session, productId);
+    return _analytics.recordProductSoldQuantity(session, productId, 1);
   }
 
   Future<int> seedProductMetricsForTesting(

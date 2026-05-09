@@ -16,6 +16,8 @@ class ProductProviderController extends GetxController {
   final allProducts = <Product>[].obs;
   final trendingProducts = <Product>[].obs;
   final bestSellersProducts = <Product>[].obs;
+  final mostViewedProducts = <Product>[].obs;
+  final frequentlyReorderedProducts = <Product>[].obs;
   final isLoading = false.obs;
   final isMoreDataAvailable = true.obs;
   final errorMessage = ''.obs;
@@ -54,11 +56,10 @@ class ProductProviderController extends GetxController {
   Future<void> fetchTrendingIfEmpty() async {
     if (trendingProducts.isNotEmpty) return;
     try {
-      final products = await _client.product.getProducts(
+      final rankings = await _client.productRanking.getTrendingProducts(
         limit: 10,
-        sortBy: 'trending',
       );
-      trendingProducts.assignAll(products);
+      trendingProducts.assignAll(rankings.map((item) => item.product).toList());
     } catch (e) {
       debugPrint('Error fetching trending products: $e');
     }
@@ -67,13 +68,41 @@ class ProductProviderController extends GetxController {
   Future<void> fetchBestSellersIfEmpty() async {
     if (bestSellersProducts.isNotEmpty) return;
     try {
-      final products = await _client.product.getProducts(
+      final rankings = await _client.productRanking.getMostSellingProducts(
         limit: 10,
-        sortBy: 'best_sellers',
       );
-      bestSellersProducts.assignAll(products);
+      bestSellersProducts.assignAll(
+        rankings.map((item) => item.product).toList(),
+      );
     } catch (e) {
       debugPrint('Error fetching best sellers: $e');
+    }
+  }
+
+  Future<void> fetchMostViewedIfEmpty() async {
+    if (mostViewedProducts.isNotEmpty) return;
+    try {
+      final rankings = await _client.productRanking.getMostViewedProducts(
+        limit: 10,
+      );
+      mostViewedProducts.assignAll(
+        rankings.map((item) => item.product).toList(),
+      );
+    } catch (e) {
+      debugPrint('Error fetching most viewed products: $e');
+    }
+  }
+
+  Future<void> fetchFrequentlyReorderedIfEmpty() async {
+    if (frequentlyReorderedProducts.isNotEmpty) return;
+    try {
+      final rankings = await _client.productRanking
+          .getFrequentlyReorderedProducts(limit: 10);
+      frequentlyReorderedProducts.assignAll(
+        rankings.map((item) => item.product).toList(),
+      );
+    } catch (e) {
+      debugPrint('Error fetching frequently reordered products: $e');
     }
   }
 
@@ -81,6 +110,10 @@ class ProductProviderController extends GetxController {
     if (_isFetching) return;
     clearProducts();
     _productCache.clear();
+    trendingProducts.clear();
+    bestSellersProducts.clear();
+    mostViewedProducts.clear();
+    frequentlyReorderedProducts.clear();
 
     _isFetching = true;
     try {

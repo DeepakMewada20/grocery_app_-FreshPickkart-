@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 
 class CategoriesSelectionListview extends StatefulWidget {
   final String titalWord;
-  final String? sortBy; // 'trending', 'best_sellers', or null for default
+  final String? sortBy;
 
   const CategoriesSelectionListview({
     super.key,
@@ -39,6 +39,10 @@ class _CategoriesSelectionListviewState
       productController.fetchTrendingIfEmpty();
     } else if (widget.sortBy == 'best_sellers') {
       productController.fetchBestSellersIfEmpty();
+    } else if (widget.sortBy == 'most_viewed') {
+      productController.fetchMostViewedIfEmpty();
+    } else if (widget.sortBy == 'frequently_reordered') {
+      productController.fetchFrequentlyReorderedIfEmpty();
     }
   }
 
@@ -55,6 +59,12 @@ class _CategoriesSelectionListviewState
         isLoading = productController.isLoading.value && products.isEmpty;
       } else if (widget.sortBy == 'best_sellers') {
         products = productController.bestSellersProducts;
+        isLoading = productController.isLoading.value && products.isEmpty;
+      } else if (widget.sortBy == 'most_viewed') {
+        products = productController.mostViewedProducts;
+        isLoading = productController.isLoading.value && products.isEmpty;
+      } else if (widget.sortBy == 'frequently_reordered') {
+        products = productController.frequentlyReorderedProducts;
         isLoading = productController.isLoading.value && products.isEmpty;
       } else {
         products = productController.allProducts;

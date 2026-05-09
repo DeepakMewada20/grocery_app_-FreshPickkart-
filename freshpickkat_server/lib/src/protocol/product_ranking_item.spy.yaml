@@ -1,0 +1,10 @@
+class: ProductRankingItem
+fields:
+  product: Product
+  rank: int
+  metricType: String
+  metricValue: double
+  last7DaysSold: int
+  last7DaysViews: int
+  reorderCount: int
+  trendingScore: double

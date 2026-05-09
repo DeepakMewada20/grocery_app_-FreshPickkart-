@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../analytics/redis_analytics_service.dart';
 import '../notification_service.dart';
 import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
@@ -10,6 +11,7 @@ class PostgresPaymentService {
     : _gateway = gateway ?? PaymentGatewayService();
 
   final PaymentGatewayService _gateway;
+  final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
 
   Future<PaymentOrderResult> createPaymentOrder(
     Session session,
@@ -182,6 +184,11 @@ class PostgresPaymentService {
               : resolvedOrderRow.confirmedAt,
           updatedAt: now,
         ),
+      );
+
+      await _processPaidOrderAnalytics(
+        session,
+        orderNumber: resolvedOrderRow.orderNumber,
       );
 
       await _finalizeSuccessfulPaymentSideEffects(
@@ -382,7 +389,26 @@ class PostgresPaymentService {
     await _deductStockForOrderItems(session, order.id!);
   }
 
-  Future<void> _deductStockForOrderItems(Session session, UuidValue orderId) async {
+  Future<void> _processPaidOrderAnalytics(
+    Session session, {
+    required String orderNumber,
+  }) async {
+    try {
+      await _analytics.processPaidOrder(session, orderNumber);
+    } catch (error, stackTrace) {
+      session.log(
+        'Product analytics processing failed for order $orderNumber: $error',
+        level: LogLevel.warning,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _deductStockForOrderItems(
+    Session session,
+    UuidValue orderId,
+  ) async {
     try {
       final orderItems = await OrderItemRow.db.find(
         session,
@@ -390,7 +416,12 @@ class PostgresPaymentService {
       );
 
       const unitConversions = <String, double>{
-        'gm': 1.0, 'kg': 1000.0, 'litre': 1000.0, 'ml': 1.0, 'pc': 1.0, 'pack': 1.0,
+        'gm': 1.0,
+        'kg': 1000.0,
+        'litre': 1000.0,
+        'ml': 1.0,
+        'pc': 1.0,
+        'pack': 1.0,
       };
 
       for (final item in orderItems) {
@@ -399,11 +430,16 @@ class PostgresPaymentService {
 
         double deduction = 0;
         if (item.productVariantId != null) {
-          final variant = await ProductVariantRow.db.findById(session, item.productVariantId!);
+          final variant = await ProductVariantRow.db.findById(
+            session,
+            item.productVariantId!,
+          );
           if (variant != null) {
             final vUnit = variant.quantityUnit.toLowerCase();
-            final pUnit = (product.stockUnit ?? product.baseUnit ?? 'unit').toLowerCase();
-            final inGrams = variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
+            final pUnit = (product.stockUnit ?? product.baseUnit ?? 'unit')
+                .toLowerCase();
+            final inGrams =
+                variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
             final inBase = inGrams / (unitConversions[pUnit] ?? 1.0);
             deduction = inBase * item.quantity;
           } else {
@@ -415,11 +451,14 @@ class PostgresPaymentService {
 
         final newStock = product.stock! - deduction;
         bool shouldDisable = false;
-        
+
         final bUnit = (product.baseUnit ?? 'unit').toLowerCase();
-        final sUnit = (product.stockUnit ?? product.baseUnit ?? 'unit').toLowerCase();
-        final minGrams = (product.baseQuantity ?? 0.0) * (unitConversions[bUnit] ?? 1.0);
-        final minRequiredInStockUnit = minGrams / (unitConversions[sUnit] ?? 1.0);
+        final sUnit = (product.stockUnit ?? product.baseUnit ?? 'unit')
+            .toLowerCase();
+        final minGrams =
+            (product.baseQuantity ?? 0.0) * (unitConversions[bUnit] ?? 1.0);
+        final minRequiredInStockUnit =
+            minGrams / (unitConversions[sUnit] ?? 1.0);
 
         if (newStock <= 0 || newStock < minRequiredInStockUnit) {
           shouldDisable = true;
@@ -435,7 +474,10 @@ class PostgresPaymentService {
         );
       }
     } catch (e) {
-      session.log('Background stock deduction failed: $e', level: LogLevel.error);
+      session.log(
+        'Background stock deduction failed: $e',
+        level: LogLevel.error,
+      );
     }
   }
 }

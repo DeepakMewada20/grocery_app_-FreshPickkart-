@@ -24,6 +24,7 @@ fields:
   deliveryPersonName: String?
   deliveryPersonPhone: String?
   deliveryOtp: String?
+  analyticsProcessedAt: DateTime?
   orderedAt: DateTime, defaultModel=now, defaultPersist=now
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
@@ -35,3 +36,7 @@ indexes:
     fields: userId, orderedAt, id
   customer_order_status_ordered_idx:
     fields: orderStatus, orderedAt, id
+  customer_order_payment_ordered_idx:
+    fields: paymentStatus, orderedAt, id
+  customer_order_user_payment_ordered_idx:
+    fields: userId, paymentStatus, orderedAt, id
