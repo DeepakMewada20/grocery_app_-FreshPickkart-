@@ -142,7 +142,7 @@ CREATE TABLE "bogo_offer_reward" (
     "bogoOfferId" uuid NOT NULL,
     "rewardProductId" uuid NOT NULL,
     "rewardVariantId" uuid,
-    "quantity" bigint NOT NULL DEFAULT 1,
+    "freeQuantity" bigint NOT NULL DEFAULT 1,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -318,6 +318,7 @@ CREATE TABLE "customer_order" (
     "deliveryPersonName" text,
     "deliveryPersonPhone" text,
     "deliveryOtp" text,
+    "analyticsProcessedAt" timestamp without time zone,
     "orderedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -327,6 +328,8 @@ CREATE TABLE "customer_order" (
 CREATE UNIQUE INDEX "customer_order_order_number_idx" ON "customer_order" USING btree ("orderNumber");
 CREATE INDEX "customer_order_user_ordered_idx" ON "customer_order" USING btree ("userId", "orderedAt", "id");
 CREATE INDEX "customer_order_status_ordered_idx" ON "customer_order" USING btree ("orderStatus", "orderedAt", "id");
+CREATE INDEX "customer_order_payment_ordered_idx" ON "customer_order" USING btree ("paymentStatus", "orderedAt", "id");
+CREATE INDEX "customer_order_user_payment_ordered_idx" ON "customer_order" USING btree ("userId", "paymentStatus", "orderedAt", "id");
 
 --
 -- Class DeliveryConfigRow as table delivery_config
@@ -466,6 +469,51 @@ CREATE TABLE "order_item" (
 
 -- Indexes
 CREATE INDEX "order_item_order_idx" ON "order_item" USING btree ("orderId");
+CREATE INDEX "order_item_product_idx" ON "order_item" USING btree ("productId");
+CREATE INDEX "order_item_product_order_idx" ON "order_item" USING btree ("productId", "orderId");
+
+--
+-- Class OrderNotificationOutboxRow as table order_notification_outbox
+--
+CREATE TABLE "order_notification_outbox" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "dedupeKey" text NOT NULL,
+    "eventType" text NOT NULL,
+    "orderId" text NOT NULL,
+    "userId" text,
+    "status" text,
+    "payloadJson" text NOT NULL,
+    "attemptCount" bigint NOT NULL DEFAULT 0,
+    "lastError" text,
+    "processedAt" timestamp without time zone,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "order_notification_outbox_dedupe_idx" ON "order_notification_outbox" USING btree ("dedupeKey");
+CREATE INDEX "order_notification_outbox_pending_idx" ON "order_notification_outbox" USING btree ("processedAt", "createdAt", "id");
+CREATE INDEX "order_notification_outbox_user_pending_idx" ON "order_notification_outbox" USING btree ("userId", "processedAt", "createdAt", "id");
+
+--
+-- Class OrderTrackingRow as table order_tracking
+--
+CREATE TABLE "order_tracking" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "orderId" uuid NOT NULL,
+    "trackingEnabled" boolean NOT NULL DEFAULT false,
+    "userLatitude" double precision,
+    "userLongitude" double precision,
+    "userAddress" text,
+    "userLocationType" text,
+    "riderLatitude" double precision,
+    "riderLongitude" double precision,
+    "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes
+CREATE UNIQUE INDEX "order_tracking_order_idx" ON "order_tracking" USING btree ("orderId");
 
 --
 -- Class PaymentTransactionRow as table payment_transaction
@@ -510,9 +558,14 @@ CREATE TABLE "product" (
     "baseQuantity" double precision,
     "quantityDescription" text,
     "stock" double precision,
+    "stockUnit" text,
     "discountType" text,
     "mostSearchCount" bigint NOT NULL DEFAULT 0,
     "mostPurchaseCount" bigint NOT NULL DEFAULT 0,
+    "last7DaysSold" bigint NOT NULL DEFAULT 0,
+    "last7DaysViews" bigint NOT NULL DEFAULT 0,
+    "reorderCount" bigint NOT NULL DEFAULT 0,
+    "trendingScore" double precision NOT NULL DEFAULT 0,
     "status" text NOT NULL DEFAULT 'active'::text,
     "deactivatedAt" timestamp without time zone,
     "createdAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -521,6 +574,10 @@ CREATE TABLE "product" (
 
 -- Indexes
 CREATE UNIQUE INDEX "product_slug_idx" ON "product" USING btree ("slug");
+CREATE INDEX "product_trending_score_idx" ON "product" USING btree ("trendingScore", "id");
+CREATE INDEX "product_most_purchase_count_idx" ON "product" USING btree ("mostPurchaseCount", "id");
+CREATE INDEX "product_most_search_count_idx" ON "product" USING btree ("mostSearchCount", "id");
+CREATE INDEX "product_reorder_count_idx" ON "product" USING btree ("reorderCount", "id");
 
 --
 -- Class ProductSearchDocumentRow as table product_search_document
@@ -1451,6 +1508,16 @@ ALTER TABLE ONLY "order_item"
     ON UPDATE NO ACTION;
 
 --
+-- Foreign relations for "order_tracking" table
+--
+ALTER TABLE ONLY "order_tracking"
+    ADD CONSTRAINT "order_tracking_fk_0"
+    FOREIGN KEY("orderId")
+    REFERENCES "customer_order"("id")
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION;
+
+--
 -- Foreign relations for "payment_transaction" table
 --
 ALTER TABLE ONLY "payment_transaction"
@@ -1783,9 +1850,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR freshpickkat
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('freshpickkat', '20260503061040672', now())
+    VALUES ('freshpickkat', '20260509120035765', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260503061040672', "timestamp" = now();
+    DO UPDATE SET "version" = '20260509120035765', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod
