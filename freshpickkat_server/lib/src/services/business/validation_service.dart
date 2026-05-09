@@ -346,8 +346,15 @@ class ValidationService {
     if (targetType != null &&
         targetType.isNotEmpty &&
         targetType != 'all' &&
-        targetType != 'new_user') {
+        targetType != 'new_user' &&
+        targetType != 'specific_order') {
       throw InvalidParametersException('Invalid delivery target user type');
+    }
+    if (targetType == 'specific_order' &&
+        (rule.targetOrderCount == null || rule.targetOrderCount! <= 0)) {
+      throw InvalidParametersException(
+        'Target order count is required and must be greater than 0 for specific_order rules',
+      );
     }
   }
 }

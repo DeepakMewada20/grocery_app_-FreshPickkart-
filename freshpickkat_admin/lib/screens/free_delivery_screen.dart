@@ -343,8 +343,9 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
             ..._slabs.map(
               (slab) => Padding(
                 padding: EdgeInsets.only(bottom: 8.h),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
+                child: Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.of(context).size.width;
                     final fields = [
                       TextField(
                         controller: slab.minCtrl,
@@ -362,7 +363,7 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
                         decoration: const InputDecoration(labelText: 'Fee'),
                       ),
                     ];
-                    if (constraints.maxWidth < 420) {
+                    if (screenWidth < 420) {
                       return Column(
                         children: [
                           fields[0],
@@ -566,8 +567,9 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
             ),
             SizedBox(height: 12.h),
             if (_ruleType != 'user_rule')
-              LayoutBuilder(
-                builder: (context, constraints) {
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
                   final start = OutlinedButton(
                     onPressed: () => _pickDate(isStart: true),
                     child: Text(
@@ -582,7 +584,7 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   );
-                  if (constraints.maxWidth < 420) {
+                  if (screenWidth < 420) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
