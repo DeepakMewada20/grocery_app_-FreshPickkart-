@@ -1040,7 +1040,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
             }
           },
           groupedSubcategoryOptionsFor:
-              widget.categoryController.groupedSubcategoryOptionsFor,
+              widget.categoryController.subcategoryOptionsWithImagesFor,
         );
         if (saved == true && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

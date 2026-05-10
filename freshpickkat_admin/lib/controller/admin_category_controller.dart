@@ -6,6 +6,14 @@ import '../services/api_client.dart';
 import '../core/exceptions.dart';
 import 'network_controller.dart';
 
+/// A simple data holder for a subcategory's display name and image URL.
+class SubcategoryOptionData {
+  final String name;
+  final String imageUrl;
+
+  const SubcategoryOptionData({required this.name, required this.imageUrl});
+}
+
 class AdminCategoryController extends GetxController {
   static AdminCategoryController get instance =>
       Get.find<AdminCategoryController>();
@@ -66,6 +74,26 @@ class AdminCategoryController extends GetxController {
         .where((s) => s.categoryId == categoryName)
         .map((s) => s.subCategoriesName)
         .toList();
+  }
+
+  /// Returns subcategory options with image URLs for the given category name.
+  List<SubcategoryOptionData> subcategoryOptionsWithImagesFor(
+    String categoryName,
+  ) {
+    final result = <SubcategoryOptionData>[];
+    for (final sub in subCategories) {
+      if (sub.categoryId != categoryName) continue;
+      for (final name in sub.subCategoriesName) {
+        result.add(
+          SubcategoryOptionData(
+            name: name,
+            imageUrl: sub.subCategoriesUrl,
+          ),
+        );
+      }
+    }
+    result.sort((a, b) => a.name.compareTo(b.name));
+    return result;
   }
 
   Future<void> uploadCategory(Category category) async {

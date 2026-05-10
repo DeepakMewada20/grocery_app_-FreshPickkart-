@@ -489,20 +489,37 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                         ),
                       ),
                       SizedBox(height: 4.h),
-                      Text(
-                        trigger.quantity,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AdminTextStyles.body(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        '₹${trigger.price.toStringAsFixed(0)}',
-                        style: AdminTextStyles.body(
-                          context,
-                        ).copyWith(fontWeight: FontWeight.w700),
+                      Builder(
+                        builder: (context) {
+                          final activeVariant = _selectedTriggerVariant();
+                          final qtyLabel = activeVariant != null
+                              ? _variantLabel(activeVariant)
+                              : trigger.quantity;
+                          final price = activeVariant?.price ?? trigger.price;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                qtyLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AdminTextStyles.body(
+                                  context,
+                                ).copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(height: 6.h),
+                              Text(
+                                '₹${price.toStringAsFixed(0)}',
+                                style: AdminTextStyles.body(
+                                  context,
+                                ).copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -766,7 +783,7 @@ class _SelectedProductsSummary extends StatelessWidget {
         ),
         SizedBox(height: 10.h),
         SizedBox(
-          height: 174.h.clamp(156.0, 196.0).toDouble(),
+          height: 110.h.clamp(100.0, 120.0).toDouble(),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: selectedProducts.length,
@@ -815,43 +832,63 @@ class _SelectedProductsSummary extends StatelessWidget {
                             selection.product.productName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: AdminTextStyles.cardTitle(context),
+                            style: AdminTextStyles.cardTitle(context).copyWith(
+                              fontSize: 13.sp,
+                            ),
                           ),
-                          SizedBox(height: 4.h),
+                          SizedBox(height: 2.h),
                           Text(
-                            'Pack: ${selection.displayLabel}',
+                            selection.displayLabel,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AdminTextStyles.caption(context).copyWith(
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           SizedBox(height: 8.h),
-                          SizedBox(
-                            width: 132.w.clamp(118.0, 150.0).toDouble(),
-                            child: TextFormField(
-                              key: ValueKey(
-                                'free_qty_${selection.product.productId}',
+                          Row(
+                            children: [
+                              Text(
+                                'Free Qty:',
+                                style: AdminTextStyles.caption(context).copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                              initialValue: selection.freeQuantity.toString(),
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Free Qty',
-                                isDense: true,
-                                border: OutlineInputBorder(),
+                              SizedBox(width: 8.w),
+                              SizedBox(
+                                width: 60.w.clamp(50.0, 70.0).toDouble(),
+                                height: 32.h.clamp(32.0, 38.0).toDouble(),
+                                child: TextFormField(
+                                  key: ValueKey(
+                                    'free_qty_${selection.product.productId}',
+                                  ),
+                                  initialValue: selection.freeQuantity.toString(),
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.zero,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                  ),
+                                  onChanged: productId == null
+                                      ? null
+                                      : (value) {
+                                          final parsed =
+                                              int.tryParse(value.trim()) ?? 1;
+                                          onQuantityChanged(
+                                            productId,
+                                            parsed <= 0 ? 1 : parsed,
+                                          );
+                                        },
+                                ),
                               ),
-                              onChanged: productId == null
-                                  ? null
-                                  : (value) {
-                                      final parsed =
-                                          int.tryParse(value.trim()) ?? 1;
-                                      onQuantityChanged(
-                                        productId,
-                                        parsed <= 0 ? 1 : parsed,
-                                      );
-                                    },
-                            ),
+                            ],
                           ),
                         ],
                       ),

@@ -375,7 +375,6 @@ class _ProductAdminCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final statusColor = product.isAvailable ? Colors.green : Colors.redAccent;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -421,28 +420,18 @@ class _ProductAdminCard extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      '${product.category} • ${product.quantity}',
-                      maxLines: 2,
+                      '${product.category} • ${product.isAvailable ? 'Available' : 'Out of stock'}',
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AdminTextStyles.caption(context),
+                      style: AdminTextStyles.caption(context).copyWith(
+                        color: product.isAvailable
+                            ? Colors.green.shade700
+                            : Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     SizedBox(height: 8.h),
-                    Wrap(
-                      spacing: 8.w,
-                      runSpacing: 6.h,
-                      children: [
-                        CatalogInlineBadge(
-                          label: '₹${product.price.toStringAsFixed(0)}',
-                          color: Colors.green.shade700,
-                        ),
-                        CatalogInlineBadge(
-                          label: product.isAvailable
-                              ? 'Available'
-                              : 'Out of stock',
-                          color: statusColor,
-                        ),
-                      ],
-                    ),
+                    _VariantPriceRow(product: product),
                   ],
                 ),
               ),
@@ -470,6 +459,74 @@ class _ProductAdminCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─── Variant price chips ──────────────────────────────────────────────────────
+
+class _VariantPriceRow extends StatelessWidget {
+  const _VariantPriceRow({required this.product});
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    // Build variant chips from product.variants (sorted by sortOrder)
+    final variants = (product.variants ?? const <ProductVariant>[])
+      ..sort((a, b) => (a.sortOrder ?? 0).compareTo(b.sortOrder ?? 0));
+
+    // Fallback: use base price when no variant data available
+    if (variants.isEmpty) {
+      return CatalogInlineBadge(
+        label: '₹${product.price.toStringAsFixed(0)}',
+        color: Colors.green.shade700,
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: variants.asMap().entries.map((entry) {
+          final i = entry.key;
+          final v = entry.value;
+          final qty = v.quantityValue;
+          final unit = v.quantityUnit;
+          final price = v.price;
+
+          final qtyLabel = qty == qty.toInt()
+              ? qty.toInt().toString()
+              : qty.toStringAsFixed(1);
+          final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(0)}';
+
+          return Padding(
+            padding: EdgeInsets.only(
+              right: i < variants.length - 1 ? 6.w : 0,
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 7.w,
+                vertical: 3.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(
+                  color: Colors.green.shade200,
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: (10.5.sp).clamp(9.0, 12.0),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.green.shade800,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

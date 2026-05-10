@@ -314,8 +314,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       TextFormField(
                         controller: imageCtrl,
                         decoration: const InputDecoration(
-                          labelText: 'Image URL',
+                          labelText: 'Image URL *',
                         ),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
                     ],
                   ),

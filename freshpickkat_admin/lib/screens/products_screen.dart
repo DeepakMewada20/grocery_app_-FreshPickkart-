@@ -143,7 +143,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           setState(_syncAllKnownProductCaches);
         },
         groupedSubcategoryOptionsFor:
-            _categoryController.groupedSubcategoryOptionsFor,
+            _categoryController.subcategoryOptionsWithImagesFor,
       );
 
       if (saved != true) return;
@@ -184,7 +184,7 @@ class _ProductsScreenState extends State<ProductsScreen>
           setState(_syncAllKnownProductCaches);
         },
         groupedSubcategoryOptionsFor:
-            _categoryController.groupedSubcategoryOptionsFor,
+            _categoryController.subcategoryOptionsWithImagesFor,
       );
 
       if (saved != true) return;

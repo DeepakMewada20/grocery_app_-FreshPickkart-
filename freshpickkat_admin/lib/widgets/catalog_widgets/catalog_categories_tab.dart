@@ -575,10 +575,8 @@ Future<void> showAddSubcategoryDialog({
                             ),
                           )
                           .toList(),
-                      onChanged: isEdit
-                          ? null
-                          : (val) =>
-                                setSheetState(() => selectedCategory = val!),
+                      onChanged: (val) =>
+                            setSheetState(() => selectedCategory = val!),
                     ),
                     SizedBox(height: 16.h),
                     ModernTextField(

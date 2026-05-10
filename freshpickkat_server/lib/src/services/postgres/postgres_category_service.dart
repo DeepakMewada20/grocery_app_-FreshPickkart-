@@ -379,28 +379,47 @@ class PostgresCategoryService {
       idToken: idToken,
     );
 
-    final category = await _resolveCategory(session, categoryName);
-    if (category == null) throw Exception('Parent category not found');
+    // Resolve OLD parent category (used to find the existing row)
+    final oldCategory = await _resolveCategory(session, categoryName);
+    if (oldCategory == null) throw Exception('Parent category not found');
 
     final oldSlug = _slugify(oldSubName);
     final existing = await SubCategoryRow.db.findFirstRow(
       session,
-      where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(oldSlug),
+      where: (t) =>
+          t.categoryId.equals(oldCategory.id!) & t.slug.equals(oldSlug),
     );
-
     if (existing == null) throw Exception('Subcategory not found');
 
-    final newName = _requireName(subCategory.subCategoriesName.first, fieldName: 'subCategoryName');
+    // Resolve NEW parent category (may be different if user changed it)
+    final newCategoryName = subCategory.categoryId;
+    final newCategory = await _resolveCategory(session, newCategoryName);
+    if (newCategory == null) throw Exception('New parent category not found');
+
+    final newName = _requireName(
+      subCategory.subCategoriesName.first,
+      fieldName: 'subCategoryName',
+    );
     final newSlug = _slugify(newName);
 
-    if (newSlug != existing.slug) {
+    // Duplicate check: does newSlug already exist in the NEW parent?
+    final isSameCategory = newCategory.id == oldCategory.id;
+    final isNameUnchanged = newSlug == oldSlug;
+    if (!(isSameCategory && isNameUnchanged)) {
       final conflict = await SubCategoryRow.db.findFirstRow(
         session,
-        where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(newSlug),
+        where: (t) =>
+            t.categoryId.equals(newCategory.id!) & t.slug.equals(newSlug),
       );
-      if (conflict != null) throw Exception('New subcategory name already exists in this category');
+      if (conflict != null) {
+        throw Exception(
+          'Subcategory "$newName" already exists in the selected category',
+        );
+      }
     }
 
+    // Apply all changes including new parent categoryId
+    existing.categoryId = newCategory.id!;
     existing.name = newName;
     existing.slug = newSlug;
     existing.imageUrl = cleanNullableString(subCategory.subCategoriesUrl);
@@ -414,7 +433,12 @@ class PostgresCategoryService {
       action: 'update',
       entityType: 'sub_category',
       entityId: existing.id.toString(),
-      metadata: {'category': categoryName, 'old_name': oldSubName, 'new_name': newName},
+      metadata: {
+        'old_category': categoryName,
+        'new_category': newCategoryName,
+        'old_name': oldSubName,
+        'new_name': newName,
+      },
     );
     return true;
   }

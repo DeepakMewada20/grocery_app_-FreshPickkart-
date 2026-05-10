@@ -18,6 +18,9 @@ import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:freshpickkat_admin/controller/admin_category_controller.dart'
+    show SubcategoryOptionData;
+
 import 'variant_draft.dart';
 import 'variant_editor.dart';
 import 'subcategory_selector.dart';
@@ -40,7 +43,7 @@ class ProductFormDialog extends StatefulWidget {
   final Product? product;
   final List<Category> categories;
   final Future<void> Function(ProductFormResult result) onSubmit;
-  final List<List<String>> Function(String category)
+  final List<SubcategoryOptionData> Function(String category)
   groupedSubcategoryOptionsFor;
 
   const ProductFormDialog({
@@ -56,7 +59,7 @@ class ProductFormDialog extends StatefulWidget {
     Product? product,
     required List<Category> categories,
     required Future<void> Function(ProductFormResult result) onSubmit,
-    required List<List<String>> Function(String category)
+    required List<SubcategoryOptionData> Function(String category)
     groupedSubcategoryOptionsFor,
   }) {
     return Navigator.of(context).push<bool>(
@@ -847,12 +850,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               options: widget.groupedSubcategoryOptionsFor(selectedCategory!),
               selected: selectedSubcategories,
               errorText: subcategoryError,
-              onToggleBunch: (bunch, checked) {
+              onToggle: (name, checked) {
                 setState(() {
                   if (checked) {
-                    selectedSubcategories.addAll(bunch);
+                    selectedSubcategories.add(name);
                   } else {
-                    selectedSubcategories.removeAll(bunch);
+                    selectedSubcategories.remove(name);
                   }
                   subcategoryError = null;
                 });
