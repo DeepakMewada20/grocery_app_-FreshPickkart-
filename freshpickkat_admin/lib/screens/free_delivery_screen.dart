@@ -94,9 +94,12 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   void _showConfigDialog() {
     final config = _controller.deliveryConfig.value;
     if (config == null) return;
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => _DeliveryConfigDialog(
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DeliveryConfigBottomSheet(
         config: config,
         onSave: (updatedConfig) =>
             _controller.saveDeliveryConfig(updatedConfig),
@@ -105,9 +108,12 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   }
 
   void _showRuleDialog({DeliveryRule? rule}) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => _DeliveryRuleDialog(
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DeliveryRuleBottomSheet(
         rule: rule,
         onSave: (value) {
           if (rule == null) {
@@ -194,7 +200,9 @@ class _DeliveryConfigCard extends StatelessWidget {
                     (slab) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
-                        '₹${slab.minOrderAmount.toStringAsFixed(0)} - ₹${slab.maxOrderAmount.toStringAsFixed(0)}  ->  ₹${slab.fee.toStringAsFixed(0)}',
+                        slab.maxOrderAmount >= 999999
+                            ? 'Above ₹${slab.minOrderAmount.toStringAsFixed(0)}  ->  ₹${slab.fee.toStringAsFixed(0)}'
+                            : '₹${slab.minOrderAmount.toStringAsFixed(0)} - ₹${slab.maxOrderAmount.toStringAsFixed(0)}  ->  ₹${slab.fee.toStringAsFixed(0)}',
                       ),
                     ),
                   ),
@@ -243,17 +251,17 @@ class _DeliveryRuleCard extends StatelessWidget {
   }
 }
 
-class _DeliveryConfigDialog extends StatefulWidget {
-  const _DeliveryConfigDialog({required this.config, required this.onSave});
+class _DeliveryConfigBottomSheet extends StatefulWidget {
+  const _DeliveryConfigBottomSheet({required this.config, required this.onSave});
 
   final DeliveryConfig config;
   final Future<bool> Function(DeliveryConfig) onSave;
 
   @override
-  State<_DeliveryConfigDialog> createState() => _DeliveryConfigDialogState();
+  State<_DeliveryConfigBottomSheet> createState() => _DeliveryConfigBottomSheetState();
 }
 
-class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
+class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> {
   late final TextEditingController _baseFeeController;
   late final TextEditingController _freeThresholdController;
   late final List<_DeliverySlabDraft> _slabs;
@@ -275,7 +283,9 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
               text: slab.minOrderAmount.toStringAsFixed(0),
             ),
             maxCtrl: TextEditingController(
-              text: slab.maxOrderAmount.toStringAsFixed(0),
+              text: slab.maxOrderAmount >= 999999
+                  ? ''
+                  : slab.maxOrderAmount.toStringAsFixed(0),
             ),
             feeCtrl: TextEditingController(text: slab.fee.toStringAsFixed(0)),
           ),
@@ -295,117 +305,191 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      constraints: AdminResponsive.dialogConstraints(context),
-      title: const Text('Delivery Configuration'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _baseFeeController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Base delivery fee'),
-            ),
-            SizedBox(height: 12.h),
-            TextField(
-              controller: _freeThresholdController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Free delivery threshold',
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Row(
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 12.h),
+            child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    'Delivery Slabs',
-                    style: AdminTextStyles.cardTitle(context),
+                    'Delivery Configuration',
+                    style: AdminTextStyles.sectionTitle(context),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _slabs.add(
-                        _DeliverySlabDraft(
-                          minCtrl: TextEditingController(),
-                          maxCtrl: TextEditingController(),
-                          feeCtrl: TextEditingController(),
-                        ),
-                      );
-                    });
-                  },
-                  child: const Text('Add Slab'),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
                 ),
               ],
             ),
-            ..._slabs.map(
-              (slab) => Padding(
-                padding: EdgeInsets.only(bottom: 8.h),
-                child: Builder(
-                  builder: (context) {
-                    final screenWidth = MediaQuery.of(context).size.width;
-                    final fields = [
-                      TextField(
-                        controller: slab.minCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Min'),
+          ),
+          const Divider(height: 1),
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 20.w,
+                right: 20.w,
+                top: 16.h,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _baseFeeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Base delivery fee (₹)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: _freeThresholdController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Free delivery threshold (₹)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Delivery Slabs',
+                          style: AdminTextStyles.cardTitle(context),
+                        ),
                       ),
-                      TextField(
-                        controller: slab.maxCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Max'),
+                      FilledButton.tonalIcon(
+                        onPressed: () {
+                          setState(() {
+                            _slabs.add(
+                              _DeliverySlabDraft(
+                                minCtrl: TextEditingController(),
+                                maxCtrl: TextEditingController(),
+                                feeCtrl: TextEditingController(),
+                              ),
+                            );
+                          });
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Slab'),
                       ),
-                      TextField(
-                        controller: slab.feeCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Fee'),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  if (_slabs.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Text('No delivery slabs defined. Will use base fee.'),
+                    ),
+                  ..._slabs.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final slab = entry.value;
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 12.h),
+                      padding: EdgeInsets.all(12.r),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
-                    ];
-                    if (screenWidth < 420) {
-                      return Column(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          fields[0],
-                          SizedBox(height: 8.h),
-                          fields[1],
-                          SizedBox(height: 8.h),
-                          fields[2],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Slab ${index + 1}',
+                                style: AdminTextStyles.body(context).copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    slab.dispose();
+                                    _slabs.removeAt(index);
+                                  });
+                                },
+                                child: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 20),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 12.h),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: slab.minCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Min Amount',
+                                    isDense: true,
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: TextField(
+                                  controller: slab.maxCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Max (Empty=Above)',
+                                    isDense: true,
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: TextField(
+                                  controller: slab.feeCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Delivery Fee',
+                                    isDense: true,
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
-                      );
-                    }
-                    return Row(
-                      children: [
-                        Expanded(child: fields[0]),
-                        SizedBox(width: 8.w),
-                        Expanded(child: fields[1]),
-                        SizedBox(width: 8.w),
-                        Expanded(child: fields[2]),
-                      ],
+                      ),
                     );
-                  },
-                ),
+                  }),
+                  SizedBox(height: 24.h),
+                  FilledButton(
+                    onPressed: _isSaving ? null : _save,
+                    child: _isSaving
+                        ? SizedBox(
+                            width: 20.r,
+                            height: 20.r,
+                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Save Configuration'),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _save,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Save'),
-        ),
-      ],
     );
   }
 
@@ -414,7 +498,9 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
         .map(
           (draft) => DeliverySlab(
             minOrderAmount: double.tryParse(draft.minCtrl.text.trim()) ?? 0,
-            maxOrderAmount: double.tryParse(draft.maxCtrl.text.trim()) ?? 0,
+            maxOrderAmount: draft.maxCtrl.text.trim().isEmpty
+                ? 999999
+                : double.tryParse(draft.maxCtrl.text.trim()) ?? 0,
             fee: double.tryParse(draft.feeCtrl.text.trim()) ?? 0,
           ),
         )
@@ -439,17 +525,17 @@ class _DeliveryConfigDialogState extends State<_DeliveryConfigDialog> {
   }
 }
 
-class _DeliveryRuleDialog extends StatefulWidget {
-  const _DeliveryRuleDialog({required this.onSave, this.rule});
+class _DeliveryRuleBottomSheet extends StatefulWidget {
+  const _DeliveryRuleBottomSheet({required this.onSave, this.rule});
 
   final DeliveryRule? rule;
   final Future<bool> Function(DeliveryRule) onSave;
 
   @override
-  State<_DeliveryRuleDialog> createState() => _DeliveryRuleDialogState();
+  State<_DeliveryRuleBottomSheet> createState() => _DeliveryRuleBottomSheetState();
 }
 
-class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
+class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _feeController;
@@ -496,132 +582,169 @@ class _DeliveryRuleDialogState extends State<_DeliveryRuleDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      constraints: AdminResponsive.dialogConstraints(context),
-      title: Text(
-        widget.rule == null ? 'Add Delivery Rule' : 'Edit Delivery Rule',
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Rule name'),
-            ),
-            SizedBox(height: 12.h),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            SizedBox(height: 12.h),
-            DropdownButtonFormField<String>(
-              initialValue: _ruleType,
-              decoration: const InputDecoration(labelText: 'Rule type'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'special_event',
-                  child: Text('Special Event'),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Padding(
+            padding: EdgeInsets.fromLTRB(20.w, 16.h, 12.w, 12.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.rule == null ? 'Add Delivery Rule' : 'Edit Delivery Rule',
+                    style: AdminTextStyles.sectionTitle(context),
+                  ),
                 ),
-                DropdownMenuItem(value: 'user_rule', child: Text('User Rule')),
-              ],
-              onChanged: (value) =>
-                  setState(() => _ruleType = value ?? 'special_event'),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _targetUserType,
-              decoration: const InputDecoration(labelText: 'Target user'),
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text('All users')),
-                DropdownMenuItem(value: 'new_user', child: Text('New users')),
-                DropdownMenuItem(
-                  value: 'specific_order',
-                  child: Text('Specific Order'),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
                 ),
               ],
-              onChanged: (value) =>
-                  setState(() => _targetUserType = value ?? 'all'),
             ),
-            if (_targetUserType == 'specific_order') ...[
-              SizedBox(height: 12.h),
-              TextField(
-                controller: _targetOrderCountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Order Count (e.g., 5 for 5th order)',
-                ),
+          ),
+          const Divider(height: 1),
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 20.w,
+                right: 20.w,
+                top: 16.h,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
               ),
-            ],
-            SizedBox(height: 12.h),
-            TextField(
-              controller: _feeController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Delivery fee'),
-            ),
-            SizedBox(height: 12.h),
-            TextField(
-              controller: _priorityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Priority'),
-            ),
-            SizedBox(height: 12.h),
-            if (_ruleType != 'user_rule')
-              Builder(
-                builder: (context) {
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  final start = OutlinedButton(
-                    onPressed: () => _pickDate(isStart: true),
-                    child: Text(
-                      'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                      overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Rule name',
+                      border: OutlineInputBorder(),
                     ),
-                  );
-                  final end = OutlinedButton(
-                    onPressed: () => _pickDate(isStart: false),
-                    child: Text(
-                      'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                      overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 12.h),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
                     ),
-                  );
-                  if (screenWidth < 420) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        start,
-                        SizedBox(height: 8.h),
-                        end,
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(child: start),
-                      SizedBox(width: 8.w),
-                      Expanded(child: end),
+                  ),
+                  SizedBox(height: 12.h),
+                  DropdownButtonFormField<String>(
+                    initialValue: _ruleType,
+                    decoration: const InputDecoration(
+                      labelText: 'Rule type',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'special_event',
+                        child: Text('Special Event'),
+                      ),
+                      DropdownMenuItem(value: 'user_rule', child: Text('User Rule')),
                     ],
-                  );
-                },
+                    onChanged: (value) =>
+                        setState(() => _ruleType = value ?? 'special_event'),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _targetUserType,
+                    decoration: const InputDecoration(
+                      labelText: 'Target user',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text('All users')),
+                      DropdownMenuItem(value: 'new_user', child: Text('New users')),
+                      DropdownMenuItem(
+                        value: 'specific_order',
+                        child: Text('Specific Order'),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _targetUserType = value ?? 'all'),
+                  ),
+                  if (_targetUserType == 'specific_order') ...[
+                    SizedBox(height: 12.h),
+                    TextField(
+                      controller: _targetOrderCountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Order Count (e.g., 5 for 5th order)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 12.h),
+                  TextField(
+                    controller: _feeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Delivery fee (₹)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  TextField(
+                    controller: _priorityController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Priority (higher is evaluated first)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  if (_ruleType != 'user_rule')
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickDate(isStart: true),
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              'Start: ${_startDate.day}/${_startDate.month}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickDate(isStart: false),
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              'End: ${_endDate.day}/${_endDate.month}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  SizedBox(height: 24.h),
+                  FilledButton(
+                    onPressed: _isSaving ? null : _save,
+                    child: _isSaving
+                        ? SizedBox(
+                            width: 20.r,
+                            height: 20.r,
+                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Save Rule'),
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _isSaving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _save,
-          child: _isSaving
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Save'),
-        ),
-      ],
     );
   }
 
