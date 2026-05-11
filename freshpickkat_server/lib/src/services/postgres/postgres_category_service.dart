@@ -187,9 +187,14 @@ class PostgresCategoryService {
     final category = await _resolveCategory(session, categoryName);
     if (category == null) throw Exception('Category not found');
 
-    category.status = 'deleted';
-    category.updatedAt = DateTime.now().toUtc();
-    await CategoryRow.db.updateRow(session, category);
+    // Hard Delete: Delete all subcategories first to avoid foreign key errors
+    await SubCategoryRow.db.deleteWhere(
+      session,
+      where: (t) => t.categoryId.equals(category.id!),
+    );
+
+    // Now delete the category itself
+    await CategoryRow.db.deleteRow(session, category);
 
     await _audit.write(
       session,
@@ -350,9 +355,7 @@ class PostgresCategoryService {
 
     if (subCategory == null) throw Exception('Subcategory not found');
 
-    subCategory.status = 'deleted';
-    subCategory.updatedAt = DateTime.now().toUtc();
-    await SubCategoryRow.db.updateRow(session, subCategory);
+    await SubCategoryRow.db.deleteRow(session, subCategory);
 
     await _audit.write(
       session,
