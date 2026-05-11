@@ -450,7 +450,7 @@ class PostgresCategoryService {
   }) {
     return CategoryRow.db.findFirstRow(
       session,
-      where: (t) => t.slug.equals(slug),
+      where: (t) => t.slug.equals(slug) & t.status.equals('active'),
       transaction: transaction,
     );
   }
