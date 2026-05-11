@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import 'package:freshpickkat_admin/services/admin_auth_failure_handler.dart';
 import 'network_controller.dart';
 
 class AdminDashboardController extends GetxController {
@@ -53,7 +54,11 @@ class AdminDashboardController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadDashboard);
     } catch (e) {
-      error.value = e.toString();
+      if (AdminAuthFailureHandler.isAuthFailure(e)) {
+        await AdminAuthFailureHandler.handle(e);
+      } else {
+        error.value = 'Error loading dashboard: ${e.toString()}';
+      }
     } finally {
       isLoading.value = false;
     }

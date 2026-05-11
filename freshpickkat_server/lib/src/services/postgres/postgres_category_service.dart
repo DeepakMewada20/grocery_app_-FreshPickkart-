@@ -112,7 +112,7 @@ class PostgresCategoryService {
         transaction: transaction,
       );
       if (existing != null) {
-        throw Exception('Category already exists');
+        throw Exception('Category already exists: "${existing.name}" (Status: ${existing.status})');
       }
 
       final inserted = await CategoryRow.db.insertRow(
@@ -453,7 +453,7 @@ class PostgresCategoryService {
   }) {
     return CategoryRow.db.findFirstRow(
       session,
-      where: (t) => t.slug.equals(slug) & t.status.equals('active'),
+      where: (t) => t.slug.equals(slug),
       transaction: transaction,
     );
   }
