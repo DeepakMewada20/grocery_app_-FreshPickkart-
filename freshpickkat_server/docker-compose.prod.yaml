@@ -1,0 +1,51 @@
+services:
+  # Main Serverpod backend
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freshpickkat_server
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+    environment:
+      - runmode=production
+      - serverid=default
+      - logging=normal
+      - role=monolith
+      - SERVERPOD_PASSWORD_database=${SERVERPOD_PASSWORD_database}
+      - SERVERPOD_PASSWORD_redis=${SERVERPOD_PASSWORD_redis}
+      - SERVERPOD_API_SERVER_PUBLIC_HOST=${PUBLIC_HOST}
+      - SERVERPOD_WEB_SERVER_PUBLIC_HOST=${PUBLIC_HOST}
+      - SERVERPOD_INSIGHTS_SERVER_PUBLIC_HOST=${PUBLIC_HOST}
+
+  # Production database
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: always
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: freshpickkat
+      POSTGRES_PASSWORD: ${SERVERPOD_PASSWORD_database}
+    volumes:
+      - freshpickkat_data:/var/lib/postgresql/data
+
+  # Production redis
+  redis:
+    image: redis:6.2.6
+    restart: always
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "${SERVERPOD_PASSWORD_redis}"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+volumes:
+  freshpickkat_data:

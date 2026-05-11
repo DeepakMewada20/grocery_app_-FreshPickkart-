@@ -1,0 +1,16 @@
+# Ignore local build artifacts and dependencies
+.dart_tool/
+.packages
+.pub-cache/
+build/
+bin/server
+pubspec.lock
+
+# Ignore git and ide files
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
