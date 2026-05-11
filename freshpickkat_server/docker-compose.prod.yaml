@@ -16,7 +16,7 @@ services:
     environment:
       - runmode=production
       - serverid=default
-      - logging=normal
+      - logging=verbose
       - role=monolith
       - SERVERPOD_PASSWORD_database=${SERVERPOD_PASSWORD_database}
       - SERVERPOD_PASSWORD_redis=${SERVERPOD_PASSWORD_redis}
