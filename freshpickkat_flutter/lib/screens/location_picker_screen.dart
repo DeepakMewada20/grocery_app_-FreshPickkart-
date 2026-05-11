@@ -46,7 +46,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   bool _isLoadingLocation = false;
   bool _isGeocoding = false;
   Address? _currentAddress;
-  bool _mapIsMoving = false; // Track if user is dragging map
+  final Set<Marker> _markers = {}; // Track if user is dragging map
 
   final OrderController _orderController = OrderController.instance;
   final UserController _userController = UserController.instance;
@@ -87,6 +87,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   Future<void> _initializeLocation() async {
+    _updateMarker(_selectedLocation);
     // If no initial address, try to get current GPS location
     if (widget.initialAddress == null) {
       setState(() => _isLoadingLocation = true);
@@ -139,23 +140,25 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
   }
 
-  /// Handle camera movement - track when user is dragging
-  void _onCameraMove(CameraPosition position) {
-    if (mounted) {
-      setState(() {
-        _mapIsMoving = true;
-        _selectedLocation = position.target;
-      });
-    }
+  void _updateMarker(LatLng position) {
+    setState(() {
+      _markers.clear();
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('selected_location'),
+          position: position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
+    });
   }
 
-  /// Handle when user stops dragging map - fetch address for center location
-  Future<void> _onCameraIdle() async {
-    if (mounted) {
-      setState(() => _mapIsMoving = false);
-    }
-    // Fetch address for the new center location
-    await _geocodeSelectedLocation();
+  void _onMapTap(LatLng location) {
+    setState(() {
+      _selectedLocation = location;
+    });
+    _updateMarker(location);
+    _geocodeSelectedLocation();
   }
 
   void _animateMapToLocation() {
@@ -172,6 +175,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         setState(() {
           _selectedLocation = LatLng(position.latitude, position.longitude);
         });
+        _updateMarker(_selectedLocation);
         await _geocodeSelectedLocation();
         _animateMapToLocation();
         _showSnackBar('Location updated');
@@ -261,18 +265,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             onMapCreated: (controller) {
               _mapController = controller;
             },
-            markers: const {}, // No markers - use fixed center icon instead
-            onCameraMove: _onCameraMove, // Track map movement
-            onCameraIdle: _onCameraIdle, // Fetch address when movement stops
-          ),
-
-          // Center marker pin icon (fixed - shows selected location)
-          const Center(
-            child: Icon(
-              Icons.location_on,
-              size: 45,
-              color: Colors.red,
-            ),
+            markers: _markers,
+            onTap: _onMapTap,
           ),
 
           // Instructions text at top
@@ -287,9 +281,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                _mapIsMoving
-                    ? 'Moving...'
-                    : 'Drag the map to select your location',
+                'Tap on the map to select your location',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13.sp,
@@ -308,6 +300,21 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 child: CircularProgressIndicator(),
               ),
             ),
+
+          // Current location FAB
+          Positioned(
+            bottom: 320.h,
+            right: 16.w,
+            child: FloatingActionButton(
+              mini: true,
+              onPressed: _isLoadingLocation ? null : _useCurrentLocation,
+              backgroundColor: cs.surface,
+              child: Icon(
+                Icons.my_location,
+                color: cs.primary,
+              ),
+            ),
+          ),
 
           // Bottom sheet with form and buttons
           DraggableScrollableSheet(
@@ -342,24 +349,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20.h),
-
-                        // Use Current Location Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoadingLocation
-                                ? null
-                                : _useCurrentLocation,
-                            icon: const Icon(Icons.my_location),
-                            label: const Text('Use Current Location'),
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
                             ),
                           ),
                         ),
@@ -468,35 +457,40 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             );
                           }),
 
-                        SizedBox(height: 24.h),
-
-                        // Confirm Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isGeocoding ? null : _confirmLocation,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 14.h),
-                              backgroundColor: cs.primary,
-                              foregroundColor: cs.onPrimary,
-                              disabledBackgroundColor: Colors.grey[300],
-                            ),
-                            child: Text(
-                              _isGeocoding ? 'Loading...' : 'Confirm Location',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
+                        SizedBox(height: 80.h),
                       ],
                     ),
                   ),
+                ));
+              },
+            ),
+
+          // Confirm Location button (always visible)
+          Positioned(
+            bottom: viewInsets.bottom + 16.h,
+            left: 16.w,
+            right: 16.w,
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isGeocoding ? null : _confirmLocation,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
+                  disabledBackgroundColor: Colors.grey[300],
                 ),
-              );
-            },
+                child: Text(
+                  _isGeocoding ? 'Loading...' : 'Confirm Location',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ),
+
         ],
       ),
     );
