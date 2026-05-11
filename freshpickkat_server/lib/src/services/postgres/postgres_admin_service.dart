@@ -165,11 +165,39 @@ class PostgresAdminService {
       return protocol.AdminAuthResult(ok: true);
     }
 
-    // Always deny if not already in the system as an admin
-    return protocol.AdminAuthResult(
-      ok: false,
-      message: 'Access denied: ADMIN_SELLER role required.',
-    );
+    if (adminUsers.isNotEmpty) {
+      return protocol.AdminAuthResult(
+        ok: false,
+        message: 'Access denied: ADMIN_SELLER role required.',
+      );
+    }
+
+    if (existingByUid == null) {
+      final now = DateTime.now().toUtc();
+      await AppUserRow.db.insertRow(
+        session,
+        AppUserRow(
+          firebaseUid: token.uid,
+          phoneNumber: token.phoneNumber ?? '',
+          name: _cleanUsername(username),
+          email: email,
+          role: _adminRole,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } else {
+      await _updateAdminRow(
+        session,
+        existingByUid,
+        firebaseUid: token.uid,
+        email: email,
+        username: username,
+      );
+    }
+
+    return protocol.AdminAuthResult(ok: true);
   }
 
   Future<List<protocol.AppUser>> getAllUsers(
