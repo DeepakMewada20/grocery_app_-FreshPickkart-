@@ -217,12 +217,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Get.back(),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.share_outlined, color: Colors.white),
+              icon: const Icon(Icons.share_outlined, color: Colors.black),
               onPressed: () {},
             ),
           ],
@@ -733,6 +733,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             width: AppResponsive.horizontalCardWidth(context),
             margin: EdgeInsets.only(right: 12.w),
             child: ProductCard(
+              key: ValueKey(p.productId),
               product: p,
               enableHero: false,
               onTap: () {

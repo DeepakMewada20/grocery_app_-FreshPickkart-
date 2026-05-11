@@ -223,102 +223,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Location Display Card (Always Visible)
-                Obx(() {
-                  final address = UserController.instance.shippingAddress.value;
-                  final hasAddress =
-                      address != null && address.street.isNotEmpty;
-                  return Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16.r),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(
-                        color: hasAddress
-                            ? Colors.green.withValues(alpha: 0.5)
-                            : Colors.grey.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          color: hasAddress ? Colors.green : Colors.grey,
-                          size: 28.r,
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AutoSizeText(
-                                hasAddress
-                                    ? 'Selected Location'
-                                    : 'No Location Selected',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.black87,
-                                ),
-                                maxLines: 1,
-                                minFontSize: 11,
-                              ),
-                              SizedBox(height: 4.h),
-                              Text(
-                                hasAddress
-                                    ? '${address.street}, ${address.city}, ${address.state} - ${address.zipCode}'
-                                    : 'Tap "Select from Map" to add your address',
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.grey[600],
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 6.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: AutoSizeText(
-                            hasAddress ? 'Change' : 'Add',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            minFontSize: 9,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-
-                SizedBox(height: 16.h),
-
                 // Address Form
                 AddressFormWidget(
                   key: _addressFormKey,
                   showTitle: false,
                   isDarkTheme: isDark,
                   nameController: _nameController,
+                  emailController: _emailController,
                   streetController: _streetController,
                   cityController: _cityController,
                   stateController: _stateController,
@@ -332,57 +243,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       _longitude = addressData['longitude'] as double?;
                     }
                   },
-                ),
-
-                SizedBox(height: 24.h),
-
-                // Email Field (Optional)
-                Text(
-                  'Email (Optional)',
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(
-                      Icons.email_outlined,
-                      color: isDark ? Colors.white54 : Colors.grey,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white24 : Colors.grey.shade300,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white24 : Colors.grey.shade300,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(
-                        color: AppTheme.primaryGreen,
-                        width: 2,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.grey.shade50,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 14.h,
-                    ),
-                  ),
                 ),
 
                 SizedBox(height: 32.h),

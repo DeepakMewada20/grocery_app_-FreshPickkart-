@@ -60,22 +60,7 @@ class _MoreScreenState extends State<MoreScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildProfileHeader(userController, cs),
-                _buildMembershipBanner(),
                 _buildQuickActions(cs),
-                SizedBox(height: 16.h),
-                _buildSectionHeader('My Activity', cs),
-                _buildMenuItem(
-                  icon: Icons.receipt_long_outlined,
-                  title: 'My Orders',
-                  onTap: () => Get.to(() => const OrdersScreen()),
-                  cs: cs,
-                ),
-                _buildMenuItem(
-                  icon: Icons.local_offer_outlined,
-                  title: 'My Coupons',
-                  onTap: () => Get.to(() => const CouponsScreen()),
-                  cs: cs,
-                ),
                 SizedBox(height: 16.h),
                 _buildSectionHeader('Your Delivery Address', cs),
                 _buildAddressSection(userController, cs),
@@ -245,64 +230,6 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  Widget _buildMembershipBanner() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1B8A4C), Color(0xFF2ECC71)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.workspace_premium, color: Colors.amber, size: 32.r),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'FreshPickKart Membership',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: AutoSizeText(
-              'Free Trial Available',
-              style: TextStyle(
-                color: AppTheme.primaryGreen,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.bold,
-              ),
-              minFontSize: 8,
-              maxLines: 1,
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.white70),
-        ],
-      ),
-    );
-  }
-
   Widget _buildQuickActions(ColorScheme cs) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -462,56 +389,6 @@ class _MoreScreenState extends State<MoreScreen> {
             ],
           ),
           SizedBox(height: 12.h),
-          // Button row for address actions
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final currentLocation = OutlinedButton.icon(
-                onPressed: () => Get.to(
-                  () => LocationPickerScreen(
-                    isCheckoutMode: false,
-                    initialAddress: userController.shippingAddress.value,
-                    addressLabel: 'Home',
-                  ),
-                ),
-                icon: Icon(Icons.my_location, size: 18.r),
-                label: const Text('Current Location'),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                ),
-              );
-              final editAddress = OutlinedButton.icon(
-                onPressed: () => Get.to(
-                  () => LocationPickerScreen(
-                    isCheckoutMode: false,
-                    initialAddress: userController.shippingAddress.value,
-                    addressLabel: 'Home',
-                  ),
-                ),
-                icon: Icon(Icons.location_on_outlined, size: 18.r),
-                label: const Text('Edit Address'),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                ),
-              );
-              if (constraints.maxWidth < 340) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    currentLocation,
-                    SizedBox(height: 8.h),
-                    editAddress,
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(child: currentLocation),
-                  SizedBox(width: 8.w),
-                  Expanded(child: editAddress),
-                ],
-              );
-            },
-          ),
         ],
       ),
     );

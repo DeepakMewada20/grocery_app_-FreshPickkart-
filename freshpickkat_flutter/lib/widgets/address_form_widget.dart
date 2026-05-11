@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:geocoding/geocoding.dart' as geo;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:get/get.dart';
 
@@ -11,6 +11,7 @@ class AddressFormWidget extends StatefulWidget {
   final bool showTitle;
   final void Function(Map<String, dynamic> addressData) onAddressFetched;
   final bool isDarkTheme;
+  final TextEditingController? emailController;
   final TextEditingController? nameController;
   final TextEditingController? streetController;
   final TextEditingController? cityController;
@@ -25,6 +26,7 @@ class AddressFormWidget extends StatefulWidget {
     this.showTitle = true,
     required this.onAddressFetched,
     this.isDarkTheme = false,
+    this.emailController,
     this.nameController,
     this.streetController,
     this.cityController,
@@ -40,10 +42,6 @@ class AddressFormWidget extends StatefulWidget {
 }
 
 class _AddressFormWidgetState extends State<AddressFormWidget> {
-  final bool _isLoadingLocation = false;
-  final bool _showCustomAddress = false;
-  int? _selectedIndex;
-  final List<geo.Placemark> _nearbyPlacemarks = [];
   Address? _selectedAddress;
 
   // Field-level error tracking
@@ -56,6 +54,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
   };
 
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
   late TextEditingController _streetController;
   late TextEditingController _cityController;
   late TextEditingController _stateController;
@@ -72,6 +71,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
 
   void _initializeControllers() {
     _nameController = widget.nameController ?? TextEditingController();
+    _emailController = widget.emailController ?? TextEditingController();
     _streetController = widget.streetController ?? TextEditingController();
     _cityController = widget.cityController ?? TextEditingController();
     _stateController = widget.stateController ?? TextEditingController();
@@ -85,6 +85,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
   @override
   void dispose() {
     if (widget.nameController == null) _nameController.dispose();
+    if (widget.emailController == null) _emailController.dispose();
     if (widget.streetController == null) _streetController.dispose();
     if (widget.cityController == null) _cityController.dispose();
     if (widget.stateController == null) _stateController.dispose();
@@ -154,75 +155,23 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           ),
           SizedBox(height: 24.h),
 
-          // Location section
-          Row(
-            children: [
-              _buildLabel('Select Address *'),
-              const Spacer(),
-              if (_isLoadingLocation)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.r,
-                    color: widget.isDarkTheme
-                        ? Colors.white
-                        : const Color(0xFF00B894),
-                  ),
-                ),
-            ],
+          // Email field
+          _buildLabel('Email (Optional)'),
+          SizedBox(height: 8.h),
+          _buildTextField(
+            controller: _emailController,
+            hint: 'Enter your email',
+            icon: Icons.email_outlined,
           ),
+          SizedBox(height: 24.h),
+
+          // Location section
+          _buildLabel('Select Address *'),
           SizedBox(height: 12.h),
 
-          // Location button - opens map picker
-          _buildLocationButton(),
-
-          // TODO: Uncomment if needed - custom address option (removed for map-only selection)
-          // Custom address fields
-          // if (_showCustomAddress) ...[
-          //   const SizedBox(height: 12),
-          //   _buildTextField(
-          //     controller: _streetController,
-          //     hint: 'Street Address',
-          //     icon: Icons.add_home_work_outlined,
-          //     errorText: _fieldErrors['street'],
-          //     fieldKey: 'street',
-          //   ),
-          //   const SizedBox(height: 12),
-          //   _buildTextField(
-          //     controller: _cityController,
-          //     hint: 'City',
-          //     icon: Icons.location_city,
-          //     errorText: _fieldErrors['city'],
-          //     fieldKey: 'city',
-          //   ),
-          //   const SizedBox(height: 12),
-          //   Row(
-          //     children: [
-          //       Expanded(
-          //         child: _buildTextField(
-          //           controller: _stateController,
-          //           hint: 'State',
-          //           icon: Icons.map_outlined,
-          //           errorText: _fieldErrors['state'],
-          //           fieldKey: 'state',
-          //         ),
-          //       ),
-          //       const SizedBox(width: 12),
-          //       Expanded(
-          //         child: _buildTextField(
-          //           controller: _zipController,
-          //           hint: 'Zip Code',
-          //           icon: Icons.numbers,
-          //           errorText: _fieldErrors['zipCode'],
-          //           fieldKey: 'zipCode',
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ],
-          // ],
-          // ]
+          // Location display card
+          _buildLocationCard(),
+          SizedBox(height: 24.h),
 
           // Optional fields (always visible - map provides the address)
           _buildLabel('Additional Details (Optional)'),
@@ -343,39 +292,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
       setState(() => _fieldErrors['name'] = null);
     }
 
-    // Validate address selection if not custom
-    if (!_showCustomAddress &&
-        _selectedIndex == null &&
-        _nearbyPlacemarks.isNotEmpty) {
+    // Validate address selection
+    if (_selectedAddress == null) {
       isValid = false;
-    }
-
-    // Validate custom address fields if in custom mode
-    if (_showCustomAddress) {
-      if (_streetController.text.trim().isEmpty) {
-        setState(() => _fieldErrors['street'] = 'Street is required');
-        isValid = false;
-      } else {
-        setState(() => _fieldErrors['street'] = null);
-      }
-      if (_cityController.text.trim().isEmpty) {
-        setState(() => _fieldErrors['city'] = 'City is required');
-        isValid = false;
-      } else {
-        setState(() => _fieldErrors['city'] = null);
-      }
-      if (_stateController.text.trim().isEmpty) {
-        setState(() => _fieldErrors['state'] = 'State is required');
-        isValid = false;
-      } else {
-        setState(() => _fieldErrors['state'] = null);
-      }
-      if (_zipController.text.trim().isEmpty) {
-        setState(() => _fieldErrors['zipCode'] = 'Zip code is required');
-        isValid = false;
-      } else {
-        setState(() => _fieldErrors['zipCode'] = null);
-      }
     }
 
     return isValid;
@@ -386,7 +305,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     return _validateAllFields();
   }
 
-  Widget _buildLocationButton() {
+  Widget _buildLocationCard() {
+    final address = _selectedAddress;
+    final hasAddress = address != null;
     return InkWell(
       onTap: () async {
         final result = await Get.to(
@@ -409,35 +330,22 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           });
         }
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       child: Container(
+        width: double.infinity,
         padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: widget.isDarkTheme
-              ? Color(0xFF1B8A4C).withValues(alpha: 0.15)
-              : const Color(0xFF00B894).withValues(alpha: 0.1),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.green.shade50,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: widget.isDarkTheme
-                ? Color(0xFF1B8A4C).withValues(alpha: 0.3)
-                : const Color(0xFF00B894).withValues(alpha: 0.3),
-          ),
         ),
         child: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(10.r),
-              decoration: BoxDecoration(
-                color: widget.isDarkTheme
-                    ? Color(0xFF1B8A4C)
-                    : const Color(0xFF00B894),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.my_location,
-                color: Colors.white,
-                size: 20.r,
-              ),
+            Icon(
+              Icons.location_on,
+              color: hasAddress ? Colors.green : Colors.grey,
+              size: 28.r,
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -445,36 +353,50 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    _selectedAddress != null
-                        ? 'Location Selected'
-                        : 'Select from Map',
+                    hasAddress ? 'Selected Location' : 'No Location Selected',
                     style: TextStyle(
-                      fontSize: 15.sp,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
                       color: _getTextColor(),
                     ),
                     maxLines: 1,
                     minFontSize: 11,
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: 4.h),
                   Text(
-                    _selectedAddress != null
-                        ? _selectedAddress!.street
-                        : 'Choose your location on the map',
+                    hasAddress
+                        ? '${address.street}, ${address.city}, ${address.state} - ${address.zipCode}'
+                        : 'Tap "Select from Map" to add your address',
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: _getHintColor(),
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[widget.isDarkTheme ? 600 : 400],
-              size: 16.r,
+            SizedBox(width: 8.w),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 6.h,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGreen,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: AutoSizeText(
+                hasAddress ? 'Change' : 'Add',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+                minFontSize: 9,
+                maxLines: 1,
+              ),
             ),
           ],
         ),

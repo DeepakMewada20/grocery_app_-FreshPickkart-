@@ -666,7 +666,7 @@ packages:
     source: hosted
     version: "4.1.0"
   redis:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: redis
       sha256: d7c7f18a374936baa786baf5f0e747aa5510bb289aad44b30ec41e3b703233b4

@@ -139,7 +139,7 @@ class AppResponsive {
 
   static double horizontalProductListHeight(BuildContext context) {
     final cardWidth = horizontalCardWidth(context);
-    return (cardWidth / 0.56).clamp(250.h, 340.h).toDouble();
+    return (cardWidth / 0.52).clamp(250.h, 340.h).toDouble();
   }
 
   static BoxConstraints sheetConstraints(BuildContext context) {

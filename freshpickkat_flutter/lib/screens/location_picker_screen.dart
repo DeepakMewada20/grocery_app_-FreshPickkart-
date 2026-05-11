@@ -40,6 +40,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   late TextEditingController _streetController;
   late TextEditingController _buildingController;
   late TextEditingController _landmarkController;
+  late TextEditingController _pincodeController;
 
   // State variables
   bool _isLoadingLocation = false;
@@ -77,6 +78,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
     _landmarkController = TextEditingController(
       text: widget.initialAddress?.state ?? '',
+    );
+    _pincodeController = TextEditingController(
+      text: widget.initialAddress?.zipCode ?? '',
     );
 
     _initializeLocation();
@@ -121,6 +125,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           _streetController.text = address.street;
           _buildingController.text = address.city;
           _landmarkController.text = address.state;
+          if (address.zipCode.isNotEmpty) {
+            _pincodeController.text = address.zipCode;
+          }
         });
       }
     } catch (e) {
@@ -184,7 +191,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       street: _streetController.text.trim(),
       city: _buildingController.text.trim(),
       state: _landmarkController.text.trim(),
-      zipCode: _currentAddress?.zipCode ?? '',
+      zipCode: _pincodeController.text.trim(),
       country: _currentAddress?.country ?? '',
       latitude: _selectedLocation.latitude,
       longitude: _selectedLocation.longitude,
@@ -222,6 +229,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     _streetController.dispose();
     _buildingController.dispose();
     _landmarkController.dispose();
+    _pincodeController.dispose();
     super.dispose();
   }
 
@@ -416,6 +424,28 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             prefixIcon: const Icon(Icons.map_outlined),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+
+                        // Pincode
+                        Text(
+                          'Pincode',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        TextField(
+                          controller: _pincodeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: 'Enter pincode',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.numbers),
                           ),
                         ),
                         SizedBox(height: 16.h),

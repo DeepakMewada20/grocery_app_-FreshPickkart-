@@ -266,6 +266,7 @@ class _ProductCardState extends State<ProductCard> {
                     padding: AppSpacing.all(8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Product title
                         AutoSizeText(
@@ -280,8 +281,6 @@ class _ProductCardState extends State<ProductCard> {
                           stepGranularity: 0.5,
                           overflow: TextOverflow.ellipsis,
                         ),
-
-                        const Spacer(),
 
                         // Bottom Section
                         Column(
@@ -332,24 +331,30 @@ class _ProductCardState extends State<ProductCard> {
                                 ),
                               ),
                             ] else ...[
-                              AutoSizeText(
-                                productFullQuantityLabel(displayProduct),
-                                style:
-                                    AppTextStyles.productQuantity(
-                                      context,
-                                    ).copyWith(
-                                      fontSize:
-                                          widget.quantityFontSize?.sp ??
-                                          AppTextStyles.productQuantity(
-                                            context,
-                                          ).fontSize,
-                                    ),
-                                maxLines: 1,
-                                minFontSize: 8,
-                                overflow: TextOverflow.ellipsis,
+                              SizedBox(
+                                height: 26.h.clamp(22.0, 30.0),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: AutoSizeText(
+                                    productFullQuantityLabel(displayProduct),
+                                    style:
+                                        AppTextStyles.productQuantity(
+                                          context,
+                                        ).copyWith(
+                                          fontSize:
+                                              widget.quantityFontSize?.sp ??
+                                              AppTextStyles.productQuantity(
+                                                context,
+                                              ).fontSize,
+                                        ),
+                                    maxLines: 1,
+                                    minFontSize: 8,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                             ],
-                            SizedBox(height: 4.h),
+                            SizedBox(height: 3.h),
 
                             Row(
                               children: [
@@ -397,7 +402,7 @@ class _ProductCardState extends State<ProductCard> {
                                 ],
                               ],
                             ),
-                            SizedBox(height: 4.h),
+                            SizedBox(height: 6.h),
 
                             // Add button or Quantity selector
                             SizedBox(

@@ -87,7 +87,7 @@ class _CategoriesSelectionListviewState
 
       if (products.isEmpty) return const SizedBox.shrink();
 
-      final itemCount = (products.length > 5 ? 5 : products.length) + 1;
+      final itemCount = (products.length > 8 ? 8 : products.length) + 1;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
