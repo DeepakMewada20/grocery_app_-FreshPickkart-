@@ -35,7 +35,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
         title: const Text('Coupons'),
         actions: [
           IconButton(
-            onPressed: _controller.loadCoupons,
+            onPressed: () => _controller.loadCoupons(force: true),
             icon: const Icon(Icons.refresh),
           ),
         ],
@@ -58,7 +58,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
         if (error != null && coupons.isEmpty) {
           return AdminStateView.error(
             message: error,
-            onRetry: _controller.loadCoupons,
+            onRetry: () => _controller.loadCoupons(force: true),
           );
         }
 
@@ -66,7 +66,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
           return AdminStateView.empty(
             title: 'No coupons yet',
             message: 'Create a coupon to start offering discounts.',
-            onRefresh: _controller.loadCoupons,
+            onRefresh: () => _controller.loadCoupons(force: true),
           );
         }
 
@@ -114,7 +114,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                   ),
                   Expanded(
                     child: RefreshIndicator(
-                      onRefresh: _controller.loadCoupons,
+                      onRefresh: () => _controller.loadCoupons(force: true),
                       child: filteredCoupons.isEmpty
                           ? ListView(
                               physics: const AlwaysScrollableScrollPhysics(),
@@ -129,7 +129,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                                   message:
                                       'Try a different coupon code, type, or description.',
                                   icon: Icons.search_off_outlined,
-                                  onRefresh: _controller.loadCoupons,
+                                  onRefresh: () => _controller.loadCoupons(force: true),
                                 ),
                               ],
                             )

@@ -104,7 +104,7 @@ class _OffersScreenState extends State<OffersScreen> {
   Future<void> _refreshAll() async {
     await Future.wait([
       _categoryController.loadCategories(),
-      _couponController.loadCoupons(),
+      _couponController.loadCoupons(force: true),
       _productController.loadInitial(),
       _bogoController.loadBogoOffers(force: true, loadAll: true),
       _categoryOfferController.loadCategoryOffers(force: true, loadAll: true),

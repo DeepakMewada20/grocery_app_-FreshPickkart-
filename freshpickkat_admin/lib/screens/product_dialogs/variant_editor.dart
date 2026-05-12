@@ -109,10 +109,10 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
     _unit = widget.draft.quantityUnit;
   }
 
-  void _recalculateMrp() {
+  void _recalculatePrices() {
     final newQty =
         double.tryParse(widget.draft.quantityValueCtrl.text.trim()) ?? 0;
-    if (newQty <= 0 || widget.draft.baseRealPrice <= 0) return;
+    if (newQty <= 0 || (widget.draft.baseRealPrice <= 0 && widget.draft.basePrice <= 0)) return;
 
     final originalInBase =
         widget.draft.baseQuantity *
@@ -122,8 +122,16 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
     if (originalInBase <= 0) return;
 
     final ratio = newInBase / originalInBase;
-    final newMrp = widget.draft.baseRealPrice * ratio;
-    widget.draft.mrpCtrl.text = newMrp.toStringAsFixed(0);
+
+    if (widget.draft.baseRealPrice > 0) {
+      final newMrp = widget.draft.baseRealPrice * ratio;
+      widget.draft.mrpCtrl.text = newMrp.toStringAsFixed(0);
+    }
+
+    if (widget.draft.basePrice > 0) {
+      final newPrice = widget.draft.basePrice * ratio;
+      widget.draft.priceCtrl.text = newPrice.toStringAsFixed(0);
+    }
   }
 
   @override
@@ -167,7 +175,7 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
                   decimal: true,
                 ),
                 onChanged: (_) {
-                  _recalculateMrp();
+                  _recalculatePrices();
                   widget.onChanged();
                 },
               ),
@@ -190,7 +198,7 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
                     if (value != null) {
                       setState(() => _unit = value);
                       widget.draft.quantityUnit = value;
-                      _recalculateMrp();
+                      _recalculatePrices();
                       widget.onChanged();
                     }
                   },

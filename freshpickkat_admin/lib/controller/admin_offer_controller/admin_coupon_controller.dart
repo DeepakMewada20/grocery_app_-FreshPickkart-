@@ -63,7 +63,7 @@ class AdminCouponController extends GetxController {
         );
         await _client.coupon.uploadCoupon(coupon, uid, idToken);
       });
-      await loadCoupons();
+      await loadCoupons(force: true);
     } catch (e) {
       rethrow;
     }

@@ -25,7 +25,7 @@ class ProductBusinessService {
     final baseInBaseUnit = convertToBaseUnit(baseQuantity, baseUnit);
     final variantInBaseUnit = convertToBaseUnit(variantQuantity, variantUnit);
 
-    if (baseInBaseUnit <= 0) return 0;
+    if (baseInBaseUnit <= 0 || baseRealPrice <= 0) return 0;
 
     final ratio = variantInBaseUnit / baseInBaseUnit;
     return baseRealPrice * ratio;
@@ -118,6 +118,19 @@ class ProductBusinessService {
         );
       }
 
+      double price = variant.price;
+      if (price <= 0 && realPrice > 0) {
+        price = calculateRealPriceForVariant(
+          baseRealPrice: product.price > 0
+              ? product.price
+              : product.realPrice,
+          baseQuantity: baseQuantity,
+          baseUnit: baseUnit,
+          variantQuantity: variantQuantity,
+          variantUnit: variantUnit,
+        );
+      }
+
       return variant.copyWith(
         variantId: variant.variantId.trim().isEmpty
             ? 'variant_$index'
@@ -127,7 +140,7 @@ class ProductBusinessService {
         quantityDescription:
             _normalizeOptionalText(variant.quantityDescription) ??
             (index == 0 ? productQuantityDescription : null),
-        price: _nonNegative(variant.price),
+        price: _nonNegative(price),
         realPrice: _nonNegative(realPrice),
         isAvailable: variant.isAvailable,
         sortOrder: variant.sortOrder ?? index,

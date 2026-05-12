@@ -11,6 +11,7 @@ class VariantDraft {
   bool isAvailable;
 
   double baseRealPrice;
+  double basePrice;
   double baseQuantity;
   String baseUnit;
 
@@ -23,6 +24,7 @@ class VariantDraft {
     String mrp = '',
     this.isAvailable = true,
     this.baseRealPrice = 0,
+    this.basePrice = 0,
     this.baseQuantity = 1,
     this.baseUnit = 'gm',
   }) : variantId =
@@ -39,6 +41,7 @@ class VariantDraft {
   factory VariantDraft.fromVariant(
     ProductVariant variant, {
     double? baseRealPrice,
+    double? basePrice,
     double? baseQuantity,
     String? baseUnit,
   }) {
@@ -51,6 +54,7 @@ class VariantDraft {
       mrp: variant.realPrice.toString(),
       isAvailable: variant.isAvailable,
       baseRealPrice: baseRealPrice ?? variant.realPrice,
+      basePrice: basePrice ?? variant.price,
       baseQuantity: baseQuantity ?? variant.quantityValue,
       baseUnit: baseUnit ?? variant.quantityUnit,
     );

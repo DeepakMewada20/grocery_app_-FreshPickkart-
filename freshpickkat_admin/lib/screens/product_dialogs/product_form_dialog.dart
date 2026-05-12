@@ -124,6 +124,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   double get _currentBaseQuantity =>
       double.tryParse(quantityValueCtrl.text.trim()) ?? 0;
   double get _currentBaseMrp => double.tryParse(mrpCtrl.text.trim()) ?? 0;
+  double get _currentBasePrice => double.tryParse(priceCtrl.text.trim()) ?? 0;
 
   @override
   void initState() {
@@ -183,6 +184,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     quantityValueCtrl.addListener(_syncVariantBasePricing);
     mrpCtrl.addListener(_syncVariantBasePricing);
+    priceCtrl.addListener(_syncVariantBasePricing);
     _syncVariantBasePricing();
   }
 
@@ -574,12 +576,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   void _syncVariantBasePricing() {
     final baseQuantity = _currentBaseQuantity;
     final baseMrp = _currentBaseMrp;
+    final basePrice = _currentBasePrice;
 
     for (final draft in extraVariants) {
       draft.baseQuantity = baseQuantity;
       draft.baseUnit = baseUnit;
       draft.baseRealPrice = baseMrp;
-      _recalculateMrpForDraft(draft);
+      draft.basePrice = basePrice;
+      _recalculatePricesForDraft(draft);
     }
 
     if (mounted) {
@@ -587,22 +591,26 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     }
   }
 
-  void _recalculateMrpForDraft(VariantDraft draft) {
-    _recalculateMrpFromQuantity(
+  void _recalculatePricesForDraft(VariantDraft draft) {
+    _recalculatePricesFromQuantity(
       quantityCtrl: draft.quantityValueCtrl,
       newUnit: draft.quantityUnit,
+      priceCtrlRef: draft.priceCtrl,
       mrpCtrlRef: draft.mrpCtrl,
       originalMrp: draft.baseRealPrice,
+      originalPrice: draft.basePrice,
       originalQuantity: draft.baseQuantity,
       originalUnit: draft.baseUnit,
     );
   }
 
-  void _recalculateMrpFromQuantity({
+  void _recalculatePricesFromQuantity({
     required TextEditingController quantityCtrl,
     required String newUnit,
+    required TextEditingController priceCtrlRef,
     required TextEditingController mrpCtrlRef,
     required double originalMrp,
+    required double originalPrice,
     required double originalQuantity,
     required String originalUnit,
   }) {
@@ -616,7 +624,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     };
 
     final newQty = double.tryParse(quantityCtrl.text.trim()) ?? 0;
-    if (newQty <= 0 || originalMrp <= 0) return;
+    if (newQty <= 0 || (originalMrp <= 0 && originalPrice <= 0)) return;
 
     final originalInBase =
         originalQuantity * (unitConversions[originalUnit] ?? 1.0);
@@ -625,8 +633,16 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     if (originalInBase <= 0) return;
 
     final ratio = newInBase / originalInBase;
-    final newMrpValue = originalMrp * ratio;
-    mrpCtrlRef.text = newMrpValue.toStringAsFixed(0);
+
+    if (originalMrp > 0) {
+      final newMrpValue = originalMrp * ratio;
+      mrpCtrlRef.text = newMrpValue.toStringAsFixed(0);
+    }
+
+    if (originalPrice > 0) {
+      final newPriceValue = originalPrice * ratio;
+      priceCtrlRef.text = newPriceValue.toStringAsFixed(0);
+    }
   }
 
   Product _buildProduct() {
@@ -953,11 +969,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
                 onChanged: (_) {
-                  _recalculateMrpFromQuantity(
+                  _recalculatePricesFromQuantity(
                     quantityCtrl: quantityValueCtrl,
                     newUnit: baseUnit,
+                    priceCtrlRef: priceCtrl,
                     mrpCtrlRef: mrpCtrl,
                     originalMrp: product?.realPrice ?? 0,
+                    originalPrice: product?.price ?? 0,
                     originalQuantity:
                         product?.baseQuantity ??
                         _parseQuantityValue(product?.quantity ?? ''),
@@ -992,11 +1010,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   if (value != null) {
                     setState(() {
                       baseUnit = value;
-                      _recalculateMrpFromQuantity(
+                      _recalculatePricesFromQuantity(
                         quantityCtrl: quantityValueCtrl,
                         newUnit: baseUnit,
+                        priceCtrlRef: priceCtrl,
                         mrpCtrlRef: mrpCtrl,
                         originalMrp: product?.realPrice ?? 0,
+                        originalPrice: product?.price ?? 0,
                         originalQuantity:
                             product?.baseQuantity ??
                             _parseQuantityValue(product?.quantity ?? ''),
@@ -1433,6 +1453,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             extraVariants.add(
               VariantDraft(
                 baseRealPrice: _currentBaseMrp,
+                basePrice: _currentBasePrice,
                 baseQuantity: _currentBaseQuantity,
                 baseUnit: baseUnit,
               ),
