@@ -20,7 +20,7 @@ class ThemeController extends GetxController {
   static ThemeController get instance => Get.find();
 
   final _storage = GetStorage();
-  final _themeMode = ThemeMode.system.obs;
+  final _themeMode = ThemeMode.dark.obs;
   final _lightPreset = LightThemePreset.sageGreen.obs;
 
   ThemeMode get themeMode => _themeMode.value;
@@ -39,7 +39,7 @@ class ThemeController extends GetxController {
   }
 
   void _loadTheme() {
-    final themeModeIndex = _storage.read<int>('themeMode') ?? 0;
+    final themeModeIndex = _storage.read<int>('themeMode') ?? ThemeMode.dark.index;
     _themeMode.value = ThemeMode.values[themeModeIndex];
 
     final presetIndex = _storage.read<int>('lightPreset') ?? 0;
