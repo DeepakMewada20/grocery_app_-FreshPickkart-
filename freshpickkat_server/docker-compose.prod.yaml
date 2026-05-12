@@ -27,6 +27,8 @@ services:
       - SERVERPOD_EMAIL_SECRET_HASH_PEPPER=${SERVERPOD_EMAIL_SECRET_HASH_PEPPER}
       - SERVERPOD_JWT_HMAC_SHA512_PRIVATE_KEY=${SERVERPOD_JWT_HMAC_SHA512_PRIVATE_KEY}
       - SERVERPOD_JWT_REFRESH_TOKEN_HASH_PEPPER=${SERVERPOD_JWT_REFRESH_TOKEN_HASH_PEPPER}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
     volumes:
       - ./config:/app/config
 
@@ -42,6 +44,7 @@ services:
       POSTGRES_PASSWORD: ${SERVERPOD_PASSWORD_database}
     volumes:
       - freshpickkat_data:/var/lib/postgresql/data
+      - ./migrations/init_extensions.sql:/docker-entrypoint-initdb.d/init_extensions.sql
 
   # Production redis
   redis:

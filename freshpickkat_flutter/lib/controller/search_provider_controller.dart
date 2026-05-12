@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -12,217 +13,202 @@ class SearchProviderController extends GetxController {
 
   final Client _client = ServerpodClient().client;
 
-  final suggestions = <Product>[].obs;
+  // States
   final searchResults = <Product>[].obs;
+  final suggestions = <Product>[].obs;
   final offerResults = <OfferSearchItem>[].obs;
-  final isLoadingSuggestions = false.obs;
   final isLoadingResults = false.obs;
-  final isLoadingMore = false.obs;
-  final errorMessage = ''.obs;
-  final selectedOfferFilter = ''.obs;
-
-  final hasMoreSuggestions = false.obs;
+  final isLoadingSuggestions = false.obs;
   final hasMoreResults = false.obs;
+  final hasMoreSuggestions = false.obs;
   final hasMoreOfferResults = false.obs;
-  String? _nextPageTokenSuggestions;
+  final selectedOfferFilter = ''.obs;
+  
+  // UI States
+  final expandedComboId = RxnString();
+
   String? _nextPageTokenResults;
+  String? _nextPageTokenSuggestions;
   String? _nextPageTokenOfferResults;
   String _currentQuery = '';
-  String _lastOfferRequestKey = '';
-
-  bool _isFetchingSuggestions = false;
-  bool _isFetchingResults = false;
-  bool _isFetchingOfferResults = false;
-
-  static const int _pageSize = 20;
 
   Future<void> fetchSuggestions(String query) async {
-    if (query.isEmpty) {
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) {
       suggestions.clear();
+      _nextPageTokenSuggestions = null;
+      hasMoreSuggestions.value = false;
       return;
     }
 
-    _currentQuery = query;
-    if (_isFetchingSuggestions) return;
+    if (normalizedQuery == _currentQuery && suggestions.isNotEmpty) return;
 
-    _isFetchingSuggestions = true;
     try {
       isLoadingSuggestions.value = true;
+      _currentQuery = normalizedQuery;
+
       final result = await _client.product.searchProducts(
-        query,
-        limit: _pageSize,
-        pageToken: null,
+        normalizedQuery,
+        limit: 15,
       );
+
       suggestions.assignAll(result.products);
       _nextPageTokenSuggestions = result.nextPageToken;
       hasMoreSuggestions.value = result.nextPageToken != null;
     } catch (e) {
-      print('Error fetching suggestions: $e');
+      debugPrint('Error fetching suggestions: $e');
       suggestions.clear();
     } finally {
       isLoadingSuggestions.value = false;
-      _isFetchingSuggestions = false;
     }
   }
 
   Future<void> loadMoreSuggestions() async {
-    if (_currentQuery.isEmpty || _nextPageTokenSuggestions == null) return;
-    if (_isFetchingSuggestions || isLoadingMore.value) return;
+    if (isLoadingSuggestions.value || _nextPageTokenSuggestions == null) return;
 
-    isLoadingMore.value = true;
     try {
+      isLoadingSuggestions.value = true;
       final result = await _client.product.searchProducts(
         _currentQuery,
-        limit: _pageSize,
+        limit: 15,
         pageToken: _nextPageTokenSuggestions,
       );
+
       suggestions.addAll(result.products);
       _nextPageTokenSuggestions = result.nextPageToken;
       hasMoreSuggestions.value = result.nextPageToken != null;
     } catch (e) {
-      print('Error loading more suggestions: $e');
+      debugPrint('Error loading more suggestions: $e');
     } finally {
-      isLoadingMore.value = false;
+      isLoadingSuggestions.value = false;
     }
   }
 
   Future<void> searchProducts(String query) async {
-    if (query.isEmpty) {
-      searchResults.clear();
-      return;
-    }
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) return;
 
-    _currentQuery = query;
-    if (_isFetchingResults) return;
-
-    _isFetchingResults = true;
     try {
       isLoadingResults.value = true;
-      errorMessage.value = '';
+      _currentQuery = normalizedQuery;
+      selectedOfferFilter.value = ''; // Clear offer filter when searching general
+
       final result = await _client.product.searchProducts(
-        query,
-        limit: _pageSize,
-        pageToken: null,
+        normalizedQuery,
+        limit: 20,
       );
+
       searchResults.assignAll(result.products);
       _nextPageTokenResults = result.nextPageToken;
       hasMoreResults.value = result.nextPageToken != null;
     } catch (e) {
-      errorMessage.value = e.toString();
-      print('Error searching products: $e');
+      debugPrint('Error searching products: $e');
       searchResults.clear();
     } finally {
       isLoadingResults.value = false;
-      _isFetchingResults = false;
+    }
+  }
+
+  Future<void> loadMoreResults() async {
+    if (isLoadingResults.value || _nextPageTokenResults == null) return;
+
+    try {
+      isLoadingResults.value = true;
+      final result = await _client.product.searchProducts(
+        _currentQuery,
+        limit: 20,
+        pageToken: _nextPageTokenResults,
+      );
+
+      searchResults.addAll(result.products);
+      _nextPageTokenResults = result.nextPageToken;
+      hasMoreResults.value = result.nextPageToken != null;
+    } catch (e) {
+      debugPrint('Error loading more results: $e');
+    } finally {
+      isLoadingResults.value = false;
     }
   }
 
   Future<void> selectOfferFilter(String filter, {String query = ''}) async {
-    selectedOfferFilter.value = selectedOfferFilter.value == filter
-        ? ''
-        : filter;
-    _nextPageTokenOfferResults = null;
-    offerResults.clear();
-    _lastOfferRequestKey = '';
+    selectedOfferFilter.value =
+        selectedOfferFilter.value == filter ? '' : filter;
+    expandedComboId.value = null; // Clear expanded combo when filter changes
+
     if (selectedOfferFilter.value.isNotEmpty) {
       await searchProductsWithOfferFilter(query);
-    } else if (query.trim().length >= 2) {
+    } else if (query.trim().isNotEmpty) {
       await searchProducts(query);
+    }
+  }
+  
+  void toggleComboExpansion(String comboId) {
+    if (expandedComboId.value == comboId) {
+      expandedComboId.value = null;
+    } else {
+      expandedComboId.value = comboId;
     }
   }
 
   Future<void> searchProductsWithOfferFilter(String query) async {
     final filter = selectedOfferFilter.value.trim();
-    if (filter.isEmpty) {
-      offerResults.clear();
-      return;
-    }
-    final normalizedQuery = query.trim();
-    final requestKey = '$filter::$normalizedQuery::first';
-    if (_lastOfferRequestKey == requestKey && offerResults.isNotEmpty) return;
-    if (_isFetchingOfferResults) return;
+    if (filter.isEmpty) return;
 
-    _currentQuery = normalizedQuery;
-    _isFetchingOfferResults = true;
     try {
       isLoadingResults.value = true;
-      errorMessage.value = '';
+      final normalizedQuery = query.trim();
+
       final result = await _client.product.searchProductsWithOfferFilters(
         query: normalizedQuery,
         offerFilter: filter,
-        limit: _pageSize,
-        pageToken: null,
+        limit: 20,
       );
+
       offerResults.assignAll(result.items);
       _nextPageTokenOfferResults = result.nextPageToken;
       hasMoreOfferResults.value = result.nextPageToken != null;
-      _lastOfferRequestKey = requestKey;
     } catch (e) {
-      errorMessage.value = e.toString();
+      debugPrint('Error searching offer products: $e');
       offerResults.clear();
     } finally {
       isLoadingResults.value = false;
-      _isFetchingOfferResults = false;
     }
   }
 
   Future<void> loadMoreOfferResults() async {
-    final filter = selectedOfferFilter.value.trim();
-    if (filter.isEmpty || _nextPageTokenOfferResults == null) return;
-    if (_isFetchingOfferResults || isLoadingMore.value) return;
+    if (isLoadingResults.value || _nextPageTokenOfferResults == null) return;
 
-    isLoadingMore.value = true;
     try {
+      isLoadingResults.value = true;
       final result = await _client.product.searchProductsWithOfferFilters(
         query: _currentQuery,
-        offerFilter: filter,
-        limit: _pageSize,
+        offerFilter: selectedOfferFilter.value,
+        limit: 20,
         pageToken: _nextPageTokenOfferResults,
       );
+
       offerResults.addAll(result.items);
       _nextPageTokenOfferResults = result.nextPageToken;
       hasMoreOfferResults.value = result.nextPageToken != null;
     } catch (e) {
-      print('Error loading more offer results: $e');
+      debugPrint('Error loading more offer results: $e');
     } finally {
-      isLoadingMore.value = false;
-    }
-  }
-
-  Future<void> loadMoreResults() async {
-    if (_currentQuery.isEmpty || _nextPageTokenResults == null) return;
-    if (_isFetchingResults || isLoadingMore.value) return;
-
-    isLoadingMore.value = true;
-    try {
-      final result = await _client.product.searchProducts(
-        _currentQuery,
-        limit: _pageSize,
-        pageToken: _nextPageTokenResults,
-      );
-      searchResults.addAll(result.products);
-      _nextPageTokenResults = result.nextPageToken;
-      hasMoreResults.value = result.nextPageToken != null;
-    } catch (e) {
-      print('Error loading more results: $e');
-    } finally {
-      isLoadingMore.value = false;
+      isLoadingResults.value = false;
     }
   }
 
   void clearSearch() {
-    suggestions.clear();
     searchResults.clear();
+    suggestions.clear();
     offerResults.clear();
-    errorMessage.value = '';
-    selectedOfferFilter.value = '';
-    _nextPageTokenSuggestions = null;
     _nextPageTokenResults = null;
+    _nextPageTokenSuggestions = null;
     _nextPageTokenOfferResults = null;
-    hasMoreSuggestions.value = false;
     hasMoreResults.value = false;
+    hasMoreSuggestions.value = false;
     hasMoreOfferResults.value = false;
     _currentQuery = '';
-    _lastOfferRequestKey = '';
+    selectedOfferFilter.value = '';
+    expandedComboId.value = null;
   }
 }

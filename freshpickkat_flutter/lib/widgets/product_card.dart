@@ -18,6 +18,7 @@ import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductCard extends StatefulWidget {
@@ -214,36 +215,19 @@ class _ProductCardState extends State<ProductCard> {
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(16.r),
                           ),
-                          child: widget.enableHero
+                          child: widget.enableHero &&
+                                  widget.product.productId != null
                               ? Hero(
                                   tag:
                                       'product_${widget.product.productId}${widget.heroTagSuffix ?? ''}',
-                                  child: Image.network(
-                                    displayProduct.imageUrl,
+                                  child: SafeNetworkImage(
+                                    url: displayProduct.imageUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Center(
-                                        child: Icon(
-                                          Icons.image_not_supported_outlined,
-                                          size: 36.r,
-                                          color: Colors.grey[400],
-                                        ),
-                                      );
-                                    },
                                   ),
                                 )
-                              : Image.network(
-                                  displayProduct.imageUrl,
+                              : SafeNetworkImage(
+                                  url: displayProduct.imageUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Center(
-                                      child: Icon(
-                                        Icons.image_not_supported_outlined,
-                                        size: 36.r,
-                                        color: Colors.grey[400],
-                                      ),
-                                    );
-                                  },
                                 ),
                         ),
                       ),
@@ -272,8 +256,7 @@ class _ProductCardState extends State<ProductCard> {
                         AutoSizeText(
                           widget.product.productName,
                           style: AppTextStyles.productTitle(context).copyWith(
-                            fontSize:
-                                widget.titleFontSize?.sp ??
+                            fontSize: widget.titleFontSize?.sp ??
                                 AppTextStyles.productTitle(context).fontSize,
                           ),
                           maxLines: 2,
@@ -300,8 +283,7 @@ class _ProductCardState extends State<ProductCard> {
                                     color: cs.onSurface.withValues(
                                       alpha: 0.5,
                                     ),
-                                    fontSize:
-                                        widget.quantityFontSize?.sp ??
+                                    fontSize: widget.quantityFontSize?.sp ??
                                         AppTextStyles.productQuantity(
                                           context,
                                         ).fontSize,
@@ -337,16 +319,14 @@ class _ProductCardState extends State<ProductCard> {
                                   alignment: Alignment.centerLeft,
                                   child: AutoSizeText(
                                     productFullQuantityLabel(displayProduct),
-                                    style:
-                                        AppTextStyles.productQuantity(
-                                          context,
-                                        ).copyWith(
-                                          fontSize:
-                                              widget.quantityFontSize?.sp ??
-                                              AppTextStyles.productQuantity(
-                                                context,
-                                              ).fontSize,
-                                        ),
+                                    style: AppTextStyles.productQuantity(
+                                      context,
+                                    ).copyWith(
+                                      fontSize: widget.quantityFontSize?.sp ??
+                                          AppTextStyles.productQuantity(
+                                            context,
+                                          ).fontSize,
+                                    ),
                                     maxLines: 1,
                                     minFontSize: 8,
                                     overflow: TextOverflow.ellipsis,
@@ -362,16 +342,14 @@ class _ProductCardState extends State<ProductCard> {
                                   flex: 3,
                                   child: AutoSizeText(
                                     '₹${displayProduct.price.formatPrice}',
-                                    style:
-                                        AppTextStyles.productPrice(
-                                          context,
-                                        ).copyWith(
-                                          fontSize:
-                                              widget.priceFontSize?.sp ??
-                                              AppTextStyles.productPrice(
-                                                context,
-                                              ).fontSize,
-                                        ),
+                                    style: AppTextStyles.productPrice(
+                                      context,
+                                    ).copyWith(
+                                      fontSize: widget.priceFontSize?.sp ??
+                                          AppTextStyles.productPrice(
+                                            context,
+                                          ).fontSize,
+                                    ),
                                     maxLines: 1,
                                     minFontSize: 10,
                                     overflow: TextOverflow.ellipsis,
@@ -384,16 +362,15 @@ class _ProductCardState extends State<ProductCard> {
                                     flex: 2,
                                     child: AutoSizeText(
                                       '₹${displayProduct.realPrice.formatPrice}',
-                                      style:
-                                          AppTextStyles.productMrp(
-                                            context,
-                                          ).copyWith(
-                                            fontSize:
-                                                widget.realPriceFontSize?.sp ??
+                                      style: AppTextStyles.productMrp(
+                                        context,
+                                      ).copyWith(
+                                        fontSize:
+                                            widget.realPriceFontSize?.sp ??
                                                 AppTextStyles.productMrp(
                                                   context,
                                                 ).fontSize,
-                                          ),
+                                      ),
                                       maxLines: 1,
                                       minFontSize: 8,
                                       overflow: TextOverflow.ellipsis,
@@ -413,9 +390,9 @@ class _ProductCardState extends State<ProductCard> {
                                   : Obx(() {
                                       final quantity = _cartController
                                           .getProductQuantity(
-                                            widget.product.productId,
-                                            variantId: _selectedVariantId,
-                                          );
+                                        widget.product.productId,
+                                        variantId: _selectedVariantId,
+                                      );
                                       return quantity == 0
                                           ? _buildAddButton(cs)
                                           : _buildQuantitySelector(quantity);

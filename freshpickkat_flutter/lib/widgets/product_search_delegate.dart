@@ -1,65 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/search_provider_controller.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
-import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
-import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class ProductSearchDelegate extends SearchDelegate<String> {
-  SearchProviderController get searchController {
-    return SearchProviderController.instance;
-  }
+class ProductSearchDelegate extends SearchDelegate<Product?> {
+  final SearchProviderController searchController =
+      SearchProviderController.instance;
 
-  static const _offerFilters = <_OfferFilter>[
-    _OfferFilter('BOGO', 'bogo'),
-    _OfferFilter('Combo', 'combo'),
-    _OfferFilter('Discount', 'discount'),
-    _OfferFilter('Best Seller', 'best_seller'),
-    _OfferFilter('New Arrival', 'new_arrival'),
-    _OfferFilter('Free Delivery', 'free_delivery'),
-  ];
-
-  @override
-  ThemeData appBarTheme(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ThemeData(
-      brightness: isDark ? Brightness.dark : Brightness.light,
-      useMaterial3: true,
-      colorScheme: Theme.of(context).colorScheme,
-      scaffoldBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBarTheme: AppBarTheme(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        iconTheme: IconThemeData(color: cs.onSurface),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
-        border: InputBorder.none,
-      ),
-      textTheme: TextTheme(
-        titleLarge: TextStyle(color: cs.onSurface),
-      ),
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Color(0xFF1B8A4C),
-      ),
-    );
-  }
+  ProductSearchDelegate()
+      : super(
+          searchFieldLabel: 'Search products...',
+          searchFieldStyle: TextStyle(fontSize: 16.sp),
+        );
 
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-          searchController.clearSearch();
-        },
-      ),
+      if (query.isNotEmpty)
+        IconButton(
+          icon: const Icon(Icons.clear),
+          onPressed: () {
+            query = '';
+            searchController.clearSearch();
+            showSuggestions(context);
+          },
+        ),
     ];
   }
 
@@ -68,7 +38,7 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
-        close(context, '');
+        close(context, null);
       },
     );
   }
@@ -76,271 +46,269 @@ class ProductSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildResults(BuildContext context) {
     if (searchController.selectedOfferFilter.value.isNotEmpty) {
-      searchController.searchProductsWithOfferFilter(query);
-    } else {
-      searchController.searchProducts(query);
+      return _buildOfferResultsBody(context);
     }
-    return _buildSearchResultsList(context);
+
+    if (query.trim().isNotEmpty) {
+      Future.microtask(() => searchController.searchProducts(query));
+    }
+
+    return _buildSearchResultsBody(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    if (searchController.selectedOfferFilter.value.isEmpty &&
-        query.length < 2) {
-      return Container(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildOfferChips(context),
-              SizedBox(height: 18.h),
-              Text(
-                'Trending Searches',
-                style: AppTextStyles.sectionTitle(context),
-              ),
-              SizedBox(height: 10.h),
-              Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: ['Milk', 'Atta', 'Apple', 'Paneer', 'Vegetables']
-                    .map(
-                      (term) => ActionChip(
-                        avatar: const Icon(Icons.trending_up, size: 16),
-                        label: Text(term),
-                        onPressed: () {
-                          query = term;
-                          searchController.searchProducts(term);
-                          showResults(context);
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
-            ],
-          ),
-        ),
-      );
+    if (query.trim().isEmpty) {
+      return _buildEmptySuggestions(context);
     }
 
-    if (searchController.selectedOfferFilter.value.isNotEmpty) {
-      searchController.searchProductsWithOfferFilter(query);
-    } else {
-      searchController.fetchSuggestions(query);
-    }
-    return _buildSuggestionsList(context);
+    Future.microtask(() => searchController.fetchSuggestions(query));
+
+    return _buildSuggestionsBody(context);
   }
 
-  Widget _buildSearchResultsList(BuildContext context) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Obx(() {
-        if (searchController.selectedOfferFilter.value.isNotEmpty) {
-          return _buildOfferResultsList(context);
-        }
-        if (searchController.isLoadingResults.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
-          );
-        }
+  Widget _buildEmptySuggestions(BuildContext context) {
+    final recentSearches = [
+      'Milk',
+      'Bread',
+      'Eggs',
+      'Butter',
+      'Cheese',
+      'Paneer'
+    ];
+    final cs = Theme.of(context).colorScheme;
 
-        if (searchController.searchResults.isEmpty) {
-          return Center(
-            child: Text(
-              'No products found.',
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-          );
-        }
-
-        return NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollEndNotification) {
-              final metrics = notification.metrics;
-              if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-                searchController.loadMoreResults();
-              }
-            }
-            return false;
-          },
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildOfferChips(context),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'Search Results',
-                    style: AppTextStyles.sectionTitle(context),
-                  ),
-                  SizedBox(height: 12.h),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: AppResponsive.productGridDelegate(
-                          context,
-                          constraints.maxWidth,
-                        ),
-                        itemCount:
-                            searchController.searchResults.length +
-                            (searchController.hasMoreResults.value ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= searchController.searchResults.length) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF1B8A4C),
-                              ),
-                            );
-                          }
-                          final p = searchController.searchResults[index];
-                          final uniqueKey = '${p.productId}_search_$index';
-                          return KeyedSubtree(
-                            key: ValueKey(uniqueKey),
-                            child: ProductCard(
-                              product: p,
-                              enableHero: false,
-                              heroTagSuffix: '_search_$index',
-                              onAddPressed: () {},
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
+    return ListView(
+      padding: EdgeInsets.symmetric(vertical: 8.h),
+      children: [
+        _buildOfferChips(context),
+        Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Text(
+            'Recent Searches',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: cs.onSurface.withValues(alpha: 0.6),
             ),
           ),
-        );
-      }),
+        ),
+        ...recentSearches.map(
+          (term) => ListTile(
+            leading: const Icon(Icons.history),
+            title: Text(term),
+            onTap: () {
+              query = term;
+              searchController.searchProducts(term);
+              WidgetsBinding.instance
+                  .addPostFrameCallback((_) => showResults(context));
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSuggestionsList(BuildContext context) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Obx(() {
-        if (searchController.selectedOfferFilter.value.isNotEmpty) {
-          return _buildOfferResultsList(context);
+  Widget _buildProductGrid({
+    required int itemCount,
+    required bool hasMore,
+    required Widget Function(int index) itemBuilder,
+    required VoidCallback loadMore,
+  }) {
+    return GridView.builder(
+      padding: EdgeInsets.all(16.r),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.56,
+        crossAxisSpacing: 16.w,
+        mainAxisSpacing: 16.h,
+      ),
+      itemCount: itemCount + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == itemCount) {
+          loadMore();
+          return const Center(child: CircularProgressIndicator());
         }
-        if (searchController.isLoadingSuggestions.value &&
-            searchController.suggestions.isEmpty) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
-          );
-        }
+        return itemBuilder(index);
+      },
+    );
+  }
 
-        return NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollEndNotification) {
-              final metrics = notification.metrics;
-              if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-                searchController.loadMoreSuggestions();
-              }
-            }
-            return false;
-          },
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildOfferChips(context),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'Suggestions',
-                    style: AppTextStyles.sectionTitle(context),
-                  ),
-                  SizedBox(height: 12.h),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: AppResponsive.productGridDelegate(
-                          context,
-                          constraints.maxWidth,
-                        ),
-                        itemCount:
-                            searchController.suggestions.length +
-                            (searchController.hasMoreSuggestions.value ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= searchController.suggestions.length) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF1B8A4C),
-                              ),
-                            );
-                          }
-                          final p = searchController.suggestions[index];
-                          final uniqueKey = '${p.productId}_suggestion_$index';
-                          return KeyedSubtree(
-                            key: ValueKey(uniqueKey),
-                            child: ProductCard(
-                              product: p,
-                              enableHero: false,
-                              heroTagSuffix: '_suggestion_$index',
-                              onAddPressed: () {},
-                            ),
-                          );
-                        },
+  Widget _buildSearchResultsBody(BuildContext context) {
+    return Obx(() {
+      if (searchController.isLoadingResults.value &&
+          searchController.searchResults.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (searchController.searchResults.isEmpty) {
+        return _buildNoResults(context);
+      }
+
+      return _buildProductGrid(
+        itemCount: searchController.searchResults.length,
+        hasMore: searchController.hasMoreResults.value,
+        loadMore: searchController.loadMoreResults,
+        itemBuilder: (index) {
+          final p = searchController.searchResults[index];
+          return ProductCard(
+            key: ValueKey('search_res_${p.productId ?? index}'),
+            product: p,
+            enableHero: false,
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildSuggestionsBody(BuildContext context) {
+    return Obx(() {
+      if (searchController.isLoadingSuggestions.value &&
+          searchController.suggestions.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (searchController.suggestions.isEmpty) {
+        return _buildNoResults(context);
+      }
+
+      return _buildProductGrid(
+        itemCount: searchController.suggestions.length,
+        hasMore: searchController.hasMoreSuggestions.value,
+        loadMore: searchController.loadMoreSuggestions,
+        itemBuilder: (index) {
+          final p = searchController.suggestions[index];
+          return ProductCard(
+            key: ValueKey('search_sug_${p.productId ?? index}'),
+            product: p,
+            enableHero: false,
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildOfferResultsBody(BuildContext context) {
+    return Obx(() {
+      if (searchController.isLoadingResults.value &&
+          searchController.offerResults.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (searchController.offerResults.isEmpty) {
+        return _buildNoResults(context);
+      }
+
+      final filter = searchController.selectedOfferFilter.value;
+      final isProductGrid = !['bogo', 'combo'].contains(filter);
+
+      if (isProductGrid) {
+        return Column(
+          children: [
+            _buildOfferChips(context),
+            Expanded(
+              child: _buildProductGrid(
+                itemCount: searchController.offerResults.length,
+                hasMore: searchController.hasMoreOfferResults.value,
+                loadMore: searchController.loadMoreOfferResults,
+                itemBuilder: (index) {
+                  final item = searchController.offerResults[index];
+                  final product = item.product;
+                  if (product == null) return const SizedBox.shrink();
+                  return ProductCard(
+                    key: ValueKey('offer_prod_${product.productId ?? index}'),
+                    product: product,
+                    enableHero: false,
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      }
+
+      return CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: _buildOfferChips(context)),
+          SliverPadding(
+            padding: EdgeInsets.all(16.r),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index >= searchController.offerResults.length) {
+                    if (searchController.hasMoreOfferResults.value) {
+                      searchController.loadMoreOfferResults();
+                      return Container(
+                        height: 80.h,
+                        alignment: Alignment.center,
+                        child: const CircularProgressIndicator(),
                       );
-                    },
-                  ),
-                ],
+                    }
+                    return null;
+                  }
+
+                  final item = searchController.offerResults[index];
+                  return Padding(
+                    key: ValueKey('offer_item_${index}_${item.hashCode}'),
+                    padding: EdgeInsets.only(bottom: 16.h),
+                    child: _buildOfferItem(item),
+                  );
+                },
+                childCount: searchController.offerResults.length +
+                    (searchController.hasMoreOfferResults.value ? 1 : 0),
               ),
             ),
           ),
-        );
-      }),
+        ],
+      );
+    });
+  }
+
+  Widget _buildNoResults(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 64.r, color: Colors.grey),
+          SizedBox(height: 16.h),
+          Text(
+            'No results found',
+            style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildOfferChips(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final offers = [
+      (label: 'BOGO', value: 'bogo'),
+      (label: 'Combo', value: 'combo'),
+      (label: 'Discount', value: 'discount'),
+      (label: 'Trending', value: 'trending'),
+      (label: 'Popular', value: 'popular'),
+      (label: 'New Arrival', value: 'new_arrival'),
+    ];
+
     return Obx(() {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         child: Row(
-          children: _offerFilters.map((filter) {
-            final selected =
+          children: offers.map((filter) {
+            final isSelected =
                 searchController.selectedOfferFilter.value == filter.value;
             return Padding(
               padding: EdgeInsets.only(right: 8.w),
               child: ChoiceChip(
-                selected: selected,
                 label: Text(filter.label),
+                selected: isSelected,
                 onSelected: (_) {
-                  searchController.selectOfferFilter(
-                    filter.value,
-                    query: query,
-                  );
-                  showResults(context);
+                  searchController.selectOfferFilter(filter.value,
+                      query: query);
+                  WidgetsBinding.instance
+                      .addPostFrameCallback((_) => showResults(context));
                 },
-                selectedColor: const Color(0xFF1B8A4C),
-                backgroundColor: cs.surfaceContainerHighest,
-                labelStyle: TextStyle(
-                  color: selected ? Colors.white : cs.onSurface,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.r),
-                  side: BorderSide(
-                    color: selected
-                        ? const Color(0xFF1B8A4C)
-                        : cs.outlineVariant,
-                  ),
-                ),
               ),
             );
           }).toList(),
@@ -349,94 +317,30 @@ class ProductSearchDelegate extends SearchDelegate<String> {
     });
   }
 
-  Widget _buildOfferResultsList(BuildContext context) {
-    if (searchController.isLoadingResults.value &&
-        searchController.offerResults.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF1B8A4C)),
-      );
-    }
-    if (searchController.offerResults.isEmpty) {
-      return SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOfferChips(context),
-            SizedBox(height: 48.h),
-            Center(
-              child: Text(
-                'No offers found.',
-                style: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.55),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollEndNotification) {
-          final metrics = notification.metrics;
-          if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-            searchController.loadMoreOfferResults();
-          }
-        }
-        return false;
-      },
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOfferChips(context),
-            SizedBox(height: 16.h),
-            Text('Offer Sections', style: AppTextStyles.sectionTitle(context)),
-            SizedBox(height: 12.h),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount:
-                  searchController.offerResults.length +
-                  (searchController.hasMoreOfferResults.value ? 1 : 0),
-              separatorBuilder: (_, _) => SizedBox(height: 14.h),
-              itemBuilder: (context, index) {
-                if (index >= searchController.offerResults.length) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF1B8A4C),
-                    ),
-                  );
-                }
-                return _buildOfferItem(searchController.offerResults[index]);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildOfferItem(OfferSearchItem item) {
-    switch (item.offerType) {
+    final type = item.offerType.toLowerCase();
+    switch (type) {
       case 'combo':
         final combo = item.comboOffer;
         if (combo == null) return const SizedBox.shrink();
-        return ComboOfferCard(
-          combo: combo,
-          products: resolveComboProducts(
-            combo,
-            item.relatedProducts ?? const <Product>[],
-          ),
-          isExpanded: true,
-          isHighlighted: false,
-          onTap: () {},
-        );
+        return Obx(() {
+          final isExpanded =
+              searchController.expandedComboId.value == combo.comboId;
+          return ComboOfferCard(
+            combo: combo,
+            isExpanded: isExpanded,
+            isHighlighted: false,
+            onTap: () {
+              if (combo.comboId != null) {
+                searchController.toggleComboExpansion(combo.comboId!);
+              }
+            },
+            products: resolveComboProducts(
+              combo,
+              item.relatedProducts ?? const <Product>[],
+            ),
+          );
+        });
       case 'bogo':
         final product = item.product;
         final offer = item.bogoOffer;
@@ -446,17 +350,10 @@ class ProductSearchDelegate extends SearchDelegate<String> {
         final product = item.product;
         if (product == null) return const SizedBox.shrink();
         return ProductCard(
+          key: ValueKey('${product.productId}_offer_item'),
           product: product,
           enableHero: false,
-          onAddPressed: () {},
         );
     }
   }
-}
-
-class _OfferFilter {
-  const _OfferFilter(this.label, this.value);
-
-  final String label;
-  final String value;
 }

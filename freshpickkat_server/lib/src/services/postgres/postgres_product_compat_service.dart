@@ -638,17 +638,19 @@ class PostgresProductCompatService {
     required Product product,
     required Transaction transaction,
   }) async {
-    await ProductVariantRow.db.deleteWhere(
+    // Fetch existing variants to synchronize
+    final existingRows = await ProductVariantRow.db.find(
       session,
       where: (t) => t.productId.equals(productId),
       transaction: transaction,
     );
+    final existingMap = {for (final row in existingRows) row.sku: row};
+    final seenSkus = <String?>{};
 
     final variants = (product.variants == null || product.variants!.isEmpty)
         ? <ProductVariant>[
             ProductVariant(
-              variantId:
-                  'default-${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1000)}',
+              variantId: 'default',
               quantityValue: product.baseQuantity ?? 1,
               quantityUnit:
                   cleanNullableString(product.baseUnit) ??
@@ -667,32 +669,84 @@ class PostgresProductCompatService {
 
     var index = 0;
     for (final variant in variants) {
-      await ProductVariantRow.db.insertRow(
-        session,
-        ProductVariantRow(
-          productId: productId,
-          label:
-              cleanNullableString(variant.quantityDescription) ??
-              '${variant.quantityValue} ${variant.quantityUnit}'.trim(),
-          sku: (() {
-            final sku = cleanNullableString(variant.variantId);
-            if (sku == null || sku.isEmpty || sku.toLowerCase() == 'default') {
-              return '${productId.toString()}-default';
-            }
-            return sku;
-          })(),
-          quantityValue: variant.quantityValue,
-          quantityUnit: variant.quantityUnit.trim(),
-          quantityDescription: cleanNullableString(variant.quantityDescription),
-          salePrice: variant.price,
-          listPrice: variant.realPrice,
-          isAvailable: variant.isAvailable,
-          isDefault: index == 0,
-          sortOrder: variant.sortOrder ?? index,
-        ),
-        transaction: transaction,
-      );
+      final sku = (() {
+        final vId = cleanNullableString(variant.variantId);
+        if (vId == null || vId.isEmpty || vId.toLowerCase() == 'default') {
+          return '${productId.toString()}-default';
+        }
+        return vId;
+      })();
+      seenSkus.add(sku);
+
+      final label =
+          cleanNullableString(variant.quantityDescription) ??
+          '${variant.quantityValue} ${variant.quantityUnit}'.trim();
+
+      if (existingMap.containsKey(sku)) {
+        // Update existing variant
+        final existing = existingMap[sku]!;
+        await ProductVariantRow.db.updateRow(
+          session,
+          existing.copyWith(
+            label: label,
+            quantityValue: variant.quantityValue,
+            quantityUnit: variant.quantityUnit.trim(),
+            quantityDescription:
+                cleanNullableString(variant.quantityDescription),
+            salePrice: variant.price,
+            listPrice: variant.realPrice,
+            isAvailable: variant.isAvailable,
+            isDefault: index == 0,
+            sortOrder: variant.sortOrder ?? index,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+          transaction: transaction,
+        );
+      } else {
+        // Insert new variant
+        await ProductVariantRow.db.insertRow(
+          session,
+          ProductVariantRow(
+            productId: productId,
+            label: label,
+            sku: sku,
+            quantityValue: variant.quantityValue,
+            quantityUnit: variant.quantityUnit.trim(),
+            quantityDescription:
+                cleanNullableString(variant.quantityDescription),
+            salePrice: variant.price,
+            listPrice: variant.realPrice,
+            isAvailable: variant.isAvailable,
+            isDefault: index == 0,
+            sortOrder: variant.sortOrder ?? index,
+          ),
+          transaction: transaction,
+        );
+      }
       index++;
+    }
+
+    // Clean up removed variants
+    for (final existing in existingRows) {
+      if (!seenSkus.contains(existing.sku)) {
+        try {
+          await ProductVariantRow.db.deleteRow(
+            session,
+            existing,
+            transaction: transaction,
+          );
+        } catch (e) {
+          // If referenced by an offer, mark as unavailable instead of failing
+          await ProductVariantRow.db.updateRow(
+            session,
+            existing.copyWith(
+              isAvailable: false,
+              updatedAt: DateTime.now().toUtc(),
+            ),
+            transaction: transaction,
+          );
+        }
+      }
     }
   }
 

@@ -26,7 +26,7 @@ List<ProductVariant> sortedProductVariants(Product product) {
 double _parseQuantityValue(String text) {
   final match = RegExp(r'^([0-9]+(\.[0-9]+)?)').firstMatch(text.trim());
   if (match != null) {
-    return double.tryParse(match.group(1)!) ?? 1;
+    return double.tryParse(match.group(1) ?? '1') ?? 1;
   }
   return 1;
 }

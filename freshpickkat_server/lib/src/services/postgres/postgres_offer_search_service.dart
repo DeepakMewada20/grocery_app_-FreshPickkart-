@@ -133,6 +133,17 @@ class PostgresOfferSearchService {
         : '';
     final orderBy = _orderByForType(normalizedType);
 
+    final countParams = <String, dynamic>{};
+    final resultsParams = <String, dynamic>{
+      'limit': pageSize,
+      'offset': offset,
+    };
+
+    if (normalizedQuery.length >= 2) {
+      countParams['query'] = normalizedQuery;
+      resultsParams['query'] = normalizedQuery;
+    }
+
     final totalResult = await session.db.unsafeQuery(
       '''
       SELECT COUNT(DISTINCT p.id) AS "totalCount"
@@ -145,9 +156,7 @@ class PostgresOfferSearchService {
         $where
         $searchPredicate
       ''',
-      parameters: QueryParameters.named({
-        'query': normalizedQuery,
-      }),
+      parameters: QueryParameters.named(countParams),
     );
     final totalCount = totalResult.isEmpty
         ? 0
@@ -167,11 +176,7 @@ class PostgresOfferSearchService {
       ORDER BY $orderBy
       LIMIT @limit OFFSET @offset
       ''',
-      parameters: QueryParameters.named({
-        'query': normalizedQuery,
-        'limit': pageSize,
-        'offset': offset,
-      }),
+      parameters: QueryParameters.named(resultsParams),
     );
 
     final productIds = result
