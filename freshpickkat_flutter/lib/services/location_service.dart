@@ -2,28 +2,56 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
+enum LocationErrorType {
+  serviceDisabled,
+  permissionDenied,
+  permissionPermanentlyDenied,
+  unknown,
+}
+
+class LocationException implements Exception {
+  final LocationErrorType type;
+  final String message;
+
+  const LocationException(this.type, this.message);
+
+  @override
+  String toString() => message;
+}
+
 class LocationService {
   /// Get current device location (GPS)
   static Future<Position> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('Location services are disabled. Please enable GPS.');
+      throw const LocationException(
+        LocationErrorType.serviceDisabled,
+        'GPS is turned off. Please turn on location in your phone settings.',
+      );
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('Location permission denied. Please allow location access.');
+        throw const LocationException(
+          LocationErrorType.permissionDenied,
+          'Location permission was denied. Please allow location access to use this feature.',
+        );
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Location permission permanently denied. Please enable from Settings.');
+      throw const LocationException(
+        LocationErrorType.permissionPermanentlyDenied,
+        'Location permission is permanently blocked. Please enable it from App Settings.',
+      );
     }
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
     );
     return position;
   }

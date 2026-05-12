@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
@@ -97,8 +98,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         });
         await _geocodeSelectedLocation();
         _animateMapToLocation();
+      } on LocationException {
+        // Silently ignore on first load — map will show default location
       } catch (e) {
-        _showSnackBar('Failed to get current location: $e', isError: true);
+        // unknown error — skip silently
       } finally {
         if (mounted) {
           setState(() => _isLoadingLocation = false);
@@ -174,12 +177,73 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       await _geocodeSelectedLocation();
       _animateMapToLocation();
       _showSnackBar('Location updated');
+    } on LocationException catch (e) {
+      switch (e.type) {
+        case LocationErrorType.serviceDisabled:
+          _showLocationSettingsDialog();
+        case LocationErrorType.permissionDenied:
+          _showSnackBar(e.message, isError: true);
+        case LocationErrorType.permissionPermanentlyDenied:
+          _showAppSettingsDialog();
+        case LocationErrorType.unknown:
+          _showSnackBar(e.message, isError: true);
+      }
     } catch (e) {
-      _showSnackBar('Failed to get location: $e', isError: true);
+      _showSnackBar('Something went wrong. Please try again.', isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoadingLocation = false);
       }
+    }
+  }
+
+  Future<void> _showLocationSettingsDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Location is Off'),
+        content: const Text(
+          'Please turn on GPS in your phone settings to find your current location.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+    if (result == true) {
+      await Geolocator.openLocationSettings();
+    }
+  }
+
+  Future<void> _showAppSettingsDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Permission Blocked'),
+        content: const Text(
+          'Location permission is permanently blocked. Please enable it from App Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Open App Settings'),
+          ),
+        ],
+      ),
+    );
+    if (result == true) {
+      await Geolocator.openAppSettings();
     }
   }
 
@@ -453,7 +517,30 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             );
                           }),
 
-                        SizedBox(height: 80.h),
+                        SizedBox(height: 24.h),
+
+                        // Confirm Location button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isGeocoding ? null : _confirmLocation,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              backgroundColor: cs.primary,
+                              foregroundColor: cs.onPrimary,
+                              disabledBackgroundColor: Colors.grey[300],
+                            ),
+                            child: Text(
+                              _isGeocoding ? 'Loading...' : 'Confirm Location',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 16.h),
                       ],
                     ),
                   ),
@@ -461,34 +548,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               },
             ),
 
-          // Confirm Location button (always visible)
-          Positioned(
-            bottom: viewInsets.bottom + 16.h,
-            left: 16.w,
-            right: 16.w,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isGeocoding ? null : _confirmLocation,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  backgroundColor: cs.primary,
-                  foregroundColor: cs.onPrimary,
-                  disabledBackgroundColor: Colors.grey[300],
-                ),
-                child: Text(
-                  _isGeocoding ? 'Loading...' : 'Confirm Location',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-        ],
-      ),
+          ],
+        ),
     );
   }
 }
