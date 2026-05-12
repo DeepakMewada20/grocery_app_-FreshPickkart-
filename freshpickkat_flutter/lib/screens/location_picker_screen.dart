@@ -88,19 +88,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Future<void> _initializeLocation() async {
     _updateMarker(_selectedLocation);
-    // If no initial address, try to get current GPS location
     if (widget.initialAddress == null) {
       setState(() => _isLoadingLocation = true);
       try {
         final position = await LocationService.getCurrentLocation();
-        if (position != null) {
-          setState(() {
-            _selectedLocation = LatLng(position.latitude, position.longitude);
-          });
-          // Trigger geocoding to populate fields
-          await _geocodeSelectedLocation();
-          _animateMapToLocation();
-        }
+        setState(() {
+          _selectedLocation = LatLng(position.latitude, position.longitude);
+        });
+        await _geocodeSelectedLocation();
+        _animateMapToLocation();
       } catch (e) {
         _showSnackBar('Failed to get current location: $e', isError: true);
       } finally {
@@ -171,15 +167,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     setState(() => _isLoadingLocation = true);
     try {
       final position = await LocationService.getCurrentLocation();
-      if (position != null) {
-        setState(() {
-          _selectedLocation = LatLng(position.latitude, position.longitude);
-        });
-        _updateMarker(_selectedLocation);
-        await _geocodeSelectedLocation();
-        _animateMapToLocation();
-        _showSnackBar('Location updated');
-      }
+      setState(() {
+        _selectedLocation = LatLng(position.latitude, position.longitude);
+      });
+      _updateMarker(_selectedLocation);
+      await _geocodeSelectedLocation();
+      _animateMapToLocation();
+      _showSnackBar('Location updated');
     } catch (e) {
       _showSnackBar('Failed to get location: $e', isError: true);
     } finally {
@@ -262,6 +256,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               target: _selectedLocation,
               zoom: 17,
             ),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
             onMapCreated: (controller) {
               _mapController = controller;
             },
