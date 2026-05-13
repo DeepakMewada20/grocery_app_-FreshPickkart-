@@ -27,7 +27,7 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter_native_splash: ^2.4.7
   carousel_slider: ^5.1.1
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.1.1
   flutter:
     sdk: flutter
   freshpickkat_client:
@@ -38,13 +38,13 @@ dependencies:
   firebase_auth: ^6.1.4
   firebase_messaging: ^16.1.1
   pinput: ^6.0.2
-  google_fonts: ^6.3.3
+  google_fonts: ^8.1.0
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   firebase_core: ^4.4.0
-  geolocator: ^13.0.2
+  geolocator: ^14.0.2
   google_maps_flutter: ^2.12.1
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.1
   serverpod_auth_shared_flutter: 3.4.5
   get: ^4.7.3
   get_storage: ^2.1.1
@@ -59,7 +59,7 @@ dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
