@@ -84,7 +84,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       text: widget.initialAddress?.zipCode ?? '',
     );
 
-    _initializeLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLocation();
+    });
   }
 
   Future<void> _initializeLocation() async {
@@ -92,14 +94,30 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     if (widget.initialAddress == null) {
       setState(() => _isLoadingLocation = true);
       try {
-        final position = await LocationService.getCurrentLocation();
-        setState(() {
-          _selectedLocation = LatLng(position.latitude, position.longitude);
-        });
-        await _geocodeSelectedLocation();
-        _animateMapToLocation();
-      } on LocationException {
-        // Silently ignore on first load — map will show default location
+        await _fetchAndSetCurrentLocation();
+      } on LocationException catch (e) {
+        switch (e.type) {
+          case LocationErrorType.serviceDisabled:
+            await _showLocationSettingsDialog();
+            try {
+              await _fetchAndSetCurrentLocation();
+              return;
+            } on LocationException {
+              // Still not available — fall through to finally
+            }
+          case LocationErrorType.permissionDenied:
+            _showSnackBar(e.message, isError: true);
+          case LocationErrorType.permissionPermanentlyDenied:
+            await _showAppSettingsDialog();
+            try {
+              await _fetchAndSetCurrentLocation();
+              return;
+            } on LocationException {
+              // Still not available — fall through to finally
+            }
+          case LocationErrorType.unknown:
+            _showSnackBar(e.message, isError: true);
+        }
       } catch (e) {
         // unknown error — skip silently
       } finally {
@@ -108,6 +126,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         }
       }
     }
+  }
+
+  Future<void> _fetchAndSetCurrentLocation() async {
+    final position = await LocationService.getCurrentLocation();
+    setState(() {
+      _selectedLocation = LatLng(position.latitude, position.longitude);
+    });
+    _updateMarker(_selectedLocation);
+    await _geocodeSelectedLocation();
+    _animateMapToLocation();
   }
 
   /// Reverse geocode selected location and populate form fields
