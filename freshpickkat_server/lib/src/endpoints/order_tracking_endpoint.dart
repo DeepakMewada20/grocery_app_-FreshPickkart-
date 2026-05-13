@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/directions_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
@@ -11,6 +12,7 @@ class OrderTrackingEndpoint extends Endpoint {
   final PostgresOrderService _orders = PostgresOrderService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
+  final DirectionsService _directions = DirectionsService();
 
   Future<OrderTrackingData?> getTrackingForUser(
     Session session,
@@ -104,6 +106,29 @@ class OrderTrackingEndpoint extends Endpoint {
       orderNumber: orderId,
       riderLatitude: riderLatitude,
       riderLongitude: riderLongitude,
+    );
+  }
+
+  Future<List<List<double>>> getDeliveryRoute(
+    Session session,
+    String orderId,
+    double riderLatitude,
+    double riderLongitude,
+    double userLatitude,
+    double userLongitude,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _directions.getDeliveryRoute(
+      riderLatitude,
+      riderLongitude,
+      userLatitude,
+      userLongitude,
     );
   }
 

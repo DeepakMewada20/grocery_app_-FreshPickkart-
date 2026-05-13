@@ -64,4 +64,28 @@ class ServerOrderTrackingRepository {
       userLocation?.type,
     );
   }
+
+  Future<List<List<double>>> getDeliveryRoute({
+    required String orderId,
+    required double riderLatitude,
+    required double riderLongitude,
+    required double userLatitude,
+    required double userLongitude,
+  }) async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) {
+      throw Exception('Login required.');
+    }
+
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.orderTracking.getDeliveryRoute(
+      orderId,
+      riderLatitude,
+      riderLongitude,
+      userLatitude,
+      userLongitude,
+      user.uid,
+      idToken,
+    );
+  }
 }

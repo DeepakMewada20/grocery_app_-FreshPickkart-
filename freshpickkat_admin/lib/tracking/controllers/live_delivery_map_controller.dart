@@ -99,7 +99,7 @@ class LiveDeliveryMapController extends GetxController {
       final previous = riderPosition.value;
       riderPosition.value = next;
       _updateDistanceAndEta(previous, next, user);
-      _maybeBuildRoute(user, next);
+      unawaited(_maybeBuildRoute(user, next));
     } else if (snapshot.canTrack == false) {
       distanceMeters.value = 0;
       etaMinutes.value = 0;
@@ -165,21 +165,41 @@ class LiveDeliveryMapController extends GetxController {
     return median.clamp(2.5, 12.0).toDouble();
   }
 
-  void _maybeBuildRoute(DeliveryLocation? user, LatLng rider) {
-    if (user == null || routePolyline.isNotEmpty) return;
+  Future<void> _maybeBuildRoute(DeliveryLocation? user, LatLng rider) async {
+    if (user == null || routePolyline.isNotEmpty || _activeOrderId == null)
+      return;
 
-    const segments = 24;
-    final points = <LatLng>[];
-    for (var i = 0; i <= segments; i++) {
-      final t = i / segments;
-      points.add(
-        LatLng(
-          rider.latitude + ((user.lat - rider.latitude) * t),
-          rider.longitude + ((user.lng - rider.longitude) * t),
-        ),
+    try {
+      // Get actual route from backend with aggressive caching
+      final routePoints = await _repository.getDeliveryRoute(
+        orderId: _activeOrderId!,
+        riderLatitude: rider.latitude,
+        riderLongitude: rider.longitude,
+        userLatitude: user.lat,
+        userLongitude: user.lng,
       );
+
+      // Convert List<List<double>> to List<LatLng>
+      final polylinePoints = routePoints
+          .map((point) => LatLng(point[0], point[1]))
+          .toList();
+
+      routePolyline.assignAll(polylinePoints);
+    } catch (e) {
+      // Fallback to straight line if route fetch fails
+      const segments = 24;
+      final points = <LatLng>[];
+      for (var i = 0; i <= segments; i++) {
+        final t = i / segments;
+        points.add(
+          LatLng(
+            rider.latitude + ((user.lat - rider.latitude) * t),
+            rider.longitude + ((user.lng - rider.longitude) * t),
+          ),
+        );
+      }
+      routePolyline.assignAll(points);
     }
-    routePolyline.assignAll(points);
   }
 
   Future<void> stopListening() async {

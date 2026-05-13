@@ -75,4 +75,26 @@ class ServerOrderTrackingRepository {
       idToken,
     );
   }
+
+  Future<List<List<double>>> getDeliveryRoute({
+    required String orderId,
+    required double riderLatitude,
+    required double riderLongitude,
+    required double userLatitude,
+    required double userLongitude,
+  }) async {
+    final uid = AdminSessionService.requireUid();
+    final idToken = await AdminSessionService.requireIdToken(
+      forceRefresh: false,
+    );
+    return _client.orderTracking.getDeliveryRoute(
+      orderId,
+      riderLatitude,
+      riderLongitude,
+      userLatitude,
+      userLongitude,
+      uid,
+      idToken,
+    );
+  }
 }
