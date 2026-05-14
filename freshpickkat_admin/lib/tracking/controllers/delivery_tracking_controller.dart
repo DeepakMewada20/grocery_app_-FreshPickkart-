@@ -23,7 +23,11 @@ class DeliveryTrackingController extends GetxController {
       activeOrderId.value = orderId;
       statusMessage.value = 'Sending rider updates';
       isActive.value = true;
-      await _service.attachToOrder(orderId);
+      await _service.attachToOrder(
+        orderId,
+        status: normalized,
+        trackingEnabled: true,
+      );
       return;
     }
 
@@ -51,6 +55,7 @@ class DeliveryTrackingController extends GetxController {
     await _service.attachToOrder(
       order.orderId,
       forceTracking: true,
+      status: 'out_for_delivery',
       onFirstPublish: (_) async {
         statusMessage.value = 'Promoting delivery start';
         await onPromoteToOutForDelivery();

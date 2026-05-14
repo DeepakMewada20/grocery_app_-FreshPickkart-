@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:geolocator/geolocator.dart';
 
 import '../models/delivery_location.dart';
-import '../models/order_tracking_snapshot.dart';
 import '../repositories/server_order_tracking_repository.dart';
 
 class DeliveryLocationSenderService {
@@ -14,7 +13,6 @@ class DeliveryLocationSenderService {
   final ServerOrderTrackingRepository _repository;
   final Random _random = Random();
 
-  StreamSubscription<OrderTrackingSnapshot?>? _orderSubscription;
   Timer? _updateTimer;
   String? _activeOrderId;
   TrackingCoordinate? _lastRawPosition;
@@ -29,9 +27,11 @@ class DeliveryLocationSenderService {
   Future<void> attachToOrder(
     String orderId, {
     bool forceTracking = false,
+    bool trackingEnabled = false,
+    String status = '',
     Future<void> Function(String orderId)? onFirstPublish,
   }) async {
-    if (_activeOrderId == orderId && _orderSubscription != null) {
+    if (_activeOrderId == orderId && _updateTimer?.isActive == true) {
       _forceTracking = _forceTracking || forceTracking;
       if (onFirstPublish != null) {
         _onFirstPublish = onFirstPublish;
@@ -42,26 +42,17 @@ class DeliveryLocationSenderService {
     _activeOrderId = orderId;
     _forceTracking = forceTracking;
     _onFirstPublish = onFirstPublish;
-    _orderSubscription = _repository
-        .watchOrder(orderId)
-        .listen(_handleOrderSnapshot);
+
+    if (status == 'delivered' || status == 'cancelled') return;
+
+    if (forceTracking || (status == 'out_for_delivery' && trackingEnabled)) {
+      _ensureLoop();
+    }
   }
 
-  void _handleOrderSnapshot(OrderTrackingSnapshot? snapshot) {
-    if (snapshot == null) {
-      stop();
-      return;
-    }
-
-    final status = snapshot.status;
-    final trackingEnabled = snapshot.trackingEnabled;
-
-    if (status == 'delivered' || status == 'cancelled') {
-      stop();
-      return;
-    }
-
-    if (_forceTracking || (status == 'out_for_delivery' && trackingEnabled)) {
+  void setTrackingEnabled(String orderId, bool enabled) {
+    if (_activeOrderId != orderId) return;
+    if (enabled) {
       _ensureLoop();
     } else {
       _updateTimer?.cancel();
@@ -163,8 +154,6 @@ class DeliveryLocationSenderService {
   Future<void> stop() async {
     _updateTimer?.cancel();
     _updateTimer = null;
-    await _orderSubscription?.cancel();
-    _orderSubscription = null;
     _activeOrderId = null;
     _lastRawPosition = null;
     _lastPublishedAt = null;
