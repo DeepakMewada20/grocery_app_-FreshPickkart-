@@ -3590,6 +3590,51 @@ class _OrderTrackingEndpoint {
       }
     });
   }
+
+  _i3.Future<List<List<double>>> getDeliveryRoute(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    double riderLatitude,
+    double riderLongitude,
+    double userLatitude,
+    double userLongitude,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'orderTracking',
+            method: 'getDeliveryRoute',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'orderTracking',
+          methodName: 'getDeliveryRoute',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'riderLatitude': riderLatitude,
+            'riderLongitude': riderLongitude,
+            'userLatitude': userLatitude,
+            'userLongitude': userLongitude,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<List<double>>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _PaymentEndpoint {

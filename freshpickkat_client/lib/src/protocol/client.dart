@@ -1321,6 +1321,28 @@ class EndpointOrderTracking extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<List<List<double>>> getDeliveryRoute(
+    String orderId,
+    double riderLatitude,
+    double riderLongitude,
+    double userLatitude,
+    double userLongitude,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<List<List<double>>>(
+    'orderTracking',
+    'getDeliveryRoute',
+    {
+      'orderId': orderId,
+      'riderLatitude': riderLatitude,
+      'riderLongitude': riderLongitude,
+      'userLatitude': userLatitude,
+      'userLongitude': userLongitude,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

@@ -5803,6 +5803,13 @@ class Protocol extends _i1.SerializationManagerServer {
           )
           as T;
     }
+    if (t == List<List<double>>) {
+      return (data as List).map((e) => deserialize<List<double>>(e)).toList()
+          as T;
+    }
+    if (t == List<double>) {
+      return (data as List).map((e) => deserialize<double>(e)).toList() as T;
+    }
     if (t == List<_i108.AppliedOfferInfo>) {
       return (data as List)
               .map((e) => deserialize<_i108.AppliedOfferInfo>(e))

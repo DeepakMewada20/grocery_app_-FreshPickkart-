@@ -169,8 +169,9 @@ class OrderTrackingController extends GetxController {
   }
 
   Future<void> _maybeBuildRoute(DeliveryLocation? user, LatLng rider) async {
-    if (user == null || routePolyline.isNotEmpty || _activeOrderId == null)
+    if (user == null || routePolyline.isNotEmpty || _activeOrderId == null) {
       return;
+    }
 
     try {
       // Get actual route from backend with aggressive caching

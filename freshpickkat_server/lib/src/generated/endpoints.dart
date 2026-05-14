@@ -2785,6 +2785,62 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'getDeliveryRoute': _i1.MethodConnector(
+          name: 'getDeliveryRoute',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'riderLatitude': _i1.ParameterDescription(
+              name: 'riderLatitude',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'riderLongitude': _i1.ParameterDescription(
+              name: 'riderLongitude',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'userLatitude': _i1.ParameterDescription(
+              name: 'userLatitude',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'userLongitude': _i1.ParameterDescription(
+              name: 'userLongitude',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['orderTracking'] as _i15.OrderTrackingEndpoint)
+                      .getDeliveryRoute(
+                        session,
+                        params['orderId'],
+                        params['riderLatitude'],
+                        params['riderLongitude'],
+                        params['userLatitude'],
+                        params['userLongitude'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
       },
     );
     connectors['payment'] = _i1.EndpointConnector(
