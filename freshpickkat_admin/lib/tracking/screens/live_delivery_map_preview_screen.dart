@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/live_delivery_map_controller.dart';
 import 'package:freshpickkat_admin/tracking/models/order_tracking_snapshot.dart';
@@ -34,6 +35,9 @@ class _LiveDeliveryMapPreviewScreenState
   GoogleMapController? _mapController;
   LatLng? _animatedRiderPosition;
   LatLngTween? _riderTween;
+  double _animatedBearing = 0.0;
+  Tween<double>? _bearingTween;
+  static const double _bearingOffset = 0.0;
   bool _followRider = true;
   bool _customerViewOnly = false;
   BitmapDescriptor? _scooterIcon;
@@ -71,6 +75,13 @@ class _LiveDeliveryMapPreviewScreenState
       if (!mounted || next == null) return;
       final begin = _animatedRiderPosition ?? next;
       _riderTween = LatLngTween(begin: begin, end: next);
+
+      final newBearing = Geolocator.bearingBetween(
+        begin.latitude, begin.longitude,
+        next.latitude, next.longitude,
+      );
+      _bearingTween = Tween<double>(begin: _animatedBearing, end: newBearing);
+
       _markerController
         ..duration = _controller.markerTransitionDuration
         ..forward(from: 0);
@@ -95,11 +106,25 @@ class _LiveDeliveryMapPreviewScreenState
   }
 
   void _tickMarkerAnimation() {
-    final tween = _riderTween;
-    if (tween == null) return;
+    final posTween = _riderTween;
+    final bearTween = _bearingTween;
+    if (posTween == null || bearTween == null) return;
+    final t = _markerController.value;
     setState(() {
-      _animatedRiderPosition = tween.lerp(_markerController.value);
+      _animatedRiderPosition = posTween.lerp(t);
+      _animatedBearing = _lerpBearing(bearTween.begin!, bearTween.end!, t);
     });
+  }
+
+  static double _shortestAngleDelta(double from, double to) {
+    double delta = (to - from) % 360;
+    if (delta > 180) delta -= 360;
+    return delta;
+  }
+
+  double _lerpBearing(double from, double to, double t) {
+    final delta = _shortestAngleDelta(from, to);
+    return (from + delta * t) % 360;
   }
 
   Future<void> _focusLiveView() async {
@@ -265,6 +290,8 @@ class _LiveDeliveryMapPreviewScreenState
           position: rider,
           infoWindow: const InfoWindow(title: 'Delivery Boy'),
           anchor: const Offset(0.5, 0.5),
+          flat: true,
+          rotation: _animatedBearing + _bearingOffset,
           icon: _scooterIcon ?? BitmapDescriptor.defaultMarker,
         ),
       );
