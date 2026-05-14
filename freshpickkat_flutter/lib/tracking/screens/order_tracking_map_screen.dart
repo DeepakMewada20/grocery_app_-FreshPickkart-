@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -27,6 +29,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
   GoogleMapController? _mapController;
   LatLng? _animatedRiderPosition;
   LatLngTween? _riderTween;
+  BitmapDescriptor? _scooterIcon;
 
   @override
   void initState() {
@@ -36,6 +39,8 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
       vsync: this,
       duration: _controller.markerTransitionDuration,
     )..addListener(_tickMarkerAnimation);
+
+    _loadScooterIcon();
 
     Future.microtask(() async {
       await _controller.startListening(orderId: widget.orderId);
@@ -53,6 +58,18 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
         ..forward(from: 0);
       unawaited(_focusCamera());
     });
+  }
+
+  Future<void> _loadScooterIcon() async {
+    final data = await rootBundle.load('lib/assets/images/delivery_scooter_traking.png');
+    final codec = await ui.instantiateImageCodec(
+      data.buffer.asUint8List(),
+      targetWidth: 95,
+      targetHeight: 95,
+    );
+    final frame = await codec.getNextFrame();
+    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+    _scooterIcon = BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
   void _tickMarkerAnimation() {
@@ -179,6 +196,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
           markerId: const MarkerId('destination'),
           position: user,
           infoWindow: const InfoWindow(title: 'Delivery Address'),
+
         ),
       );
     }
@@ -190,6 +208,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
           position: rider,
           infoWindow: const InfoWindow(title: 'Delivery Boy'),
           anchor: const Offset(0.5, 0.5),
+          icon: _scooterIcon ?? BitmapDescriptor.defaultMarker,
         ),
       );
     }

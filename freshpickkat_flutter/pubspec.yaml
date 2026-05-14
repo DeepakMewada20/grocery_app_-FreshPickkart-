@@ -87,7 +87,7 @@ flutter:
     - assets/config.json
     - lib/assets/images/name_logo.png
     - lib/assets/images/delivery_truck.png
-    - lib/assets/images/delivery_scooter.png
+    - lib/assets/images/delivery_scooter_traking.png
     - lib/assets/images/grocry_home_banner.png
     - lib/assets/images/app_logo.png
     - lib/assets/images/app_splash.png
