@@ -1343,6 +1343,44 @@ class EndpointOrderTracking extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Stream<_i30.OrderTrackingData> streamTrackingForUser(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i30.OrderTrackingData>,
+        _i30.OrderTrackingData
+      >(
+        'orderTracking',
+        'streamTrackingForUser',
+        {
+          'orderId': orderId,
+          'firebaseUid': firebaseUid,
+          'idToken': idToken,
+        },
+        {},
+      );
+
+  _i2.Stream<_i30.OrderTrackingData> streamTrackingForAdmin(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i30.OrderTrackingData>,
+        _i30.OrderTrackingData
+      >(
+        'orderTracking',
+        'streamTrackingForAdmin',
+        {
+          'orderId': orderId,
+          'firebaseUid': firebaseUid,
+          'idToken': idToken,
+        },
+        {},
+      );
 }
 
 /// {@category Endpoint}

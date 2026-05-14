@@ -30,6 +30,20 @@ class ServerOrderTrackingRepository {
     }
   }
 
+  Stream<OrderTrackingSnapshot?> streamTracking(String orderId) async* {
+    final uid = AdminSessionService.requireUid();
+    final idToken = await AdminSessionService.requireIdToken(
+      forceRefresh: false,
+    );
+    await for (final data in _client.orderTracking.streamTrackingForAdmin(
+      orderId,
+      uid,
+      idToken,
+    )) {
+      yield OrderTrackingSnapshot.fromServer(data);
+    }
+  }
+
   Future<OrderTrackingSnapshot?> fetchOrder(String orderId) async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(

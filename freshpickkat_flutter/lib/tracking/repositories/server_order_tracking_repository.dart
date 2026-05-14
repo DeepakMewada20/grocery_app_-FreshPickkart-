@@ -26,6 +26,21 @@ class ServerOrderTrackingRepository {
     }
   }
 
+  Stream<OrderTrackingSnapshot?> streamTracking(String orderId) async* {
+    final user = AuthController.instance.currentUser;
+    if (user == null) {
+      throw Exception('Login required.');
+    }
+    final idToken = await AuthController.instance.requireIdToken();
+    await for (final data in _client.orderTracking.streamTrackingForUser(
+      orderId,
+      user.uid,
+      idToken,
+    )) {
+      yield OrderTrackingSnapshot.fromServer(data);
+    }
+  }
+
   Future<OrderTrackingSnapshot?> fetchOrder(String orderId) async {
     final user = AuthController.instance.currentUser;
     if (user == null) {

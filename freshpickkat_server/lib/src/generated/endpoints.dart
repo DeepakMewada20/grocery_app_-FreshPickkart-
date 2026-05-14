@@ -2841,6 +2841,74 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'streamTrackingForUser': _i1.MethodStreamConnector(
+          name: 'streamTrackingForUser',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _i1.MethodStreamReturnType.streamType,
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['orderTracking'] as _i15.OrderTrackingEndpoint)
+                  .streamTrackingForUser(
+                    session,
+                    params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'streamTrackingForAdmin': _i1.MethodStreamConnector(
+          name: 'streamTrackingForAdmin',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _i1.MethodStreamReturnType.streamType,
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['orderTracking'] as _i15.OrderTrackingEndpoint)
+                  .streamTrackingForAdmin(
+                    session,
+                    params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['payment'] = _i1.EndpointConnector(

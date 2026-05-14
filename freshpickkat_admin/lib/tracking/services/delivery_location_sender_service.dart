@@ -19,6 +19,7 @@ class DeliveryLocationSenderService {
   DateTime? _lastPublishedAt;
   bool _forceTracking = false;
   bool _firstPublishTriggered = false;
+  bool _paused = false;
   Future<void> Function(String orderId)? _onFirstPublish;
 
   bool get isActive => _activeOrderId != null;
@@ -151,6 +152,20 @@ class DeliveryLocationSenderService {
     return Geolocator.distanceBetween(start.lat, start.lng, end.lat, end.lng);
   }
 
+  void pause() {
+    _paused = true;
+    _updateTimer?.cancel();
+    _updateTimer = null;
+  }
+
+  void resume() {
+    if (!_paused || _activeOrderId == null) return;
+    _paused = false;
+    if (_forceTracking) {
+      _ensureLoop();
+    }
+  }
+
   Future<void> stop() async {
     _updateTimer?.cancel();
     _updateTimer = null;
@@ -159,6 +174,7 @@ class DeliveryLocationSenderService {
     _lastPublishedAt = null;
     _forceTracking = false;
     _firstPublishTriggered = false;
+    _paused = false;
     _onFirstPublish = null;
   }
 }

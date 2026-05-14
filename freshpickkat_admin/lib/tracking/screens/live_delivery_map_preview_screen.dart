@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/live_delivery_map_controller.dart';
 import 'package:freshpickkat_admin/tracking/models/order_tracking_snapshot.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -51,6 +52,8 @@ class _LiveDeliveryMapPreviewScreenState
       vsync: this,
       duration: _controller.markerTransitionDuration,
     )..addListener(_tickMarkerAnimation);
+
+    Get.find<DeliveryTrackingController>().resumeSender();
 
     Future.microtask(() async {
       await _controller.startListening(orderId: widget.order.orderId);
@@ -130,6 +133,7 @@ class _LiveDeliveryMapPreviewScreenState
 
   @override
   void dispose() {
+    Get.find<DeliveryTrackingController>().pauseSender();
     _riderSubscription?.cancel();
     _markerController.dispose();
     _controller.stopListening();

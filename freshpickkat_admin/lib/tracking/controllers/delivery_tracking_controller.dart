@@ -63,6 +63,10 @@ class DeliveryTrackingController extends GetxController {
     );
   }
 
+  void pauseSender() => _service.pause();
+
+  void resumeSender() => _service.resume();
+
   Future<void> stop() async {
     isActive.value = false;
     activeOrderId.value = null;

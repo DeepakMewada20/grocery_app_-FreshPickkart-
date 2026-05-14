@@ -70,7 +70,7 @@ class OrderTrackingController extends GetxController {
     error.value = '';
 
     _subscription = _repository
-        .watchOrder(orderId)
+        .streamTracking(orderId)
         .listen(
           _handleSnapshot,
           onError: (Object e, StackTrace st) {
