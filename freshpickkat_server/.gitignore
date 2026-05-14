@@ -22,5 +22,3 @@ config/*.json
 *.env
 .env
 
-# Server setup script (contains API keys)
-setup_and_start.sh
