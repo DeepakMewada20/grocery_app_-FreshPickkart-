@@ -13,10 +13,8 @@ import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 
 import 'dashboard_screen.dart';
 import 'orders_screen.dart';
-import 'live_delivery_screen.dart';
 import 'products_screen.dart';
 import 'offers_screen.dart';
-import 'complaint_management_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -29,17 +27,15 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const OrdersScreen(),
-    const LiveDeliveryScreen(),
-    const ProductsScreen(),
-    const OffersScreen(),
-    const ComplaintManagementScreen(),
-    const SettingsScreen(),
+  List<Widget> get _screens => const [
+    DashboardScreen(),
+    OrdersScreen(),
+    ProductsScreen(),
+    OffersScreen(),
+    SettingsScreen(),
   ];
 
-  final List<bool> _builtScreens = List.generate(7, (index) => index == 0);
+  late final List<bool> _builtScreens = List.generate(_screens.length, (index) => index == 0);
 
   @override
   void initState() {
@@ -131,11 +127,6 @@ class _MainScreenState extends State<MainScreen> {
       label: 'Orders',
     ),
     NavigationDestination(
-      icon: Icon(Icons.delivery_dining_outlined),
-      selectedIcon: Icon(Icons.delivery_dining),
-      label: 'Live',
-    ),
-    NavigationDestination(
       icon: Icon(Icons.inventory_2_outlined),
       selectedIcon: Icon(Icons.inventory_2),
       label: 'Products',
@@ -144,11 +135,6 @@ class _MainScreenState extends State<MainScreen> {
       icon: Icon(Icons.local_offer_outlined),
       selectedIcon: Icon(Icons.local_offer),
       label: 'Offers',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.report_problem_outlined),
-      selectedIcon: Icon(Icons.report_problem),
-      label: 'Complaints',
     ),
     NavigationDestination(
       icon: Icon(Icons.settings_outlined),
@@ -169,11 +155,6 @@ class _MainScreenState extends State<MainScreen> {
       label: Text('Orders'),
     ),
     NavigationRailDestination(
-      icon: Icon(Icons.delivery_dining_outlined),
-      selectedIcon: Icon(Icons.delivery_dining),
-      label: Text('Live'),
-    ),
-    NavigationRailDestination(
       icon: Icon(Icons.inventory_2_outlined),
       selectedIcon: Icon(Icons.inventory_2),
       label: Text('Products'),
@@ -184,14 +165,10 @@ class _MainScreenState extends State<MainScreen> {
       label: Text('Offers'),
     ),
     NavigationRailDestination(
-      icon: Icon(Icons.report_problem_outlined),
-      selectedIcon: Icon(Icons.report_problem),
-      label: Text('Complaints'),
-    ),
-    NavigationRailDestination(
       icon: Icon(Icons.settings_outlined),
       selectedIcon: Icon(Icons.settings),
       label: Text('Settings'),
     ),
   ];
+
 }

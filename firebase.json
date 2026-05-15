@@ -1,5 +1,8 @@
 {
   "functions": {
     "source": "freshpickkat_functions"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

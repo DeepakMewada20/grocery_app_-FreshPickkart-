@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Public read access for all images
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // User app - product complaints: user apne uid folder mein hi upload kar sakta hai
+    match /product_complaints/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User app - support issues: user apne uid folder mein hi upload kar sakta hai
+    match /support_issues/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Admin bhi user folders mein write kar sakta hai (support/complaint management)
+    match /product_complaints/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+
+    match /support_issues/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+
+    // Admin app folders - sirf ADMIN_SELLER role wale hi upload kar sakte hain
+    match /products/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+
+    match /categories/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+
+    match /subcategories/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+
+    match /banners/{allPaths=**} {
+      allow write: if request.auth != null && firestore.get(/databases/(default)/documents/sellers/$(request.auth.uid)).data.role == 'ADMIN_SELLER';
+    }
+  }
+}

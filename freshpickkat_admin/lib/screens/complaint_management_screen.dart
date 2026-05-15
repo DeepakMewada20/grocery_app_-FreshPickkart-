@@ -151,9 +151,7 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
                     SizedBox(height: 16.h),
                     DropdownButtonFormField<String>(
                       initialValue: selectedStatus,
-                      items: _statuses
-                          .where((status) => status != 'Pending')
-                          .map(
+                      items: _statuses.map(
                             (status) => DropdownMenuItem(
                               value: status,
                               child: Text(status),

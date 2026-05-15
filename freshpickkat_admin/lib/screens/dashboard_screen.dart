@@ -8,6 +8,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
+import 'complaint_management_screen.dart';
+import 'live_delivery_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -23,6 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: _buildDrawer(context),
       appBar: AdminAppBar(
         title: const Text('Dashboard'),
         actions: [
@@ -299,6 +302,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              color: cs.primary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.store, color: cs.onPrimary, size: 36),
+                  const SizedBox(height: 8),
+                  Text(
+                    'FreshPickKart',
+                    style: TextStyle(
+                      color: cs.onPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Admin Panel',
+                    style: TextStyle(
+                      color: cs.onPrimary.withValues(alpha: 0.8),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delivery_dining_outlined),
+              title: const Text('Live Delivery'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LiveDeliveryScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report_problem_outlined),
+              title: const Text('Complaints'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ComplaintManagementScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),
