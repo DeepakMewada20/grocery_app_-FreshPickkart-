@@ -14,6 +14,37 @@ class NotificationOutboxService {
 
   NotificationOutboxService._();
 
+  Future<NotificationCampaignRow?> enqueueTopicNotification({
+    required Session session,
+    required String topic,
+    required String title,
+    required String body,
+    required String type,
+    String? entityType,
+    String? entityId,
+    String? imageUrl,
+    String targetAudience = 'all',
+    Map<String, String>? data,
+  }) {
+    return enqueueCampaign(
+      session: session,
+      draft: NotificationDraft(
+        enabled: true,
+        title: title,
+        body: body,
+        type: type,
+        topic: topic,
+        imageUrl: imageUrl,
+        targetAudience: targetAudience,
+        entityType: entityType,
+        entityId: entityId,
+        data: data,
+      ),
+      fallbackEntityType: entityType ?? type,
+      fallbackEntityId: entityId,
+    );
+  }
+
   Future<NotificationCampaignRow?> enqueueCampaign({
     required Session session,
     required NotificationDraft? draft,

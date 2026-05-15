@@ -281,12 +281,17 @@ class NotificationEndpoint extends Endpoint {
 
   List<String> _enabledTopics(NotificationPreferenceRow prefs) {
     return [
+      _userTopic(prefs.firebaseUid),
       if (prefs.couponNotifications) 'coupons',
       if (prefs.offerNotifications) 'offers',
       if (prefs.announcementNotifications) 'announcements',
       if (prefs.importantAlerts) 'important-alerts',
       if (prefs.trackOrderNotifications) 'track-order',
     ];
+  }
+
+  String _userTopic(String firebaseUid) {
+    return 'user-${firebaseUid.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]+'), '-')}';
   }
 
   NotificationHistoryItem _toHistoryItem(

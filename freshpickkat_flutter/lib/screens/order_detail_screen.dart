@@ -5,7 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
+import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/services/refund_service.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -75,6 +78,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _isLoading = true;
   bool _isCancelling = false;
   String? _error;
+  final Map<String, Complaint> _complaintsByItemId = {};
   Worker? _ordersWorker;
 
   @override
@@ -94,6 +98,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     final order = await OrderController.instance.fetchOrderById(widget.orderId);
     final refund = await RefundService.instance.getRefundStatus(widget.orderId);
+    if (order != null) {
+      await _loadItemComplaints(order);
+    }
     if (mounted) {
       setState(() {
         _order = order;
@@ -121,6 +128,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     setState(() {
       _order = updated;
     });
+    _loadItemComplaints(updated);
   }
 
   @override
@@ -619,8 +627,132 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ),
+          SizedBox(height: 10.h),
+          _buildComplaintControls(item, cs),
         ],
       ),
+    );
+  }
+
+  Future<void> _loadItemComplaints(Order order) async {
+    if (order.status != 'delivered') return;
+    for (final item in order.items) {
+      final itemId = item.orderItemId;
+      if (itemId == null || itemId.isEmpty) continue;
+      if (_complaintsByItemId.containsKey(itemId)) continue;
+      try {
+        final complaint = await ProductComplaintService.instance
+            .getComplaintForOrderItem(itemId);
+        if (complaint != null && mounted) {
+          setState(() => _complaintsByItemId[itemId] = complaint);
+        }
+      } catch (_) {}
+    }
+  }
+
+  Widget _buildComplaintControls(OrderItem item, ColorScheme cs) {
+    final order = _order!;
+    final itemId = item.orderItemId;
+    final complaint = itemId == null ? null : _complaintsByItemId[itemId];
+    final deliveredAt = order.deliveredAt;
+    final isDelivered = order.status == 'delivered' && deliveredAt != null;
+
+    if (complaint != null) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Issue already reported',
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.65),
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Get.to(
+              () => ComplaintDetailScreen(complaint: complaint),
+            ),
+            child: const Text('View Complaint'),
+          ),
+        ],
+      );
+    }
+
+    if (!isDelivered) {
+      return _disabledComplaintText('Available after delivery', cs);
+    }
+
+    final deadline = deliveredAt.toLocal().add(const Duration(days: 3));
+    final expired = DateTime.now().isAfter(deadline);
+    if (expired) {
+      return _disabledComplaintText(
+        'Complaint period expired',
+        cs,
+        subtitle: 'Complaints can be raised only within 3 days after delivery.',
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Available until ${_formatDate(deadline)}',
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.62),
+              fontSize: 12.sp,
+            ),
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: itemId == null || itemId.isEmpty
+              ? null
+              : () async {
+                  final result = await Get.to<Complaint>(
+                    () => ReportProductIssueScreen(
+                      orderNumber: order.orderId,
+                      item: item,
+                    ),
+                  );
+                  if (result != null && mounted) {
+                    setState(() {
+                      _complaintsByItemId[result.orderItemId] = result;
+                    });
+                  }
+                },
+          icon: const Icon(Icons.report_problem_outlined),
+          label: const Text('Report Issue'),
+        ),
+      ],
+    );
+  }
+
+  Widget _disabledComplaintText(
+    String title,
+    ColorScheme cs, {
+    String? subtitle,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.55),
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        if (subtitle != null)
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.5),
+              fontSize: 11.sp,
+            ),
+          ),
+      ],
     );
   }
 
@@ -671,29 +803,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ...group.items.map(
               (item) => Padding(
                 padding: EdgeInsets.only(bottom: 6.h),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
-                        style: TextStyle(
-                          color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13.sp,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.75),
+                              fontSize: 13.sp,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        SizedBox(width: 8.w),
+                        AutoSizeText(
+                          'INR ${item.totalPrice.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.75),
+                            fontSize: 13.sp,
+                          ),
+                          minFontSize: 10,
+                          maxLines: 1,
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 8.w),
-                    AutoSizeText(
-                      'INR ${item.totalPrice.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.75),
-                        fontSize: 13.sp,
-                      ),
-                      minFontSize: 10,
-                      maxLines: 1,
-                    ),
+                    SizedBox(height: 6.h),
+                    _buildComplaintControls(item, cs),
                   ],
                 ),
               ),

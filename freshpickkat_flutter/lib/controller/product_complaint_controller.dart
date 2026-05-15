@@ -1,0 +1,102 @@
+import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/model/product_complaint_type.dart';
+import 'package:freshpickkat_flutter/services/attachment_upload_service.dart';
+import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+
+class ProductComplaintController extends GetxController {
+  final issueTypes = ProductComplaintType.values;
+  final selectedIssueType = ProductComplaintType.damagedProduct.obs;
+  final selectedImages = <XFile>[].obs;
+  final isPicking = false.obs;
+  final isSubmitting = false.obs;
+  final submittedComplaint = Rxn<Complaint>();
+
+  final _attachments = AttachmentUploadService.instance;
+  final _complaints = ProductComplaintService.instance;
+
+  void setIssueType(String? value) {
+    if (value == null || value.trim().isEmpty) return;
+    selectedIssueType.value = value;
+  }
+
+  Future<void> pickGalleryImages() async {
+    if (isPicking.value || selectedImages.length >= 3) return;
+    isPicking.value = true;
+    try {
+      final remaining = 3 - selectedImages.length;
+      final images = await _attachments.pickGalleryImages(limit: remaining);
+      selectedImages.addAll(images.take(remaining));
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  Future<void> pickCameraImage() async {
+    if (isPicking.value || selectedImages.length >= 3) return;
+    isPicking.value = true;
+    try {
+      final image = await _attachments.pickCameraImage();
+      if (image != null) selectedImages.add(image);
+    } finally {
+      isPicking.value = false;
+    }
+  }
+
+  void removeImage(XFile image) {
+    selectedImages.remove(image);
+  }
+
+  Future<Complaint> submit({
+    required String orderNumber,
+    required String orderItemId,
+    required String description,
+  }) async {
+    if (isSubmitting.value) {
+      throw Exception('Submission already in progress.');
+    }
+    if (selectedImages.isEmpty) {
+      throw Exception('Please attach at least one image.');
+    }
+    if (selectedImages.length > 3) {
+      throw Exception('You can attach up to 3 images.');
+    }
+
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception('Please login to report an issue.');
+
+    isSubmitting.value = true;
+    try {
+      final urls = <String>[];
+      for (final image in selectedImages) {
+        urls.add(
+          await _attachments.uploadImage(
+            firebaseUid: user.uid,
+            image: image,
+            folder: 'product_complaints',
+            purpose: 'product_complaint_image',
+          ),
+        );
+      }
+      final complaint = await _complaints.createComplaint(
+        orderNumber: orderNumber,
+        orderItemId: orderItemId,
+        issueType: selectedIssueType.value,
+        description: description,
+        imageUrls: urls,
+      );
+      submittedComplaint.value = complaint;
+      return complaint;
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  void resetForm() {
+    selectedIssueType.value = ProductComplaintType.damagedProduct;
+    selectedImages.clear();
+    submittedComplaint.value = null;
+  }
+}

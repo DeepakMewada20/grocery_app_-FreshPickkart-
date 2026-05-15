@@ -1,0 +1,5 @@
+class: ComplaintPage
+fields:
+  complaints: List<Complaint>
+  nextPageToken: String?
+  totalCount: int

@@ -505,6 +505,7 @@ class PostgresOrderService {
       final mappedItems = (itemsByOrder[orderId] ?? const <OrderItemRow>[])
           .map(
             (item) => OrderItem(
+              orderItemId: item.id?.toString(),
               productId: item.productId.toString(),
               variantId: item.productVariantId?.toString(),
               variantLabel: item.variantLabelSnapshot,

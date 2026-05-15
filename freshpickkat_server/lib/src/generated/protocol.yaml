@@ -50,6 +50,15 @@ comboOffer:
   - getComboOffersPage:
   - setComboOfferActive:
   - checkApplicableCombos:
+complaint:
+  - createComplaint:
+  - listMyComplaints:
+  - getMyComplaint:
+  - getComplaintForOrderItem:
+  - listComplaints:
+  - getComplaintAdmin:
+  - updateComplaintStatus:
+  - replyToComplaint:
 coupon:
   - fetchCoupons:
   - uploadCoupon:

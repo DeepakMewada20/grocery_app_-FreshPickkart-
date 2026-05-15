@@ -11,6 +11,7 @@ import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/screens/help_support_screen.dart';
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -80,6 +81,12 @@ class _MoreScreenState extends State<MoreScreen> {
                   icon: Icons.headset_mic_outlined,
                   title: 'Help & Support',
                   onTap: () => Get.to(() => const HelpSupportScreen()),
+                  cs: cs,
+                ),
+                _buildMenuItem(
+                  icon: Icons.report_problem_outlined,
+                  title: 'My Complaints',
+                  onTap: () => Get.to(() => const MyComplaintsScreen()),
                   cs: cs,
                 ),
                 _buildMenuItem(

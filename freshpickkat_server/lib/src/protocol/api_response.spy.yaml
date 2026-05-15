@@ -1,0 +1,4 @@
+class: ApiResponse
+fields:
+  success: bool
+  message: String

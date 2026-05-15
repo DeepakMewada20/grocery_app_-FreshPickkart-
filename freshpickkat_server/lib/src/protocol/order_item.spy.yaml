@@ -1,5 +1,6 @@
 class: OrderItem
 fields:
+  orderItemId: String?
   productId: String
   variantId: String?
   variantLabel: String?

@@ -10,6 +10,7 @@ import 'package:freshpickkat_flutter/notifications/services/fcm_token_service.da
 import 'package:freshpickkat_flutter/notifications/services/notification_history_service.dart';
 import 'package:freshpickkat_flutter/notifications/services/notification_preference_service.dart';
 import 'package:freshpickkat_flutter/notifications/services/notification_topic_service.dart';
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
@@ -250,6 +251,14 @@ class NotificationController extends GetxController {
         final orderId = data['orderId'];
         if (orderId != null && orderId.isNotEmpty) {
           await openTrackingOrder(orderId);
+        }
+        return;
+      case 'complaint':
+      case 'complaint_status':
+      case 'complaint_created':
+        final complaintId = data['complaintId'] ?? entityId;
+        if (complaintId != null && complaintId.isNotEmpty) {
+          await Get.to(() => ComplaintDetailScreen(complaintId: complaintId));
         }
         return;
       case 'delivery':

@@ -16,6 +16,7 @@ import 'orders_screen.dart';
 import 'live_delivery_screen.dart';
 import 'products_screen.dart';
 import 'offers_screen.dart';
+import 'complaint_management_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -34,10 +35,11 @@ class _MainScreenState extends State<MainScreen> {
     const LiveDeliveryScreen(),
     const ProductsScreen(),
     const OffersScreen(),
+    const ComplaintManagementScreen(),
     const SettingsScreen(),
   ];
 
-  final List<bool> _builtScreens = List.generate(6, (index) => index == 0);
+  final List<bool> _builtScreens = List.generate(7, (index) => index == 0);
 
   @override
   void initState() {
@@ -144,6 +146,11 @@ class _MainScreenState extends State<MainScreen> {
       label: 'Offers',
     ),
     NavigationDestination(
+      icon: Icon(Icons.report_problem_outlined),
+      selectedIcon: Icon(Icons.report_problem),
+      label: 'Complaints',
+    ),
+    NavigationDestination(
       icon: Icon(Icons.settings_outlined),
       selectedIcon: Icon(Icons.settings),
       label: 'Settings',
@@ -175,6 +182,11 @@ class _MainScreenState extends State<MainScreen> {
       icon: Icon(Icons.local_offer_outlined),
       selectedIcon: Icon(Icons.local_offer),
       label: Text('Offers'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.report_problem_outlined),
+      selectedIcon: Icon(Icons.report_problem),
+      label: Text('Complaints'),
     ),
     NavigationRailDestination(
       icon: Icon(Icons.settings_outlined),

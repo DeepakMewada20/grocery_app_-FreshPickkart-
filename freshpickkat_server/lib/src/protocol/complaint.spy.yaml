@@ -1,0 +1,21 @@
+class: Complaint
+fields:
+  complaintId: String
+  userId: String
+  orderId: String
+  orderNumber: String
+  orderItemId: String
+  productId: String
+  variantId: String?
+  productName: String
+  productImage: String
+  variantLabel: String?
+  quantity: int
+  issueType: String
+  description: String
+  imageUrls: List<String>
+  status: String
+  adminReply: String?
+  createdAt: DateTime
+  updatedAt: DateTime
+  deliveredAt: DateTime?

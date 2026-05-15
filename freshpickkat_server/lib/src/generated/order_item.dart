@@ -15,6 +15,7 @@ import 'package:serverpod/serverpod.dart' as _i1;
 abstract class OrderItem
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   OrderItem._({
+    this.orderItemId,
     required this.productId,
     this.variantId,
     this.variantLabel,
@@ -33,6 +34,7 @@ abstract class OrderItem
   });
 
   factory OrderItem({
+    String? orderItemId,
     required String productId,
     String? variantId,
     String? variantLabel,
@@ -52,6 +54,7 @@ abstract class OrderItem
 
   factory OrderItem.fromJson(Map<String, dynamic> jsonSerialization) {
     return OrderItem(
+      orderItemId: jsonSerialization['orderItemId'] as String?,
       productId: jsonSerialization['productId'] as String,
       variantId: jsonSerialization['variantId'] as String?,
       variantLabel: jsonSerialization['variantLabel'] as String?,
@@ -72,6 +75,8 @@ abstract class OrderItem
       comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
     );
   }
+
+  String? orderItemId;
 
   String productId;
 
@@ -107,6 +112,7 @@ abstract class OrderItem
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   OrderItem copyWith({
+    String? orderItemId,
     String? productId,
     String? variantId,
     String? variantLabel,
@@ -127,6 +133,7 @@ abstract class OrderItem
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'OrderItem',
+      if (orderItemId != null) 'orderItemId': orderItemId,
       'productId': productId,
       if (variantId != null) 'variantId': variantId,
       if (variantLabel != null) 'variantLabel': variantLabel,
@@ -149,6 +156,7 @@ abstract class OrderItem
   Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'OrderItem',
+      if (orderItemId != null) 'orderItemId': orderItemId,
       'productId': productId,
       if (variantId != null) 'variantId': variantId,
       if (variantLabel != null) 'variantLabel': variantLabel,
@@ -177,6 +185,7 @@ class _Undefined {}
 
 class _OrderItemImpl extends OrderItem {
   _OrderItemImpl({
+    String? orderItemId,
     required String productId,
     String? variantId,
     String? variantLabel,
@@ -193,6 +202,7 @@ class _OrderItemImpl extends OrderItem {
     double? comboDiscountValue,
     int? comboItemQuantity,
   }) : super._(
+         orderItemId: orderItemId,
          productId: productId,
          variantId: variantId,
          variantLabel: variantLabel,
@@ -215,6 +225,7 @@ class _OrderItemImpl extends OrderItem {
   @_i1.useResult
   @override
   OrderItem copyWith({
+    Object? orderItemId = _Undefined,
     String? productId,
     Object? variantId = _Undefined,
     Object? variantLabel = _Undefined,
@@ -232,6 +243,7 @@ class _OrderItemImpl extends OrderItem {
     Object? comboItemQuantity = _Undefined,
   }) {
     return OrderItem(
+      orderItemId: orderItemId is String? ? orderItemId : this.orderItemId,
       productId: productId ?? this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
       variantLabel: variantLabel is String? ? variantLabel : this.variantLabel,

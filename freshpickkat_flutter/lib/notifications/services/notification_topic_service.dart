@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 
 class NotificationTopicService {
   NotificationTopicService({FirebaseMessaging? messaging})
@@ -8,6 +9,10 @@ class NotificationTopicService {
   final FirebaseMessaging _messaging;
 
   Future<void> syncTopics(NotificationPreference preferences) async {
+    final user = AuthController.instance.currentUser;
+    if (user != null) {
+      await _messaging.subscribeToTopic(_userTopic(user.uid));
+    }
     await _setTopic('coupons', preferences.couponNotifications);
     await _setTopic('offers', preferences.offerNotifications);
     await _setTopic('announcements', preferences.announcementNotifications);
@@ -19,5 +24,9 @@ class NotificationTopicService {
     return enabled
         ? _messaging.subscribeToTopic(topic)
         : _messaging.unsubscribeFromTopic(topic);
+  }
+
+  String _userTopic(String firebaseUid) {
+    return 'user-${firebaseUid.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]+'), '-')}';
   }
 }
