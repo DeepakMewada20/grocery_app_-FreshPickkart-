@@ -73,7 +73,8 @@ import 'package:freshpickkat_server/src/generated/product_ranking_item.dart'
     as _i41;
 import 'package:freshpickkat_server/src/generated/refund_record.dart' as _i42;
 import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i43;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i44;
+import 'package:freshpickkat_server/src/generated/support_issue.dart' as _i44;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i45;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -223,6 +224,8 @@ class TestEndpoints {
 
   late final _SubCategoryEndpoint subCategory;
 
+  late final _SupportEndpoint support;
+
   late final _UserEndpoint user;
 }
 
@@ -314,6 +317,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     subCategory = _SubCategoryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    support = _SupportEndpoint(
       endpoints,
       serializationManager,
     );
@@ -3466,6 +3473,84 @@ class _OrderTrackingEndpoint {
     });
   }
 
+  _i3.Stream<_i31.OrderTrackingData> streamTrackingForUser(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) {
+    var _localTestStreamManager =
+        _i1.TestStreamManager<_i31.OrderTrackingData>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'orderTracking',
+              method: 'streamTrackingForUser',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'orderTracking',
+              methodName: 'streamTrackingForUser',
+              arguments: {
+                'orderId': orderId,
+                'firebaseUid': firebaseUid,
+                'idToken': idToken,
+              },
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _i3.Stream<_i31.OrderTrackingData> streamTrackingForAdmin(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) {
+    var _localTestStreamManager =
+        _i1.TestStreamManager<_i31.OrderTrackingData>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'orderTracking',
+              method: 'streamTrackingForAdmin',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'orderTracking',
+              methodName: 'streamTrackingForAdmin',
+              arguments: {
+                'orderId': orderId,
+                'firebaseUid': firebaseUid,
+                'idToken': idToken,
+              },
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
   _i3.Future<_i31.OrderTrackingData> seedUserLocation(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
@@ -5280,6 +5365,66 @@ class _SubCategoryEndpoint {
   }
 }
 
+class _SupportEndpoint {
+  _SupportEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i44.SupportIssue> submitIssue(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String issueType,
+    required String title,
+    required String description,
+    String? screenshotUrl,
+    required String appVersion,
+    required String buildNumber,
+    required String deviceInfo,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'submitIssue',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'submitIssue',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'issueType': issueType,
+            'title': title,
+            'description': description,
+            'screenshotUrl': screenshotUrl,
+            'appVersion': appVersion,
+            'buildNumber': buildNumber,
+            'deviceInfo': deviceInfo,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i44.SupportIssue>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _UserEndpoint {
   _UserEndpoint(
     this._endpointDispatch,
@@ -5355,7 +5500,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i44.CartItem> cart,
+    List<_i45.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

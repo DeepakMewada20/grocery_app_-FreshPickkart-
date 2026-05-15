@@ -37,6 +37,7 @@ dependencies:
   serverpod_auth_client: 3.4.5
   firebase_auth: ^6.1.4
   firebase_messaging: ^16.1.1
+  firebase_storage: ^13.0.2
   pinput: ^6.0.2
   google_fonts: ^8.1.0
   flutter_screenutil: ^5.9.3
@@ -52,6 +53,8 @@ dependencies:
   flutter_sim_data: ^1.0.5
   location: ^8.0.1
   geocoding: ^4.0.0
+  image_picker: ^1.2.2
+  package_info_plus: ^9.0.1
   razorpay_flutter_customui: ^1.4.2
   url_launcher: ^6.3.2
   webview_flutter: ^4.13.1

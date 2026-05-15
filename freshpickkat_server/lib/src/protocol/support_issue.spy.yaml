@@ -1,0 +1,14 @@
+class: SupportIssue
+fields:
+  issueId: String
+  userId: String
+  issueType: String
+  title: String
+  description: String
+  screenshotUrl: String?
+  appVersion: String
+  buildNumber: String
+  deviceInfo: String
+  status: String
+  createdAt: DateTime
+  updatedAt: DateTime

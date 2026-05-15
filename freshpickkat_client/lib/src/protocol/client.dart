@@ -69,12 +69,13 @@ import 'package:freshpickkat_client/src/protocol/product_ranking_item.dart'
     as _i40;
 import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i41;
 import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i42;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i43;
+import 'package:freshpickkat_client/src/protocol/support_issue.dart' as _i43;
+import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i44;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i44;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i45;
-import 'protocol.dart' as _i46;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i46;
+import 'protocol.dart' as _i47;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -1266,6 +1267,44 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
+  _i2.Stream<_i30.OrderTrackingData> streamTrackingForUser(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i30.OrderTrackingData>,
+        _i30.OrderTrackingData
+      >(
+        'orderTracking',
+        'streamTrackingForUser',
+        {
+          'orderId': orderId,
+          'firebaseUid': firebaseUid,
+          'idToken': idToken,
+        },
+        {},
+      );
+
+  _i2.Stream<_i30.OrderTrackingData> streamTrackingForAdmin(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) =>
+      caller.callStreamingServerEndpoint<
+        _i2.Stream<_i30.OrderTrackingData>,
+        _i30.OrderTrackingData
+      >(
+        'orderTracking',
+        'streamTrackingForAdmin',
+        {
+          'orderId': orderId,
+          'firebaseUid': firebaseUid,
+          'idToken': idToken,
+        },
+        {},
+      );
+
   _i2.Future<_i30.OrderTrackingData> seedUserLocation(
     String orderId,
     String firebaseUid,
@@ -1343,44 +1382,6 @@ class EndpointOrderTracking extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
-
-  _i2.Stream<_i30.OrderTrackingData> streamTrackingForUser(
-    String orderId,
-    String firebaseUid,
-    String idToken,
-  ) =>
-      caller.callStreamingServerEndpoint<
-        _i2.Stream<_i30.OrderTrackingData>,
-        _i30.OrderTrackingData
-      >(
-        'orderTracking',
-        'streamTrackingForUser',
-        {
-          'orderId': orderId,
-          'firebaseUid': firebaseUid,
-          'idToken': idToken,
-        },
-        {},
-      );
-
-  _i2.Stream<_i30.OrderTrackingData> streamTrackingForAdmin(
-    String orderId,
-    String firebaseUid,
-    String idToken,
-  ) =>
-      caller.callStreamingServerEndpoint<
-        _i2.Stream<_i30.OrderTrackingData>,
-        _i30.OrderTrackingData
-      >(
-        'orderTracking',
-        'streamTrackingForAdmin',
-        {
-          'orderId': orderId,
-          'firebaseUid': firebaseUid,
-          'idToken': idToken,
-        },
-        {},
-      );
 }
 
 /// {@category Endpoint}
@@ -2012,6 +2013,40 @@ class EndpointSubCategory extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointSupport extends _i1.EndpointRef {
+  EndpointSupport(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'support';
+
+  _i2.Future<_i43.SupportIssue> submitIssue({
+    required String firebaseUid,
+    required String idToken,
+    required String issueType,
+    required String title,
+    required String description,
+    String? screenshotUrl,
+    required String appVersion,
+    required String buildNumber,
+    required String deviceInfo,
+  }) => caller.callServerEndpoint<_i43.SupportIssue>(
+    'support',
+    'submitIssue',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'issueType': issueType,
+      'title': title,
+      'description': description,
+      'screenshotUrl': screenshotUrl,
+      'appVersion': appVersion,
+      'buildNumber': buildNumber,
+      'deviceInfo': deviceInfo,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointUser extends _i1.EndpointRef {
   EndpointUser(_i1.EndpointCaller caller) : super(caller);
 
@@ -2034,7 +2069,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i43.CartItem> cart,
+    List<_i44.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -2059,13 +2094,13 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i44.Caller(client);
-    serverpod_auth_core = _i45.Caller(client);
+    serverpod_auth_idp = _i45.Caller(client);
+    serverpod_auth_core = _i46.Caller(client);
   }
 
-  late final _i44.Caller serverpod_auth_idp;
+  late final _i45.Caller serverpod_auth_idp;
 
-  late final _i45.Caller serverpod_auth_core;
+  late final _i46.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2088,7 +2123,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i46.Protocol(),
+         _i47.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2118,6 +2153,7 @@ class Client extends _i1.ServerpodClientShared {
     productRanking = EndpointProductRanking(this);
     refund = EndpointRefund(this);
     subCategory = EndpointSubCategory(this);
+    support = EndpointSupport(this);
     user = EndpointUser(this);
     modules = Modules(this);
   }
@@ -2164,6 +2200,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointSubCategory subCategory;
 
+  late final EndpointSupport support;
+
   late final EndpointUser user;
 
   late final Modules modules;
@@ -2191,6 +2229,7 @@ class Client extends _i1.ServerpodClientShared {
     'productRanking': productRanking,
     'refund': refund,
     'subCategory': subCategory,
+    'support': support,
     'user': user,
   };
 

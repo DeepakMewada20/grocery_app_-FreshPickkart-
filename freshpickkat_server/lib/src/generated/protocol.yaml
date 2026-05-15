@@ -95,6 +95,8 @@ orderRealtime:
 orderTracking:
   - getTrackingForUser:
   - getTrackingForAdmin:
+  - streamTrackingForUser:
+  - streamTrackingForAdmin:
   - seedUserLocation:
   - updateTrackingEnabled:
   - updateRiderLocation:
@@ -149,6 +151,8 @@ subCategory:
   - uploadSubCategory:
   - updateSubCategory:
   - deleteSubCategory:
+support:
+  - submitIssue:
 user:
   - getUserByFirebaseUid:
   - createOrUpdateUser:

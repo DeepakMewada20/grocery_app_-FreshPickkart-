@@ -105,29 +105,31 @@ import 'refund_record.dart' as _i90;
 import 'refund_record_row.dart' as _i91;
 import 'sub_category.dart' as _i92;
 import 'sub_category_row.dart' as _i93;
-import 'user_address_row.dart' as _i94;
-import 'user_cart_item_row.dart' as _i95;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i96;
+import 'support_issue.dart' as _i94;
+import 'support_issue_row.dart' as _i95;
+import 'user_address_row.dart' as _i96;
+import 'user_cart_item_row.dart' as _i97;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i98;
 import 'package:freshpickkat_server/src/generated/admin_audit_log_entry.dart'
-    as _i97;
-import 'package:freshpickkat_server/src/generated/banner.dart' as _i98;
-import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i99;
-import 'package:freshpickkat_server/src/generated/category.dart' as _i100;
-import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i101;
-import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i102;
+    as _i99;
+import 'package:freshpickkat_server/src/generated/banner.dart' as _i100;
+import 'package:freshpickkat_server/src/generated/bogo_offer.dart' as _i101;
+import 'package:freshpickkat_server/src/generated/category.dart' as _i102;
+import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i103;
+import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i104;
 import 'package:freshpickkat_server/src/generated/cart_item_input.dart'
-    as _i103;
-import 'package:freshpickkat_server/src/generated/coupon.dart' as _i104;
-import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i105;
-import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i106;
-import 'package:freshpickkat_server/src/generated/order.dart' as _i107;
+    as _i105;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i106;
+import 'package:freshpickkat_server/src/generated/coupon_display.dart' as _i107;
+import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i108;
+import 'package:freshpickkat_server/src/generated/order.dart' as _i109;
 import 'package:freshpickkat_server/src/generated/applied_offer_info.dart'
-    as _i108;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i109;
-import 'package:freshpickkat_server/src/generated/product_ranking_item.dart'
     as _i110;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i111;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i112;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i111;
+import 'package:freshpickkat_server/src/generated/product_ranking_item.dart'
+    as _i112;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i113;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i114;
 export 'address.dart';
 export 'admin_analytics.dart';
 export 'admin_audit_log_entry.dart';
@@ -217,6 +219,8 @@ export 'refund_record.dart';
 export 'refund_record_row.dart';
 export 'sub_category.dart';
 export 'sub_category_row.dart';
+export 'support_issue.dart';
+export 'support_issue_row.dart';
 export 'user_address_row.dart';
 export 'user_cart_item_row.dart';
 
@@ -4656,6 +4660,152 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
+      name: 'support_issue',
+      dartName: 'SupportIssueRow',
+      schema: 'public',
+      module: 'freshpickkat',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'userId',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'issueType',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'title',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'description',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'screenshotUrl',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'appVersion',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'buildNumber',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'deviceInfo',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'status',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+          columnDefault: '\'Pending\'::text',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+        _i2.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [
+        _i2.ForeignKeyDefinition(
+          constraintName: 'support_issue_fk_0',
+          columns: ['userId'],
+          referenceTable: 'app_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _i2.ForeignKeyAction.noAction,
+          onDelete: _i2.ForeignKeyAction.restrict,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'support_issue_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'support_issue_user_created_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'support_issue_status_created_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'status',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
       name: 'user_address',
       dartName: 'UserAddressRow',
       schema: 'public',
@@ -5239,11 +5389,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i93.SubCategoryRow) {
       return _i93.SubCategoryRow.fromJson(data) as T;
     }
-    if (t == _i94.UserAddressRow) {
-      return _i94.UserAddressRow.fromJson(data) as T;
+    if (t == _i94.SupportIssue) {
+      return _i94.SupportIssue.fromJson(data) as T;
     }
-    if (t == _i95.UserCartItemRow) {
-      return _i95.UserCartItemRow.fromJson(data) as T;
+    if (t == _i95.SupportIssueRow) {
+      return _i95.SupportIssueRow.fromJson(data) as T;
+    }
+    if (t == _i96.UserAddressRow) {
+      return _i96.UserAddressRow.fromJson(data) as T;
+    }
+    if (t == _i97.UserCartItemRow) {
+      return _i97.UserCartItemRow.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.Address?>()) {
       return (data != null ? _i5.Address.fromJson(data) : null) as T;
@@ -5546,11 +5702,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i93.SubCategoryRow?>()) {
       return (data != null ? _i93.SubCategoryRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i94.UserAddressRow?>()) {
-      return (data != null ? _i94.UserAddressRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i94.SupportIssue?>()) {
+      return (data != null ? _i94.SupportIssue.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i95.UserCartItemRow?>()) {
-      return (data != null ? _i95.UserCartItemRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i95.SupportIssueRow?>()) {
+      return (data != null ? _i95.SupportIssueRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i96.UserAddressRow?>()) {
+      return (data != null ? _i96.UserAddressRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i97.UserCartItemRow?>()) {
+      return (data != null ? _i97.UserCartItemRow.fromJson(data) : null) as T;
     }
     if (t == List<_i11.AdminTopProduct>) {
       return (data as List)
@@ -5734,67 +5896,67 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i96.AppUser>) {
-      return (data as List).map((e) => deserialize<_i96.AppUser>(e)).toList()
+    if (t == List<_i98.AppUser>) {
+      return (data as List).map((e) => deserialize<_i98.AppUser>(e)).toList()
           as T;
     }
-    if (t == List<_i97.AdminAuditLogEntry>) {
+    if (t == List<_i99.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i97.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i99.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i98.Banner>) {
-      return (data as List).map((e) => deserialize<_i98.Banner>(e)).toList()
+    if (t == List<_i100.Banner>) {
+      return (data as List).map((e) => deserialize<_i100.Banner>(e)).toList()
           as T;
     }
-    if (t == List<_i99.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i99.BogoOffer>(e)).toList()
+    if (t == List<_i101.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i101.BogoOffer>(e)).toList()
           as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i100.Category>) {
-      return (data as List).map((e) => deserialize<_i100.Category>(e)).toList()
+    if (t == List<_i102.Category>) {
+      return (data as List).map((e) => deserialize<_i102.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i101.CategoryOffer>) {
+    if (t == List<_i103.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i101.CategoryOffer>(e))
+              .map((e) => deserialize<_i103.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i102.ComboOffer>) {
+    if (t == List<_i104.ComboOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i102.ComboOffer>(e))
+              .map((e) => deserialize<_i104.ComboOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i103.CartItemInput>) {
+    if (t == List<_i105.CartItemInput>) {
       return (data as List)
-              .map((e) => deserialize<_i103.CartItemInput>(e))
+              .map((e) => deserialize<_i105.CartItemInput>(e))
               .toList()
           as T;
     }
-    if (t == List<_i104.Coupon>) {
-      return (data as List).map((e) => deserialize<_i104.Coupon>(e)).toList()
+    if (t == List<_i106.Coupon>) {
+      return (data as List).map((e) => deserialize<_i106.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i105.CouponDisplay>) {
+    if (t == List<_i107.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i105.CouponDisplay>(e))
+              .map((e) => deserialize<_i107.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i106.DeliveryRule>) {
+    if (t == List<_i108.DeliveryRule>) {
       return (data as List)
-              .map((e) => deserialize<_i106.DeliveryRule>(e))
+              .map((e) => deserialize<_i108.DeliveryRule>(e))
               .toList()
           as T;
     }
-    if (t == List<_i107.Order>) {
-      return (data as List).map((e) => deserialize<_i107.Order>(e)).toList()
+    if (t == List<_i109.Order>) {
+      return (data as List).map((e) => deserialize<_i109.Order>(e)).toList()
           as T;
     }
     if (t == Map<String, dynamic>) {
@@ -5810,22 +5972,22 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == List<double>) {
       return (data as List).map((e) => deserialize<double>(e)).toList() as T;
     }
-    if (t == List<_i108.AppliedOfferInfo>) {
+    if (t == List<_i110.AppliedOfferInfo>) {
       return (data as List)
-              .map((e) => deserialize<_i108.AppliedOfferInfo>(e))
+              .map((e) => deserialize<_i110.AppliedOfferInfo>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i103.CartItemInput>?>()) {
+    if (t == _i1.getType<List<_i105.CartItemInput>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i103.CartItemInput>(e))
+                    .map((e) => deserialize<_i105.CartItemInput>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i109.Product>) {
-      return (data as List).map((e) => deserialize<_i109.Product>(e)).toList()
+    if (t == List<_i111.Product>) {
+      return (data as List).map((e) => deserialize<_i111.Product>(e)).toList()
           as T;
     }
     if (t == _i1.getType<List<String>?>()) {
@@ -5834,20 +5996,20 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i110.ProductRankingItem>) {
+    if (t == List<_i112.ProductRankingItem>) {
       return (data as List)
-              .map((e) => deserialize<_i110.ProductRankingItem>(e))
+              .map((e) => deserialize<_i112.ProductRankingItem>(e))
               .toList()
           as T;
     }
-    if (t == List<_i111.SubCategory>) {
+    if (t == List<_i113.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i111.SubCategory>(e))
+              .map((e) => deserialize<_i113.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i112.CartItem>) {
-      return (data as List).map((e) => deserialize<_i112.CartItem>(e)).toList()
+    if (t == List<_i114.CartItem>) {
+      return (data as List).map((e) => deserialize<_i114.CartItem>(e)).toList()
           as T;
     }
     try {
@@ -5954,8 +6116,10 @@ class Protocol extends _i1.SerializationManagerServer {
       _i91.RefundRecordRow => 'RefundRecordRow',
       _i92.SubCategory => 'SubCategory',
       _i93.SubCategoryRow => 'SubCategoryRow',
-      _i94.UserAddressRow => 'UserAddressRow',
-      _i95.UserCartItemRow => 'UserCartItemRow',
+      _i94.SupportIssue => 'SupportIssue',
+      _i95.SupportIssueRow => 'SupportIssueRow',
+      _i96.UserAddressRow => 'UserAddressRow',
+      _i97.UserCartItemRow => 'UserCartItemRow',
       _ => null,
     };
   }
@@ -6151,9 +6315,13 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'SubCategory';
       case _i93.SubCategoryRow():
         return 'SubCategoryRow';
-      case _i94.UserAddressRow():
+      case _i94.SupportIssue():
+        return 'SupportIssue';
+      case _i95.SupportIssueRow():
+        return 'SupportIssueRow';
+      case _i96.UserAddressRow():
         return 'UserAddressRow';
-      case _i95.UserCartItemRow():
+      case _i97.UserCartItemRow():
         return 'UserCartItemRow';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -6444,11 +6612,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'SubCategoryRow') {
       return deserialize<_i93.SubCategoryRow>(data['data']);
     }
+    if (dataClassName == 'SupportIssue') {
+      return deserialize<_i94.SupportIssue>(data['data']);
+    }
+    if (dataClassName == 'SupportIssueRow') {
+      return deserialize<_i95.SupportIssueRow>(data['data']);
+    }
     if (dataClassName == 'UserAddressRow') {
-      return deserialize<_i94.UserAddressRow>(data['data']);
+      return deserialize<_i96.UserAddressRow>(data['data']);
     }
     if (dataClassName == 'UserCartItemRow') {
-      return deserialize<_i95.UserCartItemRow>(data['data']);
+      return deserialize<_i97.UserCartItemRow>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -6552,10 +6726,12 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i91.RefundRecordRow.t;
       case _i93.SubCategoryRow:
         return _i93.SubCategoryRow.t;
-      case _i94.UserAddressRow:
-        return _i94.UserAddressRow.t;
-      case _i95.UserCartItemRow:
-        return _i95.UserCartItemRow.t;
+      case _i95.SupportIssueRow:
+        return _i95.SupportIssueRow.t;
+      case _i96.UserAddressRow:
+        return _i96.UserAddressRow.t;
+      case _i97.UserCartItemRow:
+        return _i97.UserCartItemRow.t;
     }
     return null;
   }

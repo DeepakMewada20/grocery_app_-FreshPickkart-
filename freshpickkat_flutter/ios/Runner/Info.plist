@@ -48,7 +48,7 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>We need access to detect your country code</string>
+		<string>FreshPickKat needs photo library access so you can attach screenshots to support requests.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>We need your location to suggest nearby delivery addresses</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
