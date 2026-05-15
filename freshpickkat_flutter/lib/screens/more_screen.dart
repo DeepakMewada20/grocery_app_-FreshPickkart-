@@ -8,6 +8,7 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/appearance_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
+import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -82,19 +83,28 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildMenuItem(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
-                  onTap: () {},
+                  onTap: () => _openLegalPage(
+                    title: 'Privacy Policy',
+                    fileName: 'privacy-policy.html',
+                  ),
                   cs: cs,
                 ),
                 _buildMenuItem(
                   icon: Icons.description_outlined,
                   title: 'Terms & Conditions',
-                  onTap: () {},
+                  onTap: () => _openLegalPage(
+                    title: 'Terms & Conditions',
+                    fileName: 'terms-and-conditions.html',
+                  ),
                   cs: cs,
                 ),
                 _buildMenuItem(
                   icon: Icons.help_outline,
                   title: 'FAQ',
-                  onTap: () {},
+                  onTap: () => _openLegalPage(
+                    title: 'FAQ',
+                    fileName: 'frequently-asked-questions.html',
+                  ),
                   cs: cs,
                 ),
                 _buildMenuItem(
@@ -153,6 +163,18 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openLegalPage({
+    required String title,
+    required String fileName,
+  }) {
+    Get.to(
+      () => LegalWebViewScreen(
+        title: title,
+        url: LegalWebViewScreen.docsUrl(fileName),
       ),
     );
   }

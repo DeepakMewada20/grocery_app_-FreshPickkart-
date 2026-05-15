@@ -165,14 +165,6 @@ class _LiveDeliveryMapPreviewScreenState
     );
   }
 
-  Future<void> _recenterMap() async {
-    setState(() {
-      _customerViewOnly = false;
-      _followRider = true;
-    });
-    await _focusLiveView();
-  }
-
   @override
   void dispose() {
     Get.find<DeliveryTrackingController>().pauseSender();
@@ -324,11 +316,6 @@ class _LiveDeliveryMapPreviewScreenState
           runSpacing: 10.h,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            OutlinedButton.icon(
-              onPressed: _recenterMap,
-              icon: const Icon(Icons.center_focus_strong),
-              label: const Text('Recenter'),
-            ),
             FilterChip(
               selected: _followRider,
               label: const Text('Follow rider'),
@@ -464,39 +451,26 @@ class _LiveDeliveryMapPreviewScreenState
               ),
             ),
             SizedBox(height: 12.h),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final distanceTile = _MetricTile(
-                  label: 'Distance',
-                  value: distance <= 999
-                      ? '${distance.toStringAsFixed(0)} m'
-                      : '${(distance / 1000).toStringAsFixed(1)} km',
-                  icon: Icons.straighten_rounded,
-                  accent: Colors.indigo,
-                );
-                final etaTile = _MetricTile(
-                  label: 'ETA',
-                  value: etaLabel,
-                  icon: Icons.schedule_rounded,
-                  accent: Colors.deepOrange,
-                );
-                if (constraints.maxWidth < 360) {
-                  return Column(
-                    children: [
-                      distanceTile,
-                      SizedBox(height: 10.h),
-                      etaTile,
-                    ],
-                  );
-                }
-                return Row(
-                  children: [
-                    Expanded(child: distanceTile),
-                    SizedBox(width: 12.w),
-                    Expanded(child: etaTile),
-                  ],
-                );
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricTile(
+                    label: 'Distance',
+                    value: distance <= 999
+                        ? '${distance.toStringAsFixed(0)} m'
+                        : '${(distance / 1000).toStringAsFixed(1)} km',
+                    icon: Icons.straighten_rounded,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _MetricTile(
+                    label: 'ETA',
+                    value: etaLabel,
+                    icon: Icons.schedule_rounded,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -586,35 +560,25 @@ class _MetricTile extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
-    required this.accent,
   });
 
   final String label;
   final String value;
   final IconData icon;
-  final Color accent;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withValues(alpha: 0.16)),
       ),
       child: Row(
         children: [
-          Container(
-            width: 34.r,
-            height: 34.r,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 18.sp.clamp(16.0, 20.0), color: accent),
-          ),
-          SizedBox(width: 10.w),
+          Icon(icon, size: 20.sp.clamp(16.0, 22.0), color: cs.onSurfaceVariant),
+          SizedBox(width: 8.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -622,7 +586,7 @@ class _MetricTile extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: cs.onSurfaceVariant,
                     fontSize: 12.sp.clamp(10.0, 13.0),
                     fontWeight: FontWeight.w600,
                   ),
@@ -633,7 +597,7 @@ class _MetricTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

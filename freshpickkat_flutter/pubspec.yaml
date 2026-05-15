@@ -54,6 +54,7 @@ dependencies:
   geocoding: ^4.0.0
   razorpay_flutter_customui: ^1.4.2
   url_launcher: ^6.3.2
+  webview_flutter: ^4.13.1
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
