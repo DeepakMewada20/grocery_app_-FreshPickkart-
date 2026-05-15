@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/support_controller.dart';
-import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
@@ -150,8 +149,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               ? null
                               : _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryGreen,
-                            disabledBackgroundColor: AppTheme.primaryGreen
+                            backgroundColor: cs.primary,
+                            disabledBackgroundColor: cs.primary
                                 .withValues(alpha: 0.45),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
@@ -228,12 +227,12 @@ class _IntroCard extends StatelessWidget {
             width: 48.r,
             height: 48.r,
             decoration: BoxDecoration(
-              color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+              color: cs.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16.r),
             ),
             child: Icon(
               Icons.bug_report_outlined,
-              color: AppTheme.primaryGreen,
+              color: cs.primary,
               size: 26.r,
             ),
           ),
@@ -416,7 +415,7 @@ class _ScreenshotPicker extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.add_photo_alternate_outlined,
-                        color: AppTheme.primaryGreen,
+                        color: cs.primary,
                         size: 24.r,
                       ),
                       SizedBox(width: 12.w),
@@ -442,7 +441,7 @@ class _ScreenshotPicker extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.image_outlined,
-                      color: AppTheme.primaryGreen,
+                      color: cs.primary,
                       size: 24.r,
                     ),
                     SizedBox(width: 12.w),
@@ -510,12 +509,12 @@ class _SuccessState extends StatelessWidget {
                   width: 64.r,
                   height: 64.r,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                    color: cs.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.check_circle_rounded,
-                    color: AppTheme.primaryGreen,
+                    color: cs.primary,
                     size: 38.r,
                   ),
                 ),
@@ -535,7 +534,7 @@ class _SuccessState extends StatelessWidget {
                   'Ticket Status: $status',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppTheme.primaryGreen,
+                    color: cs.primary,
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w800,
                   ),
@@ -557,7 +556,7 @@ class _SuccessState extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onDone,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
+                      backgroundColor: cs.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: EdgeInsets.symmetric(vertical: 14.h),
@@ -613,7 +612,7 @@ InputDecoration _inputDecoration(
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15.r),
-      borderSide: const BorderSide(color: AppTheme.primaryGreen, width: 1.4),
+      borderSide: BorderSide(color: cs.primary, width: 1.4),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15.r),
