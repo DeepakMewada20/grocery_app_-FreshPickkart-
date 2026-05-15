@@ -32,10 +32,15 @@ class FirebaseNotificationService {
     required String title,
     required String body,
     Map<String, String>? data,
+    String? imageUrl,
   }) async {
+    final notification = <String, dynamic>{'title': title, 'body': body};
+    if (imageUrl != null && imageUrl.trim().isNotEmpty) {
+      notification['image'] = imageUrl.trim();
+    }
     final message = <String, dynamic>{
       'topic': topic,
-      'notification': {'title': title, 'body': body},
+      'notification': notification,
     };
     if (data != null) {
       message['data'] = data;
@@ -68,16 +73,17 @@ class FirebaseNotificationService {
     required double amount,
     int? itemCount,
   }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
+    if (!await _allowsOrderTracking(userId, session: session)) return;
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
 
     final title = 'Payment successful';
     final body = itemCount == null
         ? 'Order $orderId confirmed. Amount paid INR ${amount.toStringAsFixed(0)}.'
         : 'Order $orderId confirmed ($itemCount items). Paid INR ${amount.toStringAsFixed(0)}.';
 
-    await sendToToken(
-      token: token,
+    await _sendToTokens(
+      tokens: tokens,
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'order_paid'},
@@ -90,14 +96,15 @@ class FirebaseNotificationService {
     required String orderId,
     required String status,
   }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
+    if (!await _allowsOrderTracking(userId, session: session)) return;
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
 
     final title = 'Order update';
     final body = 'Order $orderId status updated to $status.';
 
-    await sendToToken(
-      token: token,
+    await _sendToTokens(
+      tokens: tokens,
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'order_status', 'status': status},
@@ -109,11 +116,12 @@ class FirebaseNotificationService {
     required String userId,
     required String orderId,
   }) async {
-    final token = await _getUserFcmToken(userId, session: session);
-    if (token == null || token.isEmpty) return;
+    if (!await _allowsOrderTracking(userId, session: session)) return;
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
 
-    await sendToToken(
-      token: token,
+    await _sendToTokens(
+      tokens: tokens,
       title: 'Track your order | Apna order track karein',
       body:
           'Your order is on the way. Track your order in the app.\n'
@@ -193,15 +201,26 @@ class FirebaseNotificationService {
     }
   }
 
-  Future<String?> _getUserFcmToken(
+  Future<void> _sendToTokens({
+    required List<String> tokens,
+    required String title,
+    required String body,
+    Map<String, String>? data,
+  }) async {
+    for (final token in tokens.toSet()) {
+      await sendToToken(token: token, title: title, body: body, data: data);
+    }
+  }
+
+  Future<List<String>> _getUserFcmTokens(
     String userId, {
     Session? session,
   }) async {
     final activeSession = session;
-    if (activeSession == null) return null;
+    if (activeSession == null) return const [];
 
     final normalized = userId.trim();
-    if (normalized.isEmpty) return null;
+    if (normalized.isEmpty) return const [];
 
     final parsedId = tryParseUuid(normalized);
     final user = await AppUserRow.db.findFirstRow(
@@ -211,7 +230,48 @@ class FirebaseNotificationService {
           : (t.firebaseUid.equals(normalized) & t.status.equals('active')) |
                 (t.id.equals(parsedId) & t.status.equals('active')),
     );
-    return user?.fcmToken;
+    if (user == null) return const [];
+
+    final rows = await UserFcmTokenRow.db.find(
+      activeSession,
+      where: (t) => t.userId.equals(user.id!) & t.isActive.equals(true),
+      orderBy: (t) => t.updatedAt,
+      orderDescending: true,
+      limit: 20,
+    );
+    final tokens = [
+      for (final row in rows)
+        if (row.fcmToken.trim().isNotEmpty) row.fcmToken.trim(),
+    ];
+    final legacy = user.fcmToken?.trim();
+    if (tokens.isEmpty && legacy != null && legacy.isNotEmpty) {
+      tokens.add(legacy);
+    }
+    return tokens;
+  }
+
+  Future<bool> _allowsOrderTracking(
+    String userId, {
+    Session? session,
+  }) async {
+    final activeSession = session;
+    if (activeSession == null) return true;
+    final normalized = userId.trim();
+    if (normalized.isEmpty) return true;
+    final parsedId = tryParseUuid(normalized);
+    final user = await AppUserRow.db.findFirstRow(
+      activeSession,
+      where: (t) => parsedId == null
+          ? t.firebaseUid.equals(normalized) & t.status.equals('active')
+          : (t.firebaseUid.equals(normalized) & t.status.equals('active')) |
+                (t.id.equals(parsedId) & t.status.equals('active')),
+    );
+    if (user == null) return true;
+    final prefs = await NotificationPreferenceRow.db.findFirstRow(
+      activeSession,
+      where: (t) => t.userId.equals(user.id!),
+    );
+    return prefs?.trackOrderNotifications ?? true;
   }
 
   Future<void> _sendMessage(Map<String, dynamic> payload) async {

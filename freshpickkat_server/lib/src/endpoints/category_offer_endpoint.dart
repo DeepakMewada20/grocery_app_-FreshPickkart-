@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
@@ -15,8 +16,9 @@ class CategoryOfferEndpoint extends Endpoint {
     Session session,
     CategoryOffer offer,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       await _adminGuard.ensureAdminSeller(
         session,
@@ -26,6 +28,13 @@ class CategoryOfferEndpoint extends Endpoint {
       ValidationService.validateCategoryOffer(offer);
       final result = await _offers.upsertCategoryOffer(session, offer);
       if (result) {
+        await NotificationOutboxService.instance.enqueueCampaign(
+          session: session,
+          draft: notificationDraft,
+          fallbackEntityType: 'offer',
+          fallbackEntityId: offer.offerId ?? offer.categoryId,
+          extraData: {'offerType': 'category_offer'},
+        );
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,

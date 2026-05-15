@@ -328,8 +328,8 @@ Future<void> showAddCouponDialog({
     constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (sheetContext) {
       return _CouponFormBottomSheet(
-        onSave: (coupon) async {
-          await controller.uploadCoupon(coupon);
+        onSave: (coupon, draft) async {
+          await controller.uploadCoupon(coupon, notificationDraft: draft);
         },
         onSaveSuccess: () {
           _showCatalogCouponSnackBar(sheetContext, 'Coupon created');
@@ -347,7 +347,7 @@ Future<void> showAddCouponDialog({
 
 class _CouponFormBottomSheet extends StatefulWidget {
   final Coupon? initialCoupon;
-  final Future<void> Function(Coupon coupon) onSave;
+  final Future<void> Function(Coupon coupon, NotificationDraft? draft) onSave;
   final VoidCallback onSaveSuccess;
   final void Function(Object error) onSaveError;
 
@@ -381,11 +381,15 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
   late final TextEditingController _usageLimitCtrl;
   late final TextEditingController _productIdsCtrl;
   late final TextEditingController _loyaltyOrdersCtrl;
+  late final TextEditingController _notificationTitleCtrl;
+  late final TextEditingController _notificationBodyCtrl;
+  late final TextEditingController _notificationImageCtrl;
 
   late String _couponType;
   late bool _isActive;
   late DateTime _startDate;
   late DateTime _endDate;
+  late bool _sendNotification;
   bool _isSaving = false;
 
   @override
@@ -412,8 +416,16 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _loyaltyOrdersCtrl = TextEditingController(
       text: coupon?.loyaltyRequiredOrders?.toString() ?? '',
     );
+    _notificationTitleCtrl = TextEditingController();
+    _notificationBodyCtrl = TextEditingController(
+      text: coupon == null
+          ? 'Open FreshPickKart and save on your next order.'
+          : '',
+    );
+    _notificationImageCtrl = TextEditingController();
     _couponType = _deriveCouponType(coupon);
     _isActive = coupon?.isActive ?? true;
+    _sendNotification = coupon == null;
     _startDate = coupon?.startDate ?? DateTime.now();
     _endDate =
         coupon?.expiryDate ??
@@ -431,6 +443,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _usageLimitCtrl.dispose();
     _productIdsCtrl.dispose();
     _loyaltyOrdersCtrl.dispose();
+    _notificationTitleCtrl.dispose();
+    _notificationBodyCtrl.dispose();
+    _notificationImageCtrl.dispose();
     super.dispose();
   }
 
@@ -471,7 +486,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     );
 
     try {
-      await widget.onSave(coupon);
+      await widget.onSave(coupon, _buildNotificationDraft(coupon));
       if (!mounted) return;
       widget.onSaveSuccess();
       Navigator.pop(context);
@@ -480,6 +495,30 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       widget.onSaveError(error);
       setState(() => _isSaving = false);
     }
+  }
+
+  NotificationDraft? _buildNotificationDraft(Coupon coupon) {
+    if (!_sendNotification) return null;
+    final title = _notificationTitleCtrl.text.trim().isEmpty
+        ? 'New coupon: ${coupon.code}'
+        : _notificationTitleCtrl.text.trim();
+    final body = _notificationBodyCtrl.text.trim().isEmpty
+        ? coupon.description
+        : _notificationBodyCtrl.text.trim();
+    return NotificationDraft(
+      enabled: true,
+      title: title,
+      body: body,
+      type: 'coupon',
+      topic: 'coupons',
+      imageUrl: _notificationImageCtrl.text.trim().isEmpty
+          ? null
+          : _notificationImageCtrl.text.trim(),
+      targetAudience: 'all',
+      entityType: 'coupon',
+      entityId: coupon.id ?? coupon.code,
+      data: {'couponCode': coupon.code},
+    );
   }
 
   Widget _buildSheetHeader() {
@@ -809,6 +848,53 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                   ),
                 ],
               ),
+              if (!isEditing) ...[
+                SizedBox(height: 16.h),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.only(left: 8.w),
+                  value: _sendNotification,
+                  dense: true,
+                  title: const Text(
+                    'Send Notification',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _sendNotification = value;
+                    });
+                  },
+                ),
+                if (_sendNotification) ...[
+                  SizedBox(height: 12.h),
+                  TextFormField(
+                    controller: _notificationTitleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Notification Title',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  TextFormField(
+                    controller: _notificationBodyCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Notification Body',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  TextFormField(
+                    controller: _notificationImageCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Image URL',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      hintText: 'Optional',
+                    ),
+                  ),
+                ],
+              ],
               SizedBox(height: 24.h),
               _CouponAdaptiveRow(
                 collapseWidth: 360,
@@ -962,7 +1048,7 @@ Future<void> showEditCouponDialog({
     builder: (sheetContext) {
       return _CouponFormBottomSheet(
         initialCoupon: coupon,
-        onSave: (updated) async {
+        onSave: (updated, draft) async {
           final ok = await controller.updateCoupon(updated);
           if (!ok) {
             throw Exception('Update failed');

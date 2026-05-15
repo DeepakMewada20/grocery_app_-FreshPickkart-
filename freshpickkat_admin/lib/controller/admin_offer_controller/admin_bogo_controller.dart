@@ -138,7 +138,10 @@ class AdminBogoController extends GetxController {
     }
   }
 
-  Future<bool> upsertOffer(BogoOffer offer) async {
+  Future<bool> upsertOffer(
+    BogoOffer offer, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       print(
         'DEBUG BOGO: upsertOffer called with triggerProductId: ${offer.triggerProductId}',
@@ -148,7 +151,12 @@ class AdminBogoController extends GetxController {
         forceRefresh: false,
       );
       print('DEBUG BOGO: Calling API...');
-      await client.bogo.upsertOffer(offer, uid, idToken);
+      await client.bogo.upsertOffer(
+        offer,
+        uid,
+        idToken,
+        notificationDraft: notificationDraft,
+      );
       print('DEBUG BOGO: API call successful');
       _upsertLocal(offer);
       print(

@@ -12,6 +12,7 @@ import 'package:freshpickkat_flutter/screens/help_support_screen.dart';
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
+import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
@@ -72,7 +73,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildMenuItem(
                   icon: Icons.notifications_none_outlined,
                   title: 'Notifications',
-                  onTap: () {},
+                  onTap: () => Get.to(() => const NotificationSettingsScreen()),
                   cs: cs,
                 ),
                 _buildMenuItem(

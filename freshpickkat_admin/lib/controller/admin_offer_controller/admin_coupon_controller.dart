@@ -54,14 +54,22 @@ class AdminCouponController extends GetxController {
     }
   }
 
-  Future<void> uploadCoupon(Coupon coupon) async {
+  Future<void> uploadCoupon(
+    Coupon coupon, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
-        await _client.coupon.uploadCoupon(coupon, uid, idToken);
+        await _client.coupon.uploadCoupon(
+          coupon,
+          uid,
+          idToken,
+          notificationDraft: notificationDraft,
+        );
       });
       await loadCoupons(force: true);
     } catch (e) {
@@ -95,7 +103,10 @@ class AdminCouponController extends GetxController {
     }
   }
 
-  Future<bool> updateCoupon(Coupon updated) async {
+  Future<bool> updateCoupon(
+    Coupon updated, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       final ok = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();

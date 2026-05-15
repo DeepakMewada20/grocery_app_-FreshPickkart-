@@ -128,7 +128,10 @@ class AdminComboOfferController extends GetxController {
     }
   }
 
-  Future<bool> createComboOffer(ComboOffer offer) async {
+  Future<bool> createComboOffer(
+    ComboOffer offer, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       print(
         'DEBUG COMBO: createComboOffer called with comboId: ${offer.comboId}',
@@ -144,6 +147,7 @@ class AdminComboOfferController extends GetxController {
         normalizedOffer,
         uid,
         idToken,
+        notificationDraft: notificationDraft,
       );
       print('DEBUG COMBO: API result: $result');
       if (result) {

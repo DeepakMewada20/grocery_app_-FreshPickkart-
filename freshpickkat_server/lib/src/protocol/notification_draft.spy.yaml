@@ -1,0 +1,12 @@
+class: NotificationDraft
+fields:
+  enabled: bool
+  title: String
+  body: String
+  type: String
+  topic: String
+  imageUrl: String?
+  targetAudience: String
+  entityType: String?
+  entityId: String?
+  data: Map<String, String>?

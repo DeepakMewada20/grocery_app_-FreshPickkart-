@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_coupon_service.dart';
@@ -28,8 +29,9 @@ class CouponEndpoint extends Endpoint {
     Session session,
     Coupon coupon,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       await _adminGuard.ensureAdminSeller(
         session,
@@ -39,6 +41,13 @@ class CouponEndpoint extends Endpoint {
       ValidationService.validateCoupon(coupon);
       final result = await _coupons.uploadCoupon(session, coupon);
       if (result) {
+        await NotificationOutboxService.instance.enqueueCampaign(
+          session: session,
+          draft: notificationDraft,
+          fallbackEntityType: 'coupon',
+          fallbackEntityId: coupon.id ?? coupon.code,
+          extraData: {'couponCode': coupon.code.trim().toUpperCase()},
+        );
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,

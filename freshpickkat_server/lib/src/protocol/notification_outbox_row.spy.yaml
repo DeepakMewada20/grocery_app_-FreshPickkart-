@@ -1,0 +1,21 @@
+class: NotificationOutboxRow
+serverOnly: true
+table: notification_outbox
+fields:
+  id: UuidValue?, defaultPersist=random
+  dedupeKey: String
+  campaignId: UuidValue, relation(parent=notification_campaign, onDelete=Cascade)
+  payloadJson: String
+  attemptCount: int, default=0
+  lastError: String?
+  processedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  notification_outbox_dedupe_idx:
+    fields: dedupeKey
+    unique: true
+  notification_outbox_pending_idx:
+    fields: processedAt, createdAt, id
+  notification_outbox_campaign_idx:
+    fields: campaignId

@@ -3,6 +3,7 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
 import '../services/delivery/delivery_engine.dart';
+import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 
@@ -84,8 +85,9 @@ class FreeDeliveryEndpoint extends Endpoint {
     Session session,
     DeliveryRule rule,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    NotificationDraft? notificationDraft,
+  }) async {
     await _adminGuard.ensureAdminSeller(
       session,
       firebaseUid: firebaseUid,
@@ -95,6 +97,13 @@ class FreeDeliveryEndpoint extends Endpoint {
 
     final result = await DeliveryEngine.upsertDeliveryRule(session, rule);
     if (result) {
+      await NotificationOutboxService.instance.enqueueCampaign(
+        session: session,
+        draft: notificationDraft,
+        fallbackEntityType: 'delivery',
+        fallbackEntityId: rule.ruleId ?? rule.name,
+        extraData: {'deliveryRule': rule.name},
+      );
       await _audit.write(
         session,
         actorFirebaseUid: firebaseUid,

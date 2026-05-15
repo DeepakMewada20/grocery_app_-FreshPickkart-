@@ -1,0 +1,21 @@
+class: UserFcmTokenRow
+serverOnly: true
+table: user_fcm_token
+fields:
+  id: UuidValue?, defaultPersist=random
+  userId: UuidValue, relation(parent=app_user, onDelete=Cascade)
+  firebaseUid: String
+  fcmToken: String
+  deviceId: String
+  platform: String
+  isActive: bool, default=true
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  user_fcm_token_user_device_idx:
+    fields: userId, deviceId
+    unique: true
+  user_fcm_token_firebase_idx:
+    fields: firebaseUid, isActive, updatedAt
+  user_fcm_token_token_idx:
+    fields: fcmToken

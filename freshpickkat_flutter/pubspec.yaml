@@ -37,6 +37,7 @@ dependencies:
   serverpod_auth_client: 3.4.5
   firebase_auth: ^6.1.4
   firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^19.5.0
   firebase_storage: ^13.0.2
   pinput: ^6.0.2
   google_fonts: ^8.1.0
@@ -91,6 +92,7 @@ flutter:
     - assets/config.json
     - lib/assets/images/name_logo.png
     - lib/assets/images/delivery_truck.png
+    - lib/assets/images/delivery_scooter.png
     - lib/assets/images/delivery_scooter_traking.png
     - lib/assets/images/grocry_home_banner.png
     - lib/assets/images/app_logo.png

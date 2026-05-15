@@ -136,7 +136,10 @@ class AdminFreeDeliveryController extends GetxController {
     }
   }
 
-  Future<bool> createDeliveryRule(DeliveryRule rule) async {
+  Future<bool> createDeliveryRule(
+    DeliveryRule rule, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
@@ -146,6 +149,7 @@ class AdminFreeDeliveryController extends GetxController {
         rule,
         uid,
         idToken,
+        notificationDraft: notificationDraft,
       );
       if (result) {
         await loadDeliveryData(force: true);

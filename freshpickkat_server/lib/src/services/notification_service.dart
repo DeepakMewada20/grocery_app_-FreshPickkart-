@@ -20,8 +20,15 @@ class NotificationService {
     required String title,
     required String body,
     Map<String, String>? data,
+    String? imageUrl,
   }) =>
-      _service.sendToTopic(topic: topic, title: title, body: body, data: data);
+      _service.sendToTopic(
+        topic: topic,
+        title: title,
+        body: body,
+        data: data,
+        imageUrl: imageUrl,
+      );
 
   static Future<void> notifyUserPaymentSuccess({
     Session? session,

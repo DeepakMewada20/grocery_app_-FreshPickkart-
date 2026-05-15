@@ -1,0 +1,20 @@
+class: NotificationCampaignRow
+serverOnly: true
+table: notification_campaign
+fields:
+  id: UuidValue?, defaultPersist=random
+  title: String
+  body: String
+  type: String
+  topic: String
+  imageUrl: String?
+  targetAudience: String
+  entityType: String?
+  entityId: String?
+  dataJson: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  notification_campaign_created_idx:
+    fields: createdAt, id
+  notification_campaign_topic_idx:
+    fields: topic, createdAt

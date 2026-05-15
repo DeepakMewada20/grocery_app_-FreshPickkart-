@@ -1,0 +1,6 @@
+class: RegisterFcmTokenRequest
+fields:
+  firebaseUid: String
+  fcmToken: String
+  deviceId: String
+  platform: String

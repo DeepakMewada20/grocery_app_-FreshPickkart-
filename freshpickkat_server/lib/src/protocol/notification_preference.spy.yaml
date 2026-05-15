@@ -1,0 +1,8 @@
+class: NotificationPreference
+fields:
+  trackOrderNotifications: bool
+  couponNotifications: bool
+  offerNotifications: bool
+  announcementNotifications: bool
+  importantAlerts: bool
+  updatedAt: DateTime?

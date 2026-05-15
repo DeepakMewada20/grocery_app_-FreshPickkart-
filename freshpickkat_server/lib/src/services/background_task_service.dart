@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import 'firebase_notification_service.dart';
+import 'notification_outbox_service.dart';
 import 'realtime_service.dart';
 
 class BackgroundTaskService {
@@ -32,6 +33,8 @@ class BackgroundTaskService {
   final RealtimeService _realtime = RealtimeService();
   final FirebaseNotificationService _notifications =
       FirebaseNotificationService();
+  final NotificationOutboxService _campaignNotifications =
+      NotificationOutboxService.instance;
   bool _running = false;
 
   Future<void> run() async {
@@ -72,7 +75,8 @@ class BackgroundTaskService {
         : payload['itemCount'] is num
         ? (payload['itemCount'] as num).toInt()
         : null;
-    final isDeliveryStarted = event.eventType == 'order_status_changed' &&
+    final isDeliveryStarted =
+        event.eventType == 'order_status_changed' &&
         (event.status?.trim() == 'out_for_delivery');
     final isRefundProcessed = event.eventType == 'refund_processed';
 
@@ -87,6 +91,11 @@ class BackgroundTaskService {
   }
 
   Future<void> _drain(Session session) async {
+    await _drainOrderNotifications(session);
+    await _drainCampaignNotifications(session);
+  }
+
+  Future<void> _drainOrderNotifications(Session session) async {
     while (true) {
       final rows = await OrderNotificationOutboxRow.db.find(
         session,
@@ -122,6 +131,50 @@ class BackgroundTaskService {
           );
           session.log(
             'Background task failed for order ${row.orderId}: $error',
+            level: LogLevel.warning,
+            exception: error,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _drainCampaignNotifications(Session session) async {
+    while (true) {
+      final rows = await NotificationOutboxRow.db.find(
+        session,
+        where: (t) => t.processedAt.equals(null),
+        orderBy: (t) => t.createdAt,
+        limit: 50,
+      );
+
+      if (rows.isEmpty) break;
+
+      for (final row in rows) {
+        try {
+          await _campaignNotifications.sendOutboxRow(session, row);
+          await NotificationOutboxRow.db.updateById(
+            session,
+            row.id!,
+            columnValues: (t) => [
+              t.processedAt(DateTime.now().toUtc()),
+              t.lastError(null),
+              t.updatedAt(DateTime.now().toUtc()),
+            ],
+          );
+        } catch (error, stackTrace) {
+          await NotificationOutboxRow.db.updateById(
+            session,
+            row.id!,
+            columnValues: (t) => [
+              t.attemptCount(row.attemptCount + 1),
+              t.lastError(error.toString()),
+              t.updatedAt(DateTime.now().toUtc()),
+            ],
+          );
+          session.log(
+            'Background task failed for notification campaign ${row.campaignId}: $error',
             level: LogLevel.warning,
             exception: error,
             stackTrace: stackTrace,

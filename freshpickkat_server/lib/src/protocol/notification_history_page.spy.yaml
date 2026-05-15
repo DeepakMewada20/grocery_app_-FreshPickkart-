@@ -1,0 +1,5 @@
+class: NotificationHistoryPage
+fields:
+  items: List<NotificationHistoryItem>
+  nextPageToken: String?
+  unreadCount: int

@@ -1,0 +1,20 @@
+class: NotificationPreferenceRow
+serverOnly: true
+table: notification_preference
+fields:
+  id: UuidValue?, defaultPersist=random
+  userId: UuidValue, relation(parent=app_user, onDelete=Cascade)
+  firebaseUid: String
+  trackOrderNotifications: bool, default=true
+  couponNotifications: bool, default=true
+  offerNotifications: bool, default=true
+  announcementNotifications: bool, default=true
+  importantAlerts: bool, default=true
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  notification_preference_user_idx:
+    fields: userId
+    unique: true
+  notification_preference_firebase_idx:
+    fields: firebaseUid

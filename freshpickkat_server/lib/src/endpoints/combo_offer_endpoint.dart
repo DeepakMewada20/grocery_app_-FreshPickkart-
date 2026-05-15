@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
@@ -15,8 +16,9 @@ class ComboOfferEndpoint extends Endpoint {
     Session session,
     ComboOffer offer,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       await _adminGuard.ensureAdminSeller(
         session,
@@ -26,6 +28,13 @@ class ComboOfferEndpoint extends Endpoint {
       ValidationService.validateComboOffer(offer);
       final result = await _offers.upsertComboOffer(session, offer);
       if (result) {
+        await NotificationOutboxService.instance.enqueueCampaign(
+          session: session,
+          draft: notificationDraft,
+          fallbackEntityType: 'combo',
+          fallbackEntityId: offer.comboId ?? offer.name,
+          extraData: {'offerType': 'combo'},
+        );
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,

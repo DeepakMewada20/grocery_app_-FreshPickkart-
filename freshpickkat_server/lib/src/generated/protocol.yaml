@@ -70,6 +70,14 @@ freeDelivery:
   - deleteDeliveryRule:
   - setDeliveryRuleActive:
   - calculateDeliveryPricing:
+notification:
+  - registerFcmToken:
+  - getPreferences:
+  - updatePreferences:
+  - listNotifications:
+  - markNotificationRead:
+  - deleteNotification:
+  - createAnnouncement:
 order:
   - createOrder:
   - createPendingOrder:

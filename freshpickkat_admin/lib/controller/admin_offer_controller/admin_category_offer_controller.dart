@@ -123,7 +123,10 @@ class AdminCategoryOfferController extends GetxController {
     }
   }
 
-  Future<bool> createCategoryOffer(CategoryOffer offer) async {
+  Future<bool> createCategoryOffer(
+    CategoryOffer offer, {
+    NotificationDraft? notificationDraft,
+  }) async {
     try {
       final normalizedOffer = offer.copyWith(offerId: _ensureOfferId(offer));
       final uid = AdminSessionService.requireUid();
@@ -134,6 +137,7 @@ class AdminCategoryOfferController extends GetxController {
         normalizedOffer,
         uid,
         idToken,
+        notificationDraft: notificationDraft,
       );
       if (result) {
         _upsertLocal(normalizedOffer);

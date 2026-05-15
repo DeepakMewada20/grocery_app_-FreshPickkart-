@@ -1,0 +1,14 @@
+class: NotificationHistoryItem
+fields:
+  campaignId: String
+  title: String
+  body: String
+  type: String
+  topic: String
+  imageUrl: String?
+  targetAudience: String
+  entityType: String?
+  entityId: String?
+  data: Map<String, String>?
+  isRead: bool
+  createdAt: DateTime

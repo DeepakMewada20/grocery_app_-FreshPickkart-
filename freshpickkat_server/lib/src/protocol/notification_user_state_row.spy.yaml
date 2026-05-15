@@ -1,0 +1,19 @@
+class: NotificationUserStateRow
+serverOnly: true
+table: notification_user_state
+fields:
+  id: UuidValue?, defaultPersist=random
+  campaignId: UuidValue, relation(parent=notification_campaign, onDelete=Cascade)
+  userId: UuidValue, relation(parent=app_user, onDelete=Cascade)
+  isRead: bool, default=false
+  isDeleted: bool, default=false
+  readAt: DateTime?
+  deletedAt: DateTime?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  notification_user_state_campaign_user_idx:
+    fields: campaignId, userId
+    unique: true
+  notification_user_state_user_deleted_idx:
+    fields: userId, isDeleted, updatedAt

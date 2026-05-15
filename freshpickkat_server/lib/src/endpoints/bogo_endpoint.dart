@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart' as protocol;
+import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
 
@@ -12,14 +13,25 @@ class BogoEndpoint extends Endpoint {
     Session session,
     protocol.BogoOffer offer,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    protocol.NotificationDraft? notificationDraft,
+  }) async {
     await _adminGuard.ensureAdminSeller(
       session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    return _offers.upsertBogoOffer(session, offer);
+    final result = await _offers.upsertBogoOffer(session, offer);
+    if (result) {
+      await NotificationOutboxService.instance.enqueueCampaign(
+        session: session,
+        draft: notificationDraft,
+        fallbackEntityType: 'bogo',
+        fallbackEntityId: offer.offerId ?? offer.triggerProductId,
+        extraData: {'offerType': 'bogo'},
+      );
+    }
+    return result;
   }
 
   Future<bool> deleteOffer(
