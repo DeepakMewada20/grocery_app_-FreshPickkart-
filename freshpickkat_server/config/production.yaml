@@ -7,23 +7,23 @@
 # Configuration for the main API server.
 apiServer:
   port: 8080
-  publicHost: 144.217.241.119
-  publicPort: 80
-  publicScheme: http
+  publicHost: freshpickkart.com
+  publicPort: 443
+  publicScheme: https
 
 # Configuration for the Insights server.
 insightsServer:
   port: 8081
-  publicHost: 144.217.241.119
-  publicPort: 80
-  publicScheme: http
+  publicHost: freshpickkart.com
+  publicPort: 443
+  publicScheme: https
 
 # Configuration for the web server.
 webServer:
   port: 8082
-  publicHost: 144.217.241.119
-  publicPort: 80
-  publicScheme: http
+  publicHost: freshpickkart.com
+  publicPort: 443
+  publicScheme: https
 
 # This is the database setup for your servers. The default for the Google Cloud
 # Engine Terraform configuration is to connect on a private IP address.
