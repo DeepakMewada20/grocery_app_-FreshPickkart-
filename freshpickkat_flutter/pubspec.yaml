@@ -105,8 +105,6 @@ dependency_overrides:
 flutter_native_splash:
   color: "#FFFFFF"
   image: lib/assets/images/app_splash.png
-  branding: lib/assets/images/app_splash.png
-
   android: true
   ios: true
 

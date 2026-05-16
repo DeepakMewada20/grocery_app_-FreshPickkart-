@@ -46,6 +46,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   // State variables
   bool _isLoadingLocation = false;
   bool _isGeocoding = false;
+  bool _isSaving = false;
   Address? _currentAddress;
   final Set<Marker> _markers = {}; // Track if user is dragging map
 
@@ -288,17 +289,24 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
 
     try {
+      setState(() => _isSaving = true);
       if (widget.isCheckoutMode) {
         _orderController.setTempDeliveryAddress(address);
         if (_orderController.saveAddressForFuture.value) {
-          _userController.updateAddress(address);
+          await _userController.updateAddress(address);
         }
+        _isSaving = false;
+        if (mounted) setState(() {});
         Get.back(result: address);
       } else {
-        _userController.shippingAddress.value = address;
+        await _userController.updateAddress(address);
+        _isSaving = false;
+        if (mounted) setState(() {});
         Get.back(result: address);
       }
     } catch (e) {
+      _isSaving = false;
+      if (mounted) setState(() {});
       _showSnackBar('Failed to save address: $e', isError: true);
     }
   }
@@ -551,20 +559,33 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isGeocoding ? null : _confirmLocation,
+                            onPressed: (_isGeocoding || _isSaving)
+                                ? null
+                                : _confirmLocation,
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 14.h),
                               backgroundColor: cs.primary,
                               foregroundColor: cs.onPrimary,
                               disabledBackgroundColor: Colors.grey[300],
                             ),
-                            child: Text(
-                              _isGeocoding ? 'Loading...' : 'Confirm Location',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: _isSaving
+                                ? SizedBox(
+                                    height: 20.sp,
+                                    width: 20.sp,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: cs.onPrimary,
+                                    ),
+                                  )
+                                : Text(
+                                    _isGeocoding
+                                        ? 'Loading...'
+                                        : 'Confirm Location',
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                         ),
 

@@ -326,6 +326,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: selectedVpa,
                     decoration: const InputDecoration(
                       labelText: 'Test UPI ID',
