@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage>
   final productController = ProductProviderController.instance;
   final bannerController = BannerController.instance;
   final bogoController = BogoController.instance;
+  final offerWidgetKey = GlobalKey<OfferWidgetState>();
   bool _hasRestoredScrollOffset = false;
 
   @override
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage>
       productController.forceFetchProducts(),
       bannerController.forceLoadAllBanners(),
       bogoController.forceFetchActiveOffers(),
+      offerWidgetKey.currentState?.fetchOffer() ?? Future.value(),
     ]);
   }
 
@@ -137,7 +139,7 @@ class _HomePageState extends State<HomePage>
                       )
                     else ...[
                       // 🎁 OFFER WIDGET
-                      OfferWidget(),
+                      OfferWidget(key: offerWidgetKey),
 
                       // 🎪 BANNER WITH HORIZONTAL ITEMS
                       HomeBannerWithHorizontalItem(height: height),

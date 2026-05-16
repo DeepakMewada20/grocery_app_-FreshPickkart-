@@ -47,10 +47,10 @@ import 'package:freshpickkat_server/src/generated/coupon_validation_result.dart'
 import 'package:freshpickkat_server/src/generated/best_coupon_result.dart'
     as _i27;
 import 'package:freshpickkat_server/src/generated/delivery_config.dart' as _i28;
-import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i29;
-import 'package:freshpickkat_server/src/generated/delivery_rule_page.dart'
-    as _i30;
 import 'package:freshpickkat_server/src/generated/delivery_pricing_result.dart'
+    as _i29;
+import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i30;
+import 'package:freshpickkat_server/src/generated/delivery_rule_page.dart'
     as _i31;
 import 'package:freshpickkat_server/src/generated/notification_preference.dart'
     as _i32;
@@ -2742,6 +2742,37 @@ class _FreeDeliveryEndpoint {
     });
   }
 
+  _i3.Future<_i29.DeliveryPricingResult> getUserDeliveryOffer(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'freeDelivery',
+            method: 'getUserDeliveryOffer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'freeDelivery',
+          methodName: 'getUserDeliveryOffer',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i29.DeliveryPricingResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<bool> upsertDeliveryConfig(
     _i1.TestSessionBuilder sessionBuilder,
     _i28.DeliveryConfig config,
@@ -2779,7 +2810,7 @@ class _FreeDeliveryEndpoint {
     });
   }
 
-  _i3.Future<List<_i29.DeliveryRule>> getAllDeliveryRules(
+  _i3.Future<List<_i30.DeliveryRule>> getAllDeliveryRules(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -2806,7 +2837,7 @@ class _FreeDeliveryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i29.DeliveryRule>>);
+                as _i3.Future<List<_i30.DeliveryRule>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2814,7 +2845,7 @@ class _FreeDeliveryEndpoint {
     });
   }
 
-  _i3.Future<_i30.DeliveryRulePage> getDeliveryRulesPage(
+  _i3.Future<_i31.DeliveryRulePage> getDeliveryRulesPage(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken, {
@@ -2845,7 +2876,7 @@ class _FreeDeliveryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i30.DeliveryRulePage>);
+                as _i3.Future<_i31.DeliveryRulePage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -2855,7 +2886,7 @@ class _FreeDeliveryEndpoint {
 
   _i3.Future<bool> upsertDeliveryRule(
     _i1.TestSessionBuilder sessionBuilder,
-    _i29.DeliveryRule rule,
+    _i30.DeliveryRule rule,
     String firebaseUid,
     String idToken, {
     _i12.NotificationDraft? notificationDraft,
@@ -2968,7 +2999,7 @@ class _FreeDeliveryEndpoint {
     });
   }
 
-  _i3.Future<_i31.DeliveryPricingResult> calculateDeliveryPricing(
+  _i3.Future<_i29.DeliveryPricingResult> calculateDeliveryPricing(
     _i1.TestSessionBuilder sessionBuilder,
     double cartTotal, {
     String? userId,
@@ -2997,7 +3028,7 @@ class _FreeDeliveryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i31.DeliveryPricingResult>);
+                as _i3.Future<_i29.DeliveryPricingResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

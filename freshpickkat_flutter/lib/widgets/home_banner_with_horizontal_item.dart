@@ -121,8 +121,7 @@ class _HomeBannerWithHorizontalItemState
             )
             .toDouble();
 
-        return Container(
-          margin: EdgeInsets.only(top: 16.h),
+        return SizedBox(
           height: bannerHeight,
           width: double.infinity,
           child: Stack(

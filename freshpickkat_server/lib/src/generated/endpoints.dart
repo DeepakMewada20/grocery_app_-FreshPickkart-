@@ -2097,6 +2097,26 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
                       .getDeliveryConfig(session),
         ),
+        'getUserDeliveryOffer': _i1.MethodConnector(
+          name: 'getUserDeliveryOffer',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
+                      .getUserDeliveryOffer(
+                        session,
+                        params['userId'],
+                      ),
+        ),
         'upsertDeliveryConfig': _i1.MethodConnector(
           name: 'upsertDeliveryConfig',
           params: {

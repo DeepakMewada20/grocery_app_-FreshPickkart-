@@ -91,26 +91,24 @@ flutter:
     - .env
     - assets/config.json
     - lib/assets/images/name_logo.png
-    - lib/assets/images/delivery_truck.png
     - lib/assets/images/delivery_scooter.png
     - lib/assets/images/delivery_scooter_traking.png
     - lib/assets/images/grocry_home_banner.png
     - lib/assets/images/app_logo.png
     - lib/assets/images/app_splash.png
-    - lib/assets/images/logo.png
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
 
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: lib/assets/images/app_splash.png
+  image: lib/assets/images/app_logo.png
   android: true
   ios: true
 
   android_12:
     color: "#FFFFFF"
-    image: lib/assets/images/app_splash.png
+    image: lib/assets/images/app_logo.png
 
 flutter_launcher_icons:
   android: "launcher_icon"

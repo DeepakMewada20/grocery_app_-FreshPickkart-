@@ -43,7 +43,7 @@ class CategoryGridSection extends StatelessWidget {
                   return CategoryItemCard(
                     itemName: item['name'] ?? 'Item',
                     imagePath:
-                        item['image'] ?? 'lib/assets/images/Fruits_.avif',
+                        item['image'],
                     onTap: () {
                       // Handle item tap
                       ScaffoldMessenger.of(context).showSnackBar(

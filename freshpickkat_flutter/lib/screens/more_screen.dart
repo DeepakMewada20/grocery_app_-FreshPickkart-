@@ -549,11 +549,6 @@ class _MoreScreenState extends State<MoreScreen> {
     return Center(
       child: Column(
         children: [
-          Image.asset(
-            'lib/assets/images/logo.png',
-            height: 40.h,
-            color: cs.onSurface.withValues(alpha: 0.2),
-          ),
           SizedBox(height: 8.h),
           Text(
             'App Version 8.0.2.0',

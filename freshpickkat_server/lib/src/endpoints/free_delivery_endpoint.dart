@@ -15,6 +15,13 @@ class FreeDeliveryEndpoint extends Endpoint {
     return DeliveryEngine.getDeliveryConfig(session);
   }
 
+  Future<DeliveryPricingResult> getUserDeliveryOffer(
+    Session session,
+    String userId,
+  ) async {
+    return DeliveryEngine.getUserDeliveryOffer(session, userId);
+  }
+
   Future<bool> upsertDeliveryConfig(
     Session session,
     DeliveryConfig config,

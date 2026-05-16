@@ -150,6 +150,74 @@ class DeliveryEngine {
     return false;
   }
 
+  static Future<DeliveryPricingResult> getUserDeliveryOffer(
+    Session session,
+    String userId,
+  ) async {
+    final config = await getDeliveryConfig(session);
+    final rules = await getActiveDeliveryRules(session);
+
+    final matchingRules = <DeliveryRule>[];
+    for (final rule in rules) {
+      if (!await matchesUserAsync(session, rule, userId)) continue;
+      matchingRules.add(rule);
+    }
+
+    matchingRules.sort((a, b) => a.priority.compareTo(b.priority));
+    if (matchingRules.isNotEmpty) {
+      final rule = matchingRules.first;
+      final message = _buildOfferMessage(rule);
+      final result = _buildResult(
+        deliveryFee: rule.deliveryFee,
+        cartTotal: 0,
+        config: config,
+        appliedRuleType: rule.ruleType,
+        appliedRuleName: rule.name,
+      );
+      return DeliveryPricingResult(
+        deliveryFee: result.deliveryFee,
+        isFree: result.isFree,
+        message: message,
+        remainingAmount: result.remainingAmount,
+        progressPercent: result.progressPercent,
+        appliedRuleType: result.appliedRuleType,
+        appliedRuleName: result.appliedRuleName,
+        freeDeliveryThreshold: result.freeDeliveryThreshold,
+        baseDeliveryFee: result.baseDeliveryFee,
+      );
+    }
+
+    return DeliveryPricingResult(
+      deliveryFee: config.baseDeliveryFee,
+      isFree: false,
+      message: null,
+      appliedRuleType: null,
+      appliedRuleName: null,
+      freeDeliveryThreshold: config.freeDeliveryThreshold,
+      baseDeliveryFee: config.baseDeliveryFee,
+    );
+  }
+
+  static String _buildOfferMessage(DeliveryRule rule) {
+    final target = rule.targetUserType?.trim().toLowerCase();
+    final isFree = rule.deliveryFee <= 0;
+
+    if (target == 'new_user') {
+      return isFree
+          ? 'Free delivery on your 1st order!'
+          : 'Special delivery pricing on your 1st order';
+    }
+    if (target == 'specific_order') {
+      final n = rule.targetOrderCount ?? 0;
+      return isFree
+          ? 'Free delivery on your ${n}th order!'
+          : 'Special pricing on your ${n}th order';
+    }
+    return isFree
+        ? 'Free delivery on all orders!'
+        : 'Special delivery pricing';
+  }
+
   static DeliveryPricingResult _buildResult({
     required double deliveryFee,
     required double cartTotal,

@@ -43,10 +43,10 @@ import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
 import 'package:freshpickkat_client/src/protocol/best_coupon_result.dart'
     as _i26;
 import 'package:freshpickkat_client/src/protocol/delivery_config.dart' as _i27;
-import 'package:freshpickkat_client/src/protocol/delivery_rule.dart' as _i28;
-import 'package:freshpickkat_client/src/protocol/delivery_rule_page.dart'
-    as _i29;
 import 'package:freshpickkat_client/src/protocol/delivery_pricing_result.dart'
+    as _i28;
+import 'package:freshpickkat_client/src/protocol/delivery_rule.dart' as _i29;
+import 'package:freshpickkat_client/src/protocol/delivery_rule_page.dart'
     as _i30;
 import 'package:freshpickkat_client/src/protocol/notification_preference.dart'
     as _i31;
@@ -985,6 +985,13 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
         {},
       );
 
+  _i2.Future<_i28.DeliveryPricingResult> getUserDeliveryOffer(String userId) =>
+      caller.callServerEndpoint<_i28.DeliveryPricingResult>(
+        'freeDelivery',
+        'getUserDeliveryOffer',
+        {'userId': userId},
+      );
+
   _i2.Future<bool> upsertDeliveryConfig(
     _i27.DeliveryConfig config,
     String firebaseUid,
@@ -999,10 +1006,10 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i28.DeliveryRule>> getAllDeliveryRules(
+  _i2.Future<List<_i29.DeliveryRule>> getAllDeliveryRules(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i28.DeliveryRule>>(
+  ) => caller.callServerEndpoint<List<_i29.DeliveryRule>>(
     'freeDelivery',
     'getAllDeliveryRules',
     {
@@ -1011,12 +1018,12 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i29.DeliveryRulePage> getDeliveryRulesPage(
+  _i2.Future<_i30.DeliveryRulePage> getDeliveryRulesPage(
     String firebaseUid,
     String idToken, {
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i29.DeliveryRulePage>(
+  }) => caller.callServerEndpoint<_i30.DeliveryRulePage>(
     'freeDelivery',
     'getDeliveryRulesPage',
     {
@@ -1028,7 +1035,7 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> upsertDeliveryRule(
-    _i28.DeliveryRule rule,
+    _i29.DeliveryRule rule,
     String firebaseUid,
     String idToken, {
     _i11.NotificationDraft? notificationDraft,
@@ -1073,11 +1080,11 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i30.DeliveryPricingResult> calculateDeliveryPricing(
+  _i2.Future<_i28.DeliveryPricingResult> calculateDeliveryPricing(
     double cartTotal, {
     String? userId,
     String? location,
-  }) => caller.callServerEndpoint<_i30.DeliveryPricingResult>(
+  }) => caller.callServerEndpoint<_i28.DeliveryPricingResult>(
     'freeDelivery',
     'calculateDeliveryPricing',
     {

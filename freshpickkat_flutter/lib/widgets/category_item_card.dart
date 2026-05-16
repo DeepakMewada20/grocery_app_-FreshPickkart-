@@ -5,13 +5,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryItemCard extends StatelessWidget {
   final String itemName;
-  final String imagePath;
+  final String? imagePath;
   final VoidCallback? onTap;
 
   const CategoryItemCard({
     super.key,
     required this.itemName,
-    required this.imagePath,
+    this.imagePath,
     this.onTap,
   });
 
@@ -82,7 +82,16 @@ class CategoryItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImage(String path) {
+  Widget _buildImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Center(
+        child: Icon(
+          Icons.category,
+          size: 36.r,
+          color: Colors.grey[400],
+        ),
+      );
+    }
     final isNetwork = path.startsWith('http://') || path.startsWith('https://');
     if (isNetwork) {
       return Image.network(

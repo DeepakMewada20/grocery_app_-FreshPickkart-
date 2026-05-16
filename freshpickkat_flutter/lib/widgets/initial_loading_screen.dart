@@ -433,16 +433,8 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
               _buildShimmerBox(
-                height: 60,
-                width: double.infinity,
-                baseColor: baseColor,
-                highlightColor: highlightColor,
-              ),
-              const SizedBox(height: 16),
-              _buildShimmerBox(
-                height: 120,
+                height: MediaQuery.of(context).size.width / 1.2,
                 width: double.infinity,
                 baseColor: baseColor,
                 highlightColor: highlightColor,

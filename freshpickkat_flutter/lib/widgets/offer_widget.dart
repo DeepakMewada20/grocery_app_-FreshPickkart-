@@ -1,18 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
-class OfferWidget extends StatelessWidget {
+class OfferWidget extends StatefulWidget {
   const OfferWidget({super.key});
 
   @override
+  State<OfferWidget> createState() => OfferWidgetState();
+}
+
+class OfferWidgetState extends State<OfferWidget> {
+  final _client = ServerpodClient().client;
+  DeliveryPricingResult? _offer;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOffer();
+  }
+
+  Future<void> fetchOffer() => _fetchOffer();
+
+  Future<void> _fetchOffer() async {
+    final user = AuthController.instance.appUser;
+    if (user == null || user.firebaseUid.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+    try {
+      final result = await _client.freeDelivery.getUserDeliveryOffer(
+        user.firebaseUid,
+      );
+      if (mounted) {
+        setState(() {
+          _offer = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading || _offer == null || _offer!.appliedRuleType == null) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    final offer = _offer!;
     return SliverToBoxAdapter(
       child: Container(
         padding: EdgeInsets.all(12.r),
         decoration: const BoxDecoration(color: Color(0xFF0C5A2A)),
         child: Row(
           children: [
-            Icon(Icons.card_giftcard, color: Colors.white, size: 24.r),
+            Icon(
+              offer.isFree ? Icons.card_giftcard : Icons.local_shipping,
+              color: Colors.white,
+              size: 24.r,
+            ),
             SizedBox(width: 10.w),
             Expanded(
               child: Row(
@@ -22,7 +72,7 @@ class OfferWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "You're eligible for a free membership trial!",
+                          offer.message ?? 'Delivery offer',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -30,12 +80,18 @@ class OfferWidget extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
-                          "Enjoy free deliveries from your 1st order",
-                          style: TextStyle(color: Colors.white),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        if (offer.appliedRuleName != null) ...[
+                          SizedBox(height: 2.h),
+                          Text(
+                            offer.appliedRuleName!,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11.sp,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
                     ),
                   ),
