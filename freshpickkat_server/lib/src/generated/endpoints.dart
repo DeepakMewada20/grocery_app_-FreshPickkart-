@@ -3888,6 +3888,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'lastProductId': _i1.ParameterDescription(
+              name: 'lastProductId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'category': _i1.ParameterDescription(
               name: 'category',
               type: _i1.getType<String?>(),
@@ -3913,6 +3918,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     limit: params['limit'],
                     lastProductName: params['lastProductName'],
+                    lastProductId: params['lastProductId'],
                     category: params['category'],
                     subcategories: params['subcategories'],
                     sortBy: params['sortBy'],

@@ -27,6 +27,7 @@ class ProductEndpoint extends Endpoint {
     Session session, {
     int limit = 10,
     String? lastProductName,
+    String? lastProductId,
     String? category,
     List<String>? subcategories,
     String sortBy = 'name',
@@ -35,6 +36,7 @@ class ProductEndpoint extends Endpoint {
       session,
       limit: limit,
       lastProductName: lastProductName,
+      lastProductId: lastProductId,
       category: category,
       subcategories: subcategories,
       sortBy: sortBy,

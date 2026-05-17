@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
@@ -14,6 +15,79 @@ import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+
+class _LazyMiddleBanner extends StatefulWidget {
+  const _LazyMiddleBanner();
+
+  @override
+  State<_LazyMiddleBanner> createState() => _LazyMiddleBannerState();
+}
+
+class _LazyMiddleBannerState extends State<_LazyMiddleBanner> {
+  ScrollPosition? _scrollPosition;
+  bool _hasTriggered = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasTriggered) {
+      _scrollPosition?.removeListener(_onScroll);
+      _scrollPosition = Scrollable.maybeOf(context)?.position;
+      _scrollPosition?.addListener(_onScroll);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollPosition?.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_hasTriggered) return;
+    final position = _scrollPosition;
+    if (position == null) return;
+
+    final renderObject = context.findRenderObject();
+    if (renderObject == null || !renderObject.attached) return;
+
+    final viewport = RenderAbstractViewport.maybeOf(renderObject);
+    if (viewport == null) return;
+
+    final reveal = viewport.getOffsetToReveal(renderObject, 0.0);
+    const lookahead = 500.0;
+
+    if (reveal.offset <= position.pixels + position.viewportDimension + lookahead) {
+      _hasTriggered = true;
+      _scrollPosition?.removeListener(_onScroll);
+      BannerController.instance.loadHomeMiddleBannersIfEmpty();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final middleBanners = BannerController.instance.homeMiddleBanners;
+      if (middleBanners.isEmpty) return const SizedBox.shrink();
+
+      return Padding(
+        padding: EdgeInsets.only(top: 12.h),
+        child: NetworkBannerWidget(
+          height: AppResponsive.bannerHeight(
+            context,
+            ratio: 0.42,
+            min: 130,
+            max: 190,
+          ),
+          banners: middleBanners,
+          autoScrollInterval: const Duration(seconds: 4),
+          autoScrollDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    });
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -52,6 +126,8 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _onRefresh() async {
+    _savedScrollOffset = 0;
+    _hasRestoredScrollOffset = false;
     await Future.wait([
       productController.forceFetchProducts(),
       bannerController.forceLoadAllBanners(),
@@ -63,6 +139,13 @@ class _HomePageState extends State<HomePage>
   void _storeScrollOffset() {
     if (_scrollController.hasClients) {
       _savedScrollOffset = _scrollController.offset;
+      final pos = _scrollController.position;
+      if (pos.pixels >= pos.maxScrollExtent - 200 &&
+          !productController.isLoading.value &&
+          productController.isMoreDataAvailable.value &&
+          mounted) {
+        productController.loadMore();
+      }
     }
   }
 
@@ -157,18 +240,6 @@ class _HomePageState extends State<HomePage>
                           sortBy: "best_sellers",
                         ),
                       ),
-                      SliverToBoxAdapter(
-                        child: CategoriesSelectionListview(
-                          titalWord: "Most Viewed",
-                          sortBy: "most_viewed",
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: CategoriesSelectionListview(
-                          titalWord: "Frequently Reordered",
-                          sortBy: "frequently_reordered",
-                        ),
-                      ),
 
                       // OFFER BANNER (home_top)
                       SliverToBoxAdapter(
@@ -201,32 +272,34 @@ class _HomePageState extends State<HomePage>
 
                       // 📦 ALL PRODUCTS GRID (infinite scroll)
                       SliverToBoxAdapter(
-                        child: Obx(() {
-                          final bannerController = BannerController.instance;
-                          final middleBanners =
-                              bannerController.homeMiddleBanners;
-
-                          return ItemSelectionGirdviwe(
-                            titalWord: "Other Products",
-                            midContent: middleBanners.isEmpty
-                                ? null
-                                : NetworkBannerWidget(
-                                    height: AppResponsive.bannerHeight(
-                                      context,
-                                      ratio: 0.42,
-                                      min: 130,
-                                      max: 190,
-                                    ),
-                                    banners: middleBanners,
-                                    autoScrollInterval: const Duration(
-                                      seconds: 4,
-                                    ),
-                                    autoScrollDuration: const Duration(
-                                      milliseconds: 500,
-                                    ),
-                                  ),
-                          );
-                        }),
+                        child: ItemSelectionGirdviwe(
+                          titalWord: "Other Products",
+                          insertions: [
+                            GridInsertion(
+                              afterCount: 20,
+                              widgets: [
+                                CategoriesSelectionListview(
+                                  key: const ValueKey('most_viewed'),
+                                  titalWord: "Most Viewed",
+                                  sortBy: "most_viewed",
+                                  lazyLoad: true,
+                                ),
+                                const _LazyMiddleBanner(),
+                              ],
+                            ),
+                            GridInsertion(
+                              afterCount: 30,
+                              widgets: [
+                                CategoriesSelectionListview(
+                                  key: const ValueKey('frequently_reordered'),
+                                  titalWord: "Frequently Reordered",
+                                  sortBy: "frequently_reordered",
+                                  lazyLoad: true,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
 
                       // Loading indicator at bottom when fetching more

@@ -4813,6 +4813,7 @@ class _ProductEndpoint {
     _i1.TestSessionBuilder sessionBuilder, {
     required int limit,
     String? lastProductName,
+    String? lastProductId,
     String? category,
     List<String>? subcategories,
     required String sortBy,
@@ -4831,6 +4832,7 @@ class _ProductEndpoint {
           parameters: _i1.testObjectToJson({
             'limit': limit,
             'lastProductName': lastProductName,
+            'lastProductId': lastProductId,
             'category': category,
             'subcategories': subcategories,
             'sortBy': sortBy,

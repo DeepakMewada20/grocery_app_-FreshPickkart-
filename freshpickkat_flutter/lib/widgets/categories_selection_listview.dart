@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
@@ -13,11 +14,13 @@ import 'package:get/get.dart';
 class CategoriesSelectionListview extends StatefulWidget {
   final String titalWord;
   final String? sortBy;
+  final bool lazyLoad;
 
   const CategoriesSelectionListview({
     super.key,
     required this.titalWord,
     this.sortBy,
+    this.lazyLoad = false,
   });
 
   @override
@@ -27,10 +30,53 @@ class CategoriesSelectionListview extends StatefulWidget {
 
 class _CategoriesSelectionListviewState
     extends State<CategoriesSelectionListview> {
+  ScrollPosition? _scrollPosition;
+  bool _hasTriggered = false;
+
   @override
   void initState() {
     super.initState();
-    _triggerFetch();
+    if (!widget.lazyLoad) {
+      _triggerFetch();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.lazyLoad && !_hasTriggered) {
+      _scrollPosition?.removeListener(_onScroll);
+      _scrollPosition = Scrollable.maybeOf(context)?.position;
+      _scrollPosition?.addListener(_onScroll);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollPosition?.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_hasTriggered) return;
+    final position = _scrollPosition;
+    if (position == null) return;
+
+    final renderObject = context.findRenderObject();
+    if (renderObject == null || !renderObject.attached) return;
+
+    final viewport = RenderAbstractViewport.maybeOf(renderObject);
+    if (viewport == null) return;
+
+    final reveal = viewport.getOffsetToReveal(renderObject, 0.0);
+    const lookahead = 500.0;
+
+    if (reveal.offset <= position.pixels + position.viewportDimension + lookahead) {
+      _hasTriggered = true;
+      _scrollPosition?.removeListener(_onScroll);
+      _triggerFetch();
+    }
   }
 
   void _triggerFetch() {

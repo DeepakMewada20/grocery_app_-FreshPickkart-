@@ -22,6 +22,7 @@ class BannerController extends GetxController {
   final Map<String, ImageProvider> _imageProviderCache = {};
 
   final isLoading = false.obs;
+  final isLazyLoadingMiddle = false.obs;
   final error = Rx<String?>(null);
 
   // Mutex lock to prevent duplicate API calls
@@ -48,7 +49,7 @@ class BannerController extends GetxController {
 
   Future<void> loadHomeBannersIfEmpty() async {
     if (_isFetching) return;
-    if (homeTopBanners.isNotEmpty && homeMiddleBanners.isNotEmpty) return;
+    if (homeTopBanners.isNotEmpty) return;
     if (isLoading.value) return;
 
     _isFetching = true;
@@ -61,6 +62,24 @@ class BannerController extends GetxController {
     }
   }
 
+  Future<void> loadHomeMiddleBannersIfEmpty({bool force = false}) async {
+    if (!force && homeMiddleBanners.isNotEmpty) return;
+    if (isLoading.value) return;
+
+    isLazyLoadingMiddle.value = true;
+    try {
+      final banners = await _client.banner.getBanners(
+        screen: 'home_middle',
+        activeOnly: true,
+      );
+      homeMiddleBanners.assignAll(banners);
+    } catch (e) {
+      debugPrint('Error loading home middle banners: $e');
+    } finally {
+      isLazyLoadingMiddle.value = false;
+    }
+  }
+
   Future<void> loadHomeBanners() async {
     try {
       isLoading.value = true;
@@ -69,14 +88,12 @@ class BannerController extends GetxController {
       final results = await Future.wait([
         _client.banner.getBanners(screen: 'home_top', activeOnly: true),
         _client.banner.getBanners(screen: 'home_top_image', activeOnly: true),
-        _client.banner.getBanners(screen: 'home_middle', activeOnly: true),
       ]);
 
       homeTopBanners.assignAll(
         results[0].where((b) => !b.screenPlacements.contains('home_top_image')),
       );
       homeTopImageBanners.assignAll(results[1]);
-      homeMiddleBanners.assignAll(results[2]);
 
       // Precache images for immediate reuse
       if (results[1].isNotEmpty && Get.context != null) {
@@ -157,6 +174,8 @@ class BannerController extends GetxController {
     await loadHomeBanners();
     // Other screens will load on demand, but if forceRefresh is true, we might want to refresh what's already loaded
     if (forceRefresh) {
+      homeMiddleBanners.clear();
+      await loadHomeMiddleBannersIfEmpty(force: true);
       if (categoryPageBanners.isNotEmpty) {
         await loadBannersForScreen('category_page');
       }

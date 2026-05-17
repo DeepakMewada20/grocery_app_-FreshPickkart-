@@ -176,6 +176,9 @@ class ProductProviderController extends GetxController {
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,
+        lastProductId: allProducts.isEmpty
+            ? null
+            : allProducts.last.productId,
         category: currentCategory.value.isEmpty ? null : currentCategory.value,
         subcategories: currentSubcategories.isEmpty
             ? null
@@ -183,7 +186,7 @@ class ProductProviderController extends GetxController {
         sortBy: currentSortBy.value,
       );
 
-      if (newProducts.length < 10) {
+      if (newProducts.length < _cacheLimit) {
         isMoreDataAvailable.value = false;
       }
 

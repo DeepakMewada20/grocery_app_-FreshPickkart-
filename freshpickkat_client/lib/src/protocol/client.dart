@@ -1823,6 +1823,7 @@ class EndpointProduct extends _i1.EndpointRef {
   _i2.Future<List<_i42.Product>> getProducts({
     required int limit,
     String? lastProductName,
+    String? lastProductId,
     String? category,
     List<String>? subcategories,
     required String sortBy,
@@ -1832,6 +1833,7 @@ class EndpointProduct extends _i1.EndpointRef {
     {
       'limit': limit,
       'lastProductName': lastProductName,
+      'lastProductId': lastProductId,
       'category': category,
       'subcategories': subcategories,
       'sortBy': sortBy,

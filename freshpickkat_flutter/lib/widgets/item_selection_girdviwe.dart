@@ -6,19 +6,24 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+class GridInsertion {
+  final int afterCount;
+  final List<Widget> widgets;
+  const GridInsertion({required this.afterCount, required this.widgets});
+}
+
 class ItemSelectionGirdviwe extends StatelessWidget {
   final String titalWord;
   final int crossAxisCount;
   final double childAspectRatio;
-  final Widget? midContent;
-  final int midContentAfterCount;
   final bool adaptiveLayout;
+  final List<GridInsertion>? insertions;
+
   const ItemSelectionGirdviwe({
     this.childAspectRatio = 0.44,
     this.crossAxisCount = 3,
-    this.midContent,
-    this.midContentAfterCount = 20,
     this.adaptiveLayout = true,
+    this.insertions,
     super.key,
     required this.titalWord,
   });
@@ -91,39 +96,62 @@ class ItemSelectionGirdviwe extends StatelessWidget {
               ),
               Obx(() {
                 final products = productController.allProducts;
-                final normalizedSplitIndex = midContentAfterCount <= 0
-                    ? 0
-                    : ((midContentAfterCount + effectiveColumns - 1) ~/
-                              effectiveColumns) *
-                          effectiveColumns;
-                final splitIndex = normalizedSplitIndex.clamp(
-                  0,
-                  products.length,
-                );
-                final beforeMidContent = products.take(splitIndex).toList();
-                final afterMidContent = products.skip(splitIndex).toList();
+                final sortedInsertions = insertions != null
+                    ? (List<GridInsertion>.from(insertions!)
+                      ..sort((a, b) => a.afterCount.compareTo(b.afterCount)))
+                    : <GridInsertion>[];
 
-                return Column(
-                  children: [
-                    _buildGridSection(
+                if (sortedInsertions.isEmpty) {
+                  return _buildGridSection(
+                    context,
+                    products,
+                    effectiveColumns,
+                    effectiveAspectRatio,
+                  );
+                }
+
+                final segments = <Widget>[];
+                int startIndex = 0;
+
+                for (final insertion in sortedInsertions) {
+                  final normalized = insertion.afterCount <= 0
+                      ? 0
+                      : ((insertion.afterCount + effectiveColumns - 1) ~/
+                                effectiveColumns) *
+                            effectiveColumns;
+                  final splitAt = normalized.clamp(startIndex, products.length);
+
+                  if (splitAt > startIndex) {
+                    segments.add(_buildGridSection(
                       context,
-                      beforeMidContent,
+                      products.sublist(startIndex, splitAt),
                       effectiveColumns,
                       effectiveAspectRatio,
-                    ),
-                    if (midContent != null && products.length > splitIndex)
-                      Padding(
+                    ));
+                  }
+
+                  if (splitAt < products.length) {
+                    for (final w in insertion.widgets) {
+                      segments.add(Padding(
                         padding: EdgeInsets.only(bottom: 12.h),
-                        child: midContent!,
-                      ),
-                    _buildGridSection(
-                      context,
-                      afterMidContent,
-                      effectiveColumns,
-                      effectiveAspectRatio,
-                    ),
-                  ],
-                );
+                        child: w,
+                      ));
+                    }
+                  }
+
+                  startIndex = splitAt;
+                }
+
+                if (startIndex < products.length) {
+                  segments.add(_buildGridSection(
+                    context,
+                    products.sublist(startIndex),
+                    effectiveColumns,
+                    effectiveAspectRatio,
+                  ));
+                }
+
+                return Column(children: segments);
               }),
             ],
           );
