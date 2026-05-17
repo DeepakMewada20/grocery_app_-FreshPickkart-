@@ -452,50 +452,17 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Column(
                   children: [
                     SizedBox(
-                      height: AdminResponsive.isLandscape(context) ? 8.h : 24.h,
+                      height: AdminResponsive.isLandscape(context)
+                          ? 12.h
+                          : 28.h,
                     ),
-                    Container(
-                      padding: EdgeInsets.all(14.r),
-                      decoration: BoxDecoration(
-                        color: AdminAppTheme.getSuccessColor(
-                          context,
-                        ).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        Icons.admin_panel_settings,
-                        color: AdminAppTheme.getSuccessColor(context),
-                        size: AdminResponsive.isLandscape(context)
-                            ? 42.sp
-                            : 52.sp.clamp(44.0, 56.0),
-                      ),
-                    ),
-                    SizedBox(height: 14.h),
-                    Text(
-                      'FreshPickKart Admin',
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AdminTextStyles.screenTitle(
-                        context,
-                      ).copyWith(fontSize: 26.sp.clamp(20.0, 28.0).toDouble()),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Single Admin (ADMIN_SELLER)',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AdminAppTheme.getTextSecondaryColor(context),
-                      ),
-                    ),
-                    SizedBox(height: 18.h),
-                    const TabBar(
-                      tabs: [
-                        Tab(text: 'Login'),
-                        Tab(text: 'First Setup'),
-                      ],
-                    ),
-                    SizedBox(height: 12.h),
+                    // Animated Header
+                    _buildHeaderSection(),
+                    SizedBox(height: 28.h),
+                    // Modern Tab Bar
+                    _buildModernTabBar(),
+                    SizedBox(height: 20.h),
+                    // Tab Content
                     Expanded(
                       child: TabBarView(
                         children: [_buildLoginTab(), _buildSetupTab()],
@@ -511,54 +478,135 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildLoginTab() {
-    return Form(
-      key: _loginFormKey,
-      child: ListView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        children: [
-          TextFormField(
-            controller: _loginUsernameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Username',
-              hintText: 'admin username',
+  Widget _buildHeaderSection() {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+
+    return Column(
+      children: [
+        // Icon with gradient background
+        Container(
+          padding: EdgeInsets.all(18.r),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                primaryColor.withValues(alpha: 0.25),
+                primaryColor.withValues(alpha: 0.1),
+              ],
             ),
-            validator: _validateLoginIdentity,
-          ),
-          SizedBox(height: 12.h),
-          TextFormField(
-            controller: _loginPasswordCtrl,
-            decoration: const InputDecoration(labelText: 'Password'),
-            obscureText: true,
-            validator: _validatePassword,
-          ),
-          SizedBox(height: 10.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: _isLoading ? null : _openPasswordResetDialog,
-              child: const Text('Forgot Password'),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: primaryColor.withValues(alpha: 0.2),
+              width: 1.5,
             ),
           ),
-          SizedBox(height: 10.h),
-          SizedBox(
-            height: 52.h.clamp(48.0, 56.0),
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-              ),
-              child: _isLoading
-                  ? SizedBox(
-                      width: 20.r,
-                      height: 20.r,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Login'),
+          child: Icon(
+            Icons.admin_panel_settings_rounded,
+            color: primaryColor,
+            size: AdminResponsive.isLandscape(context)
+                ? 44.sp
+                : 56.sp.clamp(48.0, 60.0),
+          ),
+        ),
+        SizedBox(height: 20.h),
+        // Title with better typography
+        Text(
+          'FreshPickKart Admin',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AdminTextStyles.screenTitle(context).copyWith(
+            fontSize: 28.sp.clamp(22.0, 30.0),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+        SizedBox(height: 8.h),
+        // Subtitle
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: primaryColor.withValues(alpha: 0.15),
+              width: 1,
+            ),
+          ),
+          child: Text(
+            'Single Admin (ADMIN_SELLER)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: primaryColor,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernTabBar() {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: primaryColor.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: TabBar(
+        labelPadding: EdgeInsets.zero,
+        labelColor: Colors.white,
+        unselectedLabelColor: Theme.of(context).brightness == Brightness.dark
+            ? AdminThemeTokens.darkTextSecondary
+            : AdminThemeTokens.primary.withValues(alpha: 0.7),
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.r),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [primaryColor, primaryColor.withValues(alpha: 0.85)],
+          ),
+        ),
+        dividerColor: Colors.transparent,
+        tabs: [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.login_rounded, size: 18.sp),
+                SizedBox(width: 6.w),
+                Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.app_registration_rounded, size: 18.sp),
+                SizedBox(width: 6.w),
+                Text(
+                  'Setup',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -566,95 +614,496 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  Widget _buildLoginTab() {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+    return Form(
+      key: _loginFormKey,
+      child: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        children: [
+          // Username/Email Field
+          _buildModernInputField(
+            controller: _loginUsernameCtrl,
+            label: 'Username or Email',
+            hint: 'Enter your admin username or email',
+            icon: Icons.person_outline_rounded,
+            validator: _validateLoginIdentity,
+          ),
+          SizedBox(height: 18.h),
+          // Password Field
+          _buildModernInputField(
+            controller: _loginPasswordCtrl,
+            label: 'Password',
+            hint: 'Enter your password',
+            icon: Icons.lock_outline_rounded,
+            obscureText: true,
+            validator: _validatePassword,
+          ),
+          SizedBox(height: 12.h),
+          // Forgot Password Link
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _isLoading ? null : _openPasswordResetDialog,
+              icon: Icon(Icons.help_outline_rounded, size: 18.sp),
+              label: Text(
+                'Forgot Password?',
+                style: TextStyle(fontSize: 13.sp),
+              ),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+              ),
+            ),
+          ),
+          SizedBox(height: 18.h),
+          // Login Button with gradient
+          _buildModernButton(
+            onPressed: _isLoading ? null : _login,
+            label: 'Login to Admin',
+            isLoading: _isLoading,
+            icon: Icons.login_rounded,
+          ),
+          SizedBox(height: 12.h),
+          // Info Card
+          _buildInfoCard(
+            icon: Icons.info_outline_rounded,
+            title: 'Admin Access',
+            description: 'Secure login for authorized administrators only',
+            color: primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSetupTab() {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
     return Form(
       key: _setupFormKey,
       child: ListView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
-          TextFormField(
+          // Username Field
+          _buildModernInputField(
             controller: _setupUsernameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Admin Username',
-              helperText: '4-24 chars, start with letter, only a-z, 0-9, _',
-            ),
+            label: 'Admin Username',
+            hint: 'Choose a unique username',
+            icon: Icons.person_add_rounded,
             validator: _validateSetupUsername,
             enabled: !_awaitingEmailVerification,
+            helperText: '4-24 chars, start with letter, only a-z, 0-9, _',
           ),
-          SizedBox(height: 12.h),
-          TextFormField(
+          SizedBox(height: 16.h),
+          // Email Field
+          _buildModernInputField(
             controller: _setupEmailCtrl,
-            decoration: const InputDecoration(labelText: 'Admin Email'),
+            label: 'Admin Email',
+            hint: 'Enter your admin email',
+            icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             validator: _validateEmail,
             enabled: !_awaitingEmailVerification,
           ),
-          SizedBox(height: 12.h),
-          TextFormField(
+          SizedBox(height: 16.h),
+          // Password Field
+          _buildModernInputField(
             controller: _setupPasswordCtrl,
-            decoration: const InputDecoration(labelText: 'Password'),
+            label: 'Password',
+            hint: 'Create a strong password',
+            icon: Icons.lock_outline_rounded,
             obscureText: true,
             validator: _validatePassword,
             enabled: !_awaitingEmailVerification,
           ),
-          SizedBox(height: 12.h),
-          TextFormField(
+          SizedBox(height: 16.h),
+          // Confirm Password Field
+          _buildModernInputField(
             controller: _setupConfirmPasswordCtrl,
-            decoration: const InputDecoration(labelText: 'Confirm Password'),
+            label: 'Confirm Password',
+            hint: 'Confirm your password',
+            icon: Icons.lock_reset_rounded,
             obscureText: true,
             validator: _validateConfirmPassword,
             enabled: !_awaitingEmailVerification,
           ),
-          SizedBox(height: 16.h),
-          if (!_awaitingEmailVerification)
-            SizedBox(
-              height: 52.h.clamp(48.0, 56.0),
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _startSetup,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 20.r,
-                        height: 20.r,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Create Admin & Send Verification'),
-              ),
+          SizedBox(height: 24.h),
+          // Conditional UI based on verification state
+          if (!_awaitingEmailVerification) ...[
+            _buildModernButton(
+              onPressed: _isLoading ? null : _startSetup,
+              label: 'Create Admin & Send Verification',
+              isLoading: _isLoading,
+              icon: Icons.app_registration_rounded,
             ),
-          if (_awaitingEmailVerification) ...[
-            Text(
-              'Verification pending for ${_pendingSetupEmail ?? _setupEmailCtrl.text.trim()}',
-            ),
-            SizedBox(height: 6.h),
-            Text(
-              'Click the verification link in email. App will auto-login after verification.',
-              style: TextStyle(
-                color: AdminAppTheme.getTextSecondaryColor(context),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            SizedBox(
-              height: 46.h.clamp(42.0, 50.0),
-              child: OutlinedButton(
-                onPressed: _isLoading ? null : _resendVerificationEmail,
-                child: const Text('Resend Verification Email'),
-              ),
-            ),
-            SizedBox(height: 10.h),
-            SizedBox(
-              height: 46.h.clamp(42.0, 50.0),
-              child: TextButton(
-                onPressed: _isLoading ? null : _cancelPendingSetup,
-                child: const Text('Start Over'),
-              ),
+            SizedBox(height: 14.h),
+            _buildInfoCard(
+              icon: Icons.shield_rounded,
+              title: 'Secure Setup',
+              description:
+                  'Verification email will be sent to confirm your admin account',
+              color: primaryColor,
             ),
           ],
+          if (_awaitingEmailVerification) ...[
+            _buildVerificationPendingCard(),
+            SizedBox(height: 18.h),
+            _buildModernButton(
+              onPressed: _isLoading ? null : _resendVerificationEmail,
+              label: 'Resend Verification Email',
+              isLoading: _isLoading,
+              isOutlined: true,
+              icon: Icons.mail_outline_rounded,
+            ),
+            SizedBox(height: 10.h),
+            _buildModernButton(
+              onPressed: _isLoading ? null : _cancelPendingSetup,
+              label: 'Start Over',
+              isLoading: _isLoading,
+              isText: true,
+              icon: Icons.restart_alt_rounded,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernInputField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    bool enabled = true,
+    String? helperText,
+  }) {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        helperText: helperText,
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 12.w, right: 8.w),
+          child: Icon(
+            icon,
+            size: 20.sp,
+            color: primaryColor.withValues(alpha: 0.7),
+          ),
+        ),
+        prefixIconConstraints: BoxConstraints(
+          minHeight: 20.sp,
+          minWidth: 20.sp,
+        ),
+        filled: true,
+        fillColor: isDark
+            ? AdminThemeTokens.darkSurfaceElevated.withValues(alpha: 0.6)
+            : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: isDark
+                ? AdminThemeTokens.darkBorder
+                : primaryColor.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: isDark
+                ? AdminThemeTokens.darkBorder
+                : primaryColor.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: AdminAppTheme.getErrorColor(context),
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: AdminAppTheme.getErrorColor(context),
+            width: 2,
+          ),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        labelStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500),
+        hintStyle: TextStyle(
+          fontSize: 13.sp,
+          color: AdminAppTheme.getTextSecondaryColor(context),
+        ),
+      ),
+      validator: validator,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      enabled: enabled,
+    );
+  }
+
+  Widget _buildModernButton({
+    required VoidCallback? onPressed,
+    required String label,
+    required IconData icon,
+    bool isLoading = false,
+    bool isOutlined = false,
+    bool isText = false,
+  }) {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+
+    if (isText) {
+      return SizedBox(
+        height: 48.h.clamp(44.0, 52.0),
+        width: double.infinity,
+        child: TextButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 18.sp),
+          label: Text(
+            label,
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+          ),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            foregroundColor: primaryColor,
+          ),
+        ),
+      );
+    }
+
+    if (isOutlined) {
+      return SizedBox(
+        height: 48.h.clamp(44.0, 52.0),
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 18.sp),
+          label: Text(
+            label,
+            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+          ),
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            foregroundColor: primaryColor,
+            side: BorderSide(
+              color: primaryColor.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 52.h.clamp(48.0, 56.0),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: isLoading
+            ? SizedBox(
+                width: 18.sp,
+                height: 18.sp,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Icon(icon, size: 20.sp),
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.3,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 14.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          elevation: 4,
+          shadowColor: primaryColor.withValues(alpha: 0.4),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(icon, color: color, size: 20.sp),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationPendingCard() {
+    final primaryColor = AdminAppTheme.getSuccessColor(context);
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryColor.withValues(alpha: 0.1),
+            primaryColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: primaryColor.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Icon(
+                  Icons.mail_lock_rounded,
+                  color: primaryColor,
+                  size: 22.sp,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Verification Email Sent',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: primaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      _pendingSetupEmail ?? _setupEmailCtrl.text.trim(),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Container(
+            padding: EdgeInsets.all(10.r),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surface.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 16.sp,
+                      color: primaryColor,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Next Steps',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  '• Click the verification link in the email\n• App will automatically login after verification',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -8,8 +8,47 @@ import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _isLoggingOut = false;
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoggingOut = true);
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+      }
+    } finally {
+      if (context.mounted) setState(() => _isLoggingOut = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,14 +147,12 @@ class SettingsScreen extends StatelessWidget {
               );
             }),
             const Divider(),
-            _buildSettingsItem(context, Icons.logout, 'Logout', () async {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/', (route) => false);
-              }
-            }, isDestructive: true),
+            _buildSettingsItem(
+              context, Icons.logout, 'Logout',
+              () => _handleLogout(context),
+              isDestructive: true,
+              isLoading: _isLoggingOut,
+            ),
           ],
         ),
       ),
@@ -128,6 +165,7 @@ class SettingsScreen extends StatelessWidget {
     String title,
     VoidCallback onTap, {
     bool isDestructive = false,
+    bool isLoading = false,
   }) {
     return ListTile(
       leading: Icon(
@@ -140,8 +178,20 @@ class SettingsScreen extends StatelessWidget {
         title,
         style: TextStyle(color: isDestructive ? Colors.red : null),
       ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
+      trailing: isLoading
+          ? SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,
+                valueColor: AlwaysStoppedAnimation(
+                  isDestructive ? Colors.red : Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            )
+          : const Icon(Icons.chevron_right),
+      onTap: isLoading ? null : onTap,
+      enabled: !isLoading,
     );
   }
 }
