@@ -1,0 +1,17 @@
+class: BroadcastSummary
+fields:
+  id: String
+  title: String
+  body: String
+  imageUrl: String?
+  announcementType: String
+  targetAudience: String
+  priority: String
+  status: String
+  scheduledAt: DateTime?
+  createdAt: DateTime
+  sentAt: DateTime?
+  recipientCount: int
+  successCount: int
+  failureCount: int
+  lastError: String?

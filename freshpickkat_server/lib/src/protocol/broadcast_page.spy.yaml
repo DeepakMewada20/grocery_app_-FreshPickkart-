@@ -1,0 +1,5 @@
+class: BroadcastPage
+fields:
+  items: List<BroadcastSummary>
+  nextPageToken: String?
+  totalCount: int

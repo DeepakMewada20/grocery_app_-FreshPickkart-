@@ -142,9 +142,12 @@ class BackgroundTaskService {
 
   Future<void> _drainCampaignNotifications(Session session) async {
     while (true) {
+      final now = DateTime.now().toUtc();
       final rows = await NotificationOutboxRow.db.find(
         session,
-        where: (t) => t.processedAt.equals(null),
+        where: (t) =>
+            t.processedAt.equals(null) &
+            (t.nextAttemptAt.equals(null) | (t.nextAttemptAt <= now)),
         orderBy: (t) => t.createdAt,
         limit: 50,
       );
@@ -158,19 +161,37 @@ class BackgroundTaskService {
             session,
             row.id!,
             columnValues: (t) => [
+              t.status('processed'),
               t.processedAt(DateTime.now().toUtc()),
               t.lastError(null),
               t.updatedAt(DateTime.now().toUtc()),
             ],
           );
         } catch (error, stackTrace) {
+          final attempts = row.attemptCount + 1;
+          final failed = attempts >= row.maxAttempts;
+          final retryAt = failed
+              ? null
+              : DateTime.now().toUtc().add(
+                  Duration(minutes: 1 << attempts.clamp(0, 6)),
+                );
           await NotificationOutboxRow.db.updateById(
             session,
             row.id!,
             columnValues: (t) => [
-              t.attemptCount(row.attemptCount + 1),
+              t.status(failed ? 'failed' : 'retrying'),
+              t.attemptCount(attempts),
               t.lastError(error.toString()),
+              t.nextAttemptAt(retryAt),
               t.updatedAt(DateTime.now().toUtc()),
+            ],
+          );
+          await NotificationCampaignRow.db.updateById(
+            session,
+            row.campaignId,
+            columnValues: (t) => [
+              t.status(failed ? 'failed' : 'retrying'),
+              t.lastError(error.toString()),
             ],
           );
           session.log(

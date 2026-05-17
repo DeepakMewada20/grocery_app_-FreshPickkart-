@@ -9,6 +9,7 @@ import '../services/postgres/postgres_support.dart';
 
 class NotificationEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final NotificationOutboxService _outbox = NotificationOutboxService.instance;
 
   Future<bool> registerFcmToken(
     Session session,
@@ -102,13 +103,6 @@ class NotificationEndpoint extends Endpoint {
     final user = await _requireUser(session, firebaseUid);
     final prefs = await _ensurePreferenceRow(session, firebaseUid);
     final topics = _enabledTopics(prefs);
-    if (topics.isEmpty) {
-      return NotificationHistoryPage(
-        items: const [],
-        nextPageToken: null,
-        unreadCount: 0,
-      );
-    }
 
     final cursor = decodeCursor(pageToken);
     final before = cursor?['createdAt'] is String
@@ -116,21 +110,53 @@ class NotificationEndpoint extends Endpoint {
         : null;
     final safeLimit = clampPageLimit(limit, defaultLimit: 30, maxLimit: 100);
 
-    final campaigns = await NotificationCampaignRow.db.find(
+    final topicCampaigns = topics.isEmpty
+        ? <NotificationCampaignRow>[]
+        : await NotificationCampaignRow.db.find(
+            session,
+            where: (t) {
+              var expression = t.topic.inSet(topics.toSet());
+              if (before != null) {
+                expression = expression & (t.createdAt < before);
+              }
+              return expression;
+            },
+            orderBy: (t) => t.createdAt,
+            orderDescending: true,
+            limit: safeLimit + 1,
+          );
+
+    final targetedStates = await NotificationUserStateRow.db.find(
       session,
-      where: (t) {
-        var expression = t.topic.inSet(topics.toSet());
-        if (before != null) {
-          expression = expression & (t.createdAt < before);
-        }
-        return expression;
-      },
-      orderBy: (t) => t.createdAt,
+      where: (t) => t.userId.equals(user.id!) & t.isDeleted.equals(false),
+      orderBy: (t) => t.updatedAt,
       orderDescending: true,
       limit: safeLimit + 1,
     );
+    final targetedIds = {
+      for (final state in targetedStates) state.campaignId,
+    };
+    final targetedCampaigns = targetedIds.isEmpty
+        ? <NotificationCampaignRow>[]
+        : await NotificationCampaignRow.db.find(
+            session,
+            where: (t) {
+              var expression = t.id.inSet(targetedIds);
+              if (before != null) {
+                expression = expression & (t.createdAt < before);
+              }
+              return expression;
+            },
+          );
 
-    final pageRows = campaigns.take(safeLimit).toList();
+    final campaignById = <String, NotificationCampaignRow>{
+      for (final campaign in topicCampaigns) campaign.id.toString(): campaign,
+      for (final campaign in targetedCampaigns)
+        campaign.id.toString(): campaign,
+    };
+    final combined = campaignById.values.toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final pageRows = combined.take(safeLimit).toList();
     final campaignIds = [
       for (final row in pageRows)
         if (row.id != null) row.id!,
@@ -155,7 +181,7 @@ class NotificationEndpoint extends Endpoint {
     }
 
     final unreadCount = await _countUnread(session, user.id!, topics);
-    final nextPageToken = campaigns.length > safeLimit
+    final nextPageToken = combined.length > safeLimit
         ? encodeCursor({'createdAt': pageRows.last.createdAt.toIso8601String()})
         : null;
     return NotificationHistoryPage(
@@ -205,17 +231,276 @@ class NotificationEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
+    await createBroadcast(
+      session,
+      BroadcastRequest(
+        title: draft.title,
+        body: draft.body,
+        imageUrl: draft.imageUrl,
+        announcementType: draft.type.trim().isEmpty ? 'general' : draft.type,
+        targetAudience: draft.targetAudience,
+        priority: 'normal',
+        entityType: draft.entityType,
+        entityId: draft.entityId,
+        data: draft.data,
+      ),
+      firebaseUid,
+      idToken,
+    );
+    return true;
+  }
+
+  Future<List<AdminNotificationPreference>> getAdminNotificationPreferences(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final rows = await _ensureAdminPreferenceRows(session, admin);
+    final byKey = {for (final row in rows) row.preferenceKey: row};
+    return [
+      for (final definition in _adminPreferenceDefinitions)
+        _toAdminPreference(definition, byKey[definition.key]),
+    ];
+  }
+
+  Future<AdminNotificationPreference> updateAdminNotificationPreference(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String key,
+    bool pushEnabled,
+    bool soundEnabled,
+  ) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final definition = _adminPreferenceDefinition(key);
+    if (definition.critical && (!pushEnabled || !soundEnabled)) {
+      throw Exception('${definition.title} cannot be disabled.');
+    }
+    await _ensureAdminPreferenceRows(session, admin);
+    final row = await AdminNotificationPreferenceRow.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.adminUserId.equals(admin.id!) &
+          t.preferenceKey.equals(definition.key),
+    );
+    if (row == null) {
+      throw StateError('Admin notification preference was not created.');
+    }
+    final now = DateTime.now().toUtc();
+    final updated = await AdminNotificationPreferenceRow.db.updateById(
+      session,
+      row.id!,
+      columnValues: (t) => [
+        t.pushEnabled(definition.critical ? true : pushEnabled),
+        t.soundEnabled(definition.critical ? true : soundEnabled),
+        t.critical(definition.critical),
+        t.updatedAt(now),
+      ],
+    );
+    return _toAdminPreference(
+      definition,
+      updated ??
+          row.copyWith(
+            pushEnabled: definition.critical ? true : pushEnabled,
+            soundEnabled: definition.critical ? true : soundEnabled,
+            updatedAt: now,
+          ),
+    );
+  }
+
+  Future<bool> registerAdminFcmToken(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String token,
+    String deviceId,
+    String platform,
+  ) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final normalizedToken = token.trim();
+    final normalizedDevice = deviceId.trim();
+    if (normalizedToken.isEmpty) throw Exception('token is required.');
+    if (normalizedDevice.isEmpty) throw Exception('deviceId is required.');
+    final now = DateTime.now().toUtc();
+    final existing = await UserFcmTokenRow.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.userId.equals(admin.id!) & t.deviceId.equals(normalizedDevice),
+    );
+    if (existing == null) {
+      await UserFcmTokenRow.db.insertRow(
+        session,
+        UserFcmTokenRow(
+          userId: admin.id!,
+          firebaseUid: admin.firebaseUid ?? firebaseUid.trim(),
+          fcmToken: normalizedToken,
+          deviceId: normalizedDevice,
+          platform: platform.trim().isEmpty ? 'unknown' : platform.trim(),
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } else {
+      await UserFcmTokenRow.db.updateById(
+        session,
+        existing.id!,
+        columnValues: (t) => [
+          t.firebaseUid(admin.firebaseUid ?? firebaseUid.trim()),
+          t.fcmToken(normalizedToken),
+          t.platform(platform.trim().isEmpty ? 'unknown' : platform.trim()),
+          t.isActive(true),
+          t.updatedAt(now),
+        ],
+      );
+    }
+    return true;
+  }
+
+  Future<BroadcastSummary> createBroadcast(
+    Session session,
+    BroadcastRequest request,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final campaign = await _outbox.saveBroadcast(
+      session: session,
+      request: request,
+      creatorAdminFirebaseUid: admin.firebaseUid ?? firebaseUid.trim(),
+      asDraft: false,
+    );
+    return _toBroadcastSummary(campaign);
+  }
+
+  Future<BroadcastSummary> saveBroadcastDraft(
+    Session session,
+    BroadcastRequest request,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final campaign = await _outbox.saveBroadcast(
+      session: session,
+      request: request,
+      creatorAdminFirebaseUid: admin.firebaseUid ?? firebaseUid.trim(),
+      asDraft: true,
+    );
+    return _toBroadcastSummary(campaign);
+  }
+
+  Future<BroadcastSummary> sendBroadcastDraft(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String broadcastId,
+  ) async {
     await _adminGuard.ensureAdminSeller(
       session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    await NotificationOutboxService.instance.enqueueCampaign(
-      session: session,
-      draft: draft,
-      fallbackEntityType: draft.type.trim().isEmpty ? 'system' : draft.type,
-      fallbackEntityId: draft.entityId,
+    final campaign = await _findBroadcast(session, broadcastId);
+    final updated = await _outbox.queueDraft(session, campaign);
+    return _toBroadcastSummary(updated);
+  }
+
+  Future<BroadcastPage> listBroadcasts(
+    Session session,
+    String firebaseUid,
+    String idToken, {
+    String? status,
+    String? query,
+    int limit = 30,
+    String? pageToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
     );
+    final cursor = decodeCursor(pageToken);
+    final before = cursor?['createdAt'] is String
+        ? DateTime.tryParse(cursor!['createdAt'] as String)
+        : null;
+    final safeLimit = clampPageLimit(limit, defaultLimit: 30, maxLimit: 100);
+    final normalizedStatus = cleanNullableString(status)?.toLowerCase();
+    final rows = await NotificationCampaignRow.db.find(
+      session,
+      where: (t) {
+        var expression = t.topic.inSet({'announcements', 'important-alerts'});
+        if (normalizedStatus != null && normalizedStatus != 'all') {
+          expression = expression & t.status.equals(normalizedStatus);
+        }
+        if (before != null) {
+          expression = expression & (t.createdAt < before);
+        }
+        return expression;
+      },
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+      limit: safeLimit + 1,
+    );
+    final normalizedQuery = cleanNullableString(query)?.toLowerCase();
+    final filtered = normalizedQuery == null
+        ? rows
+        : rows
+              .where(
+                (row) =>
+                    row.title.toLowerCase().contains(normalizedQuery) ||
+                    row.body.toLowerCase().contains(normalizedQuery) ||
+                    row.type.toLowerCase().contains(normalizedQuery),
+              )
+              .toList();
+    final pageRows = filtered.take(safeLimit).toList();
+    return BroadcastPage(
+      items: pageRows.map(_toBroadcastSummary).toList(),
+      nextPageToken: filtered.length > safeLimit
+          ? encodeCursor({
+              'createdAt': pageRows.last.createdAt.toIso8601String(),
+            })
+          : null,
+      totalCount: filtered.length,
+    );
+  }
+
+  Future<bool> deleteBroadcastDraft(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String broadcastId,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final campaign = await _findBroadcast(session, broadcastId);
+    if (campaign.status != 'draft') {
+      throw Exception('Only draft broadcasts can be deleted.');
+    }
+    await NotificationCampaignRow.db.deleteRow(session, campaign);
     return true;
   }
 
@@ -276,6 +561,68 @@ class NotificationEndpoint extends Endpoint {
       announcementNotifications: row.announcementNotifications,
       importantAlerts: row.importantAlerts,
       updatedAt: row.updatedAt,
+    );
+  }
+
+  Future<List<AdminNotificationPreferenceRow>> _ensureAdminPreferenceRows(
+    Session session,
+    AppUserRow admin,
+  ) async {
+    final existing = await AdminNotificationPreferenceRow.db.find(
+      session,
+      where: (t) => t.adminUserId.equals(admin.id!),
+    );
+    final existingKeys = {for (final row in existing) row.preferenceKey};
+    final now = DateTime.now().toUtc();
+    for (final definition in _adminPreferenceDefinitions) {
+      if (existingKeys.contains(definition.key)) continue;
+      try {
+        await AdminNotificationPreferenceRow.db.insertRow(
+          session,
+          AdminNotificationPreferenceRow(
+            adminUserId: admin.id!,
+            adminFirebaseUid: admin.firebaseUid ?? '',
+            preferenceKey: definition.key,
+            pushEnabled: true,
+            soundEnabled: true,
+            critical: definition.critical,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      } catch (_) {
+        // Another request inserted the default row.
+      }
+    }
+    return AdminNotificationPreferenceRow.db.find(
+      session,
+      where: (t) => t.adminUserId.equals(admin.id!),
+    );
+  }
+
+  _AdminPreferenceDefinition _adminPreferenceDefinition(String key) {
+    final normalized = key.trim().toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9]+'),
+      '_',
+    );
+    for (final definition in _adminPreferenceDefinitions) {
+      if (definition.key == normalized) return definition;
+    }
+    throw Exception('Unknown notification preference.');
+  }
+
+  AdminNotificationPreference _toAdminPreference(
+    _AdminPreferenceDefinition definition,
+    AdminNotificationPreferenceRow? row,
+  ) {
+    return AdminNotificationPreference(
+      key: definition.key,
+      title: definition.title,
+      group: definition.group,
+      pushEnabled: definition.critical ? true : row?.pushEnabled ?? true,
+      soundEnabled: definition.critical ? true : row?.soundEnabled ?? true,
+      critical: definition.critical,
+      updatedAt: row?.updatedAt,
     );
   }
 
@@ -386,13 +733,15 @@ class NotificationEndpoint extends Endpoint {
     UuidValue userId,
     List<String> topics,
   ) async {
-    final campaigns = await NotificationCampaignRow.db.find(
-      session,
-      where: (t) => t.topic.inSet(topics.toSet()),
-      orderBy: (t) => t.createdAt,
-      orderDescending: true,
-      limit: 100,
-    );
+    final campaigns = topics.isEmpty
+        ? <NotificationCampaignRow>[]
+        : await NotificationCampaignRow.db.find(
+            session,
+            where: (t) => t.topic.inSet(topics.toSet()),
+            orderBy: (t) => t.createdAt,
+            orderDescending: true,
+            limit: 100,
+          );
     if (campaigns.isEmpty) return 0;
     final campaignIds = [
       for (final campaign in campaigns)
@@ -412,6 +761,108 @@ class NotificationEndpoint extends Endpoint {
       if (state?.isDeleted == true) continue;
       if (state?.isRead != true) count++;
     }
+    final targetedStates = await NotificationUserStateRow.db.find(
+      session,
+      where: (t) => t.userId.equals(userId) & t.isDeleted.equals(false),
+      limit: 100,
+    );
+    count += targetedStates.where((state) => !state.isRead).length;
     return count;
   }
+
+  Future<NotificationCampaignRow> _findBroadcast(
+    Session session,
+    String broadcastId,
+  ) async {
+    final id = parseUuid(broadcastId, fieldName: 'broadcastId');
+    final campaign = await NotificationCampaignRow.db.findById(session, id);
+    if (campaign == null) throw Exception('Broadcast not found.');
+    return campaign;
+  }
+
+  BroadcastSummary _toBroadcastSummary(NotificationCampaignRow row) {
+    return BroadcastSummary(
+      id: row.id.toString(),
+      title: row.title,
+      body: row.body,
+      imageUrl: row.imageUrl,
+      announcementType: row.type,
+      targetAudience: row.targetAudience,
+      priority: row.priority,
+      status: row.status,
+      scheduledAt: row.scheduledAt,
+      createdAt: row.createdAt,
+      sentAt: row.sentAt,
+      recipientCount: row.recipientCount,
+      successCount: row.successCount,
+      failureCount: row.failureCount,
+      lastError: row.lastError,
+    );
+  }
+}
+
+const List<_AdminPreferenceDefinition> _adminPreferenceDefinitions = [
+  _AdminPreferenceDefinition('new_orders', 'New Orders', 'Operational'),
+  _AdminPreferenceDefinition('complaints', 'Complaints', 'Operational'),
+  _AdminPreferenceDefinition('payment_alerts', 'Payment Alerts', 'Operational'),
+  _AdminPreferenceDefinition('delivery_alerts', 'Delivery Alerts', 'Delivery'),
+  _AdminPreferenceDefinition(
+    'low_stock_alerts',
+    'Low Stock Alerts',
+    'Inventory',
+  ),
+  _AdminPreferenceDefinition(
+    'out_of_stock_alerts',
+    'Out Of Stock Alerts',
+    'Inventory',
+  ),
+  _AdminPreferenceDefinition(
+    'new_user_registration',
+    'New User Registration',
+    'Users',
+  ),
+  _AdminPreferenceDefinition(
+    'new_device_login',
+    'New Device Login',
+    'Security',
+  ),
+  _AdminPreferenceDefinition('login_alerts', 'Login Alerts', 'Security'),
+  _AdminPreferenceDefinition(
+    'suspicious_login',
+    'Suspicious Login',
+    'Security',
+    critical: true,
+  ),
+  _AdminPreferenceDefinition(
+    'security_alerts',
+    'Security Alerts',
+    'Security',
+    critical: true,
+  ),
+  _AdminPreferenceDefinition(
+    'fraud_alerts',
+    'Fraud Alerts',
+    'Security',
+    critical: true,
+  ),
+  _AdminPreferenceDefinition(
+    'maintenance_alerts',
+    'Maintenance Alerts',
+    'System',
+  ),
+  _AdminPreferenceDefinition('server_alerts', 'Server Alerts', 'System'),
+];
+
+class _AdminPreferenceDefinition {
+  const _AdminPreferenceDefinition(
+    this.key,
+    this.title,
+    this.group, {
+    this.critical = false,
+  });
+
+  final String key;
+  final String title;
+  final String group;
+  final bool critical;
 }

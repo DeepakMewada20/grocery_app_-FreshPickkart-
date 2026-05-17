@@ -1,0 +1,19 @@
+class: AdminNotificationPreferenceRow
+serverOnly: true
+table: admin_notification_preference
+fields:
+  id: UuidValue?, defaultPersist=random
+  adminUserId: UuidValue, relation(parent=app_user, onDelete=Cascade)
+  adminFirebaseUid: String
+  preferenceKey: String
+  pushEnabled: bool, default=true
+  soundEnabled: bool, default=true
+  critical: bool, default=false
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  admin_notification_preference_admin_key_idx:
+    fields: adminUserId, preferenceKey
+    unique: true
+  admin_notification_preference_firebase_idx:
+    fields: adminFirebaseUid

@@ -1,0 +1,16 @@
+class: BroadcastRequest
+fields:
+  title: String
+  body: String
+  imageUrl: String?
+  announcementType: String
+  targetAudience: String
+  priority: String
+  scheduledAt: DateTime?
+  couponCode: String?
+  city: String?
+  affectedArea: String?
+  urgency: String?
+  entityType: String?
+  entityId: String?
+  data: Map<String, String>?

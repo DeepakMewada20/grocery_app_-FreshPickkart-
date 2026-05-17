@@ -1,4 +1,5 @@
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
+import 'package:freshpickkat_server/src/services/notification_outbox_service.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -94,6 +95,109 @@ void main() {
         limit: 20,
       );
       expect(deletedPage.items, isEmpty);
+    });
+
+    test('broadcast create queues outbox without sending inline', () async {
+      final session = sessionBuilder.build();
+      try {
+        final campaign = await NotificationOutboxService.instance.saveBroadcast(
+          session: session,
+          request: protocol.BroadcastRequest(
+            title: 'Service update',
+            body: 'Delivery slots are open.',
+            announcementType: 'service_update',
+            targetAudience: 'all_users',
+            priority: 'normal',
+          ),
+          creatorAdminFirebaseUid: 'admin-test',
+          asDraft: false,
+        );
+
+        expect(campaign.status, equals('queued'));
+        final outbox = await protocol.NotificationOutboxRow.db.findFirstRow(
+          session,
+          where: (t) => t.campaignId.equals(campaign.id!),
+        );
+        expect(outbox, isNotNull);
+        expect(outbox!.processedAt, isNull);
+        expect(outbox.status, equals('queued'));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('scheduled broadcast is queued for future attempt', () async {
+      final session = sessionBuilder.build();
+      try {
+        final scheduledAt = DateTime.now().toUtc().add(
+          const Duration(hours: 2),
+        );
+        final campaign = await NotificationOutboxService.instance.saveBroadcast(
+          session: session,
+          request: protocol.BroadcastRequest(
+            title: 'Scheduled update',
+            body: 'This should wait.',
+            announcementType: 'general',
+            targetAudience: 'all_users',
+            priority: 'normal',
+            scheduledAt: scheduledAt,
+          ),
+          creatorAdminFirebaseUid: 'admin-test',
+          asDraft: false,
+        );
+
+        expect(campaign.status, equals('scheduled'));
+        final outbox = await protocol.NotificationOutboxRow.db.findFirstRow(
+          session,
+          where: (t) => t.campaignId.equals(campaign.id!),
+        );
+        expect(outbox?.nextAttemptAt, equals(scheduledAt));
+        expect(outbox?.processedAt, isNull);
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('targeted campaign appears in notification center', () async {
+      final firebaseUid = await _seedUser(sessionBuilder);
+      final session = sessionBuilder.build();
+      try {
+        final user = await protocol.AppUserRow.db.findFirstRow(
+          session,
+          where: (t) => t.firebaseUid.equals(firebaseUid),
+        );
+        final campaign = await protocol.NotificationCampaignRow.db.insertRow(
+          session,
+          protocol.NotificationCampaignRow(
+            title: 'Private offer',
+            body: 'A targeted message.',
+            type: 'promotion',
+            topic: 'broadcast-targeted',
+            targetAudience: 'specific_users',
+            status: 'sent',
+            priority: 'normal',
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
+        await protocol.NotificationUserStateRow.db.insertRow(
+          session,
+          protocol.NotificationUserStateRow(
+            campaignId: campaign.id!,
+            userId: user!.id!,
+            createdAt: DateTime.now().toUtc(),
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+      } finally {
+        await session.close();
+      }
+
+      final page = await endpoints.notification.listNotifications(
+        sessionBuilder,
+        firebaseUid,
+        limit: 20,
+      );
+      expect(page.items.map((item) => item.title), contains('Private offer'));
     });
   });
 }

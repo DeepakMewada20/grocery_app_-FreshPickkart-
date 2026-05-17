@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:freshpickkat_admin/screens/announcements_screen.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
+import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_appearance_section.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -81,11 +81,11 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsItem(
               context,
               Icons.notifications_outlined,
-              'Notifications',
+              'Notification Preferences',
               () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const AnnouncementsScreen(),
+                    builder: (_) => const NotificationPreferencesScreen(),
                   ),
                 );
               },

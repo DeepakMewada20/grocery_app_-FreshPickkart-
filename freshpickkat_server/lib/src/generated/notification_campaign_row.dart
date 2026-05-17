@@ -22,11 +22,26 @@ abstract class NotificationCampaignRow
     required this.topic,
     this.imageUrl,
     required this.targetAudience,
+    String? status,
+    String? priority,
+    this.scheduledAt,
+    this.creatorAdminFirebaseUid,
+    this.targetMetadataJson,
+    int? recipientCount,
+    int? successCount,
+    int? failureCount,
+    this.lastError,
+    this.sentAt,
     this.entityType,
     this.entityId,
     this.dataJson,
     DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  }) : status = status ?? 'queued',
+       priority = priority ?? 'normal',
+       recipientCount = recipientCount ?? 0,
+       successCount = successCount ?? 0,
+       failureCount = failureCount ?? 0,
+       createdAt = createdAt ?? DateTime.now();
 
   factory NotificationCampaignRow({
     _i1.UuidValue? id,
@@ -36,6 +51,16 @@ abstract class NotificationCampaignRow
     required String topic,
     String? imageUrl,
     required String targetAudience,
+    String? status,
+    String? priority,
+    DateTime? scheduledAt,
+    String? creatorAdminFirebaseUid,
+    String? targetMetadataJson,
+    int? recipientCount,
+    int? successCount,
+    int? failureCount,
+    String? lastError,
+    DateTime? sentAt,
     String? entityType,
     String? entityId,
     String? dataJson,
@@ -55,6 +80,23 @@ abstract class NotificationCampaignRow
       topic: jsonSerialization['topic'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String?,
       targetAudience: jsonSerialization['targetAudience'] as String,
+      status: jsonSerialization['status'] as String?,
+      priority: jsonSerialization['priority'] as String?,
+      scheduledAt: jsonSerialization['scheduledAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['scheduledAt'],
+            ),
+      creatorAdminFirebaseUid:
+          jsonSerialization['creatorAdminFirebaseUid'] as String?,
+      targetMetadataJson: jsonSerialization['targetMetadataJson'] as String?,
+      recipientCount: jsonSerialization['recipientCount'] as int?,
+      successCount: jsonSerialization['successCount'] as int?,
+      failureCount: jsonSerialization['failureCount'] as int?,
+      lastError: jsonSerialization['lastError'] as String?,
+      sentAt: jsonSerialization['sentAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['sentAt']),
       entityType: jsonSerialization['entityType'] as String?,
       entityId: jsonSerialization['entityId'] as String?,
       dataJson: jsonSerialization['dataJson'] as String?,
@@ -83,6 +125,26 @@ abstract class NotificationCampaignRow
 
   String targetAudience;
 
+  String status;
+
+  String priority;
+
+  DateTime? scheduledAt;
+
+  String? creatorAdminFirebaseUid;
+
+  String? targetMetadataJson;
+
+  int recipientCount;
+
+  int successCount;
+
+  int failureCount;
+
+  String? lastError;
+
+  DateTime? sentAt;
+
   String? entityType;
 
   String? entityId;
@@ -105,6 +167,16 @@ abstract class NotificationCampaignRow
     String? topic,
     String? imageUrl,
     String? targetAudience,
+    String? status,
+    String? priority,
+    DateTime? scheduledAt,
+    String? creatorAdminFirebaseUid,
+    String? targetMetadataJson,
+    int? recipientCount,
+    int? successCount,
+    int? failureCount,
+    String? lastError,
+    DateTime? sentAt,
     String? entityType,
     String? entityId,
     String? dataJson,
@@ -121,6 +193,17 @@ abstract class NotificationCampaignRow
       'topic': topic,
       if (imageUrl != null) 'imageUrl': imageUrl,
       'targetAudience': targetAudience,
+      'status': status,
+      'priority': priority,
+      if (scheduledAt != null) 'scheduledAt': scheduledAt?.toJson(),
+      if (creatorAdminFirebaseUid != null)
+        'creatorAdminFirebaseUid': creatorAdminFirebaseUid,
+      if (targetMetadataJson != null) 'targetMetadataJson': targetMetadataJson,
+      'recipientCount': recipientCount,
+      'successCount': successCount,
+      'failureCount': failureCount,
+      if (lastError != null) 'lastError': lastError,
+      if (sentAt != null) 'sentAt': sentAt?.toJson(),
       if (entityType != null) 'entityType': entityType,
       if (entityId != null) 'entityId': entityId,
       if (dataJson != null) 'dataJson': dataJson,
@@ -174,6 +257,16 @@ class _NotificationCampaignRowImpl extends NotificationCampaignRow {
     required String topic,
     String? imageUrl,
     required String targetAudience,
+    String? status,
+    String? priority,
+    DateTime? scheduledAt,
+    String? creatorAdminFirebaseUid,
+    String? targetMetadataJson,
+    int? recipientCount,
+    int? successCount,
+    int? failureCount,
+    String? lastError,
+    DateTime? sentAt,
     String? entityType,
     String? entityId,
     String? dataJson,
@@ -186,6 +279,16 @@ class _NotificationCampaignRowImpl extends NotificationCampaignRow {
          topic: topic,
          imageUrl: imageUrl,
          targetAudience: targetAudience,
+         status: status,
+         priority: priority,
+         scheduledAt: scheduledAt,
+         creatorAdminFirebaseUid: creatorAdminFirebaseUid,
+         targetMetadataJson: targetMetadataJson,
+         recipientCount: recipientCount,
+         successCount: successCount,
+         failureCount: failureCount,
+         lastError: lastError,
+         sentAt: sentAt,
          entityType: entityType,
          entityId: entityId,
          dataJson: dataJson,
@@ -204,6 +307,16 @@ class _NotificationCampaignRowImpl extends NotificationCampaignRow {
     String? topic,
     Object? imageUrl = _Undefined,
     String? targetAudience,
+    String? status,
+    String? priority,
+    Object? scheduledAt = _Undefined,
+    Object? creatorAdminFirebaseUid = _Undefined,
+    Object? targetMetadataJson = _Undefined,
+    int? recipientCount,
+    int? successCount,
+    int? failureCount,
+    Object? lastError = _Undefined,
+    Object? sentAt = _Undefined,
     Object? entityType = _Undefined,
     Object? entityId = _Undefined,
     Object? dataJson = _Undefined,
@@ -217,6 +330,20 @@ class _NotificationCampaignRowImpl extends NotificationCampaignRow {
       topic: topic ?? this.topic,
       imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
       targetAudience: targetAudience ?? this.targetAudience,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      scheduledAt: scheduledAt is DateTime? ? scheduledAt : this.scheduledAt,
+      creatorAdminFirebaseUid: creatorAdminFirebaseUid is String?
+          ? creatorAdminFirebaseUid
+          : this.creatorAdminFirebaseUid,
+      targetMetadataJson: targetMetadataJson is String?
+          ? targetMetadataJson
+          : this.targetMetadataJson,
+      recipientCount: recipientCount ?? this.recipientCount,
+      successCount: successCount ?? this.successCount,
+      failureCount: failureCount ?? this.failureCount,
+      lastError: lastError is String? ? lastError : this.lastError,
+      sentAt: sentAt is DateTime? ? sentAt : this.sentAt,
       entityType: entityType is String? ? entityType : this.entityType,
       entityId: entityId is String? ? entityId : this.entityId,
       dataJson: dataJson is String? ? dataJson : this.dataJson,
@@ -257,6 +384,60 @@ class NotificationCampaignRowUpdateTable
   _i1.ColumnValue<String, String> targetAudience(String value) =>
       _i1.ColumnValue(
         table.targetAudience,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
+    table.status,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> priority(String value) => _i1.ColumnValue(
+    table.priority,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> scheduledAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.scheduledAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> creatorAdminFirebaseUid(String? value) =>
+      _i1.ColumnValue(
+        table.creatorAdminFirebaseUid,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> targetMetadataJson(String? value) =>
+      _i1.ColumnValue(
+        table.targetMetadataJson,
+        value,
+      );
+
+  _i1.ColumnValue<int, int> recipientCount(int value) => _i1.ColumnValue(
+    table.recipientCount,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> successCount(int value) => _i1.ColumnValue(
+    table.successCount,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> failureCount(int value) => _i1.ColumnValue(
+    table.failureCount,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> lastError(String? value) => _i1.ColumnValue(
+    table.lastError,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> sentAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.sentAt,
         value,
       );
 
@@ -310,6 +491,51 @@ class NotificationCampaignRowTable extends _i1.Table<_i1.UuidValue?> {
       'targetAudience',
       this,
     );
+    status = _i1.ColumnString(
+      'status',
+      this,
+      hasDefault: true,
+    );
+    priority = _i1.ColumnString(
+      'priority',
+      this,
+      hasDefault: true,
+    );
+    scheduledAt = _i1.ColumnDateTime(
+      'scheduledAt',
+      this,
+    );
+    creatorAdminFirebaseUid = _i1.ColumnString(
+      'creatorAdminFirebaseUid',
+      this,
+    );
+    targetMetadataJson = _i1.ColumnString(
+      'targetMetadataJson',
+      this,
+    );
+    recipientCount = _i1.ColumnInt(
+      'recipientCount',
+      this,
+      hasDefault: true,
+    );
+    successCount = _i1.ColumnInt(
+      'successCount',
+      this,
+      hasDefault: true,
+    );
+    failureCount = _i1.ColumnInt(
+      'failureCount',
+      this,
+      hasDefault: true,
+    );
+    lastError = _i1.ColumnString(
+      'lastError',
+      this,
+    );
+    sentAt = _i1.ColumnDateTime(
+      'sentAt',
+      this,
+    );
     entityType = _i1.ColumnString(
       'entityType',
       this,
@@ -343,6 +569,26 @@ class NotificationCampaignRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString targetAudience;
 
+  late final _i1.ColumnString status;
+
+  late final _i1.ColumnString priority;
+
+  late final _i1.ColumnDateTime scheduledAt;
+
+  late final _i1.ColumnString creatorAdminFirebaseUid;
+
+  late final _i1.ColumnString targetMetadataJson;
+
+  late final _i1.ColumnInt recipientCount;
+
+  late final _i1.ColumnInt successCount;
+
+  late final _i1.ColumnInt failureCount;
+
+  late final _i1.ColumnString lastError;
+
+  late final _i1.ColumnDateTime sentAt;
+
   late final _i1.ColumnString entityType;
 
   late final _i1.ColumnString entityId;
@@ -360,6 +606,16 @@ class NotificationCampaignRowTable extends _i1.Table<_i1.UuidValue?> {
     topic,
     imageUrl,
     targetAudience,
+    status,
+    priority,
+    scheduledAt,
+    creatorAdminFirebaseUid,
+    targetMetadataJson,
+    recipientCount,
+    successCount,
+    failureCount,
+    lastError,
+    sentAt,
     entityType,
     entityId,
     dataJson,

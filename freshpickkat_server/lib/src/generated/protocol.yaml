@@ -88,6 +88,14 @@ notification:
   - markNotificationRead:
   - deleteNotification:
   - createAnnouncement:
+  - getAdminNotificationPreferences:
+  - updateAdminNotificationPreference:
+  - registerAdminFcmToken:
+  - createBroadcast:
+  - saveBroadcastDraft:
+  - sendBroadcastDraft:
+  - listBroadcasts:
+  - deleteBroadcastDraft:
 order:
   - createOrder:
   - createPendingOrder:

@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
+import 'broadcasts_screen.dart';
 import 'complaint_management_screen.dart';
 import 'live_delivery_screen.dart';
 
@@ -350,9 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const LiveDeliveryScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LiveDeliveryScreen()),
                 );
               },
             ),
@@ -366,6 +365,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   MaterialPageRoute(
                     builder: (_) => const ComplaintManagementScreen(),
                   ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.campaign_outlined),
+              title: const Text('Broadcasts'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BroadcastsScreen()),
                 );
               },
             ),

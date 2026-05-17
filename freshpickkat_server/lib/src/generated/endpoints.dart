@@ -50,14 +50,16 @@ import 'package:freshpickkat_server/src/generated/delivery_config.dart' as _i36;
 import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i37;
 import 'package:freshpickkat_server/src/generated/notification_preference.dart'
     as _i38;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i39;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i40;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i41;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i42;
+import 'package:freshpickkat_server/src/generated/broadcast_request.dart'
+    as _i39;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i40;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i41;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i42;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i43;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i43;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i44;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i45;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -2559,6 +2561,298 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'getAdminNotificationPreferences': _i1.MethodConnector(
+          name: 'getAdminNotificationPreferences',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .getAdminNotificationPreferences(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'updateAdminNotificationPreference': _i1.MethodConnector(
+          name: 'updateAdminNotificationPreference',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'key': _i1.ParameterDescription(
+              name: 'key',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'pushEnabled': _i1.ParameterDescription(
+              name: 'pushEnabled',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'soundEnabled': _i1.ParameterDescription(
+              name: 'soundEnabled',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .updateAdminNotificationPreference(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        params['key'],
+                        params['pushEnabled'],
+                        params['soundEnabled'],
+                      ),
+        ),
+        'registerAdminFcmToken': _i1.MethodConnector(
+          name: 'registerAdminFcmToken',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'token': _i1.ParameterDescription(
+              name: 'token',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceId': _i1.ParameterDescription(
+              name: 'deviceId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'platform': _i1.ParameterDescription(
+              name: 'platform',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .registerAdminFcmToken(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        params['token'],
+                        params['deviceId'],
+                        params['platform'],
+                      ),
+        ),
+        'createBroadcast': _i1.MethodConnector(
+          name: 'createBroadcast',
+          params: {
+            'request': _i1.ParameterDescription(
+              name: 'request',
+              type: _i1.getType<_i39.BroadcastRequest>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .createBroadcast(
+                        session,
+                        params['request'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'saveBroadcastDraft': _i1.MethodConnector(
+          name: 'saveBroadcastDraft',
+          params: {
+            'request': _i1.ParameterDescription(
+              name: 'request',
+              type: _i1.getType<_i39.BroadcastRequest>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .saveBroadcastDraft(
+                        session,
+                        params['request'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'sendBroadcastDraft': _i1.MethodConnector(
+          name: 'sendBroadcastDraft',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'broadcastId': _i1.ParameterDescription(
+              name: 'broadcastId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .sendBroadcastDraft(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        params['broadcastId'],
+                      ),
+        ),
+        'listBroadcasts': _i1.MethodConnector(
+          name: 'listBroadcasts',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .listBroadcasts(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        status: params['status'],
+                        query: params['query'],
+                        limit: params['limit'],
+                        pageToken: params['pageToken'],
+                      ),
+        ),
+        'deleteBroadcastDraft': _i1.MethodConnector(
+          name: 'deleteBroadcastDraft',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'broadcastId': _i1.ParameterDescription(
+              name: 'broadcastId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .deleteBroadcastDraft(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        params['broadcastId'],
+                      ),
+        ),
       },
     );
     connectors['order'] = _i1.EndpointConnector(
@@ -4021,7 +4315,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i39.Product>(),
+              type: _i1.getType<_i40.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4052,7 +4346,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i39.Product>(),
+              type: _i1.getType<_i40.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4763,7 +5057,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i40.SubCategory>(),
+              type: _i1.getType<_i41.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4804,7 +5098,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i40.SubCategory>(),
+              type: _i1.getType<_i41.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4972,7 +5266,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i41.AppUser>(),
+              type: _i1.getType<_i42.AppUser>(),
               nullable: false,
             ),
           },
@@ -4996,7 +5290,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cart': _i1.ParameterDescription(
               name: 'cart',
-              type: _i1.getType<List<_i42.CartItem>>(),
+              type: _i1.getType<List<_i43.CartItem>>(),
               nullable: false,
             ),
           },
@@ -5037,9 +5331,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i43.Endpoints()
+    modules['serverpod_auth_idp'] = _i44.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i44.Endpoints()
+    modules['serverpod_auth_core'] = _i45.Endpoints()
       ..initializeEndpoints(server);
   }
 }

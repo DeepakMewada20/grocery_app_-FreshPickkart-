@@ -19,12 +19,17 @@ abstract class NotificationOutboxRow
     required this.dedupeKey,
     required this.campaignId,
     required this.payloadJson,
+    String? status,
     int? attemptCount,
+    int? maxAttempts,
     this.lastError,
+    this.nextAttemptAt,
     this.processedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : attemptCount = attemptCount ?? 0,
+  }) : status = status ?? 'queued',
+       attemptCount = attemptCount ?? 0,
+       maxAttempts = maxAttempts ?? 5,
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -33,8 +38,11 @@ abstract class NotificationOutboxRow
     required String dedupeKey,
     required _i1.UuidValue campaignId,
     required String payloadJson,
+    String? status,
     int? attemptCount,
+    int? maxAttempts,
     String? lastError,
+    DateTime? nextAttemptAt,
     DateTime? processedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -52,8 +60,15 @@ abstract class NotificationOutboxRow
         jsonSerialization['campaignId'],
       ),
       payloadJson: jsonSerialization['payloadJson'] as String,
+      status: jsonSerialization['status'] as String?,
       attemptCount: jsonSerialization['attemptCount'] as int?,
+      maxAttempts: jsonSerialization['maxAttempts'] as int?,
       lastError: jsonSerialization['lastError'] as String?,
+      nextAttemptAt: jsonSerialization['nextAttemptAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['nextAttemptAt'],
+            ),
       processedAt: jsonSerialization['processedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -81,9 +96,15 @@ abstract class NotificationOutboxRow
 
   String payloadJson;
 
+  String status;
+
   int attemptCount;
 
+  int maxAttempts;
+
   String? lastError;
+
+  DateTime? nextAttemptAt;
 
   DateTime? processedAt;
 
@@ -102,8 +123,11 @@ abstract class NotificationOutboxRow
     String? dedupeKey,
     _i1.UuidValue? campaignId,
     String? payloadJson,
+    String? status,
     int? attemptCount,
+    int? maxAttempts,
     String? lastError,
+    DateTime? nextAttemptAt,
     DateTime? processedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -116,8 +140,11 @@ abstract class NotificationOutboxRow
       'dedupeKey': dedupeKey,
       'campaignId': campaignId.toJson(),
       'payloadJson': payloadJson,
+      'status': status,
       'attemptCount': attemptCount,
+      'maxAttempts': maxAttempts,
       if (lastError != null) 'lastError': lastError,
+      if (nextAttemptAt != null) 'nextAttemptAt': nextAttemptAt?.toJson(),
       if (processedAt != null) 'processedAt': processedAt?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -167,8 +194,11 @@ class _NotificationOutboxRowImpl extends NotificationOutboxRow {
     required String dedupeKey,
     required _i1.UuidValue campaignId,
     required String payloadJson,
+    String? status,
     int? attemptCount,
+    int? maxAttempts,
     String? lastError,
+    DateTime? nextAttemptAt,
     DateTime? processedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -177,8 +207,11 @@ class _NotificationOutboxRowImpl extends NotificationOutboxRow {
          dedupeKey: dedupeKey,
          campaignId: campaignId,
          payloadJson: payloadJson,
+         status: status,
          attemptCount: attemptCount,
+         maxAttempts: maxAttempts,
          lastError: lastError,
+         nextAttemptAt: nextAttemptAt,
          processedAt: processedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -193,8 +226,11 @@ class _NotificationOutboxRowImpl extends NotificationOutboxRow {
     String? dedupeKey,
     _i1.UuidValue? campaignId,
     String? payloadJson,
+    String? status,
     int? attemptCount,
+    int? maxAttempts,
     Object? lastError = _Undefined,
+    Object? nextAttemptAt = _Undefined,
     Object? processedAt = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -204,8 +240,13 @@ class _NotificationOutboxRowImpl extends NotificationOutboxRow {
       dedupeKey: dedupeKey ?? this.dedupeKey,
       campaignId: campaignId ?? this.campaignId,
       payloadJson: payloadJson ?? this.payloadJson,
+      status: status ?? this.status,
       attemptCount: attemptCount ?? this.attemptCount,
+      maxAttempts: maxAttempts ?? this.maxAttempts,
       lastError: lastError is String? ? lastError : this.lastError,
+      nextAttemptAt: nextAttemptAt is DateTime?
+          ? nextAttemptAt
+          : this.nextAttemptAt,
       processedAt: processedAt is DateTime? ? processedAt : this.processedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -234,8 +275,18 @@ class NotificationOutboxRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
+    table.status,
+    value,
+  );
+
   _i1.ColumnValue<int, int> attemptCount(int value) => _i1.ColumnValue(
     table.attemptCount,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> maxAttempts(int value) => _i1.ColumnValue(
+    table.maxAttempts,
     value,
   );
 
@@ -243,6 +294,12 @@ class NotificationOutboxRowUpdateTable
     table.lastError,
     value,
   );
+
+  _i1.ColumnValue<DateTime, DateTime> nextAttemptAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.nextAttemptAt,
+        value,
+      );
 
   _i1.ColumnValue<DateTime, DateTime> processedAt(DateTime? value) =>
       _i1.ColumnValue(
@@ -279,13 +336,27 @@ class NotificationOutboxRowTable extends _i1.Table<_i1.UuidValue?> {
       'payloadJson',
       this,
     );
+    status = _i1.ColumnString(
+      'status',
+      this,
+      hasDefault: true,
+    );
     attemptCount = _i1.ColumnInt(
       'attemptCount',
       this,
       hasDefault: true,
     );
+    maxAttempts = _i1.ColumnInt(
+      'maxAttempts',
+      this,
+      hasDefault: true,
+    );
     lastError = _i1.ColumnString(
       'lastError',
+      this,
+    );
+    nextAttemptAt = _i1.ColumnDateTime(
+      'nextAttemptAt',
       this,
     );
     processedAt = _i1.ColumnDateTime(
@@ -312,9 +383,15 @@ class NotificationOutboxRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString payloadJson;
 
+  late final _i1.ColumnString status;
+
   late final _i1.ColumnInt attemptCount;
 
+  late final _i1.ColumnInt maxAttempts;
+
   late final _i1.ColumnString lastError;
+
+  late final _i1.ColumnDateTime nextAttemptAt;
 
   late final _i1.ColumnDateTime processedAt;
 
@@ -328,8 +405,11 @@ class NotificationOutboxRowTable extends _i1.Table<_i1.UuidValue?> {
     dedupeKey,
     campaignId,
     payloadJson,
+    status,
     attemptCount,
+    maxAttempts,
     lastError,
+    nextAttemptAt,
     processedAt,
     createdAt,
     updatedAt,

@@ -9,6 +9,16 @@ fields:
   topic: String
   imageUrl: String?
   targetAudience: String
+  status: String, default='queued'
+  priority: String, default='normal'
+  scheduledAt: DateTime?
+  creatorAdminFirebaseUid: String?
+  targetMetadataJson: String?
+  recipientCount: int, default=0
+  successCount: int, default=0
+  failureCount: int, default=0
+  lastError: String?
+  sentAt: DateTime?
   entityType: String?
   entityId: String?
   dataJson: String?
@@ -18,3 +28,7 @@ indexes:
     fields: createdAt, id
   notification_campaign_topic_idx:
     fields: topic, createdAt
+  notification_campaign_status_created_idx:
+    fields: status, createdAt, id
+  notification_campaign_scheduled_idx:
+    fields: scheduledAt, status

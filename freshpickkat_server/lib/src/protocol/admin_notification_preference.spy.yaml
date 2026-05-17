@@ -1,0 +1,9 @@
+class: AdminNotificationPreference
+fields:
+  key: String
+  title: String
+  group: String
+  pushEnabled: bool
+  soundEnabled: bool
+  critical: bool
+  updatedAt: DateTime?

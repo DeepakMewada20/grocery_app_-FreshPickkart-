@@ -6,8 +6,11 @@ fields:
   dedupeKey: String
   campaignId: UuidValue, relation(parent=notification_campaign, onDelete=Cascade)
   payloadJson: String
+  status: String, default='queued'
   attemptCount: int, default=0
+  maxAttempts: int, default=5
   lastError: String?
+  nextAttemptAt: DateTime?
   processedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
@@ -16,6 +19,8 @@ indexes:
     fields: dedupeKey
     unique: true
   notification_outbox_pending_idx:
-    fields: processedAt, createdAt, id
+    fields: processedAt, nextAttemptAt, createdAt, id
+  notification_outbox_status_idx:
+    fields: status, nextAttemptAt
   notification_outbox_campaign_idx:
     fields: campaignId
