@@ -9,7 +9,7 @@ class ProductProviderController extends GetxController {
 
   final Client _client = ServerpodClient().client;
 
-  static const int _cacheLimit = 15;
+  static const int _cacheLimit = 20;
   final Map<String, List<Product>> _productCache = {};
 
   // States
@@ -176,9 +176,7 @@ class ProductProviderController extends GetxController {
         lastProductName: allProducts.isEmpty
             ? null
             : allProducts.last.productName,
-        lastProductId: allProducts.isEmpty
-            ? null
-            : allProducts.last.productId,
+        lastProductId: allProducts.isEmpty ? null : allProducts.last.productId,
         category: currentCategory.value.isEmpty ? null : currentCategory.value,
         subcategories: currentSubcategories.isEmpty
             ? null
