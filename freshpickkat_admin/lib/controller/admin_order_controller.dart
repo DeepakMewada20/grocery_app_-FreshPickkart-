@@ -172,6 +172,15 @@ class AdminOrderController extends GetxController {
   }
 
   Future<void> startDelivery(Order order) async {
-    await updateOrderStatus(order, 'out_for_delivery');
+    if (!Get.isRegistered<DeliveryTrackingController>()) {
+      await updateOrderStatus(order, 'out_for_delivery');
+      return;
+    }
+
+    await Get.find<DeliveryTrackingController>().beginActualDelivery(
+      order: order,
+      onPromoteToOutForDelivery: () =>
+          updateOrderStatus(order, 'out_for_delivery'),
+    );
   }
 }

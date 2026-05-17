@@ -52,15 +52,22 @@ class DeliveryTrackingController extends GetxController {
     activeOrderId.value = order.orderId;
     statusMessage.value = 'Waiting for first live location';
     isActive.value = true;
-    await _service.attachToOrder(
-      order.orderId,
-      forceTracking: true,
-      status: 'out_for_delivery',
-      onFirstPublish: (_) async {
-        statusMessage.value = 'Promoting delivery start';
-        await onPromoteToOutForDelivery();
-      },
-    );
+    try {
+      await _service.attachToOrder(
+        order.orderId,
+        forceTracking: true,
+        status: 'out_for_delivery',
+        publishImmediately: true,
+        onFirstPublish: (_) async {
+          statusMessage.value = 'Promoting delivery start';
+          await onPromoteToOutForDelivery();
+        },
+      );
+      statusMessage.value = 'Sending rider updates';
+    } catch (_) {
+      await stop();
+      rethrow;
+    }
   }
 
   void pauseSender() => _service.pause();

@@ -31,11 +31,15 @@ class DeliveryLocationSenderService {
     bool trackingEnabled = false,
     String status = '',
     Future<void> Function(String orderId)? onFirstPublish,
+    bool publishImmediately = false,
   }) async {
     if (_activeOrderId == orderId && _updateTimer?.isActive == true) {
       _forceTracking = _forceTracking || forceTracking;
       if (onFirstPublish != null) {
         _onFirstPublish = onFirstPublish;
+      }
+      if (publishImmediately) {
+        await _sendCurrentLocation(throwOnFailure: true);
       }
       return;
     }
@@ -47,7 +51,11 @@ class DeliveryLocationSenderService {
     if (status == 'delivered' || status == 'cancelled') return;
 
     if (forceTracking || (status == 'out_for_delivery' && trackingEnabled)) {
-      _ensureLoop();
+      if (publishImmediately) {
+        await _sendCurrentLocation(throwOnFailure: true);
+      } else {
+        _ensureLoop();
+      }
     }
   }
 
@@ -73,10 +81,15 @@ class DeliveryLocationSenderService {
     });
   }
 
-  Future<void> _sendCurrentLocation() async {
+  Future<void> _sendCurrentLocation({bool throwOnFailure = false}) async {
     if (_activeOrderId == null) return;
     final hasPermission = await _ensurePermission();
     if (!hasPermission) {
+      if (throwOnFailure) {
+        throw DeliveryLocationUnavailableException(
+          'Location service is off or permission was denied. Enable location access before starting delivery.',
+        );
+      }
       _scheduleNextTick();
       return;
     }
@@ -114,15 +127,27 @@ class DeliveryLocationSenderService {
           _firstPublishTriggered = true;
           try {
             await _onFirstPublish!.call(_activeOrderId!);
-          } catch (_) {
+          } catch (error) {
             _firstPublishTriggered = false;
+            if (throwOnFailure) {
+              throw DeliveryLocationUnavailableException(
+                'Could not start delivery after publishing rider location. $error',
+              );
+            }
           }
         }
       }
-    } catch (_) {
-      // Ignore transient GPS failures and retry on the next tick.
+    } catch (error) {
+      if (throwOnFailure) {
+        if (error is DeliveryLocationUnavailableException) rethrow;
+        throw DeliveryLocationUnavailableException(
+          'Could not publish rider location. Please check GPS and try again. $error',
+        );
+      }
     } finally {
-      _scheduleNextTick();
+      if (_activeOrderId != null && !_paused) {
+        _scheduleNextTick();
+      }
     }
   }
 
@@ -159,11 +184,9 @@ class DeliveryLocationSenderService {
   }
 
   void resume() {
-    if (!_paused || _activeOrderId == null) return;
+    if (_activeOrderId == null) return;
     _paused = false;
-    if (_forceTracking) {
-      _ensureLoop();
-    }
+    _ensureLoop();
   }
 
   Future<void> stop() async {
@@ -177,4 +200,13 @@ class DeliveryLocationSenderService {
     _paused = false;
     _onFirstPublish = null;
   }
+}
+
+class DeliveryLocationUnavailableException implements Exception {
+  const DeliveryLocationUnavailableException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

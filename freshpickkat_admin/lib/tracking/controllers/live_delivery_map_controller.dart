@@ -29,6 +29,18 @@ class LiveDeliveryMapController extends GetxController {
   String? _activeOrderId;
   DateTime? _lastRiderUpdateAt;
   final List<double> _speedSamples = <double>[];
+  Timer? _routeRetryTimer;
+  bool _routeRequestInFlight = false;
+  bool _routeIsFallback = false;
+  int _routeRetryAttempts = 0;
+  DeliveryLocation? _latestRouteUser;
+  LatLng? _latestRouteRider;
+  static const List<Duration> _routeRetryDelays = [
+    Duration(seconds: 3),
+    Duration(seconds: 8),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
 
   Duration get markerTransitionDuration => const Duration(seconds: 7);
 
@@ -63,6 +75,8 @@ class LiveDeliveryMapController extends GetxController {
     await stopListening();
 
     _activeOrderId = orderId;
+    routePolyline.clear();
+    _resetRouteRetryState();
     isLoading.value = true;
     error.value = '';
 
@@ -165,42 +179,105 @@ class LiveDeliveryMapController extends GetxController {
     return median.clamp(2.5, 12.0).toDouble();
   }
 
-  Future<void> _maybeBuildRoute(DeliveryLocation? user, LatLng rider) async {
-    if (user == null || routePolyline.isNotEmpty || _activeOrderId == null) {
+  Future<void> _maybeBuildRoute(
+    DeliveryLocation? user,
+    LatLng rider, {
+    bool force = false,
+  }) async {
+    if (user == null || _activeOrderId == null) {
+      return;
+    }
+    _latestRouteUser = user;
+    _latestRouteRider = rider;
+    if (_routeRequestInFlight) {
+      return;
+    }
+    if (routePolyline.isNotEmpty && !_routeIsFallback) {
+      return;
+    }
+    if (!force && _routeIsFallback && _routeRetryTimer?.isActive == true) {
       return;
     }
 
+    _routeRetryTimer?.cancel();
+    _routeRetryTimer = null;
+    _routeRequestInFlight = true;
+    final orderId = _activeOrderId!;
+
     try {
-      // Get actual route from backend with aggressive caching
       final routePoints = await _repository.getDeliveryRoute(
-        orderId: _activeOrderId!,
+        orderId: orderId,
         riderLatitude: rider.latitude,
         riderLongitude: rider.longitude,
         userLatitude: user.lat,
         userLongitude: user.lng,
       );
+      if (_activeOrderId != orderId) {
+        return;
+      }
+      if (routePoints.length < 2) {
+        throw Exception('Route has too few points.');
+      }
 
-      // Convert List<List<double>> to List<LatLng>
       final polylinePoints = routePoints
           .map((point) => LatLng(point[0], point[1]))
           .toList();
 
       routePolyline.assignAll(polylinePoints);
+      _routeIsFallback = false;
+      _routeRetryAttempts = 0;
     } catch (e) {
-      // Fallback to straight line if route fetch fails
-      const segments = 24;
-      final points = <LatLng>[];
-      for (var i = 0; i <= segments; i++) {
-        final t = i / segments;
-        points.add(
-          LatLng(
-            rider.latitude + ((user.lat - rider.latitude) * t),
-            rider.longitude + ((user.lng - rider.longitude) * t),
-          ),
-        );
+      if (_activeOrderId != orderId) {
+        return;
       }
-      routePolyline.assignAll(points);
+      if (routePolyline.isEmpty || !_routeIsFallback) {
+        routePolyline.assignAll(_buildStraightLineRoute(user, rider));
+      }
+      _routeIsFallback = true;
+      _scheduleRouteRetry();
+    } finally {
+      _routeRequestInFlight = false;
     }
+  }
+
+  List<LatLng> _buildStraightLineRoute(DeliveryLocation user, LatLng rider) {
+    const segments = 24;
+    final points = <LatLng>[];
+    for (var i = 0; i <= segments; i++) {
+      final t = i / segments;
+      points.add(
+        LatLng(
+          rider.latitude + ((user.lat - rider.latitude) * t),
+          rider.longitude + ((user.lng - rider.longitude) * t),
+        ),
+      );
+    }
+    return points;
+  }
+
+  void _scheduleRouteRetry() {
+    if (_activeOrderId == null) return;
+    final index = _routeRetryAttempts >= _routeRetryDelays.length
+        ? _routeRetryDelays.length - 1
+        : _routeRetryAttempts;
+    _routeRetryAttempts += 1;
+    _routeRetryTimer?.cancel();
+    _routeRetryTimer = Timer(_routeRetryDelays[index], () {
+      final user = _latestRouteUser;
+      final rider = _latestRouteRider;
+      if (user == null || rider == null || _activeOrderId == null) return;
+      unawaited(_maybeBuildRoute(user, rider, force: true));
+    });
+  }
+
+  void _resetRouteRetryState() {
+    _routeRetryTimer?.cancel();
+    _routeRetryTimer = null;
+    _routeRequestInFlight = false;
+    _routeIsFallback = false;
+    _routeRetryAttempts = 0;
+    _latestRouteUser = null;
+    _latestRouteRider = null;
   }
 
   Future<void> stopListening() async {
@@ -210,6 +287,7 @@ class LiveDeliveryMapController extends GetxController {
     _activeOrderId = null;
     _lastRiderUpdateAt = null;
     _speedSamples.clear();
+    _resetRouteRetryState();
   }
 
   @override

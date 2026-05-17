@@ -81,78 +81,74 @@ class DirectionsService {
       }
     }
 
-    try {
-      final origin = '$riderLatitude,$riderLongitude';
-      final destination = '$userLatitude,$userLongitude';
+    final origin = '$riderLatitude,$riderLongitude';
+    final destination = '$userLatitude,$userLongitude';
 
-      final response = await http
-          .get(
-            Uri.parse(_directionsUrl).replace(
-              queryParameters: {
-                'origin': origin,
-                'destination': destination,
-                'mode': 'driving',
-                'region': 'in',
-                'key': _apiKey,
-              },
-            ),
-          )
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () => throw Exception('Directions API timeout'),
-          );
+    final response = await http
+        .get(
+          Uri.parse(_directionsUrl).replace(
+            queryParameters: {
+              'origin': origin,
+              'destination': destination,
+              'mode': 'driving',
+              'region': 'in',
+              'key': _apiKey,
+            },
+          ),
+        )
+        .timeout(
+          const Duration(seconds: 30),
+          onTimeout: () => throw Exception('Directions API timeout'),
+        );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final status = data['status'] as String?;
-
-        if (status == 'OK' &&
-            data['routes'] is List &&
-            (data['routes'] as List).isNotEmpty) {
-          final route = (data['routes'] as List).first as Map<String, dynamic>;
-          final overviewPolyline =
-              route['overview_polyline'] as Map<String, dynamic>?;
-          final encodedPoints = overviewPolyline?['points'] as String?;
-
-          if (encodedPoints != null && encodedPoints.isNotEmpty) {
-            final polylinePoints = _decodePolyline(encodedPoints);
-
-            if (polylinePoints.isEmpty) {
-              return _generateStraightLine(
-                riderLatitude,
-                riderLongitude,
-                userLatitude,
-                userLongitude,
-              );
-            }
-
-            final routePoints = polylinePoints
-                .map((point) => [point['lat']!, point['lng']!])
-                .toList();
-            final lats = polylinePoints.map((p) => p['lat']!).toList();
-            final lngs = polylinePoints.map((p) => p['lng']!).toList();
-
-            _routeCache[cacheKey] = CachedRoute(
-              latitudes: lats,
-              longitudes: lngs,
-              expiresAt: DateTime.now().add(_cacheDuration),
-            );
-            _enforceMaxCacheSize();
-
-            return routePoints;
-          }
-        }
-      }
-    } catch (e) {
-      // Silently fall back to straight line on any error
+    if (response.statusCode != 200) {
+      throw Exception('Directions API HTTP ${response.statusCode}');
     }
 
-    return _generateStraightLine(
-      riderLatitude,
-      riderLongitude,
-      userLatitude,
-      userLongitude,
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final status = data['status'] as String?;
+
+    if (status != 'OK') {
+      final message = data['error_message'] as String?;
+      throw Exception(
+        message == null || message.trim().isEmpty
+            ? 'Directions API status: $status'
+            : 'Directions API status: $status. $message',
+      );
+    }
+
+    if (data['routes'] is! List || (data['routes'] as List).isEmpty) {
+      throw Exception('Directions API returned no routes.');
+    }
+
+    final route = (data['routes'] as List).first as Map<String, dynamic>;
+    final overviewPolyline =
+        route['overview_polyline'] as Map<String, dynamic>?;
+    final encodedPoints = overviewPolyline?['points'] as String?;
+
+    if (encodedPoints == null || encodedPoints.isEmpty) {
+      throw Exception('Directions API returned no route polyline.');
+    }
+
+    final polylinePoints = _decodePolyline(encodedPoints);
+    if (polylinePoints.isEmpty) {
+      throw Exception('Directions route polyline was empty.');
+    }
+
+    final routePoints = polylinePoints
+        .map((point) => [point['lat']!, point['lng']!])
+        .toList();
+    final lats = polylinePoints.map((p) => p['lat']!).toList();
+    final lngs = polylinePoints.map((p) => p['lng']!).toList();
+
+    _routeCache[cacheKey] = CachedRoute(
+      latitudes: lats,
+      longitudes: lngs,
+      expiresAt: DateTime.now().add(_cacheDuration),
     );
+    _enforceMaxCacheSize();
+
+    return routePoints;
   }
 
   List<Map<String, double>> _decodePolyline(String encoded) {
@@ -180,24 +176,6 @@ class DirectionsService {
       lng += dlng;
 
       points.add({'lat': lat / 1e5, 'lng': lng / 1e5});
-    }
-    return points;
-  }
-
-  List<List<double>> _generateStraightLine(
-    double startLat,
-    double startLng,
-    double endLat,
-    double endLng,
-  ) {
-    const segments = 24;
-    final points = <List<double>>[];
-    for (var i = 0; i <= segments; i++) {
-      final t = i / segments;
-      points.add([
-        startLat + ((endLat - startLat) * t),
-        startLng + ((endLng - startLng) * t),
-      ]);
     }
     return points;
   }

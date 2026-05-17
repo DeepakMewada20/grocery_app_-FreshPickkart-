@@ -192,8 +192,9 @@ class OrderTrackingEndpoint extends Endpoint {
     String firebaseUid,
     String idToken,
   ) async {
-    await _adminGuard.ensureAdminSeller(
+    await _ensureRouteAccess(
       session,
+      orderId: orderId,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
@@ -203,6 +204,29 @@ class OrderTrackingEndpoint extends Endpoint {
       userLatitude,
       userLongitude,
     );
+  }
+
+  Future<void> _ensureRouteAccess(
+    Session session, {
+    required String orderId,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    try {
+      await _adminGuard.ensureAdminSeller(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      return;
+    } catch (_) {
+      await _ensureOrderOwner(
+        session,
+        orderId: orderId,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+    }
   }
 
   Future<void> _ensureOrderOwner(

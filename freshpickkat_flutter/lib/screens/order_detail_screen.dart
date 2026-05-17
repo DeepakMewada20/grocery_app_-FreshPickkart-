@@ -680,35 +680,40 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
     }
 
-    if (!isDelivered) {
-      return _disabledComplaintText('Available after delivery', cs);
-    }
+    // Show button but disable until delivered
+    bool isEnabled = isDelivered;
+    String? statusText;
 
-    final deadline = deliveredAt.toLocal().add(const Duration(days: 3));
-    final expired = DateTime.now().isAfter(deadline);
-    if (expired) {
-      return _disabledComplaintText(
-        'Complaint period expired',
-        cs,
-        subtitle: 'Complaints can be raised only within 3 days after delivery.',
-      );
+    if (!isDelivered) {
+      statusText = 'Available after delivery';
+    } else {
+      final deadline = deliveredAt.toLocal().add(const Duration(days: 3));
+      final expired = DateTime.now().isAfter(deadline);
+      if (expired) {
+        statusText = 'Complaint period expired';
+        isEnabled = false;
+      } else {
+        statusText = 'Available until ${_formatDate(deadline)}';
+      }
     }
 
     return Row(
       children: [
         Expanded(
           child: Text(
-            'Available until ${_formatDate(deadline)}',
+            statusText,
             style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.62),
+              color: cs.onSurface.withValues(alpha: isEnabled ? 0.62 : 0.55),
               fontSize: 12.sp,
+              fontWeight: isEnabled ? FontWeight.w400 : FontWeight.w700,
             ),
           ),
         ),
         OutlinedButton.icon(
           onPressed: itemId == null || itemId.isEmpty
               ? null
-              : () async {
+              : isEnabled
+              ? () async {
                   final result = await Get.to<Complaint>(
                     () => ReportProductIssueScreen(
                       orderNumber: order.orderId,
@@ -720,38 +725,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       _complaintsByItemId[result.orderItemId] = result;
                     });
                   }
+                }
+              : () {
+                  if (!isDelivered) {
+                    Get.snackbar(
+                      'Cannot Report Issue',
+                      'You can file a complaint only after the product is delivered.',
+                      duration: const Duration(seconds: 3),
+                      backgroundColor: Colors.orange.shade700,
+                      colorText: Colors.white,
+                    );
+                  } else {
+                    Get.snackbar(
+                      'Complaint Period Expired',
+                      'Complaints can be raised only within 3 days after delivery.',
+                      duration: const Duration(seconds: 3),
+                      backgroundColor: Colors.red.shade700,
+                      colorText: Colors.white,
+                    );
+                  }
                 },
           icon: const Icon(Icons.report_problem_outlined),
           label: const Text('Report Issue'),
         ),
-      ],
-    );
-  }
-
-  Widget _disabledComplaintText(
-    String title,
-    ColorScheme cs, {
-    String? subtitle,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: cs.onSurface.withValues(alpha: 0.55),
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        if (subtitle != null)
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.5),
-              fontSize: 11.sp,
-            ),
-          ),
       ],
     );
   }

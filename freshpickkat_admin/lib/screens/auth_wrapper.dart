@@ -8,6 +8,8 @@ import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/services/admin_notification_service.dart';
 import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
 import 'package:freshpickkat_admin/services/network_status_service.dart';
+import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
+import 'package:get/get.dart';
 
 enum _AuthViewState {
   checking,
@@ -72,10 +74,14 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
       return;
     }
 
-    if (state == AppLifecycleState.resumed &&
-        !user.emailVerified &&
-        _viewState == _AuthViewState.awaitingVerification) {
-      _startVerificationPolling();
+    if (state == AppLifecycleState.resumed) {
+      if (Get.isRegistered<DeliveryTrackingController>()) {
+        Get.find<DeliveryTrackingController>().resumeSender();
+      }
+      if (!user.emailVerified &&
+          _viewState == _AuthViewState.awaitingVerification) {
+        _startVerificationPolling();
+      }
     }
   }
 
