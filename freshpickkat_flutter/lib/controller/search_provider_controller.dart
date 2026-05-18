@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/services/search_history_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -12,18 +13,24 @@ class SearchProviderController extends GetxController {
   }
 
   final Client _client = ServerpodClient().client;
+  final SearchHistoryService _searchHistoryService;
+
+  SearchProviderController({SearchHistoryService? searchHistoryService})
+    : _searchHistoryService = searchHistoryService ?? SearchHistoryService();
 
   // States
   final searchResults = <Product>[].obs;
   final suggestions = <Product>[].obs;
   final offerResults = <OfferSearchItem>[].obs;
+  final recentSearches = <String>[].obs;
   final isLoadingResults = false.obs;
   final isLoadingSuggestions = false.obs;
   final hasMoreResults = false.obs;
   final hasMoreSuggestions = false.obs;
   final hasMoreOfferResults = false.obs;
-  final selectedOfferFilter = ''.obs;
-  
+  final selectedFilter = ''.obs;
+  RxString get selectedOfferFilter => selectedFilter;
+
   // UI States
   final expandedComboId = RxnString();
 
@@ -31,6 +38,29 @@ class SearchProviderController extends GetxController {
   String? _nextPageTokenSuggestions;
   String? _nextPageTokenOfferResults;
   String _currentQuery = '';
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadRecentSearch();
+  }
+
+  void loadRecentSearch() {
+    recentSearches.assignAll(_searchHistoryService.loadRecentSearch());
+  }
+
+  Future<void> saveSearch(String query) async {
+    recentSearches.assignAll(await _searchHistoryService.saveSearch(query));
+  }
+
+  Future<void> removeSearch(String query) async {
+    recentSearches.assignAll(await _searchHistoryService.removeSearch(query));
+  }
+
+  Future<void> clearAll() async {
+    await _searchHistoryService.clearAll();
+    recentSearches.clear();
+  }
 
   Future<void> fetchSuggestions(String query) async {
     final normalizedQuery = query.trim();
@@ -91,7 +121,8 @@ class SearchProviderController extends GetxController {
     try {
       isLoadingResults.value = true;
       _currentQuery = normalizedQuery;
-      selectedOfferFilter.value = ''; // Clear offer filter when searching general
+      selectedOfferFilter.value =
+          ''; // Clear offer filter when searching general
 
       final result = await _client.product.searchProducts(
         normalizedQuery,
@@ -101,6 +132,7 @@ class SearchProviderController extends GetxController {
       searchResults.assignAll(result.products);
       _nextPageTokenResults = result.nextPageToken;
       hasMoreResults.value = result.nextPageToken != null;
+      await saveSearch(normalizedQuery);
     } catch (e) {
       debugPrint('Error searching products: $e');
       searchResults.clear();
@@ -131,8 +163,9 @@ class SearchProviderController extends GetxController {
   }
 
   Future<void> selectOfferFilter(String filter, {String query = ''}) async {
-    selectedOfferFilter.value =
-        selectedOfferFilter.value == filter ? '' : filter;
+    selectedOfferFilter.value = selectedOfferFilter.value == filter
+        ? ''
+        : filter;
     expandedComboId.value = null; // Clear expanded combo when filter changes
 
     if (selectedOfferFilter.value.isNotEmpty) {
@@ -141,7 +174,7 @@ class SearchProviderController extends GetxController {
       await searchProducts(query);
     }
   }
-  
+
   void toggleComboExpansion(String comboId) {
     if (expandedComboId.value == comboId) {
       expandedComboId.value = null;
@@ -157,6 +190,23 @@ class SearchProviderController extends GetxController {
     try {
       isLoadingResults.value = true;
       final normalizedQuery = query.trim();
+      _currentQuery = normalizedQuery;
+
+      if (filter == 'trending' || filter == 'best_seller') {
+        final ranked = filter == 'trending'
+            ? await _client.productRanking.getTrendingProducts(limit: 20)
+            : await _client.productRanking.getMostSellingProducts(limit: 20);
+
+        offerResults.assignAll(
+          ranked.map(
+            (item) => OfferSearchItem(offerType: filter, product: item.product),
+          ),
+        );
+        _nextPageTokenOfferResults = null;
+        hasMoreOfferResults.value = false;
+        if (normalizedQuery.isNotEmpty) await saveSearch(normalizedQuery);
+        return;
+      }
 
       final result = await _client.product.searchProductsWithOfferFilters(
         query: normalizedQuery,
@@ -167,6 +217,7 @@ class SearchProviderController extends GetxController {
       offerResults.assignAll(result.items);
       _nextPageTokenOfferResults = result.nextPageToken;
       hasMoreOfferResults.value = result.nextPageToken != null;
+      if (normalizedQuery.isNotEmpty) await saveSearch(normalizedQuery);
     } catch (e) {
       debugPrint('Error searching offer products: $e');
       offerResults.clear();

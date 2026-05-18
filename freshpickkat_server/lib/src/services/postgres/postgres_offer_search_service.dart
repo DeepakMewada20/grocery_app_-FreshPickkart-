@@ -124,14 +124,21 @@ class PostgresOfferSearchService {
     );
     final offset = int.tryParse(pageToken ?? '')?.clamp(0, 1 << 30) ?? 0;
     final normalizedQuery = query.trim();
-    final where = _whereForType(normalizedType);
     final searchJoin = normalizedQuery.length >= 2
         ? 'JOIN product_search_document psd ON psd."productId" = p.id'
         : '';
     final searchPredicate = normalizedQuery.length >= 2
         ? 'AND psd."searchText" ILIKE \'%\' || @query || \'%\''
         : '';
+    final baseWhere = _baseWhereForType(normalizedType);
+    final outerWhere = _whereForType(normalizedType);
     final orderBy = _orderByForType(normalizedType);
+    final offerProductsCte = _offerProductsCte(
+      normalizedType,
+      searchJoin: searchJoin,
+      searchPredicate: searchPredicate,
+      baseWhere: baseWhere,
+    );
 
     final countParams = <String, dynamic>{};
     final resultsParams = <String, dynamic>{
@@ -146,15 +153,11 @@ class PostgresOfferSearchService {
 
     final totalResult = await session.db.unsafeQuery(
       '''
-      SELECT COUNT(DISTINCT p.id) AS "totalCount"
-      FROM product p
-      JOIN category c ON c.id = p."categoryId"
-      $searchJoin
-      ${_extraJoinForType(normalizedType)}
-      WHERE p.status = 'active'
-        AND c.status = 'active'
-        $where
-        $searchPredicate
+      $offerProductsCte
+      SELECT COUNT(DISTINCT product_uuid) AS "totalCount"
+      FROM offer_products
+      WHERE TRUE
+        $outerWhere
       ''',
       parameters: QueryParameters.named(countParams),
     );
@@ -164,15 +167,11 @@ class PostgresOfferSearchService {
 
     final result = await session.db.unsafeQuery(
       '''
-      SELECT p.id::text AS "productId", ${_selectSortColumn(normalizedType)}
-      FROM product p
-      JOIN category c ON c.id = p."categoryId"
-      $searchJoin
-      ${_extraJoinForType(normalizedType)}
-      WHERE p.status = 'active'
-        AND c.status = 'active'
-        $where
-        $searchPredicate
+      $offerProductsCte
+      SELECT product_id AS "productId", sort_value AS "sortValue"
+      FROM offer_products
+      WHERE TRUE
+        $outerWhere
       ORDER BY $orderBy
       LIMIT @limit OFFSET @offset
       ''',
@@ -218,33 +217,31 @@ class PostgresOfferSearchService {
 
   String _whereForType(String offerType) {
     switch (offerType) {
-      case 'bogo':
-        return '''
-        AND bo.status = 'active'
-        AND NOW() BETWEEN bo."startsAt" AND bo."endsAt"
-        ''';
+      case 'discount_40':
+        return 'AND calculated_discount_percentage >= 40';
       case 'discount':
-        return '''
-        AND (
-          p."discountType" IS NOT NULL
-          OR EXISTS (
-            SELECT 1
-            FROM category_offer co
-            WHERE co."categoryId" = p."categoryId"
-              AND co.status = 'active'
-              AND NOW() BETWEEN co."startsAt" AND co."endsAt"
-          )
-        )
-        ''';
+        return 'AND calculated_discount_percentage > 0';
       case 'best_seller':
       case 'best seller':
-        return 'AND p."mostPurchaseCount" > 0';
+        return 'AND most_purchase_count > 0';
       case 'new_arrival':
       case 'new arrival':
         return '';
       case 'free_delivery':
       case 'free delivery':
         return '';
+      default:
+        return '';
+    }
+  }
+
+  String _baseWhereForType(String offerType) {
+    switch (offerType) {
+      case 'bogo':
+        return '''
+        AND bo.status = 'active'
+        AND NOW() BETWEEN bo."startsAt" AND bo."endsAt"
+        ''';
       default:
         return '';
     }
@@ -257,18 +254,18 @@ class PostgresOfferSearchService {
     return '';
   }
 
-  String _selectSortColumn(String offerType) {
+  String _sortExpressionForType(String offerType) {
     switch (offerType) {
       case 'best_seller':
       case 'best seller':
-        return 'p."mostPurchaseCount" AS "sortValue"';
+        return 'p."mostPurchaseCount"';
       case 'new_arrival':
       case 'new arrival':
-        return 'p."createdAt" AS "sortValue"';
+        return 'p."createdAt"';
       case 'bogo':
-        return 'bo."createdAt" AS "sortValue"';
+        return 'bo."createdAt"';
       default:
-        return 'p."createdAt" AS "sortValue"';
+        return 'p."createdAt"';
     }
   }
 
@@ -276,19 +273,147 @@ class PostgresOfferSearchService {
     switch (offerType) {
       case 'best_seller':
       case 'best seller':
-        return '"sortValue" DESC, "productId" DESC';
+        return 'sort_value DESC, product_id DESC';
       case 'new_arrival':
       case 'new arrival':
-        return '"sortValue" DESC, "productId" DESC';
+        return 'created_at DESC, product_id DESC';
       case 'discount':
-        return 'p."createdAt" DESC, p.id DESC';
+      case 'discount_40':
+        return 'created_at DESC, product_id DESC';
       case 'free_delivery':
       case 'free delivery':
-        return 'p."trendingScore" DESC, p."mostPurchaseCount" DESC, p.id DESC';
+        return 'trending_score DESC, most_purchase_count DESC, product_id DESC';
       case 'bogo':
-        return '"sortValue" DESC, "productId" DESC';
+        return 'sort_value DESC, product_id DESC';
       default:
-        return 'p.name ASC, p.id ASC';
+        return 'product_name ASC, product_id ASC';
     }
   }
+
+  String _offerProductsCte(
+    String offerType, {
+    required String searchJoin,
+    required String searchPredicate,
+    required String baseWhere,
+  }) {
+    final categoryOfferPrice = '''
+      CASE
+        WHEN active_category_offer."discountType" = 'percentage'
+          THEN COALESCE(
+            default_variant."listPrice",
+            default_variant."salePrice",
+            0
+          ) *
+            (1 - (active_category_offer."discountValue" / 100))
+        WHEN active_category_offer."discountType" = 'flat'
+          THEN COALESCE(
+            default_variant."listPrice",
+            default_variant."salePrice",
+            0
+          ) - active_category_offer."discountValue"
+        ELSE NULL
+      END
+    ''';
+
+    final effectivePrice = '''
+      CASE
+        WHEN category_offer_price IS NOT NULL
+          AND category_offer_price < sale_price
+          THEN category_offer_price
+        ELSE sale_price
+      END
+    ''';
+
+    return '''
+      WITH priced_products AS (
+        SELECT
+          p.id AS product_uuid,
+          p.id::text AS product_id,
+          p.name AS product_name,
+          p."createdAt" AS created_at,
+          p."mostPurchaseCount" AS most_purchase_count,
+          p."trendingScore" AS trending_score,
+          ${_sortExpressionForType(offerType)} AS sort_value,
+          COALESCE(default_variant."salePrice", 0) AS sale_price,
+          COALESCE(
+            default_variant."listPrice",
+            default_variant."salePrice",
+            0
+          ) AS list_price,
+          $categoryOfferPrice AS category_offer_price
+        FROM product p
+        JOIN category c ON c.id = p."categoryId"
+        $searchJoin
+        ${_extraJoinForType(offerType)}
+        LEFT JOIN LATERAL (
+          SELECT
+            pv."salePrice",
+            pv."listPrice"
+          FROM product_variant pv
+          WHERE pv."productId" = p.id
+          ORDER BY
+            pv."isDefault" DESC,
+            pv."isAvailable" DESC,
+            pv."sortOrder" ASC,
+            pv.label ASC
+          LIMIT 1
+        ) default_variant ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT
+            co."discountType",
+            co."discountValue"
+          FROM category_offer co
+          WHERE co."categoryId" = p."categoryId"
+            AND co.status = 'active'
+            AND NOW() BETWEEN co."startsAt" AND co."endsAt"
+          ORDER BY co.priority DESC
+          LIMIT 1
+        ) active_category_offer ON TRUE
+        WHERE p.status = 'active'
+          AND c.status = 'active'
+          $baseWhere
+          $searchPredicate
+      ),
+      effective_products AS (
+        SELECT
+          *,
+          $effectivePrice AS effective_price
+        FROM priced_products
+      ),
+      offer_products AS (
+        SELECT
+          *,
+          CASE
+            WHEN list_price > 0 AND effective_price < list_price
+              THEN ((list_price - effective_price) / list_price) * 100
+            ELSE 0
+          END AS calculated_discount_percentage
+        FROM effective_products
+      )
+    ''';
+  }
+
+  double calculateDiscountPercentageForTesting({
+    required double listPrice,
+    required double salePrice,
+    String? categoryDiscountType,
+    double? categoryDiscountValue,
+  }) {
+    final categoryOfferValue = categoryDiscountValue;
+    double? categoryOfferPrice;
+    if (categoryDiscountType == 'percentage' && categoryOfferValue != null) {
+      categoryOfferPrice = listPrice * (1 - (categoryOfferValue / 100));
+    } else if (categoryDiscountType == 'flat' && categoryOfferValue != null) {
+      categoryOfferPrice = listPrice - categoryOfferValue;
+    }
+
+    final effectivePrice =
+        categoryOfferPrice != null && categoryOfferPrice < salePrice
+        ? categoryOfferPrice
+        : salePrice;
+    if (listPrice <= 0 || effectivePrice >= listPrice) return 0;
+    return ((listPrice - effectivePrice) / listPrice) * 100;
+  }
+
+  String orderByForTesting(String offerType) => _orderByForType(offerType);
 }

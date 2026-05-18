@@ -13,10 +13,12 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       SearchProviderController.instance;
 
   ProductSearchDelegate()
-      : super(
-          searchFieldLabel: 'Search products...',
-          searchFieldStyle: TextStyle(fontSize: 16.sp),
-        );
+    : super(
+        searchFieldLabel: 'Search products...',
+        searchFieldStyle: TextStyle(fontSize: 16.sp),
+      ) {
+    searchController.loadRecentSearch();
+  }
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -68,45 +70,66 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   }
 
   Widget _buildEmptySuggestions(BuildContext context) {
-    final recentSearches = [
-      'Milk',
-      'Bread',
-      'Eggs',
-      'Butter',
-      'Cheese',
-      'Paneer'
-    ];
-    final cs = Theme.of(context).colorScheme;
-
     return ListView(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       children: [
         _buildOfferChips(context),
-        Padding(
-          padding: EdgeInsets.all(16.r),
-          child: Text(
-            'Recent Searches',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-        ...recentSearches.map(
-          (term) => ListTile(
-            leading: const Icon(Icons.history),
-            title: Text(term),
-            onTap: () {
-              query = term;
-              searchController.searchProducts(term);
-              WidgetsBinding.instance
-                  .addPostFrameCallback((_) => showResults(context));
-            },
-          ),
-        ),
+        _buildRecentSearches(context),
       ],
     );
+  }
+
+  Widget _buildRecentSearches(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Obx(() {
+      final recentSearches = searchController.recentSearches;
+      if (recentSearches.isEmpty) return const SizedBox.shrink();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.r, 16.r, 8.r, 4.r),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Recent Searches',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: searchController.clearAll,
+                  child: const Text('Clear all'),
+                ),
+              ],
+            ),
+          ),
+          ...recentSearches.map(
+            (term) => ListTile(
+              leading: const Icon(Icons.history),
+              title: Text(term),
+              trailing: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => searchController.removeSearch(term),
+              ),
+              onTap: () {
+                query = term;
+                searchController.searchProducts(term);
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => showResults(context),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildProductGrid({
@@ -254,7 +277,8 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                     child: _buildOfferItem(item),
                   );
                 },
-                childCount: searchController.offerResults.length +
+                childCount:
+                    searchController.offerResults.length +
                     (searchController.hasMoreOfferResults.value ? 1 : 0),
               ),
             ),
@@ -284,9 +308,9 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     final offers = [
       (label: 'BOGO', value: 'bogo'),
       (label: 'Combo', value: 'combo'),
-      (label: 'Discount', value: 'discount'),
+      (label: 'Up to 40% OFF', value: 'discount_40'),
       (label: 'Trending', value: 'trending'),
-      (label: 'Popular', value: 'popular'),
+      (label: 'Best Seller', value: 'best_seller'),
       (label: 'New Arrival', value: 'new_arrival'),
     ];
 
@@ -304,10 +328,13 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                 label: Text(filter.label),
                 selected: isSelected,
                 onSelected: (_) {
-                  searchController.selectOfferFilter(filter.value,
-                      query: query);
-                  WidgetsBinding.instance
-                      .addPostFrameCallback((_) => showResults(context));
+                  searchController.selectOfferFilter(
+                    filter.value,
+                    query: query,
+                  );
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => showResults(context),
+                  );
                 },
               ),
             );
