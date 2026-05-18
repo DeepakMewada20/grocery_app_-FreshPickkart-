@@ -23,6 +23,7 @@ class SearchProviderController extends GetxController {
   final suggestions = <Product>[].obs;
   final offerResults = <OfferSearchItem>[].obs;
   final recentSearches = <String>[].obs;
+  List<String> get recentSearchesList => recentSearches.toList();
   final isLoadingResults = false.obs;
   final isLoadingSuggestions = false.obs;
   final hasMoreResults = false.obs;

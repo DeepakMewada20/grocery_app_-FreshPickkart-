@@ -16,9 +16,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     : super(
         searchFieldLabel: 'Search products...',
         searchFieldStyle: TextStyle(fontSize: 16.sp),
-      ) {
-    searchController.loadRecentSearch();
-  }
+      );
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -61,6 +59,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   @override
   Widget buildSuggestions(BuildContext context) {
     if (query.trim().isEmpty) {
+      searchController.loadRecentSearch();
       return _buildEmptySuggestions(context);
     }
 
@@ -83,7 +82,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     final cs = Theme.of(context).colorScheme;
 
     return Obx(() {
-      final recentSearches = searchController.recentSearches;
+      final recentSearches = searchController.recentSearchesList;
       if (recentSearches.isEmpty) return const SizedBox.shrink();
 
       return Column(
