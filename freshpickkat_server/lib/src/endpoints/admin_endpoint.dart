@@ -86,4 +86,18 @@ class AdminEndpoint extends Endpoint {
     );
     return _adminService.getAuditLogs(session, limit: limit);
   }
+
+  Future<List<protocol.ActiveUserStatistics>> getActiveUsersWithStats(
+    Session session,
+    String firebaseUid,
+    String idToken, {
+    int limit = 100,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _adminService.getActiveUsersWithStats(session, limit: limit);
+  }
 }

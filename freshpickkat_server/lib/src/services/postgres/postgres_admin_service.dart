@@ -383,6 +383,74 @@ class PostgresAdminService {
         .toList();
   }
 
+  Future<List<protocol.ActiveUserStatistics>> getActiveUsersWithStats(
+    Session session, {
+    int limit = 100,
+  }) async {
+    final users = await AppUserRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+      limit: clampPageLimit(limit, defaultLimit: 100, maxLimit: 500),
+    );
+
+    final userIds = users.map((user) => user.id!).toSet();
+    final userStats = await _getUserOrderStats(session, userIds);
+
+    return users.map(
+      (user) {
+        final stats = userStats[user.id!.toString()] ?? {};
+        return protocol.ActiveUserStatistics(
+          userId: user.id!.toString(),
+          name: user.name,
+          phoneNumber: user.phoneNumber,
+          email: user.email,
+          totalOrdersCount: stats['count'] as int? ?? 0,
+          totalSpent: stats['amount'] as double? ?? 0.0,
+          lastOrderDate: stats['lastDate'] as DateTime?,
+          status: user.status,
+        );
+      },
+    ).toList();
+  }
+
+  Future<Map<String, Map<String, dynamic>>> _getUserOrderStats(
+    Session session,
+    Set<UuidValue> userIds,
+  ) async {
+    if (userIds.isEmpty) return const {};
+
+    final orders = await CustomerOrderRow.db.find(
+      session,
+      where: (t) => t.userId.inSet(userIds) & t.orderStatus.equals('delivered'),
+    );
+
+    final stats = <String, Map<String, dynamic>>{};
+    for (final order in orders) {
+      final userId = order.userId.toString();
+      if (!stats.containsKey(userId)) {
+        stats[userId] = {
+          'count': 0,
+          'amount': 0.0,
+          'lastDate': order.createdAt,
+        };
+      }
+      final userStats = stats[userId]!;
+      userStats['count'] = (userStats['count'] as int) + 1;
+
+      final currentAmount = userStats['amount'] as double;
+      userStats['amount'] = currentAmount + order.totalAmount;
+
+      // Update last order date
+      final lastDate = userStats['lastDate'] as DateTime;
+      if (order.createdAt.isAfter(lastDate)) {
+        userStats['lastDate'] = order.createdAt;
+      }
+    }
+    return stats;
+  }
+
   Future<Map<String, int>> _completedOrderCounts(
     Session session,
     Set<UuidValue> userIds,

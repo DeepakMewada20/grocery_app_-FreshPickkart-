@@ -396,6 +396,37 @@ class Endpoints extends _i1.EndpointDispatch {
                 limit: params['limit'],
               ),
         ),
+        'getActiveUsersWithStats': _i1.MethodConnector(
+          name: 'getActiveUsersWithStats',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getActiveUsersWithStats(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    limit: params['limit'],
+                  ),
+        ),
       },
     );
     connectors['auth'] = _i1.EndpointConnector(

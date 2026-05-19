@@ -211,7 +211,7 @@ class BogoOfferCard extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: freeProductObjects.length,
-                      separatorBuilder: (_, __) => SizedBox(width: 8.w),
+                      separatorBuilder: (_, _) => SizedBox(width: 8.w),
                       itemBuilder: (context, index) {
                         final freeProduct = freeProductObjects[index];
                         final freeConfig = freeProducts[index];
@@ -332,7 +332,7 @@ class _FreeProductCard extends StatelessWidget {
                   Image.network(
                     product.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
+                    errorBuilder: (_, _, _) => Icon(
                       Icons.image_not_supported_outlined,
                       color: cs.onSurface.withValues(alpha: 0.35),
                       size: 20.r,

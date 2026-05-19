@@ -1,0 +1,10 @@
+class: ActiveUserStatistics
+fields:
+  userId: String
+  name: String?
+  phoneNumber: String
+  email: String?
+  totalOrdersCount: int
+  totalSpent: double
+  lastOrderDate: DateTime?
+  status: String

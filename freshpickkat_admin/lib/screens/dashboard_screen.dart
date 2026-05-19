@@ -10,6 +10,7 @@ import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 import 'broadcasts_screen.dart';
 import 'complaint_management_screen.dart';
+import 'customers_screen.dart';
 import 'live_delivery_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -352,6 +353,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LiveDeliveryScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('Active Users'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CustomersScreen()),
                 );
               },
             ),
