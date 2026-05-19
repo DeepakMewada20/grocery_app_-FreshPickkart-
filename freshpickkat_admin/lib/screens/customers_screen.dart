@@ -141,7 +141,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        headingRowColor: MaterialStateColor.resolveWith(
+        headingRowColor: WidgetStateColor.resolveWith(
           (_) => Colors.grey.shade100,
         ),
         columns: [
@@ -207,7 +207,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        headingRowColor: MaterialStateColor.resolveWith(
+        headingRowColor: WidgetStateColor.resolveWith(
           (_) => Colors.grey.shade100,
         ),
         columnSpacing: 16,
@@ -297,7 +297,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        headingRowColor: MaterialStateColor.resolveWith(
+        headingRowColor: WidgetStateColor.resolveWith(
           (_) => Colors.grey.shade100,
         ),
         columnSpacing: 24,
