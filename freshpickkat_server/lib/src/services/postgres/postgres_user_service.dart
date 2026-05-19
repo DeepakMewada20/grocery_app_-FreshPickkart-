@@ -33,12 +33,20 @@ class PostgresUserService {
 
     await session.db.transaction<void>((transaction) async {
       final now = DateTime.now().toUtc();
-      final existing = await _findUserByFirebaseUid(
+      var existing = await _findUserByFirebaseUid(
         session,
         firebaseUid,
         activeOnly: false,
         transaction: transaction,
       );
+
+      if (existing == null) {
+        existing = await _findUserByPhoneNumber(
+          session,
+          user.phoneNumber.trim(),
+          transaction: transaction,
+        );
+      }
 
       final role = cleanNullableString(user.role) ?? 'user';
       final persisted = existing == null
@@ -60,6 +68,7 @@ class PostgresUserService {
           : await AppUserRow.db.updateRow(
               session,
               existing.copyWith(
+                firebaseUid: firebaseUid,
                 phoneNumber: user.phoneNumber.trim(),
                 name: user.name ?? existing.name,
                 email: user.email ?? existing.email,
@@ -267,6 +276,21 @@ class PostgresUserService {
       where: (t) => activeOnly
           ? t.firebaseUid.equals(normalized) & t.status.equals('active')
           : t.firebaseUid.equals(normalized),
+      transaction: transaction,
+    );
+  }
+
+  Future<AppUserRow?> _findUserByPhoneNumber(
+    Session session,
+    String phoneNumber, {
+    Transaction? transaction,
+  }) {
+    final normalized = phoneNumber.trim();
+    if (normalized.isEmpty) return Future.value(null);
+
+    return AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.phoneNumber.equals(normalized),
       transaction: transaction,
     );
   }
