@@ -2145,6 +2145,28 @@ INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
     VALUES ('serverpod_auth_core', '20260129181112269', now())
     ON CONFLICT ("module")
     DO UPDATE SET "version" = '20260129181112269', "timestamp" = now();
+-- Custom constraint trigger: Only one active ADMIN_SELLER allowed
+CREATE OR REPLACE FUNCTION check_single_active_admin()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.role = 'ADMIN_SELLER' AND NEW.status = 'active' THEN
+        IF EXISTS (
+            SELECT 1 FROM app_user 
+            WHERE role = 'ADMIN_SELLER' 
+              AND status = 'active' 
+              AND id <> NEW.id
+        ) THEN
+            RAISE EXCEPTION 'Database Violation: Only one active admin can exist.';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS enforce_single_admin_trigger ON app_user;
+CREATE TRIGGER enforce_single_admin_trigger
+BEFORE INSERT OR UPDATE ON app_user
+FOR EACH ROW
+EXECUTE FUNCTION check_single_active_admin();
 
 COMMIT;
