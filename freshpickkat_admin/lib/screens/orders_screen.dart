@@ -1216,69 +1216,60 @@ class _OrderCard extends StatelessWidget {
                     ).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final compact = constraints.maxWidth < 360;
-                      final nameRow = Row(
+                  child: Wrap(
+                    spacing: 16.w,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.person_outline,
                             size: 18.sp.clamp(16.0, 20.0),
                             color: AdminAppTheme.getTextSecondaryColor(context),
                           ),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: Text(
-                              order.userName ?? 'N/A',
+                          SizedBox(width: 6.w),
+                          Text(
+                            order.userName ?? 'N/A',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14.sp.clamp(12.0, 15.0),
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onLongPress: () {
+                          Clipboard.setData(
+                            ClipboardData(text: order.userPhone),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Phone number copied'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.phone_outlined,
+                              size: 18.sp.clamp(16.0, 20.0),
+                              color: AdminAppTheme.getTextSecondaryColor(context),
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              order.userPhone,
                               style: TextStyle(
-                                fontWeight: FontWeight.w500,
                                 fontSize: 14.sp.clamp(12.0, 15.0),
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      );
-                      final phoneRow = Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.phone_outlined,
-                            size: 18.sp.clamp(16.0, 20.0),
-                            color: AdminAppTheme.getTextSecondaryColor(context),
-                          ),
-                          SizedBox(width: 8.w),
-                          Flexible(
-                            child: Text(
-                              order.userPhone,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      );
-                      if (compact) {
-                        return Column(
-                          children: [
-                            nameRow,
-                            SizedBox(height: 8.h),
-                            phoneRow,
                           ],
-                        );
-                      }
-                      return Row(
-                        children: [
-                          Expanded(child: nameRow),
-                          Container(
-                            width: 1,
-                            height: 20.h,
-                            color: AdminAppTheme.getBorderColor(context),
-                          ),
-                          SizedBox(width: 12.w),
-                          Flexible(child: phoneRow),
-                        ],
-                      );
-                    },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: 16.h),
