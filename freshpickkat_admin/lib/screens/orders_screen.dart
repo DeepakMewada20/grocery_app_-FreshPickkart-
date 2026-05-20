@@ -1117,7 +1117,7 @@ class _StatusFilterDropdown extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends StatefulWidget {
   const _OrderCard({
     required this.order,
     required this.onTap,
@@ -1127,11 +1127,19 @@ class _OrderCard extends StatelessWidget {
 
   final Order order;
   final VoidCallback onTap;
-  final ValueChanged<String> onStatusChanged;
+  final Future<void> Function(String) onStatusChanged;
   final Future<void> Function(Order order) onStartDelivery;
 
   @override
+  State<_OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends State<_OrderCard> {
+  bool _isLoading = false;
+
+  @override
   Widget build(BuildContext context) {
+    final order = widget.order;
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
@@ -1149,7 +1157,7 @@ class _OrderCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: widget.onTap,
           child: Padding(
             padding: AdminResponsive.cardPadding(context),
             child: Column(
@@ -1304,7 +1312,7 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 12.h),
-                _buildLifecycleActions(context, order, onStatusChanged),
+                _buildLifecycleActions(context, order, widget.onStatusChanged),
               ],
             ),
           ),
@@ -1316,7 +1324,7 @@ class _OrderCard extends StatelessWidget {
   Widget _buildLifecycleActions(
     BuildContext context,
     Order order,
-    ValueChanged<String> onStatusChanged,
+    Future<void> Function(String) onStatusChanged,
   ) {
     final buttons = <Widget>[];
 
@@ -1327,7 +1335,17 @@ class _OrderCard extends StatelessWidget {
           label: 'Confirm Order',
           color: Colors.blue,
           icon: Icons.verified_outlined,
-          onPressed: () => onStatusChanged('confirmed'),
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await onStatusChanged('confirmed');
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
         ),
       );
     } else if (order.status == 'confirmed') {
@@ -1337,7 +1355,17 @@ class _OrderCard extends StatelessWidget {
           label: 'Mark Packed',
           color: Colors.deepPurple,
           icon: Icons.inventory_2_outlined,
-          onPressed: () => onStatusChanged('packed'),
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await onStatusChanged('packed');
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
         ),
       );
     } else if (order.status == 'packed') {
@@ -1347,7 +1375,17 @@ class _OrderCard extends StatelessWidget {
           label: 'Start Delivery',
           color: Colors.orange,
           icon: Icons.local_shipping_outlined,
-          onPressed: () => onStartDelivery(order),
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await widget.onStartDelivery(order);
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
         ),
       );
     } else if (order.status == 'out_for_delivery') {
@@ -1357,7 +1395,17 @@ class _OrderCard extends StatelessWidget {
           label: 'Mark Delivered',
           color: Colors.green,
           icon: Icons.check_circle_outline,
-          onPressed: () => onStatusChanged('delivered'),
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await onStatusChanged('delivered');
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
         ),
       );
       buttons.add(
@@ -1366,6 +1414,7 @@ class _OrderCard extends StatelessWidget {
           label: 'Track Order',
           color: Colors.blueGrey,
           icon: Icons.map_outlined,
+          isLoading: false,
           onPressed: () {
             Get.to(() => LiveDeliveryMapPreviewScreen(order: order));
           },
@@ -1391,7 +1440,8 @@ class _OrderCard extends StatelessWidget {
     required String label,
     required Color color,
     required IconData icon,
-    required VoidCallback onPressed,
+    required bool isLoading,
+    required VoidCallback? onPressed,
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
@@ -1401,7 +1451,16 @@ class _OrderCard extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      icon: Icon(icon, size: 18.sp.clamp(16.0, 20.0)),
+      icon: isLoading
+          ? SizedBox(
+              width: 18.sp,
+              height: 18.sp,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : Icon(icon, size: 18.sp.clamp(16.0, 20.0)),
       label: Text(
         label,
         maxLines: 1,
