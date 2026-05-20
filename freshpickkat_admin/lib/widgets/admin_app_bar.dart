@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum AdminAppBarStyle { primary, surface, transparent }
@@ -65,7 +66,7 @@ class AdminAppBar extends StatelessWidget implements PreferredSizeWidget {
       iconTheme: IconThemeData(color: foregroundColor),
       elevation: 0,
       scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: AdminThemeTokens.transparent,
     );
   }
 }

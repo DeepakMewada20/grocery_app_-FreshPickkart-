@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 
@@ -15,12 +16,16 @@ class AvailabilitySwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactiveColor = Theme.of(context).brightness == Brightness.dark
+        ? AdminAppTheme.getTextSecondaryColor(context)
+        : AdminAppTheme.getNeutralColor(context);
+
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AdminAppTheme.getSubtleBorderColor(context)),
       ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
@@ -33,7 +38,9 @@ class AvailabilitySwitch extends StatelessWidget {
                   Icon(
                     value ? Icons.check_circle : Icons.cancel_outlined,
                     size: 20.sp.clamp(18.0, 22.0),
-                    color: value ? Colors.green : Colors.grey,
+                    color: value
+                        ? AdminAppTheme.getSuccessColor(context)
+                        : inactiveColor,
                   ),
                   SizedBox(width: AdminSpacing.md),
                   Expanded(

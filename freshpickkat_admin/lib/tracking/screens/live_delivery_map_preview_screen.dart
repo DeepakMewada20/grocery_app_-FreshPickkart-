@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
@@ -77,8 +78,10 @@ class _LiveDeliveryMapPreviewScreenState
       _riderTween = LatLngTween(begin: begin, end: next);
 
       final newBearing = Geolocator.bearingBetween(
-        begin.latitude, begin.longitude,
-        next.latitude, next.longitude,
+        begin.latitude,
+        begin.longitude,
+        next.latitude,
+        next.longitude,
       );
       _bearingTween = Tween<double>(begin: _animatedBearing, end: newBearing);
 
@@ -94,14 +97,18 @@ class _LiveDeliveryMapPreviewScreenState
   }
 
   Future<void> _loadScooterIcon() async {
-    final data = await rootBundle.load('lib/assets/images/delivery_scooter_traking.png');
+    final data = await rootBundle.load(
+      'lib/assets/images/delivery_scooter_traking.png',
+    );
     final codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
       targetWidth: 95,
       targetHeight: 95,
     );
     final frame = await codec.getNextFrame();
-    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await frame.image.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
     _scooterIcon = BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
@@ -270,7 +277,6 @@ class _LiveDeliveryMapPreviewScreenState
           markerId: const MarkerId('destination'),
           position: destination,
           infoWindow: const InfoWindow(title: 'Customer Address'),
-
         ),
       );
     }
@@ -298,7 +304,7 @@ class _LiveDeliveryMapPreviewScreenState
       Polyline(
         polylineId: const PolylineId('admin_live_route'),
         points: _controller.routePolyline.toList(),
-        color: Colors.green.shade600,
+        color: AdminAppTheme.getSuccessColor(context),
         width: 5,
       ),
     };
@@ -366,16 +372,16 @@ class _LiveDeliveryMapPreviewScreenState
         ? 'Delivered'
         : 'Waiting for live tracking';
     final statusColor = snapshot?.canTrack == true
-        ? Colors.green
+        ? AdminAppTheme.getSuccessColor(context)
         : snapshot?.isDelivered == true
-        ? Colors.blueGrey
+        ? AdminAppTheme.getBlueGreyColor(context)
         : cs.onSurface;
 
     return Material(
       elevation: 10,
       color: cs.surface,
       borderRadius: BorderRadius.circular(24),
-      shadowColor: Colors.black.withValues(alpha: 0.18),
+      shadowColor: AdminAppTheme.getScrimShadowColor(context, alpha: 0.18),
       child: SingleChildScrollView(
         padding: EdgeInsets.all(16.r),
         child: Column(
@@ -413,7 +419,10 @@ class _LiveDeliveryMapPreviewScreenState
                   ),
                 ),
                 if (_controller.hasArrivingSoonFlag)
-                  _BadgeChip(label: 'Arriving soon', color: Colors.green),
+                  _BadgeChip(
+                    label: 'Arriving soon',
+                    color: AdminAppTheme.getSuccessColor(context),
+                  ),
                 _BadgeChip(label: sla.label, color: sla.color),
               ],
             ),
@@ -440,7 +449,7 @@ class _LiveDeliveryMapPreviewScreenState
                         ? 'Destination: Coordinates not found for this address'
                         : 'Destination: ${widget.order.deliveryAddress.street}${widget.order.deliveryAddress.city.isNotEmpty ? ", ${widget.order.deliveryAddress.city}" : ""}',
                     style: TextStyle(
-                      color: Colors.grey.shade700,
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                       fontSize: 13.sp.clamp(11.0, 15.0),
                       fontWeight: FontWeight.w500,
                     ),
@@ -485,24 +494,30 @@ class _LiveDeliveryMapPreviewScreenState
     DateTime? startedAt,
   ) {
     if (snapshot?.isDelivered == true) {
-      return const _BadgeData('Delivered', Colors.green);
+      return _BadgeData('Delivered', AdminAppTheme.getSuccessColor(context));
     }
     if (snapshot?.canTrack != true) {
-      return const _BadgeData('Waiting', Colors.blueGrey);
+      return _BadgeData('Waiting', AdminAppTheme.getBlueGreyColor(context));
     }
     if (_controller.hasArrivingSoonFlag) {
-      return const _BadgeData('Arriving soon', Colors.green);
+      return _BadgeData(
+        'Arriving soon',
+        AdminAppTheme.getSuccessColor(context),
+      );
     }
     if (startedAt != null) {
       final elapsedMinutes = DateTime.now().difference(startedAt).inMinutes;
       if (elapsedMinutes >= 25 || eta >= 15 || distance >= 1500) {
-        return const _BadgeData('Delayed', Colors.red);
+        return _BadgeData('Delayed', AdminAppTheme.getErrorColor(context));
       }
       if (elapsedMinutes >= 15 || eta >= 8) {
-        return const _BadgeData('Watch closely', Colors.deepOrange);
+        return _BadgeData(
+          'Watch closely',
+          AdminAppTheme.getDeepOrangeColor(context),
+        );
       }
     }
-    return const _BadgeData('On time', Colors.green);
+    return _BadgeData('On time', AdminAppTheme.getSuccessColor(context));
   }
 }
 

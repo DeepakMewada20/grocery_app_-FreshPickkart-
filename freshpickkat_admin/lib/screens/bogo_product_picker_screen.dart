@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -338,9 +339,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       child: Ink(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AdminThemeTokens.white,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         ),
         child: Row(
           children: [
@@ -348,13 +349,15 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
               width: 38.r,
               height: 38.r,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.08),
+                color: AdminAppTheme.getSuccessColor(
+                  context,
+                ).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 Icons.calendar_today,
                 size: 18.r,
-                color: Colors.green,
+                color: AdminAppTheme.getSuccessColor(context),
               ),
             ),
             SizedBox(width: 12.w),
@@ -369,7 +372,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: AdminTextStyles.caption(context).copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
                   ),
                   SizedBox(height: 3.h),
@@ -397,9 +400,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       width: double.infinity,
       padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AdminThemeTokens.white,
         borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AdminAppTheme.getBorderColor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +417,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                       'Trigger Product',
                       style: AdminTextStyles.caption(context).copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
+                        color: AdminAppTheme.getTextSecondaryColor(context),
                       ),
                     ),
                     SizedBox(height: 4.h),
@@ -426,8 +429,8 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                       style: AdminTextStyles.cardTitle(context).copyWith(
                         fontWeight: FontWeight.w700,
                         color: trigger == null
-                            ? Colors.grey.shade700
-                            : Colors.black,
+                            ? AdminAppTheme.getTextSecondaryColor(context)
+                            : AdminAppTheme.getTextPrimaryColor(context),
                       ),
                     ),
                   ],
@@ -462,7 +465,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                   child: Container(
                     width: 64.r,
                     height: 64.r,
-                    color: Colors.grey.shade100,
+                    color: AdminAppTheme.getSubtleSurfaceColor(context),
                     child: trigger.imageUrl.isEmpty
                         ? const Icon(Icons.image_outlined)
                         : Image.network(
@@ -485,7 +488,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: AdminTextStyles.caption(context).copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
+                          color: AdminAppTheme.getTextSecondaryColor(context),
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -510,11 +513,9 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                               SizedBox(height: 6.h),
                               Text(
                                 '₹${price.toStringAsFixed(0)}',
-                                style: AdminTextStyles.body(
-                                  context,
-                                ).copyWith(
+                                style: AdminTextStyles.body(context).copyWith(
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.green.shade700,
+                                  color: AdminAppTheme.getSuccessColor(context),
                                 ),
                               ),
                             ],
@@ -761,9 +762,9 @@ class _SelectedProductsSummary extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: AdminAppTheme.getInputSurfaceColor(context),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         ),
         child: Text(
           'No free products selected yet.',
@@ -796,9 +797,11 @@ class _SelectedProductsSummary extends StatelessWidget {
                 width: 250.w.clamp(220.0, 280.0).toDouble(),
                 padding: EdgeInsets.all(10.r),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AdminThemeTokens.white,
                   borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(
+                    color: AdminAppTheme.getBorderColor(context),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -807,7 +810,7 @@ class _SelectedProductsSummary extends StatelessWidget {
                       child: Container(
                         width: 56.r,
                         height: 56.r,
-                        color: Colors.grey.shade100,
+                        color: AdminAppTheme.getSubtleSurfaceColor(context),
                         child: selection.product.imageUrl.isEmpty
                             ? const Icon(Icons.image_outlined)
                             : Image.network(
@@ -832,9 +835,9 @@ class _SelectedProductsSummary extends StatelessWidget {
                             selection.product.productName,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: AdminTextStyles.cardTitle(context).copyWith(
-                              fontSize: 13.sp,
-                            ),
+                            style: AdminTextStyles.cardTitle(
+                              context,
+                            ).copyWith(fontSize: 13.sp),
                           ),
                           SizedBox(height: 2.h),
                           Text(
@@ -842,7 +845,9 @@ class _SelectedProductsSummary extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AdminTextStyles.caption(context).copyWith(
-                              color: Colors.grey.shade600,
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -851,9 +856,9 @@ class _SelectedProductsSummary extends StatelessWidget {
                             children: [
                               Text(
                                 'Free Qty:',
-                                style: AdminTextStyles.caption(context).copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: AdminTextStyles.caption(
+                                  context,
+                                ).copyWith(fontWeight: FontWeight.w600),
                               ),
                               SizedBox(width: 8.w),
                               SizedBox(
@@ -863,7 +868,8 @@ class _SelectedProductsSummary extends StatelessWidget {
                                   key: ValueKey(
                                     'free_qty_${selection.product.productId}',
                                   ),
-                                  initialValue: selection.freeQuantity.toString(),
+                                  initialValue: selection.freeQuantity
+                                      .toString(),
                                   keyboardType: TextInputType.number,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(

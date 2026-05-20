@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/controller/active_users_controller.dart';
@@ -99,13 +100,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             vertical: 8.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: AdminAppTheme.getInfoContainerColor(context),
                             borderRadius: BorderRadius.circular(8.r),
                           ),
                           child: Text(
                             '${users.length} loaded',
                             style: AdminTextStyles.body(context).copyWith(
-                              color: Colors.blue,
+                              color: AdminAppTheme.getInfoColor(context),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -142,7 +143,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor: WidgetStateColor.resolveWith(
-          (_) => Colors.grey.shade100,
+          (_) => AdminAppTheme.getSubtleSurfaceColor(context),
         ),
         columns: [
           DataColumn(
@@ -177,23 +178,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: AdminAppTheme.getInfoContainerColor(context),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     '${user.totalOrdersCount}',
-                    style: AdminTextStyles.caption(
-                      context,
-                    ).copyWith(color: Colors.blue, fontWeight: FontWeight.w600),
+                    style: AdminTextStyles.caption(context).copyWith(
+                      color: AdminAppTheme.getInfoColor(context),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
               DataCell(
                 Text(
                   _controller.formatCurrency(user.totalSpent),
-                  style: AdminTextStyles.body(
-                    context,
-                  ).copyWith(color: Colors.green, fontWeight: FontWeight.w600),
+                  style: AdminTextStyles.body(context).copyWith(
+                    color: AdminAppTheme.getSuccessColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -208,7 +211,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor: WidgetStateColor.resolveWith(
-          (_) => Colors.grey.shade100,
+          (_) => AdminAppTheme.getSubtleSurfaceColor(context),
         ),
         columnSpacing: 16,
         columns: [
@@ -261,23 +264,24 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: AdminAppTheme.getInfoContainerColor(context),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     '${user.totalOrdersCount}',
                     style: AdminTextStyles.cardTitle(
                       context,
-                    ).copyWith(color: Colors.blue),
+                    ).copyWith(color: AdminAppTheme.getInfoColor(context)),
                   ),
                 ),
               ),
               DataCell(
                 Text(
                   _controller.formatCurrency(user.totalSpent),
-                  style: AdminTextStyles.body(
-                    context,
-                  ).copyWith(color: Colors.green, fontWeight: FontWeight.w600),
+                  style: AdminTextStyles.body(context).copyWith(
+                    color: AdminAppTheme.getSuccessColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               DataCell(
@@ -298,7 +302,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor: WidgetStateColor.resolveWith(
-          (_) => Colors.grey.shade100,
+          (_) => AdminAppTheme.getSubtleSurfaceColor(context),
         ),
         columnSpacing: 24,
         columns: [
@@ -374,14 +378,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: AdminAppTheme.getInfoContainerColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${user.totalOrdersCount}',
-                    style: AdminTextStyles.cardTitle(
-                      context,
-                    ).copyWith(color: Colors.blue, fontWeight: FontWeight.w700),
+                    style: AdminTextStyles.cardTitle(context).copyWith(
+                      color: AdminAppTheme.getInfoColor(context),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -389,7 +394,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 Text(
                   _controller.formatCurrency(user.totalSpent),
                   style: AdminTextStyles.body(context).copyWith(
-                    color: Colors.green,
+                    color: AdminAppTheme.getSuccessColor(context),
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -409,16 +414,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: user.status == 'active'
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
+                        ? AdminAppTheme.getSuccessColor(
+                            context,
+                          ).withValues(alpha: 0.1)
+                        : AdminAppTheme.getErrorColor(
+                            context,
+                          ).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     user.status?.toUpperCase() ?? 'UNKNOWN',
                     style: AdminTextStyles.caption(context).copyWith(
                       color: user.status == 'active'
-                          ? Colors.green
-                          : Colors.red,
+                          ? AdminAppTheme.getSuccessColor(context)
+                          : AdminAppTheme.getErrorColor(context),
                       fontWeight: FontWeight.w600,
                     ),
                   ),

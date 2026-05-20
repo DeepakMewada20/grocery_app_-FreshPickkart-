@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -129,7 +130,8 @@ class _CouponsScreenState extends State<CouponsScreen> {
                                   message:
                                       'Try a different coupon code, type, or description.',
                                   icon: Icons.search_off_outlined,
-                                  onRefresh: () => _controller.loadCoupons(force: true),
+                                  onRefresh: () =>
+                                      _controller.loadCoupons(force: true),
                                 ),
                               ],
                             )
@@ -165,7 +167,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
         padding: EdgeInsets.only(bottom: AdminResponsive.bottomInset(context)),
         child: FloatingActionButton.extended(
           backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AdminThemeTokens.white,
           onPressed: _openAddCouponDialog,
           icon: const Icon(Icons.add),
           label: Text(
@@ -705,7 +707,9 @@ class _CouponCardActions extends StatelessWidget {
         Text(
           coupon.isActive ? 'Active' : 'Off',
           style: AdminTextStyles.caption(context).copyWith(
-            color: coupon.isActive ? Colors.green : Colors.red,
+            color: coupon.isActive
+                ? AdminAppTheme.getSuccessColor(context)
+                : AdminAppTheme.getErrorColor(context),
             fontWeight: FontWeight.w700,
           ),
         ),

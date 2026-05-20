@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -57,21 +58,27 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
           TextField(
             decoration: InputDecoration(
               hintText: searchHintText,
-              prefixIcon: const Icon(Icons.search, size: 20),
+              prefixIcon: Icon(Icons.search, size: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(
+                  color: AdminAppTheme.getBorderColor(context),
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(
+                  color: AdminAppTheme.getBorderColor(context),
+                ),
               ),
-              focusedBorder: const OutlineInputBorder(
+              focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Colors.green),
+                borderSide: BorderSide(
+                  color: AdminAppTheme.getSuccessColor(context),
+                ),
               ),
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: AdminAppTheme.getInputSurfaceColor(context),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -97,16 +104,20 @@ class ProductSearchAndCategoryControls extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       side: BorderSide(
-                        color: isSelected ? Colors.green : Colors.grey.shade300,
+                        color: isSelected
+                            ? AdminAppTheme.getSuccessColor(context)
+                            : AdminAppTheme.getBorderColor(context),
                       ),
-                      backgroundColor: Colors.white,
-                      selectedColor: Colors.green.withValues(alpha: 0.12),
+                      backgroundColor: AdminThemeTokens.white,
+                      selectedColor: AdminAppTheme.getSuccessColor(
+                        context,
+                      ).withValues(alpha: 0.12),
                       labelStyle: TextStyle(
                         fontSize: 12.sp.clamp(10.0, 13.0),
                         fontWeight: FontWeight.w600,
                         color: isSelected
-                            ? Colors.green.shade800
-                            : Colors.grey.shade800,
+                            ? AdminAppTheme.getSuccessColor(context)
+                            : AdminAppTheme.getTextPrimaryColor(context),
                       ),
                       padding: EdgeInsets.symmetric(horizontal: 4.w),
                     ),
@@ -239,7 +250,7 @@ class ProductsListArea extends StatelessWidget {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Load More from Server'),
+                          : Text('Load More from Server'),
                     ),
                   ),
                 ],
@@ -279,13 +290,15 @@ class ProductsListArea extends StatelessWidget {
                       children: [
                         Text(
                           'Error: $error',
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 8.h),
                         ElevatedButton(
                           onPressed: () => productController.loadMore(),
-                          child: const Text('Retry'),
+                          child: Text('Retry'),
                         ),
                       ],
                     ),
@@ -425,8 +438,8 @@ class _ProductAdminCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: AdminTextStyles.caption(context).copyWith(
                         color: product.isAvailable
-                            ? Colors.green.shade700
-                            : Colors.redAccent,
+                            ? AdminAppTheme.getSuccessColor(context)
+                            : AdminAppTheme.getErrorColor(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -439,7 +452,9 @@ class _ProductAdminCard extends StatelessWidget {
               if (isSelectionMode)
                 Icon(
                   isSelected ? Icons.check_circle : Icons.chevron_right,
-                  color: isSelected ? Colors.green : Colors.grey,
+                  color: isSelected
+                      ? AdminAppTheme.getSuccessColor(context)
+                      : AdminAppTheme.getNeutralColor(context),
                 )
               else if (showActionMenu)
                 PopupMenuButton<String>(
@@ -480,7 +495,7 @@ class _VariantPriceRow extends StatelessWidget {
     if (variants.isEmpty) {
       return CatalogInlineBadge(
         label: '₹${product.price.toStringAsFixed(0)}',
-        color: Colors.green.shade700,
+        color: AdminAppTheme.getSuccessColor(context),
       );
     }
 
@@ -500,19 +515,14 @@ class _VariantPriceRow extends StatelessWidget {
           final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(0)}';
 
           return Padding(
-            padding: EdgeInsets.only(
-              right: i < variants.length - 1 ? 6.w : 0,
-            ),
+            padding: EdgeInsets.only(right: i < variants.length - 1 ? 6.w : 0),
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 7.w,
-                vertical: 3.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: AdminAppTheme.getSuccessContainerColor(context),
                 borderRadius: BorderRadius.circular(6.r),
                 border: Border.all(
-                  color: Colors.green.shade200,
+                  color: AdminAppTheme.getSuccessColor(context),
                   width: 0.8,
                 ),
               ),
@@ -521,7 +531,7 @@ class _VariantPriceRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: (10.5.sp).clamp(9.0, 12.0),
                   fontWeight: FontWeight.w600,
-                  color: Colors.green.shade800,
+                  color: AdminAppTheme.getSuccessColor(context),
                 ),
               ),
             ),

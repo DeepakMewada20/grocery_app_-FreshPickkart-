@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -120,18 +121,18 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
     super.build(context);
     return Scaffold(
       appBar: AdminAppBar(
-        title: const Text('Combo Offers'),
+        title: Text('Combo Offers'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: () => _controller.loadComboOffers(force: true),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddComboDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Combo'),
+        icon: Icon(Icons.add),
+        label: Text('Add Combo'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
@@ -141,7 +142,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search combo offers...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -179,12 +180,15 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
                       Icon(
                         Icons.local_offer_outlined,
                         size: 64,
-                        color: Colors.grey[400],
+                        color: AdminAppTheme.getMutedIconColor(context),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No combo offers found',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 18),
+                        style: TextStyle(
+                          color: AdminAppTheme.getTextSecondaryColor(context),
+                          fontSize: 18,
+                        ),
                       ),
                     ],
                   ),
@@ -241,12 +245,12 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
         var isDeleting = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Delete Combo Offer'),
+            title: Text('Delete Combo Offer'),
             content: Text('Are you sure you want to delete "${offer.name}"?'),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: isDeleting
@@ -266,7 +270,12 @@ class _ComboOffersScreenState extends State<ComboOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Delete', style: TextStyle(color: Colors.red)),
+                    : Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -299,11 +308,13 @@ class _ComboOfferCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: offer.isActive
-              ? Colors.green[100]
-              : Colors.grey[300],
+              ? AdminAppTheme.getSuccessContainerColor(context)
+              : AdminAppTheme.getBorderColor(context),
           child: Icon(
             Icons.local_offer,
-            color: offer.isActive ? Colors.green : Colors.grey,
+            color: offer.isActive
+                ? AdminAppTheme.getSuccessColor(context)
+                : AdminAppTheme.getNeutralColor(context),
           ),
         ),
         title: Text(
@@ -329,8 +340,8 @@ class _ComboOfferCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: offer.discountType == 'percentage'
-                        ? Colors.blue[100]
-                        : Colors.orange[100],
+                        ? AdminAppTheme.getInfoContainerColor(context)
+                        : AdminAppTheme.getWarningContainerColor(context),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -341,8 +352,8 @@ class _ComboOfferCard extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: offer.discountType == 'percentage'
-                          ? Colors.blue[700]
-                          : Colors.orange[700],
+                          ? AdminAppTheme.getInfoColor(context)
+                          : AdminAppTheme.getWarningColor(context),
                     ),
                   ),
                 ),
@@ -354,15 +365,15 @@ class _ComboOfferCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green[100],
+                      color: AdminAppTheme.getSuccessContainerColor(context),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
+                    child: Text(
                       'LIVE',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: AdminAppTheme.getSuccessColor(context),
                       ),
                     ),
                   ),
@@ -372,7 +383,7 @@ class _ComboOfferCard extends StatelessWidget {
         ),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'toggle',
               child: Row(
                 children: [
@@ -382,19 +393,27 @@ class _ComboOfferCard extends StatelessWidget {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'edit',
               child: Row(
                 children: [Icon(Icons.edit), SizedBox(width: 8), Text('Edit')],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
+                  Icon(
+                    Icons.delete,
+                    color: AdminAppTheme.getErrorColor(context),
+                  ),
                   SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
+                  Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: AdminAppTheme.getErrorColor(context),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -494,14 +513,16 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
               const SizedBox(height: 4),
               Text(
                 'Bundle products together and apply a single discount.',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(
+                  color: AdminAppTheme.getTextSecondaryColor(context),
+                ),
               ),
             ],
           ),
         ),
         IconButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: Icon(Icons.close),
         ),
       ],
     );
@@ -518,9 +539,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
       child: Ink(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AdminThemeTokens.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         ),
         child: Row(
           children: [
@@ -528,13 +549,15 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.08),
+                color: AdminAppTheme.getSuccessColor(
+                  context,
+                ).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.calendar_today,
                 size: 18,
-                color: Colors.green,
+                color: AdminAppTheme.getSuccessColor(context),
               ),
             ),
             const SizedBox(width: 12),
@@ -548,7 +571,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -762,14 +785,14 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AdminAppTheme.getInputSurfaceColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AdminAppTheme.getBorderColor(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Combo Pricing',
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
           ),
@@ -795,7 +818,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
     final style = TextStyle(
       fontSize: emphasize ? 15 : 13,
       fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
-      color: emphasize ? Colors.green.shade800 : Colors.grey.shade800,
+      color: emphasize
+          ? AdminAppTheme.getSuccessColor(context)
+          : AdminAppTheme.getTextPrimaryColor(context),
     );
     return Row(
       children: [
@@ -808,9 +833,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
   Widget _buildQuantityStepper(_SelectedProduct product) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AdminAppTheme.getSubtleSurfaceColor(context),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AdminAppTheme.getBorderColor(context)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -825,7 +850,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                       product.quantity -= 1;
                     });
                   },
-            icon: const Icon(Icons.remove, size: 18),
+            icon: Icon(Icons.remove, size: 18),
           ),
           Text(
             '${product.quantity}',
@@ -840,7 +865,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                       product.quantity += 1;
                     });
                   },
-            icon: const Icon(Icons.add, size: 18),
+            icon: Icon(Icons.add, size: 18),
           ),
         ],
       ),
@@ -852,12 +877,12 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AdminThemeTokens.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -882,16 +907,23 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                             gaplessPlayback: true,
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(
+                                  color: AdminAppTheme.getSubtleBorderColor(
+                                    context,
+                                  ),
+                                  child: Icon(
                                     Icons.image_not_supported,
-                                    color: Colors.grey,
+                                    color: AdminAppTheme.getNeutralColor(
+                                      context,
+                                    ),
                                   ),
                                 ),
                           )
                         : Container(
-                            color: Colors.grey.shade200,
-                            child: const Icon(Icons.image, color: Colors.grey),
+                            color: AdminAppTheme.getSubtleBorderColor(context),
+                            child: Icon(
+                              Icons.image,
+                              color: AdminAppTheme.getNeutralColor(context),
+                            ),
                           ),
                   ),
                 ),
@@ -914,7 +946,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           product.variantLabel!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade700,
+                            color: AdminAppTheme.getTextSecondaryColor(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -926,7 +958,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: Colors.green.shade800,
+                            color: AdminAppTheme.getSuccessColor(context),
                           ),
                         ),
                       ],
@@ -943,12 +975,12 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
+                      color: AdminAppTheme.getErrorContainerColor(context),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete_outline,
-                      color: Colors.red,
+                      color: AdminAppTheme.getErrorColor(context),
                       size: 18,
                     ),
                   ),
@@ -959,9 +991,11 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: AdminAppTheme.getInputSurfaceColor(context),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: AdminAppTheme.getSubtleBorderColor(context),
+                ),
               ),
               child: Row(
                 children: [
@@ -973,7 +1007,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           'Each Price',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade600,
+                            color: AdminAppTheme.getTextSecondaryColor(context),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -993,7 +1027,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           'Total Price',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade600,
+                            color: AdminAppTheme.getTextSecondaryColor(context),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1045,9 +1079,15 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: AdminAppTheme.getSuccessContainerColor(
+                            context,
+                          ),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.green.shade100),
+                          border: Border.all(
+                            color: AdminAppTheme.getSuccessContainerColor(
+                              context,
+                            ),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1057,7 +1097,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.green.shade700,
+                                color: AdminAppTheme.getSuccessColor(context),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1085,8 +1125,8 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           ),
                           FilledButton.tonalIcon(
                             onPressed: _isSubmitting ? null : _addProduct,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add Product'),
+                            icon: Icon(Icons.add),
+                            label: Text('Add Product'),
                           ),
                         ],
                       ),
@@ -1096,11 +1136,13 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: AdminAppTheme.getInputSurfaceColor(context),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(
+                              color: AdminAppTheme.getBorderColor(context),
+                            ),
                           ),
-                          child: const Text('No products added yet.'),
+                          child: Text('No products added yet.'),
                         )
                       else
                         ..._products.asMap().entries.map((entry) {
@@ -1119,7 +1161,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                             child: TextFormField(
                               controller: _discountValueController,
                               onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Discount Value',
                               ),
                               keyboardType: TextInputType.number,
@@ -1139,9 +1181,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _discountType,
                               isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Type',
-                              ),
+                              decoration: InputDecoration(labelText: 'Type'),
                               items: const [
                                 DropdownMenuItem(
                                   value: 'flat',
@@ -1193,7 +1233,7 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
                           onPressed: _isSubmitting
                               ? null
                               : () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                          child: Text('Cancel'),
                         ),
                       ),
                       const SizedBox(width: 12),

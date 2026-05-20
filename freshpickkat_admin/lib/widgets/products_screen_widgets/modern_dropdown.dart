@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
 class ModernDropdown<T> extends StatelessWidget {
   const ModernDropdown({
@@ -32,7 +33,7 @@ class ModernDropdown<T> extends StatelessWidget {
         hintText: hintText,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: AdminAppTheme.getInputSurfaceColor(context),
         contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 13.h),
       ),
     );

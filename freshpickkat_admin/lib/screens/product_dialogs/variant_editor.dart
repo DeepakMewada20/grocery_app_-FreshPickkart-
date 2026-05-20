@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -40,9 +41,9 @@ class VariantListEditor extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: AdminAppTheme.getInputSurfaceColor(context),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AdminAppTheme.getBorderColor(context)),
             ),
             child: Text(
               'No additional variants added yet.',
@@ -112,7 +113,9 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
   void _recalculatePrices() {
     final newQty =
         double.tryParse(widget.draft.quantityValueCtrl.text.trim()) ?? 0;
-    if (newQty <= 0 || (widget.draft.baseRealPrice <= 0 && widget.draft.basePrice <= 0)) return;
+    if (newQty <= 0 ||
+        (widget.draft.baseRealPrice <= 0 && widget.draft.basePrice <= 0))
+      return;
 
     final originalInBase =
         widget.draft.baseQuantity *
@@ -146,9 +149,9 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AdminThemeTokens.white,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AdminAppTheme.getBorderColor(context)),
       ),
       child: Column(
         children: [
@@ -242,16 +245,18 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
               width: double.infinity,
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: AdminAppTheme.getSuccessContainerColor(context),
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: Colors.green.shade200),
+                border: Border.all(
+                  color: AdminAppTheme.getSuccessColor(context),
+                ),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.local_offer,
                     size: 14.r,
-                    color: Colors.green.shade700,
+                    color: AdminAppTheme.getSuccessColor(context),
                   ),
                   SizedBox(width: 6.w),
                   Expanded(
@@ -260,7 +265,7 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AdminTextStyles.caption(context).copyWith(
-                        color: Colors.green.shade700,
+                        color: AdminAppTheme.getSuccessColor(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

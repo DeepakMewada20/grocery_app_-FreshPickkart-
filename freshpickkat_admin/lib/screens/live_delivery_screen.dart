@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
@@ -99,7 +100,10 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
       padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade700, Colors.green.shade500],
+          colors: [
+            AdminAppTheme.getSuccessColor(context),
+            AdminAppTheme.getSuccessColor(context),
+          ],
         ),
         borderRadius: BorderRadius.circular(24),
       ),
@@ -108,7 +112,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         children: [
           Icon(
             Icons.delivery_dining,
-            color: Colors.white,
+            color: AdminThemeTokens.white,
             size: 34.sp.clamp(28.0, 38.0),
           ),
           SizedBox(width: 14.w),
@@ -122,7 +126,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: AdminTextStyles.sectionTitle(
                     context,
-                  ).copyWith(color: Colors.white),
+                  ).copyWith(color: AdminThemeTokens.white),
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -130,7 +134,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
                   maxLines: AdminResponsive.isLandscape(context) ? 2 : 3,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: AdminThemeTokens.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -152,19 +156,23 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
         title: 'Sender status',
         subtitle: message,
         icon: active ? Icons.sensors : Icons.sensors_off,
-        iconColor: active ? Colors.green : Colors.grey,
+        iconColor: active
+            ? AdminAppTheme.getSuccessColor(context)
+            : AdminAppTheme.getNeutralColor(context),
         child: Wrap(
           spacing: 10.w,
           runSpacing: 8.h,
           children: [
             _ChipLabel(
               label: active ? 'Tracking active' : 'Tracking stopped',
-              color: active ? Colors.green : Colors.grey,
+              color: active
+                  ? AdminAppTheme.getSuccessColor(context)
+                  : AdminAppTheme.getNeutralColor(context),
             ),
             if (_trackingController.activeOrderId.value != null)
               _ChipLabel(
                 label: 'Order ${_trackingController.activeOrderId.value}',
-                color: Colors.blueGrey,
+                color: AdminAppTheme.getBlueGreyColor(context),
               ),
           ],
         ),
@@ -184,7 +192,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
           ? order.userName!
           : order.userPhone,
       icon: Icons.receipt_long,
-      iconColor: Colors.green,
+      iconColor: AdminAppTheme.getSuccessColor(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -194,21 +202,21 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
             children: [
               _ChipLabel(
                 label: order.status.replaceAll('_', ' ').toUpperCase(),
-                color: Colors.deepOrange,
+                color: AdminAppTheme.getDeepOrangeColor(context),
               ),
               _ChipLabel(
                 label: order.paymentStatus.replaceAll('_', ' ').toUpperCase(),
-                color: Colors.indigo,
+                color: AdminAppTheme.getIndigoColor(context),
               ),
               _ChipLabel(
                 label: '₹${order.finalAmount.toStringAsFixed(0)}',
-                color: Colors.green,
+                color: AdminAppTheme.getSuccessColor(context),
               ),
               _ChipLabel(label: sla.label, color: sla.color),
               if (isArmedButNotLive)
                 _ChipLabel(
                   label: 'Awaiting first live location',
-                  color: Colors.orange,
+                  color: AdminAppTheme.getWarningColor(context),
                 ),
             ],
           ),
@@ -234,7 +242,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AdminThemeTokens.white,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -249,22 +257,31 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
 
   _SlaBadgeData _buildSlaBadge(Order order, bool armedButNotLive) {
     if (armedButNotLive) {
-      return const _SlaBadgeData('Awaiting start', Colors.orange);
+      return _SlaBadgeData(
+        'Awaiting start',
+        AdminAppTheme.getWarningColor(context),
+      );
     }
 
     final startedAt = order.outForDeliveryAt?.toLocal();
     if (startedAt == null) {
-      return const _SlaBadgeData('SLA pending', Colors.blueGrey);
+      return _SlaBadgeData(
+        'SLA pending',
+        AdminAppTheme.getBlueGreyColor(context),
+      );
     }
 
     final elapsedMinutes = DateTime.now().difference(startedAt).inMinutes;
     if (elapsedMinutes >= 25) {
-      return const _SlaBadgeData('Delayed', Colors.red);
+      return _SlaBadgeData('Delayed', AdminAppTheme.getErrorColor(context));
     }
     if (elapsedMinutes >= 15) {
-      return const _SlaBadgeData('Watch closely', Colors.deepOrange);
+      return _SlaBadgeData(
+        'Watch closely',
+        AdminAppTheme.getDeepOrangeColor(context),
+      );
     }
-    return const _SlaBadgeData('On time', Colors.green);
+    return _SlaBadgeData('On time', AdminAppTheme.getSuccessColor(context));
   }
 
   Widget _buildAddressCard(Order order, ThemeData theme) {
@@ -276,7 +293,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
       title: 'Drop location',
       subtitle: 'Customer delivery address',
       icon: Icons.location_on,
-      iconColor: Colors.redAccent,
+      iconColor: AdminAppTheme.getErrorColor(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -308,7 +325,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
       title: 'How it works',
       subtitle: 'Live tracking is optimized for low API usage',
       icon: Icons.info_outline,
-      iconColor: Colors.blueGrey,
+      iconColor: AdminAppTheme.getBlueGreyColor(context),
       child: Text(
         'Open the customer map only when needed. Tracking starts automatically once the order is marked out for delivery and stops as soon as it is delivered.',
         maxLines: AdminResponsive.isLandscape(context) ? 3 : null,
@@ -334,7 +351,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
           Icon(
             Icons.delivery_dining_outlined,
             size: 66.sp.clamp(48.0, 72.0),
-            color: Colors.grey.shade400,
+            color: AdminAppTheme.getMutedIconColor(context),
           ),
           SizedBox(height: 16.h),
           Text(
@@ -390,7 +407,7 @@ class _SectionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.05),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),

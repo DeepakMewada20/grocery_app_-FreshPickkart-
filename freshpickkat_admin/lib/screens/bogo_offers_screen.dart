@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -65,10 +66,10 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
     super.build(context);
     return Scaffold(
       appBar: AdminAppBar(
-        title: const Text('BOGO Offers'),
+        title: Text('BOGO Offers'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: () => _controller.loadBogoOffers(force: true),
           ),
         ],
@@ -77,7 +78,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         padding: EdgeInsets.only(bottom: AdminResponsive.bottomInset(context)),
         child: FloatingActionButton.extended(
           onPressed: _showAddBogoScreen,
-          icon: const Icon(Icons.add),
+          icon: Icon(Icons.add),
           label: Text(
             'Add BOGO Offer',
             overflow: TextOverflow.ellipsis,
@@ -93,7 +94,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search BOGO offers...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
@@ -152,23 +153,23 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                     Icon(
                       Icons.card_giftcard,
                       size: 56.r,
-                      color: Colors.grey[400],
+                      color: AdminAppTheme.getMutedIconColor(context),
                     ),
                     SizedBox(height: 16.h),
                     Text(
                       'No BOGO offers found',
                       textAlign: TextAlign.center,
-                      style: AdminTextStyles.sectionTitle(
-                        context,
-                      ).copyWith(color: Colors.grey[700]),
+                      style: AdminTextStyles.sectionTitle(context).copyWith(
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
                     ),
                     SizedBox(height: 8.h),
                     Text(
                       'Tap + to create a new BOGO offer',
                       textAlign: TextAlign.center,
-                      style: AdminTextStyles.body(
-                        context,
-                      ).copyWith(color: Colors.grey[600]),
+                      style: AdminTextStyles.body(context).copyWith(
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
                     ),
                   ],
                 );
@@ -198,17 +199,19 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                                 title: 'All BOGO',
                                 value: '$totalBogoCount',
                                 icon: Icons.card_giftcard,
-                                color: const Color(0xFFB45309),
+                                color: AdminThemeTokens.toneBrown,
                                 breakdown: [
                                   CatalogStatBreakdown(
                                     label: 'Active',
                                     value: '$activeCount',
-                                    color: Colors.green.shade700,
+                                    color: AdminAppTheme.getSuccessColor(
+                                      context,
+                                    ),
                                   ),
                                   CatalogStatBreakdown(
                                     label: 'Inactive',
                                     value: '$inactiveCount',
-                                    color: Colors.redAccent.shade200,
+                                    color: AdminAppTheme.getErrorColor(context),
                                   ),
                                 ],
                                 compact: true,
@@ -222,7 +225,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                                 title: 'Live Now',
                                 value: '$liveCount',
                                 icon: Icons.bolt_rounded,
-                                color: const Color(0xFF0F766E),
+                                color: AdminThemeTokens.toneTealDark,
                                 compact: true,
                               ),
                             ),
@@ -376,7 +379,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
         var isDeleting = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Delete BOGO Offer'),
+            title: Text('Delete BOGO Offer'),
             content: ConstrainedBox(
               constraints: AdminResponsive.dialogConstraints(context),
               child: const SingleChildScrollView(
@@ -386,7 +389,7 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: isDeleting
@@ -416,7 +419,12 @@ class _BogoOffersScreenState extends State<BogoOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Delete', style: TextStyle(color: Colors.red)),
+                    : Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -489,11 +497,15 @@ class _BogoOfferCard extends StatelessWidget {
         minLeadingWidth: 42.w,
         leading: CircleAvatar(
           radius: 20.r,
-          backgroundColor: offer.isActive ? Colors.red[100] : Colors.grey[300],
+          backgroundColor: offer.isActive
+              ? AdminAppTheme.getErrorContainerColor(context)
+              : AdminAppTheme.getBorderColor(context),
           child: Icon(
             Icons.card_giftcard,
             size: 20.r,
-            color: offer.isActive ? Colors.red : Colors.grey,
+            color: offer.isActive
+                ? AdminAppTheme.getErrorColor(context)
+                : AdminAppTheme.getNeutralColor(context),
           ),
         ),
         title: Text(
@@ -529,7 +541,7 @@ class _BogoOfferCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: Colors.red[100],
+                    color: AdminAppTheme.getErrorContainerColor(context),
                     borderRadius: BorderRadius.circular(6.r),
                   ),
                   child: Text(
@@ -537,7 +549,7 @@ class _BogoOfferCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12.sp.clamp(10.0, 13.0),
                       fontWeight: FontWeight.bold,
-                      color: Colors.red[700],
+                      color: AdminAppTheme.getErrorColor(context),
                     ),
                   ),
                 ),
@@ -550,7 +562,7 @@ class _BogoOfferCard extends StatelessWidget {
                       vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue[100],
+                      color: AdminAppTheme.getInfoContainerColor(context),
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
@@ -562,7 +574,7 @@ class _BogoOfferCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12.sp.clamp(10.0, 13.0),
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue[700],
+                        color: AdminAppTheme.getInfoColor(context),
                       ),
                     ),
                   ),
@@ -573,7 +585,7 @@ class _BogoOfferCard extends StatelessWidget {
                       vertical: 3.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green[100],
+                      color: AdminAppTheme.getSuccessContainerColor(context),
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
@@ -581,7 +593,7 @@ class _BogoOfferCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10.sp.clamp(9.0, 11.0),
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: AdminAppTheme.getSuccessColor(context),
                       ),
                     ),
                   ),
@@ -591,7 +603,7 @@ class _BogoOfferCard extends StatelessWidget {
         ),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'toggle',
               child: Row(
                 children: [
@@ -601,19 +613,27 @@ class _BogoOfferCard extends StatelessWidget {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'edit',
               child: Row(
                 children: [Icon(Icons.edit), SizedBox(width: 8), Text('Edit')],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
+                  Icon(
+                    Icons.delete,
+                    color: AdminAppTheme.getErrorColor(context),
+                  ),
                   SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
+                  Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: AdminAppTheme.getErrorColor(context),
+                    ),
+                  ),
                 ],
               ),
             ),

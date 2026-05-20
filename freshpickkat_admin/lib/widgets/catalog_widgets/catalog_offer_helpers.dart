@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 List<Coupon> filterCatalogCoupons(List<Coupon> coupons, String query) {
@@ -285,17 +286,17 @@ String catalogCouponStatusLabel(Coupon coupon) {
   return 'Live';
 }
 
-Color catalogCouponStatusColor(Coupon coupon) {
+Color catalogCouponStatusColor(BuildContext context, Coupon coupon) {
   final status = catalogCouponStatusLabel(coupon);
   switch (status) {
     case 'Live':
-      return Colors.green;
+      return AdminAppTheme.getSuccessColor(context);
     case 'Scheduled':
-      return Colors.orange;
+      return AdminAppTheme.getWarningColor(context);
     case 'Expired':
-      return Colors.redAccent;
+      return AdminAppTheme.getErrorColor(context);
     default:
-      return Colors.grey;
+      return AdminAppTheme.getNeutralColor(context);
   }
 }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/screens/login_screen.dart';
 import 'package:freshpickkat_admin/screens/main_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
@@ -278,31 +279,34 @@ class _AuthLoadingScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AdminThemeTokens.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.shopping_bag,
                 size: 80,
-                color: Colors.green,
+                color: AdminAppTheme.getSuccessColor(context),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'FreshPickKart',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AdminThemeTokens.white,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Admin Panel',
-              style: TextStyle(fontSize: 18, color: Colors.white70),
+              style: TextStyle(
+                fontSize: 18,
+                color: AdminThemeTokens.white.withValues(alpha: 0.7),
+              ),
             ),
             const SizedBox(height: 40),
-            const CircularProgressIndicator(color: Colors.white),
+            CircularProgressIndicator(color: AdminThemeTokens.white),
           ],
         ),
       ),

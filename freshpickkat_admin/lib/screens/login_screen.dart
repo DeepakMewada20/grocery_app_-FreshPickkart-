@@ -563,7 +563,7 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       child: TabBar(
         labelPadding: EdgeInsets.zero,
-        labelColor: Colors.white,
+        labelColor: AdminThemeTokens.white,
         unselectedLabelColor: Theme.of(context).brightness == Brightness.dark
             ? AdminThemeTokens.darkTextSecondary
             : AdminThemeTokens.primary.withValues(alpha: 0.7),
@@ -575,7 +575,7 @@ class _LoginScreenState extends State<LoginScreen>
             colors: [primaryColor, primaryColor.withValues(alpha: 0.85)],
           ),
         ),
-        dividerColor: Colors.transparent,
+        dividerColor: AdminThemeTokens.transparent,
         tabs: [
           Tab(
             child: Row(
@@ -804,7 +804,7 @@ class _LoginScreenState extends State<LoginScreen>
         filled: true,
         fillColor: isDark
             ? AdminThemeTokens.darkSurfaceElevated.withValues(alpha: 0.6)
-            : Colors.white,
+            : AdminThemeTokens.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
           borderSide: BorderSide(
@@ -841,7 +841,12 @@ class _LoginScreenState extends State<LoginScreen>
             width: 2,
           ),
         ),
-        contentPadding: EdgeInsets.fromLTRB(14.w, 18.h.clamp(14.0, 22.0), 14.w, 14.h.clamp(12.0, 18.0)),
+        contentPadding: EdgeInsets.fromLTRB(
+          14.w,
+          18.h.clamp(14.0, 22.0),
+          14.w,
+          14.h.clamp(12.0, 18.0),
+        ),
         labelStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500),
         floatingLabelStyle: TextStyle(
           fontSize: 12.sp,
@@ -927,7 +932,7 @@ class _LoginScreenState extends State<LoginScreen>
                 height: 18.sp,
                 child: const CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AdminThemeTokens.white,
                 ),
               )
             : Icon(icon, size: 20.sp),
@@ -941,7 +946,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: AdminThemeTokens.white,
           padding: EdgeInsets.symmetric(vertical: 14.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),

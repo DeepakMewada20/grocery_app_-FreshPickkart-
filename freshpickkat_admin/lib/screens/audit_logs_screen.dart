@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -97,7 +98,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                           textAlign: TextAlign.end,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade700,
+                            color: AdminAppTheme.getTextSecondaryColor(context),
                           ),
                         ),
                       ),

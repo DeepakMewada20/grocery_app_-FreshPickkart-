@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
@@ -161,8 +161,8 @@ class AdminBannerController extends GetxController {
         'Success',
         'Banner created successfully',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.success,
+        colorText: AdminThemeTokens.white,
       );
       return true;
     } on NoInternetException {
@@ -170,8 +170,8 @@ class AdminBannerController extends GetxController {
         'Banner Creation Failed',
         'No internet connection. Please check your network.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.error,
+        colorText: AdminThemeTokens.white,
       );
       return false;
     } catch (e) {
@@ -180,8 +180,8 @@ class AdminBannerController extends GetxController {
         'Banner Creation Failed',
         'An error occurred: $e',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.error,
+        colorText: AdminThemeTokens.white,
       );
       return false;
     } finally {
@@ -213,8 +213,8 @@ class AdminBannerController extends GetxController {
         'Success',
         'Banner updated successfully',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.success,
+        colorText: AdminThemeTokens.white,
       );
       return true;
     } catch (e) {
@@ -223,8 +223,8 @@ class AdminBannerController extends GetxController {
         'Banner Update Failed',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.error,
+        colorText: AdminThemeTokens.white,
       );
       return false;
     } finally {
@@ -249,8 +249,8 @@ class AdminBannerController extends GetxController {
         'Success',
         'Banner deleted successfully',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.success,
+        colorText: AdminThemeTokens.white,
       );
       return true;
     } catch (e) {
@@ -259,8 +259,8 @@ class AdminBannerController extends GetxController {
         'Delete Failed',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AdminThemeTokens.error,
+        colorText: AdminThemeTokens.white,
       );
       return false;
     } finally {

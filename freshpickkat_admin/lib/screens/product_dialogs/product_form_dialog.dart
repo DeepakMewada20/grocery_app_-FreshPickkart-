@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -291,8 +292,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Image',
-          toolbarColor: Colors.green,
-          toolbarWidgetColor: Colors.white,
+          toolbarColor: AdminThemeTokens.primary,
+          toolbarWidgetColor: AdminThemeTokens.white,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: true,
         ),
@@ -327,13 +328,13 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from Gallery'),
+              leading: Icon(Icons.photo_library_outlined),
+              title: Text('Choose from Gallery'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Use Camera'),
+              leading: Icon(Icons.photo_camera_outlined),
+              title: Text('Use Camera'),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
           ],
@@ -470,16 +471,16 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       margin: EdgeInsets.only(top: 8.h),
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
+        color: AdminAppTheme.getSuccessContainerColor(context),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green.shade200),
+        border: Border.all(color: AdminAppTheme.getSuccessColor(context)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.local_offer,
             size: 14.sp.clamp(12.0, 16.0),
-            color: Colors.green.shade700,
+            color: AdminAppTheme.getSuccessColor(context),
           ),
           SizedBox(width: 6.w),
           Flexible(
@@ -490,7 +491,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.green.shade700,
+                color: AdminAppTheme.getSuccessColor(context),
                 fontSize: 12.sp.clamp(10.0, 13.0),
                 fontWeight: FontWeight.w600,
               ),
@@ -899,7 +900,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   child: ImagePreview(imageUrl: imageCtrl.text.trim()),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.red),
+                  icon: Icon(
+                    Icons.cancel,
+                    color: AdminAppTheme.getErrorColor(context),
+                  ),
                   onPressed: () => setState(() => imageCtrl.clear()),
                 ),
               ],
@@ -913,12 +917,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'OR',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: AdminAppTheme.getNeutralColor(context),
             ),
           ),
           const SizedBox(height: 12),
@@ -990,7 +994,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               DropdownButtonFormField<String>(
                 initialValue: baseUnit,
                 isExpanded: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Unit',
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1060,7 +1064,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               DropdownButtonFormField<String>(
                 initialValue: stockUnit,
                 isExpanded: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Unit',
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 12,
@@ -1146,7 +1150,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 },
               ),
               InputDecorator(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Discount',
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
@@ -1225,15 +1229,19 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blueGrey.shade50,
+                color: AdminAppTheme.getNeutralContainerColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blueGrey.shade100),
+                border: Border.all(
+                  color: AdminAppTheme.getBorderColor(context),
+                ),
               ),
               child: Text(
                 summaries.isEmpty
                     ? 'No related offers found for this product yet.'
                     : 'This product is currently linked to ${summaries.length} offer${summaries.length == 1 ? '' : 's'}.',
-                style: TextStyle(color: Colors.blueGrey.shade800),
+                style: TextStyle(
+                  color: AdminAppTheme.getBlueGreyColor(context),
+                ),
               ),
             ),
             if (isLoading) ...[
@@ -1246,7 +1254,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 isEditMode
                     ? 'Direct product pricing will appear here along with category, combo, and BOGO mappings.'
                     : 'Save the product first to see direct product, combo, and BOGO mappings. Category offers update from the selected category.',
-                style: TextStyle(color: Colors.grey.shade700),
+                style: TextStyle(
+                  color: AdminAppTheme.getTextSecondaryColor(context),
+                ),
               ),
             ] else ...[
               const SizedBox(height: 12),
@@ -1277,7 +1287,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           title: 'Direct Product Discount',
           subtitle: 'Configured on this product form',
           badge: valueLabel,
-          tone: Colors.green,
+          tone: AdminAppTheme.getSuccessColor(context),
         ),
       );
     }
@@ -1315,7 +1325,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             title: offer.name,
             subtitle: 'Category offer • ${offer.categoryName ?? categoryName}',
             badge: _discountBadge(offer.discountType, offer.discountValue),
-            tone: Colors.orange,
+            tone: AdminAppTheme.getWarningColor(context),
           ),
         );
       }
@@ -1341,7 +1351,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             subtitle:
                 'Combo offer • part of ${offer.comboProducts.length} products',
             badge: _discountBadge(offer.discountType, offer.discountValue),
-            tone: Colors.deepPurple,
+            tone: AdminAppTheme.getDeepPurpleColor(context),
           ),
         );
       }
@@ -1366,7 +1376,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             subtitle:
                 'BOGO offer • $freeCount free product option${freeCount == 1 ? '' : 's'}',
             badge: 'BOGO',
-            tone: Colors.teal,
+            tone: AdminAppTheme.getTealColor(context),
           ),
         );
       }
@@ -1414,7 +1424,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             child: Text(
               offer.badge,
               style: const TextStyle(
-                color: Colors.white,
+                color: AdminThemeTokens.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -1432,7 +1442,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 const SizedBox(height: 4),
                 Text(
                   offer.subtitle,
-                  style: TextStyle(color: Colors.grey.shade700),
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                  ),
                 ),
               ],
             ),
@@ -1482,7 +1494,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         padding: EdgeInsets.symmetric(vertical: 14.h),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: const Text('Cancel', overflow: TextOverflow.ellipsis),
+      child: Text('Cancel', overflow: TextOverflow.ellipsis),
     );
     final saveButton = FilledButton(
       onPressed: _isSubmitting ? null : _handleSave,
@@ -1494,7 +1506,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
           ? SizedBox(
               width: 20.r,
               height: 20.r,
-              child: const CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(
               isEditMode ? 'Update Product' : 'Save Product',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
 import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
@@ -22,16 +23,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text('Logout'),
+        content: Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Logout',
+              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
+            ),
           ),
         ],
       ),
@@ -72,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Icon(
                       Icons.person,
                       size: 50.sp.clamp(40.0, 54.0),
-                      color: Colors.white,
+                      color: AdminThemeTokens.white,
                     ),
                   ),
                   SizedBox(height: 16.h),
@@ -148,7 +152,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             }),
             const Divider(),
             _buildSettingsItem(
-              context, Icons.logout, 'Logout',
+              context,
+              Icons.logout,
+              'Logout',
               () => _handleLogout(context),
               isDestructive: true,
               isLoading: _isLoggingOut,
@@ -171,12 +177,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: Icon(
         icon,
         color: isDestructive
-            ? Colors.red
+            ? AdminAppTheme.getErrorColor(context)
             : Theme.of(context).colorScheme.primary,
       ),
       title: Text(
         title,
-        style: TextStyle(color: isDestructive ? Colors.red : null),
+        style: TextStyle(
+          color: isDestructive ? AdminAppTheme.getErrorColor(context) : null,
+        ),
       ),
       trailing: isLoading
           ? SizedBox(
@@ -185,11 +193,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: CircularProgressIndicator(
                 strokeWidth: 2.0,
                 valueColor: AlwaysStoppedAnimation(
-                  isDestructive ? Colors.red : Theme.of(context).colorScheme.primary,
+                  isDestructive
+                      ? AdminAppTheme.getErrorColor(context)
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
             )
-          : const Icon(Icons.chevron_right),
+          : Icon(Icons.chevron_right),
       onTap: isLoading ? null : onTap,
       enabled: !isLoading,
     );

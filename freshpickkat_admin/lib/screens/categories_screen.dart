@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -131,7 +132,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           FloatingActionButton.extended(
             heroTag: 'addCategory',
             backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Colors.white,
+            foregroundColor: AdminThemeTokens.white,
             onPressed: _openAddCategoryDialog,
             icon: const Icon(Icons.add),
             label: const Text('Category'),
@@ -140,7 +141,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           FloatingActionButton.extended(
             heroTag: 'addSubCategory',
             backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Colors.white,
+            foregroundColor: AdminThemeTokens.white,
             onPressed: _openAddSubcategoryDialog,
             icon: const Icon(Icons.add),
             label: const Text('Subcategory'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -191,8 +192,10 @@ class _OffersScreenState extends State<OffersScreen> {
                 appBar: AdminAppBar(
                   title: TabBar(
                     isScrollable: true,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white70,
+                    labelColor: AdminThemeTokens.white,
+                    unselectedLabelColor: AdminThemeTokens.white.withValues(
+                      alpha: 0.7,
+                    ),
                     tabs: const [
                       Tab(text: 'Dashboard'),
                       Tab(text: 'Offers'),
@@ -214,7 +217,7 @@ class _OffersScreenState extends State<OffersScreen> {
                     ),
                     Scaffold(
                       key: _offersTabFabKey,
-                      backgroundColor: Colors.transparent,
+                      backgroundColor: AdminThemeTokens.transparent,
                       body: Stack(
                         children: [
                           CatalogOffersTab(
@@ -249,7 +252,10 @@ class _OffersScreenState extends State<OffersScreen> {
                                 behavior: HitTestBehavior.opaque,
                                 onTap: _toggleOfferFab,
                                 child: Container(
-                                  color: Colors.black.withValues(alpha: 0.02),
+                                  color: AdminAppTheme.getScrimShadowColor(
+                                    context,
+                                    alpha: 0.02,
+                                  ),
                                 ),
                               ),
                             ),
@@ -361,7 +367,7 @@ class _OffersDashboardTab extends StatelessWidget {
               'Offers, banners, and delivery rules ka quick summary',
               style: AdminTextStyles.body(
                 context,
-              ).copyWith(color: Colors.grey.shade700),
+              ).copyWith(color: AdminAppTheme.getTextSecondaryColor(context)),
             ),
             SizedBox(height: 16.h),
             _DashboardCardGrid(
@@ -370,12 +376,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'Coupons',
                   value: '${coupons.length}',
                   icon: Icons.sell_outlined,
-                  color: const Color(0xFF315C73),
+                  color: AdminThemeTokens.toneBlue,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveCoupons',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -384,12 +390,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   value:
                       '${totalBogo + totalCategoryOffers + totalComboOffers}',
                   icon: Icons.local_offer_outlined,
-                  color: const Color(0xFF2F6F4F),
+                  color: AdminThemeTokens.toneGreen,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveOfferPrograms',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -397,12 +403,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'Delivery Rules',
                   value: '$totalDeliveryRules',
                   icon: Icons.local_shipping_outlined,
-                  color: const Color(0xFF7C4D12),
+                  color: AdminThemeTokens.toneBrown,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveDelivery',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -410,12 +416,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'Banners',
                   value: '$totalBanners',
                   icon: Icons.image_outlined,
-                  color: const Color(0xFF6A4C93),
+                  color: AdminThemeTokens.tonePurple,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Active',
                       value: '$activeBanners',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -430,12 +436,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'BOGO',
                   value: '$totalBogo',
                   icon: Icons.card_giftcard,
-                  color: const Color(0xFF2B7A78),
+                  color: AdminThemeTokens.toneTeal,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveBogo',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -443,12 +449,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'Category',
                   value: '$totalCategoryOffers',
                   icon: Icons.category_outlined,
-                  color: const Color(0xFF3A5F6F),
+                  color: AdminThemeTokens.toneSteel,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveCategory',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -456,12 +462,12 @@ class _OffersDashboardTab extends StatelessWidget {
                   title: 'Combo',
                   value: '$totalComboOffers',
                   icon: Icons.widgets_outlined,
-                  color: const Color(0xFF4F7D63),
+                  color: AdminThemeTokens.toneGreenSoft,
                   breakdown: [
                     CatalogStatBreakdown(
                       label: 'Live',
                       value: '$liveCombo',
-                      color: Colors.green.shade700,
+                      color: AdminAppTheme.getSuccessColor(context),
                     ),
                   ],
                 ),
@@ -497,7 +503,10 @@ class _DashboardSection extends StatelessWidget {
           ).copyWith(fontWeight: FontWeight.w800),
         ),
         SizedBox(height: 4.h),
-        Text(subtitle, style: TextStyle(color: Colors.grey.shade700)),
+        Text(
+          subtitle,
+          style: TextStyle(color: AdminAppTheme.getTextSecondaryColor(context)),
+        ),
         SizedBox(height: 12.h),
         _DashboardCardGrid(cards: cards),
       ],
@@ -618,7 +627,7 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
                   child: _OfferFabAction(
                     icon: Icons.category_outlined,
                     label: 'Category Offer',
-                    color: const Color(0xFF3A5F6F),
+                    color: AdminThemeTokens.toneSteel,
                     onTap: () => widget.onSelected('category'),
                   ),
                 ),
@@ -628,7 +637,7 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
                   child: _OfferFabAction(
                     icon: Icons.widgets_outlined,
                     label: 'Combo Offer',
-                    color: const Color(0xFF4F7D63),
+                    color: AdminThemeTokens.toneGreenSoft,
                     onTap: () => widget.onSelected('combo'),
                   ),
                 ),
@@ -638,7 +647,7 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
                   child: _OfferFabAction(
                     icon: Icons.card_giftcard,
                     label: 'BOGO Offer',
-                    color: const Color(0xFF2B7A78),
+                    color: AdminThemeTokens.toneTeal,
                     onTap: () => widget.onSelected('bogo'),
                   ),
                 ),
@@ -721,9 +730,9 @@ class _OfferFabAction extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Material(
-        color: Colors.white,
+        color: AdminThemeTokens.white,
         elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.12),
+        shadowColor: AdminAppTheme.getScrimShadowColor(context, alpha: 0.12),
         shape: const StadiumBorder(),
         clipBehavior: Clip.antiAlias,
         child: Padding(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_dashboard_controller.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
@@ -29,11 +30,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       drawer: _buildDrawer(context),
       appBar: AdminAppBar(
-        title: const Text('Dashboard'),
+        title: Text('Dashboard'),
         actions: [
           IconButton(
             onPressed: _controller.loadDashboard,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
           ),
         ],
       ),
@@ -79,37 +80,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'Today Orders',
                   value: '${stats.todayOrders}',
                   icon: Icons.shopping_bag_outlined,
-                  color: Colors.blue,
+                  color: AdminAppTheme.getInfoColor(context),
                 ),
                 _statCard(
                   title: 'Today Revenue',
                   value: _asCurrency(stats.todayRevenue),
                   icon: Icons.currency_rupee_outlined,
-                  color: Colors.green,
+                  color: AdminAppTheme.getSuccessColor(context),
                 ),
                 _statCard(
                   title: 'Pending',
                   value: '${stats.pendingOrders}',
                   icon: Icons.schedule_outlined,
-                  color: Colors.orange,
+                  color: AdminAppTheme.getWarningColor(context),
                 ),
                 _statCard(
                   title: 'Delivered',
                   value: '${stats.deliveredOrders}',
                   icon: Icons.check_circle_outline,
-                  color: Colors.teal,
+                  color: AdminAppTheme.getTealColor(context),
                 ),
                 _statCard(
                   title: 'Total Orders',
                   value: '${stats.totalOrders}',
                   icon: Icons.receipt_long_outlined,
-                  color: Colors.indigo,
+                  color: AdminAppTheme.getIndigoColor(context),
                 ),
                 _statCard(
                   title: 'Total Revenue',
                   value: _asCurrency(stats.totalRevenue),
                   icon: Icons.savings_outlined,
-                  color: Colors.pink,
+                  color: AdminAppTheme.getPinkColor(context),
                 ),
               ];
 
@@ -173,14 +174,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   'Cancellation Rate',
                                   '${analytics.cancellationRate.toStringAsFixed(1)}%',
                                   Icons.cancel_outlined,
-                                  Colors.red,
+                                  AdminAppTheme.getErrorColor(context),
                                 ),
                                 const Divider(height: 24),
                                 _analyticsRow(
                                   'Low Stock Items (<=5)',
                                   '${analytics.lowStockCount}',
                                   Icons.inventory_2_outlined,
-                                  Colors.orange,
+                                  AdminAppTheme.getWarningColor(context),
                                 ),
                                 SizedBox(height: 24.h),
                                 Text(
@@ -189,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                                 SizedBox(height: 12.h),
                                 if (topProducts.isEmpty)
-                                  const Text('No data available')
+                                  Text('No data available')
                                 else
                                   ...topProducts.take(5).map((e) {
                                     return Padding(
@@ -202,15 +203,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              color: Colors.blue.withValues(
-                                                alpha: 0.1,
-                                              ),
+                                              color: AdminAppTheme.getInfoColor(
+                                                context,
+                                              ).withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.star_outline,
-                                              color: Colors.blue,
+                                              color: AdminAppTheme.getInfoColor(
+                                                context,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(width: 12),
@@ -298,7 +301,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               title,
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AdminAppTheme.getTextSecondaryColor(context)
+                    : AdminAppTheme.getTextSecondaryColor(context),
                 fontSize: 12.sp.clamp(10.0, 14.0),
                 fontWeight: FontWeight.w500,
               ),
@@ -346,8 +351,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.delivery_dining_outlined),
-              title: const Text('Live Delivery'),
+              leading: Icon(Icons.delivery_dining_outlined),
+              title: Text('Live Delivery'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -357,8 +362,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.people_outline),
-              title: const Text('Active Users'),
+              leading: Icon(Icons.people_outline),
+              title: Text('Active Users'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -368,8 +373,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.report_problem_outlined),
-              title: const Text('Complaints'),
+              leading: Icon(Icons.report_problem_outlined),
+              title: Text('Complaints'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -381,8 +386,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.campaign_outlined),
-              title: const Text('Broadcasts'),
+              leading: Icon(Icons.campaign_outlined),
+              title: Text('Broadcasts'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(

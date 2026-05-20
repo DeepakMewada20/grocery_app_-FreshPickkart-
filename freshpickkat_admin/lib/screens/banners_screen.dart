@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
@@ -63,8 +64,8 @@ class _BannersScreenState extends State<BannersScreen>
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddBannerDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Banner'),
+        icon: Icon(Icons.add),
+        label: Text('Add Banner'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
@@ -81,21 +82,27 @@ class _BannersScreenState extends State<BannersScreen>
                 TextField(
                   decoration: InputDecoration(
                     hintText: 'Search banners...',
-                    prefixIcon: const Icon(Icons.search, size: 20),
+                    prefixIcon: Icon(Icons.search, size: 20),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: AdminAppTheme.getBorderColor(context),
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: AdminAppTheme.getBorderColor(context),
+                      ),
                     ),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: Colors.green),
+                      borderSide: BorderSide(
+                        color: AdminAppTheme.getSuccessColor(context),
+                      ),
                     ),
                     filled: true,
-                    fillColor: Colors.grey.shade50,
+                    fillColor: AdminAppTheme.getInputSurfaceColor(context),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -167,12 +174,15 @@ class _BannersScreenState extends State<BannersScreen>
                       Icon(
                         Icons.image_outlined,
                         size: 64,
-                        color: Colors.grey[400],
+                        color: AdminAppTheme.getMutedIconColor(context),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No banners found',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 18),
+                        style: TextStyle(
+                          color: AdminAppTheme.getTextSecondaryColor(context),
+                          fontSize: 18,
+                        ),
                       ),
                     ],
                   ),
@@ -258,16 +268,16 @@ class _BannersScreenState extends State<BannersScreen>
         var isDeleting = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Delete Banner'),
+            title: Text('Delete Banner'),
             content: banner.isBaseImage
-                ? const Text(
+                ? Text(
                     'This is a Base Image and cannot be deleted. You must make another banner the Base Image first.',
                   )
                 : Text('Are you sure you want to delete "${banner.title}"?'),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               if (!banner.isBaseImage)
                 TextButton(
@@ -288,9 +298,11 @@ class _BannersScreenState extends State<BannersScreen>
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text(
+                      : Text(
                           'Delete',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
                         ),
                 ),
             ],
@@ -309,14 +321,20 @@ class _BannersScreenState extends State<BannersScreen>
             borderRadius: BorderRadius.circular(999),
           ),
           side: BorderSide(
-            color: isSelected ? Colors.green : Colors.grey.shade300,
+            color: isSelected
+                ? AdminAppTheme.getSuccessColor(context)
+                : AdminAppTheme.getBorderColor(context),
           ),
-          backgroundColor: Colors.white,
-          selectedColor: Colors.green.withValues(alpha: 0.12),
+          backgroundColor: AdminThemeTokens.white,
+          selectedColor: AdminAppTheme.getSuccessColor(
+            context,
+          ).withValues(alpha: 0.12),
           labelStyle: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.green.shade800 : Colors.grey.shade800,
+            color: isSelected
+                ? AdminAppTheme.getSuccessColor(context)
+                : AdminAppTheme.getTextPrimaryColor(context),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 4),
         ),
@@ -365,15 +383,14 @@ class _BannerCard extends StatelessWidget {
               child: Container(
                 width: 60.r.clamp(52.0, 70.0),
                 height: 60.r.clamp(52.0, 70.0),
-                color: Colors.grey[200],
+                color: AdminAppTheme.getSubtleBorderColor(context),
                 child: banner.imageUrl.isNotEmpty
                     ? Image.network(
                         banner.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.image_outlined),
+                        errorBuilder: (_, _, _) => Icon(Icons.image_outlined),
                       )
-                    : const Icon(Icons.image_outlined),
+                    : Icon(Icons.image_outlined),
               ),
             ),
             title: Text(
@@ -401,7 +418,9 @@ class _BannerCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue[100],
+                              color: AdminAppTheme.getInfoContainerColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -409,7 +428,7 @@ class _BannerCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12.sp.clamp(10.0, 13.0),
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
+                                color: AdminAppTheme.getInfoColor(context),
                               ),
                             ),
                           ),
@@ -419,7 +438,9 @@ class _BannerCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.orange[100],
+                              color: AdminAppTheme.getWarningContainerColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -427,7 +448,7 @@ class _BannerCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12.sp.clamp(10.0, 13.0),
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange[700],
+                                color: AdminAppTheme.getWarningColor(context),
                               ),
                             ),
                           ),
@@ -439,7 +460,10 @@ class _BannerCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.indigo[100],
+                              color: AdminAppTheme.getStatusContainerColor(
+                                context,
+                                AdminThemeTokens.toneIndigo,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -447,7 +471,7 @@ class _BannerCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12.sp.clamp(10.0, 13.0),
                                 fontWeight: FontWeight.bold,
-                                color: Colors.indigo[700],
+                                color: AdminAppTheme.getIndigoColor(context),
                               ),
                             ),
                           ),
@@ -459,15 +483,17 @@ class _BannerCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green[100],
+                              color: AdminAppTheme.getSuccessContainerColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: Text(
                               'LIVE',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                                color: AdminAppTheme.getSuccessColor(context),
                               ),
                             ),
                           ),
@@ -479,7 +505,10 @@ class _BannerCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.purple[100],
+                              color: AdminAppTheme.getStatusContainerColor(
+                                context,
+                                AdminThemeTokens.tonePurple,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -487,7 +516,7 @@ class _BannerCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.purple[900],
+                                color: AdminAppTheme.getPurpleColor(context),
                               ),
                             ),
                           ),
@@ -525,7 +554,7 @@ class _BannerCard extends StatelessWidget {
                   ),
                 ),
                 if (!banner.screenPlacements.contains('home_top_image'))
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'priority',
                     child: Row(
                       children: [
@@ -535,7 +564,7 @@ class _BannerCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
@@ -545,13 +574,21 @@ class _BannerCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, color: Colors.red),
+                      Icon(
+                        Icons.delete,
+                        color: AdminAppTheme.getErrorColor(context),
+                      ),
                       SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
+                      Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -588,21 +625,30 @@ class _BannerCard extends StatelessWidget {
                       vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.purple[50],
+                      color: AdminAppTheme.getStatusContainerColor(
+                        context,
+                        AdminThemeTokens.tonePurple,
+                      ),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.purple[200]!),
+                      border: Border.all(
+                        color: AdminAppTheme.getPurpleColor(context),
+                      ),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.lock, size: 12, color: Colors.purple),
+                        Icon(
+                          Icons.lock,
+                          size: 12,
+                          color: AdminAppTheme.getPurpleColor(context),
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'PERMANENT BASE IMAGE',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.purple,
+                            color: AdminAppTheme.getPurpleColor(context),
                           ),
                         ),
                       ],
@@ -612,7 +658,7 @@ class _BannerCard extends StatelessWidget {
                   Icon(
                     Icons.calendar_today,
                     size: 14.sp.clamp(12.0, 16.0),
-                    color: Colors.grey[600],
+                    color: AdminAppTheme.getTextSecondaryColor(context),
                   ),
                   Text(
                     '${_formatDate(banner.startDate)} - ${_formatDate(banner.endDate)}',
@@ -620,7 +666,7 @@ class _BannerCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12.sp.clamp(10.0, 13.0),
-                      color: Colors.grey[600],
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
                   ),
                 ],
@@ -637,7 +683,7 @@ class _BannerCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Priority'),
+        title: Text('Change Priority'),
         content: DropdownButtonFormField<int>(
           initialValue: selectedPriority,
           items: List.generate(10, (i) => i + 1)
@@ -654,14 +700,14 @@ class _BannerCard extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               onPriorityChange(selectedPriority);
             },
-            child: const Text('Update'),
+            child: Text('Update'),
           ),
         ],
       ),
@@ -824,7 +870,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       },
       child: Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AdminThemeTokens.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: EdgeInsets.only(
@@ -838,7 +884,7 @@ class _BannerSheetState extends State<_BannerSheet> {
               width: 40.w,
               height: 4.h,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AdminAppTheme.getBorderColor(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -854,10 +900,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                     overflow: TextOverflow.ellipsis,
                     style: AdminTextStyles.sectionTitle(context),
                   ),
-                  IconButton(
-                    onPressed: _onCancel,
-                    icon: const Icon(Icons.close),
-                  ),
+                  IconButton(onPressed: _onCancel, icon: Icon(Icons.close)),
                 ],
               ),
             ),
@@ -907,7 +950,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                       SizedBox(height: 20.h),
                       TextFormField(
                         controller: _titleController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Banner Title',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.title),
@@ -921,7 +964,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                         SizedBox(height: 16.h),
                         DropdownButtonFormField<String>(
                           initialValue: _type,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Banner Type',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.category_outlined),
@@ -965,8 +1008,8 @@ class _BannerSheetState extends State<_BannerSheet> {
                         _buildLinkedProductsSection(),
                         SizedBox(height: 16.h),
                         SwitchListTile(
-                          title: const Text('Is Base Image'),
-                          subtitle: const Text(
+                          title: Text('Is Base Image'),
+                          subtitle: Text(
                             'Always visible if no festive banner is active',
                           ),
                           value: _isBaseImage,
@@ -979,7 +1022,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                       ],
                       if (!_isBaseImage) ...[
                         SizedBox(height: 16.h),
-                        const Text(
+                        Text(
                           'Scheduling & Status:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -989,7 +1032,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                             final startDate = InkWell(
                               onTap: () => _selectDate(true),
                               child: InputDecorator(
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Start Date',
                                 ),
                                 child: Text(
@@ -1001,7 +1044,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                             final endDate = InkWell(
                               onTap: () => _selectDate(false),
                               child: InputDecorator(
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'End Date',
                                 ),
                                 child: Text(
@@ -1030,7 +1073,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                         ),
                         SizedBox(height: 16.h),
                         SwitchListTile(
-                          title: const Text('Active'),
+                          title: Text('Active'),
                           value: _active,
                           onChanged: (v) => setState(() => _active = v),
                           contentPadding: EdgeInsets.zero,
@@ -1038,7 +1081,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                       ],
                       if (_mode == BannerMode.normal) ...[
                         SizedBox(height: 16.h),
-                        const Text(
+                        Text(
                           'Screen Placements:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -1061,7 +1104,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                         SizedBox(height: 16.h),
                         DropdownButtonFormField<int>(
                           initialValue: _priority,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Priority',
                             border: OutlineInputBorder(),
                           ),
@@ -1083,8 +1126,10 @@ class _BannerSheetState extends State<_BannerSheet> {
                         child: ElevatedButton(
                           onPressed: _isSubmitting ? null : _save,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AdminAppTheme.getSuccessColor(
+                              context,
+                            ),
+                            foregroundColor: AdminThemeTokens.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -1095,7 +1140,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: AdminThemeTokens.white,
                                   ),
                                 )
                               : Text(
@@ -1140,10 +1185,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Linked Products',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        Text('Linked Products', style: TextStyle(fontWeight: FontWeight.bold)),
         SizedBox(height: 8.h),
         Wrap(
           spacing: 8,
@@ -1206,8 +1248,8 @@ class _BannerSheetState extends State<_BannerSheet> {
               );
             }
           },
-          icon: const Icon(Icons.add),
-          label: const Text('Add Products'),
+          icon: Icon(Icons.add),
+          label: Text('Add Products'),
         ),
       ],
     );
@@ -1261,7 +1303,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       case 'external_link':
         return TextFormField(
           initialValue: _externalUrl,
-          decoration: const InputDecoration(labelText: 'External URL'),
+          decoration: InputDecoration(labelText: 'External URL'),
           onChanged: (v) => _externalUrl = v,
         );
       default:
@@ -1279,14 +1321,11 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Banner Image',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        Text('Banner Image', style: TextStyle(fontWeight: FontWeight.bold)),
         SizedBox(height: 8.h),
         TextFormField(
           controller: _imageUrlController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Image URL',
             hintText: 'Paste image link here',
             border: OutlineInputBorder(),
@@ -1310,13 +1349,13 @@ class _BannerSheetState extends State<_BannerSheet> {
           },
         ),
         SizedBox(height: 12.h),
-        const Center(
+        Center(
           child: Text(
             'OR',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: AdminAppTheme.getNeutralColor(context),
             ),
           ),
         ),
@@ -1327,9 +1366,9 @@ class _BannerSheetState extends State<_BannerSheet> {
             width: double.infinity,
             height: AdminResponsive.isLandscape(context) ? 140.h : 180.h,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: AdminAppTheme.getSubtleSurfaceColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(color: AdminAppTheme.getBorderColor(context)),
             ),
             child: _isUploading
                 ? const Center(child: CircularProgressIndicator())
@@ -1350,12 +1389,18 @@ class _BannerSheetState extends State<_BannerSheet> {
                                 Icon(
                                   Icons.broken_image,
                                   size: 40.sp.clamp(30.0, 44.0),
-                                  color: Colors.grey[400],
+                                  color: AdminAppTheme.getMutedIconColor(
+                                    context,
+                                  ),
                                 ),
                                 SizedBox(height: 8.h),
                                 Text(
                                   'Invalid image URL',
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  style: TextStyle(
+                                    color: AdminAppTheme.getTextSecondaryColor(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                               ],
                             );
@@ -1367,13 +1412,15 @@ class _BannerSheetState extends State<_BannerSheet> {
                         right: 8,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
+                            color: AdminThemeTokens.white.withValues(
+                              alpha: 0.9,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
                             icon: Icon(
                               Icons.cancel,
-                              color: Colors.red,
+                              color: AdminAppTheme.getErrorColor(context),
                               size: 20.sp,
                             ),
                             onPressed: () {
@@ -1393,12 +1440,14 @@ class _BannerSheetState extends State<_BannerSheet> {
                       Icon(
                         Icons.add_a_photo_outlined,
                         size: 40.sp.clamp(30.0, 44.0),
-                        color: Colors.grey[400],
+                        color: AdminAppTheme.getMutedIconColor(context),
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         'Tap to upload image',
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: AdminAppTheme.getTextSecondaryColor(context),
+                        ),
                       ),
                     ],
                   ),
@@ -1414,7 +1463,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       final categories = categoryController.categories;
       return DropdownButtonFormField<String>(
         initialValue: _categoryId,
-        decoration: const InputDecoration(labelText: 'Category'),
+        decoration: InputDecoration(labelText: 'Category'),
         items: categories
             .map(
               (c) => DropdownMenuItem(
@@ -1435,10 +1484,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Target Product',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        Text('Target Product', style: TextStyle(fontWeight: FontWeight.bold)),
         SizedBox(height: 8.h),
         if (product != null)
           Chip(
@@ -1462,7 +1508,7 @@ class _BannerSheetState extends State<_BannerSheet> {
               setState(() => _productId = result.productId);
             }
           },
-          icon: const Icon(Icons.add),
+          icon: Icon(Icons.add),
           label: Text(product == null ? 'Select Product' : 'Change Product'),
         ),
       ],
@@ -1480,15 +1526,12 @@ class _BannerSheetState extends State<_BannerSheet> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select Coupon',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text('Select Coupon', style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(height: 8.h),
           DropdownButtonFormField<String>(
             initialValue: _couponCode,
             isExpanded: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.local_offer_outlined),
             ),
@@ -1514,7 +1557,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12.sp.clamp(10.0, 13.0),
-                  color: Colors.green,
+                  color: AdminAppTheme.getSuccessColor(context),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1531,7 +1574,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       return DropdownButtonFormField<String>(
         initialValue: _comboId,
         isExpanded: true,
-        decoration: const InputDecoration(labelText: 'Combo'),
+        decoration: InputDecoration(labelText: 'Combo'),
         items: combos
             .map(
               (c) => DropdownMenuItem(

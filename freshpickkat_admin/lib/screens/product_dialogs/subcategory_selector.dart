@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -38,7 +39,7 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
           'No subcategories found for selected category',
           style: AdminTextStyles.body(
             context,
-          ).copyWith(color: Colors.redAccent),
+          ).copyWith(color: AdminAppTheme.getErrorColor(context)),
         ),
       );
     }
@@ -124,9 +125,9 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
             widget.errorText!,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: AdminTextStyles.caption(context).copyWith(
-              color: Colors.red,
-            ),
+            style: AdminTextStyles.caption(
+              context,
+            ).copyWith(color: AdminAppTheme.getErrorColor(context)),
           ),
         ],
       ],
@@ -152,10 +153,12 @@ class _SubcategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final borderColor =
-        isSelected ? cs.primary : Colors.grey.shade300;
-    final bgColor =
-        isSelected ? cs.primary.withValues(alpha: 0.08) : Colors.white;
+    final borderColor = isSelected
+        ? cs.primary
+        : AdminAppTheme.getBorderColor(context);
+    final bgColor = isSelected
+        ? cs.primary.withValues(alpha: 0.08)
+        : AdminThemeTokens.white;
 
     return GestureDetector(
       onTap: onTap,
@@ -169,7 +172,7 @@ class _SubcategoryChip extends StatelessWidget {
           border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
+              color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.06),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -209,8 +212,7 @@ class _SubcategoryChip extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: (10.sp).clamp(8.0, 11.5),
-                  fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: isSelected ? cs.primary : cs.onSurface,
                   height: 1.2,
                 ),
@@ -233,7 +235,7 @@ class _PlaceholderIcon extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      color: Colors.grey.shade100,
+      color: AdminAppTheme.getSubtleSurfaceColor(context),
       child: Icon(
         Icons.image_outlined,
         size: size * 0.55,

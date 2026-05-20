@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
@@ -69,13 +70,13 @@ class _SplashScreenState extends State<SplashScreen> {
               Container(
                 padding: EdgeInsets.all(20.r),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AdminThemeTokens.white,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Icon(
                   Icons.shopping_bag,
                   size: 80.r.clamp(58.0, 88.0).toDouble(),
-                  color: Colors.green,
+                  color: AdminAppTheme.getSuccessColor(context),
                 ),
               ),
               SizedBox(height: 24.h),
@@ -85,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AdminTextStyles.screenTitle(context).copyWith(
-                  color: Colors.white,
+                  color: AdminThemeTokens.white,
                   fontSize: 30.sp.clamp(24.0, 34.0).toDouble(),
                 ),
               ),
@@ -93,12 +94,12 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'Admin Panel',
                 textAlign: TextAlign.center,
-                style: AdminTextStyles.sectionTitle(
-                  context,
-                ).copyWith(color: Colors.white70),
+                style: AdminTextStyles.sectionTitle(context).copyWith(
+                  color: AdminThemeTokens.white.withValues(alpha: 0.7),
+                ),
               ),
               SizedBox(height: 40.h),
-              const CircularProgressIndicator(color: Colors.white),
+              CircularProgressIndicator(color: AdminThemeTokens.white),
             ],
           ),
         ),

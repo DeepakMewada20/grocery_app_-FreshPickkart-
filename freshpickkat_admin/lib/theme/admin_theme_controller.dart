@@ -22,6 +22,7 @@ class AdminThemeController extends GetxController {
       case 'dark':
         return ThemeMode.dark;
       case 'system':
+        return ThemeMode.system;
       default:
         return ThemeMode.light;
     }

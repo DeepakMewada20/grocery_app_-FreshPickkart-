@@ -354,7 +354,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                             label: offer.discountType == 'percentage'
                                 ? 'MORE ${offer.discountValue.toStringAsFixed(0)}% OFF'
                                 : 'MORE ${_formatMoney(offer.discountValue)} OFF',
-                            color: Colors.orange,
+                            color: AdminAppTheme.getWarningColor(context),
                           ),
                         ],
                       ),
@@ -689,7 +689,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                             label: offer.discountType == 'percentage'
                                 ? '${offer.discountValue.toStringAsFixed(0)}% OFF'
                                 : 'Flat ${_formatMoney(offer.discountValue)} OFF',
-                            color: Colors.orange,
+                            color: AdminAppTheme.getWarningColor(context),
                           ),
                         ],
                       ),
@@ -1461,7 +1461,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'All',
                       value: '$allOfferCount',
                       icon: Icons.grid_view_rounded,
-                      color: const Color(0xFF335C4B),
+                      color: AdminThemeTokens.toneGreen,
                       compact: true,
                       selected: widget.offerTypeFilter == 'all',
                       onTap: () => widget.onOfferTypeChanged('all'),
@@ -1471,7 +1471,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'Live',
                       value: '$liveOfferCount',
                       icon: Icons.local_offer,
-                      color: const Color(0xFF1F6B4F),
+                      color: AdminThemeTokens.primary,
                       compact: true,
                       selected: widget.offerTypeFilter == 'live',
                       onTap: () => widget.onOfferTypeChanged('live'),
@@ -1481,7 +1481,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'BOGO',
                       value: '$bogoCount',
                       icon: Icons.card_giftcard,
-                      color: const Color(0xFF2B7A78),
+                      color: AdminThemeTokens.toneTeal,
                       breakdown: [
                         CatalogStatBreakdown(
                           label: 'Active',
@@ -1505,7 +1505,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'Category Offers',
                       value: '$totalCategoryOfferCount',
                       icon: Icons.category_outlined,
-                      color: const Color(0xFF3A5F6F),
+                      color: AdminThemeTokens.toneSteel,
                       breakdown: [
                         CatalogStatBreakdown(
                           label: 'Active',
@@ -1529,7 +1529,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'Combo Offers',
                       value: '$totalComboOfferCount',
                       icon: Icons.widgets_outlined,
-                      color: const Color(0xFF4F7D63),
+                      color: AdminThemeTokens.toneGreenSoft,
                       breakdown: [
                         CatalogStatBreakdown(
                           label: 'Active',
@@ -1553,7 +1553,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'Percentage',
                       value: '$percentageCount',
                       icon: Icons.percent,
-                      color: const Color(0xFF46627A),
+                      color: AdminThemeTokens.toneIndigo,
                       breakdown: [
                         CatalogStatBreakdown(
                           label: 'Active',
@@ -1577,7 +1577,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'Flat',
                       value: '$flatCount',
                       icon: Icons.currency_rupee,
-                      color: const Color(0xFF5B6B5F),
+                      color: AdminThemeTokens.toneMoss,
                       breakdown: [
                         CatalogStatBreakdown(
                           label: 'Active',
@@ -1601,7 +1601,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       title: 'No Offer',
                       value: '$noOfferCount',
                       icon: Icons.remove_circle_outline,
-                      color: const Color(0xFF66706C),
+                      color: AdminThemeTokens.toneNeutral,
                       compact: true,
                       selected: widget.offerTypeFilter == 'none',
                       onTap: () => widget.onOfferTypeChanged('none'),
@@ -1773,7 +1773,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                           ? AdminAppTheme.getSuccessColor(
                                               context,
                                             )
-                                          : Colors.grey,
+                                          : AdminAppTheme.getNeutralColor(
+                                              context,
+                                            ),
                                     ),
                                     if (hasActions)
                                       CatalogInlineBadge(

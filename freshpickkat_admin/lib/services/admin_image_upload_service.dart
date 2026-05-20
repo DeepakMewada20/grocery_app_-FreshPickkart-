@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -56,8 +57,8 @@ class AdminImageUploadService {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: toolbarTitle,
-          toolbarColor: Colors.green,
-          toolbarWidgetColor: Colors.white,
+          toolbarColor: AdminThemeTokens.primary,
+          toolbarWidgetColor: AdminThemeTokens.white,
           initAspectRatio: aspectRatio != null
               ? CropAspectRatioPreset.original
               : CropAspectRatioPreset.square,

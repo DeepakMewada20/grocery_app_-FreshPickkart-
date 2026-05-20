@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
 class ImagePreview extends StatelessWidget {
   const ImagePreview({
@@ -18,6 +19,7 @@ class ImagePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedHeight = height.h.clamp(96.0, height);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Image.network(
@@ -28,19 +30,25 @@ class ImagePreview extends StatelessWidget {
         errorBuilder: (_, _, _) => Container(
           height: resolvedHeight,
           alignment: Alignment.center,
-          color: Colors.grey[100],
+          color: AdminAppTheme.getImagePlaceholderColor(context),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.broken_image,
                 size: 48.sp.clamp(32.0, 48.0),
-                color: Colors.grey[400],
+                color: isDark
+                    ? AdminAppTheme.getTextSecondaryColor(context)
+                    : AdminAppTheme.getMutedIconColor(context),
               ),
               SizedBox(height: 8.h),
               Text(
                 'Image unavailable',
-                style: TextStyle(color: Colors.grey[500]),
+                style: TextStyle(
+                  color: isDark
+                      ? AdminAppTheme.getTextSecondaryColor(context)
+                      : AdminAppTheme.getTextSecondaryColor(context),
+                ),
               ),
             ],
           ),

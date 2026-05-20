@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -113,18 +114,18 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
     super.build(context);
     return Scaffold(
       appBar: AdminAppBar(
-        title: const Text('Category Offers'),
+        title: Text('Category Offers'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             onPressed: () => _controller.loadCategoryOffers(force: true),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddOfferDialog,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Category Offer'),
+        icon: Icon(Icons.add),
+        label: Text('Add Category Offer'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
@@ -134,7 +135,7 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search category offers...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -172,12 +173,15 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
                       Icon(
                         Icons.category_outlined,
                         size: 64,
-                        color: Colors.grey[400],
+                        color: AdminAppTheme.getMutedIconColor(context),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No category offers found',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 18),
+                        style: TextStyle(
+                          color: AdminAppTheme.getTextSecondaryColor(context),
+                          fontSize: 18,
+                        ),
                       ),
                     ],
                   ),
@@ -234,12 +238,12 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
         var isDeleting = false;
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Delete Category Offer'),
+            title: Text('Delete Category Offer'),
             content: Text('Are you sure you want to delete "${offer.name}"?'),
             actions: [
               TextButton(
                 onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: isDeleting
@@ -263,7 +267,12 @@ class _CategoryOffersScreenState extends State<CategoryOffersScreen>
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Delete', style: TextStyle(color: Colors.red)),
+                    : Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -296,11 +305,16 @@ class _CategoryOfferCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: offer.isActive
-              ? Colors.purple[100]
-              : Colors.grey[300],
+              ? AdminAppTheme.getStatusContainerColor(
+                  context,
+                  AdminThemeTokens.tonePurple,
+                )
+              : AdminAppTheme.getBorderColor(context),
           child: Icon(
             Icons.category,
-            color: offer.isActive ? Colors.purple : Colors.grey,
+            color: offer.isActive
+                ? AdminAppTheme.getPurpleColor(context)
+                : AdminAppTheme.getNeutralColor(context),
           ),
         ),
         title: Text(
@@ -320,8 +334,8 @@ class _CategoryOfferCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: offer.discountType == 'percentage'
-                        ? Colors.blue[100]
-                        : Colors.orange[100],
+                        ? AdminAppTheme.getInfoContainerColor(context)
+                        : AdminAppTheme.getWarningContainerColor(context),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -332,8 +346,8 @@ class _CategoryOfferCard extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: offer.discountType == 'percentage'
-                          ? Colors.blue[700]
-                          : Colors.orange[700],
+                          ? AdminAppTheme.getInfoColor(context)
+                          : AdminAppTheme.getWarningColor(context),
                     ),
                   ),
                 ),
@@ -341,7 +355,10 @@ class _CategoryOfferCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Max ₹${offer.maxDiscount!.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AdminAppTheme.getNeutralColor(context),
+                    ),
                   ),
                 ],
                 if (isValid) ...[
@@ -352,15 +369,15 @@ class _CategoryOfferCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green[100],
+                      color: AdminAppTheme.getSuccessContainerColor(context),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
+                    child: Text(
                       'LIVE',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: AdminAppTheme.getSuccessColor(context),
                       ),
                     ),
                   ),
@@ -371,7 +388,7 @@ class _CategoryOfferCard extends StatelessWidget {
         ),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'toggle',
               child: Row(
                 children: [
@@ -381,19 +398,27 @@ class _CategoryOfferCard extends StatelessWidget {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'edit',
               child: Row(
                 children: [Icon(Icons.edit), SizedBox(width: 8), Text('Edit')],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
+                  Icon(
+                    Icons.delete,
+                    color: AdminAppTheme.getErrorColor(context),
+                  ),
                   SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
+                  Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: AdminAppTheme.getErrorColor(context),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -490,14 +515,16 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
               const SizedBox(height: 4),
               Text(
                 'Apply a percentage or flat discount to a category.',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(
+                  color: AdminAppTheme.getTextSecondaryColor(context),
+                ),
               ),
             ],
           ),
         ),
         IconButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: Icon(Icons.close),
         ),
       ],
     );
@@ -514,9 +541,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
       child: Ink(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AdminThemeTokens.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         ),
         child: Row(
           children: [
@@ -524,13 +551,15 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.08),
+                color: AdminAppTheme.getSuccessColor(
+                  context,
+                ).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.calendar_today,
                 size: 18,
-                color: Colors.green,
+                color: AdminAppTheme.getSuccessColor(context),
               ),
             ),
             const SizedBox(width: 12),
@@ -544,7 +573,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -611,9 +640,15 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
+                          color: AdminAppTheme.getSuccessContainerColor(
+                            context,
+                          ),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.green.shade100),
+                          border: Border.all(
+                            color: AdminAppTheme.getSuccessContainerColor(
+                              context,
+                            ),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,7 +658,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.green.shade700,
+                                color: AdminAppTheme.getSuccessColor(context),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -641,9 +676,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCategoryId,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
-                        ),
+                        decoration: InputDecoration(labelText: 'Category'),
                         items: categories
                             .map(
                               (c) => DropdownMenuItem(
@@ -688,9 +721,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _discountType,
                               isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Type',
-                              ),
+                              decoration: InputDecoration(labelText: 'Type'),
                               items: const [
                                 DropdownMenuItem(
                                   value: 'percentage',
@@ -714,7 +745,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _maxDiscountController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Max Discount (₹)',
                                 hintText: 'Optional',
                               ),
@@ -725,7 +756,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _minOrderController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Min Order (₹)',
                                 hintText: 'Optional',
                               ),
@@ -769,7 +800,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                           onPressed: _isSubmitting
                               ? null
                               : () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                          child: Text('Cancel'),
                         ),
                       ),
                       const SizedBox(width: 12),

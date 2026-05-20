@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
@@ -69,7 +70,7 @@ class CatalogCategoriesTab extends StatelessWidget {
                         title: 'Categories',
                         value: '${categories.length}',
                         icon: Icons.category,
-                        color: Colors.green,
+                        color: AdminAppTheme.getSuccessColor(context),
                       ),
                     ),
                     SizedBox(
@@ -78,7 +79,7 @@ class CatalogCategoriesTab extends StatelessWidget {
                         title: 'Subcategories',
                         value: '${subCategories.length}',
                         icon: Icons.account_tree_outlined,
-                        color: Colors.teal,
+                        color: AdminAppTheme.getTealColor(context),
                       ),
                     ),
                   ],
@@ -133,12 +134,14 @@ class CatalogCategoriesTab extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text(
                             'Delete',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
                           ),
                         ),
                       ],
@@ -196,12 +199,14 @@ class CatalogCategoriesTab extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                        const PopupMenuItem(
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(
                           value: 'delete',
                           child: Text(
                             'Delete',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
                           ),
                         ),
                       ],
@@ -229,7 +234,7 @@ class CatalogCategoriesTab extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
@@ -245,7 +250,10 @@ class CatalogCategoriesTab extends StatelessWidget {
                 }
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
+            ),
           ),
         ],
       ),
@@ -275,7 +283,7 @@ Future<void> showAddCategoryDialog({
     isScrollControlled: true,
     useSafeArea: true,
     constraints: AdminResponsive.bottomSheetConstraints(context),
-    backgroundColor: Colors.white,
+    backgroundColor: AdminThemeTokens.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -301,7 +309,7 @@ Future<void> showAddCategoryDialog({
                         width: 40.w,
                         height: 4.h,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: AdminAppTheme.getBorderColor(context),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -338,7 +346,10 @@ Future<void> showAddCategoryDialog({
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              icon: Icon(
+                                Icons.cancel,
+                                color: AdminAppTheme.getErrorColor(context),
+                              ),
                               onPressed: () =>
                                   setSheetState(() => imageCtrl.clear()),
                             ),
@@ -398,7 +409,10 @@ Future<void> showAddCategoryDialog({
                       SizedBox(height: 8.h),
                       Text(
                         imageError!,
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                          fontSize: 12,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -471,7 +485,7 @@ Future<void> showAddCategoryDialog({
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: AdminThemeTokens.white,
                               ),
                             )
                           : Text(
@@ -520,7 +534,7 @@ Future<void> showAddSubcategoryDialog({
     isScrollControlled: true,
     useSafeArea: true,
     constraints: AdminResponsive.bottomSheetConstraints(context),
-    backgroundColor: Colors.white,
+    backgroundColor: AdminThemeTokens.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -546,7 +560,7 @@ Future<void> showAddSubcategoryDialog({
                         width: 40.w,
                         height: 4.h,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: AdminAppTheme.getBorderColor(context),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -560,7 +574,7 @@ Future<void> showAddSubcategoryDialog({
                     DropdownButtonFormField<String>(
                       initialValue: selectedCategory,
                       isExpanded: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Parent Category',
                         border: OutlineInputBorder(),
                       ),
@@ -576,7 +590,7 @@ Future<void> showAddSubcategoryDialog({
                           )
                           .toList(),
                       onChanged: (val) =>
-                            setSheetState(() => selectedCategory = val!),
+                          setSheetState(() => selectedCategory = val!),
                     ),
                     SizedBox(height: 16.h),
                     ModernTextField(
@@ -605,7 +619,10 @@ Future<void> showAddSubcategoryDialog({
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              icon: Icon(
+                                Icons.cancel,
+                                color: AdminAppTheme.getErrorColor(context),
+                              ),
                               onPressed: () =>
                                   setSheetState(() => imageCtrl.clear()),
                             ),
@@ -663,15 +680,18 @@ Future<void> showAddSubcategoryDialog({
                       SizedBox(height: 8.h),
                       Text(
                         imageError!,
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                        style: TextStyle(
+                          color: AdminAppTheme.getErrorColor(context),
+                          fontSize: 12,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
                     SizedBox(height: 26.h),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AdminAppTheme.getTealColor(context),
+                        foregroundColor: AdminThemeTokens.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -731,7 +751,7 @@ Future<void> showAddSubcategoryDialog({
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: AdminThemeTokens.white,
                               ),
                             )
                           : Text(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
@@ -278,7 +279,9 @@ class _ProductsScreenState extends State<ProductsScreen>
                           );
                         }
                       },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AdminAppTheme.getErrorColor(context),
+                ),
                 child: isDeleting
                     ? const SizedBox(
                         width: 18,
@@ -363,9 +366,9 @@ class _ProductsScreenState extends State<ProductsScreen>
       appBar: AdminAppBar(
         title: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
+          labelColor: AdminThemeTokens.white,
+          unselectedLabelColor: AdminThemeTokens.white.withValues(alpha: 0.7),
+          indicatorColor: AdminThemeTokens.white,
           tabs: const [
             Tab(text: 'Products'),
             Tab(text: 'Categories'),
@@ -406,7 +409,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 child: FloatingActionButton.extended(
                   key: const ValueKey('add_product_fab'),
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AdminThemeTokens.white,
                   onPressed: _openAddProductDialog,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Product'),
@@ -435,7 +438,10 @@ class _ProductsScreenState extends State<ProductsScreen>
                   child: GestureDetector(
                     onTap: _toggleCategoryFab,
                     child: Container(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AdminAppTheme.getScrimShadowColor(
+                        context,
+                        alpha: 0.05,
+                      ),
                     ),
                   ),
                 ),
@@ -517,7 +523,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
           _buildMenuItem(
             label: 'Add Subcategory',
             icon: Icons.account_tree_outlined,
-            color: Colors.teal,
+            color: AdminAppTheme.getTealColor(context),
             onTap: () => widget.onSelected('subcategory'),
             index: 1,
           ),
@@ -525,7 +531,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
           _buildMenuItem(
             label: 'Add Category',
             icon: Icons.category_outlined,
-            color: Colors.green,
+            color: AdminAppTheme.getSuccessColor(context),
             onTap: () => widget.onSelected('category'),
             index: 0,
           ),
@@ -534,7 +540,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
         FloatingActionButton.extended(
           onPressed: widget.onToggle,
           backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AdminThemeTokens.white,
           icon: AnimatedRotation(
             duration: const Duration(milliseconds: 250),
             turns: widget.isExpanded ? 0.375 : 0, // 45 degrees
@@ -565,11 +571,14 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AdminThemeTokens.white,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: AdminAppTheme.getScrimShadowColor(
+                        context,
+                        alpha: 0.1,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -584,7 +593,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
               FloatingActionButton.small(
                 onPressed: onTap,
                 backgroundColor: color,
-                foregroundColor: Colors.white,
+                foregroundColor: AdminThemeTokens.white,
                 child: Icon(icon),
               ),
             ],

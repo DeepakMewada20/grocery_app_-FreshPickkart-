@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -98,7 +99,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AdminThemeTokens.transparent,
       builder: (context) => _DeliveryConfigBottomSheet(
         config: config,
         onSave: (updatedConfig) =>
@@ -112,7 +113,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AdminThemeTokens.transparent,
       builder: (context) => _DeliveryRuleBottomSheet(
         rule: rule,
         onSave: (value) {
@@ -142,7 +143,10 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
               if (!context.mounted) return;
               Navigator.pop(context);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
+            ),
           ),
         ],
       ),
@@ -252,16 +256,21 @@ class _DeliveryRuleCard extends StatelessWidget {
 }
 
 class _DeliveryConfigBottomSheet extends StatefulWidget {
-  const _DeliveryConfigBottomSheet({required this.config, required this.onSave});
+  const _DeliveryConfigBottomSheet({
+    required this.config,
+    required this.onSave,
+  });
 
   final DeliveryConfig config;
   final Future<bool> Function(DeliveryConfig) onSave;
 
   @override
-  State<_DeliveryConfigBottomSheet> createState() => _DeliveryConfigBottomSheetState();
+  State<_DeliveryConfigBottomSheet> createState() =>
+      _DeliveryConfigBottomSheetState();
 }
 
-class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> {
+class _DeliveryConfigBottomSheetState
+    extends State<_DeliveryConfigBottomSheet> {
   late final TextEditingController _baseFeeController;
   late final TextEditingController _freeThresholdController;
   late final List<_DeliverySlabDraft> _slabs;
@@ -310,7 +319,9 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -392,7 +403,9 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
                   if (_slabs.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Text('No delivery slabs defined. Will use base fee.'),
+                      child: Text(
+                        'No delivery slabs defined. Will use base fee.',
+                      ),
                     ),
                   ..._slabs.asMap().entries.map((entry) {
                     final index = entry.key;
@@ -401,9 +414,11 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
                       margin: EdgeInsets.only(bottom: 12.h),
                       padding: EdgeInsets.all(12.r),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AdminThemeTokens.white,
                         borderRadius: BorderRadius.circular(12.r),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                          color: AdminAppTheme.getBorderColor(context),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,7 +430,7 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
                                 'Slab ${index + 1}',
                                 style: AdminTextStyles.body(context).copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade700,
+                                  color: AdminAppTheme.getSuccessColor(context),
                                 ),
                               ),
                               InkWell(
@@ -425,7 +440,11 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
                                     _slabs.removeAt(index);
                                   });
                                 },
-                                child: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 20),
+                                child: Icon(
+                                  Icons.delete_outline,
+                                  color: AdminAppTheme.getErrorColor(context),
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),
@@ -480,7 +499,10 @@ class _DeliveryConfigBottomSheetState extends State<_DeliveryConfigBottomSheet> 
                         ? SizedBox(
                             width: 20.r,
                             height: 20.r,
-                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AdminThemeTokens.white,
+                            ),
                           )
                         : const Text('Save Configuration'),
                   ),
@@ -532,7 +554,8 @@ class _DeliveryRuleBottomSheet extends StatefulWidget {
   final Future<bool> Function(DeliveryRule) onSave;
 
   @override
-  State<_DeliveryRuleBottomSheet> createState() => _DeliveryRuleBottomSheetState();
+  State<_DeliveryRuleBottomSheet> createState() =>
+      _DeliveryRuleBottomSheetState();
 }
 
 class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
@@ -587,7 +610,9 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.9,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -598,7 +623,9 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.rule == null ? 'Add Delivery Rule' : 'Edit Delivery Rule',
+                    widget.rule == null
+                        ? 'Add Delivery Rule'
+                        : 'Edit Delivery Rule',
                     style: AdminTextStyles.sectionTitle(context),
                   ),
                 ),
@@ -649,7 +676,10 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                         value: 'special_event',
                         child: Text('Special Event'),
                       ),
-                      DropdownMenuItem(value: 'user_rule', child: Text('User Rule')),
+                      DropdownMenuItem(
+                        value: 'user_rule',
+                        child: Text('User Rule'),
+                      ),
                     ],
                     onChanged: (value) =>
                         setState(() => _ruleType = value ?? 'special_event'),
@@ -663,7 +693,10 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                     ),
                     items: const [
                       DropdownMenuItem(value: 'all', child: Text('All users')),
-                      DropdownMenuItem(value: 'new_user', child: Text('New users')),
+                      DropdownMenuItem(
+                        value: 'new_user',
+                        child: Text('New users'),
+                      ),
                       DropdownMenuItem(
                         value: 'specific_order',
                         child: Text('Specific Order'),
@@ -735,7 +768,10 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                         ? SizedBox(
                             width: 20.r,
                             height: 20.r,
-                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AdminThemeTokens.white,
+                            ),
                           )
                         : const Text('Save Rule'),
                   ),

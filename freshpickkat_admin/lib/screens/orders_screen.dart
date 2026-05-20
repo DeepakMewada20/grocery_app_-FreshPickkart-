@@ -29,22 +29,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   String _searchQuery = '';
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'placed':
-        return const Color(0xFFFFA726);
-      case 'packed':
-        return const Color(0xFF7E57C2);
-      case 'confirmed':
-        return const Color(0xFF42A5F5);
-      case 'out_for_delivery':
-        return const Color(0xFFFF7043);
-      case 'delivered':
-        return const Color(0xFF66BB6A);
-      case 'cancelled':
-        return const Color(0xFFEF5350);
-      default:
-        return const Color(0xFF999999);
-    }
+    return AdminAppTheme.getOrderStatusColor(context, status);
   }
 
   @override
@@ -172,12 +157,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.location_off, color: Colors.orange),
+            Icon(
+              Icons.location_off,
+              color: AdminAppTheme.getWarningColor(context),
+            ),
             SizedBox(width: 10),
             const Text('Location Required'),
           ],
@@ -351,7 +337,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _loadInitial(force: true),
-                  color: Colors.green,
+                  color: AdminAppTheme.getSuccessColor(context),
                   child:
                       (isLoading && orders.isEmpty) ||
                           (filtered.isEmpty && (isLoading || isLoadingMore))
@@ -510,7 +496,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         height: 5.h,
                         margin: EdgeInsets.only(bottom: 18.h),
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: AdminAppTheme.getBorderColor(context),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -611,8 +597,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: order.paymentStatus == 'paid'
-                              ? Colors.green.shade50
-                              : Colors.orange.shade50,
+                              ? AdminAppTheme.getSuccessContainerColor(context)
+                              : AdminAppTheme.getWarningContainerColor(context),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -620,8 +606,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: order.paymentStatus == 'paid'
-                                ? Colors.green.shade700
-                                : Colors.orange.shade700,
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getWarningColor(context),
                           ),
                         ),
                       ),
@@ -689,24 +675,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           width: 58.r,
                                           height: 58.r,
                                           fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Container(
-                                                  width: 58.r,
-                                                  height: 58.r,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade200,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                  child: Icon(
-                                                    Icons.image_not_supported,
-                                                    color: Colors.grey.shade400,
-                                                  ),
-                                                );
-                                              },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: 58.r,
+                                              height: 58.r,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    AdminAppTheme.getSubtleBorderColor(
+                                                      context,
+                                                    ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                Icons.image_not_supported,
+                                                color:
+                                                    AdminAppTheme.getMutedIconColor(
+                                                      context,
+                                                    ),
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
                                       SizedBox(width: 12.w),
@@ -759,7 +748,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                   ),
                                                   decoration: BoxDecoration(
                                                     color:
-                                                        Colors.orange.shade100,
+                                                        AdminAppTheme.getWarningContainerColor(
+                                                          context,
+                                                        ),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           4,
@@ -794,7 +785,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                               vertical: 6.h,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.green.shade100,
+                                              color:
+                                                  AdminAppTheme.getSuccessContainerColor(
+                                                    context,
+                                                  ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -802,7 +796,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                               '${item.quantity}x',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.green.shade700,
+                                                color:
+                                                    AdminAppTheme.getSuccessColor(
+                                                      context,
+                                                    ),
                                                 fontSize: 13.sp.clamp(
                                                   11.0,
                                                   14.0,
@@ -891,7 +888,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     style: TextStyle(
                                       fontSize: 14.sp.clamp(12.0, 15.0),
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.green.shade700,
+                                      color: AdminAppTheme.getSuccessColor(
+                                        context,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1042,7 +1041,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
               color: isBold
                   ? Theme.of(context).colorScheme.onSurface
-                  : Colors.grey.shade800,
+                  : AdminAppTheme.getTextPrimaryColor(context),
             ),
           ),
         ],
@@ -1147,14 +1146,14 @@ class _OrderCardState extends State<_OrderCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AdminThemeTokens.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: widget.onTap,
@@ -1172,12 +1171,14 @@ class _OrderCardState extends State<_OrderCard> {
                           Container(
                             padding: EdgeInsets.all(8.r),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade50,
+                              color: AdminAppTheme.getSuccessContainerColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
                               Icons.receipt_long,
-                              color: Colors.green.shade600,
+                              color: AdminAppTheme.getSuccessColor(context),
                               size: 20.sp.clamp(18.0, 22.0),
                             ),
                           ),
@@ -1265,7 +1266,9 @@ class _OrderCardState extends State<_OrderCard> {
                             Icon(
                               Icons.phone_outlined,
                               size: 18.sp.clamp(16.0, 20.0),
-                              color: AdminAppTheme.getTextSecondaryColor(context),
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
                             ),
                             SizedBox(width: 6.w),
                             Text(
@@ -1302,7 +1305,7 @@ class _OrderCardState extends State<_OrderCard> {
                         child: Text(
                           'Cancelled: ${order.cancellationReason}',
                           style: TextStyle(
-                            color: Colors.red,
+                            color: AdminAppTheme.getErrorColor(context),
                             fontSize: 12.sp.clamp(10.0, 13.0),
                           ),
                           textAlign: TextAlign.right,
@@ -1333,7 +1336,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Confirm Order',
-          color: Colors.blue,
+          color: AdminAppTheme.getInfoColor(context),
           icon: Icons.verified_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1353,7 +1356,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Mark Packed',
-          color: Colors.deepPurple,
+          color: AdminAppTheme.getDeepPurpleColor(context),
           icon: Icons.inventory_2_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1373,7 +1376,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Start Delivery',
-          color: Colors.orange,
+          color: AdminAppTheme.getWarningColor(context),
           icon: Icons.local_shipping_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1393,7 +1396,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Mark Delivered',
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
           icon: Icons.check_circle_outline,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1412,7 +1415,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Track Order',
-          color: Colors.blueGrey,
+          color: AdminAppTheme.getBlueGreyColor(context),
           icon: Icons.map_outlined,
           isLoading: false,
           onPressed: () {
@@ -1447,7 +1450,7 @@ class _OrderCardState extends State<_OrderCard> {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        foregroundColor: Colors.white,
+        foregroundColor: AdminThemeTokens.white,
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 11.h),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -1457,7 +1460,7 @@ class _OrderCardState extends State<_OrderCard> {
               height: 18.sp,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Colors.white,
+                color: AdminThemeTokens.white,
               ),
             )
           : Icon(icon, size: 18.sp.clamp(16.0, 20.0)),
@@ -1465,21 +1468,15 @@ class _OrderCardState extends State<_OrderCard> {
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AdminTextStyles.button(context).copyWith(color: Colors.white),
+        style: AdminTextStyles.button(
+          context,
+        ).copyWith(color: AdminThemeTokens.white),
       ),
     );
   }
 
   Widget _buildStatusChip(String status) {
-    final colors = {
-      'placed': const Color(0xFFFFA726),
-      'packed': const Color(0xFF7E57C2),
-      'confirmed': const Color(0xFF42A5F5),
-      'out_for_delivery': const Color(0xFFFF7043),
-      'delivered': const Color(0xFF66BB6A),
-      'cancelled': const Color(0xFFEF5350),
-    };
-    final color = colors[status] ?? Colors.grey;
+    final color = AdminAppTheme.getOrderStatusColor(context, status);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),

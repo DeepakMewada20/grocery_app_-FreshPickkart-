@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
@@ -79,7 +80,7 @@ class CatalogCouponsTab extends StatelessWidget {
                 'Coupon codes, coupon types, and active campaign summary',
                 style: AdminTextStyles.body(
                   context,
-                ).copyWith(color: Colors.grey.shade700),
+                ).copyWith(color: AdminAppTheme.getTextSecondaryColor(context)),
               ),
               SizedBox(height: 16.h),
               LayoutBuilder(
@@ -99,17 +100,17 @@ class CatalogCouponsTab extends StatelessWidget {
                           title: 'All Coupons',
                           value: '${coupons.length}',
                           icon: Icons.sell_outlined,
-                          color: const Color(0xFF315C73),
+                          color: AdminThemeTokens.toneBlue,
                           breakdown: [
                             CatalogStatBreakdown(
                               label: 'Live',
                               value: '$liveCoupons',
-                              color: Colors.green.shade700,
+                              color: AdminAppTheme.getSuccessColor(context),
                             ),
                             CatalogStatBreakdown(
                               label: 'Inactive',
                               value: '$inactiveCoupons',
-                              color: Colors.redAccent.shade200,
+                              color: AdminAppTheme.getErrorColor(context),
                             ),
                           ],
                         ),
@@ -120,12 +121,12 @@ class CatalogCouponsTab extends StatelessWidget {
                           title: 'Visible',
                           value: '${visibleCoupons.length}',
                           icon: Icons.visibility_outlined,
-                          color: const Color(0xFF7C4D12),
+                          color: AdminThemeTokens.toneBrown,
                           breakdown: [
                             CatalogStatBreakdown(
                               label: 'Search Match',
                               value: '${visibleCoupons.length}',
-                              color: Colors.blueGrey.shade700,
+                              color: AdminAppTheme.getBlueGreyColor(context),
                             ),
                           ],
                         ),
@@ -181,7 +182,9 @@ class CatalogCouponsTab extends StatelessWidget {
                   ),
                   Text(
                     '${visibleCoupons.length} items',
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: TextStyle(
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                    ),
                   ),
                 ],
               ),
@@ -195,7 +198,7 @@ class CatalogCouponsTab extends StatelessWidget {
                 )
               else
                 ...visibleCoupons.map((coupon) {
-                  final statusColor = catalogCouponStatusColor(coupon);
+                  final statusColor = catalogCouponStatusColor(context, coupon);
                   final valueLabel = catalogCouponValueLabel(coupon);
                   return Card(
                     margin: EdgeInsets.only(bottom: 12.h),
@@ -223,7 +226,10 @@ class CatalogCouponsTab extends StatelessWidget {
                                     Text(
                                       coupon.description,
                                       style: TextStyle(
-                                        color: Colors.grey.shade800,
+                                        color:
+                                            AdminAppTheme.getTextPrimaryColor(
+                                              context,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -248,11 +254,11 @@ class CatalogCouponsTab extends StatelessWidget {
                               ),
                               CatalogInlineBadge(
                                 label: _couponTypeLabel(coupon),
-                                color: const Color(0xFF4E5D6C),
+                                color: AdminThemeTokens.toneSlate,
                               ),
                               CatalogInlineBadge(
                                 label: valueLabel,
-                                color: const Color(0xFF8B5E34),
+                                color: AdminThemeTokens.toneBrownSoft,
                               ),
                             ],
                           ),
@@ -261,9 +267,13 @@ class CatalogCouponsTab extends StatelessWidget {
                             width: double.infinity,
                             padding: EdgeInsets.all(12.r),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
+                              color: AdminAppTheme.getInputSurfaceColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(
+                                color: AdminAppTheme.getBorderColor(context),
+                              ),
                             ),
                             child: Wrap(
                               spacing: 14,
@@ -288,7 +298,11 @@ class CatalogCouponsTab extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
-                                  style: TextStyle(color: Colors.grey.shade700),
+                                  style: TextStyle(
+                                    color: AdminAppTheme.getTextSecondaryColor(
+                                      context,
+                                    ),
+                                  ),
                                 ),
                               ),
                               IconButton(
@@ -539,7 +553,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
               const SizedBox(height: 4),
               Text(
                 'Setup discount codes and delivery rules for users.',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(
+                  color: AdminAppTheme.getTextSecondaryColor(context),
+                ),
               ),
             ],
           ),
@@ -563,9 +579,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       child: Ink(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AdminThemeTokens.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AdminAppTheme.getBorderColor(context)),
         ),
         child: Row(
           children: [
@@ -573,13 +589,13 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
               width: 38.r,
               height: 38.r,
               decoration: BoxDecoration(
-                color: const Color(0xFF315C73).withValues(alpha: 0.08),
+                color: AdminThemeTokens.toneBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 Icons.calendar_today,
                 size: 18.sp.clamp(16.0, 20.0),
-                color: const Color(0xFF315C73),
+                color: AdminThemeTokens.toneBlue,
               ),
             ),
             SizedBox(width: 12.w),
@@ -595,7 +611,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     style: TextStyle(
                       fontSize: 12.sp.clamp(10.0, 13.0),
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
+                      color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
                   ),
                   SizedBox(height: 3.h),
@@ -819,7 +835,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                     selected: _isActive,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Colors.grey.shade300),
+                      side: BorderSide(
+                        color: AdminAppTheme.getBorderColor(context),
+                      ),
                     ),
                     title: Text(
                       _isActive ? 'Active' : 'Inactive',
@@ -918,7 +936,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: const Color(0xFF315C73),
+                      backgroundColor: AdminThemeTokens.toneBlue,
                     ),
                     child: _isSaving
                         ? SizedBox(
@@ -926,7 +944,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                             width: 20.r,
                             child: const CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: AdminThemeTokens.white,
                             ),
                           )
                         : Text(

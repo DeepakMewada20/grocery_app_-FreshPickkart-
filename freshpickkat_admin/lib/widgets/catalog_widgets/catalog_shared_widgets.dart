@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
 class CatalogStatCard extends StatelessWidget {
   const CatalogStatCard({
@@ -43,9 +44,16 @@ class CatalogStatCard extends StatelessWidget {
         : 18.sp.clamp(16.0, 21.0).toDouble();
     final spacing = compact ? 7.w : 12.w;
     final breakdownSpacing = compact ? 6.w : 8.w;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark
+        ? AdminAppTheme.getTextSecondaryColor(context)
+        : AdminAppTheme.getTextSecondaryColor(context);
+    final cardBackgroundAlpha = isDark
+        ? (selected ? 0.18 : 0.12)
+        : (selected ? 0.16 : 0.08);
 
     return Material(
-      color: Colors.transparent,
+      color: AdminThemeTokens.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
@@ -54,9 +62,7 @@ class CatalogStatCard extends StatelessWidget {
           child: Ink(
             padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
-              color: selected
-                  ? color.withValues(alpha: 0.16)
-                  : color.withValues(alpha: 0.08),
+              color: color.withValues(alpha: cardBackgroundAlpha),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
                 color: selected ? color : color.withValues(alpha: 0.18),
@@ -89,7 +95,7 @@ class CatalogStatCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: titleColor,
                               fontSize: titleFontSize,
                             ),
                           ),
@@ -126,7 +132,9 @@ class CatalogStatCard extends StatelessWidget {
                               vertical: 3.h,
                             ),
                             decoration: BoxDecoration(
-                              color: item.color.withValues(alpha: 0.12),
+                              color: item.color.withValues(
+                                alpha: isDark ? 0.18 : 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -202,8 +210,13 @@ class CatalogInlineBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(
+          alpha: Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.1,
+        ),
         borderRadius: BorderRadius.circular(999),
+        border: Theme.of(context).brightness == Brightness.dark
+            ? Border.all(color: color.withValues(alpha: 0.3))
+            : null,
       ),
       child: Text(
         label,
