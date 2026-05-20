@@ -1225,27 +1225,28 @@ class _OrderCardState extends State<_OrderCard> {
                     ).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Wrap(
-                    spacing: 16.w,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  child: Row(
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.person_outline,
-                            size: 18.sp.clamp(16.0, 20.0),
-                            color: AdminAppTheme.getTextSecondaryColor(context),
-                          ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            order.userName ?? 'N/A',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14.sp.clamp(12.0, 15.0),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              size: 18.sp.clamp(16.0, 20.0),
+                              color: AdminAppTheme.getTextSecondaryColor(context),
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 6.w),
+                            Flexible(
+                              child: Text(
+                                order.userName ?? 'N/A',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.sp.clamp(12.0, 15.0),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       GestureDetector(
                         onLongPress: () {
@@ -1261,7 +1262,6 @@ class _OrderCardState extends State<_OrderCard> {
                           );
                         },
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.phone_outlined,
