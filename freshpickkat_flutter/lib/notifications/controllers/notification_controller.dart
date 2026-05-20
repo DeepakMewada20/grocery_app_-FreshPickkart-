@@ -324,6 +324,15 @@ class NotificationController extends GetxController {
     final title = message.notification?.title ?? message.data['title'];
     final body = message.notification?.body ?? message.data['body'];
     if (title == null || body == null) return;
+
+    // Use a stable ID derived from orderId + type so that rapid duplicate FCM
+    // messages for the same event replace each other instead of stacking up.
+    final orderId = message.data['orderId']?.toString() ?? '';
+    final type = message.data['type']?.toString() ?? '';
+    final notificationId = (orderId.isNotEmpty || type.isNotEmpty)
+        ? '${orderId}_$type'.hashCode.abs() & 0x7FFFFFFF
+        : DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     const android = AndroidNotificationDetails(
       'freshpickkat_foreground',
       'FreshPickKat notifications',
@@ -334,7 +343,7 @@ class NotificationController extends GetxController {
     );
     const darwin = DarwinNotificationDetails();
     await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      notificationId,
       title.toString(),
       body.toString(),
       const NotificationDetails(android: android, iOS: darwin),

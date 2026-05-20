@@ -107,33 +107,54 @@ class BackgroundTaskService {
       if (rows.isEmpty) break;
 
       for (final row in rows) {
+        // --- Step 1: Realtime broadcast (best-effort, never blocks notification sending) ---
         try {
           await sendRealtimeUpdatesAsync(session, row);
+        } catch (e, st) {
+          session.log(
+            'Realtime broadcast failed for order ${row.orderId} (non-fatal): $e',
+            level: LogLevel.warning,
+            exception: e,
+            stackTrace: st,
+          );
+        }
+
+        // --- Step 2: FCM Push notification (already internally try-caught per recipient) ---
+        // sendNotificationsAsync calls sendForEvent which wraps each sub-notification
+        // in its own try-catch, so this will not throw.
+        try {
           await sendNotificationsAsync(session, row);
+        } catch (e, st) {
+          session.log(
+            'FCM notification failed for order ${row.orderId} (non-fatal): $e',
+            level: LogLevel.warning,
+            exception: e,
+            stackTrace: st,
+          );
+        }
+
+        // --- Step 3: Always mark as processed after one attempt ---
+        // This is the critical "exactly-once" guarantee.
+        // Both steps above are isolated, so a partial failure never causes a retry
+        // that would send duplicate push notifications.
+        try {
           await OrderNotificationOutboxRow.db.updateById(
             session,
             row.id!,
             columnValues: (t) => [
               t.processedAt(DateTime.now().toUtc()),
-              t.lastError(null),
-              t.updatedAt(DateTime.now().toUtc()),
-            ],
-          );
-        } catch (error, stackTrace) {
-          await OrderNotificationOutboxRow.db.updateById(
-            session,
-            row.id!,
-            columnValues: (t) => [
               t.attemptCount(row.attemptCount + 1),
-              t.lastError(error.toString()),
               t.updatedAt(DateTime.now().toUtc()),
             ],
           );
+        } catch (dbError, dbSt) {
+          // DB update failure is the only thing that can cause a retry.
+          // Log it so it can be investigated.
           session.log(
-            'Background task failed for order ${row.orderId}: $error',
-            level: LogLevel.warning,
-            exception: error,
-            stackTrace: stackTrace,
+            'Failed to mark outbox row ${row.id} as processed for order ${row.orderId}: $dbError',
+            level: LogLevel.error,
+            exception: dbError,
+            stackTrace: dbSt,
           );
         }
       }

@@ -33,6 +33,9 @@ class FirebaseNotificationService {
     required String body,
     Map<String, String>? data,
     String? imageUrl,
+    // Android notification tag: same tag → replaces existing notification
+    // instead of stacking. Use for deduplication (e.g. same order).
+    String? tag,
   }) async {
     final notification = <String, dynamic>{'title': title, 'body': body};
     if (imageUrl != null && imageUrl.trim().isNotEmpty) {
@@ -44,6 +47,11 @@ class FirebaseNotificationService {
     };
     if (data != null) {
       message['data'] = data;
+    }
+    if (tag != null && tag.isNotEmpty) {
+      message['android'] = {
+        'notification': {'tag': tag},
+      };
     }
     await _sendMessage({'message': message});
   }
@@ -58,11 +66,15 @@ class FirebaseNotificationService {
         ? 'Order $orderId is ready for review. INR ${amount.toStringAsFixed(0)}.'
         : 'Order $orderId ($itemCount items) is ready for review. INR ${amount.toStringAsFixed(0)}.';
 
+    // tag = 'new_order:$orderId' ensures Android collapses duplicates:
+    // if the server accidentally sends the same notification twice, the
+    // device replaces the existing one instead of showing a duplicate.
     await sendToTopic(
       topic: 'admin',
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'admin_new_order'},
+      tag: 'new_order:$orderId',
     );
   }
 
@@ -148,54 +160,78 @@ class FirebaseNotificationService {
 
     switch (event.eventType) {
       case 'order_paid':
-        await sendAdminNewOrder(
-          orderId: orderId,
-          amount: amount,
-          itemCount: itemCount,
-        );
-        if (userId != null && userId.isNotEmpty) {
-          await sendUserPaymentSuccess(
-            session: session,
-            userId: userId,
+        try {
+          await sendAdminNewOrder(
             orderId: orderId,
             amount: amount,
             itemCount: itemCount,
           );
-          if (status.isNotEmpty) {
-            await sendUserStatusUpdate(
+        } catch (e, st) {
+          session.log('Failed to send admin new order notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+        }
+        if (userId != null && userId.isNotEmpty) {
+          try {
+            await sendUserPaymentSuccess(
               session: session,
               userId: userId,
               orderId: orderId,
-              status: status,
+              amount: amount,
+              itemCount: itemCount,
             );
+          } catch (e, st) {
+            session.log('Failed to send user payment success notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          }
+          if (status.isNotEmpty) {
+            try {
+              await sendUserStatusUpdate(
+                session: session,
+                userId: userId,
+                orderId: orderId,
+                status: status,
+              );
+            } catch (e, st) {
+              session.log('Failed to send user status update notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+            }
           }
         }
         return;
       case 'order_status_changed':
         if (userId == null || userId.isEmpty) return;
         if (isDeliveryStarted || status == 'out_for_delivery') {
-          await sendDeliveryStarted(
-            session: session,
-            userId: userId,
-            orderId: orderId,
-          );
+          try {
+            await sendDeliveryStarted(
+              session: session,
+              userId: userId,
+              orderId: orderId,
+            );
+          } catch (e, st) {
+            session.log('Failed to send delivery started notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          }
         } else {
-          await sendUserStatusUpdate(
-            session: session,
-            userId: userId,
-            orderId: orderId,
-            status: status.isEmpty ? 'updated' : status,
-          );
+          try {
+            await sendUserStatusUpdate(
+              session: session,
+              userId: userId,
+              orderId: orderId,
+              status: status.isEmpty ? 'updated' : status,
+            );
+          } catch (e, st) {
+            session.log('Failed to send user status update notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          }
         }
         return;
       case 'refund_processed':
         if (isRefundProcessed && userId != null && userId.isNotEmpty) {
-          await sendUserStatusUpdate(
-            session: session,
-            userId: userId,
-            orderId: orderId,
-            status: 'cancelled',
-          );
+          try {
+            await sendUserStatusUpdate(
+              session: session,
+              userId: userId,
+              orderId: orderId,
+              status: 'cancelled',
+            );
+          } catch (e, st) {
+            session.log('Failed to send refund processed notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          }
         }
         return;
     }
