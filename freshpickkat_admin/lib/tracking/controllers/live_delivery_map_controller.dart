@@ -85,8 +85,16 @@ class LiveDeliveryMapController extends GetxController {
         .listen(
           _handleSnapshot,
           onError: (Object e, StackTrace st) {
-            error.value = e.toString();
-            isLoading.value = false;
+            // Fallback to HTTP polling if WebSocket stream fails
+            print('⚠️ WebSocket live stream failed: $e. Falling back to HTTP polling.');
+            _subscription?.cancel();
+            _subscription = _repository.watchOrder(orderId).listen(
+              _handleSnapshot,
+              onError: (Object pollErr, StackTrace pollSt) {
+                error.value = pollErr.toString();
+                isLoading.value = false;
+              },
+            );
           },
         );
     isListening.value = true;

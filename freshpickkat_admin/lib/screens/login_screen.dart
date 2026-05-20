@@ -620,6 +620,7 @@ class _LoginScreenState extends State<LoginScreen>
       key: _loginFormKey,
       child: ListView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.only(top: 16.h),
         children: [
           // Username/Email Field
           _buildModernInputField(
@@ -840,8 +841,14 @@ class _LoginScreenState extends State<LoginScreen>
             width: 2,
           ),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        contentPadding: EdgeInsets.fromLTRB(14.w, 18.h.clamp(14.0, 22.0), 14.w, 14.h.clamp(12.0, 18.0)),
         labelStyle: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w500),
+        floatingLabelStyle: TextStyle(
+          fontSize: 12.sp,
+          height: 0.8,
+          color: primaryColor,
+          fontWeight: FontWeight.w600,
+        ),
         hintStyle: TextStyle(
           fontSize: 13.sp,
           color: AdminAppTheme.getTextSecondaryColor(context),

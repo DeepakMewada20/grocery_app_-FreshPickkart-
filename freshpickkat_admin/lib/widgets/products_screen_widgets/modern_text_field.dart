@@ -50,7 +50,7 @@ class ModernTextField extends StatelessWidget {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 13.h),
+        contentPadding: EdgeInsets.fromLTRB(12.w, 16.h.clamp(12.0, 20.0), 12.w, 12.h.clamp(10.0, 16.0)),
       ),
     );
   }

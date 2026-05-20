@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -12,6 +13,7 @@ import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_sc
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
+import '../tracking/services/delivery_location_sender_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -137,17 +139,69 @@ class _OrdersScreenState extends State<OrdersScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to start delivery: $e'),
-          backgroundColor: AdminAppTheme.getErrorColor(context),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+
+      if (e is DeliveryLocationUnavailableException) {
+        final retry = await _showLocationDialog();
+        if (retry && mounted) {
+          for (int i = 0; i < 30; i++) {
+            await Future.delayed(const Duration(seconds: 1));
+            if (!mounted) return;
+            if (await Geolocator.isLocationServiceEnabled()) break;
+          }
+          if (mounted && await Geolocator.isLocationServiceEnabled()) {
+            _startDelivery(order);
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start delivery: $e'),
+            backgroundColor: AdminAppTheme.getErrorColor(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
+  }
+
+  Future<bool> _showLocationDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.location_off, color: Colors.orange),
+            SizedBox(width: 10),
+            const Text('Location Required'),
+          ],
+        ),
+        content: const Text(
+          'Location service is off. Please enable location to start delivery tracking.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              Navigator.pop(ctx, true);
+              await Geolocator.openLocationSettings();
+            },
+            icon: const Icon(Icons.settings, size: 18),
+            label: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<String?> _askReason() async {

@@ -6,7 +6,7 @@ class AdminThemeController extends GetxController {
   static const String storageKey = 'admin_theme_mode';
 
   final GetStorage _storage = GetStorage();
-  final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+  final Rx<ThemeMode> themeMode = ThemeMode.light.obs;
 
   @override
   void onInit() {
@@ -23,7 +23,7 @@ class AdminThemeController extends GetxController {
         return ThemeMode.dark;
       case 'system':
       default:
-        return ThemeMode.system;
+        return ThemeMode.light;
     }
   }
 

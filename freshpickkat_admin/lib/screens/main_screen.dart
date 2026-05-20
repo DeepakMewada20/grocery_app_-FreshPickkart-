@@ -99,9 +99,7 @@ class _MainScreenState extends State<MainScreen> {
         top: false,
         child: NavigationBar(
           selectedIndex: _selectedIndex,
-          labelBehavior: MediaQuery.sizeOf(context).width < 370
-              ? NavigationDestinationLabelBehavior.onlyShowSelected
-              : NavigationDestinationLabelBehavior.alwaysShow,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           onDestinationSelected: _selectTab,
           destinations: _barDestinations,
         ),
