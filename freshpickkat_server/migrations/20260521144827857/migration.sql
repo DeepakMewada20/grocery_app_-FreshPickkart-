@@ -41,6 +41,8 @@ SET
   "title" = COALESCE(NULLIF("title", ''), "issueType", 'Product complaint'),
   "selectedProducts" = COALESCE("selectedProducts", '[]'::json);
 
+ALTER TABLE "complaint" ALTER COLUMN "selectedProducts" DROP DEFAULT;
+
 CREATE INDEX IF NOT EXISTS "complaint_order_item_idx" ON "complaint" USING btree ("orderItemId");
 CREATE INDEX IF NOT EXISTS "complaint_order_type_idx" ON "complaint" USING btree ("orderId", "complaintType", "status");
 
