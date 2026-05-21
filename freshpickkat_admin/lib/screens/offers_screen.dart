@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
-import 'package:get/get.dart';
+
 
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -14,9 +14,9 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_banne
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
-import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/offers_dashboard_tab.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
-import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import 'bogo_product_picker_screen.dart';
@@ -207,7 +207,7 @@ class _OffersScreenState extends State<OffersScreen> {
                 ),
                 body: TabBarView(
                   children: [
-                    _OffersDashboardTab(
+                    OffersDashboardTab(
                       couponController: _couponController,
                       bogoController: _bogoController,
                       categoryOfferController: _categoryOfferController,
@@ -296,255 +296,6 @@ class _OffersScreenState extends State<OffersScreen> {
   }
 }
 
-class _OffersDashboardTab extends StatelessWidget {
-  const _OffersDashboardTab({
-    required this.couponController,
-    required this.bogoController,
-    required this.categoryOfferController,
-    required this.comboOfferController,
-    required this.freeDeliveryController,
-    required this.bannerController,
-  });
-
-  final AdminCouponController couponController;
-  final AdminBogoController bogoController;
-  final AdminCategoryOfferController categoryOfferController;
-  final AdminComboOfferController comboOfferController;
-  final AdminFreeDeliveryController freeDeliveryController;
-  final AdminBannerController bannerController;
-
-  bool _isLive(DateTime startDate, DateTime endDate, bool isActive) {
-    final now = DateTime.now();
-    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final coupons = couponController.coupons;
-      final bogoOffers = bogoController.bogoOffers;
-      final categoryOffers = categoryOfferController.categoryOffers;
-      final comboOffers = comboOfferController.comboOffers;
-      final freeDeliveryRules = freeDeliveryController.deliveryRules;
-      final banners = bannerController.banners;
-      final totalBogo = bogoController.totalCount.value;
-      final totalCategoryOffers = categoryOfferController.totalCount.value;
-      final totalComboOffers = comboOfferController.totalCount.value;
-      final totalDeliveryRules = freeDeliveryController.totalCount.value;
-      final totalBanners = bannerController.totalCount.value;
-
-      final liveCoupons = coupons.where((coupon) {
-        return _isLive(coupon.startDate, coupon.endDate, coupon.isActive);
-      }).length;
-      final liveBogo = bogoOffers.where((offer) {
-        return _isLive(offer.startDate, offer.endDate, offer.isActive);
-      }).length;
-      final liveCategory = categoryOffers.where((offer) {
-        return _isLive(offer.startDate, offer.endDate, offer.isActive);
-      }).length;
-      final liveCombo = comboOffers.where((offer) {
-        return _isLive(offer.startDate, offer.endDate, offer.isActive);
-      }).length;
-      final liveDelivery = freeDeliveryRules.where((rule) {
-        return _isLive(rule.startDate, rule.endDate, rule.isActive);
-      }).length;
-      final activeBanners = banners.where((banner) => banner.active).length;
-      final liveOfferPrograms = liveBogo + liveCategory + liveCombo;
-
-      return AdminResponsive.constrainContent(
-        context: context,
-        child: ListView(
-          padding: AdminResponsive.pagePadding(
-            context,
-          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
-          children: [
-            Text(
-              'Offers Dashboard',
-              style: AdminTextStyles.screenTitle(context),
-            ),
-            SizedBox(height: 6.h),
-            Text(
-              'Offers, banners, and delivery rules ka quick summary',
-              style: AdminTextStyles.body(
-                context,
-              ).copyWith(color: AdminAppTheme.getTextSecondaryColor(context)),
-            ),
-            SizedBox(height: 16.h),
-            _DashboardCardGrid(
-              cards: [
-                CatalogStatCard(
-                  title: 'Coupons',
-                  value: '${coupons.length}',
-                  icon: Icons.sell_outlined,
-                  color: AdminThemeTokens.toneBlue,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveCoupons',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Offers',
-                  value:
-                      '${totalBogo + totalCategoryOffers + totalComboOffers}',
-                  icon: Icons.local_offer_outlined,
-                  color: AdminThemeTokens.toneGreen,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveOfferPrograms',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Delivery Rules',
-                  value: '$totalDeliveryRules',
-                  icon: Icons.local_shipping_outlined,
-                  color: AdminThemeTokens.toneBrown,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveDelivery',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Banners',
-                  value: '$totalBanners',
-                  icon: Icons.image_outlined,
-                  color: AdminThemeTokens.tonePurple,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Active',
-                      value: '$activeBanners',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 20.h),
-            _DashboardSection(
-              title: 'Offer Programs',
-              subtitle: 'BOGO, category, aur combo offers ka breakdown',
-              cards: [
-                CatalogStatCard(
-                  title: 'BOGO',
-                  value: '$totalBogo',
-                  icon: Icons.card_giftcard,
-                  color: AdminThemeTokens.toneTeal,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveBogo',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Category',
-                  value: '$totalCategoryOffers',
-                  icon: Icons.category_outlined,
-                  color: AdminThemeTokens.toneSteel,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveCategory',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-                CatalogStatCard(
-                  title: 'Combo',
-                  value: '$totalComboOffers',
-                  icon: Icons.widgets_outlined,
-                  color: AdminThemeTokens.toneGreenSoft,
-                  breakdown: [
-                    CatalogStatBreakdown(
-                      label: 'Live',
-                      value: '$liveCombo',
-                      color: AdminAppTheme.getSuccessColor(context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
-  }
-}
-
-class _DashboardSection extends StatelessWidget {
-  const _DashboardSection({
-    required this.title,
-    required this.subtitle,
-    required this.cards,
-  });
-
-  final String title;
-  final String subtitle;
-  final List<Widget> cards;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: AdminTextStyles.sectionTitle(
-            context,
-          ).copyWith(fontWeight: FontWeight.w800),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          subtitle,
-          style: TextStyle(color: AdminAppTheme.getTextSecondaryColor(context)),
-        ),
-        SizedBox(height: 12.h),
-        _DashboardCardGrid(cards: cards),
-      ],
-    );
-  }
-}
-
-class _DashboardCardGrid extends StatelessWidget {
-  const _DashboardCardGrid({required this.cards});
-
-  final List<Widget> cards;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = AdminResponsive.gridColumns(
-          constraints.maxWidth,
-          minColumns: constraints.maxWidth < 360 ? 1 : 2,
-          minTileWidth: 220,
-          maxColumns: 4,
-        );
-        final spacing = 12.w;
-        final itemWidth =
-            (constraints.maxWidth - ((crossAxisCount - 1) * spacing)) /
-            crossAxisCount;
-
-        return Wrap(
-          spacing: spacing,
-          runSpacing: 12.h,
-          children: cards
-              .map((card) => SizedBox(width: itemWidth, child: card))
-              .toList(),
-        );
-      },
-    );
-  }
-}
 
 class _OfferFabMenu extends StatefulWidget {
   const _OfferFabMenu({
