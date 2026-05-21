@@ -22,14 +22,17 @@ jobs:
           port: 22
           timeout: 40s
           command_timeout: 20m
-          # Agar OpenSSH key format hai toh ye dono lines crash hone se bachayengi
           fingerprint: ""
           debug: true
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
             
-            echo "--- 1. Fetching latest code ---"
-            git fetch origin master
+            echo "--- 1. Switching and Pulling Master Branch on Server ---"
+            # Pehle GitHub se saari branches ki information fetch karenge
+            git fetch --all
+            
+            # Agar server abhi main par hai, toh use master par switch karenge aur fresh pull karenge
+            git checkout master || git checkout -b master origin/master
             git reset --hard origin/master
             
             echo "--- 2. Verifying .env File ---"
