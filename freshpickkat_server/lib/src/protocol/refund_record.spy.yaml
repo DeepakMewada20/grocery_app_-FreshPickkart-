@@ -7,5 +7,8 @@ fields:
   amount: double
   status: String
   gatewayRefundId: String?
+  source: String
+  reason: String
+  complaintId: String?
   createdAt: DateTime
   updatedAt: DateTime?

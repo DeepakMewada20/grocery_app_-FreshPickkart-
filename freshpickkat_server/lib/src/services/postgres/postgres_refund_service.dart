@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
@@ -15,17 +17,28 @@ class PostgresRefundService {
     Session session, {
     required String orderNumber,
   }) async {
-    final order = await CustomerOrderRow.db.findFirstRow(
+    final order = await _getOrder(session, orderNumber);
+    return refund(
       session,
-      where: (t) => t.orderNumber.equals(orderNumber.trim()),
+      orderNumber: order.orderNumber,
+      amount: order.finalAmount,
+      source: 'order',
+      reason: 'Admin order refund',
     );
-    if (order?.id == null) {
-      throw Exception('Order not found.');
-    }
+  }
 
+  Future<RefundRecord> refund(
+    Session session, {
+    required String orderNumber,
+    required double amount,
+    required String source,
+    required String reason,
+    UuidValue? complaintId,
+  }) async {
+    final order = await _getOrder(session, orderNumber);
     final payment = await PaymentTransactionRow.db.findFirstRow(
       session,
-      where: (t) => t.orderId.equals(order!.id!),
+      where: (t) => t.orderId.equals(order.id!),
     );
     if (payment?.id == null) {
       throw Exception('Payment transaction not found.');
@@ -33,9 +46,12 @@ class PostgresRefundService {
 
     return _initiateRefundForOrder(
       session,
-      order: order!,
+      order: order,
       payment: payment!,
-      amount: order.finalAmount,
+      amount: amount,
+      source: source,
+      reason: reason,
+      complaintId: complaintId,
     );
   }
 
@@ -75,10 +91,7 @@ class PostgresRefundService {
         payment!.orderId,
       );
       if (order == null) {
-        return PaymentActionResult(
-          success: false,
-          error: 'Order not found',
-        );
+        return PaymentActionResult(success: false, error: 'Order not found');
       }
 
       final refund = await _initiateRefundForOrder(
@@ -86,6 +99,8 @@ class PostgresRefundService {
         order: order,
         payment: payment,
         amount: amount,
+        source: 'payment',
+        reason: 'Payment refund',
       );
 
       return PaymentActionResult(
@@ -97,10 +112,7 @@ class PostgresRefundService {
         message: 'Refund initiated successfully',
       );
     } catch (error) {
-      return PaymentActionResult(
-        success: false,
-        error: error.toString(),
-      );
+      return PaymentActionResult(success: false, error: error.toString());
     }
   }
 
@@ -148,6 +160,8 @@ class PostgresRefundService {
             gatewayRefundId: normalizedRefundId,
             amount: payment.amount,
             refundStatus: normalizedStatus,
+            source: 'webhook',
+            reason: 'Gateway refund webhook',
             failureReason: normalizedStatus == 'failed'
                 ? 'Gateway refund failed'
                 : null,
@@ -171,13 +185,18 @@ class PostgresRefundService {
         );
       }
 
-      final paymentStatus = normalizedStatus == 'processed'
-          ? 'refunded'
-          : payment.paymentStatus;
+      final totalRefunded = await _sumRefundsForOrder(
+        session,
+        order.id!,
+        transaction: transaction,
+      );
+      final isFullyRefunded = totalRefunded >= order.finalAmount;
       await PaymentTransactionRow.db.updateRow(
         session,
         payment.copyWith(
-          paymentStatus: paymentStatus,
+          paymentStatus: normalizedStatus == 'processed' && isFullyRefunded
+              ? 'refunded'
+              : payment.paymentStatus,
           gatewayStatus: normalizedStatus,
           updatedAt: now,
         ),
@@ -187,7 +206,7 @@ class PostgresRefundService {
       await CustomerOrderRow.db.updateRow(
         session,
         order.copyWith(
-          paymentStatus: normalizedStatus == 'processed'
+          paymentStatus: normalizedStatus == 'processed' && isFullyRefunded
               ? 'refunded'
               : order.paymentStatus,
           refundStatus: normalizedStatus,
@@ -206,25 +225,58 @@ class PostgresRefundService {
     }
   }
 
+  Future<CustomerOrderRow> _getOrder(
+    Session session,
+    String orderNumber,
+  ) async {
+    final order = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber.trim()),
+    );
+    if (order?.id == null) throw Exception('Order not found.');
+    return order!;
+  }
+
   Future<RefundRecord> _initiateRefundForOrder(
     Session session, {
     required CustomerOrderRow order,
     required PaymentTransactionRow payment,
     required double amount,
+    required String source,
+    required String reason,
+    UuidValue? complaintId,
   }) async {
+    if (amount <= 0) {
+      throw Exception('Refund amount must be greater than zero.');
+    }
     final gatewayPaymentId = cleanNullableString(payment.gatewayPaymentId);
     if (gatewayPaymentId == null) {
       throw Exception('Gateway payment id not found.');
     }
 
-    final latest = await _findLatestRefundForOrder(session, order.id!);
-    if (latest != null &&
-        (latest.refundStatus == 'pending' ||
-            latest.refundStatus == 'processed')) {
-      return _mapRefundRecord(latest, order.orderNumber);
+    if (complaintId != null) {
+      final existingForComplaint = await RefundRecordRow.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.complaintId.equals(complaintId) &
+            (t.refundStatus.equals('pending') |
+                t.refundStatus.equals('processed')),
+        orderBy: (t) => t.createdAt,
+        orderDescending: true,
+      );
+      if (existingForComplaint != null) {
+        return _mapRefundRecord(existingForComplaint, order.orderNumber);
+      }
     }
 
-    final amountInPaise = (amount * 100).round();
+    final alreadyRefunded = await _sumRefundsForOrder(session, order.id!);
+    final remainingRefundable = max(0, order.finalAmount - alreadyRefunded);
+    final cappedAmount = min(amount, remainingRefundable).toDouble();
+    if (cappedAmount <= 0) {
+      throw Exception('No refundable amount remains for this order.');
+    }
+
+    final amountInPaise = (cappedAmount * 100).round();
     final response = await _gateway.createRefund(
       paymentId: gatewayPaymentId,
       amountInPaise: amountInPaise,
@@ -232,6 +284,9 @@ class PostgresRefundService {
       notes: {
         'order_id': order.orderNumber,
         'payment_id': gatewayPaymentId,
+        'source': source,
+        'reason': reason,
+        if (complaintId != null) 'complaint_id': complaintId.toString(),
       },
     );
 
@@ -257,8 +312,11 @@ class PostgresRefundService {
           paymentTransactionId: payment.id!,
           userId: payment.userId,
           gatewayRefundId: gatewayRefundId,
-          amount: amount,
+          amount: cappedAmount,
           refundStatus: refundStatus,
+          source: source.trim().isEmpty ? 'order' : source.trim(),
+          reason: reason.trim(),
+          complaintId: complaintId,
           failureReason: failureReason,
           createdAt: now,
           updatedAt: now,
@@ -266,13 +324,18 @@ class PostgresRefundService {
         transaction: transaction,
       );
 
-      final nextPaymentStatus = refundStatus == 'processed'
-          ? 'refunded'
-          : payment.paymentStatus;
+      final totalRefunded =
+          alreadyRefunded +
+          (refundStatus == 'processed' || refundStatus == 'pending'
+              ? cappedAmount
+              : 0);
+      final isFullyRefunded = totalRefunded >= order.finalAmount;
       await PaymentTransactionRow.db.updateRow(
         session,
         payment.copyWith(
-          paymentStatus: nextPaymentStatus,
+          paymentStatus: refundStatus == 'processed' && isFullyRefunded
+              ? 'refunded'
+              : payment.paymentStatus,
           gatewayStatus: refundStatus,
           updatedAt: now,
         ),
@@ -281,7 +344,7 @@ class PostgresRefundService {
       await CustomerOrderRow.db.updateRow(
         session,
         order.copyWith(
-          paymentStatus: refundStatus == 'processed'
+          paymentStatus: refundStatus == 'processed' && isFullyRefunded
               ? 'refunded'
               : order.paymentStatus,
           refundStatus: refundStatus,
@@ -318,10 +381,23 @@ class PostgresRefundService {
     return rows.isEmpty ? null : rows.first;
   }
 
-  RefundRecord _mapRefundRecord(
-    RefundRecordRow row,
-    String orderNumber,
-  ) {
+  Future<double> _sumRefundsForOrder(
+    Session session,
+    UuidValue orderId, {
+    Transaction? transaction,
+  }) async {
+    final rows = await RefundRecordRow.db.find(
+      session,
+      where: (t) =>
+          t.orderId.equals(orderId) &
+          (t.refundStatus.equals('pending') |
+              t.refundStatus.equals('processed')),
+      transaction: transaction,
+    );
+    return rows.fold<double>(0, (sum, row) => sum + row.amount);
+  }
+
+  RefundRecord _mapRefundRecord(RefundRecordRow row, String orderNumber) {
     return RefundRecord(
       refundId: row.id!.toString(),
       orderId: orderNumber,
@@ -330,6 +406,9 @@ class PostgresRefundService {
       amount: row.amount,
       status: row.refundStatus,
       gatewayRefundId: row.gatewayRefundId,
+      source: row.source,
+      reason: row.reason,
+      complaintId: row.complaintId?.toString(),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     );
@@ -340,9 +419,7 @@ class PostgresRefundService {
     if (normalized == 'processed' || normalized == 'refunded') {
       return 'processed';
     }
-    if (normalized == 'failed') {
-      return 'failed';
-    }
+    if (normalized == 'failed') return 'failed';
     return 'pending';
   }
 }

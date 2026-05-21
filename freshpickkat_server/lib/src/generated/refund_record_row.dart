@@ -22,10 +22,15 @@ abstract class RefundRecordRow
     this.gatewayRefundId,
     required this.amount,
     required this.refundStatus,
+    String? source,
+    String? reason,
+    this.complaintId,
     this.failureReason,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
+  }) : source = source ?? 'order',
+       reason = reason ?? '',
+       createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
   factory RefundRecordRow({
@@ -36,6 +41,9 @@ abstract class RefundRecordRow
     String? gatewayRefundId,
     required double amount,
     required String refundStatus,
+    String? source,
+    String? reason,
+    _i1.UuidValue? complaintId,
     String? failureReason,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -56,6 +64,13 @@ abstract class RefundRecordRow
       gatewayRefundId: jsonSerialization['gatewayRefundId'] as String?,
       amount: (jsonSerialization['amount'] as num).toDouble(),
       refundStatus: jsonSerialization['refundStatus'] as String,
+      source: jsonSerialization['source'] as String?,
+      reason: jsonSerialization['reason'] as String?,
+      complaintId: jsonSerialization['complaintId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['complaintId'],
+            ),
       failureReason: jsonSerialization['failureReason'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -85,6 +100,12 @@ abstract class RefundRecordRow
 
   String refundStatus;
 
+  String source;
+
+  String reason;
+
+  _i1.UuidValue? complaintId;
+
   String? failureReason;
 
   DateTime createdAt;
@@ -105,6 +126,9 @@ abstract class RefundRecordRow
     String? gatewayRefundId,
     double? amount,
     String? refundStatus,
+    String? source,
+    String? reason,
+    _i1.UuidValue? complaintId,
     String? failureReason,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -120,6 +144,9 @@ abstract class RefundRecordRow
       if (gatewayRefundId != null) 'gatewayRefundId': gatewayRefundId,
       'amount': amount,
       'refundStatus': refundStatus,
+      'source': source,
+      'reason': reason,
+      if (complaintId != null) 'complaintId': complaintId?.toJson(),
       if (failureReason != null) 'failureReason': failureReason,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -172,6 +199,9 @@ class _RefundRecordRowImpl extends RefundRecordRow {
     String? gatewayRefundId,
     required double amount,
     required String refundStatus,
+    String? source,
+    String? reason,
+    _i1.UuidValue? complaintId,
     String? failureReason,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -183,6 +213,9 @@ class _RefundRecordRowImpl extends RefundRecordRow {
          gatewayRefundId: gatewayRefundId,
          amount: amount,
          refundStatus: refundStatus,
+         source: source,
+         reason: reason,
+         complaintId: complaintId,
          failureReason: failureReason,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -200,6 +233,9 @@ class _RefundRecordRowImpl extends RefundRecordRow {
     Object? gatewayRefundId = _Undefined,
     double? amount,
     String? refundStatus,
+    String? source,
+    String? reason,
+    Object? complaintId = _Undefined,
     Object? failureReason = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -214,6 +250,11 @@ class _RefundRecordRowImpl extends RefundRecordRow {
           : this.gatewayRefundId,
       amount: amount ?? this.amount,
       refundStatus: refundStatus ?? this.refundStatus,
+      source: source ?? this.source,
+      reason: reason ?? this.reason,
+      complaintId: complaintId is _i1.UuidValue?
+          ? complaintId
+          : this.complaintId,
       failureReason: failureReason is String?
           ? failureReason
           : this.failureReason,
@@ -258,6 +299,23 @@ class RefundRecordRowUpdateTable extends _i1.UpdateTable<RefundRecordRowTable> {
 
   _i1.ColumnValue<String, String> refundStatus(String value) => _i1.ColumnValue(
     table.refundStatus,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> source(String value) => _i1.ColumnValue(
+    table.source,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> reason(String value) => _i1.ColumnValue(
+    table.reason,
+    value,
+  );
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> complaintId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.complaintId,
     value,
   );
 
@@ -308,6 +366,20 @@ class RefundRecordRowTable extends _i1.Table<_i1.UuidValue?> {
       'refundStatus',
       this,
     );
+    source = _i1.ColumnString(
+      'source',
+      this,
+      hasDefault: true,
+    );
+    reason = _i1.ColumnString(
+      'reason',
+      this,
+      hasDefault: true,
+    );
+    complaintId = _i1.ColumnUuid(
+      'complaintId',
+      this,
+    );
     failureReason = _i1.ColumnString(
       'failureReason',
       this,
@@ -338,6 +410,12 @@ class RefundRecordRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString refundStatus;
 
+  late final _i1.ColumnString source;
+
+  late final _i1.ColumnString reason;
+
+  late final _i1.ColumnUuid complaintId;
+
   late final _i1.ColumnString failureReason;
 
   late final _i1.ColumnDateTime createdAt;
@@ -353,6 +431,9 @@ class RefundRecordRowTable extends _i1.Table<_i1.UuidValue?> {
     gatewayRefundId,
     amount,
     refundStatus,
+    source,
+    reason,
+    complaintId,
     failureReason,
     createdAt,
     updatedAt,

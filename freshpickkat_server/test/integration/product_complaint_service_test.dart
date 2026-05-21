@@ -27,13 +27,15 @@ void main() {
           expect(complaint.status, equals('Pending'));
           expect(complaint.orderItemId, equals(seed.item.id!.toString()));
           expect(complaint.imageUrls, hasLength(1));
+          expect(complaint.complaintType, equals('product'));
+          expect(complaint.selectedProducts, hasLength(1));
         } finally {
           await session.close();
         }
       },
     );
 
-    test('rejects duplicate complaint for same order item', () async {
+    test('rejects duplicate active product complaint for same order', () async {
       final seed = await _seedDeliveredOrder(sessionBuilder);
       final session = sessionBuilder.build();
       try {

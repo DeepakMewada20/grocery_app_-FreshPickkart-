@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:freshpickkat_server/src/generated/protocol.dart' as _i2;
+import 'complaint_product_item.dart' as _i2;
+import 'package:freshpickkat_server/src/generated/protocol.dart' as _i3;
 
 abstract class ComplaintRow
     implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
@@ -19,15 +20,22 @@ abstract class ComplaintRow
     this.id,
     required this.userId,
     required this.orderId,
-    required this.orderItemId,
+    this.orderItemId,
+    String? complaintType,
+    String? title,
+    required this.selectedProducts,
     required this.issueType,
     required this.description,
     required this.imageUrls,
     String? status,
     this.adminReply,
+    this.adminNote,
+    this.resolutionType,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : status = status ?? 'Pending',
+  }) : complaintType = complaintType ?? 'product',
+       title = title ?? '',
+       status = status ?? 'Pending',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -35,12 +43,17 @@ abstract class ComplaintRow
     _i1.UuidValue? id,
     required _i1.UuidValue userId,
     required _i1.UuidValue orderId,
-    required _i1.UuidValue orderItemId,
+    _i1.UuidValue? orderItemId,
+    String? complaintType,
+    String? title,
+    required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
     required String description,
     required List<String> imageUrls,
     String? status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ComplaintRowImpl;
@@ -54,16 +67,26 @@ abstract class ComplaintRow
       orderId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['orderId'],
       ),
-      orderItemId: _i1.UuidValueJsonExtension.fromJson(
-        jsonSerialization['orderItemId'],
-      ),
+      orderItemId: jsonSerialization['orderItemId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['orderItemId'],
+            ),
+      complaintType: jsonSerialization['complaintType'] as String?,
+      title: jsonSerialization['title'] as String?,
+      selectedProducts: _i3.Protocol()
+          .deserialize<List<_i2.ComplaintProductItem>>(
+            jsonSerialization['selectedProducts'],
+          ),
       issueType: jsonSerialization['issueType'] as String,
       description: jsonSerialization['description'] as String,
-      imageUrls: _i2.Protocol().deserialize<List<String>>(
+      imageUrls: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['imageUrls'],
       ),
       status: jsonSerialization['status'] as String?,
       adminReply: jsonSerialization['adminReply'] as String?,
+      adminNote: jsonSerialization['adminNote'] as String?,
+      resolutionType: jsonSerialization['resolutionType'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -84,7 +107,13 @@ abstract class ComplaintRow
 
   _i1.UuidValue orderId;
 
-  _i1.UuidValue orderItemId;
+  _i1.UuidValue? orderItemId;
+
+  String complaintType;
+
+  String title;
+
+  List<_i2.ComplaintProductItem> selectedProducts;
 
   String issueType;
 
@@ -95,6 +124,10 @@ abstract class ComplaintRow
   String status;
 
   String? adminReply;
+
+  String? adminNote;
+
+  String? resolutionType;
 
   DateTime createdAt;
 
@@ -111,11 +144,16 @@ abstract class ComplaintRow
     _i1.UuidValue? userId,
     _i1.UuidValue? orderId,
     _i1.UuidValue? orderItemId,
+    String? complaintType,
+    String? title,
+    List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
     String? description,
     List<String>? imageUrls,
     String? status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -126,12 +164,19 @@ abstract class ComplaintRow
       if (id != null) 'id': id?.toJson(),
       'userId': userId.toJson(),
       'orderId': orderId.toJson(),
-      'orderItemId': orderItemId.toJson(),
+      if (orderItemId != null) 'orderItemId': orderItemId?.toJson(),
+      'complaintType': complaintType,
+      'title': title,
+      'selectedProducts': selectedProducts.toJson(
+        valueToJson: (v) => v.toJson(),
+      ),
       'issueType': issueType,
       'description': description,
       'imageUrls': imageUrls.toJson(),
       'status': status,
       if (adminReply != null) 'adminReply': adminReply,
+      if (adminNote != null) 'adminNote': adminNote,
+      if (resolutionType != null) 'resolutionType': resolutionType,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -179,12 +224,17 @@ class _ComplaintRowImpl extends ComplaintRow {
     _i1.UuidValue? id,
     required _i1.UuidValue userId,
     required _i1.UuidValue orderId,
-    required _i1.UuidValue orderItemId,
+    _i1.UuidValue? orderItemId,
+    String? complaintType,
+    String? title,
+    required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
     required String description,
     required List<String> imageUrls,
     String? status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -192,11 +242,16 @@ class _ComplaintRowImpl extends ComplaintRow {
          userId: userId,
          orderId: orderId,
          orderItemId: orderItemId,
+         complaintType: complaintType,
+         title: title,
+         selectedProducts: selectedProducts,
          issueType: issueType,
          description: description,
          imageUrls: imageUrls,
          status: status,
          adminReply: adminReply,
+         adminNote: adminNote,
+         resolutionType: resolutionType,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -209,12 +264,17 @@ class _ComplaintRowImpl extends ComplaintRow {
     Object? id = _Undefined,
     _i1.UuidValue? userId,
     _i1.UuidValue? orderId,
-    _i1.UuidValue? orderItemId,
+    Object? orderItemId = _Undefined,
+    String? complaintType,
+    String? title,
+    List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
     String? description,
     List<String>? imageUrls,
     String? status,
     Object? adminReply = _Undefined,
+    Object? adminNote = _Undefined,
+    Object? resolutionType = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -222,12 +282,23 @@ class _ComplaintRowImpl extends ComplaintRow {
       id: id is _i1.UuidValue? ? id : this.id,
       userId: userId ?? this.userId,
       orderId: orderId ?? this.orderId,
-      orderItemId: orderItemId ?? this.orderItemId,
+      orderItemId: orderItemId is _i1.UuidValue?
+          ? orderItemId
+          : this.orderItemId,
+      complaintType: complaintType ?? this.complaintType,
+      title: title ?? this.title,
+      selectedProducts:
+          selectedProducts ??
+          this.selectedProducts.map((e0) => e0.copyWith()).toList(),
       issueType: issueType ?? this.issueType,
       description: description ?? this.description,
       imageUrls: imageUrls ?? this.imageUrls.map((e0) => e0).toList(),
       status: status ?? this.status,
       adminReply: adminReply is String? ? adminReply : this.adminReply,
+      adminNote: adminNote is String? ? adminNote : this.adminNote,
+      resolutionType: resolutionType is String?
+          ? resolutionType
+          : this.resolutionType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -250,9 +321,29 @@ class ComplaintRowUpdateTable extends _i1.UpdateTable<ComplaintRowTable> {
       );
 
   _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> orderItemId(
-    _i1.UuidValue value,
+    _i1.UuidValue? value,
   ) => _i1.ColumnValue(
     table.orderItemId,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> complaintType(String value) =>
+      _i1.ColumnValue(
+        table.complaintType,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
+    table.title,
+    value,
+  );
+
+  _i1.ColumnValue<
+    List<_i2.ComplaintProductItem>,
+    List<_i2.ComplaintProductItem>
+  >
+  selectedProducts(List<_i2.ComplaintProductItem> value) => _i1.ColumnValue(
+    table.selectedProducts,
     value,
   );
 
@@ -282,6 +373,17 @@ class ComplaintRowUpdateTable extends _i1.UpdateTable<ComplaintRowTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> adminNote(String? value) => _i1.ColumnValue(
+    table.adminNote,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> resolutionType(String? value) =>
+      _i1.ColumnValue(
+        table.resolutionType,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -310,6 +412,20 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
       'orderItemId',
       this,
     );
+    complaintType = _i1.ColumnString(
+      'complaintType',
+      this,
+      hasDefault: true,
+    );
+    title = _i1.ColumnString(
+      'title',
+      this,
+      hasDefault: true,
+    );
+    selectedProducts = _i1.ColumnSerializable<List<_i2.ComplaintProductItem>>(
+      'selectedProducts',
+      this,
+    );
     issueType = _i1.ColumnString(
       'issueType',
       this,
@@ -329,6 +445,14 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
     );
     adminReply = _i1.ColumnString(
       'adminReply',
+      this,
+    );
+    adminNote = _i1.ColumnString(
+      'adminNote',
+      this,
+    );
+    resolutionType = _i1.ColumnString(
+      'resolutionType',
       this,
     );
     createdAt = _i1.ColumnDateTime(
@@ -351,6 +475,13 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnUuid orderItemId;
 
+  late final _i1.ColumnString complaintType;
+
+  late final _i1.ColumnString title;
+
+  late final _i1.ColumnSerializable<List<_i2.ComplaintProductItem>>
+  selectedProducts;
+
   late final _i1.ColumnString issueType;
 
   late final _i1.ColumnString description;
@@ -360,6 +491,10 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
   late final _i1.ColumnString status;
 
   late final _i1.ColumnString adminReply;
+
+  late final _i1.ColumnString adminNote;
+
+  late final _i1.ColumnString resolutionType;
 
   late final _i1.ColumnDateTime createdAt;
 
@@ -371,11 +506,16 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
     userId,
     orderId,
     orderItemId,
+    complaintType,
+    title,
+    selectedProducts,
     issueType,
     description,
     imageUrls,
     status,
     adminReply,
+    adminNote,
+    resolutionType,
     createdAt,
     updatedAt,
   ];

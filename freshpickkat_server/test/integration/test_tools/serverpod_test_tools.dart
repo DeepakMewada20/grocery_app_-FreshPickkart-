@@ -156,11 +156,6 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// }
 /// ```
 ///
-/// [configOverride] A function to override the server configuration. This function is called with
-/// the default server configuration after it is loaded from the config/ directory
-/// and before it is used to start the server. Use this to override particular
-/// settings in the server configuration.
-///
 /// [testGroupTagsOverride] By default Serverpod test tools tags the `withServerpod` test group with `"integration"`.
 /// This is to provide a simple way to only run unit or integration tests.
 /// This property allows this tag to be overridden to something else. Defaults to `['integration']`.
@@ -171,7 +166,6 @@ void withServerpod(
   String testGroupName,
   _i1.TestClosure<TestEndpoints> testClosure, {
   bool? applyMigrations,
-  _i2.ServerpodConfig Function(_i2.ServerpodConfig)? configOverride,
   bool? enableSessionLogging,
   _i2.ExperimentalFeatures? experimentalFeatures,
   _i1.RollbackDatabase? rollbackDatabase,
@@ -194,7 +188,6 @@ void withServerpod(
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
       experimentalFeatures: experimentalFeatures,
-      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
     ),
     maybeRollbackDatabase: rollbackDatabase,
@@ -2108,6 +2101,137 @@ class _ComplaintEndpoint {
     });
   }
 
+  _i3.Future<_i23.Complaint> createProductComplaint(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required List<String> selectedOrderItemIds,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'createProductComplaint',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'createProductComplaint',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'orderNumber': orderNumber,
+            'selectedOrderItemIds': selectedOrderItemIds,
+            'issueType': issueType,
+            'title': title,
+            'description': description,
+            'imageUrls': imageUrls,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> createDeliveryComplaint(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'createDeliveryComplaint',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'createDeliveryComplaint',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'orderNumber': orderNumber,
+            'issueType': issueType,
+            'title': title,
+            'description': description,
+            'imageUrls': imageUrls,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint?> getActiveComplaintForOrder(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String complaintType,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'getActiveComplaintForOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'getActiveComplaintForOrder',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'orderNumber': orderNumber,
+            'complaintType': complaintType,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i24.ComplaintPage> listMyComplaints(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,
@@ -2305,6 +2429,8 @@ class _ComplaintEndpoint {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminNote,
+    String? resolutionType,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -2322,6 +2448,246 @@ class _ComplaintEndpoint {
             'idToken': idToken,
             'complaintId': complaintId,
             'status': status,
+            'adminNote': adminNote,
+            'resolutionType': resolutionType,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<double> calculateRefundCap(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'calculateRefundCap',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'calculateRefundCap',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<double>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> refundComplaint(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required double amount,
+    String? adminNote,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'refundComplaint',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'refundComplaint',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+            'amount': amount,
+            'adminNote': adminNote,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> createReplacementOrder(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'createReplacementOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'createReplacementOrder',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+            'adminNote': adminNote,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> retryDelivery(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'retryDelivery',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'retryDelivery',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+            'adminNote': adminNote,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> reassignRider(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required String riderName,
+    required String riderPhone,
+    String? adminNote,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'reassignRider',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'reassignRider',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+            'riderName': riderName,
+            'riderPhone': riderPhone,
+            'adminNote': adminNote,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i23.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i23.Complaint> rejectComplaint(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'rejectComplaint',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'rejectComplaint',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+            'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,
         );

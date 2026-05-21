@@ -15,19 +15,75 @@ class ProductComplaintService {
     required String issueType,
     required String description,
     required List<String> imageUrls,
+  }) {
+    return createProductComplaint(
+      orderNumber: orderNumber,
+      selectedOrderItemIds: [orderItemId],
+      issueType: issueType,
+      description: description,
+      imageUrls: imageUrls,
+    );
+  }
+
+  Future<Complaint> createProductComplaint({
+    required String orderNumber,
+    required List<String> selectedOrderItemIds,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
     if (user == null) throw Exception('Please login to report an issue.');
     final idToken = await auth.requireIdToken();
-    return _client.complaint.createComplaint(
+    return _client.complaint.createProductComplaint(
       firebaseUid: user.uid,
       idToken: idToken,
       orderNumber: orderNumber,
-      orderItemId: orderItemId,
+      selectedOrderItemIds: selectedOrderItemIds,
       issueType: issueType,
+      title: title,
       description: description,
       imageUrls: imageUrls,
+    );
+  }
+
+  Future<Complaint> createDeliveryComplaint({
+    required String orderNumber,
+    required String issueType,
+    String? title,
+    required String description,
+    List<String> imageUrls = const [],
+  }) async {
+    final auth = AuthController.instance;
+    final user = auth.currentUser;
+    if (user == null) throw Exception('Please login to report an issue.');
+    final idToken = await auth.requireIdToken();
+    return _client.complaint.createDeliveryComplaint(
+      firebaseUid: user.uid,
+      idToken: idToken,
+      orderNumber: orderNumber,
+      issueType: issueType,
+      title: title,
+      description: description,
+      imageUrls: imageUrls,
+    );
+  }
+
+  Future<Complaint?> getActiveComplaintForOrder({
+    required String orderNumber,
+    required String complaintType,
+  }) async {
+    final auth = AuthController.instance;
+    final user = auth.currentUser;
+    if (user == null) return null;
+    final idToken = await auth.requireIdToken();
+    return _client.complaint.getActiveComplaintForOrder(
+      firebaseUid: user.uid,
+      idToken: idToken,
+      orderNumber: orderNumber,
+      complaintType: complaintType,
     );
   }
 

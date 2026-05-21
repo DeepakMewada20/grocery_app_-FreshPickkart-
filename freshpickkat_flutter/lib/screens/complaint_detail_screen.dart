@@ -133,7 +133,7 @@ class _ProductSummary extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10.r),
             child: Image.network(
-              complaint.productImage,
+              (complaint.productImage ?? ''),
               width: 58.r,
               height: 58.r,
               fit: BoxFit.cover,
@@ -143,7 +143,7 @@ class _ProductSummary extends StatelessWidget {
           SizedBox(width: 12.w),
           Expanded(
             child: Text(
-              complaint.productName,
+              (complaint.productName ?? complaint.title),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w800),

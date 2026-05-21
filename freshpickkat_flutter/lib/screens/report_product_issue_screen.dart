@@ -10,11 +10,13 @@ class ReportProductIssueScreen extends StatefulWidget {
   const ReportProductIssueScreen({
     super.key,
     required this.orderNumber,
-    required this.item,
+    required this.items,
+    this.activeComplaint,
   });
 
   final String orderNumber;
-  final OrderItem item;
+  final List<OrderItem> items;
+  final Complaint? activeComplaint;
 
   @override
   State<ReportProductIssueScreen> createState() =>
@@ -69,6 +71,11 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
             );
           }
 
+          final active = widget.activeComplaint;
+          if (active != null) {
+            return _BlockedState(complaint: active);
+          }
+
           return SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.fromLTRB(
@@ -84,7 +91,12 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ProductCard(item: widget.item),
+                    _FormCard(
+                      child: _ProductSelectionList(
+                        items: widget.items,
+                        controller: _controller,
+                      ),
+                    ),
                     SizedBox(height: 16.h),
                     _FormCard(
                       child: Column(
@@ -104,7 +116,7 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                             decoration: _inputDecoration(
                               context,
                               hintText:
-                                  'Describe what is wrong with this product.',
+                                  'Describe what is wrong with the selected products.',
                             ),
                             validator: (value) {
                               final text = value?.trim() ?? '';
@@ -125,24 +137,22 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                       ),
                     ),
                     SizedBox(height: 18.h),
-                    Obx(
-                      () => SizedBox(
-                        width: double.infinity,
-                        height: 52.h,
-                        child: ElevatedButton(
-                          onPressed: _controller.isSubmitting.value
-                              ? null
-                              : _submit,
-                          child: _controller.isSubmitting.value
-                              ? SizedBox(
-                                  width: 22.r,
-                                  height: 22.r,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                  ),
-                                )
-                              : const Text('Submit Complaint'),
-                        ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52.h,
+                      child: ElevatedButton(
+                        onPressed: _controller.isSubmitting.value
+                            ? null
+                            : _submit,
+                        child: _controller.isSubmitting.value
+                            ? SizedBox(
+                                width: 22.r,
+                                height: 22.r,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                ),
+                              )
+                            : const Text('Submit Complaint'),
                       ),
                     ),
                   ],
@@ -158,13 +168,8 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     try {
-      final itemId = widget.item.orderItemId;
-      if (itemId == null || itemId.isEmpty) {
-        throw Exception('This order item cannot be reported yet.');
-      }
       await _controller.submit(
         orderNumber: widget.orderNumber,
-        orderItemId: itemId,
         description: _descriptionController.text,
       );
     } catch (error) {
@@ -177,58 +182,95 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.item});
+class _ProductSelectionList extends StatelessWidget {
+  const _ProductSelectionList({required this.items, required this.controller});
 
-  final OrderItem item;
+  final List<OrderItem> items;
+  final ProductComplaintController controller;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return _FormCard(
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
-            child: Image.network(
-              item.productImage,
-              width: 58.r,
-              height: 58.r,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Container(
-                width: 58.r,
-                height: 58.r,
-                color: cs.outlineVariant,
-                child: const Icon(Icons.image_not_supported_outlined),
+    final reportableItems = items
+        .where((item) => item.orderItemId?.isNotEmpty == true)
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _FieldLabel('Affected Products'),
+        SizedBox(height: 10.h),
+        ...reportableItems.map(
+          (item) => Obx(() {
+            final id = item.orderItemId!;
+            final selected = controller.selectedOrderItemIds.contains(id);
+            return CheckboxListTile(
+              value: selected,
+              onChanged: (_) => controller.toggleOrderItem(id),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: Text(
+                item.productName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w800,
-                  ),
+              subtitle: Text(
+                [
+                  if (item.variantLabel?.isNotEmpty == true) item.variantLabel!,
+                  'Qty ${item.quantity}',
+                  'INR ${item.totalPrice.toStringAsFixed(0)}',
+                ].join(' • '),
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.62),
+                  fontSize: 12.sp,
                 ),
-                if (item.variantLabel != null && item.variantLabel!.isNotEmpty)
-                  Text(
-                    item.variantLabel!,
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.62),
-                      fontSize: 12.sp,
-                    ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _BlockedState extends StatelessWidget {
+  const _BlockedState({required this.complaint});
+
+  final Complaint complaint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(24.r),
+        child: AppResponsive.constrainContent(
+          context: context,
+          child: _FormCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 48),
+                SizedBox(height: 12.h),
+                const Text(
+                  'Complaint already active',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Status: ${complaint.status}',
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16.h),
+                ElevatedButton(
+                  onPressed: () => Get.off(
+                    () => ComplaintDetailScreen(complaint: complaint),
                   ),
+                  child: const Text('View Complaint'),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

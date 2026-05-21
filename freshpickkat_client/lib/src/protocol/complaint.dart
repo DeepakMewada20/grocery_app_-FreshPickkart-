@@ -11,7 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i2;
+import 'complaint_product_item.dart' as _i2;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
 abstract class Complaint implements _i1.SerializableModel {
   Complaint._({
@@ -19,18 +20,23 @@ abstract class Complaint implements _i1.SerializableModel {
     required this.userId,
     required this.orderId,
     required this.orderNumber,
-    required this.orderItemId,
-    required this.productId,
+    required this.complaintType,
+    required this.title,
+    this.orderItemId,
+    this.productId,
     this.variantId,
-    required this.productName,
-    required this.productImage,
+    this.productName,
+    this.productImage,
     this.variantLabel,
-    required this.quantity,
+    this.quantity,
+    required this.selectedProducts,
     required this.issueType,
     required this.description,
     required this.imageUrls,
     required this.status,
     this.adminReply,
+    this.adminNote,
+    this.resolutionType,
     required this.createdAt,
     required this.updatedAt,
     this.deliveredAt,
@@ -41,18 +47,23 @@ abstract class Complaint implements _i1.SerializableModel {
     required String userId,
     required String orderId,
     required String orderNumber,
-    required String orderItemId,
-    required String productId,
+    required String complaintType,
+    required String title,
+    String? orderItemId,
+    String? productId,
     String? variantId,
-    required String productName,
-    required String productImage,
+    String? productName,
+    String? productImage,
     String? variantLabel,
-    required int quantity,
+    int? quantity,
+    required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
     required String description,
     required List<String> imageUrls,
     required String status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deliveredAt,
@@ -64,20 +75,28 @@ abstract class Complaint implements _i1.SerializableModel {
       userId: jsonSerialization['userId'] as String,
       orderId: jsonSerialization['orderId'] as String,
       orderNumber: jsonSerialization['orderNumber'] as String,
-      orderItemId: jsonSerialization['orderItemId'] as String,
-      productId: jsonSerialization['productId'] as String,
+      complaintType: jsonSerialization['complaintType'] as String,
+      title: jsonSerialization['title'] as String,
+      orderItemId: jsonSerialization['orderItemId'] as String?,
+      productId: jsonSerialization['productId'] as String?,
       variantId: jsonSerialization['variantId'] as String?,
-      productName: jsonSerialization['productName'] as String,
-      productImage: jsonSerialization['productImage'] as String,
+      productName: jsonSerialization['productName'] as String?,
+      productImage: jsonSerialization['productImage'] as String?,
       variantLabel: jsonSerialization['variantLabel'] as String?,
-      quantity: jsonSerialization['quantity'] as int,
+      quantity: jsonSerialization['quantity'] as int?,
+      selectedProducts: _i3.Protocol()
+          .deserialize<List<_i2.ComplaintProductItem>>(
+            jsonSerialization['selectedProducts'],
+          ),
       issueType: jsonSerialization['issueType'] as String,
       description: jsonSerialization['description'] as String,
-      imageUrls: _i2.Protocol().deserialize<List<String>>(
+      imageUrls: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['imageUrls'],
       ),
       status: jsonSerialization['status'] as String,
       adminReply: jsonSerialization['adminReply'] as String?,
+      adminNote: jsonSerialization['adminNote'] as String?,
+      resolutionType: jsonSerialization['resolutionType'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -100,19 +119,25 @@ abstract class Complaint implements _i1.SerializableModel {
 
   String orderNumber;
 
-  String orderItemId;
+  String complaintType;
 
-  String productId;
+  String title;
+
+  String? orderItemId;
+
+  String? productId;
 
   String? variantId;
 
-  String productName;
+  String? productName;
 
-  String productImage;
+  String? productImage;
 
   String? variantLabel;
 
-  int quantity;
+  int? quantity;
+
+  List<_i2.ComplaintProductItem> selectedProducts;
 
   String issueType;
 
@@ -123,6 +148,10 @@ abstract class Complaint implements _i1.SerializableModel {
   String status;
 
   String? adminReply;
+
+  String? adminNote;
+
+  String? resolutionType;
 
   DateTime createdAt;
 
@@ -138,6 +167,8 @@ abstract class Complaint implements _i1.SerializableModel {
     String? userId,
     String? orderId,
     String? orderNumber,
+    String? complaintType,
+    String? title,
     String? orderItemId,
     String? productId,
     String? variantId,
@@ -145,11 +176,14 @@ abstract class Complaint implements _i1.SerializableModel {
     String? productImage,
     String? variantLabel,
     int? quantity,
+    List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
     String? description,
     List<String>? imageUrls,
     String? status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deliveredAt,
@@ -162,18 +196,25 @@ abstract class Complaint implements _i1.SerializableModel {
       'userId': userId,
       'orderId': orderId,
       'orderNumber': orderNumber,
-      'orderItemId': orderItemId,
-      'productId': productId,
+      'complaintType': complaintType,
+      'title': title,
+      if (orderItemId != null) 'orderItemId': orderItemId,
+      if (productId != null) 'productId': productId,
       if (variantId != null) 'variantId': variantId,
-      'productName': productName,
-      'productImage': productImage,
+      if (productName != null) 'productName': productName,
+      if (productImage != null) 'productImage': productImage,
       if (variantLabel != null) 'variantLabel': variantLabel,
-      'quantity': quantity,
+      if (quantity != null) 'quantity': quantity,
+      'selectedProducts': selectedProducts.toJson(
+        valueToJson: (v) => v.toJson(),
+      ),
       'issueType': issueType,
       'description': description,
       'imageUrls': imageUrls.toJson(),
       'status': status,
       if (adminReply != null) 'adminReply': adminReply,
+      if (adminNote != null) 'adminNote': adminNote,
+      if (resolutionType != null) 'resolutionType': resolutionType,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
       if (deliveredAt != null) 'deliveredAt': deliveredAt?.toJson(),
@@ -194,18 +235,23 @@ class _ComplaintImpl extends Complaint {
     required String userId,
     required String orderId,
     required String orderNumber,
-    required String orderItemId,
-    required String productId,
+    required String complaintType,
+    required String title,
+    String? orderItemId,
+    String? productId,
     String? variantId,
-    required String productName,
-    required String productImage,
+    String? productName,
+    String? productImage,
     String? variantLabel,
-    required int quantity,
+    int? quantity,
+    required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
     required String description,
     required List<String> imageUrls,
     required String status,
     String? adminReply,
+    String? adminNote,
+    String? resolutionType,
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deliveredAt,
@@ -214,6 +260,8 @@ class _ComplaintImpl extends Complaint {
          userId: userId,
          orderId: orderId,
          orderNumber: orderNumber,
+         complaintType: complaintType,
+         title: title,
          orderItemId: orderItemId,
          productId: productId,
          variantId: variantId,
@@ -221,11 +269,14 @@ class _ComplaintImpl extends Complaint {
          productImage: productImage,
          variantLabel: variantLabel,
          quantity: quantity,
+         selectedProducts: selectedProducts,
          issueType: issueType,
          description: description,
          imageUrls: imageUrls,
          status: status,
          adminReply: adminReply,
+         adminNote: adminNote,
+         resolutionType: resolutionType,
          createdAt: createdAt,
          updatedAt: updatedAt,
          deliveredAt: deliveredAt,
@@ -240,18 +291,23 @@ class _ComplaintImpl extends Complaint {
     String? userId,
     String? orderId,
     String? orderNumber,
-    String? orderItemId,
-    String? productId,
+    String? complaintType,
+    String? title,
+    Object? orderItemId = _Undefined,
+    Object? productId = _Undefined,
     Object? variantId = _Undefined,
-    String? productName,
-    String? productImage,
+    Object? productName = _Undefined,
+    Object? productImage = _Undefined,
     Object? variantLabel = _Undefined,
-    int? quantity,
+    Object? quantity = _Undefined,
+    List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
     String? description,
     List<String>? imageUrls,
     String? status,
     Object? adminReply = _Undefined,
+    Object? adminNote = _Undefined,
+    Object? resolutionType = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? deliveredAt = _Undefined,
@@ -261,18 +317,27 @@ class _ComplaintImpl extends Complaint {
       userId: userId ?? this.userId,
       orderId: orderId ?? this.orderId,
       orderNumber: orderNumber ?? this.orderNumber,
-      orderItemId: orderItemId ?? this.orderItemId,
-      productId: productId ?? this.productId,
+      complaintType: complaintType ?? this.complaintType,
+      title: title ?? this.title,
+      orderItemId: orderItemId is String? ? orderItemId : this.orderItemId,
+      productId: productId is String? ? productId : this.productId,
       variantId: variantId is String? ? variantId : this.variantId,
-      productName: productName ?? this.productName,
-      productImage: productImage ?? this.productImage,
+      productName: productName is String? ? productName : this.productName,
+      productImage: productImage is String? ? productImage : this.productImage,
       variantLabel: variantLabel is String? ? variantLabel : this.variantLabel,
-      quantity: quantity ?? this.quantity,
+      quantity: quantity is int? ? quantity : this.quantity,
+      selectedProducts:
+          selectedProducts ??
+          this.selectedProducts.map((e0) => e0.copyWith()).toList(),
       issueType: issueType ?? this.issueType,
       description: description ?? this.description,
       imageUrls: imageUrls ?? this.imageUrls.map((e0) => e0).toList(),
       status: status ?? this.status,
       adminReply: adminReply is String? ? adminReply : this.adminReply,
+      adminNote: adminNote is String? ? adminNote : this.adminNote,
+      resolutionType: resolutionType is String?
+          ? resolutionType
+          : this.resolutionType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deliveredAt: deliveredAt is DateTime? ? deliveredAt : this.deliveredAt,

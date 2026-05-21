@@ -43,6 +43,9 @@ abstract class Order implements _i1.SerializableModel {
     this.deliveryPersonPhone,
     this.deliveryOtp,
     this.couponApplied,
+    required this.orderType,
+    this.sourceOrderNumber,
+    this.complaintId,
   });
 
   factory Order({
@@ -72,6 +75,9 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     String? couponApplied,
+    required String orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
   }) = _OrderImpl;
 
   factory Order.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -124,6 +130,9 @@ abstract class Order implements _i1.SerializableModel {
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
       couponApplied: jsonSerialization['couponApplied'] as String?,
+      orderType: jsonSerialization['orderType'] as String,
+      sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
+      complaintId: jsonSerialization['complaintId'] as String?,
     );
   }
 
@@ -179,6 +188,12 @@ abstract class Order implements _i1.SerializableModel {
 
   String? couponApplied;
 
+  String orderType;
+
+  String? sourceOrderNumber;
+
+  String? complaintId;
+
   /// Returns a shallow copy of this [Order]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -209,6 +224,9 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     String? couponApplied,
+    String? orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -242,6 +260,9 @@ abstract class Order implements _i1.SerializableModel {
         'deliveryPersonPhone': deliveryPersonPhone,
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
       if (couponApplied != null) 'couponApplied': couponApplied,
+      'orderType': orderType,
+      if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
+      if (complaintId != null) 'complaintId': complaintId,
     };
   }
 
@@ -281,6 +302,9 @@ class _OrderImpl extends Order {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     String? couponApplied,
+    required String orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
   }) : super._(
          orderId: orderId,
          userId: userId,
@@ -308,6 +332,9 @@ class _OrderImpl extends Order {
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
          couponApplied: couponApplied,
+         orderType: orderType,
+         sourceOrderNumber: sourceOrderNumber,
+         complaintId: complaintId,
        );
 
   /// Returns a shallow copy of this [Order]
@@ -341,6 +368,9 @@ class _OrderImpl extends Order {
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
     Object? couponApplied = _Undefined,
+    String? orderType,
+    Object? sourceOrderNumber = _Undefined,
+    Object? complaintId = _Undefined,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -383,6 +413,11 @@ class _OrderImpl extends Order {
       couponApplied: couponApplied is String?
           ? couponApplied
           : this.couponApplied,
+      orderType: orderType ?? this.orderType,
+      sourceOrderNumber: sourceOrderNumber is String?
+          ? sourceOrderNumber
+          : this.sourceOrderNumber,
+      complaintId: complaintId is String? ? complaintId : this.complaintId,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/report_delivery_issue_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
@@ -78,7 +79,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _isLoading = true;
   bool _isCancelling = false;
   String? _error;
-  final Map<String, Complaint> _complaintsByItemId = {};
+  Complaint? _activeProductComplaint;
+  Complaint? _activeDeliveryComplaint;
   Worker? _ordersWorker;
 
   @override
@@ -99,7 +101,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final order = await OrderController.instance.fetchOrderById(widget.orderId);
     final refund = await RefundService.instance.getRefundStatus(widget.orderId);
     if (order != null) {
-      await _loadItemComplaints(order);
+      await _loadOrderComplaint(order);
     }
     if (mounted) {
       setState(() {
@@ -128,7 +130,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     setState(() {
       _order = updated;
     });
-    _loadItemComplaints(updated);
+    _loadOrderComplaint(updated);
   }
 
   @override
@@ -217,6 +219,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 padding: EdgeInsets.only(top: 16.h),
                 child: _buildActionsCard(order, cs),
               ),
+            SizedBox(height: 16.h),
+            _buildComplaintCta(order, cs),
             SizedBox(height: 16.h),
             _buildAddress(order, cs),
             SizedBox(height: 16.h),
@@ -634,121 +638,112 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Future<void> _loadItemComplaints(Order order) async {
-    if (order.status != 'delivered') return;
-    for (final item in order.items) {
-      final itemId = item.orderItemId;
-      if (itemId == null || itemId.isEmpty) continue;
-      if (_complaintsByItemId.containsKey(itemId)) continue;
-      try {
-        final complaint = await ProductComplaintService.instance
-            .getComplaintForOrderItem(itemId);
-        if (complaint != null && mounted) {
-          setState(() => _complaintsByItemId[itemId] = complaint);
+  Future<void> _loadOrderComplaint(Order order) async {
+    if (order.status == 'cancelled') return;
+    final complaintType = order.status == 'delivered' ? 'product' : 'delivery';
+    try {
+      final complaint = await ProductComplaintService.instance
+          .getActiveComplaintForOrder(
+            orderNumber: order.orderId,
+            complaintType: complaintType,
+          );
+      if (!mounted) return;
+      setState(() {
+        if (complaintType == 'product') {
+          _activeProductComplaint = complaint;
+        } else {
+          _activeDeliveryComplaint = complaint;
         }
-      } catch (_) {}
-    }
+      });
+    } catch (_) {}
   }
 
   Widget _buildComplaintControls(OrderItem item, ColorScheme cs) {
-    final order = _order!;
-    final itemId = item.orderItemId;
-    final complaint = itemId == null ? null : _complaintsByItemId[itemId];
-    final deliveredAt = order.deliveredAt;
-    final isDelivered = order.status == 'delivered' && deliveredAt != null;
+    return const SizedBox.shrink();
+  }
 
-    if (complaint != null) {
-      return Row(
+  Widget _buildComplaintCta(Order order, ColorScheme cs) {
+    if (order.status == 'cancelled') return const SizedBox.shrink();
+    final isDelivered = order.status == 'delivered';
+    final complaint = isDelivered
+        ? _activeProductComplaint
+        : _activeDeliveryComplaint;
+    final title = isDelivered
+        ? 'Report Product Issue'
+        : 'Report Delivery Issue';
+    final subtitle = complaint == null
+        ? (isDelivered
+              ? 'Select affected products and submit one complaint.'
+              : 'Submit one delivery-related complaint for this order.')
+        : 'Active complaint: ${complaint.status}';
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Row(
         children: [
+          Icon(Icons.report_problem_outlined, color: cs.primary),
+          SizedBox(width: 12.w),
           Expanded(
-            child: Text(
-              'Issue already reported',
-              style: TextStyle(
-                color: cs.onSurface.withValues(alpha: 0.65),
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.62),
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ],
             ),
           ),
-          TextButton(
-            onPressed: () => Get.to(
-              () => ComplaintDetailScreen(complaint: complaint),
-            ),
-            child: const Text('View Complaint'),
+          SizedBox(width: 10.w),
+          OutlinedButton(
+            onPressed: () async {
+              if (complaint != null) {
+                await Get.to(() => ComplaintDetailScreen(complaint: complaint));
+                return;
+              }
+              final result = await Get.to<Complaint>(
+                () => isDelivered
+                    ? ReportProductIssueScreen(
+                        orderNumber: order.orderId,
+                        items: order.items,
+                        activeComplaint: _activeProductComplaint,
+                      )
+                    : ReportDeliveryIssueScreen(
+                        orderNumber: order.orderId,
+                        activeComplaint: _activeDeliveryComplaint,
+                      ),
+              );
+              if (result != null && mounted) {
+                setState(() {
+                  if (result.complaintType == 'product') {
+                    _activeProductComplaint = result;
+                  } else {
+                    _activeDeliveryComplaint = result;
+                  }
+                });
+              }
+            },
+            child: Text(complaint == null ? 'Report' : 'View'),
           ),
         ],
-      );
-    }
-
-    // Show button but disable until delivered
-    bool isEnabled = isDelivered;
-    String? statusText;
-
-    if (!isDelivered) {
-      statusText = 'Available after delivery';
-    } else {
-      final deadline = deliveredAt.toLocal().add(const Duration(days: 3));
-      final expired = DateTime.now().isAfter(deadline);
-      if (expired) {
-        statusText = 'Complaint period expired';
-        isEnabled = false;
-      } else {
-        statusText = 'Available until ${_formatDate(deadline)}';
-      }
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            statusText,
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: isEnabled ? 0.62 : 0.55),
-              fontSize: 12.sp,
-              fontWeight: isEnabled ? FontWeight.w400 : FontWeight.w700,
-            ),
-          ),
-        ),
-        OutlinedButton.icon(
-          onPressed: itemId == null || itemId.isEmpty
-              ? null
-              : isEnabled
-              ? () async {
-                  final result = await Get.to<Complaint>(
-                    () => ReportProductIssueScreen(
-                      orderNumber: order.orderId,
-                      item: item,
-                    ),
-                  );
-                  if (result != null && mounted) {
-                    setState(() {
-                      _complaintsByItemId[result.orderItemId] = result;
-                    });
-                  }
-                }
-              : () {
-                  if (!isDelivered) {
-                    Get.snackbar(
-                      'Cannot Report Issue',
-                      'You can file a complaint only after the product is delivered.',
-                      duration: const Duration(seconds: 3),
-                      backgroundColor: Colors.orange.shade700,
-                      colorText: Colors.white,
-                    );
-                  } else {
-                    Get.snackbar(
-                      'Complaint Period Expired',
-                      'Complaints can be raised only within 3 days after delivery.',
-                      duration: const Duration(seconds: 3),
-                      backgroundColor: Colors.red.shade700,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-          icon: const Icon(Icons.report_problem_outlined),
-          label: const Text('Report Issue'),
-        ),
-      ],
+      ),
     );
   }
 

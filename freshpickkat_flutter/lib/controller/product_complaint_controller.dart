@@ -10,6 +10,7 @@ class ProductComplaintController extends GetxController {
   final issueTypes = ProductComplaintType.values;
   final selectedIssueType = ProductComplaintType.damagedProduct.obs;
   final selectedImages = <XFile>[].obs;
+  final selectedOrderItemIds = <String>[].obs;
   final isPicking = false.obs;
   final isSubmitting = false.obs;
   final submittedComplaint = Rxn<Complaint>();
@@ -49,13 +50,27 @@ class ProductComplaintController extends GetxController {
     selectedImages.remove(image);
   }
 
+  void toggleOrderItem(String orderItemId) {
+    final id = orderItemId.trim();
+    if (id.isEmpty) return;
+    if (selectedOrderItemIds.contains(id)) {
+      selectedOrderItemIds.remove(id);
+    } else {
+      selectedOrderItemIds.add(id);
+    }
+  }
+
   Future<Complaint> submit({
     required String orderNumber,
-    required String orderItemId,
+    List<String>? selectedOrderItemIdsOverride,
     required String description,
   }) async {
     if (isSubmitting.value) {
       throw Exception('Submission already in progress.');
+    }
+    final selectedIds = selectedOrderItemIdsOverride ?? selectedOrderItemIds;
+    if (selectedIds.isEmpty) {
+      throw Exception('Select at least one affected product.');
     }
     if (selectedImages.isEmpty) {
       throw Exception('Please attach at least one image.');
@@ -80,10 +95,11 @@ class ProductComplaintController extends GetxController {
           ),
         );
       }
-      final complaint = await _complaints.createComplaint(
+      final complaint = await _complaints.createProductComplaint(
         orderNumber: orderNumber,
-        orderItemId: orderItemId,
+        selectedOrderItemIds: selectedIds.toList(growable: false),
         issueType: selectedIssueType.value,
+        title: selectedIssueType.value,
         description: description,
         imageUrls: urls,
       );
@@ -96,6 +112,7 @@ class ProductComplaintController extends GetxController {
 
   void resetForm() {
     selectedIssueType.value = ProductComplaintType.damagedProduct;
+    selectedOrderItemIds.clear();
     selectedImages.clear();
     submittedComplaint.value = null;
   }

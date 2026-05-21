@@ -741,6 +741,68 @@ class EndpointComplaint extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<_i22.Complaint> createProductComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required List<String> selectedOrderItemIds,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'createProductComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+      'selectedOrderItemIds': selectedOrderItemIds,
+      'issueType': issueType,
+      'title': title,
+      'description': description,
+      'imageUrls': imageUrls,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> createDeliveryComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'createDeliveryComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+      'issueType': issueType,
+      'title': title,
+      'description': description,
+      'imageUrls': imageUrls,
+    },
+  );
+
+  _i2.Future<_i22.Complaint?> getActiveComplaintForOrder({
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String complaintType,
+  }) => caller.callServerEndpoint<_i22.Complaint?>(
+    'complaint',
+    'getActiveComplaintForOrder',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+      'complaintType': complaintType,
+    },
+  );
+
   _i2.Future<_i23.ComplaintPage> listMyComplaints({
     required String firebaseUid,
     required String idToken,
@@ -822,6 +884,8 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminNote,
+    String? resolutionType,
   }) => caller.callServerEndpoint<_i22.Complaint>(
     'complaint',
     'updateComplaintStatus',
@@ -830,6 +894,108 @@ class EndpointComplaint extends _i1.EndpointRef {
       'idToken': idToken,
       'complaintId': complaintId,
       'status': status,
+      'adminNote': adminNote,
+      'resolutionType': resolutionType,
+    },
+  );
+
+  _i2.Future<double> calculateRefundCap({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) => caller.callServerEndpoint<double>(
+    'complaint',
+    'calculateRefundCap',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> refundComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required double amount,
+    String? adminNote,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'refundComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+      'amount': amount,
+      'adminNote': adminNote,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> createReplacementOrder({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'createReplacementOrder',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+      'adminNote': adminNote,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> retryDelivery({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'retryDelivery',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+      'adminNote': adminNote,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> reassignRider({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required String riderName,
+    required String riderPhone,
+    String? adminNote,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'reassignRider',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+      'riderName': riderName,
+      'riderPhone': riderPhone,
+      'adminNote': adminNote,
+    },
+  );
+
+  _i2.Future<_i22.Complaint> rejectComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) => caller.callServerEndpoint<_i22.Complaint>(
+    'complaint',
+    'rejectComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+      'adminNote': adminNote,
     },
   );
 

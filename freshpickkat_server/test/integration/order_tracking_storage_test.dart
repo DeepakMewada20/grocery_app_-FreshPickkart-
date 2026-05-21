@@ -97,6 +97,9 @@ Future<String> _createPendingOrder(
     status: 'pending',
     paymentStatus: 'pending',
     refundStatus: 'none',
+    orderType: 'regular',
+    sourceOrderNumber: null,
+    complaintId: null,
     deliveryAddress: protocol.Address(
       street: '123 Tracking Rd',
       city: 'Testville',

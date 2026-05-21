@@ -1,0 +1,11 @@
+class: ComplaintProductItem
+fields:
+  orderItemId: String
+  productId: String
+  variantId: String?
+  productName: String
+  productImage: String
+  variantLabel: String?
+  quantity: int
+  unitPrice: double
+  totalPrice: double

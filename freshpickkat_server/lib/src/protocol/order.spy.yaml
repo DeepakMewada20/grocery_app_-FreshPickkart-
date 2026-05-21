@@ -26,3 +26,6 @@ fields:
   deliveryPersonPhone: String?
   deliveryOtp: String?
   couponApplied: String?
+  orderType: String
+  sourceOrderNumber: String?
+  complaintId: String?

@@ -282,6 +282,9 @@ class RazorpayWebhookRoute extends Route {
         country: '',
       ),
       orderedAt: row.orderedAt,
+      orderType: row.orderType,
+      sourceOrderNumber: row.sourceOrderNumber,
+      complaintId: row.complaintId,
     );
   }
 

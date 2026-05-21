@@ -107,6 +107,9 @@ class PostgresOrderService {
             discountAmount: order.discountAmount,
             deliveryFee: order.deliveryFee,
             finalAmount: order.finalAmount,
+            orderType: order.orderType,
+            sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
+            complaintId: cleanNullableString(order.complaintId),
             placedAt: now,
             deliveryOtp: deliveryOtp,
             orderedAt: now,
@@ -558,6 +561,9 @@ class PostgresOrderService {
           deliveryPersonName: order.deliveryPersonName,
           deliveryPersonPhone: order.deliveryPersonPhone,
           deliveryOtp: order.deliveryOtp,
+          orderType: order.orderType,
+          sourceOrderNumber: order.sourceOrderNumber,
+          complaintId: order.complaintId,
           couponApplied: order.couponId == null
               ? null
               : couponById[order.couponId!]?.code ?? order.couponId.toString(),

@@ -36,6 +36,80 @@ class ComplaintEndpoint extends Endpoint {
     );
   }
 
+  Future<Complaint> createProductComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required List<String> selectedOrderItemIds,
+    required String issueType,
+    String? title,
+    required String description,
+    required List<String> imageUrls,
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.createProductComplaint(
+      session,
+      user: user,
+      orderNumber: orderNumber,
+      selectedOrderItemIds: selectedOrderItemIds,
+      issueType: issueType,
+      title: title,
+      description: description,
+      imageUrls: imageUrls,
+    );
+  }
+
+  Future<Complaint> createDeliveryComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String issueType,
+    String? title,
+    required String description,
+    List<String> imageUrls = const [],
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.createDeliveryComplaint(
+      session,
+      user: user,
+      orderNumber: orderNumber,
+      issueType: issueType,
+      title: title,
+      description: description,
+      imageUrls: imageUrls,
+    );
+  }
+
+  Future<Complaint?> getActiveComplaintForOrder(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String orderNumber,
+    required String complaintType,
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.getActiveComplaintForOrder(
+      session,
+      user: user,
+      orderNumber: orderNumber,
+      complaintType: complaintType,
+    );
+  }
+
   Future<ComplaintPage> listMyComplaints(
     Session session, {
     required String firebaseUid,
@@ -136,6 +210,8 @@ class ComplaintEndpoint extends Endpoint {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminNote,
+    String? resolutionType,
   }) async {
     await _adminGuard.ensureAdminSeller(
       session,
@@ -146,6 +222,123 @@ class ComplaintEndpoint extends Endpoint {
       session,
       complaintId: complaintId,
       status: status,
+      adminNote: adminNote,
+      resolutionType: resolutionType,
+    );
+  }
+
+  Future<double> calculateRefundCap(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.calculateRefundCap(session, complaintId: complaintId);
+  }
+
+  Future<Complaint> refundComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required double amount,
+    String? adminNote,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.refundComplaint(
+      session,
+      complaintId: complaintId,
+      amount: amount,
+      adminNote: adminNote,
+    );
+  }
+
+  Future<Complaint> createReplacementOrder(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.createReplacementOrder(
+      session,
+      complaintId: complaintId,
+      adminNote: adminNote,
+    );
+  }
+
+  Future<Complaint> retryDelivery(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.retryDelivery(
+      session,
+      complaintId: complaintId,
+      adminNote: adminNote,
+    );
+  }
+
+  Future<Complaint> reassignRider(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    required String riderName,
+    required String riderPhone,
+    String? adminNote,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.reassignRider(
+      session,
+      complaintId: complaintId,
+      riderName: riderName,
+      riderPhone: riderPhone,
+      adminNote: adminNote,
+    );
+  }
+
+  Future<Complaint> rejectComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+    String? adminNote,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.rejectComplaint(
+      session,
+      complaintId: complaintId,
+      adminNote: adminNote,
     );
   }
 

@@ -37,12 +37,16 @@ abstract class CustomerOrderRow
     this.deliveryPersonName,
     this.deliveryPersonPhone,
     this.deliveryOtp,
+    String? orderType,
+    this.sourceOrderNumber,
+    this.complaintId,
     this.analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : discountAmount = discountAmount ?? 0.0,
        deliveryFee = deliveryFee ?? 0.0,
+       orderType = orderType ?? 'regular',
        orderedAt = orderedAt ?? DateTime.now(),
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -70,6 +74,9 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    String? orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -124,6 +131,9 @@ abstract class CustomerOrderRow
       deliveryPersonName: jsonSerialization['deliveryPersonName'] as String?,
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
+      orderType: jsonSerialization['orderType'] as String?,
+      sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
+      complaintId: jsonSerialization['complaintId'] as String?,
       analyticsProcessedAt: jsonSerialization['analyticsProcessedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -190,6 +200,12 @@ abstract class CustomerOrderRow
 
   String? deliveryOtp;
 
+  String orderType;
+
+  String? sourceOrderNumber;
+
+  String? complaintId;
+
   DateTime? analyticsProcessedAt;
 
   DateTime orderedAt;
@@ -227,6 +243,9 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    String? orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -260,6 +279,9 @@ abstract class CustomerOrderRow
       if (deliveryPersonPhone != null)
         'deliveryPersonPhone': deliveryPersonPhone,
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
+      'orderType': orderType,
+      if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
+      if (complaintId != null) 'complaintId': complaintId,
       if (analyticsProcessedAt != null)
         'analyticsProcessedAt': analyticsProcessedAt?.toJson(),
       'orderedAt': orderedAt.toJson(),
@@ -329,6 +351,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    String? orderType,
+    String? sourceOrderNumber,
+    String? complaintId,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -356,6 +381,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          deliveryPersonName: deliveryPersonName,
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
+         orderType: orderType,
+         sourceOrderNumber: sourceOrderNumber,
+         complaintId: complaintId,
          analyticsProcessedAt: analyticsProcessedAt,
          orderedAt: orderedAt,
          createdAt: createdAt,
@@ -389,6 +417,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? deliveryPersonName = _Undefined,
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
+    String? orderType,
+    Object? sourceOrderNumber = _Undefined,
+    Object? complaintId = _Undefined,
     Object? analyticsProcessedAt = _Undefined,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -425,6 +456,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
           ? deliveryPersonPhone
           : this.deliveryPersonPhone,
       deliveryOtp: deliveryOtp is String? ? deliveryOtp : this.deliveryOtp,
+      orderType: orderType ?? this.orderType,
+      sourceOrderNumber: sourceOrderNumber is String?
+          ? sourceOrderNumber
+          : this.sourceOrderNumber,
+      complaintId: complaintId is String? ? complaintId : this.complaintId,
       analyticsProcessedAt: analyticsProcessedAt is DateTime?
           ? analyticsProcessedAt
           : this.analyticsProcessedAt,
@@ -558,6 +594,22 @@ class CustomerOrderRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<String, String> orderType(String value) => _i1.ColumnValue(
+    table.orderType,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> sourceOrderNumber(String? value) =>
+      _i1.ColumnValue(
+        table.sourceOrderNumber,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> complaintId(String? value) => _i1.ColumnValue(
+    table.complaintId,
+    value,
+  );
+
   _i1.ColumnValue<DateTime, DateTime> analyticsProcessedAt(DateTime? value) =>
       _i1.ColumnValue(
         table.analyticsProcessedAt,
@@ -673,6 +725,19 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'deliveryOtp',
       this,
     );
+    orderType = _i1.ColumnString(
+      'orderType',
+      this,
+      hasDefault: true,
+    );
+    sourceOrderNumber = _i1.ColumnString(
+      'sourceOrderNumber',
+      this,
+    );
+    complaintId = _i1.ColumnString(
+      'complaintId',
+      this,
+    );
     analyticsProcessedAt = _i1.ColumnDateTime(
       'analyticsProcessedAt',
       this,
@@ -738,6 +803,12 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString deliveryOtp;
 
+  late final _i1.ColumnString orderType;
+
+  late final _i1.ColumnString sourceOrderNumber;
+
+  late final _i1.ColumnString complaintId;
+
   late final _i1.ColumnDateTime analyticsProcessedAt;
 
   late final _i1.ColumnDateTime orderedAt;
@@ -770,6 +841,9 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     deliveryPersonName,
     deliveryPersonPhone,
     deliveryOtp,
+    orderType,
+    sourceOrderNumber,
+    complaintId,
     analyticsProcessedAt,
     orderedAt,
     createdAt,

@@ -24,6 +24,9 @@ fields:
   deliveryPersonName: String?
   deliveryPersonPhone: String?
   deliveryOtp: String?
+  orderType: String, default='regular'
+  sourceOrderNumber: String?
+  complaintId: String?
   analyticsProcessedAt: DateTime?
   orderedAt: DateTime, defaultModel=now, defaultPersist=now
   createdAt: DateTime, defaultModel=now, defaultPersist=now

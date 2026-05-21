@@ -21,6 +21,9 @@ abstract class RefundRecord implements _i1.SerializableModel {
     required this.amount,
     required this.status,
     this.gatewayRefundId,
+    required this.source,
+    required this.reason,
+    this.complaintId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -33,6 +36,9 @@ abstract class RefundRecord implements _i1.SerializableModel {
     required double amount,
     required String status,
     String? gatewayRefundId,
+    required String source,
+    required String reason,
+    String? complaintId,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) = _RefundRecordImpl;
@@ -46,6 +52,9 @@ abstract class RefundRecord implements _i1.SerializableModel {
       amount: (jsonSerialization['amount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       gatewayRefundId: jsonSerialization['gatewayRefundId'] as String?,
+      source: jsonSerialization['source'] as String,
+      reason: jsonSerialization['reason'] as String,
+      complaintId: jsonSerialization['complaintId'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -69,6 +78,12 @@ abstract class RefundRecord implements _i1.SerializableModel {
 
   String? gatewayRefundId;
 
+  String source;
+
+  String reason;
+
+  String? complaintId;
+
   DateTime createdAt;
 
   DateTime? updatedAt;
@@ -84,6 +99,9 @@ abstract class RefundRecord implements _i1.SerializableModel {
     double? amount,
     String? status,
     String? gatewayRefundId,
+    String? source,
+    String? reason,
+    String? complaintId,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -98,6 +116,9 @@ abstract class RefundRecord implements _i1.SerializableModel {
       'amount': amount,
       'status': status,
       if (gatewayRefundId != null) 'gatewayRefundId': gatewayRefundId,
+      'source': source,
+      'reason': reason,
+      if (complaintId != null) 'complaintId': complaintId,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -120,6 +141,9 @@ class _RefundRecordImpl extends RefundRecord {
     required double amount,
     required String status,
     String? gatewayRefundId,
+    required String source,
+    required String reason,
+    String? complaintId,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -130,6 +154,9 @@ class _RefundRecordImpl extends RefundRecord {
          amount: amount,
          status: status,
          gatewayRefundId: gatewayRefundId,
+         source: source,
+         reason: reason,
+         complaintId: complaintId,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -146,6 +173,9 @@ class _RefundRecordImpl extends RefundRecord {
     double? amount,
     String? status,
     Object? gatewayRefundId = _Undefined,
+    String? source,
+    String? reason,
+    Object? complaintId = _Undefined,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
   }) {
@@ -159,6 +189,9 @@ class _RefundRecordImpl extends RefundRecord {
       gatewayRefundId: gatewayRefundId is String?
           ? gatewayRefundId
           : this.gatewayRefundId,
+      source: source ?? this.source,
+      reason: reason ?? this.reason,
+      complaintId: complaintId is String? ? complaintId : this.complaintId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
     );

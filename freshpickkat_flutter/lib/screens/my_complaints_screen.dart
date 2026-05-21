@@ -106,7 +106,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                                     child: Image.network(
                                       complaint.imageUrls.isNotEmpty
                                           ? complaint.imageUrls.first
-                                          : complaint.productImage,
+                                          : (complaint.productImage ?? ''),
                                       width: 56.r,
                                       height: 56.r,
                                       fit: BoxFit.cover,
@@ -121,7 +121,8 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          complaint.productName,
+                                          (complaint.productName ??
+                                              complaint.title),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(

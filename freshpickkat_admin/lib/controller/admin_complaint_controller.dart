@@ -67,6 +67,114 @@ class AdminComplaintController extends GetxController {
     return updated;
   }
 
+  Future<double> calculateRefundCap(Complaint complaint) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.calculateRefundCap(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+      );
+    });
+  }
+
+  Future<Complaint> refundComplaint(
+    Complaint complaint, {
+    required double amount,
+    String? adminNote,
+  }) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.refundComplaint(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+        amount: amount,
+        adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Complaint> createReplacementOrder(
+    Complaint complaint, {
+    String? adminNote,
+  }) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.createReplacementOrder(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+        adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Complaint> retryDelivery(
+    Complaint complaint, {
+    String? adminNote,
+  }) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.retryDelivery(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+        adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Complaint> reassignRider(
+    Complaint complaint, {
+    required String riderName,
+    required String riderPhone,
+    String? adminNote,
+  }) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.reassignRider(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+        riderName: riderName,
+        riderPhone: riderPhone,
+        adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Complaint> rejectComplaint(
+    Complaint complaint, {
+    String? adminNote,
+  }) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.rejectComplaint(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
+        adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
   void _replace(Complaint updated) {
     final index = complaints.indexWhere(
       (item) => item.complaintId == updated.complaintId,

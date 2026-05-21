@@ -717,6 +717,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       refundStatus: 'none',
       deliveryAddress: deliveryAddress,
       orderedAt: DateTime.now(),
+      orderType: 'regular',
+      sourceOrderNumber: null,
+      complaintId: null,
       couponApplied: cartController.appliedCoupon.value?.code,
     );
   }

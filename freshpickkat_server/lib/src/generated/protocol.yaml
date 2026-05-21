@@ -53,12 +53,21 @@ comboOffer:
   - checkApplicableCombos:
 complaint:
   - createComplaint:
+  - createProductComplaint:
+  - createDeliveryComplaint:
+  - getActiveComplaintForOrder:
   - listMyComplaints:
   - getMyComplaint:
   - getComplaintForOrderItem:
   - listComplaints:
   - getComplaintAdmin:
   - updateComplaintStatus:
+  - calculateRefundCap:
+  - refundComplaint:
+  - createReplacementOrder:
+  - retryDelivery:
+  - reassignRider:
+  - rejectComplaint:
   - replyToComplaint:
 coupon:
   - fetchCoupons:
