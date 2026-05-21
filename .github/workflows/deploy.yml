@@ -1,0 +1,38 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Remote Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
+
+            # 1. Latest code repository se pull karein
+            git pull origin master
+
+            # 2. Naya Docker image build karein
+            docker compose -f docker-compose.prod.yaml build
+
+            # 3. Serverpod Migrations automatic apply karein (Safe & Non-destructive)
+            docker compose -f docker-compose.prod.yaml run --rm \
+              --entrypoint /app/server \
+              -e SERVERPOD_RUN_MODE=production \
+              server --apply-migrations
+
+            # 4. Containers ko minimal downtime ke sath update karein
+            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
