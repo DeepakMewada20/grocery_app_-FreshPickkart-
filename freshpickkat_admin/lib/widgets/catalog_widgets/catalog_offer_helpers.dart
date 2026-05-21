@@ -2,11 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
-List<Coupon> filterCatalogCoupons(List<Coupon> coupons, String query) {
-  final normalized = query.toLowerCase().trim();
-  if (normalized.isEmpty) return coupons;
+List<Coupon> filterCatalogCouponsByStatus(
+  List<Coupon> coupons,
+  String statusFilter,
+) {
+  switch (statusFilter) {
+    case 'live':
+      return coupons.where(isCatalogCouponLive).toList();
+    case 'inactive':
+      return coupons.where((coupon) => !coupon.isActive).toList();
+    default:
+      return coupons;
+  }
+}
 
-  return coupons.where((coupon) {
+List<Coupon> filterCatalogCoupons(
+  List<Coupon> coupons,
+  String query, {
+  String statusFilter = 'all',
+}) {
+  final byStatus = filterCatalogCouponsByStatus(coupons, statusFilter);
+  final normalized = query.toLowerCase().trim();
+  if (normalized.isEmpty) return byStatus;
+
+  return byStatus.where((coupon) {
     return coupon.code.toLowerCase().contains(normalized) ||
         coupon.description.toLowerCase().contains(normalized) ||
         coupon.couponCategory.toLowerCase().contains(normalized) ||

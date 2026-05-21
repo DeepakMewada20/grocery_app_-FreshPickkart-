@@ -10,13 +10,12 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class CatalogCouponsTab extends StatelessWidget {
+class CatalogCouponsTab extends StatefulWidget {
   const CatalogCouponsTab({
     super.key,
     required this.controller,
     required this.searchQuery,
     required this.onSearchChanged,
-    required this.onCreateCoupon,
     required this.onEditCoupon,
     required this.onDeleteCoupon,
   });
@@ -24,9 +23,15 @@ class CatalogCouponsTab extends StatelessWidget {
   final AdminCouponController controller;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
-  final VoidCallback onCreateCoupon;
   final ValueChanged<Coupon> onEditCoupon;
   final ValueChanged<Coupon> onDeleteCoupon;
+
+  @override
+  State<CatalogCouponsTab> createState() => _CatalogCouponsTabState();
+}
+
+class _CatalogCouponsTabState extends State<CatalogCouponsTab> {
+  String _statusFilter = 'all';
 
   String _couponTypeLabel(Coupon coupon) {
     if (coupon.type != null && coupon.type!.trim().isNotEmpty) {
@@ -44,10 +49,14 @@ class CatalogCouponsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final coupons = controller.coupons;
-      final visibleCoupons = filterCatalogCoupons(coupons, searchQuery);
-      final isLoading = controller.isLoading.value;
-      final error = controller.error.value;
+      final coupons = widget.controller.coupons;
+      final visibleCoupons = filterCatalogCoupons(
+        coupons,
+        widget.searchQuery,
+        statusFilter: _statusFilter,
+      );
+      final isLoading = widget.controller.isLoading.value;
+      final error = widget.controller.error.value;
       final liveCoupons = coupons.where(isCatalogCouponLive).length;
       final inactiveCoupons = coupons
           .where((coupon) => !coupon.isActive)
@@ -60,123 +69,96 @@ class CatalogCouponsTab extends StatelessWidget {
       if (error != null && coupons.isEmpty) {
         return AdminStateView.error(
           message: error,
-          onRetry: controller.loadCoupons,
+          onRetry: widget.controller.loadCoupons,
+        );
+      }
+
+      if (coupons.isEmpty) {
+        return AdminStateView.empty(
+          title: 'No coupons yet',
+          message: 'Tap Add Coupon to create your first discount code.',
+          onRefresh: widget.controller.loadCoupons,
         );
       }
 
       return RefreshIndicator(
-        onRefresh: controller.loadCoupons,
+        onRefresh: widget.controller.loadCoupons,
         child: AdminResponsive.constrainContent(
           context: context,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: AdminResponsive.pagePadding(
-              context,
-            ).copyWith(bottom: AdminResponsive.bottomInset(context) + 78.h),
+            padding: AdminResponsive.pagePadding(context).copyWith(
+              top: 12.h,
+              bottom: AdminResponsive.bottomInset(context) + 78.h,
+            ),
             children: [
-              Text('Coupons', style: AdminTextStyles.screenTitle(context)),
-              SizedBox(height: 6.h),
-              Text(
-                'Coupon codes, coupon types, and active campaign summary',
-                style: AdminTextStyles.body(
-                  context,
-                ).copyWith(color: AdminAppTheme.getTextSecondaryColor(context)),
+              CatalogOffersTypeFilterBar(
+                selectedValue: _statusFilter,
+                onSelected: (value) => setState(() => _statusFilter = value),
+                items: [
+                  CatalogOfferTypeFilterItem(
+                    value: 'all',
+                    label: 'All',
+                    count: '${coupons.length}',
+                    icon: Icons.sell_outlined,
+                    accentColor: AdminThemeTokens.toneBlue,
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'live',
+                    label: 'Live',
+                    count: '$liveCoupons',
+                    icon: Icons.local_offer_rounded,
+                    accentColor: AdminAppTheme.getSuccessColor(context),
+                    subtitle: 'Running now',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'inactive',
+                    label: 'Inactive',
+                    count: '$inactiveCoupons',
+                    icon: Icons.pause_circle_outline,
+                    accentColor: AdminThemeTokens.toneNeutral,
+                  ),
+                ],
               ),
-              SizedBox(height: 16.h),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final columns = constraints.maxWidth < 360 ? 1 : 2;
-                  final spacing = 12.w;
-                  final width =
-                      (constraints.maxWidth - ((columns - 1) * spacing)) /
-                      columns;
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: 12.h,
-                    children: [
-                      SizedBox(
-                        width: width,
-                        child: CatalogStatCard(
-                          title: 'All Coupons',
-                          value: '${coupons.length}',
-                          icon: Icons.sell_outlined,
-                          color: AdminThemeTokens.toneBlue,
-                          breakdown: [
-                            CatalogStatBreakdown(
-                              label: 'Live',
-                              value: '$liveCoupons',
-                              color: AdminAppTheme.getSuccessColor(context),
-                            ),
-                            CatalogStatBreakdown(
-                              label: 'Inactive',
-                              value: '$inactiveCoupons',
-                              color: AdminAppTheme.getErrorColor(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: width,
-                        child: CatalogStatCard(
-                          title: 'Visible',
-                          value: '${visibleCoupons.length}',
-                          icon: Icons.visibility_outlined,
-                          color: AdminThemeTokens.toneBrown,
-                          breakdown: [
-                            CatalogStatBreakdown(
-                              label: 'Search Match',
-                              value: '${visibleCoupons.length}',
-                              color: AdminAppTheme.getBlueGreyColor(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              SizedBox(height: 16.h),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final search = TextField(
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Search coupon code or description',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+              SizedBox(height: 10.h),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search coupon code or description',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AdminAppTheme.getBorderColor(context),
                     ),
-                    onChanged: onSearchChanged,
-                  );
-                  final create = FilledButton.icon(
-                    onPressed: onCreateCoupon,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create'),
-                  );
-                  if (constraints.maxWidth < 420) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        search,
-                        SizedBox(height: 10.h),
-                        create,
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(child: search),
-                      SizedBox(width: 12.w),
-                      create,
-                    ],
-                  );
-                },
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AdminAppTheme.getBorderColor(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(
+                      color: AdminAppTheme.getSuccessColor(context),
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: AdminAppTheme.getInputSurfaceColor(context),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                ),
+                onChanged: widget.onSearchChanged,
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 12.h),
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      'Coupon List',
+                      'Coupons',
                       style: AdminTextStyles.sectionTitle(context),
                     ),
                   ),
@@ -188,140 +170,34 @@ class CatalogCouponsTab extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 10.h),
               if (visibleCoupons.isEmpty)
-                const Card(
+                Card(
                   child: Padding(
-                    padding: EdgeInsets.all(18),
-                    child: Text('No matching coupons'),
+                    padding: AdminResponsive.cardPadding(context),
+                    child: Text(
+                      widget.searchQuery.trim().isNotEmpty ||
+                              _statusFilter != 'all'
+                          ? 'No coupons matched the selected filters'
+                          : 'No coupons to show',
+                      style: AdminTextStyles.body(context),
+                    ),
                   ),
                 )
               else
-                ...visibleCoupons.map((coupon) {
-                  final statusColor = catalogCouponStatusColor(context, coupon);
-                  final valueLabel = catalogCouponValueLabel(coupon);
-                  return Card(
-                    margin: EdgeInsets.only(bottom: 12.h),
-                    child: Padding(
-                      padding: AdminResponsive.cardPadding(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      coupon.code,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 16,
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      coupon.description,
-                                      style: TextStyle(
-                                        color:
-                                            AdminAppTheme.getTextPrimaryColor(
-                                              context,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Switch(
-                                value: coupon.isActive,
-                                onChanged: (value) => controller
-                                    .setCouponActive(coupon.code, value),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 10.h),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              CatalogInlineBadge(
-                                label: catalogCouponStatusLabel(coupon),
-                                color: statusColor,
-                              ),
-                              CatalogInlineBadge(
-                                label: _couponTypeLabel(coupon),
-                                color: AdminThemeTokens.toneSlate,
-                              ),
-                              CatalogInlineBadge(
-                                label: valueLabel,
-                                color: AdminThemeTokens.toneBrownSoft,
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 12.h),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(12.r),
-                            decoration: BoxDecoration(
-                              color: AdminAppTheme.getInputSurfaceColor(
-                                context,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AdminAppTheme.getBorderColor(context),
-                              ),
-                            ),
-                            child: Wrap(
-                              spacing: 14,
-                              runSpacing: 8,
-                              children: [
-                                Text(
-                                  'Min order ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
-                                ),
-                                Text('Used ${coupon.usedCount}'),
-                                if (coupon.maxDiscount != null)
-                                  Text(
-                                    'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
-                                  ),
-                                if (coupon.usageLimit != null)
-                                  Text('Limit ${coupon.usageLimit}'),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 10.h),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Duration: ${catalogDateLabel(coupon.startDate)} to ${catalogDateLabel(coupon.endDate)}',
-                                  style: TextStyle(
-                                    color: AdminAppTheme.getTextSecondaryColor(
-                                      context,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () => onEditCoupon(coupon),
-                                icon: const Icon(Icons.edit_outlined),
-                                tooltip: 'Edit',
-                              ),
-                              IconButton(
-                                onPressed: () => onDeleteCoupon(coupon),
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Delete',
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
+                ...visibleCoupons.map(
+                  (coupon) => _CatalogCouponCard(
+                    coupon: coupon,
+                    couponTypeLabel: _couponTypeLabel(coupon),
+                    statusColor: catalogCouponStatusColor(context, coupon),
+                    statusLabel: catalogCouponStatusLabel(coupon),
+                    valueLabel: catalogCouponValueLabel(coupon),
+                    onToggle: (value) =>
+                        widget.controller.setCouponActive(coupon.code, value),
+                    onEdit: () => widget.onEditCoupon(coupon),
+                    onDelete: () => widget.onDeleteCoupon(coupon),
+                  ),
+                ),
             ],
           ),
         ),
@@ -329,6 +205,192 @@ class CatalogCouponsTab extends StatelessWidget {
     });
   }
 }
+
+class _CatalogCouponCard extends StatelessWidget {
+  const _CatalogCouponCard({
+    required this.coupon,
+    required this.couponTypeLabel,
+    required this.statusColor,
+    required this.statusLabel,
+    required this.valueLabel,
+    required this.onToggle,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final Coupon coupon;
+  final String couponTypeLabel;
+  final Color statusColor;
+  final String statusLabel;
+  final String valueLabel;
+  final ValueChanged<bool> onToggle;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 12.h),
+      child: Padding(
+        padding: AdminResponsive.cardPadding(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        coupon.code,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16.sp.clamp(14.0, 17.0),
+                          letterSpacing: 0.3,
+                          color: AdminAppTheme.getTextPrimaryColor(context),
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        coupon.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AdminAppTheme.getTextSecondaryColor(context),
+                          fontSize: 13.sp.clamp(12.0, 14.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  splashRadius: 18,
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'toggle':
+                        onToggle(!coupon.isActive);
+                        break;
+                      case 'edit':
+                        onEdit();
+                        break;
+                      case 'delete':
+                        onDelete();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Row(
+                        children: [
+                          Icon(
+                            coupon.isActive
+                                ? Icons.toggle_off
+                                : Icons.toggle_on,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(coupon.isActive ? 'Deactivate' : 'Activate'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                CatalogInlineBadge(label: statusLabel, color: statusColor),
+                CatalogInlineBadge(
+                  label: couponTypeLabel,
+                  color: AdminThemeTokens.toneSlate,
+                ),
+                CatalogInlineBadge(
+                  label: valueLabel,
+                  color: AdminThemeTokens.toneBrownSoft,
+                ),
+                CatalogInlineBadge(
+                  label: coupon.isActive ? 'Enabled' : 'Disabled',
+                  color: coupon.isActive
+                      ? AdminAppTheme.getSuccessColor(context)
+                      : AdminAppTheme.getNeutralColor(context),
+                ),
+              ],
+            ),
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 12,
+              runSpacing: 6,
+              children: [
+                Text(
+                  'Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                  style: AdminTextStyles.caption(context),
+                ),
+                Text(
+                  'Used ${coupon.usedCount}',
+                  style: AdminTextStyles.caption(context),
+                ),
+                if (coupon.maxDiscount != null)
+                  Text(
+                    'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                    style: AdminTextStyles.caption(context),
+                  ),
+                if (coupon.usageLimit != null)
+                  Text(
+                    'Limit ${coupon.usageLimit}',
+                    style: AdminTextStyles.caption(context),
+                  ),
+              ],
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              '${catalogDateLabel(coupon.startDate)} → ${catalogDateLabel(coupon.endDate)}',
+              style: AdminTextStyles.caption(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Bottom sheet dialogs below (unchanged from previous implementation)
 
 Future<void> showAddCouponDialog({
   required BuildContext context,

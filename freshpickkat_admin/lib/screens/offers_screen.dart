@@ -271,17 +271,26 @@ class _OffersScreenState extends State<OffersScreen> {
                         ],
                       ),
                     ),
-                    CatalogCouponsTab(
-                      controller: _couponController,
-                      searchQuery: _couponSearchQuery,
-                      onSearchChanged: (value) {
-                        setState(() {
-                          _couponSearchQuery = value;
-                        });
-                      },
-                      onCreateCoupon: _openAddCouponDialog,
-                      onEditCoupon: _openEditCouponDialog,
-                      onDeleteCoupon: _openDeleteCouponDialog,
+                    Scaffold(
+                      backgroundColor: AdminThemeTokens.transparent,
+                      floatingActionButton: FloatingActionButton.extended(
+                        onPressed: _openAddCouponDialog,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Coupon'),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: AdminThemeTokens.white,
+                      ),
+                      body: CatalogCouponsTab(
+                        controller: _couponController,
+                        searchQuery: _couponSearchQuery,
+                        onSearchChanged: (value) {
+                          setState(() {
+                            _couponSearchQuery = value;
+                          });
+                        },
+                        onEditCoupon: _openEditCouponDialog,
+                        onDeleteCoupon: _openDeleteCouponDialog,
+                      ),
                     ),
                     const FreeDeliveryScreen(),
                     const BannersScreen(),
