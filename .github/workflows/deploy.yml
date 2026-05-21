@@ -41,11 +41,12 @@ jobs:
             echo "--- 3. Building New Docker Images ---"
             docker compose -f docker-compose.prod.yaml build
             
-            echo "--- 4. Running Serverpod Migrations (Safe Isolated Container) ---"
+            echo "--- 4. Running Serverpod Migrations (Maintenance Mode) ---"
+            # --role maintenance lagane se ye server ko start nahi karega, sirf migration lagakar exit ho jayega
             docker compose -f docker-compose.prod.yaml run --rm \
               --entrypoint /app/server \
               -e SERVERPOD_RUN_MODE=production \
-              server --apply-migrations
+              server --apply-migrations --role maintenance
             
             echo "--- 5. Starting Main Containers in Background ---"
             docker compose -f docker-compose.prod.yaml up -d --remove-orphans
