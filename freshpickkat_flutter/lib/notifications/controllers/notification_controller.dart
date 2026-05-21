@@ -13,6 +13,7 @@ import 'package:freshpickkat_flutter/notifications/services/notification_topic_s
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
+import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart';
 import 'package:get/get.dart';
@@ -246,6 +247,13 @@ class NotificationController extends GetxController {
       case 'offer':
       case 'bogo':
         await Get.to(() => OffersScreen(highlightOfferId: entityId));
+        return;
+      case 'order_paid':
+      case 'order_status':
+        final orderId = data['orderId'];
+        if (orderId != null && orderId.isNotEmpty) {
+          await Get.to(() => OrderDetailScreen(orderId: orderId));
+        }
         return;
       case 'delivery_started':
         final orderId = data['orderId'];

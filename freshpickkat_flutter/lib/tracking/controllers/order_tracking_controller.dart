@@ -88,19 +88,41 @@ class OrderTrackingController extends GetxController {
         .listen(
           _handleSnapshot,
           onError: (Object e, StackTrace st) {
-            // Fallback to HTTP polling if WebSocket stream fails
-            print('⚠️ WebSocket live stream failed: $e. Falling back to HTTP polling.');
-            _subscription?.cancel();
-            _subscription = _repository.watchOrder(orderId).listen(
-              _handleSnapshot,
-              onError: (Object pollErr, StackTrace pollSt) {
-                error.value = pollErr.toString();
-                isLoading.value = false;
-              },
+            unawaited(_startPollingFallback(orderId, e));
+          },
+          onDone: () {
+            if (_activeOrderId != orderId ||
+                tracking.value?.isDelivered == true) {
+              return;
+            }
+            unawaited(
+              _startPollingFallback(orderId, 'WebSocket stream closed.'),
             );
           },
         );
     isListening.value = true;
+  }
+
+  Future<void> _startPollingFallback(String orderId, Object reason) async {
+    if (_activeOrderId != orderId) return;
+
+    await _subscription?.cancel();
+    if (_activeOrderId != orderId) return;
+
+    _subscription = _repository
+        .watchOrder(orderId)
+        .listen(
+          _handleSnapshot,
+          onError: (Object pollErr, StackTrace pollSt) {
+            if (_activeOrderId != orderId) return;
+            error.value = pollErr.toString();
+            isLoading.value = false;
+          },
+          onDone: () {
+            if (_activeOrderId != orderId) return;
+            isListening.value = false;
+          },
+        );
   }
 
   void _handleSnapshot(OrderTrackingSnapshot? snapshot) {
@@ -128,7 +150,8 @@ class OrderTrackingController extends GetxController {
                 previous.longitude,
                 next.latitude,
                 next.longitude,
-              ) >= 20) {
+              ) >=
+              20) {
         riderPosition.value = next;
         _updateDistanceAndEta(previous, next, user);
         unawaited(_maybeBuildRoute(user, next));

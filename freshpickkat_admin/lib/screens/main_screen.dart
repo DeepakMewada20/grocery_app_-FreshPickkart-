@@ -9,6 +9,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
 import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
+import 'package:freshpickkat_admin/services/admin_notification_navigation_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 
 import 'dashboard_screen.dart';
@@ -26,6 +27,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  Worker? _orderFocusWorker;
 
   List<Widget> get _screens => const [
     DashboardScreen(),
@@ -35,7 +37,10 @@ class _MainScreenState extends State<MainScreen> {
     SettingsScreen(),
   ];
 
-  late final List<bool> _builtScreens = List.generate(_screens.length, (index) => index == 0);
+  late final List<bool> _builtScreens = List.generate(
+    _screens.length,
+    (index) => index == 0,
+  );
 
   @override
   void initState() {
@@ -47,6 +52,19 @@ class _MainScreenState extends State<MainScreen> {
     Get.lazyPut(() => AdminDashboardController());
     Get.lazyPut(() => AdminCouponController());
     Get.lazyPut(() => LiveDeliveryController());
+    final pendingOrderId =
+        AdminNotificationNavigationService.instance.focusedOrderId.value;
+    if (pendingOrderId != null && pendingOrderId.isNotEmpty) {
+      _selectedIndex = 1;
+      _builtScreens[1] = true;
+    }
+    _orderFocusWorker = ever<String?>(
+      AdminNotificationNavigationService.instance.focusedOrderId,
+      (orderId) {
+        if (orderId == null || orderId.isEmpty) return;
+        _selectTab(1);
+      },
+    );
     unawaited(_startRealtime());
   }
 
@@ -54,6 +72,12 @@ class _MainScreenState extends State<MainScreen> {
     try {
       await AdminRealtimeService.instance.start();
     } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _orderFocusWorker?.dispose();
+    super.dispose();
   }
 
   @override
@@ -168,5 +192,4 @@ class _MainScreenState extends State<MainScreen> {
       label: Text('Settings'),
     ),
   ];
-
 }

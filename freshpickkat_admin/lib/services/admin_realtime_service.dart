@@ -43,10 +43,20 @@ class AdminRealtimeService extends GetxService {
       _activeUid = user.uid;
       _adminOrdersSubscription = _client.orderRealtime
           .watchAdminOrders(uid, idToken)
-          .listen(_handleEvent, onError: (_) {});
+          .listen(
+            _handleEvent,
+            onError: (Object error, StackTrace stackTrace) =>
+                _adminOrdersSubscription = null,
+            onDone: () => _adminOrdersSubscription = null,
+          );
       _dashboardSubscription = _client.orderRealtime
           .watchDashboardUpdates(uid, idToken)
-          .listen(_handleEvent, onError: (_) {});
+          .listen(
+            _handleEvent,
+            onError: (Object error, StackTrace stackTrace) =>
+                _dashboardSubscription = null,
+            onDone: () => _dashboardSubscription = null,
+          );
     } finally {
       _starting = false;
     }

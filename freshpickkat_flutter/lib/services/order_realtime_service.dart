@@ -35,7 +35,12 @@ class OrderRealtimeService extends GetxService {
       _activeUserId = user.uid;
       _subscription = _client.orderRealtime
           .watchUserOrders(user.uid, idToken)
-          .listen(_handleEvent, onError: (_) {});
+          .listen(
+            _handleEvent,
+            onError: (Object error, StackTrace stackTrace) =>
+                _subscription = null,
+            onDone: () => _subscription = null,
+          );
     } finally {
       _starting = false;
     }

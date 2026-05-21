@@ -50,8 +50,8 @@ class AdminOrderController extends GetxController {
     hasMore.value = _hasMoreMap[statusFilter] ?? true;
     error.value = null;
 
-    if (currentFilteredCount < 10 && hasMore.value) {
-      await loadMore(isInitial: orders.isEmpty);
+    if (force || (currentFilteredCount < 10 && hasMore.value)) {
+      await loadMore(isInitial: force || orders.isEmpty);
     }
   }
 
@@ -129,6 +129,24 @@ class AdminOrderController extends GetxController {
       isLoading.value = false;
       isLoadingMore.value = false;
     }
+  }
+
+  Future<bool> loadOrderForFocus(String orderId) async {
+    final target = orderId.trim();
+    if (target.isEmpty) return false;
+
+    statusFilter = 'all';
+    await loadInitial(status: 'all', force: true);
+    if (orders.any((order) => order.orderId == target)) return true;
+
+    var pagesScanned = 0;
+    while (hasMore.value && pagesScanned < 25) {
+      pagesScanned += 1;
+      await loadMore();
+      if (orders.any((order) => order.orderId == target)) return true;
+    }
+
+    return false;
   }
 
   Future<void> updateOrderStatus(

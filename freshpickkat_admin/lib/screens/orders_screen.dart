@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
+import 'package:freshpickkat_admin/services/admin_notification_navigation_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -25,8 +28,14 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   final AdminOrderController _orderController = AdminOrderController.instance;
   final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _orderCardKeys = <String, GlobalKey>{};
+
   bool _isSearching = false;
   String _searchQuery = '';
+  Worker? _orderFocusWorker;
+  Timer? _highlightTimer;
+  String? _highlightedOrderId;
+  bool _handlingOrderFocus = false;
 
   Color _getStatusColor(String status) {
     return AdminAppTheme.getOrderStatusColor(context, status);
@@ -36,11 +45,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
+    _orderFocusWorker = ever<String?>(
+      AdminNotificationNavigationService.instance.focusedOrderId,
+      (orderId) {
+        if (orderId == null || orderId.isEmpty) return;
+        unawaited(_handleOrderFocus(orderId));
+      },
+    );
     _loadInitial();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final orderId =
+          AdminNotificationNavigationService.instance.focusedOrderId.value;
+      if (orderId == null || orderId.isEmpty) return;
+      unawaited(_handleOrderFocus(orderId));
+    });
   }
 
   @override
   void dispose() {
+    _orderFocusWorker?.dispose();
+    _highlightTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -57,6 +81,54 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
       _orderController.loadMore();
+    }
+  }
+
+  Future<void> _handleOrderFocus(String orderId) async {
+    if (_handlingOrderFocus || !mounted) return;
+    _handlingOrderFocus = true;
+    try {
+      setState(() {
+        _isSearching = false;
+        _searchQuery = '';
+      });
+
+      final messenger = ScaffoldMessenger.of(context);
+      final found = await _orderController.loadOrderForFocus(orderId);
+      if (!mounted) return;
+      if (!found) {
+        AdminNotificationNavigationService.instance.markOrderHandled(orderId);
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Order $orderId not found.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
+
+      _highlightTimer?.cancel();
+      setState(() => _highlightedOrderId = orderId);
+      _highlightTimer = Timer(const Duration(seconds: 4), () {
+        if (!mounted || _highlightedOrderId != orderId) return;
+        setState(() => _highlightedOrderId = null);
+      });
+
+      final contextForCard = _orderCardKeys[orderId]?.currentContext;
+      if (contextForCard != null && contextForCard.mounted) {
+        await Scrollable.ensureVisible(
+          contextForCard,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+          alignment: 0.18,
+        );
+      }
+      AdminNotificationNavigationService.instance.markOrderHandled(orderId);
+    } finally {
+      _handlingOrderFocus = false;
     }
   }
 
@@ -401,7 +473,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             }
                             final order = filtered[index];
                             return _OrderCard(
+                              key: _orderCardKeys.putIfAbsent(
+                                order.orderId,
+                                () => GlobalKey(),
+                              ),
                               order: order,
+                              isHighlighted:
+                                  order.orderId == _highlightedOrderId,
                               onTap: () => _showOrderDetails(order),
                               onStatusChanged: (status) =>
                                   _updateStatus(order, status),
@@ -1118,13 +1196,16 @@ class _StatusFilterDropdown extends StatelessWidget {
 
 class _OrderCard extends StatefulWidget {
   const _OrderCard({
+    super.key,
     required this.order,
+    required this.isHighlighted,
     required this.onTap,
     required this.onStatusChanged,
     required this.onStartDelivery,
   });
 
   final Order order;
+  final bool isHighlighted;
   final VoidCallback onTap;
   final Future<void> Function(String) onStatusChanged;
   final Future<void> Function(Order order) onStartDelivery;
@@ -1139,15 +1220,28 @@ class _OrderCardState extends State<_OrderCard> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    return Container(
+    final highlightColor = AdminAppTheme.getWarningColor(context);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: widget.isHighlighted
+            ? highlightColor.withValues(alpha: 0.13)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.isHighlighted
+              ? highlightColor
+              : AdminThemeTokens.transparent,
+          width: widget.isHighlighted ? 1.6 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.05),
-            blurRadius: 10,
+            color: widget.isHighlighted
+                ? highlightColor.withValues(alpha: 0.22)
+                : AdminAppTheme.getScrimShadowColor(context, alpha: 0.05),
+            blurRadius: widget.isHighlighted ? 18 : 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -1233,7 +1327,9 @@ class _OrderCardState extends State<_OrderCard> {
                             Icon(
                               Icons.person_outline,
                               size: 18.sp.clamp(16.0, 20.0),
-                              color: AdminAppTheme.getTextSecondaryColor(context),
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
                             ),
                             SizedBox(width: 6.w),
                             Flexible(
