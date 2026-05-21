@@ -227,164 +227,318 @@ class _CatalogCouponCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  String get _usageLabel {
+    if (coupon.usageLimit != null) {
+      return '${coupon.usedCount} / ${coupon.usageLimit}';
+    }
+    return '${coupon.usedCount} used';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = AdminAppTheme.isDark(context);
+    final cs = Theme.of(context).colorScheme;
+    final accentAlpha = isDark ? 0.22 : 0.12;
+
     return Card(
       margin: EdgeInsets.only(bottom: 12.h),
-      child: Padding(
-        padding: AdminResponsive.cardPadding(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
+      clipBehavior: Clip.antiAlias,
+      elevation: isDark ? 1 : 2,
+      shadowColor: Colors.black.withValues(alpha: isDark ? 0.28 : 0.06),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.r),
+        side: BorderSide(
+          color: statusColor.withValues(alpha: isDark ? 0.35 : 0.2),
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16.r),
+        onTap: onEdit,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 76.w.clamp(68.0, 84.0),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: accentAlpha),
+                  border: Border(
+                    right: BorderSide(
+                      color: statusColor.withValues(alpha: 0.25),
+                    ),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 20.r,
+                      color: statusColor,
+                    ),
+                    SizedBox(height: 6.h),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        valueLabel,
+                        style: TextStyle(
+                          fontSize: 18.sp.clamp(15.0, 20.0),
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                          height: 1.05,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      'OFF',
+                      style: TextStyle(
+                        fontSize: 10.sp.clamp(9.0, 11.0),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: statusColor.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(12.w, 10.h, 6.w, 10.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        coupon.code,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16.sp.clamp(14.0, 17.0),
-                          letterSpacing: 0.3,
-                          color: AdminAppTheme.getTextPrimaryColor(context),
+                      SizedBox(
+                        height: 40.h.clamp(36.0, 44.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                coupon.code,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15.sp.clamp(13.0, 16.0),
+                                  letterSpacing: 0.6,
+                                  height: 1.2,
+                                  color: cs.onSurface,
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: coupon.isActive,
+                              onChanged: onToggle,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              iconSize: 22,
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 40,
+                              ),
+                              splashRadius: 20,
+                              tooltip: 'More',
+                              icon: Icon(
+                                Icons.more_vert,
+                                color: AdminAppTheme.getTextSecondaryColor(
+                                  context,
+                                ),
+                              ),
+                              onSelected: (value) {
+                                if (value == 'delete') onDelete();
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_outline,
+                                        color: AdminAppTheme.getErrorColor(
+                                          context,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Delete',
+                                        style: TextStyle(
+                                          color: AdminAppTheme.getErrorColor(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        coupon.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: AdminAppTheme.getTextSecondaryColor(context),
-                          fontSize: 13.sp.clamp(12.0, 14.0),
+                      Wrap(
+                        spacing: 6.w,
+                        runSpacing: 4.h,
+                        children: [
+                          CatalogInlineBadge(
+                            label: statusLabel,
+                            color: statusColor,
+                          ),
+                          CatalogInlineBadge(
+                            label: _shortCouponTypeLabel(couponTypeLabel),
+                            color: AdminThemeTokens.toneSlate,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AdminThemeTokens.darkSurfaceVariant
+                              : cs.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _CouponStatCell(
+                                icon: Icons.shopping_bag_outlined,
+                                label: 'Min order',
+                                value:
+                                    '₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                              ),
+                            ),
+                            _CouponStatDivider(isDark: isDark),
+                            Expanded(
+                              child: _CouponStatCell(
+                                icon: Icons.people_outline,
+                                label: 'Usage',
+                                value: _usageLabel,
+                              ),
+                            ),
+                            if (coupon.maxDiscount != null) ...[
+                              _CouponStatDivider(isDark: isDark),
+                              Expanded(
+                                child: _CouponStatCell(
+                                  icon: Icons.savings_outlined,
+                                  label: 'Max off',
+                                  value:
+                                      '₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: 8.w),
-                PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                  splashRadius: 18,
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'toggle':
-                        onToggle(!coupon.isActive);
-                        break;
-                      case 'edit':
-                        onEdit();
-                        break;
-                      case 'delete':
-                        onDelete();
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'toggle',
-                      child: Row(
-                        children: [
-                          Icon(
-                            coupon.isActive
-                                ? Icons.toggle_off
-                                : Icons.toggle_on,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(coupon.isActive ? 'Deactivate' : 'Activate'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            color: AdminAppTheme.getErrorColor(context),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Delete',
-                            style: TextStyle(
-                              color: AdminAppTheme.getErrorColor(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _shortCouponTypeLabel(String type) {
+    switch (type) {
+      case 'PERCENTAGE_DISCOUNT':
+        return 'Percentage';
+      case 'FLAT_DISCOUNT':
+        return 'Flat';
+      case 'FIRST_ORDER':
+        return 'First order';
+      case 'LIMITED_TIME':
+        return 'Limited';
+      case 'PRODUCT_BASED':
+        return 'Product';
+      case 'LOYALTY':
+        return 'Loyalty';
+      default:
+        return type.replaceAll('_', ' ').toLowerCase();
+    }
+  }
+}
+
+class _CouponStatCell extends StatelessWidget {
+  const _CouponStatCell({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 12.r,
+              color: AdminAppTheme.getTextSecondaryColor(context),
             ),
-            SizedBox(height: 8.h),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                CatalogInlineBadge(label: statusLabel, color: statusColor),
-                CatalogInlineBadge(
-                  label: couponTypeLabel,
-                  color: AdminThemeTokens.toneSlate,
+            SizedBox(width: 3.w),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.sp.clamp(8.0, 10.0),
+                  fontWeight: FontWeight.w600,
+                  color: AdminAppTheme.getTextSecondaryColor(context),
                 ),
-                CatalogInlineBadge(
-                  label: valueLabel,
-                  color: AdminThemeTokens.toneBrownSoft,
-                ),
-                CatalogInlineBadge(
-                  label: coupon.isActive ? 'Enabled' : 'Disabled',
-                  color: coupon.isActive
-                      ? AdminAppTheme.getSuccessColor(context)
-                      : AdminAppTheme.getNeutralColor(context),
-                ),
-              ],
-            ),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 12,
-              runSpacing: 6,
-              children: [
-                Text(
-                  'Min ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
-                  style: AdminTextStyles.caption(context),
-                ),
-                Text(
-                  'Used ${coupon.usedCount}',
-                  style: AdminTextStyles.caption(context),
-                ),
-                if (coupon.maxDiscount != null)
-                  Text(
-                    'Max ₹${coupon.maxDiscount!.toStringAsFixed(0)}',
-                    style: AdminTextStyles.caption(context),
-                  ),
-                if (coupon.usageLimit != null)
-                  Text(
-                    'Limit ${coupon.usageLimit}',
-                    style: AdminTextStyles.caption(context),
-                  ),
-              ],
-            ),
-            SizedBox(height: 6.h),
-            Text(
-              '${catalogDateLabel(coupon.startDate)} → ${catalogDateLabel(coupon.endDate)}',
-              style: AdminTextStyles.caption(context),
+              ),
             ),
           ],
         ),
+        SizedBox(height: 3.h),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11.sp.clamp(10.0, 12.0),
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CouponStatDivider extends StatelessWidget {
+  const _CouponStatDivider({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 28.h,
+      margin: EdgeInsets.symmetric(horizontal: 6.w),
+      color: AdminAppTheme.getBorderColor(context).withValues(
+        alpha: isDark ? 0.5 : 0.7,
       ),
     );
   }
