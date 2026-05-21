@@ -19,20 +19,35 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          timeout: 40s
+          command_timeout: 20m
+          # Agar OpenSSH key format hai toh ye dono lines crash hone se bachayengi
+          fingerprint: ""
+          debug: true
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
-
-            # 1. Latest code repository se pull karein
-            git pull origin master
-
-            # 2. Naya Docker image build karein
+            
+            echo "--- 1. Fetching latest code ---"
+            git fetch origin master
+            git reset --hard origin/master
+            
+            echo "--- 2. Verifying .env File ---"
+            if [ ! -f .env ] && [ -f ../.env ]; then
+              ln -s ../.env .env
+            fi
+            
+            echo "--- 3. Building Docker Images ---"
             docker compose -f docker-compose.prod.yaml build
-
-            # 3. Serverpod Migrations automatic apply karein (Safe & Non-destructive)
+            
+            echo "--- 4. Running Serverpod Migrations ---"
             docker compose -f docker-compose.prod.yaml run --rm \
               --entrypoint /app/server \
               -e SERVERPOD_RUN_MODE=production \
               server --apply-migrations
-
-            # 4. Containers ko minimal downtime ke sath update karein
+            
+            echo "--- 5. Starting Containers ---"
             docker compose -f docker-compose.prod.yaml up -d --remove-orphans
+            
+            echo "--- 6. Status ---"
+            docker ps | grep freshpickkat
