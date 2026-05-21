@@ -114,8 +114,9 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
     final newQty =
         double.tryParse(widget.draft.quantityValueCtrl.text.trim()) ?? 0;
     if (newQty <= 0 ||
-        (widget.draft.baseRealPrice <= 0 && widget.draft.basePrice <= 0))
+        (widget.draft.baseRealPrice <= 0 && widget.draft.basePrice <= 0)) {
       return;
+    }
 
     final originalInBase =
         widget.draft.baseQuantity *

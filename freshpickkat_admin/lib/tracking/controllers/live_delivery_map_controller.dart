@@ -119,9 +119,17 @@ class LiveDeliveryMapController extends GetxController {
     if (rider != null) {
       final next = rider.toLatLng();
       final previous = riderPosition.value;
-      riderPosition.value = next;
-      _updateDistanceAndEta(previous, next, user);
-      unawaited(_maybeBuildRoute(user, next));
+      if (previous == null ||
+          Geolocator.distanceBetween(
+                previous.latitude,
+                previous.longitude,
+                next.latitude,
+                next.longitude,
+              ) >= 20) {
+        riderPosition.value = next;
+        _updateDistanceAndEta(previous, next, user);
+        unawaited(_maybeBuildRoute(user, next));
+      }
     } else if (snapshot.canTrack == false) {
       distanceMeters.value = 0;
       etaMinutes.value = 0;
