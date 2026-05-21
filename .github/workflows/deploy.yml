@@ -27,30 +27,28 @@ jobs:
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
             
-            echo "--- 1. Switching and Pulling Master Branch on Server ---"
-            # Pehle GitHub se saari branches ki information fetch karenge
+            echo "--- 1. Fetching All Branches & Switching to Master ---"
             git fetch --all
-            
-            # Agar server abhi main par hai, toh use master par switch karenge aur fresh pull karenge
             git checkout master || git checkout -b master origin/master
             git reset --hard origin/master
             
-            echo "--- 2. Verifying .env File ---"
+            echo "--- 2. Verifying .env File Connection ---"
             if [ ! -f .env ] && [ -f ../.env ]; then
+              echo "Linking .env from parent directory..."
               ln -s ../.env .env
             fi
             
-            echo "--- 3. Building Docker Images ---"
+            echo "--- 3. Building New Docker Images ---"
             docker compose -f docker-compose.prod.yaml build
             
-            echo "--- 4. Running Serverpod Migrations ---"
+            echo "--- 4. Running Serverpod Migrations (Safe Isolated Container) ---"
             docker compose -f docker-compose.prod.yaml run --rm \
               --entrypoint /app/server \
               -e SERVERPOD_RUN_MODE=production \
               server --apply-migrations
             
-            echo "--- 5. Starting Containers ---"
+            echo "--- 5. Starting Main Containers in Background ---"
             docker compose -f docker-compose.prod.yaml up -d --remove-orphans
             
-            echo "--- 6. Status ---"
+            echo "--- 6. Final Container Status Check ---"
             docker ps | grep freshpickkat
