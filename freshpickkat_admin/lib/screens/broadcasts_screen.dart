@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_broadcast_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/controller/active_users_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
+import 'package:freshpickkat_admin/widgets/user_search_filter_widget.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -42,11 +44,14 @@ class _BroadcastsScreenState extends State<BroadcastsScreen> {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        appBar: const AdminAppBar(
-          title: Text('Broadcasts'),
+        appBar: AdminAppBar(
+          title: const Text('Broadcasts'),
           bottom: TabBar(
             isScrollable: true,
-            tabs: [
+            indicatorColor: Theme.of(context).colorScheme.onPrimary,
+            labelColor: Theme.of(context).colorScheme.onPrimary,
+            unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.6),
+            tabs: const [
               Tab(text: 'Create Announcement'),
               Tab(text: 'Notification History'),
               Tab(text: 'Scheduled Notifications'),
@@ -108,7 +113,8 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
   final _bodyCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _areaCtrl = TextEditingController();
-  final _specificUsersCtrl = TextEditingController();
+  late ActiveUsersController _activeUsersController;
+  List<ActiveUserStatistics> _selectedUsers = [];
   String? _imageUrl;
   String _announcementType = 'general';
   String _targetAudience = 'all_users';
@@ -141,12 +147,20 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    _activeUsersController =
+        Get.isRegistered<ActiveUsersController>(tag: 'BroadcastsScreen')
+        ? Get.find<ActiveUsersController>(tag: 'BroadcastsScreen')
+        : Get.put(ActiveUsersController(), tag: 'BroadcastsScreen');
+  }
+
+  @override
   void dispose() {
     _titleCtrl.dispose();
     _bodyCtrl.dispose();
     _cityCtrl.dispose();
     _areaCtrl.dispose();
-    _specificUsersCtrl.dispose();
     super.dispose();
   }
 
@@ -366,14 +380,94 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       );
     }
     if (_targetAudience == 'specific_users') {
-      return TextFormField(
-        controller: _specificUsersCtrl,
-        decoration: const InputDecoration(
-          labelText: 'User IDs or Firebase UIDs',
-          hintText: 'Comma-separated values',
-          border: OutlineInputBorder(),
-        ),
-        validator: _required,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Button to open user selection
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              icon: const Icon(Icons.person_add_alt_1),
+              onPressed: () => _showUserSelectionModal(),
+              label: const Text('Select Users'),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Display selected users
+          if (_selectedUsers.isNotEmpty) ...[
+            Text(
+              'Selected Users (${_selectedUsers.length})',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).dividerColor),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _selectedUsers.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
+                itemBuilder: (context, index) {
+                  final user = _selectedUsers[index];
+                  return Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name ?? 'Unknown',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.phoneNumber,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            setState(() {
+                              _selectedUsers.removeAt(index);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ] else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                  style: BorderStyle.solid,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'No users selected yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).hintColor,
+                ),
+              ),
+            ),
+        ],
       );
     }
     return const SizedBox.shrink();
@@ -425,8 +519,122 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
     });
   }
 
+  Future<void> _showUserSelectionModal() async {
+    final users = _activeUsersController.activeUsers.value;
+
+    if (users.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No users available')));
+      return;
+    }
+
+    // Create a temporary key for getting selected users from the modal widget
+    final tempKey = GlobalKey<UserSearchFilterWidgetState>();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.9,
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: AdminResponsive.pagePadding(ctx),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Users',
+                    style: AdminTextStyles.screenTitle(ctx),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+
+            // Widget Content
+            Expanded(
+              child: Padding(
+                padding: AdminResponsive.pagePadding(ctx).copyWith(
+                  top: 0,
+                  bottom: 0,
+                ),
+                child: UserSearchFilterWidget(
+                  key: tempKey,
+                  allUsers: users,
+                  enableSelection: true,
+                  isMobileLayout: false,
+                ),
+              ),
+            ),
+
+            // Footer with buttons
+            Padding(
+              padding: AdminResponsive.pagePadding(ctx).copyWith(top: 8, bottom: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () {
+                        final selectedUsers =
+                            tempKey.currentState?.getSelectedUsers() ?? [];
+
+                        setState(() {
+                          _selectedUsers = selectedUsers;
+                        });
+
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Done'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit({required bool sendNow}) async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validate specific_users selection
+    if (_targetAudience == 'specific_users') {
+      if (_selectedUsers.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least one user')),
+        );
+        return;
+      }
+    }
+
     final request = BroadcastRequest(
       title: _titleCtrl.text.trim(),
       body: _bodyCtrl.text.trim(),
@@ -446,7 +654,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
         if (_targetAudience == 'users_by_order_history')
           'orderBucket': _orderBucket,
         if (_targetAudience == 'specific_users')
-          'firebaseUids': _specificUsersCtrl.text.trim(),
+          'firebaseUids': _selectedUsers.map((user) => user.userId).join(','),
       },
     );
     try {
@@ -468,12 +676,12 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
         _announcementType = 'general';
         _targetAudience = 'all_users';
         _priority = 'normal';
+        _selectedUsers = [];
       });
       _titleCtrl.clear();
       _bodyCtrl.clear();
       _cityCtrl.clear();
       _areaCtrl.clear();
-      _specificUsersCtrl.clear();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

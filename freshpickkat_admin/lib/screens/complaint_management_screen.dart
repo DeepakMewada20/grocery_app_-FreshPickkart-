@@ -46,13 +46,13 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AdminAppBar(
-        title: Text(
-          'Complaint Management',
-          style: AdminTextStyles.screenTitle(context),
-        ),
+        title: const Text('Complaint Management'),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          indicatorColor: Theme.of(context).colorScheme.onPrimary,
+          labelColor: Theme.of(context).colorScheme.onPrimary,
+          unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.6),
           tabs: _statuses.map((status) => Tab(text: status)).toList(),
         ),
       ),
