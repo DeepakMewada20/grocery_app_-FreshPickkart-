@@ -1448,166 +1448,83 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           onRefresh: widget.onRefresh,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: AdminResponsive.pagePadding(
-              context,
-            ).copyWith(bottom: AdminResponsive.bottomInset(context) + 76.h),
+            padding: AdminResponsive.pagePadding(context).copyWith(
+              top: 12.h,
+              bottom: AdminResponsive.bottomInset(context) + 76.h,
+            ),
             children: [
-              SizedBox(
-                height: 96,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    CatalogStatCard(
-                      title: 'All',
-                      value: '$allOfferCount',
-                      icon: Icons.grid_view_rounded,
-                      color: AdminThemeTokens.toneGreen,
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'all',
-                      onTap: () => widget.onOfferTypeChanged('all'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'Live',
-                      value: '$liveOfferCount',
-                      icon: Icons.local_offer,
-                      color: AdminThemeTokens.primary,
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'live',
-                      onTap: () => widget.onOfferTypeChanged('live'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'BOGO',
-                      value: '$bogoCount',
-                      icon: Icons.card_giftcard,
-                      color: AdminThemeTokens.toneTeal,
-                      breakdown: [
-                        CatalogStatBreakdown(
-                          label: 'Active',
-                          value: '$activeBogoOfferCount',
-                          color: AdminAppTheme.getSuccessColor(context),
-                        ),
-                        CatalogStatBreakdown(
-                          label: 'Inactive',
-                          value: '$inactiveBogoOfferCount',
-                          color: AdminAppTheme.getErrorColor(
-                            context,
-                          ).withValues(alpha: 0.2),
-                        ),
-                      ],
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'bogo',
-                      onTap: () => widget.onOfferTypeChanged('bogo'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'Category Offers',
-                      value: '$totalCategoryOfferCount',
-                      icon: Icons.category_outlined,
-                      color: AdminThemeTokens.toneSteel,
-                      breakdown: [
-                        CatalogStatBreakdown(
-                          label: 'Active',
-                          value: '$activeCategoryOfferCount',
-                          color: AdminAppTheme.getSuccessColor(context),
-                        ),
-                        CatalogStatBreakdown(
-                          label: 'Inactive',
-                          value: '$inactiveCategoryOfferCount',
-                          color: AdminAppTheme.getErrorColor(
-                            context,
-                          ).withValues(alpha: 0.2),
-                        ),
-                      ],
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'category_offer',
-                      onTap: () => widget.onOfferTypeChanged('category_offer'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'Combo Offers',
-                      value: '$totalComboOfferCount',
-                      icon: Icons.widgets_outlined,
-                      color: AdminThemeTokens.toneGreenSoft,
-                      breakdown: [
-                        CatalogStatBreakdown(
-                          label: 'Active',
-                          value: '$activeComboOfferCount',
-                          color: AdminAppTheme.getSuccessColor(context),
-                        ),
-                        CatalogStatBreakdown(
-                          label: 'Inactive',
-                          value: '$inactiveComboOfferCount',
-                          color: AdminAppTheme.getErrorColor(
-                            context,
-                          ).withValues(alpha: 0.2),
-                        ),
-                      ],
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'combo_offer',
-                      onTap: () => widget.onOfferTypeChanged('combo_offer'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'Percentage',
-                      value: '$percentageCount',
-                      icon: Icons.percent,
-                      color: AdminThemeTokens.toneIndigo,
-                      breakdown: [
-                        CatalogStatBreakdown(
-                          label: 'Active',
-                          value: '$activePercentageCount',
-                          color: AdminAppTheme.getSuccessColor(context),
-                        ),
-                        CatalogStatBreakdown(
-                          label: 'Inactive',
-                          value: '$inactivePercentageCount',
-                          color: AdminAppTheme.getErrorColor(
-                            context,
-                          ).withValues(alpha: 0.2),
-                        ),
-                      ],
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'percentage',
-                      onTap: () => widget.onOfferTypeChanged('percentage'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'Flat',
-                      value: '$flatCount',
-                      icon: Icons.currency_rupee,
-                      color: AdminThemeTokens.toneMoss,
-                      breakdown: [
-                        CatalogStatBreakdown(
-                          label: 'Active',
-                          value: '$activeFlatCount',
-                          color: AdminAppTheme.getSuccessColor(context),
-                        ),
-                        CatalogStatBreakdown(
-                          label: 'Inactive',
-                          value: '$inactiveFlatCount',
-                          color: AdminAppTheme.getErrorColor(
-                            context,
-                          ).withValues(alpha: 0.2),
-                        ),
-                      ],
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'flat',
-                      onTap: () => widget.onOfferTypeChanged('flat'),
-                    ),
-                    const SizedBox(width: 10),
-                    CatalogStatCard(
-                      title: 'No Offer',
-                      value: '$noOfferCount',
-                      icon: Icons.remove_circle_outline,
-                      color: AdminThemeTokens.toneNeutral,
-                      compact: true,
-                      selected: widget.offerTypeFilter == 'none',
-                      onTap: () => widget.onOfferTypeChanged('none'),
-                    ),
-                  ],
-                ),
+              CatalogOffersTypeFilterBar(
+                selectedValue: widget.offerTypeFilter,
+                onSelected: widget.onOfferTypeChanged,
+                items: [
+                  CatalogOfferTypeFilterItem(
+                    value: 'all',
+                    label: 'All',
+                    count: '$allOfferCount',
+                    icon: Icons.grid_view_rounded,
+                    accentColor: AdminThemeTokens.toneGreen,
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'live',
+                    label: 'Live',
+                    count: '$liveOfferCount',
+                    icon: Icons.local_offer_rounded,
+                    accentColor: AdminAppTheme.getSuccessColor(context),
+                    subtitle: 'Running now',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'bogo',
+                    label: 'BOGO',
+                    count: '$bogoCount',
+                    icon: Icons.card_giftcard,
+                    accentColor: AdminThemeTokens.toneTeal,
+                    subtitle:
+                        '$activeBogoOfferCount active · $inactiveBogoOfferCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'category_offer',
+                    label: 'Category',
+                    count: '$totalCategoryOfferCount',
+                    icon: Icons.category_outlined,
+                    accentColor: AdminThemeTokens.toneSteel,
+                    subtitle:
+                        '$activeCategoryOfferCount active · $inactiveCategoryOfferCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'combo_offer',
+                    label: 'Combo',
+                    count: '$totalComboOfferCount',
+                    icon: Icons.widgets_outlined,
+                    accentColor: AdminThemeTokens.toneGreenSoft,
+                    subtitle:
+                        '$activeComboOfferCount active · $inactiveComboOfferCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'percentage',
+                    label: 'Percentage',
+                    count: '$percentageCount',
+                    icon: Icons.percent,
+                    accentColor: AdminThemeTokens.toneIndigo,
+                    subtitle:
+                        '$activePercentageCount active · $inactivePercentageCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'flat',
+                    label: 'Flat',
+                    count: '$flatCount',
+                    icon: Icons.currency_rupee,
+                    accentColor: AdminThemeTokens.toneMoss,
+                    subtitle:
+                        '$activeFlatCount active · $inactiveFlatCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
+                    value: 'none',
+                    label: 'No offer',
+                    count: '$noOfferCount',
+                    icon: Icons.remove_circle_outline,
+                    accentColor: AdminThemeTokens.toneNeutral,
+                  ),
+                ],
               ),
               SizedBox(height: 10.h),
               ProductSearchAndCategoryControls(
@@ -1616,8 +1533,11 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 categoryOptions: categoryOptions,
                 selectedCategory: widget.offerCategoryFilter,
                 onCategorySelected: widget.onOfferCategoryChanged,
+                padding: EdgeInsets.only(bottom: 8.h),
+                searchToCategorySpacing: 10,
+                categoryHeight: 34,
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: 12.h),
               Row(
                 children: [
                   Expanded(

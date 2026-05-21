@@ -187,10 +187,189 @@ class CatalogOfferFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = AdminAppTheme.getSuccessColor(context);
+    final isDark = AdminAppTheme.isDark(context);
+
     return ChoiceChip(
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
+      side: BorderSide(
+        color: selected
+            ? accent
+            : AdminAppTheme.getBorderColor(context),
+      ),
+      backgroundColor: isDark
+          ? AdminThemeTokens.darkSurfaceElevated
+          : Theme.of(context).colorScheme.surface,
+      selectedColor: accent.withValues(alpha: isDark ? 0.2 : 0.12),
+      labelStyle: TextStyle(
+        fontSize: 12.sp.clamp(10.0, 13.0),
+        fontWeight: FontWeight.w600,
+        color: selected
+            ? accent
+            : AdminAppTheme.getTextPrimaryColor(context),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 4.w),
+    );
+  }
+}
+
+/// Data for one offer-type filter pill on the Offers tab.
+class CatalogOfferTypeFilterItem {
+  const CatalogOfferTypeFilterItem({
+    required this.value,
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.accentColor,
+    this.subtitle,
+  });
+
+  final String value;
+  final String label;
+  final String count;
+  final IconData icon;
+  final Color accentColor;
+  final String? subtitle;
+}
+
+/// Horizontal offer-type filter pills (Offers tab).
+class CatalogOffersTypeFilterBar extends StatelessWidget {
+  const CatalogOffersTypeFilterBar({
+    super.key,
+    required this.items,
+    required this.selectedValue,
+    required this.onSelected,
+  });
+
+  final List<CatalogOfferTypeFilterItem> items;
+  final String selectedValue;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 58.h.clamp(54.0, 64.0),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, _) => SizedBox(width: 8.w),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return CatalogOfferTypeFilterPill(
+            item: item,
+            selected: selectedValue == item.value,
+            onTap: () => onSelected(item.value),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CatalogOfferTypeFilterPill extends StatelessWidget {
+  const CatalogOfferTypeFilterPill({
+    super.key,
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final CatalogOfferTypeFilterItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AdminAppTheme.isDark(context);
+    final accent = item.accentColor;
+    final bgAlpha = selected ? (isDark ? 0.22 : 0.14) : (isDark ? 0.1 : 0.06);
+
+    return Material(
+      color: AdminThemeTokens.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10.r),
+        child: Ink(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: bgAlpha),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: selected
+                  ? accent
+                  : accent.withValues(alpha: isDark ? 0.28 : 0.2),
+              width: selected ? 1.4 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.icon,
+                size: 17.r,
+                color: selected ? accent : accent.withValues(alpha: 0.85),
+              ),
+              SizedBox(width: 7.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 12.sp.clamp(11.0, 13.0),
+                      fontWeight: FontWeight.w600,
+                      height: 1.15,
+                      color: selected
+                          ? accent
+                          : AdminAppTheme.getTextPrimaryColor(context),
+                    ),
+                  ),
+                  if (item.subtitle != null) ...[
+                    Text(
+                      item.subtitle!,
+                      style: TextStyle(
+                        fontSize: 10.sp.clamp(9.0, 11.0),
+                        fontWeight: FontWeight.w500,
+                        height: 1.1,
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? accent.withValues(alpha: isDark ? 0.28 : 0.18)
+                      : AdminAppTheme.getTextSecondaryColor(
+                          context,
+                        ).withValues(alpha: isDark ? 0.2 : 0.12),
+                  borderRadius: BorderRadius.circular(7.r),
+                ),
+                child: Text(
+                  item.count,
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(11.0, 13.0),
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                    color: selected
+                        ? accent
+                        : AdminAppTheme.getTextPrimaryColor(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
