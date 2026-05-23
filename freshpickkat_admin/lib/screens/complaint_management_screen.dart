@@ -363,6 +363,7 @@ class _ComplaintDetailAdminScreenState
       ),
     );
     controller.dispose();
+    if (!mounted) return null;
     return value;
   }
 
@@ -388,47 +389,50 @@ class _ComplaintDetailAdminScreenState
   Future<void> _reassignRider() async {
     final name = TextEditingController();
     final phone = TextEditingController();
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reassign Rider'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: name,
-              decoration: const InputDecoration(labelText: 'Rider name'),
+    try {
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Reassign Rider'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                decoration: const InputDecoration(labelText: 'Rider name'),
+              ),
+              TextField(
+                controller: phone,
+                decoration: const InputDecoration(labelText: 'Rider phone'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
             ),
-            TextField(
-              controller: phone,
-              decoration: const InputDecoration(labelText: 'Rider phone'),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Assign'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Assign'),
-          ),
-        ],
-      ),
-    );
-    if (result == true) {
-      await _run(
-        () => widget.controller.reassignRider(
-          _complaint,
-          riderName: name.text,
-          riderPhone: phone.text,
-          adminNote: _noteController.text,
-        ),
       );
+      if (result == true && mounted) {
+        await _run(
+          () => widget.controller.reassignRider(
+            _complaint,
+            riderName: name.text,
+            riderPhone: phone.text,
+            adminNote: _noteController.text,
+          ),
+        );
+      }
+    } finally {
+      name.dispose();
+      phone.dispose();
     }
-    name.dispose();
-    phone.dispose();
   }
 
   String _shortId(String id) => id.length <= 8 ? id : id.substring(0, 8);
