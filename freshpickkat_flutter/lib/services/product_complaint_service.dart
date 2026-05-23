@@ -55,6 +55,9 @@ class ProductComplaintService {
     String? title,
     required String description,
     List<String> imageUrls = const [],
+    String? selectedField,
+    Address? requestedAddress,
+    String? requestedNote,
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
@@ -68,6 +71,9 @@ class ProductComplaintService {
       title: title,
       description: description,
       imageUrls: imageUrls,
+      selectedField: selectedField,
+      requestedAddress: requestedAddress,
+      requestedNote: requestedNote,
     );
   }
 
@@ -88,6 +94,10 @@ class ProductComplaintService {
   }
 
   Future<ComplaintPage> listMyComplaints({
+    String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -98,6 +108,10 @@ class ProductComplaintService {
     return _client.complaint.listMyComplaints(
       firebaseUid: user.uid,
       idToken: idToken,
+      status: status,
+      issueType: issueType,
+      selectedField: selectedField,
+      complaintType: complaintType,
       limit: limit,
       pageToken: pageToken,
     );

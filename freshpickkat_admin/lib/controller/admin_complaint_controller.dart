@@ -9,27 +9,37 @@ class AdminComplaintController extends GetxController {
 
   final complaints = <Complaint>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
   final error = RxnString();
   final totalCount = 0.obs;
-  String statusFilter = 'Pending';
+  final hasMore = false.obs;
 
-  Future<void> load({String? status}) async {
-    statusFilter = status ?? statusFilter;
+  String? statusFilter;
+  String? issueTypeFilter;
+  String? selectedFieldFilter;
+  String? complaintTypeFilter;
+  String? _nextPageToken;
+
+  Future<void> load({
+    String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
+  }) async {
+    statusFilter = status;
+    issueTypeFilter = issueType;
+    selectedFieldFilter = selectedField;
+    complaintTypeFilter = complaintType;
+    _nextPageToken = null;
+    hasMore.value = false;
     isLoading.value = true;
     error.value = null;
     try {
-      final page = await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final token = await AdminSessionService.requireIdToken();
-        return _client.complaint.listComplaints(
-          firebaseUid: uid,
-          idToken: token,
-          status: statusFilter,
-          limit: 50,
-        );
-      });
+      final page = await _fetchPage();
       complaints.assignAll(page.complaints);
       totalCount.value = page.totalCount;
+      _nextPageToken = page.nextPageToken;
+      hasMore.value = page.nextPageToken != null;
     } catch (e) {
       error.value = e.toString();
     } finally {
@@ -37,7 +47,46 @@ class AdminComplaintController extends GetxController {
     }
   }
 
-  Future<Complaint> updateStatus(Complaint complaint, String status) async {
+  Future<void> loadMore() async {
+    final token = _nextPageToken;
+    if (token == null || isLoadingMore.value) return;
+    isLoadingMore.value = true;
+    error.value = null;
+    try {
+      final page = await _fetchPage(pageToken: token);
+      complaints.addAll(page.complaints);
+      totalCount.value = page.totalCount;
+      _nextPageToken = page.nextPageToken;
+      hasMore.value = page.nextPageToken != null;
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<ComplaintPage> _fetchPage({String? pageToken}) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.listComplaints(
+        firebaseUid: uid,
+        idToken: token,
+        status: statusFilter,
+        issueType: issueTypeFilter,
+        selectedField: selectedFieldFilter,
+        complaintType: complaintTypeFilter,
+        limit: 20,
+        pageToken: pageToken,
+      );
+    });
+  }
+
+  Future<Complaint> updateStatus(
+    Complaint complaint,
+    String status, {
+    String? adminNote,
+  }) async {
     final updated = await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();
       final token = await AdminSessionService.requireIdToken();
@@ -46,6 +95,7 @@ class AdminComplaintController extends GetxController {
         idToken: token,
         complaintId: complaint.complaintId,
         status: status,
+        adminNote: adminNote,
       );
     });
     _replace(updated);

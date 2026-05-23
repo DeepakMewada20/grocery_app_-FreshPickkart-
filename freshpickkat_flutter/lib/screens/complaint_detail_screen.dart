@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -97,6 +99,12 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                           ),
                         ),
                         SizedBox(height: 12.h),
+                        if (_complaint!.selectedField != null ||
+                            (_complaint!.extraData?.isNotEmpty ?? false))
+                          ...[
+                            _AddressChangeSection(complaint: _complaint!),
+                            SizedBox(height: 12.h),
+                          ],
                         _ImageSection(urls: _complaint!.imageUrls),
                         SizedBox(height: 12.h),
                         _Section(
@@ -149,6 +157,122 @@ class _ProductSummary extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressChangeSection extends StatelessWidget {
+  const _AddressChangeSection({required this.complaint});
+
+  final Complaint complaint;
+
+  @override
+  Widget build(BuildContext context) {
+    final extra = complaint.extraData ?? const {};
+    final requestedAddress = _parseAddress(extra['requestedAddressJson']);
+    final currentAddress = _parseAddress(extra['currentAddressJson']);
+    final requestedNote = extra['requestedNote']?.trim();
+    final selectedField = complaint.selectedField ?? 'delivery_location_issue';
+
+    return _Section(
+      title: 'Delivery Change Request',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _InfoLine('Selected field', selectedField),
+          if (currentAddress != null) ...[
+            SizedBox(height: 8.h),
+            _AddressBlock(title: 'Current address', address: currentAddress),
+          ],
+          if (requestedAddress != null) ...[
+            SizedBox(height: 8.h),
+            _AddressBlock(title: 'Requested address', address: requestedAddress),
+          ],
+          if (requestedNote != null && requestedNote.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            _InfoLine('Requested note', requestedNote),
+          ],
+          if (extra['reason']?.trim().isNotEmpty == true) ...[
+            SizedBox(height: 8.h),
+            _InfoLine('Reason', extra['reason']!),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Address? _parseAddress(String? encoded) {
+    if (encoded == null || encoded.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(encoded);
+      if (decoded is Map<String, dynamic>) {
+        return Address.fromJson(decoded);
+      }
+      if (decoded is Map) {
+        return Address.fromJson(decoded.map((k, v) => MapEntry('$k', v)));
+      }
+    } catch (_) {}
+    return null;
+  }
+}
+
+class _AddressBlock extends StatelessWidget {
+  const _AddressBlock({required this.title, required this.address});
+
+  final String title;
+  final Address address;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+          SizedBox(height: 6.h),
+          Text(_addressText(address)),
+        ],
+      ),
+    );
+  }
+
+  String _addressText(Address address) {
+    return [
+      address.street,
+      address.city,
+      address.state,
+      address.zipCode,
+      address.country,
+    ].where((part) => part.trim().isNotEmpty).join(', ');
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  const _InfoLine(this.label, this.value);
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: DefaultTextStyle.of(context).style,
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          TextSpan(text: value),
         ],
       ),
     );
@@ -267,11 +391,20 @@ class _StatusBadge extends StatelessWidget {
       'Under Review' => Colors.blue,
       _ => Colors.orange,
     };
-    return Chip(
-      label: Text(status),
-      backgroundColor: color.withValues(alpha: 0.12),
-      side: BorderSide(color: color.withValues(alpha: 0.35)),
-      labelStyle: TextStyle(color: color, fontWeight: FontWeight.w700),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w800,
+          fontSize: 11.sp,
+        ),
+      ),
     );
   }
 }

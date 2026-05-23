@@ -10,6 +10,9 @@ fields:
   title: String, default=''
   selectedProducts: List<ComplaintProductItem>
   issueType: String
+  selectedField: String?
+  extraData: Map<String, String>?
+  userPhone: String, default=''
   description: String
   imageUrls: List<String>
   status: String, default='Pending'
@@ -22,7 +25,7 @@ indexes:
   complaint_order_item_idx:
     fields: orderItemId
   complaint_order_type_idx:
-    fields: orderId, complaintType, status
+    fields: orderId, complaintType, selectedField, status
   complaint_user_created_idx:
     fields: userId, createdAt, id
   complaint_status_created_idx:

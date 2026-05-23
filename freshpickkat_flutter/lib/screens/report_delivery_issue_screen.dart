@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/delivery_issue_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
-import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
@@ -10,10 +10,14 @@ class ReportDeliveryIssueScreen extends StatefulWidget {
   const ReportDeliveryIssueScreen({
     super.key,
     required this.orderNumber,
+    required this.orderStatus,
+    required this.currentAddress,
     this.activeComplaint,
   });
 
   final String orderNumber;
+  final String orderStatus;
+  final Address currentAddress;
   final Complaint? activeComplaint;
 
   @override
@@ -22,24 +26,30 @@ class ReportDeliveryIssueScreen extends StatefulWidget {
 }
 
 class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
-  static const _issueTypes = {
-    'Late Delivery': Icons.schedule,
-    'Rider Not Reachable': Icons.phone_disabled,
-    'Wrong Address Attempt': Icons.location_off,
-    'Order Not Received': Icons.inbox,
-    'Damaged During Delivery': Icons.warning_rounded,
-    'Other': Icons.help_outline,
-  };
-
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
-  String _issueType = 'Late Delivery';
-  bool _isSubmitting = false;
-  Complaint? _submitted;
+  final _noteController = TextEditingController();
+  late final DeliveryIssueController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.put(
+      DeliveryIssueController(
+        orderNumber: widget.orderNumber,
+        orderStatus: widget.orderStatus,
+        currentAddress: widget.currentAddress,
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _noteController.dispose();
+    if (Get.isRegistered<DeliveryIssueController>()) {
+      Get.delete<DeliveryIssueController>();
+    }
     super.dispose();
   }
 
@@ -52,155 +62,226 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: cs.onSurface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        titleSpacing: 0,
-        title: Text(
-          'Report Delivery Issue',
-          style: TextStyle(
-            color: cs.onSurface,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+        title: const Text('Delivery Issue'),
       ),
-      body: SafeArea(
-        top: false,
-        child: _submitted != null
-            ? _SuccessState(complaint: _submitted!)
-            : active != null
-            ? _BlockedState(complaint: active)
-            : SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.fromLTRB(
-                  16.w,
-                  8.h,
-                  16.w,
-                  28.h + MediaQuery.paddingOf(context).bottom,
-                ),
-                child: AppResponsive.constrainContent(
-                  context: context,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _IntroCard(cs: cs),
-                        SizedBox(height: 18.h),
-                        _FormCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _FieldLabel('Issue Type'),
-                              SizedBox(height: 8.h),
-                              _IssueTypeDropdown(
-                                initialValue: _issueType,
-                                items: _issueTypes,
-                                onChanged: (value) => setState(
-                                  () => _issueType = value ?? _issueType,
+      body: active != null
+          ? _BlockedState(complaint: active)
+          : SafeArea(
+              top: false,
+              child: Obx(() {
+                final submitting = _controller.isSubmitting.value;
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.fromLTRB(
+                    16.w,
+                    8.h,
+                    16.w,
+                    28.h + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  child: AppResponsive.constrainContent(
+                    context: context,
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _IntroCard(
+                            orderStatus: widget.orderStatus,
+                            isOutForDelivery: _controller.isOutForDelivery,
+                          ),
+                          SizedBox(height: 16.h),
+                          _SectionCard(
+                            title: 'Issue type',
+                            child: Column(
+                              children: [
+                                ...DeliveryIssueController.issueTypes.map(
+                                  (issue) => Obx(() {
+                                    return RadioListTile<String>(
+                                      value: issue,
+                                      groupValue:
+                                          _controller.selectedIssueType.value,
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          _controller.selectIssueType(value);
+                                          setState(() {});
+                                        }
+                                      },
+                                      title: Text(issue),
+                                      contentPadding: EdgeInsets.zero,
+                                    );
+                                  }),
                                 ),
-                              ),
-                              SizedBox(height: 18.h),
-                              _FieldLabel('Description'),
-                              SizedBox(height: 8.h),
-                              _DeliveryTextField(
-                                controller: _descriptionController,
-                                hintText:
-                                    'Please describe what happened in detail...',
-                                minLines: 5,
-                                maxLines: 8,
-                                textInputAction: TextInputAction.newline,
-                                validator: (value) {
-                                  final text = value?.trim() ?? '';
-                                  if (text.length < 20) {
-                                    return 'Description must be at least 20 characters.';
-                                  }
-                                  if (text.length > 2000) {
-                                    return 'Description must be 2000 characters or less.';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              SizedBox(height: 18.h),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 52.h,
-                                child: ElevatedButton(
-                                  onPressed: _isSubmitting ? null : _submit,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: cs.primary,
-                                    disabledBackgroundColor: cs.primary
-                                        .withValues(alpha: 0.45),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16.r),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: _isSubmitting
-                                      ? SizedBox(
-                                          width: 22.r,
-                                          height: 22.r,
-                                          child:
-                                              const CircularProgressIndicator(
-                                                strokeWidth: 2.4,
-                                                color: Colors.white,
-                                              ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          if (_controller.isDeliveryLocationIssue)
+                            Column(
+                              children: [
+                                _SectionCard(
+                                  title: 'Delivery location request',
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      SegmentedButton<String>(
+                                        segments: const [
+                                          ButtonSegment(
+                                            value:
+                                                DeliveryIssueController.addressChangeField,
+                                            label: Text('Change address'),
+                                          ),
+                                          ButtonSegment(
+                                            value:
+                                                DeliveryIssueController.deliveryNoteField,
+                                            label: Text('Delivery note'),
+                                          ),
+                                        ],
+                                        selected: {
+                                          _controller.selectedField.value,
+                                        },
+                                        onSelectionChanged: (values) {
+                                          if (values.isEmpty) return;
+                                          _controller.selectField(values.first);
+                                          setState(() {});
+                                        },
+                                      ),
+                                      SizedBox(height: 14.h),
+                                      if (_controller.isAddressChange)
+                                        _AddressPreviewCard(
+                                          address:
+                                              _controller.selectedAddress.value ??
+                                              widget.currentAddress,
+                                          onEdit: _controller.pickAddress,
                                         )
-                                      : Text(
-                                          'Submit Complaint',
-                                          style: TextStyle(
-                                            fontSize: 15.sp,
-                                            fontWeight: FontWeight.w900,
+                                      else
+                                        TextFormField(
+                                          controller: _noteController,
+                                          minLines: 3,
+                                          maxLines: 5,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Delivery note',
+                                            hintText:
+                                                'Add a note for the rider or the delivery team',
+                                            border: OutlineInputBorder(),
                                           ),
                                         ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 16.h),
+                              ],
+                            ),
+                          _SectionCard(
+                            title: 'Description',
+                            child: TextFormField(
+                              controller: _descriptionController,
+                              minLines: 5,
+                              maxLines: 8,
+                              textInputAction: TextInputAction.newline,
+                              decoration: const InputDecoration(
+                                labelText: 'Tell us what happened',
+                                hintText:
+                                    'Please describe the delivery issue in detail...',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                final text = value?.trim() ?? '';
+                                if (text.length < 20) {
+                                  return 'Description must be at least 20 characters.';
+                                }
+                                if (text.length > 2000) {
+                                  return 'Description must be 2000 characters or less.';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 18.h),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52.h,
+                            child: ElevatedButton(
+                              onPressed: submitting ? null : _submit,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16.r),
                                 ),
                               ),
-                            ],
+                              child: submitting
+                                  ? SizedBox(
+                                      width: 22.r,
+                                      height: 22.r,
+                                      child: const CircularProgressIndicator(
+                                        strokeWidth: 2.4,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Text(
+                                      _controller.isDeliveryLocationIssue &&
+                                              !_controller.isOutForDelivery
+                                          ? (_controller.isAddressChange
+                                                ? 'Update Address'
+                                                : 'Save Note')
+                                          : (_controller.isDeliveryLocationIssue
+                                                ? 'Request Approval'
+                                                : 'Submit Complaint'),
+                                    ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-      ),
+                );
+              }),
+            ),
     );
   }
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() => _isSubmitting = true);
     try {
-      final complaint = await ProductComplaintService.instance
-          .createDeliveryComplaint(
-            orderNumber: widget.orderNumber,
-            issueType: _issueType,
-            title: _issueType,
-            description: _descriptionController.text,
-          );
-      if (mounted) setState(() => _submitted = complaint);
+      final result = await _controller.submit(
+        _descriptionController.text,
+        _noteController.text,
+      );
+      if (!mounted) return;
+      if (result is Complaint) {
+        Get.back(result: result);
+      } else if (result == true) {
+        Get.snackbar(
+          'Updated',
+          _controller.isAddressChange
+              ? 'Delivery address updated successfully'
+              : 'Delivery note saved successfully',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        Get.back(result: true);
+      }
     } catch (error) {
       Get.snackbar(
         'Unable to submit',
         error.toString().replaceFirst('Exception: ', ''),
         snackPosition: SnackPosition.BOTTOM,
       );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 }
 
-// Intro Card - Info about the complaint process
 class _IntroCard extends StatelessWidget {
-  const _IntroCard({required this.cs});
+  const _IntroCard({
+    required this.orderStatus,
+    required this.isOutForDelivery,
+  });
 
-  final ColorScheme cs;
+  final String orderStatus;
+  final bool isOutForDelivery;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(14.r),
@@ -212,18 +293,16 @@ class _IntroCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline_rounded,
-            color: cs.primary,
-            size: 20.r,
-          ),
+          Icon(Icons.info_outline_rounded, color: cs.primary, size: 20.r),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Report an Issue',
+                  isOutForDelivery
+                      ? 'Request approval for delivery changes'
+                      : 'Update the delivery details directly',
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w700,
@@ -232,7 +311,9 @@ class _IntroCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'Please provide detailed information about what went wrong with your delivery.',
+                  isOutForDelivery
+                      ? 'The order is out for delivery. Address changes and delivery notes will go to admin for approval.'
+                      : 'The order is $orderStatus. Address changes and delivery notes are saved directly to the order.',
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: cs.onSurface.withValues(alpha: 0.7),
@@ -248,10 +329,10 @@ class _IntroCard extends StatelessWidget {
   }
 }
 
-// Form Card - Container for form fields
-class _FormCard extends StatelessWidget {
-  const _FormCard({required this.child});
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.child});
 
+  final String title;
   final Widget child;
 
   @override
@@ -265,280 +346,67 @@ class _FormCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
-      child: child,
-    );
-  }
-}
-
-// Field Label - Styled label for form fields
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        fontSize: 14.sp,
-        fontWeight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
-    );
-  }
-}
-
-// Issue Type Dropdown - Custom styled dropdown with icons
-class _IssueTypeDropdown extends StatelessWidget {
-  const _IssueTypeDropdown({
-    required this.initialValue,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String initialValue;
-  final Map<String, IconData> items;
-  final Function(String?) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: DropdownButton<String>(
-        value: initialValue,
-        isExpanded: true,
-        underline: const SizedBox.shrink(),
-        items: items.entries
-            .map(
-              (entry) => DropdownMenuItem(
-                value: entry.key,
-                child: Row(
-                  children: [
-                    Icon(
-                      entry.value,
-                      size: 18.r,
-                      color: cs.primary,
-                    ),
-                    SizedBox(width: 10.w),
-                    Text(
-                      entry.key,
-                      style: TextStyle(fontSize: 13.sp),
-                    ),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-}
-
-// Delivery Text Field - Custom styled text field
-class _DeliveryTextField extends StatefulWidget {
-  const _DeliveryTextField({
-    required this.controller,
-    this.hintText,
-    this.minLines,
-    this.maxLines,
-    this.textInputAction,
-    required this.validator,
-  });
-
-  final TextEditingController controller;
-  final String? hintText;
-  final int? minLines;
-  final int? maxLines;
-  final TextInputAction? textInputAction;
-  final String? Function(String?) validator;
-
-  @override
-  State<_DeliveryTextField> createState() => _DeliveryTextFieldState();
-}
-
-class _DeliveryTextFieldState extends State<_DeliveryTextField> {
-  late FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return TextFormField(
-      controller: widget.controller,
-      focusNode: _focusNode,
-      minLines: widget.minLines,
-      maxLines: widget.maxLines,
-      textInputAction: widget.textInputAction,
-      validator: widget.validator,
-      decoration: InputDecoration(
-        hintText: widget.hintText,
-        hintStyle: TextStyle(
-          color: cs.onSurface.withValues(alpha: 0.5),
-          fontSize: 13.sp,
-        ),
-        filled: true,
-        fillColor: cs.surface,
-        contentPadding: EdgeInsets.all(12.r),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: cs.outlineVariant),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: cs.outlineVariant),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: cs.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: cs.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: cs.error, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
-// Success State - Displayed after successful submission
-class _SuccessState extends StatelessWidget {
-  const _SuccessState({required this.complaint});
-
-  final Complaint complaint;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.r),
-        child: SingleChildScrollView(
-          child: AppResponsive.constrainContent(
-            context: context,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72.r,
-                  height: 72.r,
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.check_circle_rounded,
-                    size: 40.r,
-                    color: cs.primary,
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Text(
-                  'Complaint Submitted',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'We\'ve received your complaint and will investigate shortly.',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: cs.onSurface.withValues(alpha: 0.7),
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Complaint ID: ${complaint.complaintId}',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: cs.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 24.h),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50.h,
-                  child: ElevatedButton(
-                    onPressed: () => Get.off(
-                      () => ComplaintDetailScreen(complaint: complaint),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'View Complaint Details',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50.h,
-                  child: TextButton(
-                    onPressed: () => Get.back(result: complaint),
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r),
-                      ),
-                    ),
-                    child: Text(
-                      'Done',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: cs.primary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900),
           ),
-        ),
+          SizedBox(height: 10.h),
+          child,
+        ],
       ),
     );
   }
 }
 
-// Blocked State - Displayed when complaint already exists
+class _AddressPreviewCard extends StatelessWidget {
+  const _AddressPreviewCard({required this.address, required this.onEdit});
+
+  final Address address;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Current address',
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            [
+              address.street,
+              address.city,
+              address.state,
+              address.zipCode,
+              address.country,
+            ].where((part) => part.trim().isNotEmpty).join(', '),
+            style: TextStyle(fontSize: 13.sp, height: 1.35),
+          ),
+          SizedBox(height: 10.h),
+          OutlinedButton.icon(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_location_alt_outlined),
+            label: const Text('Change address'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BlockedState extends StatelessWidget {
   const _BlockedState({required this.complaint});
 
@@ -546,109 +414,33 @@ class _BlockedState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: EdgeInsets.all(24.r),
-        child: SingleChildScrollView(
-          child: AppResponsive.constrainContent(
-            context: context,
+        child: AppResponsive.constrainContent(
+          context: context,
+          child: _SectionCard(
+            title: 'Active complaint already exists',
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 72.r,
-                  height: 72.r,
-                  decoration: BoxDecoration(
-                    color: cs.secondary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.info_outline_rounded,
-                    size: 40.r,
-                    color: cs.secondary,
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                Text(
-                  'Complaint Already Active',
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                const Icon(Icons.info_outline_rounded, size: 48),
                 SizedBox(height: 12.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(12.r),
-                  decoration: BoxDecoration(
-                    color: cs.secondary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: cs.secondary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Status',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: cs.onSurface.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        complaint.status.toString().replaceAll(
-                          'ComplaintStatus.',
-                          '',
-                        ),
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w700,
-                          color: cs.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                Text(
+                  'Status: ${complaint.status}',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'You already have an active complaint for this order. Please view the details or wait for a response.',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: cs.onSurface.withValues(alpha: 0.7),
-                    height: 1.4,
-                  ),
+                  'You already have an active complaint for this order. Please view the complaint details or wait for a response.',
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 24.h),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50.h,
-                  child: ElevatedButton(
-                    onPressed: () => Get.off(
-                      () => ComplaintDetailScreen(complaint: complaint),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'View Complaint Details',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
+                SizedBox(height: 14.h),
+                OutlinedButton(
+                  onPressed: () => Get.to(
+                    () => ComplaintDetailScreen(complaint: complaint),
                   ),
+                  child: const Text('View complaint'),
                 ),
               ],
             ),

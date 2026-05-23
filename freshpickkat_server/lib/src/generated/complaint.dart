@@ -32,6 +32,9 @@ abstract class Complaint
     this.quantity,
     required this.selectedProducts,
     required this.issueType,
+    this.selectedField,
+    this.extraData,
+    required this.userPhone,
     required this.description,
     required this.imageUrls,
     required this.status,
@@ -59,6 +62,9 @@ abstract class Complaint
     int? quantity,
     required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    required String userPhone,
     required String description,
     required List<String> imageUrls,
     required String status,
@@ -90,6 +96,13 @@ abstract class Complaint
             jsonSerialization['selectedProducts'],
           ),
       issueType: jsonSerialization['issueType'] as String,
+      selectedField: jsonSerialization['selectedField'] as String?,
+      extraData: jsonSerialization['extraData'] == null
+          ? null
+          : _i3.Protocol().deserialize<Map<String, String>>(
+              jsonSerialization['extraData'],
+            ),
+      userPhone: jsonSerialization['userPhone'] as String,
       description: jsonSerialization['description'] as String,
       imageUrls: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['imageUrls'],
@@ -142,6 +155,12 @@ abstract class Complaint
 
   String issueType;
 
+  String? selectedField;
+
+  Map<String, String>? extraData;
+
+  String userPhone;
+
   String description;
 
   List<String> imageUrls;
@@ -179,6 +198,9 @@ abstract class Complaint
     int? quantity,
     List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    String? userPhone,
     String? description,
     List<String>? imageUrls,
     String? status,
@@ -210,6 +232,9 @@ abstract class Complaint
         valueToJson: (v) => v.toJson(),
       ),
       'issueType': issueType,
+      if (selectedField != null) 'selectedField': selectedField,
+      if (extraData != null) 'extraData': extraData?.toJson(),
+      'userPhone': userPhone,
       'description': description,
       'imageUrls': imageUrls.toJson(),
       'status': status,
@@ -243,6 +268,9 @@ abstract class Complaint
         valueToJson: (v) => v.toJsonForProtocol(),
       ),
       'issueType': issueType,
+      if (selectedField != null) 'selectedField': selectedField,
+      if (extraData != null) 'extraData': extraData?.toJson(),
+      'userPhone': userPhone,
       'description': description,
       'imageUrls': imageUrls.toJson(),
       'status': status,
@@ -280,6 +308,9 @@ class _ComplaintImpl extends Complaint {
     int? quantity,
     required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    required String userPhone,
     required String description,
     required List<String> imageUrls,
     required String status,
@@ -305,6 +336,9 @@ class _ComplaintImpl extends Complaint {
          quantity: quantity,
          selectedProducts: selectedProducts,
          issueType: issueType,
+         selectedField: selectedField,
+         extraData: extraData,
+         userPhone: userPhone,
          description: description,
          imageUrls: imageUrls,
          status: status,
@@ -336,6 +370,9 @@ class _ComplaintImpl extends Complaint {
     Object? quantity = _Undefined,
     List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
+    Object? selectedField = _Undefined,
+    Object? extraData = _Undefined,
+    String? userPhone,
     String? description,
     List<String>? imageUrls,
     String? status,
@@ -364,6 +401,21 @@ class _ComplaintImpl extends Complaint {
           selectedProducts ??
           this.selectedProducts.map((e0) => e0.copyWith()).toList(),
       issueType: issueType ?? this.issueType,
+      selectedField: selectedField is String?
+          ? selectedField
+          : this.selectedField,
+      extraData: extraData is Map<String, String>?
+          ? extraData
+          : this.extraData?.map(
+              (
+                key0,
+                value0,
+              ) => MapEntry(
+                key0,
+                value0,
+              ),
+            ),
+      userPhone: userPhone ?? this.userPhone,
       description: description ?? this.description,
       imageUrls: imageUrls ?? this.imageUrls.map((e0) => e0).toList(),
       status: status ?? this.status,

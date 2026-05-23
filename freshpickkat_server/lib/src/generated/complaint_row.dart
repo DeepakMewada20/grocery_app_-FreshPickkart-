@@ -25,6 +25,9 @@ abstract class ComplaintRow
     String? title,
     required this.selectedProducts,
     required this.issueType,
+    this.selectedField,
+    this.extraData,
+    String? userPhone,
     required this.description,
     required this.imageUrls,
     String? status,
@@ -35,6 +38,7 @@ abstract class ComplaintRow
     DateTime? updatedAt,
   }) : complaintType = complaintType ?? 'product',
        title = title ?? '',
+       userPhone = userPhone ?? '',
        status = status ?? 'Pending',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -48,6 +52,9 @@ abstract class ComplaintRow
     String? title,
     required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    String? userPhone,
     required String description,
     required List<String> imageUrls,
     String? status,
@@ -79,6 +86,13 @@ abstract class ComplaintRow
             jsonSerialization['selectedProducts'],
           ),
       issueType: jsonSerialization['issueType'] as String,
+      selectedField: jsonSerialization['selectedField'] as String?,
+      extraData: jsonSerialization['extraData'] == null
+          ? null
+          : _i3.Protocol().deserialize<Map<String, String>>(
+              jsonSerialization['extraData'],
+            ),
+      userPhone: jsonSerialization['userPhone'] as String?,
       description: jsonSerialization['description'] as String,
       imageUrls: _i3.Protocol().deserialize<List<String>>(
         jsonSerialization['imageUrls'],
@@ -117,6 +131,12 @@ abstract class ComplaintRow
 
   String issueType;
 
+  String? selectedField;
+
+  Map<String, String>? extraData;
+
+  String userPhone;
+
   String description;
 
   List<String> imageUrls;
@@ -148,6 +168,9 @@ abstract class ComplaintRow
     String? title,
     List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    String? userPhone,
     String? description,
     List<String>? imageUrls,
     String? status,
@@ -171,6 +194,9 @@ abstract class ComplaintRow
         valueToJson: (v) => v.toJson(),
       ),
       'issueType': issueType,
+      if (selectedField != null) 'selectedField': selectedField,
+      if (extraData != null) 'extraData': extraData?.toJson(),
+      'userPhone': userPhone,
       'description': description,
       'imageUrls': imageUrls.toJson(),
       'status': status,
@@ -229,6 +255,9 @@ class _ComplaintRowImpl extends ComplaintRow {
     String? title,
     required List<_i2.ComplaintProductItem> selectedProducts,
     required String issueType,
+    String? selectedField,
+    Map<String, String>? extraData,
+    String? userPhone,
     required String description,
     required List<String> imageUrls,
     String? status,
@@ -246,6 +275,9 @@ class _ComplaintRowImpl extends ComplaintRow {
          title: title,
          selectedProducts: selectedProducts,
          issueType: issueType,
+         selectedField: selectedField,
+         extraData: extraData,
+         userPhone: userPhone,
          description: description,
          imageUrls: imageUrls,
          status: status,
@@ -269,6 +301,9 @@ class _ComplaintRowImpl extends ComplaintRow {
     String? title,
     List<_i2.ComplaintProductItem>? selectedProducts,
     String? issueType,
+    Object? selectedField = _Undefined,
+    Object? extraData = _Undefined,
+    String? userPhone,
     String? description,
     List<String>? imageUrls,
     String? status,
@@ -291,6 +326,21 @@ class _ComplaintRowImpl extends ComplaintRow {
           selectedProducts ??
           this.selectedProducts.map((e0) => e0.copyWith()).toList(),
       issueType: issueType ?? this.issueType,
+      selectedField: selectedField is String?
+          ? selectedField
+          : this.selectedField,
+      extraData: extraData is Map<String, String>?
+          ? extraData
+          : this.extraData?.map(
+              (
+                key0,
+                value0,
+              ) => MapEntry(
+                key0,
+                value0,
+              ),
+            ),
+      userPhone: userPhone ?? this.userPhone,
       description: description ?? this.description,
       imageUrls: imageUrls ?? this.imageUrls.map((e0) => e0).toList(),
       status: status ?? this.status,
@@ -349,6 +399,24 @@ class ComplaintRowUpdateTable extends _i1.UpdateTable<ComplaintRowTable> {
 
   _i1.ColumnValue<String, String> issueType(String value) => _i1.ColumnValue(
     table.issueType,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> selectedField(String? value) =>
+      _i1.ColumnValue(
+        table.selectedField,
+        value,
+      );
+
+  _i1.ColumnValue<Map<String, String>, Map<String, String>> extraData(
+    Map<String, String>? value,
+  ) => _i1.ColumnValue(
+    table.extraData,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> userPhone(String value) => _i1.ColumnValue(
+    table.userPhone,
     value,
   );
 
@@ -430,6 +498,19 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
       'issueType',
       this,
     );
+    selectedField = _i1.ColumnString(
+      'selectedField',
+      this,
+    );
+    extraData = _i1.ColumnSerializable<Map<String, String>>(
+      'extraData',
+      this,
+    );
+    userPhone = _i1.ColumnString(
+      'userPhone',
+      this,
+      hasDefault: true,
+    );
     description = _i1.ColumnString(
       'description',
       this,
@@ -484,6 +565,12 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString issueType;
 
+  late final _i1.ColumnString selectedField;
+
+  late final _i1.ColumnSerializable<Map<String, String>> extraData;
+
+  late final _i1.ColumnString userPhone;
+
   late final _i1.ColumnString description;
 
   late final _i1.ColumnSerializable<List<String>> imageUrls;
@@ -510,6 +597,9 @@ class ComplaintRowTable extends _i1.Table<_i1.UuidValue?> {
     title,
     selectedProducts,
     issueType,
+    selectedField,
+    extraData,
+    userPhone,
     description,
     imageUrls,
     status,

@@ -16,7 +16,9 @@ class MyComplaintsScreen extends StatefulWidget {
 class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
   final _complaints = <Complaint>[];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   String? _error;
+  String? _nextPageToken;
 
   @override
   void initState() {
@@ -24,18 +26,39 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool append = false}) async {
+    if (append) {
+      final token = _nextPageToken;
+      if (token == null || _isLoadingMore) return;
+      setState(() => _isLoadingMore = true);
+      try {
+        final page = await ProductComplaintService.instance.listMyComplaints(
+          pageToken: token,
+        );
+        setState(() {
+          _complaints.addAll(page.complaints);
+          _nextPageToken = page.nextPageToken;
+        });
+      } catch (error) {
+        setState(() => _error = error.toString());
+      } finally {
+        if (mounted) setState(() => _isLoadingMore = false);
+      }
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
       final page = await ProductComplaintService.instance.listMyComplaints();
-      setState(
-        () => _complaints
+      setState(() {
+        _complaints
           ..clear()
-          ..addAll(page.complaints),
-      );
+          ..addAll(page.complaints);
+        _nextPageToken = page.nextPageToken;
+      });
     } catch (error) {
       setState(() => _error = error.toString());
     } finally {
@@ -68,7 +91,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
               ),
             )
           : RefreshIndicator(
-              onRefresh: _load,
+              onRefresh: () => _load(),
               child: _complaints.isEmpty
                   ? ListView(
                       padding: AppResponsive.pagePadding(context),
@@ -81,9 +104,30 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                       padding: AppResponsive.pagePadding(context).copyWith(
                         bottom: 24.h + MediaQuery.paddingOf(context).bottom,
                       ),
-                      itemCount: _complaints.length,
+                      itemCount: _complaints.length +
+                          (_nextPageToken != null ? 1 : 0),
                       separatorBuilder: (_, _) => SizedBox(height: 10.h),
                       itemBuilder: (context, index) {
+                        if (index >= _complaints.length) {
+                          return AppResponsive.constrainContent(
+                            context: context,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.h),
+                              child: Center(
+                                child: OutlinedButton(
+                                  onPressed: _isLoadingMore
+                                      ? null
+                                      : () => _load(append: true),
+                                  child: Text(
+                                    _isLoadingMore
+                                        ? 'Loading more...'
+                                        : 'Load more',
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
                         final complaint = _complaints[index];
                         return AppResponsive.constrainContent(
                           context: context,

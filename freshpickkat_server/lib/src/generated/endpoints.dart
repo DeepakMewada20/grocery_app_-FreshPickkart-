@@ -45,21 +45,22 @@ import 'package:freshpickkat_server/src/generated/category_offer.dart' as _i31;
 import 'package:freshpickkat_server/src/generated/order.dart' as _i32;
 import 'package:freshpickkat_server/src/generated/combo_offer.dart' as _i33;
 import 'package:freshpickkat_server/src/generated/cart_item_input.dart' as _i34;
-import 'package:freshpickkat_server/src/generated/coupon.dart' as _i35;
-import 'package:freshpickkat_server/src/generated/delivery_config.dart' as _i36;
-import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i37;
+import 'package:freshpickkat_server/src/generated/address.dart' as _i35;
+import 'package:freshpickkat_server/src/generated/coupon.dart' as _i36;
+import 'package:freshpickkat_server/src/generated/delivery_config.dart' as _i37;
+import 'package:freshpickkat_server/src/generated/delivery_rule.dart' as _i38;
 import 'package:freshpickkat_server/src/generated/notification_preference.dart'
-    as _i38;
-import 'package:freshpickkat_server/src/generated/broadcast_request.dart'
     as _i39;
-import 'package:freshpickkat_server/src/generated/product.dart' as _i40;
-import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i41;
-import 'package:freshpickkat_server/src/generated/app_user.dart' as _i42;
-import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i43;
+import 'package:freshpickkat_server/src/generated/broadcast_request.dart'
+    as _i40;
+import 'package:freshpickkat_server/src/generated/product.dart' as _i41;
+import 'package:freshpickkat_server/src/generated/sub_category.dart' as _i42;
+import 'package:freshpickkat_server/src/generated/app_user.dart' as _i43;
+import 'package:freshpickkat_server/src/generated/cart_item.dart' as _i44;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i44;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i45;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i46;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -1655,6 +1656,21 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<List<String>>(),
               nullable: false,
             ),
+            'selectedField': _i1.ParameterDescription(
+              name: 'selectedField',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'requestedAddress': _i1.ParameterDescription(
+              name: 'requestedAddress',
+              type: _i1.getType<_i35.Address?>(),
+              nullable: true,
+            ),
+            'requestedNote': _i1.ParameterDescription(
+              name: 'requestedNote',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -1670,6 +1686,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     title: params['title'],
                     description: params['description'],
                     imageUrls: params['imageUrls'],
+                    selectedField: params['selectedField'],
+                    requestedAddress: params['requestedAddress'],
+                    requestedNote: params['requestedNote'],
                   ),
         ),
         'getActiveComplaintForOrder': _i1.MethodConnector(
@@ -1722,6 +1741,26 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'issueType': _i1.ParameterDescription(
+              name: 'issueType',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'selectedField': _i1.ParameterDescription(
+              name: 'selectedField',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'complaintType': _i1.ParameterDescription(
+              name: 'complaintType',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -1742,6 +1781,10 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
+                    status: params['status'],
+                    issueType: params['issueType'],
+                    selectedField: params['selectedField'],
+                    complaintType: params['complaintType'],
                     limit: params['limit'],
                     pageToken: params['pageToken'],
                   ),
@@ -1826,6 +1869,21 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'issueType': _i1.ParameterDescription(
+              name: 'issueType',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'selectedField': _i1.ParameterDescription(
+              name: 'selectedField',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'complaintType': _i1.ParameterDescription(
+              name: 'complaintType',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -1847,6 +1905,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     status: params['status'],
+                    issueType: params['issueType'],
+                    selectedField: params['selectedField'],
+                    complaintType: params['complaintType'],
                     limit: params['limit'],
                     pageToken: params['pageToken'],
                   ),
@@ -2238,7 +2299,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'coupon': _i1.ParameterDescription(
               name: 'coupon',
-              type: _i1.getType<_i35.Coupon>(),
+              type: _i1.getType<_i36.Coupon>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2312,7 +2373,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'coupon': _i1.ParameterDescription(
               name: 'coupon',
-              type: _i1.getType<_i35.Coupon>(),
+              type: _i1.getType<_i36.Coupon>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2554,7 +2615,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'config': _i1.ParameterDescription(
               name: 'config',
-              type: _i1.getType<_i36.DeliveryConfig>(),
+              type: _i1.getType<_i37.DeliveryConfig>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2650,7 +2711,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'rule': _i1.ParameterDescription(
               name: 'rule',
-              type: _i1.getType<_i37.DeliveryRule>(),
+              type: _i1.getType<_i38.DeliveryRule>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2859,7 +2920,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'preferences': _i1.ParameterDescription(
               name: 'preferences',
-              type: _i1.getType<_i38.NotificationPreference>(),
+              type: _i1.getType<_i39.NotificationPreference>(),
               nullable: false,
             ),
           },
@@ -3110,7 +3171,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'request': _i1.ParameterDescription(
               name: 'request',
-              type: _i1.getType<_i39.BroadcastRequest>(),
+              type: _i1.getType<_i40.BroadcastRequest>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3142,7 +3203,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'request': _i1.ParameterDescription(
               name: 'request',
-              type: _i1.getType<_i39.BroadcastRequest>(),
+              type: _i1.getType<_i40.BroadcastRequest>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3601,6 +3662,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     razorpayPaymentId: params['razorpayPaymentId'],
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
+                  ),
+        ),
+        'updateDeliveryAddress': _i1.MethodConnector(
+          name: 'updateDeliveryAddress',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deliveryAddress': _i1.ParameterDescription(
+              name: 'deliveryAddress',
+              type: _i1.getType<_i35.Address>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deliveryNote': _i1.ParameterDescription(
+              name: 'deliveryNote',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i14.OrderEndpoint)
+                  .updateDeliveryAddress(
+                    session,
+                    params['orderId'],
+                    params['deliveryAddress'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                    deliveryNote: params['deliveryNote'],
                   ),
         ),
         'confirmOrder': _i1.MethodConnector(
@@ -4745,7 +4849,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i40.Product>(),
+              type: _i1.getType<_i41.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4776,7 +4880,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i40.Product>(),
+              type: _i1.getType<_i41.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -5487,7 +5591,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i41.SubCategory>(),
+              type: _i1.getType<_i42.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -5528,7 +5632,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i41.SubCategory>(),
+              type: _i1.getType<_i42.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -5696,7 +5800,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i42.AppUser>(),
+              type: _i1.getType<_i43.AppUser>(),
               nullable: false,
             ),
           },
@@ -5720,7 +5824,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cart': _i1.ParameterDescription(
               name: 'cart',
-              type: _i1.getType<List<_i43.CartItem>>(),
+              type: _i1.getType<List<_i44.CartItem>>(),
               nullable: false,
             ),
           },
@@ -5761,9 +5865,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i44.Endpoints()
+    modules['serverpod_auth_idp'] = _i45.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i45.Endpoints()
+    modules['serverpod_auth_core'] = _i46.Endpoints()
       ..initializeEndpoints(server);
   }
 }

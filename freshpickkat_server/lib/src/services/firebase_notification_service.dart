@@ -220,6 +220,23 @@ class FirebaseNotificationService {
           }
         }
         return;
+      case 'order_address_updated':
+        if (userId == null || userId.isEmpty) return;
+        try {
+          await _sendToTokens(
+            tokens: await _getUserFcmTokens(userId, session: session),
+            title: 'Address updated',
+            body: 'Your delivery address for order $orderId has been updated.',
+            data: {
+              'orderId': orderId,
+              'type': 'order_address_updated',
+              if (status.isNotEmpty) 'status': status,
+            },
+          );
+        } catch (e, st) {
+          session.log('Failed to send order address updated notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+        }
+        return;
       case 'refund_processed':
         if (isRefundProcessed && userId != null && userId.isNotEmpty) {
           try {

@@ -10,6 +10,7 @@ import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 import 'broadcasts_screen.dart';
+import 'address_change_requests_screen.dart';
 import 'complaint_management_screen.dart';
 import 'customers_screen.dart';
 import 'live_delivery_screen.dart';
@@ -350,6 +351,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Text(
+                'Operations',
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.7),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
             ListTile(
               leading: Icon(Icons.delivery_dining_outlined),
               title: Text('Live Delivery'),
@@ -358,17 +370,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LiveDeliveryScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.people_outline),
-              title: Text('Active Users'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CustomersScreen()),
                 );
               },
             ),
@@ -382,6 +383,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   MaterialPageRoute(
                     builder: (_) => const ComplaintManagementScreen(),
                   ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.location_on_outlined),
+              title: Text('Address Change Requests'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddressChangeRequestsScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.people_outline),
+              title: Text('Active Users'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CustomersScreen()),
                 );
               },
             ),

@@ -718,7 +718,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 await Get.to(() => ComplaintDetailScreen(complaint: complaint));
                 return;
               }
-              final result = await Get.to<Complaint>(
+              final result = await Get.to<dynamic>(
                 () => isDelivered
                     ? ReportProductIssueScreen(
                         orderNumber: order.orderId,
@@ -727,10 +727,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       )
                     : ReportDeliveryIssueScreen(
                         orderNumber: order.orderId,
+                        orderStatus: order.status,
+                        currentAddress: order.deliveryAddress,
                         activeComplaint: _activeDeliveryComplaint,
                       ),
               );
-              if (result != null && mounted) {
+              if (!mounted) return;
+              if (result == true) {
+                await _fetch();
+                return;
+              }
+              if (result is Complaint) {
                 setState(() {
                   if (result.complaintType == 'product') {
                     _activeProductComplaint = result;

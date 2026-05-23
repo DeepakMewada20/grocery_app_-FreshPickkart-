@@ -241,6 +241,57 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
+  Future<protocol.Order?> updateDeliveryAddress(
+    Session session,
+    String orderId,
+    protocol.Address deliveryAddress,
+    String firebaseUid,
+    String idToken, {
+    String? deliveryNote,
+  }) async {
+    final actor = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final updated = await _orders.updateDeliveryAddress(
+      session,
+      orderNumber: orderId,
+      deliveryAddress: deliveryAddress,
+      deliveryNote: deliveryNote,
+    );
+    if (updated == null) return null;
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'update_delivery_address',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {
+        'street': deliveryAddress.street,
+        'city': deliveryAddress.city,
+        'state': deliveryAddress.state,
+        'zipCode': deliveryAddress.zipCode,
+        'country': deliveryAddress.country,
+      },
+    );
+
+    await OrderOutboxService.instance.enqueueOrderAddressUpdated(
+      session: session,
+      orderId: orderId,
+      userId: updated.userId,
+      status: updated.status,
+    );
+    return updated;
+  }
+
   Future<bool> confirmOrder(
     Session session,
     String orderId,

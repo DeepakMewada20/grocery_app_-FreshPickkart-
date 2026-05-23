@@ -44,6 +44,24 @@ class OrderService {
     );
   }
 
+  Future<Order?> updateDeliveryAddress({
+    required String orderId,
+    required Address deliveryAddress,
+    String? deliveryNote,
+  }) async {
+    final auth = AuthController.instance;
+    final user = auth.currentUser;
+    if (user == null) throw Exception('Login required.');
+    final idToken = await auth.requireIdToken();
+    return _client.order.updateDeliveryAddress(
+      orderId,
+      deliveryAddress,
+      user.uid,
+      idToken,
+      deliveryNote: deliveryNote,
+    );
+  }
+
   Future<bool> confirmOrder(String orderId) async {
     final user = AuthController.instance.currentUser;
     if (user == null) throw Exception('Login required.');

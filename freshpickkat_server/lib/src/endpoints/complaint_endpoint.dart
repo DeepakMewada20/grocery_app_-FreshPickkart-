@@ -73,6 +73,9 @@ class ComplaintEndpoint extends Endpoint {
     String? title,
     required String description,
     List<String> imageUrls = const [],
+    String? selectedField,
+    Address? requestedAddress,
+    String? requestedNote,
   }) async {
     final user = await _userGuard.ensureUser(
       session,
@@ -87,6 +90,9 @@ class ComplaintEndpoint extends Endpoint {
       title: title,
       description: description,
       imageUrls: imageUrls,
+      selectedField: selectedField,
+      requestedAddress: requestedAddress,
+      requestedNote: requestedNote,
     );
   }
 
@@ -114,6 +120,10 @@ class ComplaintEndpoint extends Endpoint {
     Session session, {
     required String firebaseUid,
     required String idToken,
+    String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -125,6 +135,10 @@ class ComplaintEndpoint extends Endpoint {
     return _complaints.listMyComplaints(
       session,
       user: user,
+      status: status,
+      issueType: issueType,
+      selectedField: selectedField,
+      complaintType: complaintType,
       limit: limit,
       pageToken: pageToken,
     );
@@ -171,6 +185,9 @@ class ComplaintEndpoint extends Endpoint {
     required String firebaseUid,
     required String idToken,
     String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -182,6 +199,9 @@ class ComplaintEndpoint extends Endpoint {
     return _complaints.listComplaints(
       session,
       status: status,
+      issueType: issueType,
+      selectedField: selectedField,
+      complaintType: complaintType,
       limit: limit,
       pageToken: pageToken,
     );
@@ -224,6 +244,7 @@ class ComplaintEndpoint extends Endpoint {
       status: status,
       adminNote: adminNote,
       resolutionType: resolutionType,
+      actorFirebaseUid: firebaseUid,
     );
   }
 

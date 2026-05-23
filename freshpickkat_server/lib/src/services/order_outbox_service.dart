@@ -54,6 +54,25 @@ class OrderOutboxService {
     );
   }
 
+  Future<OrderNotificationOutboxRow> enqueueOrderAddressUpdated({
+    required Session session,
+    required String orderId,
+    required String? userId,
+    required String status,
+  }) {
+    final event = OrderRealtimeEvent(
+      eventType: 'order_address_updated',
+      orderId: orderId,
+      status: status,
+      userId: userId,
+    );
+    return _enqueue(
+      session: session,
+      dedupeKey: 'order_address_updated:$orderId:$status',
+      event: event,
+    );
+  }
+
   Future<OrderNotificationOutboxRow> enqueueRefundProcessed({
     required Session session,
     required String orderId,

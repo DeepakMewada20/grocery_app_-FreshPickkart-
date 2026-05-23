@@ -117,6 +117,7 @@ order:
   - getOrderById:
   - updateOrderStatus:
   - updatePaymentStatus:
+  - updateDeliveryAddress:
   - confirmOrder:
   - cancelOrder:
   - assignDeliveryPerson:

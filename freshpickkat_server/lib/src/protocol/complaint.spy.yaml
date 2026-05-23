@@ -15,6 +15,9 @@ fields:
   quantity: int?
   selectedProducts: List<ComplaintProductItem>
   issueType: String
+  selectedField: String?
+  extraData: Map<String, String>?
+  userPhone: String
   description: String
   imageUrls: List<String>
   status: String

@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import '../notification_outbox_service.dart';
+import '../order_outbox_service.dart';
+import 'postgres_audit_log_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
 
@@ -15,22 +18,24 @@ class PostgresComplaintService {
   static const underReviewStatus = 'Under Review';
   static const resolvedStatus = 'Resolved';
   static const rejectedStatus = 'Rejected';
+  static const addressChangeField = 'address_change';
+  static const deliveryNoteField = 'delivery_note';
 
   static const productIssueTypes = {
-    'Wrong Product',
+    'Wrong Product Received',
     'Damaged Product',
-    'Defective Product',
-    'Missing Item',
+    'Missing Items',
+    'Delivered But Not Received',
     'Expired Product',
-    'Other',
+    'Quality Issue',
   };
 
   static const deliveryIssueTypes = {
     'Late Delivery',
     'Rider Not Reachable',
-    'Wrong Address Attempt',
-    'Order Not Received',
-    'Damaged During Delivery',
+    'Delivery Location Issue',
+    'Order Taking Too Long',
+    'Rider Could Not Find Address',
     'Other',
   };
 
@@ -42,6 +47,7 @@ class PostgresComplaintService {
   };
 
   final PostgresRefundService _refunds = PostgresRefundService();
+  final PostgresAuditLogService _audit = PostgresAuditLogService();
   final Random _random = Random();
 
   Future<Complaint> createComplaint(
@@ -118,6 +124,12 @@ class PostgresComplaintService {
       );
     }
 
+    final address = await OrderAddressRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+    );
+    final userPhone = address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
+
     await _ensureNoActiveComplaint(session, order.id!, productType);
 
     final products = items.map(_snapshotProduct).toList(growable: false);
@@ -133,6 +145,7 @@ class PostgresComplaintService {
         title: cleanNullableString(title) ?? issueType.trim(),
         selectedProducts: products,
         issueType: issueType.trim(),
+        userPhone: userPhone,
         description: description.trim(),
         imageUrls: _cleanImageUrls(imageUrls),
         status: pendingStatus,
@@ -153,6 +166,10 @@ class PostgresComplaintService {
     String? title,
     required String description,
     List<String> imageUrls = const [],
+    String? selectedField,
+    Address? requestedAddress,
+    String? requestedNote,
+    Map<String, String>? extraData,
   }) async {
     final userId = _requireUserId(user);
     final order = await _getOwnedOrder(session, userId, orderNumber);
@@ -170,6 +187,47 @@ class PostgresComplaintService {
       imageUrls: imageUrls,
       requireImage: false,
     );
+
+    final cleanIssueType = issueType.trim();
+    final cleanField = cleanNullableString(selectedField);
+    final cleanNote = cleanNullableString(requestedNote);
+    final address = await OrderAddressRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+    );
+    final userPhone = address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
+
+    String? resolvedField = cleanField;
+    Map<String, String>? resolvedExtraData = extraData == null || extraData.isEmpty
+        ? null
+        : Map<String, String>.from(extraData);
+
+    if (cleanIssueType == 'Delivery Location Issue') {
+      resolvedField ??= requestedAddress != null ? addressChangeField : deliveryNoteField;
+      if (resolvedField != addressChangeField && resolvedField != deliveryNoteField) {
+        throw Exception('Unsupported delivery location request.');
+      }
+      if (order.orderStatus != 'out_for_delivery') {
+        throw Exception(
+          'Delivery location issues can only be requested while the order is out for delivery.',
+        );
+      }
+      if (resolvedField == addressChangeField && requestedAddress == null) {
+        throw Exception('Requested address is required.');
+      }
+      if (resolvedField == deliveryNoteField && cleanNote == null) {
+        throw Exception('Delivery note is required.');
+      }
+      resolvedExtraData = _buildDeliveryRequestExtraData(
+        currentAddress: address,
+        requestedAddress: requestedAddress,
+        requestedNote: cleanNote,
+        extraData: resolvedExtraData,
+      );
+    } else if (resolvedField != null || requestedAddress != null || cleanNote != null) {
+      throw Exception('Delivery location metadata is only supported for delivery location issues.');
+    }
+
     await _ensureNoActiveComplaint(session, order.id!, deliveryType);
 
     final now = DateTime.now().toUtc();
@@ -180,9 +238,12 @@ class PostgresComplaintService {
         orderId: order.id!,
         orderItemId: null,
         complaintType: deliveryType,
-        title: cleanNullableString(title) ?? issueType.trim(),
+        title: cleanNullableString(title) ?? cleanIssueType,
         selectedProducts: const [],
-        issueType: issueType.trim(),
+        issueType: cleanIssueType,
+        selectedField: resolvedField,
+        extraData: resolvedExtraData,
+        userPhone: userPhone,
         description: description.trim(),
         imageUrls: _cleanImageUrls(imageUrls),
         status: pendingStatus,
@@ -214,6 +275,10 @@ class PostgresComplaintService {
   Future<ComplaintPage> listMyComplaints(
     Session session, {
     required AppUserRow user,
+    String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -221,6 +286,10 @@ class PostgresComplaintService {
     return _listComplaints(
       session,
       userId: userId,
+      status: cleanNullableString(status),
+      issueType: cleanNullableString(issueType),
+      selectedField: cleanNullableString(selectedField),
+      complaintType: cleanNullableString(complaintType),
       limit: limit,
       pageToken: pageToken,
     );
@@ -229,51 +298,166 @@ class PostgresComplaintService {
   Future<ComplaintPage> listComplaints(
     Session session, {
     String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
     int limit = 20,
     String? pageToken,
   }) {
     return _listComplaints(
       session,
       status: cleanNullableString(status),
+      issueType: cleanNullableString(issueType),
+      selectedField: cleanNullableString(selectedField),
+      complaintType: cleanNullableString(complaintType),
       limit: limit,
       pageToken: pageToken,
     );
   }
 
-  Future<Complaint?> getMyComplaint(
-    Session session, {
-    required AppUserRow user,
-    required String complaintId,
-  }) async {
-    final row = await _getComplaintRow(session, complaintId);
-    if (row == null) return null;
-    if (row.userId != user.id) throw Exception('Complaint not found.');
-    return _hydrateComplaint(session, row);
+  void _validateCommonFields({
+    required String issueType,
+    required Set<String> allowedIssueTypes,
+    required String description,
+    required List<String> imageUrls,
+    required bool requireImage,
+  }) {
+    if (!allowedIssueTypes.contains(issueType.trim())) {
+      throw Exception('Unsupported complaint issue type.');
+    }
+    final cleanDescription = description.trim();
+    if (cleanDescription.length < 20) {
+      throw Exception('Description must be at least 20 characters.');
+    }
+    if (cleanDescription.length > 2000) {
+      throw Exception('Description must be 2000 characters or less.');
+    }
+    final urls = _cleanImageUrls(imageUrls);
+    if (requireImage && urls.isEmpty) {
+      throw Exception('Please attach at least one image.');
+    }
+    if (urls.length > 3) {
+      throw Exception('You can attach up to 3 images.');
+    }
   }
 
-  Future<Complaint?> getComplaintAdmin(
+  Future<ComplaintPage> _listComplaints(
     Session session, {
-    required String complaintId,
+    UuidValue? userId,
+    String? status,
+    String? issueType,
+    String? selectedField,
+    String? complaintType,
+    int limit = 20,
+    String? pageToken,
   }) async {
-    final row = await _getComplaintRow(session, complaintId);
-    return row == null ? null : _hydrateComplaint(session, row);
-  }
+    final cursor = decodeCursor(pageToken);
+    final before = cursor?['createdAt'] is String
+        ? DateTime.tryParse(cursor!['createdAt'] as String)
+        : null;
+    final safeLimit = clampPageLimit(limit);
 
-  Future<Complaint?> getComplaintForOrderItem(
-    Session session, {
-    required AppUserRow user,
-    required String orderItemId,
-  }) async {
-    final itemUuid = parseUuid(orderItemId, fieldName: 'orderItemId');
-    final row = await ComplaintRow.db.findFirstRow(
+    final hasRowFilter =
+        userId != null ||
+        (status != null && status.isNotEmpty) ||
+        (issueType != null && issueType.isNotEmpty) ||
+        (selectedField != null && selectedField.isNotEmpty) ||
+        (complaintType != null && complaintType.isNotEmpty) ||
+        before != null;
+    final rows = await ComplaintRow.db.find(
       session,
-      where: (t) => t.orderItemId.equals(itemUuid),
+      where: hasRowFilter
+          ? (t) {
+              Expression<dynamic>? expression;
+              if (userId != null) expression = t.userId.equals(userId);
+              if (status != null && status.isNotEmpty) {
+                final statusExpression = t.status.equals(status);
+                expression = expression == null
+                    ? statusExpression
+                    : expression & statusExpression;
+              }
+              if (issueType != null && issueType.isNotEmpty) {
+                final issueExpression = t.issueType.equals(issueType);
+                expression = expression == null
+                    ? issueExpression
+                    : expression & issueExpression;
+              }
+              if (selectedField != null && selectedField.isNotEmpty) {
+                final fieldExpression = t.selectedField.equals(selectedField);
+                expression = expression == null
+                    ? fieldExpression
+                    : expression & fieldExpression;
+              }
+              if (complaintType != null && complaintType.isNotEmpty) {
+                final typeExpression = t.complaintType.equals(complaintType);
+                expression = expression == null
+                    ? typeExpression
+                    : expression & typeExpression;
+              }
+              if (before != null) {
+                final beforeExpression = t.createdAt < before;
+                expression = expression == null
+                    ? beforeExpression
+                    : expression & beforeExpression;
+              }
+              return expression!;
+            }
+          : null,
       orderBy: (t) => t.createdAt,
       orderDescending: true,
+      limit: safeLimit + 1,
     );
-    if (row == null) return null;
-    if (row.userId != user.id) throw Exception('Complaint not found.');
-    return _hydrateComplaint(session, row);
+
+    final pageRows = rows.take(safeLimit).toList();
+    final complaints = await _hydrateComplaints(session, pageRows);
+    final hasCountFilter =
+        userId != null ||
+        (status != null && status.isNotEmpty) ||
+        (issueType != null && issueType.isNotEmpty) ||
+        (selectedField != null && selectedField.isNotEmpty) ||
+        (complaintType != null && complaintType.isNotEmpty);
+    final totalCount = await ComplaintRow.db.count(
+      session,
+      where: hasCountFilter
+          ? (t) {
+              Expression<dynamic>? expression;
+              if (userId != null) expression = t.userId.equals(userId);
+              if (status != null && status.isNotEmpty) {
+                final statusExpression = t.status.equals(status);
+                expression = expression == null
+                    ? statusExpression
+                    : expression & statusExpression;
+              }
+              if (issueType != null && issueType.isNotEmpty) {
+                final issueExpression = t.issueType.equals(issueType);
+                expression = expression == null
+                    ? issueExpression
+                    : expression & issueExpression;
+              }
+              if (selectedField != null && selectedField.isNotEmpty) {
+                final fieldExpression = t.selectedField.equals(selectedField);
+                expression = expression == null
+                    ? fieldExpression
+                    : expression & fieldExpression;
+              }
+              if (complaintType != null && complaintType.isNotEmpty) {
+                final typeExpression = t.complaintType.equals(complaintType);
+                expression = expression == null
+                    ? typeExpression
+                    : expression & typeExpression;
+              }
+              return expression!;
+            }
+          : null,
+    );
+
+    return ComplaintPage(
+      complaints: complaints,
+      nextPageToken: rows.length > safeLimit
+          ? encodeCursor({'createdAt': pageRows.last.createdAt.toIso8601String()})
+          : null,
+      totalCount: totalCount,
+    );
   }
 
   Future<Complaint> updateComplaintStatus(
@@ -282,6 +466,7 @@ class PostgresComplaintService {
     required String status,
     String? adminNote,
     String? resolutionType,
+    String? actorFirebaseUid,
   }) async {
     final cleanStatus = status.trim();
     if (!statuses.contains(cleanStatus) || cleanStatus == pendingStatus) {
@@ -289,9 +474,33 @@ class PostgresComplaintService {
     }
     final row = await _getComplaintRow(session, complaintId);
     if (row?.id == null) throw Exception('Complaint not found.');
+    if (_isAddressChangeRequest(row!)) {
+      if (cleanStatus == resolvedStatus) {
+        final updated = await _approveAddressChange(
+          session,
+          row: row,
+          adminNote: adminNote,
+          resolutionType: resolutionType,
+          actorFirebaseUid: actorFirebaseUid,
+        );
+        await _notifyUserStatus(session, row: updated);
+        return (await _hydrateComplaint(session, updated))!;
+      }
+      if (cleanStatus == rejectedStatus) {
+        final updated = await _rejectAddressChange(
+          session,
+          row: row,
+          adminNote: adminNote,
+          resolutionType: resolutionType,
+          actorFirebaseUid: actorFirebaseUid,
+        );
+        await _notifyUserStatus(session, row: updated);
+        return (await _hydrateComplaint(session, updated))!;
+      }
+    }
     final updated = await _updateComplaintResolution(
       session,
-      row!,
+      row,
       status: cleanStatus,
       adminNote: adminNote,
       resolutionType: resolutionType,
@@ -341,6 +550,58 @@ class PostgresComplaintService {
     );
   }
 
+  Future<Complaint?> getMyComplaint(
+    Session session, {
+    required AppUserRow user,
+    required String complaintId,
+  }) async {
+    final row = await _getComplaintRow(session, complaintId);
+    if (row == null) return null;
+    if (row.userId != user.id) throw Exception('Complaint not found.');
+    return _hydrateComplaint(session, row);
+  }
+
+  Future<Complaint?> getComplaintForOrderItem(
+    Session session, {
+    required AppUserRow user,
+    required String orderItemId,
+  }) async {
+    final itemUuid = parseUuid(orderItemId, fieldName: 'orderItemId');
+    final row = await ComplaintRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderItemId.equals(itemUuid),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    if (row == null) return null;
+    if (row.userId != user.id) throw Exception('Complaint not found.');
+    return _hydrateComplaint(session, row);
+  }
+
+  Future<Complaint?> getComplaintAdmin(
+    Session session, {
+    required String complaintId,
+  }) async {
+    final row = await _getComplaintRow(session, complaintId);
+    return row == null ? null : _hydrateComplaint(session, row);
+  }
+
+  Future<double> calculateRefundCap(
+    Session session, {
+    required String complaintId,
+  }) async {
+    final row = await _getComplaintRow(session, complaintId);
+    if (row?.id == null) throw Exception('Complaint not found.');
+    final order = await CustomerOrderRow.db.findById(session, row!.orderId);
+    if (order == null) throw Exception('Order not found.');
+    return _capComplaintRefundAmount(
+      session,
+      row: row,
+      order: order,
+      requestedAmount: double.maxFinite,
+    );
+  }
+
   Future<Complaint> refundComplaint(
     Session session, {
     required String complaintId,
@@ -384,22 +645,6 @@ class PostgresComplaintService {
     );
     await _notifyUserStatus(session, row: updated);
     return (await _hydrateComplaint(session, updated))!;
-  }
-
-  Future<double> calculateRefundCap(
-    Session session, {
-    required String complaintId,
-  }) async {
-    final row = await _getComplaintRow(session, complaintId);
-    if (row?.id == null) throw Exception('Complaint not found.');
-    final order = await CustomerOrderRow.db.findById(session, row!.orderId);
-    if (order == null) throw Exception('Order not found.');
-    return _capComplaintRefundAmount(
-      session,
-      row: row,
-      order: order,
-      requestedAmount: double.maxFinite,
-    );
   }
 
   Future<Complaint> retryDelivery(
@@ -507,14 +752,8 @@ class PostgresComplaintService {
           orderStatus: 'confirmed',
           paymentStatus: 'paid',
           refundStatus: 'none',
-          itemCount: row.selectedProducts.fold<int>(
-            0,
-            (sum, item) => sum + item.quantity,
-          ),
-          totalAmount: row.selectedProducts.fold<double>(
-            0,
-            (sum, item) => sum + item.totalPrice,
-          ),
+          itemCount: row.selectedProducts.fold<int>(0, (sum, item) => sum + item.quantity),
+          totalAmount: row.selectedProducts.fold<double>(0, (sum, item) => sum + item.totalPrice),
           discountAmount: 0,
           deliveryFee: 0,
           finalAmount: 0,
@@ -581,105 +820,6 @@ class PostgresComplaintService {
     );
     await _notifyUserStatus(session, row: updated);
     return (await _hydrateComplaint(session, updated))!;
-  }
-
-  void _validateCommonFields({
-    required String issueType,
-    required Set<String> allowedIssueTypes,
-    required String description,
-    required List<String> imageUrls,
-    required bool requireImage,
-  }) {
-    if (!allowedIssueTypes.contains(issueType.trim())) {
-      throw Exception('Unsupported complaint issue type.');
-    }
-    final cleanDescription = description.trim();
-    if (cleanDescription.length < 20) {
-      throw Exception('Description must be at least 20 characters.');
-    }
-    if (cleanDescription.length > 2000) {
-      throw Exception('Description must be 2000 characters or less.');
-    }
-    final urls = _cleanImageUrls(imageUrls);
-    if (requireImage && urls.isEmpty) {
-      throw Exception('Please attach at least one image.');
-    }
-    if (urls.length > 3) throw Exception('You can attach up to 3 images.');
-  }
-
-  Future<ComplaintPage> _listComplaints(
-    Session session, {
-    UuidValue? userId,
-    String? status,
-    int limit = 20,
-    String? pageToken,
-  }) async {
-    final cursor = decodeCursor(pageToken);
-    final before = cursor?['createdAt'] is String
-        ? DateTime.tryParse(cursor!['createdAt'] as String)
-        : null;
-    final safeLimit = clampPageLimit(limit);
-
-    final hasRowFilter =
-        userId != null ||
-        (status != null && status.isNotEmpty) ||
-        before != null;
-    final rows = await ComplaintRow.db.find(
-      session,
-      where: hasRowFilter
-          ? (t) {
-              Expression<dynamic>? expression;
-              if (userId != null) expression = t.userId.equals(userId);
-              if (status != null && status.isNotEmpty) {
-                final statusExpression = t.status.equals(status);
-                expression = expression == null
-                    ? statusExpression
-                    : expression & statusExpression;
-              }
-              if (before != null) {
-                final beforeExpression = t.createdAt < before;
-                expression = expression == null
-                    ? beforeExpression
-                    : expression & beforeExpression;
-              }
-              return expression!;
-            }
-          : null,
-      orderBy: (t) => t.createdAt,
-      orderDescending: true,
-      limit: safeLimit + 1,
-    );
-
-    final pageRows = rows.take(safeLimit).toList();
-    final complaints = await _hydrateComplaints(session, pageRows);
-    final hasCountFilter =
-        userId != null || (status != null && status.isNotEmpty);
-    final totalCount = await ComplaintRow.db.count(
-      session,
-      where: hasCountFilter
-          ? (t) {
-              Expression<dynamic>? expression;
-              if (userId != null) expression = t.userId.equals(userId);
-              if (status != null && status.isNotEmpty) {
-                final statusExpression = t.status.equals(status);
-                expression = expression == null
-                    ? statusExpression
-                    : expression & statusExpression;
-              }
-              return expression!;
-            }
-          : null,
-    );
-
-    return ComplaintPage(
-      complaints: complaints,
-      nextPageToken: rows.length > safeLimit
-          ? encodeCursor({
-              'createdAt': pageRows.last.createdAt.toIso8601String(),
-            })
-          : null,
-      totalCount: totalCount,
-    );
   }
 
   Future<ComplaintRow?> _getComplaintRow(Session session, String complaintId) {
@@ -762,6 +902,9 @@ class PostgresComplaintService {
       quantity: first?.quantity,
       selectedProducts: selected,
       issueType: row.issueType,
+      selectedField: row.selectedField,
+      extraData: row.extraData,
+      userPhone: row.userPhone,
       description: row.description,
       imageUrls: row.imageUrls,
       status: row.status,
@@ -857,6 +1000,7 @@ class PostgresComplaintService {
     required String status,
     String? adminNote,
     String? resolutionType,
+    Transaction? transaction,
   }) async {
     final now = DateTime.now().toUtc();
     final cleanNote = cleanNullableString(adminNote);
@@ -870,6 +1014,7 @@ class PostgresComplaintService {
         if (cleanResolution != null) t.resolutionType(cleanResolution),
         t.updatedAt(now),
       ],
+      transaction: transaction,
     );
     return updated ??
         row.copyWith(
@@ -878,6 +1023,271 @@ class PostgresComplaintService {
           resolutionType: cleanResolution ?? row.resolutionType,
           updatedAt: now,
         );
+  }
+
+  bool _isAddressChangeRequest(ComplaintRow row) {
+    return row.complaintType == deliveryType &&
+        row.issueType == 'Delivery Location Issue' &&
+        row.selectedField == addressChangeField;
+  }
+
+  Future<ComplaintRow> _approveAddressChange(
+    Session session, {
+    required ComplaintRow row,
+    String? adminNote,
+    String? resolutionType,
+    String? actorFirebaseUid,
+  }) async {
+    final order = await CustomerOrderRow.db.findById(session, row.orderId);
+    if (order == null) throw Exception('Order not found.');
+    await session.db.transaction<void>((transaction) async {
+      await _applyAddressChange(
+        session,
+        order: order,
+        row: row,
+        transaction: transaction,
+      );
+      await _updateComplaintResolution(
+        session,
+        row,
+        status: resolvedStatus,
+        adminNote: adminNote,
+        resolutionType: resolutionType ?? 'address_change_approved',
+        transaction: transaction,
+      );
+      await _audit.write(
+        session,
+        actorFirebaseUid: actorFirebaseUid,
+        action: 'approve_address_change',
+        entityType: 'complaint',
+        entityId: row.id?.toString(),
+        metadata: {
+          'orderNumber': order.orderNumber,
+          'selectedField': row.selectedField ?? '',
+        },
+        transaction: transaction,
+      );
+    });
+
+    await OrderOutboxService.instance.enqueueOrderAddressUpdated(
+      session: session,
+      orderId: order.orderNumber,
+      userId: order.userId.toString(),
+      status: order.orderStatus,
+    );
+
+    final updated = await _getComplaintRow(session, row.id!.toString());
+    if (updated == null) throw Exception('Complaint not found.');
+    return updated;
+  }
+
+  Future<ComplaintRow> _rejectAddressChange(
+    Session session, {
+    required ComplaintRow row,
+    String? adminNote,
+    String? resolutionType,
+    String? actorFirebaseUid,
+  }) async {
+    final order = await CustomerOrderRow.db.findById(session, row.orderId);
+    if (order == null) throw Exception('Order not found.');
+    final cleanNote = cleanNullableString(adminNote);
+    if (cleanNote == null) {
+      throw Exception('A rejection reason is required.');
+    }
+    await session.db.transaction<void>((transaction) async {
+      await _updateComplaintResolution(
+        session,
+        row,
+        status: rejectedStatus,
+        adminNote: cleanNote,
+        resolutionType: resolutionType ?? 'address_change_rejected',
+        transaction: transaction,
+      );
+      await _audit.write(
+        session,
+        actorFirebaseUid: actorFirebaseUid,
+        action: 'reject_address_change',
+        entityType: 'complaint',
+        entityId: row.id?.toString(),
+        metadata: {
+          'orderNumber': order.orderNumber,
+          'selectedField': row.selectedField ?? '',
+          'reason': cleanNote,
+        },
+        transaction: transaction,
+      );
+    });
+
+    final updated = await _getComplaintRow(session, row.id!.toString());
+    if (updated == null) throw Exception('Complaint not found.');
+    return updated;
+  }
+
+  Future<void> _applyAddressChange(
+    Session session, {
+    required CustomerOrderRow order,
+    required ComplaintRow row,
+    required Transaction transaction,
+  }) async {
+    final requestedAddress = _requestedAddressFromRow(row);
+    if (requestedAddress == null) {
+      throw Exception('Requested address not found in complaint metadata.');
+    }
+
+    final orderAddress = await OrderAddressRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (orderAddress == null) {
+      throw Exception('Order address not found.');
+    }
+
+    final now = DateTime.now().toUtc();
+    await OrderAddressRow.db.updateById(
+      session,
+      orderAddress.id!,
+      columnValues: (t) => [
+        t.streetLine1(requestedAddress.street),
+        t.city(requestedAddress.city),
+        t.state(requestedAddress.state),
+        t.postalCode(requestedAddress.zipCode),
+        t.country(requestedAddress.country),
+        t.latitude(requestedAddress.latitude),
+        t.longitude(requestedAddress.longitude),
+      ],
+      transaction: transaction,
+    );
+
+    final tracking = await OrderTrackingRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    final formattedAddress = _formatAddressSnapshot(requestedAddress);
+    if (tracking == null) {
+      await OrderTrackingRow.db.insertRow(
+        session,
+        OrderTrackingRow(
+          orderId: order.id!,
+          trackingEnabled: order.orderStatus == 'out_for_delivery',
+          userLatitude: requestedAddress.latitude,
+          userLongitude: requestedAddress.longitude,
+          userAddress: formattedAddress,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+    } else {
+      await OrderTrackingRow.db.updateById(
+        session,
+        tracking.id!,
+        columnValues: (t) => [
+          t.userLatitude(requestedAddress.latitude),
+          t.userLongitude(requestedAddress.longitude),
+          t.userAddress(formattedAddress),
+          t.updatedAt(now),
+        ],
+        transaction: transaction,
+      );
+    }
+  }
+
+  Map<String, String> _buildDeliveryRequestExtraData({
+    required OrderAddressRow? currentAddress,
+    required Address? requestedAddress,
+    required String? requestedNote,
+    required Map<String, String>? extraData,
+  }) {
+    final resolved = <String, String>{
+      if (extraData != null) ...extraData,
+    };
+    if (currentAddress != null) {
+      resolved['currentAddressJson'] = jsonEncode(
+        _addressSnapshotFromOrderAddress(currentAddress),
+      );
+    }
+    if (requestedAddress != null) {
+      resolved['requestedAddressJson'] = jsonEncode(
+        _addressSnapshotFromAddress(requestedAddress),
+      );
+      resolved['requestedStreetLine1'] = requestedAddress.street;
+      resolved['requestedCity'] = requestedAddress.city;
+      resolved['requestedState'] = requestedAddress.state;
+      resolved['requestedPostalCode'] = requestedAddress.zipCode;
+      resolved['requestedCountry'] = requestedAddress.country;
+      if (requestedAddress.latitude != null) {
+        resolved['requestedLatitude'] = requestedAddress.latitude!.toString();
+      }
+      if (requestedAddress.longitude != null) {
+        resolved['requestedLongitude'] = requestedAddress.longitude!.toString();
+      }
+    }
+    if (requestedNote != null) {
+      resolved['requestedNote'] = requestedNote;
+    }
+    return resolved;
+  }
+
+  Address? _requestedAddressFromRow(ComplaintRow row) {
+    final extraData = row.extraData;
+    if (extraData == null) return null;
+    final raw = extraData['requestedAddressJson'];
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return Address(
+        street: decoded['street']?.toString() ?? '',
+        city: decoded['city']?.toString() ?? '',
+        state: decoded['state']?.toString() ?? '',
+        zipCode: decoded['zipCode']?.toString() ?? '',
+        country: decoded['country']?.toString() ?? '',
+        latitude: decoded['latitude'] == null ? null : asDouble(decoded['latitude']),
+        longitude: decoded['longitude'] == null ? null : asDouble(decoded['longitude']),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _addressSnapshotFromAddress(Address address) {
+    return {
+      'street': address.street.trim(),
+      'city': address.city.trim(),
+      'state': address.state.trim(),
+      'zipCode': address.zipCode.trim(),
+      'country': address.country.trim(),
+      if (address.latitude != null) 'latitude': address.latitude,
+      if (address.longitude != null) 'longitude': address.longitude,
+    };
+  }
+
+  Map<String, dynamic> _addressSnapshotFromOrderAddress(OrderAddressRow address) {
+    return {
+      'street': address.streetLine1,
+      'streetLine2': address.streetLine2,
+      'landmark': address.landmark,
+      'city': address.city,
+      'state': address.state,
+      'zipCode': address.postalCode,
+      'country': address.country,
+      'latitude': address.latitude,
+      'longitude': address.longitude,
+    };
+  }
+
+  String _formatAddressSnapshot(Address address) {
+    final parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.zipCode,
+      address.country,
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    return parts.join(', ');
   }
 
   Future<double> _capComplaintRefundAmount(

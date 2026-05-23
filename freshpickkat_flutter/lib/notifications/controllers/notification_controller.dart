@@ -250,6 +250,7 @@ class NotificationController extends GetxController {
         return;
       case 'order_paid':
       case 'order_status':
+      case 'order_address_updated':
         final orderId = data['orderId'];
         if (orderId != null && orderId.isNotEmpty) {
           await Get.to(() => OrderDetailScreen(orderId: orderId));
@@ -333,8 +334,6 @@ class NotificationController extends GetxController {
     final body = message.notification?.body ?? message.data['body'];
     if (title == null || body == null) return;
 
-    // Use a stable ID derived from orderId + type so that rapid duplicate FCM
-    // messages for the same event replace each other instead of stacking up.
     final orderId = message.data['orderId']?.toString() ?? '';
     final type = message.data['type']?.toString() ?? '';
     final notificationId = (orderId.isNotEmpty || type.isNotEmpty)

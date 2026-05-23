@@ -887,6 +887,136 @@ class PostgresOrderService {
     return true;
   }
 
+  Future<Order?> updateDeliveryAddress(
+    Session session, {
+    required String orderNumber,
+    required Address deliveryAddress,
+    String? deliveryNote,
+    bool allowOutForDelivery = false,
+    Transaction? transaction,
+  }) async {
+    if (transaction != null) {
+      await _updateDeliveryAddress(
+        session,
+        orderNumber: orderNumber,
+        deliveryAddress: deliveryAddress,
+        deliveryNote: deliveryNote,
+        allowOutForDelivery: allowOutForDelivery,
+        transaction: transaction,
+      );
+      return getOrderById(session, orderNumber);
+    }
+
+    await session.db.transaction<void>((tx) async {
+      await _updateDeliveryAddress(
+        session,
+        orderNumber: orderNumber,
+        deliveryAddress: deliveryAddress,
+        deliveryNote: deliveryNote,
+        allowOutForDelivery: allowOutForDelivery,
+        transaction: tx,
+      );
+    });
+    return getOrderById(session, orderNumber);
+  }
+
+  Future<void> _updateDeliveryAddress(
+    Session session, {
+    required String orderNumber,
+    required Address deliveryAddress,
+    String? deliveryNote,
+    required bool allowOutForDelivery,
+    required Transaction transaction,
+  }) async {
+    final order = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber.trim()),
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (order == null) {
+      throw Exception('Order not found.');
+    }
+    if (order.orderStatus == 'delivered' || order.orderStatus == 'cancelled') {
+      throw Exception('Completed orders cannot be updated.');
+    }
+    if (!allowOutForDelivery && order.orderStatus == 'out_for_delivery') {
+      throw Exception(
+        'Delivery address changes are not allowed after the order is out for delivery.',
+      );
+    }
+
+    final address = await OrderAddressRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (address == null) {
+      throw Exception('Order address not found.');
+    }
+
+    final now = DateTime.now().toUtc();
+    await OrderAddressRow.db.updateById(
+      session,
+      address.id!,
+      columnValues: (t) => [
+        t.streetLine1(deliveryAddress.street.trim()),
+        t.city(deliveryAddress.city.trim()),
+        t.state(deliveryAddress.state.trim()),
+        t.postalCode(deliveryAddress.zipCode.trim()),
+        t.country(deliveryAddress.country.trim()),
+        t.latitude(deliveryAddress.latitude),
+        t.longitude(deliveryAddress.longitude),
+        t.landmark(cleanNullableString(deliveryNote) ?? address.landmark),
+      ],
+      transaction: transaction,
+    );
+
+    final tracking = await OrderTrackingRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    final formattedAddress = _formatAddress(deliveryAddress);
+    if (tracking == null) {
+      await OrderTrackingRow.db.insertRow(
+        session,
+        OrderTrackingRow(
+          orderId: order.id!,
+          trackingEnabled: order.orderStatus == 'out_for_delivery',
+          userLatitude: deliveryAddress.latitude,
+          userLongitude: deliveryAddress.longitude,
+          userAddress: formattedAddress,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+    } else {
+      await OrderTrackingRow.db.updateById(
+        session,
+        tracking.id!,
+        columnValues: (t) => [
+          t.userLatitude(deliveryAddress.latitude),
+          t.userLongitude(deliveryAddress.longitude),
+          t.userAddress(formattedAddress),
+          t.updatedAt(now),
+        ],
+        transaction: transaction,
+      );
+    }
+
+    await CustomerOrderRow.db.updateById(
+      session,
+      order.id!,
+      columnValues: (t) => [
+        t.updatedAt(now),
+      ],
+      transaction: transaction,
+    );
+  }
+
   Future<bool> updatePaymentStatus(
     Session session,
     String orderNumber,
@@ -973,6 +1103,17 @@ class PostgresOrderService {
       'cancelled',
       cancellationReason: reason,
     );
+  }
+
+  String _formatAddress(Address address) {
+    final parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.zipCode,
+      address.country,
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    return parts.join(', ');
   }
 
   Future<bool> assignDeliveryPerson(
