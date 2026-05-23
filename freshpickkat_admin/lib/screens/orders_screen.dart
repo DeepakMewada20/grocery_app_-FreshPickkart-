@@ -1384,15 +1384,31 @@ class _OrderCardState extends State<_OrderCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: AutoSizeText(
-                        '₹${order.finalAmount.toStringAsFixed(0)}',
-                        maxLines: 1,
-                        minFontSize: 14,
-                        style: TextStyle(
-                          fontSize: 20.sp.clamp(17.0, 22.0),
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      child: Row(
+                        children: [
+                          AutoSizeText(
+                            '₹${order.finalAmount.toStringAsFixed(0)}',
+                            maxLines: 1,
+                            minFontSize: 14,
+                            style: TextStyle(
+                              fontSize: 20.sp.clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          if (order.orderType == 'replacement')
+                            Padding(
+                              padding: EdgeInsets.only(left: 8.w),
+                              child: Text(
+                                'Replacement',
+                                style: TextStyle(
+                                  color: AdminAppTheme.getWarningColor(context),
+                                  fontSize: 12.sp.clamp(10.0, 13.0),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     if (order.cancellationReason != null &&
