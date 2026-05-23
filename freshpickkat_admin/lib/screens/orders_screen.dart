@@ -71,7 +71,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Future<void> _loadInitial({bool force = false}) async {
     await _orderController.loadInitial(
-      status: _orderController.statusFilter,
+      status: _orderController.statusFilter.value,
       force: force,
     );
   }
@@ -390,7 +390,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         }
 
         final filtered = orders.where((o) {
-          final statusFilter = _orderController.statusFilter;
+          final statusFilter = _orderController.statusFilter.value;
 
           // Handle replacement filter
           if (statusFilter == 'replacement') {
@@ -421,7 +421,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   8.h,
                 ),
                 child: _StatusFilterChips(
-                  currentFilter: _orderController.statusFilter,
+                  currentFilter: _orderController.statusFilter.value,
                   onChanged: (value) {
                     if (value == null) return;
                     _orderController.loadInitial(status: value);
@@ -446,7 +446,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    _orderController.statusFilter == 'all' &&
+                                    _orderController.statusFilter.value == 'all' &&
                                             _searchQuery.isEmpty
                                         ? Icons.shopping_bag_outlined
                                         : Icons.search_off,
@@ -457,7 +457,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   ),
                                   SizedBox(height: 16.h),
                                   Text(
-                                    _orderController.statusFilter == 'all' &&
+                                    _orderController.statusFilter.value == 'all' &&
                                             _searchQuery.isEmpty
                                         ? 'No orders yet'
                                         : 'No matching orders',

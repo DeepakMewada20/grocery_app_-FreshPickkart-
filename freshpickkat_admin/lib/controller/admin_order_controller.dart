@@ -29,30 +29,24 @@ class AdminOrderController extends GetxController {
   final Map<String, bool> _hasMoreMap = {};
   final Map<String, int> _totalCounts = {};
 
-  String statusFilter = 'all';
+  RxString statusFilter = 'all'.obs;
 
   Future<void> loadInitial({String? status, bool force = false}) async {
-    statusFilter = status ?? 'all';
+    statusFilter.value = status ?? 'all';
 
     if (force) {
-      _nextPageTokens[statusFilter] = null;
-      _hasMoreMap[statusFilter] = true;
-      _totalCounts[statusFilter] = 0;
+      _nextPageTokens[statusFilter.value] = null;
+      _hasMoreMap[statusFilter.value] = true;
+      _totalCounts[statusFilter.value] = 0;
     }
 
-    final currentFilteredCount = orders.where((o) {
-      if (statusFilter == 'all') return true;
-      return o.status == statusFilter;
-    }).length;
-
-    nextPageToken.value = _nextPageTokens[statusFilter];
-    totalCount.value = _totalCounts[statusFilter] ?? 0;
-    hasMore.value = _hasMoreMap[statusFilter] ?? true;
+    nextPageToken.value = _nextPageTokens[statusFilter.value];
+    totalCount.value = _totalCounts[statusFilter.value] ?? 0;
+    hasMore.value = _hasMoreMap[statusFilter.value] ?? true;
     error.value = null;
 
-    if (force || (currentFilteredCount < 10 && hasMore.value)) {
-      await loadMore(isInitial: force || orders.isEmpty);
-    }
+    isLoading.value = true;
+    await loadMore(isInitial: true);
   }
 
   Future<void> loadMore({bool isInitial = false}) async {
@@ -77,27 +71,27 @@ class AdminOrderController extends GetxController {
           idToken: idToken,
           limit: pageSize,
           pageToken: nextPageToken.value,
-          status: statusFilter == 'all' ? null : statusFilter,
+          status: statusFilter.value == 'all' ? null : statusFilter.value,
         );
       });
 
       final bool isFirstPage = nextPageToken.value == null;
 
-      _nextPageTokens[statusFilter] = page.nextPageToken;
-      _totalCounts[statusFilter] = page.totalCount;
-      _hasMoreMap[statusFilter] =
+      _nextPageTokens[statusFilter.value] = page.nextPageToken;
+      _totalCounts[statusFilter.value] = page.totalCount;
+      _hasMoreMap[statusFilter.value] =
           page.nextPageToken != null && page.orders.isNotEmpty;
 
       nextPageToken.value = page.nextPageToken;
       totalCount.value = page.totalCount;
-      hasMore.value = _hasMoreMap[statusFilter]!;
+      hasMore.value = _hasMoreMap[statusFilter.value]!;
 
       // If it's the first page (initial or force), clear old orders for this status
       if (isFirstPage) {
-        if (statusFilter == 'all') {
+        if (statusFilter.value == 'all') {
           orders.clear();
         } else {
-          orders.removeWhere((o) => o.status == statusFilter);
+          orders.removeWhere((o) => o.status == statusFilter.value);
         }
       }
 
@@ -135,7 +129,7 @@ class AdminOrderController extends GetxController {
     final target = orderId.trim();
     if (target.isEmpty) return false;
 
-    statusFilter = 'all';
+    statusFilter.value = 'all';
     await loadInitial(status: 'all', force: true);
     if (orders.any((order) => order.orderId == target)) return true;
 
