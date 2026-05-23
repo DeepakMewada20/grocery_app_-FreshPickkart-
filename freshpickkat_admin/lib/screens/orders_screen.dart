@@ -310,25 +310,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AdminAppBar(
         title: _isSearching
-            ? TextField(
-                autofocus: true,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
+            ? Container(
+                height: 42.h,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Search order id / customer / phone',
-                  hintStyle: TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                child: TextField(
+                  autofocus: true,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 15.sp.clamp(13.0, 16.0),
                   ),
-                  border: InputBorder.none,
+                  decoration: InputDecoration(
+                    hintText: 'Order ID / Customer / Phone',
+                    hintStyle: TextStyle(
+                      color: AdminAppTheme.getTextSecondaryColor(
+                        context,
+                      ).withValues(alpha: 0.6),
+                      fontSize: 14.sp.clamp(12.0, 15.0),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: 20.sp.clamp(18.0, 22.0),
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 10.h),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
               )
             : Obx(
                 () => Text(
@@ -376,9 +391,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
         final filtered = orders.where((o) {
           final statusFilter = _orderController.statusFilter;
-          if (statusFilter != 'all' && o.status != statusFilter) {
-            return false;
+
+          // Handle replacement filter
+          if (statusFilter == 'replacement') {
+            if (o.orderType != 'replacement') return false;
+          } else if (statusFilter != 'all') {
+            // Handle other status filters
+            if (o.status != statusFilter) return false;
           }
+
+          // Search filter
           final q = _searchQuery.toLowerCase().trim();
           if (q.isEmpty) return true;
           return o.orderId.toLowerCase().contains(q) ||
@@ -398,7 +420,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   AdminResponsive.pageHorizontalPadding(context),
                   8.h,
                 ),
-                child: _StatusFilterDropdown(
+                child: _StatusFilterChips(
                   currentFilter: _orderController.statusFilter,
                   onChanged: (value) {
                     if (value == null) return;
@@ -1150,8 +1172,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 }
 
-class _StatusFilterDropdown extends StatelessWidget {
-  const _StatusFilterDropdown({
+class _StatusFilterChips extends StatelessWidget {
+  const _StatusFilterChips({
     required this.currentFilter,
     required this.onChanged,
   });
@@ -1161,34 +1183,63 @@ class _StatusFilterDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: AdminAppTheme.getTextSecondaryColor(
-          context,
-        ).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: currentFilter,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          borderRadius: BorderRadius.circular(12),
-          items: const [
-            DropdownMenuItem(value: 'all', child: Text('All Orders')),
-            DropdownMenuItem(value: 'placed', child: Text('Placed')),
-            DropdownMenuItem(value: 'confirmed', child: Text('Confirmed')),
-            DropdownMenuItem(value: 'packed', child: Text('Packed')),
-            DropdownMenuItem(
-              value: 'out_for_delivery',
-              child: Text('Out for delivery'),
-            ),
-            DropdownMenuItem(value: 'delivered', child: Text('Delivered')),
-            DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-          ],
-          onChanged: onChanged,
-        ),
+    final filters = [
+      ('all', 'All Orders'),
+      ('placed', 'Placed'),
+      ('confirmed', 'Confirmed'),
+      ('packed', 'Packed'),
+      ('out_for_delivery', 'Out for delivery'),
+      ('delivered', 'Delivered'),
+      ('cancelled', 'Cancelled'),
+      ('replacement', 'Replacement'),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...filters.map((filter) {
+            final value = filter.$1;
+            final label = filter.$2;
+            final isSelected = currentFilter == value;
+
+            return Padding(
+              padding: EdgeInsets.only(right: 8.w),
+              child: FilterChip(
+                selected: isSelected,
+                onSelected: (selected) {
+                  onChanged(value);
+                },
+                label: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+                backgroundColor: AdminAppTheme.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.08),
+                selectedColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.12),
+                side: BorderSide(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : AdminAppTheme.getTextSecondaryColor(
+                          context,
+                        ).withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                labelStyle: TextStyle(
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : AdminAppTheme.getTextSecondaryColor(context),
+                ),
+              ),
+            );
+          }).toList(),
+        ],
       ),
     );
   }
@@ -1221,165 +1272,158 @@ class _OrderCardState extends State<_OrderCard> {
   Widget build(BuildContext context) {
     final order = widget.order;
     final highlightColor = AdminAppTheme.getWarningColor(context);
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
         color: widget.isHighlighted
-            ? highlightColor.withValues(alpha: 0.13)
+            ? highlightColor.withValues(alpha: 0.08)
             : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: widget.isHighlighted
               ? highlightColor
-              : AdminThemeTokens.transparent,
-          width: widget.isHighlighted ? 1.6 : 1,
+              : AdminAppTheme.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.12),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: widget.isHighlighted
-                ? highlightColor.withValues(alpha: 0.22)
-                : AdminAppTheme.getScrimShadowColor(context, alpha: 0.05),
-            blurRadius: widget.isHighlighted ? 18 : 10,
-            offset: const Offset(0, 4),
+            color: AdminAppTheme.getScrimShadowColor(context, alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: AdminThemeTokens.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: widget.onTap,
           child: Padding(
-            padding: AdminResponsive.cardPadding(context),
+            padding: EdgeInsets.all(12.r),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header Row: Order ID, Items, Status
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: EdgeInsets.all(8.r),
-                            decoration: BoxDecoration(
-                              color: AdminAppTheme.getSuccessContainerColor(
-                                context,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.receipt_long,
-                              color: AdminAppTheme.getSuccessColor(context),
-                              size: 20.sp.clamp(18.0, 22.0),
+                          AutoSizeText(
+                            '#${order.orderId}',
+                            maxLines: 1,
+                            minFontSize: 13,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.sp.clamp(14.0, 18.0),
                             ),
                           ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AutoSizeText(
-                                  '#${order.orderId}',
-                                  maxLines: 1,
-                                  minFontSize: 11,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.sp.clamp(14.0, 18.0),
-                                  ),
-                                ),
-                                Text(
-                                  '${order.itemCount} Items',
-                                  style: TextStyle(
-                                    color: AdminAppTheme.getTextSecondaryColor(
-                                      context,
-                                    ),
-                                    fontSize: 13.sp.clamp(11.0, 14.0),
-                                  ),
-                                ),
-                              ],
+                          SizedBox(height: 2.h),
+                          Text(
+                            '${order.itemCount} Items',
+                            style: TextStyle(
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
+                              fontSize: 12.sp.clamp(10.0, 13.0),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: 8.w),
                     Flexible(child: _buildStatusChip(order.status)),
                   ],
                 ),
-                SizedBox(height: 16.h),
-                Container(
-                  padding: EdgeInsets.all(12.r),
-                  decoration: BoxDecoration(
-                    color: AdminAppTheme.getTextSecondaryColor(
-                      context,
-                    ).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person_outline,
-                              size: 18.sp.clamp(16.0, 20.0),
-                              color: AdminAppTheme.getTextSecondaryColor(
-                                context,
-                              ),
-                            ),
-                            SizedBox(width: 6.w),
-                            Flexible(
-                              child: Text(
-                                order.userName ?? 'N/A',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14.sp.clamp(12.0, 15.0),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onLongPress: () {
-                          Clipboard.setData(
-                            ClipboardData(text: order.userPhone),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Phone number copied'),
-                              duration: Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.phone_outlined,
-                              size: 18.sp.clamp(16.0, 20.0),
-                              color: AdminAppTheme.getTextSecondaryColor(
-                                context,
-                              ),
-                            ),
-                            SizedBox(width: 6.w),
-                            Text(
-                              order.userPhone,
-                              style: TextStyle(
-                                fontSize: 14.sp.clamp(12.0, 15.0),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+
+                SizedBox(height: 12.h),
+
+                // Divider
+                Divider(
+                  height: 1,
+                  color: AdminAppTheme.getTextSecondaryColor(
+                    context,
+                  ).withValues(alpha: 0.1),
                 ),
-                SizedBox(height: 16.h),
+
+                SizedBox(height: 12.h),
+
+                // User Info in compact format
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 16.sp.clamp(14.0, 18.0),
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                    ),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(
+                        order.userName ?? 'N/A',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13.sp.clamp(11.0, 14.0),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    GestureDetector(
+                      onLongPress: () {
+                        Clipboard.setData(ClipboardData(text: order.userPhone));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Phone number copied'),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.phone_outlined,
+                            size: 16.sp.clamp(14.0, 18.0),
+                            color: AdminAppTheme.getTextSecondaryColor(context),
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            order.userPhone,
+                            style: TextStyle(
+                              fontSize: 12.sp.clamp(10.0, 13.0),
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Divider
+                Divider(
+                  height: 1,
+                  color: AdminAppTheme.getTextSecondaryColor(
+                    context,
+                  ).withValues(alpha: 0.1),
+                ),
+
+                SizedBox(height: 12.h),
+
+                // Amount and Replacement
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1399,12 +1443,26 @@ class _OrderCardState extends State<_OrderCard> {
                           if (order.orderType == 'replacement')
                             Padding(
                               padding: EdgeInsets.only(left: 8.w),
-                              child: Text(
-                                'Replacement',
-                                style: TextStyle(
-                                  color: AdminAppTheme.getWarningColor(context),
-                                  fontSize: 12.sp.clamp(10.0, 13.0),
-                                  fontWeight: FontWeight.w500,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AdminAppTheme.getWarningColor(
+                                    context,
+                                  ).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Replacement',
+                                  style: TextStyle(
+                                    color: AdminAppTheme.getWarningColor(
+                                      context,
+                                    ),
+                                    fontSize: 11.sp.clamp(9.0, 12.0),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1415,17 +1473,18 @@ class _OrderCardState extends State<_OrderCard> {
                         order.cancellationReason!.isNotEmpty)
                       Expanded(
                         child: Text(
-                          'Cancelled: ${order.cancellationReason}',
+                          'Cancelled',
                           style: TextStyle(
                             color: AdminAppTheme.getErrorColor(context),
                             fontSize: 12.sp.clamp(10.0, 13.0),
+                            fontWeight: FontWeight.w600,
                           ),
                           textAlign: TextAlign.right,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                   ],
                 ),
+
                 SizedBox(height: 12.h),
                 _buildLifecycleActions(context, order, widget.onStatusChanged),
               ],
@@ -1442,13 +1501,14 @@ class _OrderCardState extends State<_OrderCard> {
     Future<void> Function(String) onStatusChanged,
   ) {
     final buttons = <Widget>[];
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     if (order.status == 'placed') {
       buttons.add(
         _lifecycleButton(
           context: context,
-          label: 'Confirm Order',
-          color: AdminAppTheme.getInfoColor(context),
+          label: 'Confirm',
+          color: primaryColor,
           icon: Icons.verified_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1468,7 +1528,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Mark Packed',
-          color: AdminAppTheme.getDeepPurpleColor(context),
+          color: primaryColor,
           icon: Icons.inventory_2_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1488,7 +1548,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Start Delivery',
-          color: AdminAppTheme.getWarningColor(context),
+          color: primaryColor,
           icon: Icons.local_shipping_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1508,7 +1568,7 @@ class _OrderCardState extends State<_OrderCard> {
         _lifecycleButton(
           context: context,
           label: 'Mark Delivered',
-          color: AdminAppTheme.getSuccessColor(context),
+          color: primaryColor,
           icon: Icons.check_circle_outline,
           isLoading: _isLoading,
           onPressed: _isLoading
@@ -1526,8 +1586,8 @@ class _OrderCardState extends State<_OrderCard> {
       buttons.add(
         _lifecycleButton(
           context: context,
-          label: 'Track Order',
-          color: AdminAppTheme.getBlueGreyColor(context),
+          label: 'Track',
+          color: primaryColor,
           icon: Icons.map_outlined,
           isLoading: false,
           onPressed: () {
@@ -1539,7 +1599,7 @@ class _OrderCardState extends State<_OrderCard> {
 
     if (buttons.isEmpty) {
       return Text(
-        'No further lifecycle action available',
+        'No further action available',
         style: TextStyle(
           color: AdminAppTheme.getTextSecondaryColor(context),
           fontSize: 12.sp.clamp(10.0, 13.0),
