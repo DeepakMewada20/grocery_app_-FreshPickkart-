@@ -467,7 +467,7 @@ class _ComplaintDetailAdminScreenState
         _complaint,
         adminNote: _noteController.text.trim().isEmpty
             ? selected
-            : '${selected}: ${_noteController.text.trim()}',
+            : '$selected: ${_noteController.text.trim()}',
       ),
     );
   }
