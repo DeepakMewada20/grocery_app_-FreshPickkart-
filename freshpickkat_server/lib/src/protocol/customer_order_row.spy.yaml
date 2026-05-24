@@ -12,7 +12,14 @@ fields:
   itemCount: int
   totalAmount: double
   discountAmount: double, default=0
+  mrpTotal: double, default=0
+  productDiscountAmount: double, default=0
+  comboDiscountAmount: double, default=0
+  bogoDiscountAmount: double, default=0
   deliveryFee: double, default=0
+  originalDeliveryFee: double, default=0
+  deliveryDiscountAmount: double, default=0
+  freeDeliveryApplied: bool, default=false
   finalAmount: double
   placedAt: DateTime?
   confirmedAt: DateTime?

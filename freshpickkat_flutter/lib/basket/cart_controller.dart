@@ -972,6 +972,31 @@ class CartController extends GetxController {
         estimatedDeliveryFee.value;
   }
 
+  double get originalDeliveryFee {
+    final pricing = cartPricing.value;
+    if (!isPricingStale.value && pricing != null) {
+      return pricing.originalDeliveryFee;
+    }
+    final baseFee =
+        localDeliveryPricing.value?.baseDeliveryFee ??
+        pricing?.deliveryPricing?.baseDeliveryFee ??
+        estimatedDeliveryFee.value;
+    return baseFee > deliveryFee ? baseFee : deliveryFee;
+  }
+
+  double get deliveryDiscountAmount {
+    return (originalDeliveryFee - deliveryFee)
+        .clamp(0, double.infinity)
+        .toDouble();
+  }
+
+  bool get freeDeliveryApplied {
+    if (!isPricingStale.value && cartPricing.value != null) {
+      return cartPricing.value!.freeDeliveryApplied;
+    }
+    return deliveryFee <= 0 && deliveryDiscountAmount > 0;
+  }
+
   double get couponDiscount {
     if (couponValidation.value != null &&
         couponValidation.value!.isValid &&

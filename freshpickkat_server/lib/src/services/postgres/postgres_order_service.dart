@@ -105,7 +105,14 @@ class PostgresOrderService {
             itemCount: order.itemCount,
             totalAmount: order.totalAmount,
             discountAmount: order.discountAmount,
+            mrpTotal: order.mrpTotal,
+            productDiscountAmount: order.productDiscountAmount,
+            comboDiscountAmount: order.comboDiscountAmount,
+            bogoDiscountAmount: order.bogoDiscountAmount,
             deliveryFee: order.deliveryFee,
+            originalDeliveryFee: order.originalDeliveryFee,
+            deliveryDiscountAmount: order.deliveryDiscountAmount,
+            freeDeliveryApplied: order.freeDeliveryApplied,
             finalAmount: order.finalAmount,
             orderType: order.orderType,
             sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
@@ -464,6 +471,47 @@ class PostgresOrderService {
       itemsByOrder.putIfAbsent(item.orderId.toString(), () => []).add(item);
     }
 
+    final comboOfferIds = items
+        .map((item) => item.comboOfferId)
+        .whereType<UuidValue>()
+        .toSet();
+    final bogoOfferIds = items
+        .map((item) => item.bogoOfferId)
+        .whereType<UuidValue>()
+        .toSet();
+
+    final comboOffers = comboOfferIds.isEmpty
+        ? const <ComboOfferRow>[]
+        : await ComboOfferRow.db.find(
+            session,
+            where: (t) => t.id.inSet(comboOfferIds),
+          );
+    final comboById = {for (final combo in comboOffers) combo.id!: combo};
+
+    final comboOfferItems = comboOfferIds.isEmpty
+        ? const <ComboOfferItemRow>[]
+        : await ComboOfferItemRow.db.find(
+            session,
+            where: (t) => t.comboOfferId.inSet(comboOfferIds),
+          );
+    final comboItemQuantityByKey = <String, int>{};
+    for (final item in comboOfferItems) {
+      comboItemQuantityByKey[_comboItemKey(
+            item.comboOfferId,
+            item.productId,
+            item.productVariantId,
+          )] =
+          item.quantity;
+    }
+
+    final bogoOffers = bogoOfferIds.isEmpty
+        ? const <BogoOfferRow>[]
+        : await BogoOfferRow.db.find(
+            session,
+            where: (t) => t.id.inSet(bogoOfferIds),
+          );
+    final bogoById = {for (final offer in bogoOffers) offer.id!: offer};
+
     final addresses = await OrderAddressRow.db.find(
       session,
       where: (t) => t.orderId.inSet(orderIds),
@@ -505,23 +553,40 @@ class PostgresOrderService {
       final address = addressByOrder[orderId];
       if (address == null) continue;
 
-      final mappedItems = (itemsByOrder[orderId] ?? const <OrderItemRow>[])
-          .map(
-            (item) => OrderItem(
-              orderItemId: item.id?.toString(),
-              productId: item.productId.toString(),
-              variantId: item.productVariantId?.toString(),
-              variantLabel: item.variantLabelSnapshot,
-              productName: item.productNameSnapshot,
-              productImage: item.productImageUrlSnapshot ?? '',
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalPrice: item.totalPrice,
-              isFreeItem: item.isFreeItem,
-              comboId: item.comboOfferId?.toString(),
-            ),
-          )
-          .toList();
+      final mappedItems = (itemsByOrder[orderId] ?? const <OrderItemRow>[]).map(
+        (item) {
+          final comboOfferId = item.comboOfferId;
+          final combo = comboOfferId == null ? null : comboById[comboOfferId];
+          final bogoOfferId = item.bogoOfferId;
+          final bogo = bogoOfferId == null ? null : bogoById[bogoOfferId];
+          final comboItemQuantity = comboOfferId == null
+              ? null
+              : comboItemQuantityByKey[_comboItemKey(
+                  comboOfferId,
+                  item.productId,
+                  item.productVariantId,
+                )];
+
+          return OrderItem(
+            orderItemId: item.id?.toString(),
+            productId: item.productId.toString(),
+            variantId: item.productVariantId?.toString(),
+            variantLabel: item.variantLabelSnapshot,
+            productName: item.productNameSnapshot,
+            productImage: item.productImageUrlSnapshot ?? '',
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+            isFreeItem: item.isFreeItem,
+            triggerProductId: bogo?.triggerProductId.toString(),
+            comboId: comboOfferId?.toString(),
+            comboName: combo?.name,
+            comboDiscountType: combo?.discountType,
+            comboDiscountValue: combo?.discountValue,
+            comboItemQuantity: comboItemQuantity,
+          );
+        },
+      ).toList();
 
       final payment = paymentByOrder[orderId];
       final appUser = userById[order.userId.toString()];
@@ -536,7 +601,14 @@ class PostgresOrderService {
           itemCount: order.itemCount,
           totalAmount: order.totalAmount,
           discountAmount: order.discountAmount,
+          mrpTotal: order.mrpTotal,
+          productDiscountAmount: order.productDiscountAmount,
+          comboDiscountAmount: order.comboDiscountAmount,
+          bogoDiscountAmount: order.bogoDiscountAmount,
           deliveryFee: order.deliveryFee,
+          originalDeliveryFee: order.originalDeliveryFee,
+          deliveryDiscountAmount: order.deliveryDiscountAmount,
+          freeDeliveryApplied: order.freeDeliveryApplied,
           finalAmount: order.finalAmount,
           status: order.orderStatus,
           paymentStatus: order.paymentStatus,
@@ -715,6 +787,18 @@ class PostgresOrderService {
     }
 
     return offerIdsByFreeItem;
+  }
+
+  String _comboItemKey(
+    UuidValue comboOfferId,
+    UuidValue productId,
+    UuidValue? productVariantId,
+  ) {
+    return [
+      comboOfferId.toString(),
+      productId.toString(),
+      productVariantId?.toString() ?? '',
+    ].join('|');
   }
 
   String _orderFreeItemKey(OrderItem item) {

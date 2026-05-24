@@ -46,7 +46,15 @@ abstract class Complaint implements _i1.SerializableModel {
     this.orderedAt,
     this.totalAmount,
     this.discountAmount,
+    this.couponApplied,
+    this.mrpTotal,
+    this.productDiscountAmount,
+    this.comboDiscountAmount,
+    this.bogoDiscountAmount,
     this.deliveryFee,
+    this.originalDeliveryFee,
+    this.deliveryDiscountAmount,
+    this.freeDeliveryApplied,
     this.finalAmount,
     required this.orderItems,
   });
@@ -82,7 +90,15 @@ abstract class Complaint implements _i1.SerializableModel {
     DateTime? orderedAt,
     double? totalAmount,
     double? discountAmount,
+    String? couponApplied,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     required List<_i2.ComplaintProductItem> orderItems,
   }) = _ComplaintImpl;
@@ -138,7 +154,24 @@ abstract class Complaint implements _i1.SerializableModel {
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['orderedAt']),
       totalAmount: (jsonSerialization['totalAmount'] as num?)?.toDouble(),
       discountAmount: (jsonSerialization['discountAmount'] as num?)?.toDouble(),
+      couponApplied: jsonSerialization['couponApplied'] as String?,
+      mrpTotal: (jsonSerialization['mrpTotal'] as num?)?.toDouble(),
+      productDiscountAmount:
+          (jsonSerialization['productDiscountAmount'] as num?)?.toDouble(),
+      comboDiscountAmount: (jsonSerialization['comboDiscountAmount'] as num?)
+          ?.toDouble(),
+      bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
+          ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num?)?.toDouble(),
+      originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
+          ?.toDouble(),
+      deliveryDiscountAmount:
+          (jsonSerialization['deliveryDiscountAmount'] as num?)?.toDouble(),
+      freeDeliveryApplied: jsonSerialization['freeDeliveryApplied'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['freeDeliveryApplied'],
+            ),
       finalAmount: (jsonSerialization['finalAmount'] as num?)?.toDouble(),
       orderItems: _i3.Protocol().deserialize<List<_i2.ComplaintProductItem>>(
         jsonSerialization['orderItems'],
@@ -206,7 +239,23 @@ abstract class Complaint implements _i1.SerializableModel {
 
   double? discountAmount;
 
+  String? couponApplied;
+
+  double? mrpTotal;
+
+  double? productDiscountAmount;
+
+  double? comboDiscountAmount;
+
+  double? bogoDiscountAmount;
+
   double? deliveryFee;
+
+  double? originalDeliveryFee;
+
+  double? deliveryDiscountAmount;
+
+  bool? freeDeliveryApplied;
 
   double? finalAmount;
 
@@ -246,7 +295,15 @@ abstract class Complaint implements _i1.SerializableModel {
     DateTime? orderedAt,
     double? totalAmount,
     double? discountAmount,
+    String? couponApplied,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     List<_i2.ComplaintProductItem>? orderItems,
   });
@@ -286,7 +343,20 @@ abstract class Complaint implements _i1.SerializableModel {
       if (orderedAt != null) 'orderedAt': orderedAt?.toJson(),
       if (totalAmount != null) 'totalAmount': totalAmount,
       if (discountAmount != null) 'discountAmount': discountAmount,
+      if (couponApplied != null) 'couponApplied': couponApplied,
+      if (mrpTotal != null) 'mrpTotal': mrpTotal,
+      if (productDiscountAmount != null)
+        'productDiscountAmount': productDiscountAmount,
+      if (comboDiscountAmount != null)
+        'comboDiscountAmount': comboDiscountAmount,
+      if (bogoDiscountAmount != null) 'bogoDiscountAmount': bogoDiscountAmount,
       if (deliveryFee != null) 'deliveryFee': deliveryFee,
+      if (originalDeliveryFee != null)
+        'originalDeliveryFee': originalDeliveryFee,
+      if (deliveryDiscountAmount != null)
+        'deliveryDiscountAmount': deliveryDiscountAmount,
+      if (freeDeliveryApplied != null)
+        'freeDeliveryApplied': freeDeliveryApplied,
       if (finalAmount != null) 'finalAmount': finalAmount,
       'orderItems': orderItems.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -332,7 +402,15 @@ class _ComplaintImpl extends Complaint {
     DateTime? orderedAt,
     double? totalAmount,
     double? discountAmount,
+    String? couponApplied,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     required List<_i2.ComplaintProductItem> orderItems,
   }) : super._(
@@ -366,7 +444,15 @@ class _ComplaintImpl extends Complaint {
          orderedAt: orderedAt,
          totalAmount: totalAmount,
          discountAmount: discountAmount,
+         couponApplied: couponApplied,
+         mrpTotal: mrpTotal,
+         productDiscountAmount: productDiscountAmount,
+         comboDiscountAmount: comboDiscountAmount,
+         bogoDiscountAmount: bogoDiscountAmount,
          deliveryFee: deliveryFee,
+         originalDeliveryFee: originalDeliveryFee,
+         deliveryDiscountAmount: deliveryDiscountAmount,
+         freeDeliveryApplied: freeDeliveryApplied,
          finalAmount: finalAmount,
          orderItems: orderItems,
        );
@@ -406,7 +492,15 @@ class _ComplaintImpl extends Complaint {
     Object? orderedAt = _Undefined,
     Object? totalAmount = _Undefined,
     Object? discountAmount = _Undefined,
+    Object? couponApplied = _Undefined,
+    Object? mrpTotal = _Undefined,
+    Object? productDiscountAmount = _Undefined,
+    Object? comboDiscountAmount = _Undefined,
+    Object? bogoDiscountAmount = _Undefined,
     Object? deliveryFee = _Undefined,
+    Object? originalDeliveryFee = _Undefined,
+    Object? deliveryDiscountAmount = _Undefined,
+    Object? freeDeliveryApplied = _Undefined,
     Object? finalAmount = _Undefined,
     List<_i2.ComplaintProductItem>? orderItems,
   }) {
@@ -459,7 +553,29 @@ class _ComplaintImpl extends Complaint {
       discountAmount: discountAmount is double?
           ? discountAmount
           : this.discountAmount,
+      couponApplied: couponApplied is String?
+          ? couponApplied
+          : this.couponApplied,
+      mrpTotal: mrpTotal is double? ? mrpTotal : this.mrpTotal,
+      productDiscountAmount: productDiscountAmount is double?
+          ? productDiscountAmount
+          : this.productDiscountAmount,
+      comboDiscountAmount: comboDiscountAmount is double?
+          ? comboDiscountAmount
+          : this.comboDiscountAmount,
+      bogoDiscountAmount: bogoDiscountAmount is double?
+          ? bogoDiscountAmount
+          : this.bogoDiscountAmount,
       deliveryFee: deliveryFee is double? ? deliveryFee : this.deliveryFee,
+      originalDeliveryFee: originalDeliveryFee is double?
+          ? originalDeliveryFee
+          : this.originalDeliveryFee,
+      deliveryDiscountAmount: deliveryDiscountAmount is double?
+          ? deliveryDiscountAmount
+          : this.deliveryDiscountAmount,
+      freeDeliveryApplied: freeDeliveryApplied is bool?
+          ? freeDeliveryApplied
+          : this.freeDeliveryApplied,
       finalAmount: finalAmount is double? ? finalAmount : this.finalAmount,
       orderItems:
           orderItems ?? this.orderItems.map((e0) => e0.copyWith()).toList(),

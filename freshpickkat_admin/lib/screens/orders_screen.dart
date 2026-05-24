@@ -9,6 +9,7 @@ import 'package:freshpickkat_admin/services/admin_notification_navigation_servic
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
+import 'package:freshpickkat_admin/utils/order_item_grouping.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -446,7 +447,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    _orderController.statusFilter.value == 'all' &&
+                                    _orderController.statusFilter.value ==
+                                                'all' &&
                                             _searchQuery.isEmpty
                                         ? Icons.shopping_bag_outlined
                                         : Icons.search_off,
@@ -457,7 +459,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   ),
                                   SizedBox(height: 16.h),
                                   Text(
-                                    _orderController.statusFilter.value == 'all' &&
+                                    _orderController.statusFilter.value ==
+                                                'all' &&
                                             _searchQuery.isEmpty
                                         ? 'No orders yet'
                                         : 'No matching orders',
@@ -571,6 +574,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
       builder: (context) {
         final landscape = AdminResponsive.isLandscape(context);
+        final groupedItems = groupAdminOrderItems(order.items);
         return DraggableScrollableSheet(
           initialChildSize: landscape ? 0.92 : 0.85,
           minChildSize: landscape ? 0.72 : 0.5,
@@ -752,204 +756,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             ),
                           )
                         else
-                          ...order.items.map(
-                            (item) => Container(
-                              margin: EdgeInsets.only(bottom: 12.h),
-                              padding: EdgeInsets.all(12.r),
-                              decoration: BoxDecoration(
-                                color: AdminAppTheme.getTextSecondaryColor(
-                                  context,
-                                ).withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      // Product Image
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(
-                                          item.productImage,
-                                          width: 58.r,
-                                          height: 58.r,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              width: 58.r,
-                                              height: 58.r,
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    AdminAppTheme.getSubtleBorderColor(
-                                                      context,
-                                                    ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Icon(
-                                                Icons.image_not_supported,
-                                                color:
-                                                    AdminAppTheme.getMutedIconColor(
-                                                      context,
-                                                    ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(width: 12.w),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item.productName,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14.sp.clamp(
-                                                  12.0,
-                                                  16.0,
-                                                ),
-                                              ),
-                                            ),
-                                            if (item.variantLabel != null &&
-                                                item.variantLabel!.isNotEmpty)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  top: 4,
-                                                ),
-                                                child: Text(
-                                                  'Variant: ${item.variantLabel}',
-                                                  style: TextStyle(
-                                                    fontSize: 12.sp.clamp(
-                                                      10.0,
-                                                      13.0,
-                                                    ),
-                                                    color:
-                                                        AdminAppTheme.getTextSecondaryColor(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            if (item.isFreeItem)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  top: 4,
-                                                ),
-                                                child: Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 6.w,
-                                                    vertical: 2.h,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        AdminAppTheme.getWarningContainerColor(
-                                                          context,
-                                                        ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          4,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    'FREE ITEM',
-                                                    style: TextStyle(
-                                                      fontSize: 10.sp.clamp(
-                                                        9.0,
-                                                        11.0,
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors
-                                                          .orange
-                                                          .shade700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 10.w,
-                                              vertical: 6.h,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  AdminAppTheme.getSuccessContainerColor(
-                                                    context,
-                                                  ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              '${item.quantity}x',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    AdminAppTheme.getSuccessColor(
-                                                      context,
-                                                    ),
-                                                fontSize: 13.sp.clamp(
-                                                  11.0,
-                                                  14.0,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: 4.h),
-                                          Text(
-                                            _calculateTotalQuantity(item),
-                                            style: TextStyle(
-                                              fontSize: 11.sp.clamp(10.0, 12.0),
-                                              color:
-                                                  AdminAppTheme.getTextSecondaryColor(
-                                                    context,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 12.h),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '₹${item.unitPrice.toStringAsFixed(0)} each',
-                                        style: TextStyle(
-                                          fontSize: 13.sp.clamp(11.0, 14.0),
-                                          color:
-                                              AdminAppTheme.getTextSecondaryColor(
-                                                context,
-                                              ),
-                                        ),
-                                      ),
-                                      Text(
-                                        '₹${item.totalPrice.toStringAsFixed(0)}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15.sp.clamp(13.0, 16.0),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          ..._buildGroupedOrderItemWidgets(groupedItems),
                       ],
                     ),
                     SizedBox(height: 16.h),
@@ -963,49 +770,47 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                       child: Column(
                         children: [
-                          _amountRow('Subtotal', order.totalAmount),
-                          if (order.couponApplied != null &&
-                              order.couponApplied!.isNotEmpty)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8.h),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Coupon (${order.couponApplied})',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 14.sp.clamp(12.0, 15.0),
-                                      color:
-                                          AdminAppTheme.getTextSecondaryColor(
-                                            context,
-                                          ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '-₹${order.discountAmount.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      fontSize: 14.sp.clamp(12.0, 15.0),
-                                      fontWeight: FontWeight.w500,
-                                      color: AdminAppTheme.getSuccessColor(
-                                        context,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          _amountRow(
+                            'MRP Total',
+                            order.mrpTotal > 0
+                                ? order.mrpTotal
+                                : order.totalAmount,
+                          ),
+                          if (order.productDiscountAmount > 0)
+                            _amountRow(
+                              'Product Discount',
+                              -order.productDiscountAmount,
                             ),
-                          if (order.discountAmount > 0 &&
-                              (order.couponApplied == null ||
-                                  order.couponApplied!.isEmpty))
-                            _amountRow('Discount', -order.discountAmount),
+                          if (order.comboDiscountAmount > 0)
+                            _amountRow(
+                              'Combo Savings',
+                              -order.comboDiscountAmount,
+                            ),
+                          if (order.bogoDiscountAmount > 0)
+                            _amountRow(
+                              'BOGO Savings',
+                              -order.bogoDiscountAmount,
+                            ),
+                          _amountRow('Items Total', order.totalAmount),
+                          if (order.discountAmount > 0)
+                            _amountRow(
+                              order.couponApplied?.isNotEmpty == true
+                                  ? 'Coupon (${order.couponApplied})'
+                                  : 'Coupon Discount',
+                              -order.discountAmount,
+                            ),
                           _amountRow('Delivery Fee', order.deliveryFee),
+                          if (order.freeDeliveryApplied &&
+                              order.deliveryDiscountAmount > 0)
+                            _amountRow(
+                              'Delivery Fee Waived',
+                              -order.deliveryDiscountAmount,
+                            ),
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: 8.h),
                             child: Divider(),
                           ),
-                          _amountRow('Total', order.finalAmount, isBold: true),
+                          _amountRow('To Pay', order.finalAmount, isBold: true),
                         ],
                       ),
                     ),
@@ -1092,6 +897,225 @@ class _OrdersScreenState extends State<OrdersScreen> {
           },
         );
       },
+    );
+  }
+
+  List<Widget> _buildGroupedOrderItemWidgets(
+    AdminGroupedOrderSections groupedItems,
+  ) {
+    return [
+      if (groupedItems.bogoGroups.isNotEmpty) ...[
+        _orderItemSectionTitle('BOGO Offers'),
+        ...groupedItems.bogoGroups.map(_buildBogoOrderItem),
+      ],
+      if (groupedItems.comboGroups.isNotEmpty) ...[
+        _orderItemSectionTitle('Combo Offers'),
+        ...groupedItems.comboGroups.map(_buildComboOrderGroup),
+      ],
+      if (groupedItems.individualItems.isNotEmpty) ...[
+        _orderItemSectionTitle('Individual Items'),
+        ...groupedItems.individualItems.map(_buildOrderItemCard),
+      ],
+    ];
+  }
+
+  Widget _orderItemSectionTitle(String title) {
+    return Padding(
+      padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: 13.sp.clamp(11.0, 14.0),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBogoOrderItem(AdminGroupedOrderItem group) {
+    return _buildOrderItemCard(
+      group.item,
+      footer: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: group.freeItems
+            .map(
+              (item) => Padding(
+                padding: EdgeInsets.only(top: 8.h),
+                child: Text(
+                  'FREE: ${item.productName} x${item.quantity}',
+                  style: TextStyle(
+                    color: AdminAppTheme.getSuccessColor(context),
+                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            )
+            .toList(growable: false),
+      ),
+    );
+  }
+
+  Widget _buildComboOrderGroup(AdminGroupedOrderCombo group) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: AdminAppTheme.getTextSecondaryColor(
+          context,
+        ).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${group.name} x${group.bundleQuantity}',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14.sp.clamp(12.0, 16.0),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          ...group.items.map(_buildOrderItemLine),
+          SizedBox(height: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Combo total', style: AdminTextStyles.caption(context)),
+              Text(
+                '₹${group.discountedTotal.toStringAsFixed(0)}',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItemLine(OrderItem item) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 3.h),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '${item.productName}${item.variantLabel?.isNotEmpty == true ? ' (${item.variantLabel})' : ''}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AdminTextStyles.caption(context),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Text('x${item.quantity}', style: AdminTextStyles.caption(context)),
+          SizedBox(width: 8.w),
+          Text('₹${item.totalPrice.toStringAsFixed(0)}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItemCard(OrderItem item, {Widget? footer}) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: AdminAppTheme.getTextSecondaryColor(
+          context,
+        ).withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  item.productImage,
+                  width: 58.r,
+                  height: 58.r,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 58.r,
+                      height: 58.r,
+                      decoration: BoxDecoration(
+                        color: AdminAppTheme.getSubtleBorderColor(context),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: AdminAppTheme.getMutedIconColor(context),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp.clamp(12.0, 16.0),
+                      ),
+                    ),
+                    if (item.variantLabel?.isNotEmpty == true)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Variant: ${item.variantLabel}',
+                          style: AdminTextStyles.caption(context),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${item.quantity}x',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AdminAppTheme.getSuccessColor(context),
+                    ),
+                  ),
+                  Text(
+                    _calculateTotalQuantity(item),
+                    style: AdminTextStyles.caption(context),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '₹${item.unitPrice.toStringAsFixed(0)} each',
+                style: AdminTextStyles.caption(context),
+              ),
+              Text(
+                '₹${item.totalPrice.toStringAsFixed(0)}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          ?footer,
+        ],
+      ),
     );
   }
 

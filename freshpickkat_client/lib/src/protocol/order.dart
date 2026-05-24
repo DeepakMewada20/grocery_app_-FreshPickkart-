@@ -25,7 +25,14 @@ abstract class Order implements _i1.SerializableModel {
     required this.itemCount,
     required this.totalAmount,
     required this.discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     required this.deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required this.finalAmount,
     required this.status,
     required this.paymentStatus,
@@ -46,7 +53,13 @@ abstract class Order implements _i1.SerializableModel {
     required this.orderType,
     this.sourceOrderNumber,
     this.complaintId,
-  });
+  }) : mrpTotal = mrpTotal ?? 0.0,
+       productDiscountAmount = productDiscountAmount ?? 0.0,
+       comboDiscountAmount = comboDiscountAmount ?? 0.0,
+       bogoDiscountAmount = bogoDiscountAmount ?? 0.0,
+       originalDeliveryFee = originalDeliveryFee ?? 0.0,
+       deliveryDiscountAmount = deliveryDiscountAmount ?? 0.0,
+       freeDeliveryApplied = freeDeliveryApplied ?? false;
 
   factory Order({
     required String orderId,
@@ -57,7 +70,14 @@ abstract class Order implements _i1.SerializableModel {
     required int itemCount,
     required double totalAmount,
     required double discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     required double deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -92,7 +112,23 @@ abstract class Order implements _i1.SerializableModel {
       itemCount: jsonSerialization['itemCount'] as int,
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
       discountAmount: (jsonSerialization['discountAmount'] as num).toDouble(),
+      mrpTotal: (jsonSerialization['mrpTotal'] as num?)?.toDouble(),
+      productDiscountAmount:
+          (jsonSerialization['productDiscountAmount'] as num?)?.toDouble(),
+      comboDiscountAmount: (jsonSerialization['comboDiscountAmount'] as num?)
+          ?.toDouble(),
+      bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
+          ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num).toDouble(),
+      originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
+          ?.toDouble(),
+      deliveryDiscountAmount:
+          (jsonSerialization['deliveryDiscountAmount'] as num?)?.toDouble(),
+      freeDeliveryApplied: jsonSerialization['freeDeliveryApplied'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['freeDeliveryApplied'],
+            ),
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       paymentStatus: jsonSerialization['paymentStatus'] as String,
@@ -152,7 +188,21 @@ abstract class Order implements _i1.SerializableModel {
 
   double discountAmount;
 
+  double mrpTotal;
+
+  double productDiscountAmount;
+
+  double comboDiscountAmount;
+
+  double bogoDiscountAmount;
+
   double deliveryFee;
+
+  double originalDeliveryFee;
+
+  double deliveryDiscountAmount;
+
+  bool freeDeliveryApplied;
 
   double finalAmount;
 
@@ -206,7 +256,14 @@ abstract class Order implements _i1.SerializableModel {
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -240,7 +297,14 @@ abstract class Order implements _i1.SerializableModel {
       'itemCount': itemCount,
       'totalAmount': totalAmount,
       'discountAmount': discountAmount,
+      'mrpTotal': mrpTotal,
+      'productDiscountAmount': productDiscountAmount,
+      'comboDiscountAmount': comboDiscountAmount,
+      'bogoDiscountAmount': bogoDiscountAmount,
       'deliveryFee': deliveryFee,
+      'originalDeliveryFee': originalDeliveryFee,
+      'deliveryDiscountAmount': deliveryDiscountAmount,
+      'freeDeliveryApplied': freeDeliveryApplied,
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -284,7 +348,14 @@ class _OrderImpl extends Order {
     required int itemCount,
     required double totalAmount,
     required double discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     required double deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -314,7 +385,14 @@ class _OrderImpl extends Order {
          itemCount: itemCount,
          totalAmount: totalAmount,
          discountAmount: discountAmount,
+         mrpTotal: mrpTotal,
+         productDiscountAmount: productDiscountAmount,
+         comboDiscountAmount: comboDiscountAmount,
+         bogoDiscountAmount: bogoDiscountAmount,
          deliveryFee: deliveryFee,
+         originalDeliveryFee: originalDeliveryFee,
+         deliveryDiscountAmount: deliveryDiscountAmount,
+         freeDeliveryApplied: freeDeliveryApplied,
          finalAmount: finalAmount,
          status: status,
          paymentStatus: paymentStatus,
@@ -350,7 +428,14 @@ class _OrderImpl extends Order {
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -381,7 +466,16 @@ class _OrderImpl extends Order {
       itemCount: itemCount ?? this.itemCount,
       totalAmount: totalAmount ?? this.totalAmount,
       discountAmount: discountAmount ?? this.discountAmount,
+      mrpTotal: mrpTotal ?? this.mrpTotal,
+      productDiscountAmount:
+          productDiscountAmount ?? this.productDiscountAmount,
+      comboDiscountAmount: comboDiscountAmount ?? this.comboDiscountAmount,
+      bogoDiscountAmount: bogoDiscountAmount ?? this.bogoDiscountAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
+      originalDeliveryFee: originalDeliveryFee ?? this.originalDeliveryFee,
+      deliveryDiscountAmount:
+          deliveryDiscountAmount ?? this.deliveryDiscountAmount,
+      freeDeliveryApplied: freeDeliveryApplied ?? this.freeDeliveryApplied,
       finalAmount: finalAmount ?? this.finalAmount,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,

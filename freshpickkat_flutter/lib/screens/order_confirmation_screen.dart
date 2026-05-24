@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
+import 'package:freshpickkat_flutter/utils/order_item_grouping.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/payment_status_widget.dart';
@@ -330,42 +331,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildProductsCard(ColorScheme cs) {
     final order = _order!;
-    final freeByTrigger = <String, List<OrderItem>>{};
-    final regularItems = <OrderItem>[];
-    final comboMap = <String, List<OrderItem>>{};
-
-    for (final item in order.items) {
-      if (item.comboId != null && item.comboId!.trim().isNotEmpty) {
-        comboMap.putIfAbsent(item.comboId!, () => <OrderItem>[]).add(item);
-        continue;
-      }
-      if (item.isFreeItem && item.triggerProductId != null) {
-        freeByTrigger
-            .putIfAbsent(item.triggerProductId!, () => <OrderItem>[])
-            .add(item);
-        continue;
-      }
-      regularItems.add(item);
-    }
-
-    final groupedRegular = regularItems
-        .map(
-          (item) => _GroupedOrderItem(
-            item: item,
-            freeItems: freeByTrigger[item.productId] ?? const <OrderItem>[],
-          ),
-        )
-        .toList();
-    final comboGroups = comboMap.entries.map((entry) {
-      final first = entry.value.first;
-      return _GroupedOrderCombo(
-        comboId: entry.key,
-        name: first.comboName ?? 'Combo Offer',
-        discountType: first.comboDiscountType ?? 'flat',
-        discountValue: first.comboDiscountValue ?? 0,
-        items: entry.value,
-      );
-    }).toList();
+    final grouped = groupOrderItems(order.items);
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -400,14 +366,45 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             ],
           ),
           SizedBox(height: 16.h),
-          ...groupedRegular.map((entry) => _buildOrderItem(entry, cs)),
-          ...comboGroups.map((group) => _buildOrderComboGroup(group, cs)),
+          if (grouped.bogoGroups.isNotEmpty) ...[
+            _buildOrderSectionTitle('BOGO Offers', cs),
+            ...grouped.bogoGroups.map((entry) => _buildOrderItem(entry, cs)),
+          ],
+          if (grouped.comboGroups.isNotEmpty) ...[
+            _buildOrderSectionTitle('Combo Offers', cs),
+            ...grouped.comboGroups.map(
+              (group) => _buildOrderComboGroup(group, cs),
+            ),
+          ],
+          if (grouped.individualItems.isNotEmpty) ...[
+            _buildOrderSectionTitle('Individual Items', cs),
+            ...grouped.individualItems.map(
+              (item) => _buildOrderItem(
+                GroupedOrderItem(item: item, freeItems: const []),
+                cs,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildOrderItem(_GroupedOrderItem entry, ColorScheme cs) {
+  Widget _buildOrderSectionTitle(String title, ColorScheme cs) {
+    return Padding(
+      padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+      child: Text(
+        title,
+        style: AppTextStyles.body(context).copyWith(
+          color: cs.primary,
+          fontWeight: FontWeight.w700,
+          fontSize: 13.sp,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderItem(GroupedOrderItem entry, ColorScheme cs) {
     final item = entry.item;
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
@@ -497,7 +494,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     );
   }
 
-  Widget _buildOrderComboGroup(_GroupedOrderCombo group, ColorScheme cs) {
+  Widget _buildOrderComboGroup(GroupedOrderCombo group, ColorScheme cs) {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Container(
@@ -918,54 +915,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         return Colors.blueGrey;
     }
   }
-}
-
-class _GroupedOrderItem {
-  final OrderItem item;
-  final List<OrderItem> freeItems;
-
-  const _GroupedOrderItem({
-    required this.item,
-    required this.freeItems,
-  });
-}
-
-class _GroupedOrderCombo {
-  final String comboId;
-  final String name;
-  final String discountType;
-  final double discountValue;
-  final List<OrderItem> items;
-
-  const _GroupedOrderCombo({
-    required this.comboId,
-    required this.name,
-    required this.discountType,
-    required this.discountValue,
-    required this.items,
-  });
-
-  int get bundleQuantity {
-    if (items.isEmpty) return 0;
-    final counts =
-        items
-            .map((item) => item.quantity ~/ (item.comboItemQuantity ?? 1))
-            .where((count) => count > 0)
-            .toList()
-          ..sort();
-    return counts.isEmpty ? 0 : counts.first;
-  }
-
-  double get originalTotal =>
-      items.fold(0, (sum, item) => sum + item.totalPrice);
-
-  double get discountedTotal => applyComboDiscount(
-    originalTotal: originalTotal,
-    discountType: discountType,
-    discountValue: discountType == 'flat'
-        ? discountValue * bundleQuantity
-        : discountValue,
-  );
 }
 
 class CheckPainter extends CustomPainter {

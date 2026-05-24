@@ -30,6 +30,14 @@ fields:
   orderedAt: DateTime?
   totalAmount: double?
   discountAmount: double?
+  couponApplied: String?
+  mrpTotal: double?
+  productDiscountAmount: double?
+  comboDiscountAmount: double?
+  bogoDiscountAmount: double?
   deliveryFee: double?
+  originalDeliveryFee: double?
+  deliveryDiscountAmount: double?
+  freeDeliveryApplied: bool?
   finalAmount: double?
   orderItems: List<ComplaintProductItem>

@@ -9,3 +9,10 @@ fields:
   quantity: int
   unitPrice: double
   totalPrice: double
+  isFreeItem: bool, default=false
+  triggerProductId: String?
+  comboId: String?
+  comboName: String?
+  comboDiscountType: String?
+  comboDiscountValue: double?
+  comboItemQuantity: int?

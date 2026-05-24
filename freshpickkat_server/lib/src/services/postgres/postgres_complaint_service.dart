@@ -128,7 +128,8 @@ class PostgresComplaintService {
       session,
       where: (t) => t.orderId.equals(order.id!),
     );
-    final userPhone = address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
+    final userPhone =
+        address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
 
     await _ensureNoActiveComplaint(session, order.id!, productType);
 
@@ -197,16 +198,21 @@ class PostgresComplaintService {
       session,
       where: (t) => t.orderId.equals(order.id!),
     );
-    final userPhone = address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
+    final userPhone =
+        address?.phoneNumber ?? cleanNullableString(user.phoneNumber) ?? '';
 
     String? resolvedField = cleanField;
-    Map<String, String>? resolvedExtraData = extraData == null || extraData.isEmpty
+    Map<String, String>? resolvedExtraData =
+        extraData == null || extraData.isEmpty
         ? null
         : Map<String, String>.from(extraData);
 
     if (cleanIssueType == 'Delivery Location Issue') {
-      resolvedField ??= requestedAddress != null ? addressChangeField : deliveryNoteField;
-      if (resolvedField != addressChangeField && resolvedField != deliveryNoteField) {
+      resolvedField ??= requestedAddress != null
+          ? addressChangeField
+          : deliveryNoteField;
+      if (resolvedField != addressChangeField &&
+          resolvedField != deliveryNoteField) {
         throw Exception('Unsupported delivery location request.');
       }
       if (order.orderStatus != 'out_for_delivery') {
@@ -226,8 +232,12 @@ class PostgresComplaintService {
         requestedNote: cleanNote,
         extraData: resolvedExtraData,
       );
-    } else if (resolvedField != null || requestedAddress != null || cleanNote != null) {
-      throw Exception('Delivery location metadata is only supported for delivery location issues.');
+    } else if (resolvedField != null ||
+        requestedAddress != null ||
+        cleanNote != null) {
+      throw Exception(
+        'Delivery location metadata is only supported for delivery location issues.',
+      );
     }
 
     await _ensureNoActiveComplaint(session, order.id!, deliveryType);
@@ -457,7 +467,9 @@ class PostgresComplaintService {
     return ComplaintPage(
       complaints: complaints,
       nextPageToken: rows.length > safeLimit
-          ? encodeCursor({'createdAt': pageRows.last.createdAt.toIso8601String()})
+          ? encodeCursor({
+              'createdAt': pageRows.last.createdAt.toIso8601String(),
+            })
           : null,
       totalCount: totalCount,
     );
@@ -755,8 +767,14 @@ class PostgresComplaintService {
           orderStatus: 'confirmed',
           paymentStatus: 'paid',
           refundStatus: 'none',
-          itemCount: row.selectedProducts.fold<int>(0, (sum, item) => sum + item.quantity),
-          totalAmount: row.selectedProducts.fold<double>(0, (sum, item) => sum + item.totalPrice),
+          itemCount: row.selectedProducts.fold<int>(
+            0,
+            (sum, item) => sum + item.quantity,
+          ),
+          totalAmount: row.selectedProducts.fold<double>(
+            0,
+            (sum, item) => sum + item.totalPrice,
+          ),
           discountAmount: 0,
           deliveryFee: 0,
           finalAmount: 0,
@@ -856,6 +874,18 @@ class PostgresComplaintService {
       session,
       where: (t) => t.id.inSet(orderIds),
     );
+    final couponIds = orders
+        .map((order) => order.couponId)
+        .whereType<UuidValue>()
+        .toSet();
+    final coupons = couponIds.isEmpty
+        ? const <CouponRow>[]
+        : await CouponRow.db.find(
+            session,
+            where: (t) => t.id.inSet(couponIds),
+          );
+    final couponById = {for (final coupon in coupons) coupon.id!: coupon};
+
     final items = itemIds.isEmpty
         ? const <OrderItemRow>[]
         : await OrderItemRow.db.find(
@@ -874,6 +904,44 @@ class PostgresComplaintService {
       orderItemsByOrderId.putIfAbsent(key, () => []).add(item);
     }
 
+    final comboOfferIds = allOrderItems
+        .map((item) => item.comboOfferId)
+        .whereType<UuidValue>()
+        .toSet();
+    final bogoOfferIds = allOrderItems
+        .map((item) => item.bogoOfferId)
+        .whereType<UuidValue>()
+        .toSet();
+    final comboOffers = comboOfferIds.isEmpty
+        ? const <ComboOfferRow>[]
+        : await ComboOfferRow.db.find(
+            session,
+            where: (t) => t.id.inSet(comboOfferIds),
+          );
+    final comboById = {for (final combo in comboOffers) combo.id!: combo};
+    final comboOfferItems = comboOfferIds.isEmpty
+        ? const <ComboOfferItemRow>[]
+        : await ComboOfferItemRow.db.find(
+            session,
+            where: (t) => t.comboOfferId.inSet(comboOfferIds),
+          );
+    final comboItemQuantityByKey = <String, int>{};
+    for (final item in comboOfferItems) {
+      comboItemQuantityByKey[_comboItemKey(
+            item.comboOfferId,
+            item.productId,
+            item.productVariantId,
+          )] =
+          item.quantity;
+    }
+    final bogoOffers = bogoOfferIds.isEmpty
+        ? const <BogoOfferRow>[]
+        : await BogoOfferRow.db.find(
+            session,
+            where: (t) => t.id.inSet(bogoOfferIds),
+          );
+    final bogoById = {for (final offer in bogoOffers) offer.id!: offer};
+
     return [
       for (final row in rows)
         if (orderById[row.orderId.toString()] != null)
@@ -884,6 +952,10 @@ class PostgresComplaintService {
                 ? null
                 : itemById[row.orderItemId.toString()],
             orderItems: orderItemsByOrderId[row.orderId.toString()] ?? [],
+            comboById: comboById,
+            comboItemQuantityByKey: comboItemQuantityByKey,
+            bogoById: bogoById,
+            couponById: couponById,
           ),
     ];
   }
@@ -893,12 +965,37 @@ class PostgresComplaintService {
     required CustomerOrderRow order,
     OrderItemRow? legacyItem,
     List<OrderItemRow> orderItems = const [],
+    Map<UuidValue, ComboOfferRow> comboById = const {},
+    Map<String, int> comboItemQuantityByKey = const {},
+    Map<UuidValue, BogoOfferRow> bogoById = const {},
+    Map<UuidValue, CouponRow> couponById = const {},
   }) {
+    final orderItemSnapshots = [
+      for (final item in orderItems)
+        _snapshotProduct(
+          item,
+          comboById: comboById,
+          comboItemQuantityByKey: comboItemQuantityByKey,
+          bogoById: bogoById,
+        ),
+    ];
+    final snapshotById = {
+      for (final item in orderItemSnapshots) item.orderItemId: item,
+    };
     final selected = row.selectedProducts.isNotEmpty
         ? row.selectedProducts
+              .map((item) => snapshotById[item.orderItemId] ?? item)
+              .toList(growable: false)
         : legacyItem == null
         ? const <ComplaintProductItem>[]
-        : [_snapshotProduct(legacyItem)];
+        : [
+            _snapshotProduct(
+              legacyItem,
+              comboById: comboById,
+              comboItemQuantityByKey: comboItemQuantityByKey,
+              bogoById: bogoById,
+            ),
+          ];
     final first = selected.isEmpty ? null : selected.first;
     return Complaint(
       complaintId: row.id?.toString() ?? '',
@@ -931,15 +1028,40 @@ class PostgresComplaintService {
       orderedAt: order.orderedAt,
       totalAmount: order.totalAmount,
       discountAmount: order.discountAmount,
+      couponApplied: order.couponId == null
+          ? null
+          : couponById[order.couponId!]?.code ?? order.couponId.toString(),
+      mrpTotal: order.mrpTotal,
+      productDiscountAmount: order.productDiscountAmount,
+      comboDiscountAmount: order.comboDiscountAmount,
+      bogoDiscountAmount: order.bogoDiscountAmount,
       deliveryFee: order.deliveryFee,
+      originalDeliveryFee: order.originalDeliveryFee,
+      deliveryDiscountAmount: order.deliveryDiscountAmount,
+      freeDeliveryApplied: order.freeDeliveryApplied,
       finalAmount: order.finalAmount,
-      orderItems: [
-        for (final item in orderItems) _snapshotProduct(item),
-      ],
+      orderItems: orderItemSnapshots,
     );
   }
 
-  ComplaintProductItem _snapshotProduct(OrderItemRow item) {
+  ComplaintProductItem _snapshotProduct(
+    OrderItemRow item, {
+    Map<UuidValue, ComboOfferRow> comboById = const {},
+    Map<String, int> comboItemQuantityByKey = const {},
+    Map<UuidValue, BogoOfferRow> bogoById = const {},
+  }) {
+    final comboOfferId = item.comboOfferId;
+    final combo = comboOfferId == null ? null : comboById[comboOfferId];
+    final bogoOfferId = item.bogoOfferId;
+    final bogo = bogoOfferId == null ? null : bogoById[bogoOfferId];
+    final comboItemQuantity = comboOfferId == null
+        ? null
+        : comboItemQuantityByKey[_comboItemKey(
+            comboOfferId,
+            item.productId,
+            item.productVariantId,
+          )];
+
     return ComplaintProductItem(
       orderItemId: item.id?.toString() ?? '',
       productId: item.productId.toString(),
@@ -950,7 +1072,26 @@ class PostgresComplaintService {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       totalPrice: item.totalPrice,
+      isFreeItem: item.isFreeItem,
+      triggerProductId: bogo?.triggerProductId.toString(),
+      comboId: comboOfferId?.toString(),
+      comboName: combo?.name,
+      comboDiscountType: combo?.discountType,
+      comboDiscountValue: combo?.discountValue,
+      comboItemQuantity: comboItemQuantity,
     );
+  }
+
+  String _comboItemKey(
+    UuidValue comboOfferId,
+    UuidValue productId,
+    UuidValue? productVariantId,
+  ) {
+    return [
+      comboOfferId.toString(),
+      productId.toString(),
+      productVariantId?.toString() ?? '',
+    ].join('|');
   }
 
   Future<CustomerOrderRow> _getOwnedOrder(
@@ -1267,8 +1408,12 @@ class PostgresComplaintService {
         state: decoded['state']?.toString() ?? '',
         zipCode: decoded['zipCode']?.toString() ?? '',
         country: decoded['country']?.toString() ?? '',
-        latitude: decoded['latitude'] == null ? null : asDouble(decoded['latitude']),
-        longitude: decoded['longitude'] == null ? null : asDouble(decoded['longitude']),
+        latitude: decoded['latitude'] == null
+            ? null
+            : asDouble(decoded['latitude']),
+        longitude: decoded['longitude'] == null
+            ? null
+            : asDouble(decoded['longitude']),
       );
     } catch (_) {
       return null;
@@ -1287,7 +1432,9 @@ class PostgresComplaintService {
     };
   }
 
-  Map<String, dynamic> _addressSnapshotFromOrderAddress(OrderAddressRow address) {
+  Map<String, dynamic> _addressSnapshotFromOrderAddress(
+    OrderAddressRow address,
+  ) {
     return {
       'street': address.streetLine1,
       'streetLine2': address.streetLine2,

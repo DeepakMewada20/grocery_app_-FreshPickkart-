@@ -23,7 +23,14 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
-  });
+    bool? isFreeItem,
+    this.triggerProductId,
+    this.comboId,
+    this.comboName,
+    this.comboDiscountType,
+    this.comboDiscountValue,
+    this.comboItemQuantity,
+  }) : isFreeItem = isFreeItem ?? false;
 
   factory ComplaintProductItem({
     required String orderItemId,
@@ -35,6 +42,13 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
     required int quantity,
     required double unitPrice,
     required double totalPrice,
+    bool? isFreeItem,
+    String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) = _ComplaintProductItemImpl;
 
   factory ComplaintProductItem.fromJson(
@@ -50,6 +64,16 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
       quantity: jsonSerialization['quantity'] as int,
       unitPrice: (jsonSerialization['unitPrice'] as num).toDouble(),
       totalPrice: (jsonSerialization['totalPrice'] as num).toDouble(),
+      isFreeItem: jsonSerialization['isFreeItem'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeItem']),
+      triggerProductId: jsonSerialization['triggerProductId'] as String?,
+      comboId: jsonSerialization['comboId'] as String?,
+      comboName: jsonSerialization['comboName'] as String?,
+      comboDiscountType: jsonSerialization['comboDiscountType'] as String?,
+      comboDiscountValue: (jsonSerialization['comboDiscountValue'] as num?)
+          ?.toDouble(),
+      comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
     );
   }
 
@@ -71,6 +95,20 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
 
   double totalPrice;
 
+  bool isFreeItem;
+
+  String? triggerProductId;
+
+  String? comboId;
+
+  String? comboName;
+
+  String? comboDiscountType;
+
+  double? comboDiscountValue;
+
+  int? comboItemQuantity;
+
   /// Returns a shallow copy of this [ComplaintProductItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -84,6 +122,13 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
     int? quantity,
     double? unitPrice,
     double? totalPrice,
+    bool? isFreeItem,
+    String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -98,6 +143,13 @@ abstract class ComplaintProductItem implements _i1.SerializableModel {
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
+      'isFreeItem': isFreeItem,
+      if (triggerProductId != null) 'triggerProductId': triggerProductId,
+      if (comboId != null) 'comboId': comboId,
+      if (comboName != null) 'comboName': comboName,
+      if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
+      if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
+      if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
     };
   }
 
@@ -120,6 +172,13 @@ class _ComplaintProductItemImpl extends ComplaintProductItem {
     required int quantity,
     required double unitPrice,
     required double totalPrice,
+    bool? isFreeItem,
+    String? triggerProductId,
+    String? comboId,
+    String? comboName,
+    String? comboDiscountType,
+    double? comboDiscountValue,
+    int? comboItemQuantity,
   }) : super._(
          orderItemId: orderItemId,
          productId: productId,
@@ -130,6 +189,13 @@ class _ComplaintProductItemImpl extends ComplaintProductItem {
          quantity: quantity,
          unitPrice: unitPrice,
          totalPrice: totalPrice,
+         isFreeItem: isFreeItem,
+         triggerProductId: triggerProductId,
+         comboId: comboId,
+         comboName: comboName,
+         comboDiscountType: comboDiscountType,
+         comboDiscountValue: comboDiscountValue,
+         comboItemQuantity: comboItemQuantity,
        );
 
   /// Returns a shallow copy of this [ComplaintProductItem]
@@ -146,6 +212,13 @@ class _ComplaintProductItemImpl extends ComplaintProductItem {
     int? quantity,
     double? unitPrice,
     double? totalPrice,
+    bool? isFreeItem,
+    Object? triggerProductId = _Undefined,
+    Object? comboId = _Undefined,
+    Object? comboName = _Undefined,
+    Object? comboDiscountType = _Undefined,
+    Object? comboDiscountValue = _Undefined,
+    Object? comboItemQuantity = _Undefined,
   }) {
     return ComplaintProductItem(
       orderItemId: orderItemId ?? this.orderItemId,
@@ -157,6 +230,21 @@ class _ComplaintProductItemImpl extends ComplaintProductItem {
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
+      isFreeItem: isFreeItem ?? this.isFreeItem,
+      triggerProductId: triggerProductId is String?
+          ? triggerProductId
+          : this.triggerProductId,
+      comboId: comboId is String? ? comboId : this.comboId,
+      comboName: comboName is String? ? comboName : this.comboName,
+      comboDiscountType: comboDiscountType is String?
+          ? comboDiscountType
+          : this.comboDiscountType,
+      comboDiscountValue: comboDiscountValue is double?
+          ? comboDiscountValue
+          : this.comboDiscountValue,
+      comboItemQuantity: comboItemQuantity is int?
+          ? comboItemQuantity
+          : this.comboItemQuantity,
     );
   }
 }

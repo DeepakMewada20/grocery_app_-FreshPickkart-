@@ -25,7 +25,14 @@ abstract class CustomerOrderRow
     required this.itemCount,
     required this.totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required this.finalAmount,
     this.placedAt,
     this.confirmedAt,
@@ -45,7 +52,14 @@ abstract class CustomerOrderRow
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : discountAmount = discountAmount ?? 0.0,
+       mrpTotal = mrpTotal ?? 0.0,
+       productDiscountAmount = productDiscountAmount ?? 0.0,
+       comboDiscountAmount = comboDiscountAmount ?? 0.0,
+       bogoDiscountAmount = bogoDiscountAmount ?? 0.0,
        deliveryFee = deliveryFee ?? 0.0,
+       originalDeliveryFee = originalDeliveryFee ?? 0.0,
+       deliveryDiscountAmount = deliveryDiscountAmount ?? 0.0,
+       freeDeliveryApplied = freeDeliveryApplied ?? false,
        orderType = orderType ?? 'regular',
        orderedAt = orderedAt ?? DateTime.now(),
        createdAt = createdAt ?? DateTime.now(),
@@ -62,7 +76,14 @@ abstract class CustomerOrderRow
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -99,7 +120,23 @@ abstract class CustomerOrderRow
       itemCount: jsonSerialization['itemCount'] as int,
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
       discountAmount: (jsonSerialization['discountAmount'] as num?)?.toDouble(),
+      mrpTotal: (jsonSerialization['mrpTotal'] as num?)?.toDouble(),
+      productDiscountAmount:
+          (jsonSerialization['productDiscountAmount'] as num?)?.toDouble(),
+      comboDiscountAmount: (jsonSerialization['comboDiscountAmount'] as num?)
+          ?.toDouble(),
+      bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
+          ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num?)?.toDouble(),
+      originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
+          ?.toDouble(),
+      deliveryDiscountAmount:
+          (jsonSerialization['deliveryDiscountAmount'] as num?)?.toDouble(),
+      freeDeliveryApplied: jsonSerialization['freeDeliveryApplied'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['freeDeliveryApplied'],
+            ),
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       placedAt: jsonSerialization['placedAt'] == null
           ? null
@@ -176,7 +213,21 @@ abstract class CustomerOrderRow
 
   double discountAmount;
 
+  double mrpTotal;
+
+  double productDiscountAmount;
+
+  double comboDiscountAmount;
+
+  double bogoDiscountAmount;
+
   double deliveryFee;
+
+  double originalDeliveryFee;
+
+  double deliveryDiscountAmount;
+
+  bool freeDeliveryApplied;
 
   double finalAmount;
 
@@ -231,7 +282,14 @@ abstract class CustomerOrderRow
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -265,7 +323,14 @@ abstract class CustomerOrderRow
       'itemCount': itemCount,
       'totalAmount': totalAmount,
       'discountAmount': discountAmount,
+      'mrpTotal': mrpTotal,
+      'productDiscountAmount': productDiscountAmount,
+      'comboDiscountAmount': comboDiscountAmount,
+      'bogoDiscountAmount': bogoDiscountAmount,
       'deliveryFee': deliveryFee,
+      'originalDeliveryFee': originalDeliveryFee,
+      'deliveryDiscountAmount': deliveryDiscountAmount,
+      'freeDeliveryApplied': freeDeliveryApplied,
       'finalAmount': finalAmount,
       if (placedAt != null) 'placedAt': placedAt?.toJson(),
       if (confirmedAt != null) 'confirmedAt': confirmedAt?.toJson(),
@@ -339,7 +404,14 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -369,7 +441,14 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          itemCount: itemCount,
          totalAmount: totalAmount,
          discountAmount: discountAmount,
+         mrpTotal: mrpTotal,
+         productDiscountAmount: productDiscountAmount,
+         comboDiscountAmount: comboDiscountAmount,
+         bogoDiscountAmount: bogoDiscountAmount,
          deliveryFee: deliveryFee,
+         originalDeliveryFee: originalDeliveryFee,
+         deliveryDiscountAmount: deliveryDiscountAmount,
+         freeDeliveryApplied: freeDeliveryApplied,
          finalAmount: finalAmount,
          placedAt: placedAt,
          confirmedAt: confirmedAt,
@@ -405,7 +484,14 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
+    double? mrpTotal,
+    double? productDiscountAmount,
+    double? comboDiscountAmount,
+    double? bogoDiscountAmount,
     double? deliveryFee,
+    double? originalDeliveryFee,
+    double? deliveryDiscountAmount,
+    bool? freeDeliveryApplied,
     double? finalAmount,
     Object? placedAt = _Undefined,
     Object? confirmedAt = _Undefined,
@@ -436,7 +522,16 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       itemCount: itemCount ?? this.itemCount,
       totalAmount: totalAmount ?? this.totalAmount,
       discountAmount: discountAmount ?? this.discountAmount,
+      mrpTotal: mrpTotal ?? this.mrpTotal,
+      productDiscountAmount:
+          productDiscountAmount ?? this.productDiscountAmount,
+      comboDiscountAmount: comboDiscountAmount ?? this.comboDiscountAmount,
+      bogoDiscountAmount: bogoDiscountAmount ?? this.bogoDiscountAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
+      originalDeliveryFee: originalDeliveryFee ?? this.originalDeliveryFee,
+      deliveryDiscountAmount:
+          deliveryDiscountAmount ?? this.deliveryDiscountAmount,
+      freeDeliveryApplied: freeDeliveryApplied ?? this.freeDeliveryApplied,
       finalAmount: finalAmount ?? this.finalAmount,
       placedAt: placedAt is DateTime? ? placedAt : this.placedAt,
       confirmedAt: confirmedAt is DateTime? ? confirmedAt : this.confirmedAt,
@@ -525,10 +620,51 @@ class CustomerOrderRowUpdateTable
         value,
       );
 
+  _i1.ColumnValue<double, double> mrpTotal(double value) => _i1.ColumnValue(
+    table.mrpTotal,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> productDiscountAmount(double value) =>
+      _i1.ColumnValue(
+        table.productDiscountAmount,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> comboDiscountAmount(double value) =>
+      _i1.ColumnValue(
+        table.comboDiscountAmount,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> bogoDiscountAmount(double value) =>
+      _i1.ColumnValue(
+        table.bogoDiscountAmount,
+        value,
+      );
+
   _i1.ColumnValue<double, double> deliveryFee(double value) => _i1.ColumnValue(
     table.deliveryFee,
     value,
   );
+
+  _i1.ColumnValue<double, double> originalDeliveryFee(double value) =>
+      _i1.ColumnValue(
+        table.originalDeliveryFee,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> deliveryDiscountAmount(double value) =>
+      _i1.ColumnValue(
+        table.deliveryDiscountAmount,
+        value,
+      );
+
+  _i1.ColumnValue<bool, bool> freeDeliveryApplied(bool value) =>
+      _i1.ColumnValue(
+        table.freeDeliveryApplied,
+        value,
+      );
 
   _i1.ColumnValue<double, double> finalAmount(double value) => _i1.ColumnValue(
     table.finalAmount,
@@ -676,8 +812,43 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    mrpTotal = _i1.ColumnDouble(
+      'mrpTotal',
+      this,
+      hasDefault: true,
+    );
+    productDiscountAmount = _i1.ColumnDouble(
+      'productDiscountAmount',
+      this,
+      hasDefault: true,
+    );
+    comboDiscountAmount = _i1.ColumnDouble(
+      'comboDiscountAmount',
+      this,
+      hasDefault: true,
+    );
+    bogoDiscountAmount = _i1.ColumnDouble(
+      'bogoDiscountAmount',
+      this,
+      hasDefault: true,
+    );
     deliveryFee = _i1.ColumnDouble(
       'deliveryFee',
+      this,
+      hasDefault: true,
+    );
+    originalDeliveryFee = _i1.ColumnDouble(
+      'originalDeliveryFee',
+      this,
+      hasDefault: true,
+    );
+    deliveryDiscountAmount = _i1.ColumnDouble(
+      'deliveryDiscountAmount',
+      this,
+      hasDefault: true,
+    );
+    freeDeliveryApplied = _i1.ColumnBool(
+      'freeDeliveryApplied',
       this,
       hasDefault: true,
     );
@@ -779,7 +950,21 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDouble discountAmount;
 
+  late final _i1.ColumnDouble mrpTotal;
+
+  late final _i1.ColumnDouble productDiscountAmount;
+
+  late final _i1.ColumnDouble comboDiscountAmount;
+
+  late final _i1.ColumnDouble bogoDiscountAmount;
+
   late final _i1.ColumnDouble deliveryFee;
+
+  late final _i1.ColumnDouble originalDeliveryFee;
+
+  late final _i1.ColumnDouble deliveryDiscountAmount;
+
+  late final _i1.ColumnBool freeDeliveryApplied;
 
   late final _i1.ColumnDouble finalAmount;
 
@@ -829,7 +1014,14 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     itemCount,
     totalAmount,
     discountAmount,
+    mrpTotal,
+    productDiscountAmount,
+    comboDiscountAmount,
+    bogoDiscountAmount,
     deliveryFee,
+    originalDeliveryFee,
+    deliveryDiscountAmount,
+    freeDeliveryApplied,
     finalAmount,
     placedAt,
     confirmedAt,
