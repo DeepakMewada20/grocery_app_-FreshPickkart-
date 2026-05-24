@@ -22,9 +22,6 @@ class DeliveryLocationSenderService {
   bool _paused = false;
   Future<void> Function(String orderId)? _onFirstPublish;
 
-  bool get isActive => _activeOrderId != null;
-  String? get activeOrderId => _activeOrderId;
-
   Future<void> attachToOrder(
     String orderId, {
     bool forceTracking = false,
@@ -56,16 +53,6 @@ class DeliveryLocationSenderService {
       } else {
         _ensureLoop();
       }
-    }
-  }
-
-  void setTrackingEnabled(String orderId, bool enabled) {
-    if (_activeOrderId != orderId) return;
-    if (enabled) {
-      _ensureLoop();
-    } else {
-      _updateTimer?.cancel();
-      _updateTimer = null;
     }
   }
 

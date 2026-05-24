@@ -61,14 +61,6 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  List<String> subcategoryOptionsFor(String categoryName) {
-    return subCategories
-        .where((s) => s.categoryId == categoryName)
-        .expand((s) => s.subCategoriesName)
-        .toList()
-      ..sort();
-  }
-
   List<List<String>> groupedSubcategoryOptionsFor(String categoryName) {
     return subCategories
         .where((s) => s.categoryId == categoryName)

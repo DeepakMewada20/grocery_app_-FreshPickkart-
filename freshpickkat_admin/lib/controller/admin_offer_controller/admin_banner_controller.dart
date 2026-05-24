@@ -25,42 +25,6 @@ class AdminBannerController extends GetxController {
   final totalCount = 0.obs;
   final error = Rx<String?>(null);
 
-  static const List<String> bannerTypes = [
-    'offer',
-    'category',
-    'product',
-    'combo',
-    'coupon',
-    'external_link',
-  ];
-
-  static const List<String> screenPlacements = [
-    'home_top',
-    'home_middle',
-    'category_page',
-    'product_page',
-    'cart_page',
-    'checkout_page',
-  ];
-
-  static const Map<String, String> bannerTypeLabels = {
-    'offer': 'Offer',
-    'category': 'Category',
-    'product': 'Product',
-    'combo': 'Combo',
-    'coupon': 'Coupon',
-    'external_link': 'External Link',
-  };
-
-  static const Map<String, String> screenPlacementLabels = {
-    'home_top': 'Home Top',
-    'home_middle': 'Home Middle',
-    'category_page': 'Category Page',
-    'product_page': 'Product Page',
-    'cart_page': 'Cart Page',
-    'checkout_page': 'Checkout Page',
-  };
-
   @override
   void onInit() {
     super.onInit();
@@ -360,23 +324,5 @@ class AdminBannerController extends GetxController {
 
   void _sortBanners() {
     banners.sort((a, b) => a.priority.compareTo(b.priority));
-  }
-
-  List<sc.Banner> getBannersForScreen(String screen) {
-    return banners.where((b) {
-      final placements = b.screenPlacements
-          .split(',')
-          .map((s) => s.trim())
-          .toList();
-      return placements.contains(screen) && b.active;
-    }).toList();
-  }
-
-  String getBannerTypeLabel(String type) {
-    return bannerTypeLabels[type] ?? type;
-  }
-
-  String getScreenPlacementLabel(String placement) {
-    return screenPlacementLabels[placement] ?? placement;
   }
 }

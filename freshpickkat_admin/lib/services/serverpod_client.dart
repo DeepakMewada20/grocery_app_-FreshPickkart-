@@ -10,8 +10,6 @@ class ServerpodAdminClient {
 
   factory ServerpodAdminClient() => _instance;
 
-  static String get baseUrl => AdminEnv.adminApiBaseUrl;
-
-  final Client client = Client(baseUrl)
+  final Client client = Client(AdminEnv.adminApiBaseUrl)
     ..connectivityMonitor = FlutterConnectivityMonitor();
 }

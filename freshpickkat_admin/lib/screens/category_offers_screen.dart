@@ -63,14 +63,14 @@ Future<void> showEditCategoryOfferDialog({
   );
 }
 
-class CategoryOffersScreen extends StatefulWidget {
-  const CategoryOffersScreen({super.key});
+class _CategoryOffersScreen extends StatefulWidget {
+  const _CategoryOffersScreen();
 
   @override
-  State<CategoryOffersScreen> createState() => _CategoryOffersScreenState();
+  State<_CategoryOffersScreen> createState() => _CategoryOffersScreenState();
 }
 
-class _CategoryOffersScreenState extends State<CategoryOffersScreen>
+class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
     with AutomaticKeepAliveClientMixin {
   final AdminCategoryOfferController _controller =
       AdminCategoryOfferController.instance;

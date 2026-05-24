@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
-List<Coupon> filterCatalogCouponsByStatus(
+List<Coupon> _filterCatalogCouponsByStatus(
   List<Coupon> coupons,
   String statusFilter,
 ) {
@@ -21,7 +21,7 @@ List<Coupon> filterCatalogCoupons(
   String query, {
   String statusFilter = 'all',
 }) {
-  final byStatus = filterCatalogCouponsByStatus(coupons, statusFilter);
+  final byStatus = _filterCatalogCouponsByStatus(coupons, statusFilter);
   final normalized = query.toLowerCase().trim();
   if (normalized.isEmpty) return byStatus;
 
@@ -56,11 +56,11 @@ List<Product> filterCatalogOfferProducts({
         comboOffers: comboOffers,
       ),
       'bogo' => hasCatalogConfiguredBogoOffer(product, bogoOffers: bogoOffers),
-      'category_offer' => hasCatalogLiveCategoryOffer(
+      'category_offer' => _hasCatalogLiveCategoryOffer(
         product,
         categoryOffers: categoryOffers,
       ),
-      'combo_offer' => hasCatalogLiveComboOffer(
+      'combo_offer' => _hasCatalogLiveComboOffer(
         product,
         comboOffers: comboOffers,
       ),
@@ -105,7 +105,7 @@ List<Product> filterCatalogOfferProducts({
   return filtered;
 }
 
-bool isCatalogBogoOffer(Product product) {
+bool _isCatalogBogoOffer(Product product) {
   final freeIds = product.bogoFreeProductIds ?? const <String>[];
   return product.discountType == 'bogo' || freeIds.isNotEmpty;
 }
@@ -115,12 +115,12 @@ bool hasCatalogConfiguredBogoOffer(
   required List<BogoOffer> bogoOffers,
 }) {
   final productId = product.productId;
-  if (productId == null) return isCatalogBogoOffer(product);
+  if (productId == null) return _isCatalogBogoOffer(product);
   return bogoOffers.any((offer) => offer.triggerProductId == productId) ||
-      isCatalogBogoOffer(product);
+      _isCatalogBogoOffer(product);
 }
 
-bool hasCatalogLiveBogoOffer(
+bool _hasCatalogLiveBogoOffer(
   Product product, {
   required List<BogoOffer> bogoOffers,
 }) {
@@ -136,7 +136,7 @@ bool hasCatalogLiveBogoOffer(
 }
 
 bool hasCatalogConfiguredPercentageOffer(Product product) {
-  if (isCatalogBogoOffer(product)) return false;
+  if (_isCatalogBogoOffer(product)) return false;
   final configuredValue = product.discountValue ?? product.discount;
   if (product.discountType == 'percentage') {
     return configuredValue > 0;
@@ -152,7 +152,7 @@ bool hasCatalogActivePercentageOffer(Product product) {
 }
 
 bool hasCatalogConfiguredFlatOffer(Product product) {
-  if (isCatalogBogoOffer(product) ||
+  if (_isCatalogBogoOffer(product) ||
       hasCatalogConfiguredPercentageOffer(product)) {
     return false;
   }
@@ -184,14 +184,14 @@ bool hasCatalogAnyLiveOffer(
   required List<CategoryOffer> categoryOffers,
   required List<ComboOffer> comboOffers,
 }) {
-  return hasCatalogLiveBogoOffer(product, bogoOffers: bogoOffers) ||
+  return _hasCatalogLiveBogoOffer(product, bogoOffers: bogoOffers) ||
       hasCatalogActivePercentageOffer(product) ||
       hasCatalogActiveFlatOffer(product) ||
-      hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers) ||
-      hasCatalogLiveComboOffer(product, comboOffers: comboOffers);
+      _hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers) ||
+      _hasCatalogLiveComboOffer(product, comboOffers: comboOffers);
 }
 
-bool hasCatalogLiveCategoryOffer(
+bool _hasCatalogLiveCategoryOffer(
   Product product, {
   required List<CategoryOffer> categoryOffers,
 }) {
@@ -216,7 +216,7 @@ bool hasCatalogLiveCategoryOffer(
   });
 }
 
-bool hasCatalogLiveComboOffer(
+bool _hasCatalogLiveComboOffer(
   Product product, {
   required List<ComboOffer> comboOffers,
 }) {
@@ -241,7 +241,7 @@ double catalogFlatDiscountValue(Product product) {
 }
 
 String catalogProductOfferLabel(Product product) {
-  if (isCatalogBogoOffer(product)) {
+  if (_isCatalogBogoOffer(product)) {
     final freeCount = (product.bogoFreeProductIds ?? const <String>[]).length;
     return freeCount > 0 ? 'BOGO • $freeCount free choices' : 'BOGO';
   }
@@ -278,10 +278,10 @@ String catalogProductOfferLabelWithLinkedOffers(
       return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
     }
   }
-  if (hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers)) {
+  if (_hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers)) {
     return 'Category Offer';
   }
-  if (hasCatalogLiveComboOffer(product, comboOffers: comboOffers)) {
+  if (_hasCatalogLiveComboOffer(product, comboOffers: comboOffers)) {
     return 'Combo Offer';
   }
   return 'No active offer';

@@ -7,8 +7,6 @@ import 'serverpod_client.dart';
 class AdminAuthService {
   static const String _sellerCollection = 'sellers';
   static const String _adminRole = 'ADMIN_SELLER';
-  static const int usernameMinLength = 4;
-  static const int usernameMaxLength = 24;
   static final RegExp _usernameRegex = RegExp(r'^[a-z][a-z0-9_]{3,23}$');
   static final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   static const String usernameRuleText =
@@ -68,40 +66,23 @@ class AdminAuthService {
     await user.sendEmailVerification();
   }
 
-  Future<void> completeAdminSetup() async {
-    final user = await _reloadCurrentUser();
-    if (user == null) {
-      throw Exception('No authenticated admin found.');
-    }
-    if (!user.emailVerified) {
-      throw Exception('Please verify your email first.');
-    }
-
-    final email = (user.email ?? '').trim().toLowerCase();
-    if (email.isEmpty) {
-      throw Exception('Email not found on authenticated user.');
-    }
-
-    await _upsertSellerProfile(
-      user.uid,
-      email,
-      preferredUsername: user.displayName,
-    );
-
-    final idToken = await user.getIdToken(true);
-    if (idToken == null || idToken.trim().isEmpty) {
-      throw Exception('Failed to fetch Firebase auth token.');
-    }
-
-    await _completeServerSetup(idToken, user.displayName);
-    await _verifyAdminToken(idToken);
-  }
-
   Future<void> loginWithUsername({
     required String usernameOrEmail,
     required String password,
   }) async {
-    final email = await resolveLoginEmail(usernameOrEmail);
+    final normalized = usernameOrEmail.trim().toLowerCase();
+    String email;
+    if (normalized.contains('@')) {
+      _ensureValidEmail(normalized);
+      email = normalized;
+    } else {
+      _ensureValidUsername(normalized);
+      final resolved = await _client.admin.resolveAdminLoginEmail(normalized);
+      email = resolved.trim().toLowerCase();
+      if (email.isEmpty) {
+        throw Exception('Invalid username or password.');
+      }
+    }
     await _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -134,15 +115,6 @@ class AdminAuthService {
       await _firebaseAuth.signOut();
       rethrow;
     }
-  }
-
-  Future<void> sendPasswordResetEmail(String email) async {
-    final normalized = email.trim().toLowerCase();
-    if (normalized.isEmpty) {
-      throw Exception('Email is required.');
-    }
-    _ensureValidEmail(normalized);
-    await _firebaseAuth.sendPasswordResetEmail(email: normalized);
   }
 
   Future<String> sendPasswordResetForIdentity(String usernameOrEmail) async {
@@ -182,27 +154,6 @@ class AdminAuthService {
       rethrow;
     }
 
-    return email;
-  }
-
-  Future<String> resolveLoginEmail(String usernameOrEmail) async {
-    final normalized = usernameOrEmail.trim().toLowerCase();
-    if (normalized.isEmpty) {
-      throw Exception('Username required.');
-    }
-
-    if (normalized.contains('@')) {
-      _ensureValidEmail(normalized);
-      return normalized;
-    }
-
-    _ensureValidUsername(normalized);
-
-    final resolved = await _client.admin.resolveAdminLoginEmail(normalized);
-    final email = resolved.trim().toLowerCase();
-    if (email.isEmpty) {
-      throw Exception('Invalid username or password.');
-    }
     return email;
   }
 
@@ -295,10 +246,10 @@ class AdminAuthService {
     if (!RegExp(r'^[a-z]').hasMatch(username)) {
       username = 'a$username';
     }
-    if (username.length > usernameMaxLength) {
-      username = username.substring(0, usernameMaxLength);
+    if (username.length > 24) {
+      username = username.substring(0, 24);
     }
-    while (username.length < usernameMinLength) {
+    while (username.length < 4) {
       username = '${username}0';
     }
 

@@ -36,7 +36,7 @@ class AdminStateView extends StatelessWidget {
   }) {
     return AdminStateView(
       key: key,
-      title: sanitizeErrorMessage(message),
+      title: _sanitizeErrorMessage(message),
       message: 'Please try again.',
       icon: Icons.error_outline,
       onRetry: onRetry,
@@ -94,7 +94,7 @@ class AdminStateView extends StatelessWidget {
   }
 }
 
-String sanitizeErrorMessage(String? error) {
+String _sanitizeErrorMessage(String? error) {
   final raw = error?.trim();
   if (raw == null || raw.isEmpty) return 'Something went wrong';
 

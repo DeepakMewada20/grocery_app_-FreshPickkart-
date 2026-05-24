@@ -65,14 +65,14 @@ Future<void> showEditComboOfferDialog({
   );
 }
 
-class ComboOffersScreen extends StatefulWidget {
-  const ComboOffersScreen({super.key});
+class _ComboOffersScreen extends StatefulWidget {
+  const _ComboOffersScreen();
 
   @override
-  State<ComboOffersScreen> createState() => _ComboOffersScreenState();
+  State<_ComboOffersScreen> createState() => _ComboOffersScreenState();
 }
 
-class _ComboOffersScreenState extends State<ComboOffersScreen>
+class _ComboOffersScreenState extends State<_ComboOffersScreen>
     with AutomaticKeepAliveClientMixin {
   final AdminComboOfferController _controller =
       AdminComboOfferController.instance;

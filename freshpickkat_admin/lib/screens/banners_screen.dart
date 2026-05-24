@@ -17,7 +17,7 @@ import 'package:image_cropper/image_cropper.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/catalog_widgets/catalog_shared_widgets.dart';
 
-typedef AppBanner = client.Banner;
+typedef _AppBanner = client.Banner;
 
 class BannersScreen extends StatefulWidget {
   const BannersScreen({super.key});
@@ -31,7 +31,7 @@ class _BannersScreenState extends State<BannersScreen>
   final AdminBannerController _controller = AdminBannerController.instance;
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
-  BannerMode? _filterMode;
+  _BannerMode? _filterMode;
 
   @override
   bool get wantKeepAlive => true;
@@ -123,11 +123,11 @@ class _BannersScreenState extends State<BannersScreen>
                     children: [
                       _buildFilterChip('All', null),
                       SizedBox(width: 8.w),
-                      _buildFilterChip('Standard', BannerMode.normal),
-                      SizedBox(width: 8.w),
-                      _buildFilterChip(
-                        'Home Top Image',
-                        BannerMode.homeTopImage,
+                      _buildFilterChip('Standard', _BannerMode.normal),
+
+                    _buildFilterChip(
+                      'Home Top',
+                      _BannerMode.homeTopImage,
                       ),
                     ],
                   ),
@@ -157,9 +157,9 @@ class _BannersScreenState extends State<BannersScreen>
                 bool matchesMode = true;
                 final isHero = b.screenPlacements.contains('home_top_image');
 
-                if (_filterMode == BannerMode.homeTopImage) {
-                  matchesMode = isHero;
-                } else if (_filterMode == BannerMode.normal) {
+                if (_filterMode == _BannerMode.homeTopImage) {
+                  // show all banners for home top image mode
+                } else if (_filterMode == _BannerMode.normal) {
                   matchesMode = !isHero;
                 }
 
@@ -312,7 +312,7 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  Widget _buildFilterChip(String label, BannerMode? mode) {
+  Widget _buildFilterChip(String label, _BannerMode? mode) {
     final isSelected = _filterMode == mode;
     return Theme(
       data: Theme.of(context).copyWith(
@@ -754,7 +754,7 @@ class _BannerSheet extends StatefulWidget {
   State<_BannerSheet> createState() => _BannerSheetState();
 }
 
-enum BannerMode { normal, homeTopImage }
+enum _BannerMode { normal, homeTopImage }
 
 class _BannerSheetState extends State<_BannerSheet> {
   final _formKey = GlobalKey<FormState>();
@@ -785,7 +785,7 @@ class _BannerSheetState extends State<_BannerSheet> {
   final List<String> _uploadedUrlsInSession = [];
   String? _lastAutoTitle;
 
-  BannerMode _mode = BannerMode.normal;
+  _BannerMode _mode = _BannerMode.normal;
 
   bool get isEditing => widget.banner != null;
 
@@ -819,9 +819,9 @@ class _BannerSheetState extends State<_BannerSheet> {
 
       if (_selectedPlacements.contains('home_top_image') &&
           _selectedPlacements.length == 1) {
-        _mode = BannerMode.homeTopImage;
+        _mode = _BannerMode.homeTopImage;
       } else {
-        _mode = BannerMode.normal;
+        _mode = _BannerMode.normal;
       }
     } else {
       _lastAutoTitle = _buildDefaultTitle();
@@ -915,18 +915,18 @@ class _BannerSheetState extends State<_BannerSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SegmentedButton<BannerMode>(
+                      SegmentedButton<_BannerMode>(
                         showSelectedIcon: !AdminResponsive.isSmallPhone(
                           context,
                         ),
                         segments: const [
                           ButtonSegment(
-                            value: BannerMode.normal,
-                            label: Text('Standard Banner'),
-                            icon: Icon(Icons.dashboard_outlined),
+                            value: _BannerMode.normal,
+                            label: Text('Standard'),
+                            icon: Icon(Icons.image),
                           ),
                           ButtonSegment(
-                            value: BannerMode.homeTopImage,
+                            value: _BannerMode.homeTopImage,
                             label: Text('Home Top Image'),
                             icon: Icon(Icons.image_outlined),
                           ),
@@ -935,7 +935,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                         onSelectionChanged: (newSelection) {
                           setState(() {
                             _mode = newSelection.first;
-                            if (_mode == BannerMode.homeTopImage) {
+                            if (_mode == _BannerMode.homeTopImage) {
                               _selectedPlacements = {'home_top_image'};
                             } else if (_selectedPlacements.contains(
                                   'home_top_image',
@@ -960,7 +960,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                       ),
                       SizedBox(height: 16.h),
                       _buildImagePicker(),
-                      if (_mode == BannerMode.normal) ...[
+                      if (_mode == _BannerMode.normal) ...[
                         SizedBox(height: 16.h),
                         DropdownButtonFormField<String>(
                           initialValue: _type,
@@ -1003,7 +1003,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                         SizedBox(height: 16.h),
                         _buildTargetField(),
                       ],
-                      if (_mode == BannerMode.homeTopImage) ...[
+                      if (_mode == _BannerMode.homeTopImage) ...[
                         SizedBox(height: 16.h),
                         _buildLinkedProductsSection(),
                         SizedBox(height: 16.h),
@@ -1079,7 +1079,7 @@ class _BannerSheetState extends State<_BannerSheet> {
                           contentPadding: EdgeInsets.zero,
                         ),
                       ],
-                      if (_mode == BannerMode.normal) ...[
+                      if (_mode == _BannerMode.normal) ...[
                         SizedBox(height: 16.h),
                         Text(
                           'Screen Placements:',
@@ -1613,7 +1613,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       final source = await AdminImageUploadService.pickImageSource(context);
       if (source == null) return;
 
-      final isHomeTopImage = _mode == BannerMode.homeTopImage;
+      final isHomeTopImage = _mode == _BannerMode.homeTopImage;
       final aspectRatio = isHomeTopImage
           ? const CropAspectRatio(ratioX: 1.2, ratioY: 1)
           : const CropAspectRatio(ratioX: 16, ratioY: 9);
@@ -1652,7 +1652,7 @@ class _BannerSheetState extends State<_BannerSheet> {
       return;
     }
 
-    final banner = AppBanner(
+    final banner = _AppBanner(
       bannerId: widget.banner?.bannerId,
       title: _titleController.text.trim(),
       imageUrl: imageUrl,

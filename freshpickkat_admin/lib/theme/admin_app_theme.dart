@@ -5,9 +5,6 @@ class AdminThemeTokens {
   // Primary Colors
   static const Color primary = Color(0xFF1E8B57);
   static const Color secondary = Color(0xFF167D73);
-  static const Color accentCyan = Color(0xFF00BCD4);
-  static const Color accentBlue = Color(0xFF2196F3);
-
   // Light Theme Colors
   static const Color lightBackground = Color(0xFFF5F7FA);
   static const Color lightSurface = Colors.white;
@@ -473,18 +470,6 @@ class AdminAppTheme {
         : AdminThemeTokens.info;
   }
 
-  static Color getAccentColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? AdminThemeTokens.darkAccentGreen
-        : AdminThemeTokens.primary;
-  }
-
-  static Color getSurfaceElevated(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? AdminThemeTokens.darkSurfaceElevated
-        : AdminThemeTokens.lightSurface;
-  }
-
   static Color getTextSecondaryColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
         ? AdminThemeTokens.darkTextSecondary
@@ -553,10 +538,6 @@ class AdminAppTheme {
     return isDark(context)
         ? AdminThemeTokens.darkTextSecondary
         : Colors.grey.shade600;
-  }
-
-  static Color getOnAccentColor(BuildContext context) {
-    return Theme.of(context).colorScheme.onPrimary;
   }
 
   static Color getScrimShadowColor(

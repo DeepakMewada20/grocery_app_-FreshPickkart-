@@ -4,15 +4,14 @@ import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
-/// Enum for sort options
-enum UserSortOption {
+enum _UserSortOption {
   name('Name'),
   orders('Most Orders'),
   amount('Highest Amount Spent'),
   recent('Recent Orders');
 
   final String label;
-  const UserSortOption(this.label);
+  const _UserSortOption(this.label);
 }
 
 /// Reusable widget for searching and filtering users
@@ -37,7 +36,7 @@ class UserSearchFilterWidget extends StatefulWidget {
 
 class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
   late TextEditingController _searchController;
-  UserSortOption _sortOption = UserSortOption.name;
+  _UserSortOption _sortOption = _UserSortOption.name;
   final Set<String> _selectedUserIds = {};
   String _searchQuery = '';
 
@@ -69,15 +68,15 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
     // Sort
     filtered.sort((a, b) {
       switch (_sortOption) {
-        case UserSortOption.orders:
+        case _UserSortOption.orders:
           return b.totalOrdersCount.compareTo(a.totalOrdersCount);
-        case UserSortOption.amount:
+        case _UserSortOption.amount:
           return b.totalSpent.compareTo(a.totalSpent);
-        case UserSortOption.recent:
+        case _UserSortOption.recent:
           final aDate = a.lastOrderDate ?? DateTime(1970);
           final bDate = b.lastOrderDate ?? DateTime(1970);
           return bDate.compareTo(aDate);
-        case UserSortOption.name:
+        case _UserSortOption.name:
           return (a.name ?? '').compareTo(b.name ?? '');
       }
     });
@@ -192,10 +191,10 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
       height: 34.h.clamp(34.0, 42.0),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: UserSortOption.values.length,
+        itemCount: _UserSortOption.values.length,
         separatorBuilder: (_, _) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
-          final option = UserSortOption.values[index];
+          final option = _UserSortOption.values[index];
           final isSelected = _sortOption == option;
           return Theme(
             data: Theme.of(context).copyWith(
@@ -264,11 +263,6 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
         ),
       ],
     );
-  }
-
-  /// Get selected user IDs as comma-separated string (for Broadcasts screen)
-  String getSelectedUserIdsAsString() {
-    return _selectedUserIds.join(',');
   }
 
   /// Get selected users list

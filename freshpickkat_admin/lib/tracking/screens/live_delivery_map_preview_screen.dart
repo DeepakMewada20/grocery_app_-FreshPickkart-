@@ -35,7 +35,7 @@ class _LiveDeliveryMapPreviewScreenState
   StreamSubscription<LatLng?>? _riderSubscription;
   GoogleMapController? _mapController;
   LatLng? _animatedRiderPosition;
-  LatLngTween? _riderTween;
+  _LatLngTween? _riderTween;
   double _animatedBearing = 0.0;
   Tween<double>? _bearingTween;
   static const double _bearingOffset = 0.0;
@@ -75,7 +75,7 @@ class _LiveDeliveryMapPreviewScreenState
     _riderSubscription = _controller.riderPosition.listen((next) {
       if (!mounted || next == null) return;
       final begin = _animatedRiderPosition ?? next;
-      _riderTween = LatLngTween(begin: begin, end: next);
+      _riderTween = _LatLngTween(begin: begin, end: next);
 
       final newBearing = Geolocator.bearingBetween(
         begin.latitude,
@@ -521,8 +521,8 @@ class _LiveDeliveryMapPreviewScreenState
   }
 }
 
-class LatLngTween extends Tween<LatLng> {
-  LatLngTween({required super.begin, required super.end});
+class _LatLngTween extends Tween<LatLng> {
+  _LatLngTween({required super.begin, required super.end});
 
   @override
   LatLng lerp(double t) {

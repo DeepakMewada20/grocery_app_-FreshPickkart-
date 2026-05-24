@@ -260,7 +260,7 @@ class CatalogOffersTypeFilterBar extends StatelessWidget {
         separatorBuilder: (_, _) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
           final item = items[index];
-          return CatalogOfferTypeFilterPill(
+          return _CatalogOfferTypeFilterPill(
             item: item,
             selected: selectedValue == item.value,
             onTap: () => onSelected(item.value),
@@ -271,9 +271,8 @@ class CatalogOffersTypeFilterBar extends StatelessWidget {
   }
 }
 
-class CatalogOfferTypeFilterPill extends StatelessWidget {
-  const CatalogOfferTypeFilterPill({
-    super.key,
+class _CatalogOfferTypeFilterPill extends StatelessWidget {
+  const _CatalogOfferTypeFilterPill({
     required this.item,
     required this.selected,
     required this.onTap,

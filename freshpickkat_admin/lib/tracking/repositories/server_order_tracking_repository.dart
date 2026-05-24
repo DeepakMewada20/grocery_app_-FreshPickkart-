@@ -10,15 +10,13 @@ import '../models/order_tracking_snapshot.dart';
 class ServerOrderTrackingRepository {
   ServerOrderTrackingRepository({
     server.Client? client,
-    this.pollingInterval = const Duration(seconds: 5),
   }) : _client = client ?? ServerpodAdminClient().client;
 
   final server.Client _client;
-  final Duration pollingInterval;
 
   Stream<OrderTrackingSnapshot?> watchOrder(String orderId) async* {
     while (true) {
-      final snapshot = await fetchOrder(orderId);
+      final snapshot = await _fetchOrder(orderId);
       yield snapshot;
 
       if (snapshot == null ||
@@ -26,7 +24,7 @@ class ServerOrderTrackingRepository {
           snapshot.status == 'cancelled') {
         return;
       }
-      await Future<void>.delayed(pollingInterval);
+      await Future<void>.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -44,7 +42,7 @@ class ServerOrderTrackingRepository {
     }
   }
 
-  Future<OrderTrackingSnapshot?> fetchOrder(String orderId) async {
+  Future<OrderTrackingSnapshot?> _fetchOrder(String orderId) async {
     final uid = AdminSessionService.requireUid();
     final idToken = await AdminSessionService.requireIdToken(
       forceRefresh: false,
@@ -55,22 +53,6 @@ class ServerOrderTrackingRepository {
       idToken,
     );
     return data == null ? null : OrderTrackingSnapshot.fromServer(data);
-  }
-
-  Future<void> updateTrackingEnabled({
-    required String orderId,
-    required bool enabled,
-  }) async {
-    final uid = AdminSessionService.requireUid();
-    final idToken = await AdminSessionService.requireIdToken(
-      forceRefresh: false,
-    );
-    await _client.orderTracking.updateTrackingEnabled(
-      orderId,
-      enabled,
-      uid,
-      idToken,
-    );
   }
 
   Future<void> updateRiderLocation({

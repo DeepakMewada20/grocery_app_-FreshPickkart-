@@ -108,11 +108,11 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
               return _ComplaintCard(
                 complaint: complaint,
                 onTap: () async {
-                  await Get.to(
-                    () => ComplaintDetailAdminScreen(
-                      complaint: complaint,
-                      controller: _controller,
-                    ),
+                      await Get.to(
+                        () => _ComplaintDetailAdminScreen(
+                          complaint: complaint,
+                          controller: _controller,
+                        ),
                   );
                   if (mounted) _controller.load(status: _controller.statusFilter);
                 },
@@ -125,9 +125,8 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
   }
 }
 
-class ComplaintDetailAdminScreen extends StatefulWidget {
-  const ComplaintDetailAdminScreen({
-    super.key,
+class _ComplaintDetailAdminScreen extends StatefulWidget {
+  const _ComplaintDetailAdminScreen({
     required this.complaint,
     required this.controller,
   });
@@ -136,12 +135,12 @@ class ComplaintDetailAdminScreen extends StatefulWidget {
   final AdminComplaintController controller;
 
   @override
-  State<ComplaintDetailAdminScreen> createState() =>
+  State<_ComplaintDetailAdminScreen> createState() =>
       _ComplaintDetailAdminScreenState();
 }
 
 class _ComplaintDetailAdminScreenState
-    extends State<ComplaintDetailAdminScreen> {
+    extends State<_ComplaintDetailAdminScreen> {
   late Complaint _complaint;
   final _noteController = TextEditingController();
   bool _busy = false;
