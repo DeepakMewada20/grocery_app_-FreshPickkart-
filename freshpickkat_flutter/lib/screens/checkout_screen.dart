@@ -25,6 +25,7 @@ import 'package:freshpickkat_flutter/tracking/models/delivery_location.dart';
 import 'package:freshpickkat_flutter/tracking/repositories/server_order_tracking_repository.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -1436,6 +1437,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // }
 
   Widget _buildItemsSection(ColorScheme cs) {
+    final bogoItems = cartController.regularCartItems
+        .where((i) => i.bogoFreeProductId != null)
+        .toList();
+    final individualItems = cartController.regularCartItems
+        .where((i) => i.bogoFreeProductId == null)
+        .toList();
+    final comboGroups = cartController.comboGroups;
+    final bogoController = BogoController.instance;
+
+    int totalCount = 0;
+    for (final item in bogoItems) {
+      totalCount += item.quantity;
+      final offer = bogoController.getOfferForProduct(
+        item.product.productId ?? '',
+      );
+      if (offer != null && item.bogoFreeProductId != null) {
+        final reward = findBogoReward(
+          offer,
+          freeProductId: item.bogoFreeProductId!,
+        );
+        if (reward != null) {
+          totalCount += calculateBogoFreeQuantity(
+            offer: offer,
+            reward: reward,
+            triggerQuantity: item.quantity,
+          );
+        }
+      }
+    }
+    for (final item in individualItems) {
+      totalCount += item.quantity;
+    }
+    for (final group in comboGroups) {
+      for (final item in group.items) {
+        totalCount += item.quantity;
+      }
+    }
+
     return Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
@@ -1455,18 +1494,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           SizedBox(height: 12.h),
-          ...cartController.regularCartItems.map(
-            (item) => _buildRegularCheckoutItem(item, cs),
-          ),
-          ...cartController.comboGroups.map(
-            (group) => _buildComboCheckoutGroup(group, cs),
-          ),
+          if (bogoItems.isNotEmpty) ...[
+            _buildSectionLabel('BOGO Offers', cs),
+            SizedBox(height: 8.h),
+            ...bogoItems.map(
+              (item) => _buildBogoCheckoutCard(item, cs),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (comboGroups.isNotEmpty) ...[
+            _buildSectionLabel('Combo Offers', cs),
+            SizedBox(height: 8.h),
+            ...comboGroups.map(
+              (group) => _buildComboCheckoutGroup(group, cs),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (individualItems.isNotEmpty) ...[
+            _buildSectionLabel('Individual Items', cs),
+            SizedBox(height: 8.h),
+            ...individualItems.map(
+              (item) => _buildIndividualCheckoutItem(item, cs),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          _buildTotalItemCount(totalCount, cs),
         ],
       ),
     );
   }
 
-  Widget _buildRegularCheckoutItem(CartItem item, ColorScheme cs) {
+  Widget _buildSectionLabel(String title, ColorScheme cs, {Color? badgeColor}) {
+    return Row(
+      children: [
+        Container(
+          width: 3.w,
+          height: 14.h,
+          decoration: BoxDecoration(
+            color: badgeColor ?? cs.onSurface.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(2.r),
+          ),
+        ),
+        SizedBox(width: 6.w),
+        Text(
+          title,
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.7),
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBogoCheckoutCard(
+    CartItem item,
+    ColorScheme cs,
+  ) {
     final productProvider = Get.find<ProductProviderController>();
     final freeProduct = item.bogoFreeProductId == null
         ? null
@@ -1480,49 +1565,169 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             fallback: productFullQuantityLabel(freeProduct),
           )
         : null;
+    final offer = BogoController.instance.getOfferForProduct(
+      item.product.productId ?? '',
+    );
+    final reward = freeProduct != null && offer != null
+        ? findBogoReward(offer, freeProductId: freeProduct.productId!)
+        : null;
+    final freeQuantity = reward != null
+        ? calculateBogoFreeQuantity(
+            offer: offer!,
+            reward: reward,
+            triggerQuantity: item.quantity,
+          )
+        : item.quantity;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
-                  style: TextStyle(color: cs.onSurface),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Container(
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: cs.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
+                    style: TextStyle(color: cs.onSurface, fontSize: 13.sp),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Flexible(
-                child: AutoSizeText(
-                  'INR ${(item.product.price * item.quantity).toStringAsFixed(0)}',
-                  textAlign: TextAlign.end,
-                  maxLines: 1,
-                  minFontSize: 10,
+                SizedBox(width: 8.w),
+                Text(
+                  '₹${(item.product.price * item.quantity).formatPrice}',
                   style: TextStyle(
                     color: cs.onSurface,
                     fontWeight: FontWeight.w600,
+                    fontSize: 13.sp,
                   ),
                 ),
+              ],
+            ),
+            if (freeProduct != null) ...[
+              SizedBox(height: 8.h),
+              Divider(color: cs.outlineVariant, height: 1),
+              SizedBox(height: 8.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cs.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Text(
+                            'FREE',
+                            style: TextStyle(
+                              color: cs.onSurface,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        Expanded(
+                          child: Text(
+                            '${freeProduct.productName} ($freeLabel) x$freeQuantity',
+                            style: TextStyle(
+                              color: cs.onSurface,
+                              fontSize: 13.sp,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '₹0',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          if (freeProduct != null) ...[
-            SizedBox(height: 4.h),
-            Text(
-              'FREE: ${freeProduct.productName} ($freeLabel) x${item.quantity}',
-              style: TextStyle(
-                color: Colors.green.shade700,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIndividualCheckoutItem(CartItem item, ColorScheme cs) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
+              style: TextStyle(color: cs.onSurface, fontSize: 13.sp),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            '₹${(item.product.price * item.quantity).formatPrice}',
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 13.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTotalItemCount(int totalCount, ColorScheme cs) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(top: 12.h),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: cs.outlineVariant)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Total items',
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 13.sp,
+            ),
+          ),
+          Text(
+            '$totalCount',
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w800,
+              fontSize: 13.sp,
+            ),
+          ),
         ],
       ),
     );
@@ -1530,7 +1735,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildComboCheckoutGroup(ComboCartGroup group, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: 8.h),
       child: Container(
         padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
@@ -1549,25 +1754,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.bold,
+                      fontSize: 13.sp,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 SizedBox(width: 8.w),
-                Flexible(
-                  child: AutoSizeText(
-                    comboDiscountBadgeText(
-                      group.discountType,
-                      group.discountValue,
-                    ),
-                    maxLines: 1,
-                    minFontSize: 9,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  comboDiscountBadgeText(
+                    group.discountType,
+                    group.discountValue,
+                  ),
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -1590,16 +1791,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    Flexible(
-                      child: AutoSizeText(
-                        'INR ${(item.product.price * item.quantity).toStringAsFixed(0)}',
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        minFontSize: 10,
-                        style: TextStyle(
-                          color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13.sp,
-                        ),
+                    Text(
+                      '₹${(item.product.price * item.quantity).formatPrice}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.75),
+                        fontSize: 13.sp,
                       ),
                     ),
                   ],
@@ -1618,6 +1814,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w700,
+                      fontSize: 13.sp,
                     ),
                   ),
                 ),
@@ -1626,17 +1823,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'INR ${group.discountedTotal.toStringAsFixed(0)}',
+                      '₹${group.discountedTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface,
                         fontWeight: FontWeight.bold,
+                        fontSize: 13.sp,
                       ),
                     ),
                     Text(
-                      'INR ${group.originalTotal.toStringAsFixed(0)}',
+                      '₹${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
