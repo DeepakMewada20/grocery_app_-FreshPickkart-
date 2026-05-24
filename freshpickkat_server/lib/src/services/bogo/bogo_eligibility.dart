@@ -225,11 +225,12 @@ BogoFreeProduct? findBogoReward(
   final rewards = offer.freeProducts ?? const <BogoFreeProduct>[];
   for (final reward in rewards) {
     if (reward.productId != freeProductId) continue;
+    if (freeVariantId == null) return reward;
     final configuredVariantId = reward.variantId?.trim();
     if (configuredVariantId == null || configuredVariantId.isEmpty) {
       return reward;
     }
-    if (configuredVariantId == freeVariantId?.trim()) {
+    if (configuredVariantId == freeVariantId.trim()) {
       return reward;
     }
   }
