@@ -22,12 +22,12 @@ class PostgresComplaintService {
   static const deliveryNoteField = 'delivery_note';
 
   static const productIssueTypes = {
-    'Wrong Product Received',
+    'Wrong Product',
     'Damaged Product',
-    'Missing Items',
-    'Delivered But Not Received',
+    'Defective Product',
+    'Missing Item',
     'Expired Product',
-    'Quality Issue',
+    'Other',
   };
 
   static const deliveryIssueTypes = {
