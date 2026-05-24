@@ -27,3 +27,9 @@ fields:
   createdAt: DateTime
   updatedAt: DateTime
   deliveredAt: DateTime?
+  orderedAt: DateTime?
+  totalAmount: double?
+  discountAmount: double?
+  deliveryFee: double?
+  finalAmount: double?
+  orderItems: List<ComplaintProductItem>

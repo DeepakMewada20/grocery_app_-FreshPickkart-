@@ -43,6 +43,12 @@ abstract class Complaint implements _i1.SerializableModel {
     required this.createdAt,
     required this.updatedAt,
     this.deliveredAt,
+    this.orderedAt,
+    this.totalAmount,
+    this.discountAmount,
+    this.deliveryFee,
+    this.finalAmount,
+    required this.orderItems,
   });
 
   factory Complaint({
@@ -73,6 +79,12 @@ abstract class Complaint implements _i1.SerializableModel {
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deliveredAt,
+    DateTime? orderedAt,
+    double? totalAmount,
+    double? discountAmount,
+    double? deliveryFee,
+    double? finalAmount,
+    required List<_i2.ComplaintProductItem> orderItems,
   }) = _ComplaintImpl;
 
   factory Complaint.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -121,6 +133,16 @@ abstract class Complaint implements _i1.SerializableModel {
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deliveredAt'],
             ),
+      orderedAt: jsonSerialization['orderedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['orderedAt']),
+      totalAmount: (jsonSerialization['totalAmount'] as num?)?.toDouble(),
+      discountAmount: (jsonSerialization['discountAmount'] as num?)?.toDouble(),
+      deliveryFee: (jsonSerialization['deliveryFee'] as num?)?.toDouble(),
+      finalAmount: (jsonSerialization['finalAmount'] as num?)?.toDouble(),
+      orderItems: _i3.Protocol().deserialize<List<_i2.ComplaintProductItem>>(
+        jsonSerialization['orderItems'],
+      ),
     );
   }
 
@@ -178,6 +200,18 @@ abstract class Complaint implements _i1.SerializableModel {
 
   DateTime? deliveredAt;
 
+  DateTime? orderedAt;
+
+  double? totalAmount;
+
+  double? discountAmount;
+
+  double? deliveryFee;
+
+  double? finalAmount;
+
+  List<_i2.ComplaintProductItem> orderItems;
+
   /// Returns a shallow copy of this [Complaint]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -209,6 +243,12 @@ abstract class Complaint implements _i1.SerializableModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deliveredAt,
+    DateTime? orderedAt,
+    double? totalAmount,
+    double? discountAmount,
+    double? deliveryFee,
+    double? finalAmount,
+    List<_i2.ComplaintProductItem>? orderItems,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -243,6 +283,12 @@ abstract class Complaint implements _i1.SerializableModel {
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
       if (deliveredAt != null) 'deliveredAt': deliveredAt?.toJson(),
+      if (orderedAt != null) 'orderedAt': orderedAt?.toJson(),
+      if (totalAmount != null) 'totalAmount': totalAmount,
+      if (discountAmount != null) 'discountAmount': discountAmount,
+      if (deliveryFee != null) 'deliveryFee': deliveryFee,
+      if (finalAmount != null) 'finalAmount': finalAmount,
+      'orderItems': orderItems.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -283,6 +329,12 @@ class _ComplaintImpl extends Complaint {
     required DateTime createdAt,
     required DateTime updatedAt,
     DateTime? deliveredAt,
+    DateTime? orderedAt,
+    double? totalAmount,
+    double? discountAmount,
+    double? deliveryFee,
+    double? finalAmount,
+    required List<_i2.ComplaintProductItem> orderItems,
   }) : super._(
          complaintId: complaintId,
          userId: userId,
@@ -311,6 +363,12 @@ class _ComplaintImpl extends Complaint {
          createdAt: createdAt,
          updatedAt: updatedAt,
          deliveredAt: deliveredAt,
+         orderedAt: orderedAt,
+         totalAmount: totalAmount,
+         discountAmount: discountAmount,
+         deliveryFee: deliveryFee,
+         finalAmount: finalAmount,
+         orderItems: orderItems,
        );
 
   /// Returns a shallow copy of this [Complaint]
@@ -345,6 +403,12 @@ class _ComplaintImpl extends Complaint {
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? deliveredAt = _Undefined,
+    Object? orderedAt = _Undefined,
+    Object? totalAmount = _Undefined,
+    Object? discountAmount = _Undefined,
+    Object? deliveryFee = _Undefined,
+    Object? finalAmount = _Undefined,
+    List<_i2.ComplaintProductItem>? orderItems,
   }) {
     return Complaint(
       complaintId: complaintId ?? this.complaintId,
@@ -390,6 +454,15 @@ class _ComplaintImpl extends Complaint {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deliveredAt: deliveredAt is DateTime? ? deliveredAt : this.deliveredAt,
+      orderedAt: orderedAt is DateTime? ? orderedAt : this.orderedAt,
+      totalAmount: totalAmount is double? ? totalAmount : this.totalAmount,
+      discountAmount: discountAmount is double?
+          ? discountAmount
+          : this.discountAmount,
+      deliveryFee: deliveryFee is double? ? deliveryFee : this.deliveryFee,
+      finalAmount: finalAmount is double? ? finalAmount : this.finalAmount,
+      orderItems:
+          orderItems ?? this.orderItems.map((e0) => e0.copyWith()).toList(),
     );
   }
 }

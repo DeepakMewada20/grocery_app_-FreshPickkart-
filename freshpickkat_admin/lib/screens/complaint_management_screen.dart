@@ -8,6 +8,7 @@ import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
+import 'package:freshpickkat_admin/widgets/order_details_card.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -186,6 +187,8 @@ class _ComplaintDetailAdminScreenState
                       _InfoRow('Customer phone', _complaint.userPhone),
                   ],
                 ),
+                SizedBox(height: 12.h),
+                OrderDetailsCard(complaint: _complaint),
                 SizedBox(height: 12.h),
                 _InfoPanel(
                   title: _complaint.title,
@@ -760,19 +763,22 @@ class _ImageGrid extends StatelessWidget {
                 runSpacing: 10.h,
                 children: urls
                     .map(
-                      (url) => ClipRRect(
-                        borderRadius: BorderRadius.circular(12.r),
-                        child: Image.network(
-                          url,
-                          width: 88.r,
-                          height: 88.r,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Container(
+                      (url) => GestureDetector(
+                        onTap: () => _openImagePreview(context, url),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12.r),
+                          child: Image.network(
+                            url,
                             width: 88.r,
                             height: 88.r,
-                            color: Colors.grey.shade200,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.broken_image_outlined),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(
+                              width: 88.r,
+                              height: 88.r,
+                              color: Colors.grey.shade200,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image_outlined),
+                            ),
                           ),
                         ),
                       ),
@@ -780,6 +786,47 @@ class _ImageGrid extends StatelessWidget {
                     .toList(),
               ),
             ],
+    );
+  }
+
+  void _openImagePreview(BuildContext context, String url) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          body: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 5.0,
+            child: Center(
+              child: Image.network(
+                url,
+                fit: BoxFit.contain,
+                loadingBuilder: (_, child, progress) =>
+                    progress == null ? child : const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                errorBuilder: (_, _, _) => const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
+                    SizedBox(height: 8),
+                    Text('Failed to load image', style: TextStyle(color: Colors.white54)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

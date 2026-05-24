@@ -862,8 +862,17 @@ class PostgresComplaintService {
             session,
             where: (t) => t.id.inSet(itemIds),
           );
+    final allOrderItems = await OrderItemRow.db.find(
+      session,
+      where: (t) => t.orderId.inSet(orderIds),
+    );
     final orderById = {for (final order in orders) order.id!.toString(): order};
     final itemById = {for (final item in items) item.id!.toString(): item};
+    final orderItemsByOrderId = <String, List<OrderItemRow>>{};
+    for (final item in allOrderItems) {
+      final key = item.orderId.toString();
+      orderItemsByOrderId.putIfAbsent(key, () => []).add(item);
+    }
 
     return [
       for (final row in rows)
@@ -874,6 +883,7 @@ class PostgresComplaintService {
             legacyItem: row.orderItemId == null
                 ? null
                 : itemById[row.orderItemId.toString()],
+            orderItems: orderItemsByOrderId[row.orderId.toString()] ?? [],
           ),
     ];
   }
@@ -882,6 +892,7 @@ class PostgresComplaintService {
     ComplaintRow row, {
     required CustomerOrderRow order,
     OrderItemRow? legacyItem,
+    List<OrderItemRow> orderItems = const [],
   }) {
     final selected = row.selectedProducts.isNotEmpty
         ? row.selectedProducts
@@ -917,6 +928,14 @@ class PostgresComplaintService {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       deliveredAt: order.deliveredAt,
+      orderedAt: order.orderedAt,
+      totalAmount: order.totalAmount,
+      discountAmount: order.discountAmount,
+      deliveryFee: order.deliveryFee,
+      finalAmount: order.finalAmount,
+      orderItems: [
+        for (final item in orderItems) _snapshotProduct(item),
+      ],
     );
   }
 
