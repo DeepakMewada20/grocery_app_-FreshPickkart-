@@ -51,8 +51,17 @@ class LocationService {
     final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 15),
       ),
     );
+
+    if (position.accuracy > 100) {
+      throw const LocationException(
+        LocationErrorType.unknown,
+        'Location accuracy too low. Please move to an open area or select location on the map.',
+      );
+    }
+
     return position;
   }
 

@@ -52,7 +52,6 @@ dependencies:
   get_storage: ^2.1.1
   device_info_plus: ^12.3.0
   flutter_sim_data: ^1.0.5
-  location: ^8.0.1
   geocoding: ^4.0.0
   image_picker: ^1.2.2
   package_info_plus: ^9.0.1
