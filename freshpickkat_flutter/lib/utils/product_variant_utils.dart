@@ -55,22 +55,22 @@ String formatQuantityString(double quantityValue, String quantityUnit) {
   return '$quantityValue $quantityUnit';
 }
 
-String productBaseQuantityLabel(Product product) {
+String _productBaseQuantityLabel(Product product) {
   final quantityValue =
       product.baseQuantity ?? _parseQuantityValue(product.quantity);
   final quantityUnit = product.baseUnit ?? _parseQuantityUnit(product.quantity);
   return formatQuantityString(quantityValue, quantityUnit);
 }
 
-String? productQuantityDescriptionLabel(Product product) {
+String? _productQuantityDescriptionLabel(Product product) {
   final description = product.quantityDescription?.trim();
   if (description == null || description.isEmpty) return null;
   return description;
 }
 
 String productFullQuantityLabel(Product product) {
-  final base = productBaseQuantityLabel(product);
-  final description = productQuantityDescriptionLabel(product);
+  final base = _productBaseQuantityLabel(product);
+  final description = _productQuantityDescriptionLabel(product);
   if (description == null) return base;
   return '$base ($description)';
 }

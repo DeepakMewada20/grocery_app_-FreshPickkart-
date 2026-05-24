@@ -12,10 +12,6 @@ class RefundService {
 
   final _client = ServerpodClient().client;
 
-  Future<RefundRecord> initiateRefund(String orderId) {
-    throw UnsupportedError('Refund initiation is restricted to admin users.');
-  }
-
   Future<RefundRecord?> getRefundStatus(String orderId) async {
     final user = AuthController.instance.currentUser;
     if (user == null) throw Exception('Login required.');

@@ -190,7 +190,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             builder: (context, child) {
               return CustomPaint(
                 size: const Size(80, 80),
-                painter: CheckPainter(progress: _checkAnimation.value),
+                painter: _CheckPainter(progress: _checkAnimation.value),
               );
             },
           ),
@@ -917,10 +917,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   }
 }
 
-class CheckPainter extends CustomPainter {
+class _CheckPainter extends CustomPainter {
   final double progress;
 
-  CheckPainter({required this.progress});
+  _CheckPainter({required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -975,6 +975,6 @@ class CheckPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CheckPainter oldDelegate) =>
+  bool shouldRepaint(_CheckPainter oldDelegate) =>
       oldDelegate.progress != progress;
 }

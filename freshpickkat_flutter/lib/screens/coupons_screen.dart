@@ -213,7 +213,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                           padding: EdgeInsets.only(bottom: 16.h),
                           child: AppResponsive.constrainContent(
                             context: context,
-                            child: CouponListCard(
+                            child: _CouponListCard(
                               coupon: _coupons[index],
                               isDark: isDark,
                               isHighlighted: _isHighlighted(_coupons[index]),
@@ -232,13 +232,12 @@ class _CouponsScreenState extends State<CouponsScreen> {
   }
 }
 
-class CouponListCard extends StatelessWidget {
+class _CouponListCard extends StatelessWidget {
   final CouponDisplay coupon;
   final bool isDark;
   final bool isHighlighted;
 
-  const CouponListCard({
-    super.key,
+  const _CouponListCard({
     required this.coupon,
     required this.isDark,
     this.isHighlighted = false,

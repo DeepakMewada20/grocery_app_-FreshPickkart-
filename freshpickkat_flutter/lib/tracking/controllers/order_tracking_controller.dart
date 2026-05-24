@@ -322,18 +322,6 @@ class OrderTrackingController extends GetxController {
     _latestRouteRider = null;
   }
 
-  Future<void> seedUserLocation({
-    required String orderId,
-    required DeliveryLocation userLocation,
-  }) {
-    return _repository.seedOrderTrackingMetadata(
-      orderId: orderId,
-      status: tracking.value?.status ?? 'placed',
-      trackingEnabled: tracking.value?.trackingEnabled ?? false,
-      userLocation: userLocation,
-    );
-  }
-
   Future<void> stopListening() async {
     await _subscription?.cancel();
     _subscription = null;
@@ -356,9 +344,5 @@ class OrderTrackingController extends GetxController {
 
   LatLng? get currentRiderMarker => riderPosition.value;
 
-  bool get canTrack => tracking.value?.canTrack ?? false;
-
   bool get hasArrivingSoonFlag => arrivingSoon.value;
-
-  double get etaMinutesValue => etaMinutes.value;
 }

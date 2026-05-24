@@ -4,18 +4,6 @@ import 'package:freshpickkat_flutter/services/appcache/payment_recovery_reposito
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
-class PaymentCompletionResult {
-  const PaymentCompletionResult({
-    required this.isConfirmed,
-    required this.isQueuedForRecovery,
-    this.message,
-  });
-
-  final bool isConfirmed;
-  final bool isQueuedForRecovery;
-  final String? message;
-}
-
 class PaymentService {
   PaymentService._();
 
@@ -25,14 +13,6 @@ class PaymentService {
 
   final _client = ServerpodClient().client;
   final _repository = PaymentRecoveryRepository.instance;
-
-  Future<PaymentOrderResult> startPayment({
-    required String orderId,
-    required double amount,
-    required String customerPhone,
-  }) {
-    return _client.payment.createPaymentOrder(orderId, amount, customerPhone);
-  }
 
   Future<PaymentVerifyResult> verifyPayment({
     required String orderId,
@@ -48,7 +28,7 @@ class PaymentService {
     );
   }
 
-  Future<PaymentCompletionResult> completeOrder({
+  Future<bool> completeOrder({
     required String userId,
     required String orderId,
     required String paymentId,
@@ -78,26 +58,12 @@ class PaymentService {
 
       if (verifyResult.success == true && verifyResult.verified == true) {
         await _repository.removeLocalPendingPayment(paymentId);
-        return const PaymentCompletionResult(
-          isConfirmed: true,
-          isQueuedForRecovery: false,
-        );
+        return true;
       }
 
-      return PaymentCompletionResult(
-        isConfirmed: false,
-        isQueuedForRecovery: true,
-        message:
-            verifyResult.message ??
-            'Payment received. Recovery will finalize your order automatically.',
-      );
+      return false;
     } catch (_) {
-      return const PaymentCompletionResult(
-        isConfirmed: false,
-        isQueuedForRecovery: true,
-        message:
-            'Payment received. Recovery will finalize your order automatically.',
-      );
+      return false;
     }
   }
 
@@ -123,22 +89,4 @@ class PaymentService {
     );
   }
 
-  Future<PaymentActionResult> initiateRefund({
-    required String paymentId,
-    required double amount,
-  }) {
-    throw UnsupportedError('Refund initiation is restricted to admin users.');
-  }
-
-  Future<PaymentActionResult> recoverPendingPayments({
-    required String userId,
-    int limit = 20,
-  }) async {
-    final idToken = await AuthController.instance.requireIdToken();
-    return _client.payment.recoverPendingPayments(
-      userId,
-      idToken: idToken,
-      limit: limit,
-    );
-  }
 }

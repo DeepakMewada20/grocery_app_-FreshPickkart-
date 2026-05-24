@@ -3,9 +3,6 @@ import '../controller/notification_controller.dart';
 class NotificationService {
   static Future<void> init() => NotificationController.instance.init();
 
-  static Future<void> syncTokenWithServer() =>
-      NotificationController.instance.syncTokenWithServer();
-
   static Future<void> openPendingTrackingLaunchIfAny() =>
       NotificationController.instance.openPendingTrackingLaunchIfAny();
 }

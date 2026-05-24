@@ -834,12 +834,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             )
             .timeout(const Duration(seconds: 20));
 
-        if (result.isConfirmed) {
+        if (result) {
           setState(() {
             _loadingStatus = 'Confirming order...';
           });
           await _completeSuccessfulPayment(orderId);
-        } else if (result.isQueuedForRecovery) {
+        } else {
           Future(() async {
             await orderRecoveryService.recoverPendingPayments(
               trigger: 'payment_success',
@@ -847,12 +847,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           });
           if (mounted) {
             _showInfo(
-              result.message ??
-                  'Payment received. We are finalizing your order automatically.',
+              'Payment received. We are finalizing your order automatically.',
             );
           }
-        } else {
-          _showError(result.message ?? 'Payment verification failed');
         }
       } catch (e) {
         if (mounted) {

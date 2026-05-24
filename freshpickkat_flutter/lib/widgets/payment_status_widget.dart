@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:get/get.dart';
 
@@ -394,44 +393,4 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
   }
 }
 
-class PendingPaymentsBadge extends StatelessWidget {
-  const PendingPaymentsBadge({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final recoveryService = OrderRecoveryService.instance;
-
-    return Obx(() {
-      if (!recoveryService.hasPendingPayments.value) {
-        return const SizedBox.shrink();
-      }
-
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-        decoration: BoxDecoration(
-          color: Colors.orange,
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.pending_actions,
-              color: Colors.white,
-              size: 14.r,
-            ),
-            SizedBox(width: 4.w),
-            Text(
-              'Payment Pending',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 10.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
-}

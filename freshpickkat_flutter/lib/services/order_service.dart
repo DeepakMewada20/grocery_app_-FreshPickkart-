@@ -12,10 +12,6 @@ class OrderService {
 
   final _client = ServerpodClient().client;
 
-  Future<String> createPendingOrder(Order order, String idempotencyKey) {
-    return _client.order.createPendingOrder(order, idempotencyKey);
-  }
-
   Future<CheckoutResult> createOrderAndPayment({
     required Order order,
     required String idempotencyKey,
@@ -62,10 +58,4 @@ class OrderService {
     );
   }
 
-  Future<bool> confirmOrder(String orderId) async {
-    final user = AuthController.instance.currentUser;
-    if (user == null) throw Exception('Login required.');
-    final idToken = await AuthController.instance.requireIdToken();
-    return _client.order.confirmOrder(orderId, user.uid, idToken);
-  }
 }
