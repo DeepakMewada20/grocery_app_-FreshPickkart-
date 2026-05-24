@@ -103,10 +103,11 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
               color: cs.surface,
               borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Row(
                   children: [
                     Container(
@@ -261,15 +262,10 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                     ),
                   )
                 else
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight:
-                          MediaQuery.sizeOf(context).height *
-                          (AppResponsive.isLandscape(context) ? 0.42 : 0.44),
-                    ),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: eligibleProducts.length,
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: eligibleProducts.length,
                       separatorBuilder: (_, _) => SizedBox(height: 12.h),
                       itemBuilder: (context, index) {
                         final product = eligibleProducts[index];
@@ -399,9 +395,9 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                           ),
                         );
                       },
-                    ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
