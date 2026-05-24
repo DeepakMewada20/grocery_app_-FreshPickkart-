@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDbE8qQGVluyYuKu7omcT3-fl8e6TQNY_c',
-    appId: '1:784305413937:android:570ac054ed84ceb479da10',
+    appId: '1:784305413937:android:dcd93fd1e4f559c479da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
@@ -60,16 +60,16 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:3f89ce8bef18e03979da10',
+    appId: '1:784305413937:ios:b8627f90304a2fb579da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    iosBundleId: 'com.example.freshpickkatFlutter',
+    iosBundleId: 'com.freshpickkart.customer',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:3f89ce8bef18e03979da10',
+    appId: '1:784305413937:ios:067359cd5903ea6a79da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
     measurementId: 'G-GEJWF4622W',
   );
+
 }

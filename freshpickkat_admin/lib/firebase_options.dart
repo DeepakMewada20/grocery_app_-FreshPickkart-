@@ -42,42 +42,6 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDPtOOOyV6xlvR5FLYvzLumDGwyDl6NlIk',
-    appId: '1:784305413937:web:444893991aaf7e3879da10',
-    messagingSenderId: '784305413937',
-    projectId: 'freshpickkart-a6824',
-    authDomain: 'freshpickkart-a6824.firebaseapp.com',
-    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    measurementId: 'G-RZ3R5XC5EH',
-  );
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDbE8qQGVluyYuKu7omcT3-fl8e6TQNY_c',
-    appId: '1:784305413937:android:570ac054ed84ceb479da10',
-    messagingSenderId: '784305413937',
-    projectId: 'freshpickkart-a6824',
-    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:3f89ce8bef18e03979da10',
-    messagingSenderId: '784305413937',
-    projectId: 'freshpickkart-a6824',
-    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    iosBundleId: 'com.example.freshpickkatFlutter',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:3f89ce8bef18e03979da10',
-    messagingSenderId: '784305413937',
-    projectId: 'freshpickkart-a6824',
-    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    iosBundleId: 'com.example.freshpickkatFlutter',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDPtOOOyV6xlvR5FLYvzLumDGwyDl6NlIk',
     appId: '1:784305413937:web:419f05cb0f74089a79da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
@@ -85,4 +49,41 @@ class DefaultFirebaseOptions {
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
     measurementId: 'G-GEJWF4622W',
   );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDbE8qQGVluyYuKu7omcT3-fl8e6TQNY_c',
+    appId: '1:784305413937:android:9f40fc9af1716c4479da10',
+    messagingSenderId: '784305413937',
+    projectId: 'freshpickkart-a6824',
+    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
+    appId: '1:784305413937:ios:f6127f2c0ec67bd479da10',
+    messagingSenderId: '784305413937',
+    projectId: 'freshpickkart-a6824',
+    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
+    iosBundleId: 'com.freshpickkart.admin',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
+    appId: '1:784305413937:ios:14382ace0efbe03179da10',
+    messagingSenderId: '784305413937',
+    projectId: 'freshpickkart-a6824',
+    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
+    iosBundleId: 'com.freshpickkat.freshpickkatAdmin',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDPtOOOyV6xlvR5FLYvzLumDGwyDl6NlIk',
+    appId: '1:784305413937:web:46b071cfd4a1ecad79da10',
+    messagingSenderId: '784305413937',
+    projectId: 'freshpickkart-a6824',
+    authDomain: 'freshpickkart-a6824.firebaseapp.com',
+    storageBucket: 'freshpickkart-a6824.firebasestorage.app',
+    measurementId: 'G-JMBMCTEK49',
+  );
+
 }

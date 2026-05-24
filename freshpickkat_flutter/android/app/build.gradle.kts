@@ -31,10 +31,9 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.freshpickkat_flutter"
+    namespace = "com.freshpickkart.customer"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
@@ -48,7 +47,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.freshpickkat_flutter"
+        applicationId = "com.freshpickkart.customer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

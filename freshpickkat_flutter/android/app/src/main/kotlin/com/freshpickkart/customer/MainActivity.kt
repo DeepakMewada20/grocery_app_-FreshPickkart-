@@ -1,4 +1,4 @@
-package com.example.freshpickkat_flutter
+package com.freshpickkart.customer
 
 import io.flutter.embedding.android.FlutterActivity
 

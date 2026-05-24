@@ -1,0 +1,7 @@
+# Android signing
+release-key.jks
+**/*.jks
+**/key.properties
+
+storage.rules
+nginx_freshpickkart.conf

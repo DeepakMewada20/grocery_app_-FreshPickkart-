@@ -1,4 +1,4 @@
-package com.freshpickkat.freshpickkat_admin
+package com.freshpickkart.admin
 
 import io.flutter.embedding.android.FlutterActivity
 
