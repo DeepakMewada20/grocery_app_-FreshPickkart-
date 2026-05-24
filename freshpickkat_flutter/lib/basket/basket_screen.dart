@@ -185,223 +185,244 @@ class _BasketScreenState extends State<BasketScreen> {
             fallback: freeProduct.quantity,
           );
 
-    return Column(
-      children: [
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-          padding: EdgeInsets.all(12.r),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: bogoOffer != null
-                  ? offerTheme.badgeBorder
-                  : cs.outlineVariant,
-              width: bogoOffer != null ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Container(
-                      width: 76.r,
-                      height: 76.r,
-                      color: cs.surface,
-                      child: SafeNetworkImage(
-                        url: item.product.imageUrl,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  if (bogoOffer != null)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        padding: EdgeInsets.all(4.r),
-                        decoration: BoxDecoration(
-                          color: offerTheme.badge,
-                          borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(8.r),
-                          ),
-                        ),
-                        child: Text(
-                          'BOGO',
-                          style: TextStyle(
-                            color: offerTheme.onBadge,
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              SizedBox(width: 14.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant, width: 1),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(12.r),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Stack(
                   children: [
-                    AutoSizeText(
-                      item.product.productName,
-                      style: TextStyle(
-                        color: cs.onSurface,
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12.r),
+                      child: Container(
+                        width: 76.r,
+                        height: 76.r,
+                        color: cs.surface,
+                        child: SafeNetworkImage(
+                          url: item.product.imageUrl,
+                          fit: BoxFit.contain,
+                        ),
                       ),
-                      maxLines: 2,
-                      minFontSize: 12,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      productFullQuantityLabel(item.product),
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.5),
-                        fontSize: 14.sp,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 8.h),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final price = Wrap(
-                          spacing: 8.w,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            AutoSizeText(
-                              '₹${item.product.price.formatPrice}',
-                              style: TextStyle(
-                                color: cs.onSurface,
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              minFontSize: 12,
+                    if (bogoOffer != null)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(4.r),
+                          decoration: BoxDecoration(
+                            color: offerTheme.badge,
+                            borderRadius: BorderRadius.only(
+                              bottomRight: Radius.circular(8.r),
                             ),
-                            if (item.product.realPrice > item.product.price)
+                          ),
+                          child: Text(
+                            'BOGO',
+                            style: TextStyle(
+                              color: offerTheme.onBadge,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AutoSizeText(
+                        item.product.productName,
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        minFontSize: 12,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        productFullQuantityLabel(item.product),
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                          fontSize: 14.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 8.h),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final price = Wrap(
+                            spacing: 8.w,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
                               AutoSizeText(
-                                '₹${item.product.realPrice.formatPrice}',
+                                '₹${item.product.price.formatPrice}',
                                 style: TextStyle(
-                                  color: cs.onSurface.withValues(alpha: 0.4),
-                                  fontSize: 14.sp,
-                                  decoration: TextDecoration.lineThrough,
+                                  color: cs.onSurface,
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
                                 ),
                                 maxLines: 1,
-                                minFontSize: 10,
+                                minFontSize: 12,
                               ),
-                          ],
-                        );
-                        if (constraints.maxWidth < 230) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              price,
-                              SizedBox(height: 8.h),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: _buildRegularQuantitySelector(
-                                  cartController,
-                                  item,
-                                  cs,
+                              if (item.product.realPrice > item.product.price)
+                                AutoSizeText(
+                                  '₹${item.product.realPrice.formatPrice}',
+                                  style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.4),
+                                    fontSize: 14.sp,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                  maxLines: 1,
+                                  minFontSize: 10,
                                 ),
+                            ],
+                          );
+                          if (constraints.maxWidth < 230) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                price,
+                                SizedBox(height: 8.h),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: _buildRegularQuantitySelector(
+                                    cartController,
+                                    item,
+                                    cs,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                          return Row(
+                            children: [
+                              Expanded(child: price),
+                              SizedBox(width: 8.w),
+                              _buildRegularQuantitySelector(
+                                cartController,
+                                item,
+                                cs,
                               ),
                             ],
                           );
-                        }
-                        return Row(
-                          children: [
-                            Expanded(child: price),
-                            SizedBox(width: 8.w),
-                            _buildRegularQuantitySelector(
-                              cartController,
-                              item,
-                              cs,
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        if (bogoOffer != null)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Column(
-              children: [
-                if (freeProduct != null)
-                  Container(
-                    padding: EdgeInsets.all(8.r),
-                    decoration: BoxDecoration(
-                      color: offerTheme.badgeSoft,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: offerTheme.badgeBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8.r),
-                          child: SafeNetworkImage(
-                            url: freeProduct.imageUrl,
-                            width: 40.r,
-                            height: 40.r,
-                            fit: BoxFit.cover,
-                          ),
+          if (bogoOffer != null) ...[
+            Divider(height: 1, color: cs.outlineVariant),
+            if (freeProduct != null)
+              Padding(
+                padding: EdgeInsets.all(12.r),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: Container(
+                        width: 40.r,
+                        height: 40.r,
+                        color: cs.surface,
+                        child: SafeNetworkImage(
+                          url: freeProduct.imageUrl,
+                          fit: BoxFit.cover,
                         ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              AutoSizeText(
-                                'FREE: ${freeProduct.productName}',
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: offerTheme.badge,
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 5.w,
+                                  vertical: 2.h,
                                 ),
-                                maxLines: 2,
-                                minFontSize: 10,
-                                overflow: TextOverflow.ellipsis,
+                                decoration: BoxDecoration(
+                                  color: cs.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(3.r),
+                                ),
+                                child: Text(
+                                  'FREE',
+                                  style: TextStyle(
+                                    color: cs.onSurface,
+                                    fontSize: 9.sp,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                               ),
-                              Text(
-                                '${freeProductQuantity ?? freeProduct.quantity} x ${item.quantity}',
-                                style: TextStyle(
-                                  fontSize: 11.sp,
-                                  color: cs.onSurface.withValues(alpha: 0.7),
+                              SizedBox(width: 6.w),
+                              Expanded(
+                                child: AutoSizeText(
+                                  freeProduct.productName,
+                                  style: TextStyle(
+                                    color: cs.onSurface,
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  minFontSize: 10,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Get.bottomSheet(
-                              BogoSelectionBottomSheet(
-                                triggerProductId: item.product.productId!,
-                                triggerVariantId: item.variantId,
-                                freeProductIds: bogoOffer.freeProductIds,
-                              ),
-                            );
-                          },
-                          child: const Text('Change'),
-                        ),
-                      ],
+                          SizedBox(height: 3.h),
+                          Text(
+                            '${freeProductQuantity ?? freeProduct.quantity} x ${item.quantity}',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: cs.onSurface.withValues(alpha: 0.7),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                else
-                  ElevatedButton.icon(
+                    TextButton(
+                      onPressed: () {
+                        Get.bottomSheet(
+                          BogoSelectionBottomSheet(
+                            triggerProductId: item.product.productId!,
+                            triggerVariantId: item.variantId,
+                            freeProductIds: bogoOffer.freeProductIds,
+                          ),
+                        );
+                      },
+                      child: const Text('Change'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.all(12.r),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
                     onPressed: () {
                       Get.bottomSheet(
                         BogoSelectionBottomSheet(
@@ -413,20 +434,20 @@ class _BasketScreenState extends State<BasketScreen> {
                     },
                     icon: const Icon(Icons.card_giftcard, size: 18),
                     label: const Text('Select your free gift'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: offerTheme.badge,
-                      foregroundColor: offerTheme.onBadge,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: cs.onSurface,
+                      side: BorderSide(color: cs.outlineVariant),
                       minimumSize: Size(double.infinity, 40.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.r),
                       ),
                     ),
                   ),
-                SizedBox(height: 8.h),
-              ],
-            ),
-          ),
-      ],
+                ),
+              ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -440,11 +461,8 @@ class _BasketScreenState extends State<BasketScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppTheme.primaryGreen.withValues(alpha: 0.35),
-          width: 1.4,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,7 +476,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryGreen,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
                   'COMBO',
@@ -486,7 +504,7 @@ class _BasketScreenState extends State<BasketScreen> {
           Text(
             comboDiscountBadgeText(group.discountType, group.discountValue),
             style: TextStyle(
-              color: AppTheme.primaryGreen,
+              color: cs.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -568,7 +586,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   Text(
                     'Combo ₹${group.discountedTotal.formatPrice}',
                     style: TextStyle(
-                      color: AppTheme.primaryGreen,
+                      color: cs.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),

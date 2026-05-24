@@ -117,6 +117,7 @@ Complaint _addressChangeComplaint({
     userPhone: '9999999999',
     description: 'Please move the delivery to the new address.',
     imageUrls: const [],
+    orderItems: const <ComplaintProductItem>[],
     status: 'Pending',
     adminReply: null,
     adminNote: null,
