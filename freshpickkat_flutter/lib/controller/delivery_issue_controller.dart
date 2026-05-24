@@ -70,7 +70,7 @@ class DeliveryIssueController extends GetxController {
     }
 
     final cleanDescription = description.trim();
-    if (cleanDescription.length < 20) {
+    if (!isDeliveryLocationIssue && cleanDescription.length < 20) {
       throw Exception('Description must be at least 20 characters.');
     }
     if (cleanDescription.length > 2000) {

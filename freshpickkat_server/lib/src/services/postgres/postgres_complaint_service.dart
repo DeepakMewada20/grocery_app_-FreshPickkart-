@@ -180,12 +180,14 @@ class PostgresComplaintService {
       throw Exception('Cancelled orders cannot receive delivery complaints.');
     }
 
+    final isDeliveryLocation = issueType.trim() == 'Delivery Location Issue';
     _validateCommonFields(
       issueType: issueType,
       allowedIssueTypes: deliveryIssueTypes,
       description: description,
       imageUrls: imageUrls,
       requireImage: false,
+      requireDescription: !isDeliveryLocation,
     );
 
     final cleanIssueType = issueType.trim();
@@ -321,12 +323,13 @@ class PostgresComplaintService {
     required String description,
     required List<String> imageUrls,
     required bool requireImage,
+    bool requireDescription = true,
   }) {
     if (!allowedIssueTypes.contains(issueType.trim())) {
       throw Exception('Unsupported complaint issue type.');
     }
     final cleanDescription = description.trim();
-    if (cleanDescription.length < 20) {
+    if (requireDescription && cleanDescription.length < 20) {
       throw Exception('Description must be at least 20 characters.');
     }
     if (cleanDescription.length > 2000) {

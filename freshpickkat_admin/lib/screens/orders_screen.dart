@@ -1238,7 +1238,7 @@ class _StatusFilterChips extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

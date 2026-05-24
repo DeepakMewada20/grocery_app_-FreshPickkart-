@@ -188,7 +188,9 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               ),
                               validator: (value) {
                                 final text = value?.trim() ?? '';
-                                if (text.length < 20) {
+                                final isLocationIssue =
+                                    _controller.isDeliveryLocationIssue;
+                                if (!isLocationIssue && text.length < 20) {
                                   return 'Description must be at least 20 characters.';
                                 }
                                 if (text.length > 2000) {
