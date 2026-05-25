@@ -253,7 +253,7 @@ class PostgresUserService {
       name: user.name,
       email: user.email,
       shippingAddress: defaultAddress,
-      cart: cart.isEmpty ? null : cart,
+      cart: cart,
       role: cleanNullableString(user.role) ?? 'user',
       fcmToken: user.fcmToken,
       completedOrdersCount: completedOrdersCount,

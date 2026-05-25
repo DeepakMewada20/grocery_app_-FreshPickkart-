@@ -377,6 +377,8 @@ class CartController extends GetxController {
           _isInitialLoading = true;
           await _revalidateStoredCart(cachedUser.cart!);
           _isInitialLoading = false;
+        } else if (cartItems.isNotEmpty) {
+          cartItems.clear();
         }
       } catch (e) {
         _isInitialLoading = false;
@@ -1496,6 +1498,11 @@ class CartController extends GetxController {
     basketSuggestions.clear();
     cartPricing.value = null;
     _lastSuggestedCartSnapshot = '';
+    final auth = AuthController.instance;
+    if (auth.appUser != null) {
+      final updatedUser = auth.appUser!.copyWith(cart: <protocol.CartItem>[]);
+      UserCacheService.instance.saveUser(updatedUser);
+    }
     _scheduleCartRefresh();
   }
 
