@@ -393,18 +393,24 @@ class PostgresCouponService {
     final products = await _fetchProducts(session, cartItems);
     final completedOrdersCount = await _getCompletedOrdersCount(session, userId);
 
-    return coupons
-        .map(
-          (coupon) => _evaluateCouponWithContext(
-            coupon: coupon,
-            userId: userId,
-            cartSubtotal: cartSubtotal,
-            cartItems: cartItems,
-            products: products,
-            completedOrdersCount: completedOrdersCount,
-          ),
-        )
-        .toList();
+    final results = <_CouponEvaluation>[];
+    for (final coupon in coupons) {
+      final userCouponUsageCount = await _countUserCouponUsage(
+        session,
+        userId,
+        coupon.id ?? '',
+      );
+      results.add(_evaluateCouponWithContext(
+        coupon: coupon,
+        userId: userId,
+        cartSubtotal: cartSubtotal,
+        cartItems: cartItems,
+        products: products,
+        completedOrdersCount: completedOrdersCount,
+        userCouponUsageCount: userCouponUsageCount,
+      ));
+    }
+    return results;
   }
 
   Future<_CouponEvaluation> _evaluateCoupon(
@@ -416,6 +422,11 @@ class PostgresCouponService {
   }) async {
     final products = await _fetchProducts(session, cartItems);
     final completedOrdersCount = await _getCompletedOrdersCount(session, userId);
+    final userCouponUsageCount = await _countUserCouponUsage(
+      session,
+      userId,
+      coupon.id ?? '',
+    );
     return _evaluateCouponWithContext(
       coupon: coupon,
       userId: userId,
@@ -423,6 +434,7 @@ class PostgresCouponService {
       cartItems: cartItems,
       products: products,
       completedOrdersCount: completedOrdersCount,
+      userCouponUsageCount: userCouponUsageCount,
     );
   }
 
@@ -433,6 +445,7 @@ class PostgresCouponService {
     required List<CartItemInput> cartItems,
     required Map<String, Product> products,
     required int completedOrdersCount,
+    int userCouponUsageCount = 0,
   }) {
     final now = DateTime.now().toUtc();
     final normalizedSubtotal = cartSubtotal < 0 ? 0.0 : cartSubtotal;
@@ -482,6 +495,14 @@ class PostgresCouponService {
           'Requires $requiredOrders completed orders',
         );
       }
+    }
+
+    if (userCouponUsageCount > 0) {
+      return _CouponEvaluation.notApplicable(
+        coupon,
+        'Coupon already used',
+        code: 'USED',
+      );
     }
 
     var eligibleSubtotal = normalizedSubtotal;
@@ -547,6 +568,37 @@ class PostgresCouponService {
     );
   }
 
+  Future<int> _countUserCouponUsage(
+    Session session,
+    String userId,
+    String couponId,
+  ) async {
+    final normalized = userId.trim();
+    if (normalized.isEmpty) return 0;
+
+    AppUserRow? appUser;
+    final parsedId = tryParseUuid(normalized);
+    if (parsedId != null) {
+      appUser = await AppUserRow.db.findById(session, parsedId);
+    }
+    appUser ??= await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(normalized),
+    );
+    if (appUser?.id == null) return 0;
+
+    final parsedCouponId = tryParseUuid(couponId);
+    if (parsedCouponId == null) return 0;
+
+    return CustomerOrderRow.db.count(
+      session,
+      where: (t) =>
+          t.userId.equals(appUser!.id!) &
+          t.couponId.equals(parsedCouponId) &
+          t.paymentStatus.equals('paid'),
+    );
+  }
+
   CouponDisplay _toCouponDisplay(
     _CouponEvaluation evaluation, {
     required bool isBest,
@@ -564,7 +616,9 @@ class PostgresCouponService {
       discountValue: coupon.discountValue,
       isDeliveryDiscount: false,
       isApplicable: evaluation.isApplicable,
-      status: evaluation.isApplicable ? 'applicable' : 'not_applicable',
+      status: evaluation.isApplicable
+          ? 'applicable'
+          : (evaluation.notApplicableCode ?? 'not_applicable'),
       reason: evaluation.reason,
       discountAmount: evaluation.discountAmount,
       isBest: isBest,
@@ -664,6 +718,7 @@ class _CouponEvaluation {
     required this.isApplicable,
     required this.discountAmount,
     required this.reason,
+    this.notApplicableCode,
   });
 
   factory _CouponEvaluation.applicable(Coupon coupon, double discountAmount) {
@@ -675,12 +730,17 @@ class _CouponEvaluation {
     );
   }
 
-  factory _CouponEvaluation.notApplicable(Coupon coupon, String reason) {
+  factory _CouponEvaluation.notApplicable(
+    Coupon coupon,
+    String reason, {
+    String? code,
+  }) {
     return _CouponEvaluation(
       coupon: coupon,
       isApplicable: false,
       discountAmount: 0,
       reason: reason,
+      notApplicableCode: code,
     );
   }
 
@@ -688,4 +748,5 @@ class _CouponEvaluation {
   final bool isApplicable;
   final double discountAmount;
   final String? reason;
+  final String? notApplicableCode;
 }

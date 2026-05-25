@@ -330,6 +330,16 @@ class _CouponCard extends StatelessWidget {
     required this.onApply,
   });
 
+  String _couponButtonLabel() {
+    if (coupon.status == 'used') return 'Used';
+    final appliedCode = CartController.instance.appliedCoupon.value?.code;
+    if (appliedCode != null &&
+        appliedCode.toUpperCase() == coupon.code.toUpperCase()) {
+      return 'Applied';
+    }
+    return coupon.isApplicable ? 'Apply' : 'Locked';
+  }
+
   String _couponBadgeLabel() {
     if (coupon.isBest) return 'Best';
 
@@ -378,21 +388,30 @@ class _CouponCard extends StatelessWidget {
               final isApplyingThisCoupon =
                   cartController.isApplyingCoupon.value &&
                   cartController.applyingCouponCode.value == normalizedCode;
+              final buttonLabel = _couponButtonLabel();
+              final isButtonActive = buttonLabel == 'Apply' &&
+                  !cartController.isApplyingCoupon.value;
               return ElevatedButton(
-                onPressed:
-                    coupon.isApplicable &&
-                        !cartController.isApplyingCoupon.value
+                onPressed: isButtonActive
                     ? () async {
                         await onApply();
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: coupon.isApplicable
-                      ? AppTheme.primaryGreen
-                      : cs.surface,
-                  foregroundColor: coupon.isApplicable
-                      ? cs.onPrimary
-                      : cs.primary,
+                  backgroundColor: buttonLabel == 'Used'
+                      ? cs.surfaceContainerHighest
+                      : buttonLabel == 'Applied'
+                          ? Colors.green.shade50
+                          : coupon.isApplicable
+                              ? AppTheme.primaryGreen
+                              : cs.surface,
+                  foregroundColor: buttonLabel == 'Used'
+                      ? cs.onSurface.withValues(alpha: 0.4)
+                      : buttonLabel == 'Applied'
+                          ? Colors.green.shade700
+                          : coupon.isApplicable
+                              ? cs.onPrimary
+                              : cs.primary,
                   elevation: coupon.isApplicable ? 2 : 0,
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -401,11 +420,16 @@ class _CouponCard extends StatelessWidget {
                   minimumSize: Size(60.w, 32.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.r),
-                    side: coupon.isApplicable
+                    side: buttonLabel == 'Used'
                         ? BorderSide.none
-                        : BorderSide(
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.5),
-                          ),
+                        : buttonLabel == 'Applied'
+                            ? BorderSide(color: Colors.green.shade300)
+                            : coupon.isApplicable
+                                ? BorderSide.none
+                                : BorderSide(
+                                    color: AppTheme.primaryGreen
+                                        .withValues(alpha: 0.5),
+                                  ),
                   ),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -417,11 +441,11 @@ class _CouponCard extends StatelessWidget {
                           strokeWidth: 2,
                           color: coupon.isApplicable
                               ? cs.onPrimary
-                              : cs.primary,
+                              : AppTheme.primaryGreen,
                         ),
                       )
                     : AutoSizeText(
-                        coupon.isApplicable ? 'Apply' : 'Locked',
+                        _couponButtonLabel(),
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.bold,

@@ -373,6 +373,19 @@ class PostgresPaymentService {
     );
 
     await _deductStockForOrderItems(session, order.id!);
+
+    if (order.couponId != null) {
+      final couponRow = await CouponRow.db.findById(session, order.couponId!);
+      if (couponRow != null) {
+        await CouponRow.db.updateRow(
+          session,
+          couponRow.copyWith(
+            usedCount: couponRow.usedCount + 1,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _processPaidOrderAnalytics(
