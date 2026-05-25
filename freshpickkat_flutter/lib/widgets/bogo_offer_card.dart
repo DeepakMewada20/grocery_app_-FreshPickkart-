@@ -69,211 +69,232 @@ class BogoOfferCard extends StatelessWidget {
             ),
           ],
         ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Trigger Product Section (Compact)
-          SizedBox(
-            height: 110.h,
-            child: Stack(
-              children: [
-                Row(
-                  children: [
-                    // Trigger Product Image (Smaller)
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(14.r),
-                        bottomLeft: Radius.circular(14.r),
-                      ),
-                      child: Container(
-                        width: 100.w,
-                        height: 110.h,
-                        color: cs.surface,
-                        child: Image.network(
-                          product.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Icon(
-                            Icons.image_not_supported_outlined,
-                            color: cs.onSurface.withValues(alpha: 0.35),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Trigger Product Section (Compact)
+            SizedBox(
+              height: 110.h,
+              child: Stack(
+                children: [
+                  Row(
+                    children: [
+                      // Trigger Product Image (Smaller)
+                      ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(14.r),
+                          bottomLeft: Radius.circular(14.r),
+                        ),
+                        child: Container(
+                          width: 100.w,
+                          height: 110.h,
+                          color: cs.surface,
+                          child: Image.network(
+                            product.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Icon(
+                              Icons.image_not_supported_outlined,
+                              color: cs.onSurface.withValues(alpha: 0.35),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 10.h,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: AutoSizeText(
-                                product.productName,
-                                maxLines: 2,
-                                minFontSize: 10,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: cs.onSurface,
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              offerText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: AppTheme.primaryGreen,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 11.sp,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  '₹${product.price.formatPrice}',
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 10.h,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: AutoSizeText(
+                                  product.productName,
+                                  maxLines: 2,
+                                  minFontSize: 10,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: cs.onSurface,
+                                    fontSize: 13.sp,
                                     fontWeight: FontWeight.w800,
-                                    fontSize: 12.sp,
                                   ),
                                 ),
-                                SizedBox(width: 6.w),
-                                if (product.realPrice > product.price)
+                              ),
+                              Text(
+                                offerText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: AppTheme.primaryGreen,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11.sp,
+                                ),
+                              ),
+                              Row(
+                                children: [
                                   Text(
-                                    '₹${product.realPrice.formatPrice}',
+                                    '₹${product.price.formatPrice}',
                                     style: TextStyle(
-                                      color: cs.onSurface.withValues(
-                                        alpha: 0.45,
-                                      ),
-                                      decoration: TextDecoration.lineThrough,
-                                      fontSize: 11.sp,
+                                      color: cs.onSurface,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12.sp,
                                     ),
                                   ),
-                              ],
-                            ),
-                          ],
+                                  SizedBox(width: 6.w),
+                                  if (product.realPrice > product.price)
+                                    Text(
+                                      '₹${product.realPrice.formatPrice}',
+                                      style: TextStyle(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.45,
+                                        ),
+                                        decoration: TextDecoration.lineThrough,
+                                        fontSize: 11.sp,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    left: 8.w,
+                    top: 8.h,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: offerTheme.badge,
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: TextStyle(
+                          color: offerTheme.onBadge,
+                          fontSize: 9.sp,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Positioned(
-                  left: 8.w,
-                  top: 8.h,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: offerTheme.badge,
-                      borderRadius: BorderRadius.circular(6.r),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: TextStyle(
-                        color: offerTheme.onBadge,
-                        fontSize: 9.sp,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // Divider
-          Divider(height: 1, color: cs.outlineVariant),
-          // Offer Text & Free Products Section
-          Padding(
-            padding: EdgeInsets.all(12.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 10.h),
-                // Free Products Scrollable List
-                if (freeProductObjects.isNotEmpty) ...[
-                  Text(
-                    'Choose Free Item:',
-                    style: TextStyle(
-                      color: cs.onSurface.withValues(alpha: 0.7),
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  SizedBox(
-                    height: 90.h,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: freeProductObjects.length,
-                      separatorBuilder: (_, _) => SizedBox(width: 8.w),
-                      itemBuilder: (context, index) {
-                        final freeProduct = freeProductObjects[index];
-                        final freeConfig = freeProducts[index];
-                        final freeQtyText = freeConfig.variantId != null
-                            ? _getVariantQuantityLabel(
-                                freeProduct,
-                                freeConfig.variantId!,
-                              )
-                            : freeProduct.quantity;
-                        return _FreeProductCard(
-                          product: freeProduct,
-                          quantityLabel: freeQtyText,
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
                 ],
-                SizedBox(
-                  width: double.infinity,
-                  height: 40.h,
-                  child: FilledButton.icon(
-                    onPressed: product.productId == null
-                        ? null
-                        : () {
-                            CartController.instance.addItem(
-                              product,
-                              variantId: triggerVariant?.variantId,
-                              quantityDelta: requiredQty <= 0 ? 1 : requiredQty,
-                            );
-                            if (reward != null) {
-                              CartController.instance.setBogoSelection(
-                                product.productId!,
-                                reward.productId,
-                                triggerVariantId: triggerVariant?.variantId,
-                              );
-                            }
-                            Get.snackbar(
-                              'Offer Added',
-                              offerText,
-                              snackPosition: SnackPosition.BOTTOM,
-                              duration: const Duration(seconds: 2),
-                            );
-                          },
-                    icon: const Icon(Icons.add_shopping_cart, size: 18),
-                    label: const Text('Add Offer'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 8.h,
-                      ),
-                      textStyle: TextStyle(fontSize: 12.sp),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+            // Divider
+            Divider(height: 1, color: cs.outlineVariant),
+            // Offer Text & Free Products Section
+            Padding(
+              padding: EdgeInsets.all(12.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  // Free Products Scrollable List
+                  if (freeProductObjects.isNotEmpty) ...[
+                    Text(
+                      'Choose Free Item:',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.7),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    SizedBox(
+                      height: 90.h,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: freeProductObjects.length,
+                        separatorBuilder: (_, _) => SizedBox(width: 8.w),
+                        itemBuilder: (context, index) {
+                          final freeProduct = freeProductObjects[index];
+                          final freeConfig = freeProducts[index];
+                          final freeQtyText = freeConfig.variantId != null
+                              ? _getVariantQuantityLabel(
+                                  freeProduct,
+                                  freeConfig.variantId!,
+                                )
+                              : freeProduct.quantity;
+                          return _FreeProductCard(
+                            product: freeProduct,
+                            quantityLabel: freeQtyText,
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                  ],
+                  Obx(() {
+                    final cart = CartController.instance;
+                    final qty = cart.getProductQuantity(
+                      product.productId,
+                      variantId: triggerVariant?.variantId,
+                    );
+                    return SizedBox(
+                      width: double.infinity,
+                      height: 40.h,
+                      child: qty == 0
+                          ? FilledButton.icon(
+                              onPressed: product.productId == null
+                                  ? null
+                                  : () {
+                                      cart.addItem(
+                                        product,
+                                        variantId: triggerVariant?.variantId,
+                                        quantityDelta: requiredQty <= 0
+                                            ? 1
+                                            : requiredQty,
+                                      );
+                                      if (reward != null) {
+                                        cart.setBogoSelection(
+                                          product.productId!,
+                                          reward.productId,
+                                          triggerVariantId:
+                                              triggerVariant?.variantId,
+                                        );
+                                      }
+                                      Get.snackbar(
+                                        'Offer Added',
+                                        offerText,
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        duration: const Duration(seconds: 2),
+                                      );
+                                    },
+                              icon: const Icon(
+                                Icons.add_shopping_cart,
+                                size: 18,
+                              ),
+                              label: const Text('Add Offer'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppTheme.primaryGreen,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 8.h,
+                                ),
+                                textStyle: TextStyle(fontSize: 12.sp),
+                              ),
+                            )
+                          : _buildQuantitySelector(
+                              qty,
+                              cart,
+                              product,
+                              triggerVariant,
+                              requiredQty,
+                            ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -291,6 +312,65 @@ class BogoOfferCard extends StatelessWidget {
       }
     } catch (_) {}
     return product.quantity;
+  }
+
+  Widget _buildQuantitySelector(
+    int quantity,
+    CartController cart,
+    Product product,
+    ProductVariant? triggerVariant,
+    int requiredQty,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          InkWell(
+            onTap: () => cart.removeItem(
+              product,
+              variantId: triggerVariant?.variantId,
+              quantityDelta: requiredQty <= 0 ? 1 : requiredQty,
+            ),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+              child: Icon(Icons.remove, color: Colors.white, size: 16.r),
+            ),
+          ),
+          Text(
+            '$quantity',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 12.sp,
+            ),
+          ),
+          InkWell(
+            onTap: () => cart.addItem(
+              product,
+              variantId: triggerVariant?.variantId,
+              quantityDelta: requiredQty <= 0 ? 1 : requiredQty,
+            ),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+              child: Icon(Icons.add, color: Colors.white, size: 16.r),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

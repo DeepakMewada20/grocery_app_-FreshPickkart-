@@ -62,6 +62,7 @@ class _ProductCardState extends State<ProductCard> {
     _selectedVariantId = inferProductVariantId(widget.product);
     _cartSubscription = _cartController.cartItems.listen((_) {
       _syncSelectedVariantFromCart();
+      if (mounted) setState(() {});
     });
   }
 

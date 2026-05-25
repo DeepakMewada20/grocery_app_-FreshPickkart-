@@ -212,32 +212,39 @@ class ComboOfferCard extends StatelessWidget {
             if (!isCompactVariant)
               Padding(
                 padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      cartController.addComboOffer(combo);
-                      Get.snackbar(
-                        'Added to Basket',
-                        '${products.length} combo products added from ${combo.name}',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: AppTheme.primaryGreen,
-                        colorText: Colors.white,
-                        duration: const Duration(seconds: 2),
-                        margin: EdgeInsets.all(16.r),
-                      );
-                    },
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Add Combo to Basket'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                  ),
-                ),
+                child: Obx(() {
+                  final group = cartController.comboGroups.firstWhereOrNull(
+                    (g) => g.comboId == (combo.comboId ?? combo.name),
+                  );
+                  return SizedBox(
+                    width: double.infinity,
+                    child: group == null
+                        ? ElevatedButton.icon(
+                            onPressed: () {
+                              cartController.addComboOffer(combo);
+                              Get.snackbar(
+                                'Added to Basket',
+                                '${products.length} combo products added from ${combo.name}',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppTheme.primaryGreen,
+                                colorText: Colors.white,
+                                duration: const Duration(seconds: 2),
+                                margin: EdgeInsets.all(16.r),
+                              );
+                            },
+                            icon: const Icon(Icons.add_shopping_cart),
+                            label: const Text('Add Combo to Basket'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                          )
+                        : _buildQuantitySelector(group),
+                  );
+                }),
               ),
           ],
           if (isExpanded && products.isEmpty) ...[
@@ -253,6 +260,56 @@ class ComboOfferCard extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantitySelector(ComboCartGroup group) {
+    final cart = CartController.instance;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          InkWell(
+            onTap: () => cart.decrementComboGroup(
+              combo.comboId ?? combo.name,
+            ),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              child: Icon(Icons.remove, color: Colors.white, size: 18.r),
+            ),
+          ),
+          Text(
+            '${group.items.first.quantity}',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14.sp,
+            ),
+          ),
+          InkWell(
+            onTap: () => cart.incrementComboGroup(
+              combo.comboId ?? combo.name,
+            ),
+            borderRadius: BorderRadius.circular(4.r),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              child: Icon(Icons.add, color: Colors.white, size: 18.r),
+            ),
+          ),
         ],
       ),
     );

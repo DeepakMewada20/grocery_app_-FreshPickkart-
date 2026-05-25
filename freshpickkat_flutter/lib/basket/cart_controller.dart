@@ -627,6 +627,12 @@ class CartController extends GetxController {
         .toSet()
         .toList();
 
+    final bogoFreeIds = storedCart
+        .map((item) => item.bogoFreeProductId?.trim() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList();
+    productIds.addAll(bogoFreeIds);
+
     final productsFuture = productIds.isEmpty
         ? Future.value(const <Product>[])
         : client.product.getProductsByIds(productIds);
@@ -721,8 +727,7 @@ class CartController extends GetxController {
         );
 
         if (bogoOffer == null ||
-            !bogoOffer.freeProductIds.contains(validatedFreeProductId) ||
-            !productMap.containsKey(validatedFreeProductId)) {
+            !bogoOffer.freeProductIds.contains(validatedFreeProductId)) {
           validatedFreeProductId = null;
         }
       }
