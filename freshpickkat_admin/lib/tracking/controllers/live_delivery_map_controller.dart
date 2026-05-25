@@ -28,6 +28,8 @@ class LiveDeliveryMapController extends GetxController {
   StreamSubscription<OrderTrackingSnapshot?>? _subscription;
   String? _activeOrderId;
   DateTime? _lastRiderUpdateAt;
+  int _websocketRetryCount = 0;
+  static const int _maxWebsocketRetries = 4;
   final List<double> _speedSamples = <double>[];
   Timer? _routeRetryTimer;
   bool _routeRequestInFlight = false;
@@ -75,6 +77,7 @@ class LiveDeliveryMapController extends GetxController {
     await stopListening();
 
     _activeOrderId = orderId;
+    _websocketRetryCount = 0;
     routePolyline.clear();
     _resetRouteRetryState();
     isLoading.value = true;
@@ -85,7 +88,7 @@ class LiveDeliveryMapController extends GetxController {
         .listen(
           _handleSnapshot,
           onError: (Object e, StackTrace st) {
-            unawaited(_startPollingFallback(orderId, e));
+            unawaited(_retryWebsocketOrFallback(orderId, e));
           },
           onDone: () {
             if (_activeOrderId != orderId ||
@@ -93,11 +96,24 @@ class LiveDeliveryMapController extends GetxController {
               return;
             }
             unawaited(
-              _startPollingFallback(orderId, 'WebSocket stream closed.'),
+              _retryWebsocketOrFallback(orderId, 'WebSocket stream closed.'),
             );
           },
         );
     isListening.value = true;
+  }
+
+  Future<void> _retryWebsocketOrFallback(String orderId, Object reason) async {
+    if (_activeOrderId != orderId) return;
+    _websocketRetryCount++;
+    if (_websocketRetryCount <= _maxWebsocketRetries) {
+      await Future<void>.delayed(const Duration(seconds: 3));
+      if (_activeOrderId != orderId) return;
+      await _subscription?.cancel();
+      startListening(orderId: orderId);
+      return;
+    }
+    _startPollingFallback(orderId, reason);
   }
 
   Future<void> _startPollingFallback(String orderId, Object reason) async {
@@ -129,6 +145,7 @@ class LiveDeliveryMapController extends GetxController {
       return;
     }
 
+    _websocketRetryCount = 0;
     tracking.value = snapshot;
     isLoading.value = false;
 

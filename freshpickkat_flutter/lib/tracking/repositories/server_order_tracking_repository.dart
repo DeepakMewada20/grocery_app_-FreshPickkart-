@@ -10,7 +10,7 @@ import '../models/order_tracking_snapshot.dart';
 class ServerOrderTrackingRepository {
   ServerOrderTrackingRepository({
     server.Client? client,
-    this.pollingInterval = const Duration(seconds: 5),
+    this.pollingInterval = const Duration(seconds: 10),
   }) : _client = client ?? ServerpodClient().client;
 
   final server.Client _client;

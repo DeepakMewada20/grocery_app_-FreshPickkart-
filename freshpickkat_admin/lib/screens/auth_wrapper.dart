@@ -77,7 +77,10 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
 
     if (state == AppLifecycleState.resumed) {
       if (Get.isRegistered<DeliveryTrackingController>()) {
-        Get.find<DeliveryTrackingController>().resumeSender();
+        final ctrl = Get.find<DeliveryTrackingController>();
+        if (ctrl.isActive.value) {
+          ctrl.resumeSender();
+        }
       }
       if (!user.emailVerified &&
           _viewState == _AuthViewState.awaitingVerification) {

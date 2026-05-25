@@ -24,7 +24,7 @@ class ServerOrderTrackingRepository {
           snapshot.status == 'cancelled') {
         return;
       }
-      await Future<void>.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 10));
     }
   }
 

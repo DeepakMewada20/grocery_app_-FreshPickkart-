@@ -16,7 +16,6 @@ class DeliveryLocationSenderService {
   Timer? _updateTimer;
   String? _activeOrderId;
   TrackingCoordinate? _lastRawPosition;
-  DateTime? _lastPublishedAt;
   bool _forceTracking = false;
   bool _firstPublishTriggered = false;
   bool _paused = false;
@@ -63,7 +62,7 @@ class DeliveryLocationSenderService {
 
   void _scheduleNextTick() {
     _updateTimer?.cancel();
-    _updateTimer = Timer(Duration(seconds: 5 + _random.nextInt(6)), () {
+    _updateTimer = Timer(const Duration(seconds: 10), () {
       _sendCurrentLocation();
     });
   }
@@ -98,9 +97,7 @@ class DeliveryLocationSenderService {
 
       final shouldSend =
           _lastRawPosition == null ||
-          _distanceBetween(_lastRawPosition!, rawCandidate) > 20 ||
-          _lastPublishedAt == null ||
-          DateTime.now().difference(_lastPublishedAt!).inSeconds >= 5;
+          _distanceBetween(_lastRawPosition!, rawCandidate) > 50;
 
       if (shouldSend) {
         await _repository.updateRiderLocation(
@@ -108,7 +105,6 @@ class DeliveryLocationSenderService {
           riderLocation: candidate,
         );
         _lastRawPosition = rawCandidate;
-        _lastPublishedAt = DateTime.now();
 
         if (!_firstPublishTriggered && _onFirstPublish != null) {
           _firstPublishTriggered = true;
@@ -181,7 +177,6 @@ class DeliveryLocationSenderService {
     _updateTimer = null;
     _activeOrderId = null;
     _lastRawPosition = null;
-    _lastPublishedAt = null;
     _forceTracking = false;
     _firstPublishTriggered = false;
     _paused = false;

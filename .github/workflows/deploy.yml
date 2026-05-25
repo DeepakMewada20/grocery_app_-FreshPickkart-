@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'freshpickkat_server/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:
