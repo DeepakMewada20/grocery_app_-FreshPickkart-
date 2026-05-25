@@ -303,6 +303,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildHeader(Order order, ColorScheme cs) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
@@ -326,6 +327,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Placed on ${_formatDate(order.orderedAt)}',
             style: AppTextStyles.caption(context),
           ),
+          if (order.status == 'delivered' && order.deliveredAt != null)
+            Padding(
+              padding: EdgeInsets.only(top: 4.h),
+              child: Text(
+                'Delivered on ${_formatDate(order.deliveredAt!)}',
+                style: AppTextStyles.caption(context).copyWith(
+                  color: Colors.green.shade700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           SizedBox(height: 12.h),
           Wrap(
             spacing: 8.w,
@@ -670,6 +682,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 await Get.to(() => ComplaintDetailScreen(complaint: complaint));
                 return;
               }
+              if (isDelivered) {
+                final deliveredAt = order.deliveredAt;
+                if (deliveredAt != null) {
+                  final deadline = deliveredAt.add(const Duration(days: 3));
+                  if (DateTime.now().isAfter(deadline)) {
+                    Get.snackbar(
+                      'Complaint period expired',
+                      'You can only report product issues within 3 days of delivery.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      duration: const Duration(seconds: 3),
+                      backgroundColor: Colors.grey.shade800,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+                }
+              }
               final result = await Get.to<dynamic>(
                 () => isDelivered
                     ? ReportProductIssueScreen(
@@ -831,6 +860,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildTotals(Order order, ColorScheme cs) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
@@ -840,88 +870,54 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Bill Summary',
-            style: AppTextStyles.sectionTitle(
-              context,
-            ).copyWith(fontSize: 16.sp),
+          Row(
+            children: [
+              Icon(Icons.receipt_outlined, size: 20.sp, color: cs.primary),
+              SizedBox(width: 8.w),
+              Text(
+                'Bill Summary',
+                style: AppTextStyles.sectionTitle(context)
+                    .copyWith(fontSize: 16.sp),
+              ),
+            ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           _buildRow(
+            Icons.shopping_bag_outlined,
             'Item Total',
             'INR ${order.totalAmount.toStringAsFixed(0)}',
             cs,
           ),
           if (order.couponApplied != null && order.couponApplied!.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              child: Container(
-                padding: EdgeInsets.all(12.r),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8.r),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Coupon Applied',
-                            style: TextStyle(
-                              color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12.sp,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          AutoSizeText(
-                            order.couponApplied!.toUpperCase(),
-                            style: TextStyle(
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14.sp,
-                            ),
-                            minFontSize: 10,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      '-INR ${order.discountAmount.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.sp,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildRow(
+              Icons.local_offer_outlined,
+              'Coupon (${order.couponApplied!.toUpperCase()})',
+              '-INR ${order.discountAmount.toStringAsFixed(0)}',
+              cs,
+              valueColor: Colors.green,
             )
           else if (order.discountAmount > 0)
             _buildRow(
+              Icons.discount_outlined,
               'Discount',
               '-INR ${order.discountAmount.toStringAsFixed(0)}',
               cs,
               valueColor: Colors.green,
             ),
           _buildRow(
+            Icons.local_shipping_outlined,
             'Delivery Fee',
             order.deliveryFee == 0
                 ? 'FREE'
                 : 'INR ${order.deliveryFee.toStringAsFixed(0)}',
             cs,
-            valueColor: order.deliveryFee == 0 ? Colors.green : cs.onSurface,
+            valueColor: order.deliveryFee == 0 ? Colors.green : null,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 12.h),
           Divider(color: cs.outlineVariant),
+          SizedBox(height: 4.h),
           _buildRow(
+            Icons.payments_outlined,
             'Paid',
             'INR ${order.finalAmount.toStringAsFixed(0)}',
             cs,
@@ -933,6 +929,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildRow(
+    IconData icon,
     String label,
     String value,
     ColorScheme cs, {
@@ -940,10 +937,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     Color? valueColor,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Icon(
+            icon,
+            size: 18.sp,
+            color: cs.onSurface.withValues(alpha: 0.4),
+          ),
+          SizedBox(width: 10.w),
           Expanded(
             child: Text(
               label,
