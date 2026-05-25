@@ -23,6 +23,7 @@ COPY --from=build /app/bin/server server
 COPY --from=build /app/config/ config/
 COPY --from=build /app/web/ web/
 COPY --from=build /app/migrations/ migrations/
+COPY --from=build /app/repair-migration/ repair-migration/
 
 # Ensure protocol.yaml is available for Insights
 COPY --from=build /app/lib/src/generated/protocol.yaml lib/src/generated/protocol.yaml
