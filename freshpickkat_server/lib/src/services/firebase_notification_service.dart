@@ -57,6 +57,7 @@ class FirebaseNotificationService {
   }
 
   Future<void> sendAdminNewOrder({
+    Session? session,
     required String orderId,
     required double amount,
     int? itemCount,
@@ -69,13 +70,39 @@ class FirebaseNotificationService {
     // tag = 'new_order:$orderId' ensures Android collapses duplicates:
     // if the server accidentally sends the same notification twice, the
     // device replaces the existing one instead of showing a duplicate.
+    final data = {'orderId': orderId, 'type': 'admin_new_order'};
+    if (session != null) {
+      await sendAdminDevices(
+        session: session,
+        title: title,
+        body: body,
+        data: data,
+      );
+      return;
+    }
+
     await sendToTopic(
       topic: 'admin',
       title: title,
       body: body,
-      data: {'orderId': orderId, 'type': 'admin_new_order'},
+      data: data,
       tag: 'new_order:$orderId',
     );
+  }
+
+  Future<int> sendAdminDevices({
+    required Session session,
+    required String title,
+    required String body,
+    Map<String, String>? data,
+  }) async {
+    final tokens = await _getAdminFcmTokens(session);
+    var sent = 0;
+    for (final token in tokens) {
+      await sendToToken(token: token, title: title, body: body, data: data);
+      sent++;
+    }
+    return sent;
   }
 
   Future<void> sendUserPaymentSuccess({
@@ -162,12 +189,18 @@ class FirebaseNotificationService {
       case 'order_paid':
         try {
           await sendAdminNewOrder(
+            session: session,
             orderId: orderId,
             amount: amount,
             itemCount: itemCount,
           );
         } catch (e, st) {
-          session.log('Failed to send admin new order notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          session.log(
+            'Failed to send admin new order notification: $e',
+            level: LogLevel.warning,
+            exception: e,
+            stackTrace: st,
+          );
         }
         if (userId != null && userId.isNotEmpty) {
           try {
@@ -179,7 +212,12 @@ class FirebaseNotificationService {
               itemCount: itemCount,
             );
           } catch (e, st) {
-            session.log('Failed to send user payment success notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+            session.log(
+              'Failed to send user payment success notification: $e',
+              level: LogLevel.warning,
+              exception: e,
+              stackTrace: st,
+            );
           }
           if (status.isNotEmpty) {
             try {
@@ -190,7 +228,12 @@ class FirebaseNotificationService {
                 status: status,
               );
             } catch (e, st) {
-              session.log('Failed to send user status update notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+              session.log(
+                'Failed to send user status update notification: $e',
+                level: LogLevel.warning,
+                exception: e,
+                stackTrace: st,
+              );
             }
           }
         }
@@ -205,7 +248,12 @@ class FirebaseNotificationService {
               orderId: orderId,
             );
           } catch (e, st) {
-            session.log('Failed to send delivery started notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+            session.log(
+              'Failed to send delivery started notification: $e',
+              level: LogLevel.warning,
+              exception: e,
+              stackTrace: st,
+            );
           }
         } else {
           try {
@@ -216,7 +264,12 @@ class FirebaseNotificationService {
               status: status.isEmpty ? 'updated' : status,
             );
           } catch (e, st) {
-            session.log('Failed to send user status update notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+            session.log(
+              'Failed to send user status update notification: $e',
+              level: LogLevel.warning,
+              exception: e,
+              stackTrace: st,
+            );
           }
         }
         return;
@@ -234,7 +287,12 @@ class FirebaseNotificationService {
             },
           );
         } catch (e, st) {
-          session.log('Failed to send order address updated notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+          session.log(
+            'Failed to send order address updated notification: $e',
+            level: LogLevel.warning,
+            exception: e,
+            stackTrace: st,
+          );
         }
         return;
       case 'refund_processed':
@@ -247,7 +305,12 @@ class FirebaseNotificationService {
               status: 'cancelled',
             );
           } catch (e, st) {
-            session.log('Failed to send refund processed notification: $e', level: LogLevel.warning, exception: e, stackTrace: st);
+            session.log(
+              'Failed to send refund processed notification: $e',
+              level: LogLevel.warning,
+              exception: e,
+              stackTrace: st,
+            );
           }
         }
         return;
@@ -263,6 +326,45 @@ class FirebaseNotificationService {
     for (final token in tokens.toSet()) {
       await sendToToken(token: token, title: title, body: body, data: data);
     }
+  }
+
+  Future<List<String>> _getAdminFcmTokens(Session session) async {
+    final admins = await AppUserRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+      limit: 100,
+    );
+    final adminIds = admins
+        .where((user) => _isAdminSellerRole(user.role))
+        .map((user) => user.id)
+        .whereType<UuidValue>()
+        .toSet();
+    if (adminIds.isEmpty) return const [];
+
+    final rows = await UserFcmTokenRow.db.find(
+      session,
+      where: (t) => t.userId.inSet(adminIds) & t.isActive.equals(true),
+      orderBy: (t) => t.updatedAt,
+      orderDescending: true,
+      limit: 100,
+    );
+    return {
+      for (final row in rows)
+        if (row.fcmToken.trim().isNotEmpty) row.fcmToken.trim(),
+    }.toList(growable: false);
+  }
+
+  bool _isAdminSellerRole(String? role) {
+    final normalized = role?.trim();
+    if (normalized == null || normalized.isEmpty) return false;
+
+    final lowered = normalized.toLowerCase();
+    return lowered == 'admin' ||
+        lowered == 'seller' ||
+        lowered == 'admin_seller' ||
+        lowered == 'admin-seller' ||
+        lowered == 'admin seller' ||
+        normalized.toUpperCase() == 'ADMIN_SELLER';
   }
 
   Future<List<String>> _getUserFcmTokens(

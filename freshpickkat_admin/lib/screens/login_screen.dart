@@ -303,7 +303,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _cancelPendingSetup() async {
-    await FirebaseAuth.instance.signOut();
+    await _authService.signOut();
     if (!mounted) return;
     setState(() {
       _awaitingEmailVerification = false;

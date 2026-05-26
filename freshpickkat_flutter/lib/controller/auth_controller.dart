@@ -227,6 +227,11 @@ class AuthController extends GetxController {
 
   // Sign out
   Future<void> signOut() async {
+    final firebaseUid = _user.value?.uid;
+    if (firebaseUid != null && firebaseUid.isNotEmpty) {
+      await NotificationController.instance.prepareForLogout(firebaseUid);
+    }
+
     _user.value = null;
     appUserRx.value = null;
     _cacheService.clearUser();

@@ -20,6 +20,18 @@ class NotificationTopicService {
     await _setTopic('track-order', preferences.trackOrderNotifications);
   }
 
+  Future<void> unsubscribeForLogout(String firebaseUid) async {
+    final normalizedUid = firebaseUid.trim();
+    if (normalizedUid.isNotEmpty) {
+      await _messaging.unsubscribeFromTopic(_userTopic(normalizedUid));
+    }
+    await _messaging.unsubscribeFromTopic('coupons');
+    await _messaging.unsubscribeFromTopic('offers');
+    await _messaging.unsubscribeFromTopic('announcements');
+    await _messaging.unsubscribeFromTopic('important-alerts');
+    await _messaging.unsubscribeFromTopic('track-order');
+  }
+
   Future<void> _setTopic(String topic, bool enabled) {
     return enabled
         ? _messaging.subscribeToTopic(topic)

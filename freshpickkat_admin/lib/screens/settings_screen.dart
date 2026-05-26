@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
 import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
+import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_appearance_section.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -45,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() => _isLoggingOut = true);
     try {
-      await FirebaseAuth.instance.signOut();
+      await AdminAuthService().signOut();
       if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }

@@ -253,6 +253,22 @@ class NotificationOutboxService {
 
     final targetAudience = _normalizeTargetAudience(campaign.targetAudience);
     if (_isAllUsersAudience(targetAudience)) {
+      if (topic == 'admin') {
+        final sent = await NotificationService.notifyAdminDevices(
+          session: session,
+          title: title,
+          body: body,
+          data: data,
+        );
+        await _markCampaignSent(
+          session,
+          campaign,
+          recipientCount: sent,
+          successCount: sent,
+        );
+        return;
+      }
+
       await NotificationService.sendToTopic(
         topic: topic,
         title: title,

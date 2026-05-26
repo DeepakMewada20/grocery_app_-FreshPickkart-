@@ -92,6 +92,7 @@ freeDelivery:
   - calculateDeliveryPricing:
 notification:
   - registerFcmToken:
+  - unregisterFcmToken:
   - getPreferences:
   - updatePreferences:
   - listNotifications:
@@ -101,6 +102,7 @@ notification:
   - getAdminNotificationPreferences:
   - updateAdminNotificationPreference:
   - registerAdminFcmToken:
+  - unregisterAdminFcmToken:
   - createBroadcast:
   - saveBroadcastDraft:
   - sendBroadcastDraft:

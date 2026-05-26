@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'admin_notification_service.dart';
 import 'network_status_service.dart';
 import 'serverpod_client.dart';
 
@@ -196,6 +197,7 @@ class AdminAuthService {
   }
 
   Future<void> signOut() async {
+    await AdminNotificationService.cleanupForLogout();
     await _firebaseAuth.signOut();
   }
 

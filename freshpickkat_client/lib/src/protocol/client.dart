@@ -1328,6 +1328,20 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> unregisterFcmToken(
+    String firebaseUid,
+    String deviceId, {
+    String? token,
+  }) => caller.callServerEndpoint<bool>(
+    'notification',
+    'unregisterFcmToken',
+    {
+      'firebaseUid': firebaseUid,
+      'deviceId': deviceId,
+      'token': token,
+    },
+  );
+
   _i2.Future<_i33.NotificationPreference> getPreferences(String firebaseUid) =>
       caller.callServerEndpoint<_i33.NotificationPreference>(
         'notification',
@@ -1446,6 +1460,22 @@ class EndpointNotification extends _i1.EndpointRef {
       'token': token,
       'deviceId': deviceId,
       'platform': platform,
+    },
+  );
+
+  _i2.Future<bool> unregisterAdminFcmToken(
+    String firebaseUid,
+    String idToken,
+    String deviceId, {
+    String? token,
+  }) => caller.callServerEndpoint<bool>(
+    'notification',
+    'unregisterAdminFcmToken',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'deviceId': deviceId,
+      'token': token,
     },
   );
 

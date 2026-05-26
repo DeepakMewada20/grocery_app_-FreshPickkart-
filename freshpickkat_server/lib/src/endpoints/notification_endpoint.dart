@@ -19,10 +19,15 @@ class NotificationEndpoint extends Endpoint {
     String platform,
   ) async {
     final user = await _requireUser(session, firebaseUid);
+    final normalizedToken = token.trim();
+    final normalizedDevice = deviceId.trim();
+    if (normalizedToken.isEmpty) throw Exception('token is required.');
+    if (normalizedDevice.isEmpty) throw Exception('deviceId is required.');
     final now = DateTime.now().toUtc();
     final existing = await UserFcmTokenRow.db.findFirstRow(
       session,
-      where: (t) => t.userId.equals(user.id!) & t.deviceId.equals(deviceId),
+      where: (t) =>
+          t.userId.equals(user.id!) & t.deviceId.equals(normalizedDevice),
     );
 
     if (existing == null) {
@@ -31,8 +36,8 @@ class NotificationEndpoint extends Endpoint {
         UserFcmTokenRow(
           userId: user.id!,
           firebaseUid: user.firebaseUid ?? firebaseUid.trim(),
-          fcmToken: token.trim(),
-          deviceId: deviceId.trim(),
+          fcmToken: normalizedToken,
+          deviceId: normalizedDevice,
           platform: platform.trim().isEmpty ? 'unknown' : platform.trim(),
           isActive: true,
           createdAt: now,
@@ -45,7 +50,7 @@ class NotificationEndpoint extends Endpoint {
         existing.id!,
         columnValues: (t) => [
           t.firebaseUid(user.firebaseUid ?? firebaseUid.trim()),
-          t.fcmToken(token.trim()),
+          t.fcmToken(normalizedToken),
           t.platform(platform.trim().isEmpty ? 'unknown' : platform.trim()),
           t.isActive(true),
           t.updatedAt(now),
@@ -57,9 +62,25 @@ class NotificationEndpoint extends Endpoint {
       session,
       user.id!,
       columnValues: (t) => [
-        t.fcmToken(token.trim()),
+        t.fcmToken(normalizedToken),
         t.updatedAt(now),
       ],
+    );
+    return true;
+  }
+
+  Future<bool> unregisterFcmToken(
+    Session session,
+    String firebaseUid,
+    String deviceId, {
+    String? token,
+  }) async {
+    final user = await _requireUser(session, firebaseUid);
+    await _deactivateDeviceToken(
+      session,
+      user: user,
+      deviceId: deviceId,
+      token: token,
     );
     return true;
   }
@@ -370,6 +391,27 @@ class NotificationEndpoint extends Endpoint {
     return true;
   }
 
+  Future<bool> unregisterAdminFcmToken(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String deviceId, {
+    String? token,
+  }) async {
+    final admin = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    await _deactivateDeviceToken(
+      session,
+      user: admin,
+      deviceId: deviceId,
+      token: token,
+    );
+    return true;
+  }
+
   Future<BroadcastSummary> createBroadcast(
     Session session,
     BroadcastRequest request,
@@ -514,6 +556,72 @@ class NotificationEndpoint extends Endpoint {
     );
     if (user == null) throw Exception('Active user not found.');
     return user;
+  }
+
+  Future<void> _deactivateDeviceToken(
+    Session session, {
+    required AppUserRow user,
+    required String deviceId,
+    String? token,
+  }) async {
+    final normalizedDevice = deviceId.trim();
+    if (normalizedDevice.isEmpty) throw Exception('deviceId is required.');
+    final normalizedToken = token?.trim();
+    final now = DateTime.now().toUtc();
+
+    final row = await UserFcmTokenRow.db.findFirstRow(
+      session,
+      where: (t) {
+        var expression =
+            t.userId.equals(user.id!) & t.deviceId.equals(normalizedDevice);
+        if (normalizedToken != null && normalizedToken.isNotEmpty) {
+          expression = expression & t.fcmToken.equals(normalizedToken);
+        }
+        return expression;
+      },
+    );
+
+    if (row == null) {
+      await _clearLegacyTokenIfUnused(session, user, normalizedToken, now);
+      return;
+    }
+
+    await UserFcmTokenRow.db.updateById(
+      session,
+      row.id!,
+      columnValues: (t) => [
+        t.isActive(false),
+        t.updatedAt(now),
+      ],
+    );
+    await _clearLegacyTokenIfUnused(session, user, row.fcmToken.trim(), now);
+  }
+
+  Future<void> _clearLegacyTokenIfUnused(
+    Session session,
+    AppUserRow user,
+    String? token,
+    DateTime now,
+  ) async {
+    final normalizedToken = token?.trim();
+    if (normalizedToken == null || normalizedToken.isEmpty) return;
+    if (user.fcmToken?.trim() != normalizedToken) return;
+
+    final activeRows = await UserFcmTokenRow.db.find(
+      session,
+      where: (t) => t.userId.equals(user.id!) & t.isActive.equals(true),
+      limit: 1,
+    );
+    if (activeRows.isNotEmpty) return;
+
+    await AppUserRow.db.updateById(
+      session,
+      user.id!,
+      columnValues: (t) => [
+        t.fcmToken(null),
+        t.updatedAt(now),
+      ],
+    );
   }
 
   Future<NotificationPreferenceRow> _ensurePreferenceRow(

@@ -216,7 +216,7 @@ class _AuthWrapperState extends State<AuthWrapper> with WidgetsBindingObserver {
         return;
       }
 
-      await FirebaseAuth.instance.signOut();
+      await _authService.signOut();
       _verificationPoller?.cancel();
       _verificationPoller = null;
       if (!mounted) return;

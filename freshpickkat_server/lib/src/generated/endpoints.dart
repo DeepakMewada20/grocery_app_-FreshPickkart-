@@ -2890,6 +2890,38 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['platform'],
                       ),
         ),
+        'unregisterFcmToken': _i1.MethodConnector(
+          name: 'unregisterFcmToken',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceId': _i1.ParameterDescription(
+              name: 'deviceId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'token': _i1.ParameterDescription(
+              name: 'token',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .unregisterFcmToken(
+                        session,
+                        params['firebaseUid'],
+                        params['deviceId'],
+                        token: params['token'],
+                      ),
+        ),
         'getPreferences': _i1.MethodConnector(
           name: 'getPreferences',
           params: {
@@ -3164,6 +3196,44 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['token'],
                         params['deviceId'],
                         params['platform'],
+                      ),
+        ),
+        'unregisterAdminFcmToken': _i1.MethodConnector(
+          name: 'unregisterAdminFcmToken',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceId': _i1.ParameterDescription(
+              name: 'deviceId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'token': _i1.ParameterDescription(
+              name: 'token',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['notification'] as _i13.NotificationEndpoint)
+                      .unregisterAdminFcmToken(
+                        session,
+                        params['firebaseUid'],
+                        params['idToken'],
+                        params['deviceId'],
+                        token: params['token'],
                       ),
         ),
         'createBroadcast': _i1.MethodConnector(

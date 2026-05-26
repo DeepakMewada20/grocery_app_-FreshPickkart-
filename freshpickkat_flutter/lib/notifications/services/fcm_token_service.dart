@@ -44,6 +44,22 @@ class FcmTokenService {
     await _storage.write(_savedFcmTokenKey, fcmToken);
   }
 
+  Future<void> unregisterCurrentDevice({String? firebaseUid}) async {
+    final uid = firebaseUid ?? AuthController.instance.currentUser?.uid;
+    if (uid == null || uid.trim().isEmpty) {
+      await _storage.remove(_savedFcmTokenKey);
+      return;
+    }
+
+    final fcmToken = await _messaging.getToken();
+    await ServerpodClient().client.notification.unregisterFcmToken(
+      uid,
+      _deviceId(),
+      token: fcmToken,
+    );
+    await _storage.remove(_savedFcmTokenKey);
+  }
+
   String _deviceId() {
     final existing = _storage.read<String>(_deviceIdKey);
     if (existing != null && existing.isNotEmpty) return existing;

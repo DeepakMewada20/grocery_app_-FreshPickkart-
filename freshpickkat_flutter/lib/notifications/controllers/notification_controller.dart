@@ -90,6 +90,20 @@ class NotificationController extends GetxController {
     } catch (_) {}
   }
 
+  Future<void> prepareForLogout(String firebaseUid) async {
+    try {
+      await _tokenService.unregisterCurrentDevice(firebaseUid: firebaseUid);
+    } catch (_) {}
+    try {
+      await _topicService.unsubscribeForLogout(firebaseUid);
+    } catch (_) {}
+    history.clear();
+    notifications.clear();
+    unreadCount.value = 0;
+    pendingTrackingOrderId.value = null;
+    _nextPageToken = null;
+  }
+
   Future<void> refreshPreferences() async {
     try {
       final fetched = await _preferenceService.fetch();

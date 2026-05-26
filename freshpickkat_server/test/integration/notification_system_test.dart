@@ -51,6 +51,84 @@ void main() {
       expect(refetched.couponNotifications, isFalse);
     });
 
+    test('unregisters only the logged out device token', () async {
+      final firebaseUid = await _seedUser(sessionBuilder);
+
+      await endpoints.notification.registerFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'fcm-token-1',
+        'device-1',
+        'android',
+      );
+      await endpoints.notification.registerFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'fcm-token-2',
+        'device-2',
+        'android',
+      );
+
+      final unregistered = await endpoints.notification.unregisterFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'device-1',
+        token: 'fcm-token-1',
+      );
+      expect(unregistered, isTrue);
+
+      final session = sessionBuilder.build();
+      try {
+        final rows = await protocol.UserFcmTokenRow.db.find(
+          session,
+          where: (t) => t.firebaseUid.equals(firebaseUid),
+        );
+        final byDevice = {for (final row in rows) row.deviceId: row};
+        expect(byDevice['device-1']?.isActive, isFalse);
+        expect(byDevice['device-2']?.isActive, isTrue);
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('re-registering a logged out device reactivates it', () async {
+      final firebaseUid = await _seedUser(sessionBuilder);
+
+      await endpoints.notification.registerFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'old-token',
+        'device-1',
+        'android',
+      );
+      await endpoints.notification.unregisterFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'device-1',
+        token: 'old-token',
+      );
+      await endpoints.notification.registerFcmToken(
+        sessionBuilder,
+        firebaseUid,
+        'new-token',
+        'device-1',
+        'android',
+      );
+
+      final session = sessionBuilder.build();
+      try {
+        final row = await protocol.UserFcmTokenRow.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.firebaseUid.equals(firebaseUid) & t.deviceId.equals('device-1'),
+        );
+        expect(row?.isActive, isTrue);
+        expect(row?.fcmToken, equals('new-token'));
+      } finally {
+        await session.close();
+      }
+    });
+
     test('lists, marks, and deletes notification history', () async {
       final firebaseUid = await _seedUser(sessionBuilder);
       final campaignId = await _seedCampaign(sessionBuilder);
