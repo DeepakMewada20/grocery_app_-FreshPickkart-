@@ -242,6 +242,54 @@
       margin-bottom: 10px;
     }
 
+    .deletion-cta {
+      margin-top: 28px;
+      padding: 28px 24px;
+      border: 2px solid var(--primary-border);
+      border-radius: var(--radius);
+      background: var(--primary-tint);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .deletion-cta h2 {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .deletion-cta p {
+      max-width: 640px;
+      margin: 0 auto 18px;
+    }
+
+    .deletion-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+
+    .deletion-btn:hover,
+    .deletion-btn:focus-visible {
+      background: var(--primary-strong);
+      transform: scale(1.03);
+    }
+
+    .deletion-btn:active {
+      transform: scale(0.97);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .deletion-btn {
+        color: #0f1511;
+      }
+    }
+
     @media (min-width: 720px) {
       .app-header {
         padding-left: 24px;
@@ -360,9 +408,9 @@
 
       <article class="card">
         <h2>Account Deletion</h2>
-        <p>You may request deletion of your FreshPickKat account by contacting support. After verifying your request, we will delete or anonymize eligible account information within a reasonable time.</p>
+        <p>You may request deletion of your FreshPickKat account and associated personal data at any time. After verifying your identity, we will delete or anonymize your eligible account information within a reasonable timeframe.</p>
         <p>Order, payment, refund, tax, audit, and fraud-prevention records may be retained as required by law or legitimate business needs.</p>
-        <p class="note">Account deletion requests can be sent to <a href="mailto:support@freshpickkat.com">support@freshpickkat.com</a> from the email or phone number linked to your account.</p>
+        <p class="note">Account deletion requests can be sent to <a href="mailto:freshpickkart@gmail.com">freshpickkart@gmail.com</a> from the email address linked to your account. Please include your registered name and phone number to help us process your request faster.</p>
       </article>
 
       <article class="card">
@@ -385,6 +433,14 @@
     </nav>
     <div>FreshPickKat © 2026</div>
   </footer>
+
+  <main>
+    <section class="deletion-cta" aria-labelledby="deletion-cta-title">
+      <h2 id="deletion-cta-title">Account Deletion Request</h2>
+      <p>If you wish to permanently delete your FreshPickKat account and all associated personal data, please send your request via email. We will verify your identity and process the deletion within a reasonable timeframe.</p>
+      <a class="deletion-btn" href="mailto:freshpickkart@gmail.com?subject=Account%20Deletion%20Request%20-%20FreshPickKat&body=Please%20delete%20my%20FreshPickKat%20account%20and%20associated%20data.%0A%0ARegistered%20Name%3A%20%0ARegistered%20Email%3A%20%0ARegistered%20Phone%3A%20">Request Account Deletion</a>
+    </section>
+  </main>
 
   <script>
     (function () {
