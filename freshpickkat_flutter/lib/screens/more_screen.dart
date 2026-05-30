@@ -551,7 +551,7 @@ class _MoreScreenState extends State<MoreScreen> {
         children: [
           SizedBox(height: 8.h),
           Text(
-            'App Version 8.0.2.0',
+            'App Version 1.0.0+3',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.2),
               fontSize: 12.sp,

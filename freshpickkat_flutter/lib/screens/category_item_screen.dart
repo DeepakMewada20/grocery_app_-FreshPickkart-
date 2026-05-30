@@ -332,9 +332,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             return NetworkBannerWidget(
               height: AppResponsive.bannerHeight(
                 context,
-                ratio: 0.30,
-                min: 104,
-                max: 150,
+                ratio: 0.42,
+                min: 130,
+                max: 190,
                 availableWidth: constraints.maxWidth,
               ),
               banners: banners,
