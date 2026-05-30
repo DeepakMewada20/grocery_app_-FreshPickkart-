@@ -100,6 +100,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     const BasketSuggestionsSection(),
                     const CouponSection(),
                     _buildBillDetails(cartController, cs),
+                    _buildSavingsSummary(context, cartController, cs),
                   ],
                 ),
               ),
@@ -779,6 +780,83 @@ class _BasketScreenState extends State<BasketScreen> {
             '₹${cartController.totalAmount.formatPrice}',
             isTotal: true,
             cs: cs,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSavingsSummary(BuildContext context, CartController cartController, ColorScheme cs) {
+    final totalSavings = cartController.productDiscountTotal +
+        cartController.comboDiscountTotal +
+        cartController.bogoDiscountTotal +
+        cartController.couponDiscount +
+        cartController.deliveryDiscountAmount;
+
+    if (totalSavings <= 0) return const SizedBox.shrink();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDark ? cs.primary : AppTheme.primaryGreen;
+
+    return Container(
+      margin: EdgeInsets.fromLTRB(16.r, 0, 16.r, 16.r),
+      padding: EdgeInsets.all(20.r),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10.r),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: isDark ? 0.15 : 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_rounded,
+              color: accentColor,
+              size: 24.r,
+            ),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      '₹${totalSavings.formatPrice}',
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'saved',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  'Every rupee saved is a rupee earned! 🐷',
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.45),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
