@@ -1294,6 +1294,10 @@ class CartController extends GetxController {
         cartItems.refresh();
       } else {
         cartItems.removeAt(index);
+        if (cartItems.isEmpty) {
+          clearCart();
+          return;
+        }
       }
       _scheduleCartRefresh();
     }

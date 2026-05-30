@@ -64,34 +64,8 @@ class _BasketScreenState extends State<BasketScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        foregroundColor: cs.onSurface,
-        elevation: 0,
-        title: Text(
-          'Basket',
-          style: TextStyle(
-            color: cs.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Obx(
-            () => cartController.itemCount > 0
-                ? IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      color: cs.error,
-                    ),
-                    onPressed: () =>
-                        _showClearCartDialog(context, cartController),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
-      body: Obx(() {
+      body: SafeArea(
+        child: Obx(() {
         if (cartController.itemCount == 0) {
           return _buildEmptyState(context);
         }
@@ -112,9 +86,9 @@ class _BasketScreenState extends State<BasketScreen> {
                         child: NetworkBannerWidget(
                           height: AppResponsive.bannerHeight(
                             context,
-                            ratio: 0.32,
-                            min: 112,
-                            max: 150,
+                            ratio: 0.42,
+                            min: 110,
+                            max: 160,
                           ),
                           banners: banners,
                           autoScrollInterval: const Duration(seconds: 4),
@@ -134,6 +108,7 @@ class _BasketScreenState extends State<BasketScreen> {
           ],
         );
       }),
+    ),
     );
   }
 
@@ -928,46 +903,6 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showClearCartDialog(
-    BuildContext context,
-    CartController cartController,
-  ) {
-    final cs = Theme.of(context).colorScheme;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cs.surfaceContainerHighest,
-        title: Text(
-          'Clear Basket?',
-          style: TextStyle(color: cs.onSurface),
-        ),
-        content: Text(
-          'Are you sure you want to remove all items from your basket?',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: AppTheme.primaryGreen),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              cartController.clearCart();
-              Navigator.pop(context);
-            },
-            child: Text(
-              'CLEAR',
-              style: TextStyle(color: cs.error),
-            ),
-          ),
-        ],
       ),
     );
   }

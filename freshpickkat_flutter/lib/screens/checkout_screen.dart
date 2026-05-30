@@ -1107,49 +1107,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16.r),
-                  child: AppResponsive.constrainContent(
-                    context: context,
-                    maxWidth: AppResponsive.maxCheckoutWidth,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 🎯 Checkout Page Banner
-                        Obx(() {
-                          final banners =
-                              BannerController.instance.checkoutPageBanners;
-                          if (banners.isEmpty) return const SizedBox.shrink();
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: 16.h),
-                            child: NetworkBannerWidget(
-                              height: AppResponsive.bannerHeight(
-                                context,
-                                ratio: 0.30,
-                                min: 108,
-                                max: 145,
-                              ),
-                              banners: banners,
-                              autoScrollInterval: const Duration(seconds: 5),
-                              autoScrollDuration: const Duration(
-                                milliseconds: 500,
-                              ),
+                  padding: EdgeInsets.only(top: 16.r),
+                  child: Column(
+                    children: [
+                      // 🎯 Checkout Page Banner - full width
+                      Obx(() {
+                        final banners =
+                            BannerController.instance.checkoutPageBanners;
+                        if (banners.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 16.h),
+                          child: NetworkBannerWidget(
+                            height: AppResponsive.bannerHeight(
+                              context,
+                              ratio: 0.42,
+                              min: 110,
+                              max: 160,
                             ),
-                          );
-                        }),
-                        _buildAddressSection(cs),
-                        SizedBox(height: 16.h),
-                        _buildItemsSection(cs),
-                        SizedBox(height: 16.h),
-                        _buildBillDetails(cs),
-                        SizedBox(height: 16.h),
-                        _buildPaymentSection(cs),
-                        if (_errorMessage != null) ...[
-                          SizedBox(height: 16.h),
-                          _buildErrorBanner(cs),
-                        ],
-                        SizedBox(height: 80.h),
-                      ],
-                    ),
+                            banners: banners,
+                            autoScrollInterval: const Duration(seconds: 5),
+                            autoScrollDuration: const Duration(
+                              milliseconds: 500,
+                            ),
+                          ),
+                        );
+                      }),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.r),
+                        child: AppResponsive.constrainContent(
+                          context: context,
+                          maxWidth: AppResponsive.maxCheckoutWidth,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildAddressSection(cs),
+                              SizedBox(height: 16.h),
+                              _buildItemsSection(cs),
+                              SizedBox(height: 16.h),
+                              _buildBillDetails(cs),
+                              SizedBox(height: 16.h),
+                              _buildPaymentSection(cs),
+                              if (_errorMessage != null) ...[
+                                SizedBox(height: 16.h),
+                                _buildErrorBanner(cs),
+                              ],
+                              SizedBox(height: 80.h),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
