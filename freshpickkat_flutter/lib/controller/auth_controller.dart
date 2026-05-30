@@ -31,6 +31,41 @@ class AuthController extends GetxController {
 
   final client = ServerpodClient().client;
 
+  String _phoneAuthErrorMessage(FirebaseAuthException e) {
+    final details = e.message == null || e.message!.trim().isEmpty
+        ? ""
+        : ": ${e.message}";
+    debugPrint(
+      "Firebase phone auth failed: code=${e.code}, message=${e.message}",
+    );
+
+    switch (e.code) {
+      case "invalid-phone-number":
+        return "Invalid phone number format";
+      case "too-many-requests":
+        return "Too many requests. Please try again later";
+      case "quota-exceeded":
+        return "SMS quota exceeded. Try again tomorrow";
+      case "operation-not-allowed":
+        return "Phone sign-in is not enabled in Firebase Authentication";
+      case "billing-not-enabled":
+        return "Firebase billing is not active yet for phone authentication";
+      case "app-not-authorized":
+      case "invalid-app-credential":
+      case "captcha-check-failed":
+      case "missing-client-identifier":
+        return "Firebase app verification failed. Check Android package name and SHA-1/SHA-256 in Firebase.$details";
+      case "network-request-failed":
+        return "Network error. Please check your internet connection";
+      case "invalid-verification-code":
+        return "Invalid OTP code. Please check and try again";
+      case "session-expired":
+        return "OTP expired. Please request a new code";
+      default:
+        return "Verification failed (${e.code})$details";
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -144,15 +179,7 @@ class AuthController extends GetxController {
           onAutoVerify();
         },
         verificationFailed: (FirebaseAuthException e) {
-          String errorMessage = 'Verification failed';
-          if (e.code == 'invalid-phone-number') {
-            errorMessage = 'Invalid phone number format';
-          } else if (e.code == 'too-many-requests') {
-            errorMessage = 'Too many requests. Please try again later';
-          } else if (e.code == 'quota-exceeded') {
-            errorMessage = 'SMS quota exceeded. Try again tomorrow';
-          }
-          onError(errorMessage);
+          onError(_phoneAuthErrorMessage(e));
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
@@ -164,7 +191,11 @@ class AuthController extends GetxController {
         },
       );
       return true;
+    } on FirebaseAuthException catch (e) {
+      onError(_phoneAuthErrorMessage(e));
+      return false;
     } catch (e) {
+      debugPrint('Failed to send OTP: $e');
       onError('Failed to send OTP: ${e.toString()}');
       return false;
     }
@@ -193,15 +224,9 @@ class AuthController extends GetxController {
         'isNewUser': userCredential.additionalUserInfo?.isNewUser ?? false,
       };
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Verification failed';
-      if (e.code == 'invalid-verification-code') {
-        errorMessage = 'Invalid OTP code. Please check and try again';
-      } else if (e.code == 'session-expired') {
-        errorMessage = 'OTP expired. Please request a new code';
-      }
       return {
         'success': false,
-        'error': errorMessage,
+        'error': _phoneAuthErrorMessage(e),
       };
     } catch (e) {
       return {

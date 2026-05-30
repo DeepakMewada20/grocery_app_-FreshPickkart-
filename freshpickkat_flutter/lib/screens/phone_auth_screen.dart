@@ -206,12 +206,15 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   }
 
   Future<void> _sendOTP() async {
-    if (_phoneController.text.isEmpty) {
+    final localNumber = _phoneController.text.replaceAll(RegExp(r'\D'), '');
+
+    if (localNumber.isEmpty) {
       setState(() => _errorMessage = 'Please enter your phone number');
       return;
     }
 
-    if (_phoneController.text.length < 10) {
+    if ((_countryCode == '+91' && localNumber.length != 10) ||
+        (_countryCode != '+91' && localNumber.length < 6)) {
       setState(() => _errorMessage = 'Please enter a valid phone number');
       return;
     }
@@ -221,7 +224,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
       _errorMessage = null;
     });
 
-    _phoneNumber = _countryCode + _phoneController.text;
+    _phoneNumber = _countryCode + localNumber;
 
     await _authController.sendOTP(
       phoneNumber: _phoneNumber,
