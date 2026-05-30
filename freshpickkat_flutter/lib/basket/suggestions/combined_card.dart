@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
-import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
-import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
@@ -77,39 +75,36 @@ class CombinedCardBody extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          SizedBox(height: 8.h),
-
-          // Action steps indicators
-          Row(
-            children: actions.map((a) {
-              final isLast = a == actions.last;
-              return Row(
-                children: [
-                  Icon(
-                    _getIcon(a),
-                    size: 12,
-                    color: accent.withValues(alpha: 0.7),
-                  ),
-                  if (!isLast)
-                    Container(
-                      width: 12.w,
-                      height: 1,
-                      margin: EdgeInsets.symmetric(horizontal: 4.w),
-                      color: accent.withValues(alpha: 0.3),
-                    ),
-                ],
-              );
-            }).toList(),
-          ),
-
           const Spacer(),
 
           Row(
             children: [
-              if (comboAction != null && comboAction.comboId != null)
-                _ComboThumbs(comboId: comboAction.comboId!, s: s)
-              else if (s.thumbnailUrl != null)
+              if (comboAction == null && s.thumbnailUrl != null) ...[
                 _Thumb(url: s.thumbnailUrl!),
+                SizedBox(width: 12.w),
+              ],
+              // Action steps indicators
+              Row(
+                children: actions.map((a) {
+                  final isLast = a == actions.last;
+                  return Row(
+                    children: [
+                      Icon(
+                        _getIcon(a),
+                        size: 16,
+                        color: accent.withValues(alpha: 0.8),
+                      ),
+                      if (!isLast)
+                        Container(
+                          width: 12.w,
+                          height: 1,
+                          margin: EdgeInsets.symmetric(horizontal: 4.w),
+                          color: accent.withValues(alpha: 0.3),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
               if (hasCouponOrDelivery)
                 Expanded(
                   child: Padding(
@@ -195,45 +190,6 @@ class CombinedCardBody extends StatelessWidget {
   }
 }
 
-class _ComboThumbs extends StatelessWidget {
-  final String comboId;
-  final client.BasketSuggestion s;
-  const _ComboThumbs({required this.comboId, required this.s});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final combos = ComboOfferController.instance.activeComboOffers;
-      final combo = combos.firstWhereOrNull((c) => c.comboId == comboId);
-
-      final urls = <String>[];
-
-      if (combo != null) {
-        final productIds = combo.comboProducts.map((p) => p.productId).toList();
-        final products = ProductProviderController.instance.allProducts
-            .where((p) => productIds.contains(p.productId))
-            .toList();
-        urls.addAll(products.map((p) => p.imageUrl).whereType<String>());
-      }
-
-      // Fallback to metadata if we have few/no images from loaded products
-      if (urls.length < 2) {
-        final metaUrls = s.metadata?['comboImageUrls']?.split(',') ?? [];
-        for (final url in metaUrls) {
-          if (url.isNotEmpty && !urls.contains(url)) {
-            urls.add(url);
-          }
-        }
-      }
-
-      if (urls.isEmpty && s.thumbnailUrl != null) {
-        urls.add(s.thumbnailUrl!);
-      }
-
-      return OverlappingThumbs(imageUrls: urls);
-    });
-  }
-}
 
 class _Thumb extends StatelessWidget {
   final String url;
