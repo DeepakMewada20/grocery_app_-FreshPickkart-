@@ -110,7 +110,6 @@ class AdminCategoryOfferController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadCategoryOffers);
     } catch (e) {
-      print('Error loading category offers: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
@@ -144,7 +143,6 @@ class AdminCategoryOfferController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error creating category offer: $e');
       return false;
     }
   }
@@ -170,7 +168,6 @@ class AdminCategoryOfferController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error deleting category offer: $e');
       return false;
     }
   }
@@ -199,7 +196,6 @@ class AdminCategoryOfferController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error toggling category offer: $e');
       return false;
     }
   }

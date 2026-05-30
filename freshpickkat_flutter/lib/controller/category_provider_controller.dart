@@ -85,7 +85,6 @@ class CategoryProviderController extends GetxController {
       final List<Category> result = await _client.category.getCategories();
 
       categories.assignAll(result);
-      print('Categories fetched: ${result.length}');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -103,7 +102,6 @@ class CategoryProviderController extends GetxController {
           .getSubCategories();
 
       subCategories.assignAll(result);
-      print('SubCategories fetched: ${result.length}');
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {

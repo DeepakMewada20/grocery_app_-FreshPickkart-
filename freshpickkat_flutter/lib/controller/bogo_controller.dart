@@ -54,7 +54,6 @@ class BogoController extends GetxController {
       final offers = await _client.bogo.getActiveOffers();
       activeOffers.assignAll(offers);
     } catch (e) {
-      print('Error fetching BOGO offers: $e');
     } finally {
       isLoading.value = false;
     }
@@ -79,7 +78,6 @@ class BogoController extends GetxController {
       }
       return offer;
     } catch (e) {
-      print('Error fetching BOGO offer for product $productId: $e');
       return null;
     }
   }

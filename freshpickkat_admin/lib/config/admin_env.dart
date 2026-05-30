@@ -21,13 +21,6 @@ class AdminEnv {
       defaultUrl = 'http://localhost:8080/';
     }
 
-    // ignore: avoid_print
-    print('⚠️ ADMIN_API_BASE_URL not set. Using smart default: $defaultUrl');
-    // ignore: avoid_print
-    print(
-      '💡 For physical devices, run with: --dart-define=ADMIN_API_BASE_URL=http://<YOUR_IP>:8080/',
-    );
-
     return defaultUrl;
   }
 

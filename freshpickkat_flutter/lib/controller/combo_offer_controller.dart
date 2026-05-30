@@ -57,7 +57,6 @@ class ComboOfferController extends GetxController {
       final offers = await _client.comboOffer.getActiveComboOffers();
       activeComboOffers.assignAll(offers);
     } catch (e) {
-      print('Error fetching combo offers: $e');
     } finally {
       isLoading.value = false;
     }
@@ -78,7 +77,6 @@ class ComboOfferController extends GetxController {
       final applicable = await _client.comboOffer.checkApplicableCombos(items);
       applicableCombos.assignAll(applicable);
     } catch (e) {
-      print('Error checking applicable combos: $e');
     }
   }
 
@@ -101,7 +99,6 @@ class ComboOfferController extends GetxController {
         idToken,
       );
     } catch (e) {
-      print('Error creating combo offer: $e');
       return false;
     }
   }
@@ -118,7 +115,6 @@ class ComboOfferController extends GetxController {
         idToken,
       );
     } catch (e) {
-      print('Error deleting combo offer: $e');
       return false;
     }
   }
@@ -137,7 +133,6 @@ class ComboOfferController extends GetxController {
         idToken,
       );
     } catch (e) {
-      print('Error toggling combo offer: $e');
       return false;
     }
   }

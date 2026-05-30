@@ -44,8 +44,6 @@ class OrderController extends GetxController {
       );
       await _loadOrders();
     } catch (e) {
-      // ignore: avoid_print
-      print('Failed to load orders: $e');
       errorMessage.value = 'Failed to load orders: $e';
     } finally {
       isLoading.value = false;

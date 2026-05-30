@@ -90,7 +90,6 @@ class AdminBannerController extends GetxController {
       networkController.showError(onRetry: loadBanners);
     } catch (e) {
       error.value = e.toString();
-      print('Error loading banners: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
@@ -269,7 +268,6 @@ class AdminBannerController extends GetxController {
       return true;
     } catch (e) {
       error.value = e.toString();
-      print('Error toggling banner: $e');
       return false;
     }
   }
@@ -317,7 +315,6 @@ class AdminBannerController extends GetxController {
       return true;
     } catch (e) {
       error.value = e.toString();
-      print('Error updating priority: $e');
       return false;
     }
   }

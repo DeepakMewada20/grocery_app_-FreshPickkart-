@@ -255,7 +255,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _setProcessing(false);
       }
     } catch (e) {
-      print('[DEBUG-ERROR] _placeOrder exception: $e');
       if (_currentOrderId != null) {
         await paymentService.markPaymentFailed(_currentOrderId!);
       }
@@ -580,13 +579,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     String? upiAppPackageName,
     String? vpa,
   }) {
-    print('[DEBUG-3] _submitUpiPayment called');
-    print('[DEBUG-3] upiAppPackageName: $upiAppPackageName');
-    print('[DEBUG-3] vpa: $vpa');
-    print('[DEBUG-3] keyId: $keyId');
-    print('[DEBUG-3] amountPaise: $amountPaise');
-    print('[DEBUG-3] razorpayOrderId: $razorpayOrderId');
-
     final options = {
       'key': keyId,
       'amount': amountPaise,
@@ -603,8 +595,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       },
     };
 
-    print('[DEBUG-4] Options: $options');
-    print('[DEBUG-4] Calling _razorpay.submit()');
     _razorpay?.submit(options);
   }
 
@@ -810,10 +800,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    print(
-      'Payment success: orderId=$orderId, razorpayOrderId=$razorpayOrderId, '
-      'paymentId=$paymentId, signature=$signature',
-    );
 
     setState(() {
       _loadingStatus = 'Verifying payment...';
@@ -987,10 +973,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentError(Map<dynamic, dynamic> response) async {
     try {
-      print('=== PAYMENT ERROR FULL RESPONSE ===');
-      print(response.toString());
-      print('===================================');
-
       final orderId = _currentOrderId;
       final errorData = _extractRazorpayError(response);
       final metadata = errorData?['metadata'];
@@ -1038,9 +1020,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (orderId != null) {
         await paymentService.markPaymentFailed(orderId);
       }
-      print(
-        'Razorpay payment error ($code): ${message.isEmpty ? 'unknown error' : message}',
-      );
       _showError(
         message.isEmpty
             ? 'Payment failed (code: $code). Please try again.'
@@ -1055,9 +1034,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final safeMessage = message.trim().isEmpty
         ? 'Payment failed. Please try again.'
         : message;
-    // Keep a console log for easier debugging.
-    // ignore: avoid_print
-    print('Checkout error: $safeMessage');
     if (mounted) {
       setState(() {
         _errorMessage = safeMessage;

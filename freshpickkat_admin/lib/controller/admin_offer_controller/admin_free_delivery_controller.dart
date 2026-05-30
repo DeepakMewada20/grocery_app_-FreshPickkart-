@@ -61,7 +61,6 @@ class AdminFreeDeliveryController extends GetxController {
       });
       deliveryConfig.value = config;
     } catch (e) {
-      print('Error loading delivery config: $e');
     }
   }
 
@@ -102,7 +101,6 @@ class AdminFreeDeliveryController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadDeliveryData);
     } catch (e) {
-      print('Error loading delivery rules: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
@@ -131,7 +129,6 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error saving delivery config: $e');
       return false;
     }
   }
@@ -156,7 +153,6 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error creating delivery rule: $e');
       return false;
     }
   }
@@ -182,7 +178,6 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error deleting delivery rule: $e');
       return false;
     }
   }
@@ -209,7 +204,6 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return result;
     } catch (e) {
-      print('Error toggling delivery rule: $e');
       return false;
     }
   }

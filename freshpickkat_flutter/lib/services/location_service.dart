@@ -107,7 +107,6 @@ class LocationService {
         longitude: longitude,
       );
     } catch (e) {
-      print('Error reverse geocoding: $e');
       return null;
     }
   }

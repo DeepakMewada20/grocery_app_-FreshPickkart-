@@ -26,9 +26,6 @@ class EnvConfig {
       defaultUrl = 'http://localhost:8080/';
     }
 
-    // ignore: avoid_print
-    print('⚠️ API_BASE_URL not set. Using smart default: $defaultUrl');
-
     return defaultUrl;
   }
 
