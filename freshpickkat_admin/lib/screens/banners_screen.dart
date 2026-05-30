@@ -865,7 +865,7 @@ class _BannerSheetState extends State<_BannerSheet> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) _onCancel();
       },
       child: Container(

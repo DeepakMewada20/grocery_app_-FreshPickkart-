@@ -447,7 +447,7 @@ class _ProductCardState extends State<ProductCard> {
       child: AutoSizeText(
         'Not Available',
         style: AppTextStyles.button(context).copyWith(
-          color: cs.onSurface.withOpacity(0.5),
+          color: cs.onSurface.withValues(alpha: 0.5),
         ),
         maxLines: 1,
         minFontSize: 8,

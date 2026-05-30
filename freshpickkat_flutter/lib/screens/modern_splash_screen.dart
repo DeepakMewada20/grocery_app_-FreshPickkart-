@@ -202,12 +202,12 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                             color: Colors.white,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
+                                color: Colors.black.withValues(alpha: 0.15),
                                 blurRadius: 40,
                                 spreadRadius: 5,
                               ),
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 blurRadius: 30,
                                 spreadRadius: 2,
                               ),
@@ -252,7 +252,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                             style: TextStyle(
                               fontSize: 15.sp,
                               fontWeight: FontWeight.w400,
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -277,7 +277,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white.withOpacity(0.7),
+                                Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                           ),
@@ -288,7 +288,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               style: TextStyle(
                                 fontSize: 14.sp,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                           ),
@@ -461,7 +461,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   6,
                   (index) => Container(
                     decoration: BoxDecoration(
-                      color: Colors.yellow.withOpacity(0.3 + (index % 3) * 0.2),
+                      color: Colors.yellow.withValues(alpha: 0.3 + (index % 3) * 0.2),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -484,7 +484,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),
-        border: Border.all(color: Colors.black.withOpacity(0.2), width: 1),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         children: [
@@ -503,8 +503,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   (index) => Container(
                     decoration: BoxDecoration(
                       color: index % 3 == 0
-                          ? Colors.yellow.withOpacity(0.6)
-                          : Colors.lightBlue.withOpacity(0.2),
+                          ? Colors.yellow.withValues(alpha: 0.6)
+                          : Colors.lightBlue.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -527,7 +527,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           topLeft: Radius.circular(6),
           topRight: Radius.circular(6),
         ),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Column(
         children: [
@@ -537,8 +537,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.4),
-                  Colors.white.withOpacity(0.2),
+                  Colors.white.withValues(alpha: 0.4),
+                  Colors.white.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -565,10 +565,10 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
             width: 50 * scale,
             height: 40 * scale,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(3),
               border: Border.all(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -618,7 +618,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 4,
                 offset: const Offset(2, 2),
               ),

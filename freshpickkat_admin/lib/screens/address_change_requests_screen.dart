@@ -182,7 +182,10 @@ class _AddressChangeCard extends StatelessWidget {
                           try {
                             await _callCustomer(phone);
                           } catch (error) {
-                            if (context.mounted) _showError(context, error);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
                           }
                         },
                   icon: const Icon(Icons.call_outlined),
@@ -215,7 +218,10 @@ class _AddressChangeCard extends StatelessWidget {
         );
       }
     } catch (error) {
-      _showError(context, error);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
     }
   }
 
@@ -240,6 +246,7 @@ class _AddressChangeCard extends StatelessWidget {
       ),
     );
     if (selected == null) return;
+    if (!context.mounted) return;
     final note = await _askNote(
       context,
       title: 'Rejection note',
@@ -258,7 +265,10 @@ class _AddressChangeCard extends StatelessWidget {
         );
       }
     } catch (error) {
-      _showError(context, error);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
     }
   }
 
@@ -342,11 +352,7 @@ class _AddressChangeCard extends StatelessWidget {
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
 
-  void _showError(BuildContext context, Object error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error.toString())),
-    );
-  }
+
 }
 
 class _InfoRow extends StatelessWidget {

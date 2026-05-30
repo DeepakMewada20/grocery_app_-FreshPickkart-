@@ -95,22 +95,25 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                             title: 'Issue type',
                             child: Column(
                               children: [
-                                ...DeliveryIssueController.issueTypes.map(
-                                  (issue) => Obx(() {
-                                    return RadioListTile<String>(
-                                      value: issue,
-                                      groupValue:
-                                          _controller.selectedIssueType.value,
-                                      onChanged: (value) {
-                                        if (value != null) {
-                                          _controller.selectIssueType(value);
-                                          setState(() {});
-                                        }
-                                      },
-                                      title: Text(issue),
-                                      contentPadding: EdgeInsets.zero,
-                                    );
-                                  }),
+                                RadioGroup<String>(
+                                  groupValue: _controller.selectedIssueType.value,
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      _controller.selectIssueType(value);
+                                      setState(() {});
+                                    }
+                                  },
+                                  child: Column(
+                                    children: DeliveryIssueController.issueTypes.map(
+                                      (issue) => Obx(() {
+                                        return RadioListTile<String>(
+                                          value: issue,
+                                          title: Text(issue),
+                                          contentPadding: EdgeInsets.zero,
+                                        );
+                                      }),
+                                    ).toList(),
+                                  ),
                                 ),
                               ],
                             ),

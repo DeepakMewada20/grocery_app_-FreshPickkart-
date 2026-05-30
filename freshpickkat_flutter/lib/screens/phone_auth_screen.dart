@@ -268,6 +268,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           }
         } else {
           // First time user or missing profile data, go to EditProfileScreen
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -425,7 +426,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
         border: Border.all(color: Color(0xFF1B8A4C), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF1B8A4C).withOpacity(0.2),
+            color: Color(0xFF1B8A4C).withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -435,7 +436,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
     final errorPinTheme = defaultPinTheme.copyWith(
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.red.shade300, width: 2),
       ),
@@ -734,7 +735,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                               Container(
                                 padding: EdgeInsets.all(12.r),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
+                                  color: Colors.red.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: Colors.red.shade300,
@@ -840,7 +841,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
             if (_successController.isAnimating ||
                 _successController.isCompleted)
               Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 child: Center(
                   child: ScaleTransition(
                     scale: _successScaleAnimation,
@@ -856,7 +857,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Color(0xFF1B8A4C).withOpacity(0.1),
+                              color: Color(0xFF1B8A4C).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(

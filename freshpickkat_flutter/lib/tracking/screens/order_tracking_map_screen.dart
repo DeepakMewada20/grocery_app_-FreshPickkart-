@@ -80,7 +80,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     );
     final frame = await codec.getNextFrame();
     final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
-    _scooterIcon = BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+    _scooterIcon = BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
   }
 
   void _tickMarkerAnimation() {

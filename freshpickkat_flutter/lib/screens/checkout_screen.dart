@@ -156,6 +156,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _setProcessing(false);
       _openLocationPicker(initialAddress: deliveryAddress);
       // Give the user a hint why the picker opened
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(

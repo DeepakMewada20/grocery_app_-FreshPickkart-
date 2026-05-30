@@ -109,7 +109,7 @@ class _LiveDeliveryMapPreviewScreenState
     final byteData = await frame.image.toByteData(
       format: ui.ImageByteFormat.png,
     );
-    _scooterIcon = BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+    _scooterIcon = BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
   }
 
   void _tickMarkerAnimation() {

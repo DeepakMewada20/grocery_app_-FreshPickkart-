@@ -1584,6 +1584,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         if (!mounted) return;
         _isSaved = true;
         await _cleanupImages(keepCurrent: true);
+        if (!mounted) return;
         Navigator.pop(context, true);
       } catch (e) {
         if (!mounted) return;

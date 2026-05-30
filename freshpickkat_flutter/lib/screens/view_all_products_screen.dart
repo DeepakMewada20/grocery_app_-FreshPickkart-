@@ -73,7 +73,7 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
       Get.snackbar(
         'Error',
         'Unable to load products',
-        backgroundColor: Colors.red.withOpacity(0.8),
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } finally {
