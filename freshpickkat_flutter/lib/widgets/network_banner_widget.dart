@@ -125,6 +125,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
     final controller = _pageController;
     if (controller == null ||
         !controller.hasClients ||
+        !controller.position.haveDimensions ||
         widget.banners.isEmpty) {
       return;
     }

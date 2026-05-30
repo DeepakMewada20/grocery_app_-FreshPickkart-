@@ -23,6 +23,10 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
+import 'package:freshpickkat_flutter/basket/widgets/confetti_burst_widget.dart';
+import 'package:freshpickkat_flutter/basket/widgets/reward_banner_overlay.dart';
+import 'package:freshpickkat_flutter/basket/widgets/savings_card.dart';
 
 class BasketScreen extends StatefulWidget {
   const BasketScreen({super.key});
@@ -43,6 +47,16 @@ class _BasketScreenState extends State<BasketScreen> {
       await CategoryProviderController.instance.fetchCategoriesIfEmpty();
       await ProductProviderController.instance.fetchTrendingIfEmpty();
       await ProductProviderController.instance.fetchBestSellersIfEmpty();
+      // Snapshot reward state AFTER initial load so celebrations
+      // only fire on genuine user-driven transitions, never on startup.
+      if (mounted) {
+        final cart = CartController.instance;
+        RewardCelebrationService.instance.snapshotCurrentState(
+          deliveryFee: cart.deliveryFee,
+          couponCode: cart.appliedCoupon.value?.code,
+          couponDiscount: cart.couponDiscount,
+        );
+      }
     });
     BannerController.instance.loadBannersForScreen('cart_page');
 
@@ -70,43 +84,48 @@ class _BasketScreenState extends State<BasketScreen> {
           return _buildEmptyState(context);
         }
 
-        return Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: Column(
-                  children: [
-                    // 🎯 Cart Page Banner
-                    Obx(() {
-                      final banners = BannerController.instance.cartPageBanners;
-                      if (banners.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
-                        child: NetworkBannerWidget(
-                          height: AppResponsive.bannerHeight(
-                            context,
-                            ratio: 0.42,
-                            min: 110,
-                            max: 160,
-                          ),
-                          banners: banners,
-                          autoScrollInterval: const Duration(seconds: 4),
-                          autoScrollDuration: const Duration(milliseconds: 500),
-                        ),
-                      );
-                    }),
-                    _buildCartItemsList(context, cartController, cs),
-                    const BasketSuggestionsSection(),
-                    const CouponSection(),
-                    _buildBillDetails(cartController, cs),
-                    _buildSavingsSummary(context, cartController, cs),
-                  ],
+        return ConfettiBurstWidget(
+          child: RewardBannerOverlay(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // 🎯 Cart Page Banner
+                        Obx(() {
+                          final banners = BannerController.instance.cartPageBanners;
+                          if (banners.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
+                            child: NetworkBannerWidget(
+                              height: AppResponsive.bannerHeight(
+                                context,
+                                ratio: 0.42,
+                                min: 110,
+                                max: 160,
+                              ),
+                              banners: banners,
+                              autoScrollInterval: const Duration(seconds: 4),
+                              autoScrollDuration:
+                                  const Duration(milliseconds: 500),
+                            ),
+                          );
+                        }),
+                        _buildCartItemsList(context, cartController, cs),
+                        const BasketSuggestionsSection(),
+                        const CouponSection(),
+                        _buildBillDetails(cartController, cs),
+                        const SavingsCard(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                _buildProceedButton(context, cartController, cs),
+              ],
             ),
-            _buildProceedButton(context, cartController, cs),
-          ],
+          ),
         );
       }),
     ),
@@ -786,82 +805,7 @@ class _BasketScreenState extends State<BasketScreen> {
     );
   }
 
-  Widget _buildSavingsSummary(BuildContext context, CartController cartController, ColorScheme cs) {
-    final totalSavings = cartController.productDiscountTotal +
-        cartController.comboDiscountTotal +
-        cartController.bogoDiscountTotal +
-        cartController.couponDiscount +
-        cartController.deliveryDiscountAmount;
 
-    if (totalSavings <= 0) return const SizedBox.shrink();
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = isDark ? cs.primary : AppTheme.primaryGreen;
-
-    return Container(
-      margin: EdgeInsets.fromLTRB(16.r, 0, 16.r, 16.r),
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10.r),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: isDark ? 0.15 : 0.1),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(
-              Icons.account_balance_wallet_rounded,
-              color: accentColor,
-              size: 24.r,
-            ),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '₹${totalSavings.formatPrice}',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      'saved',
-                      style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.6),
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  'Every rupee saved is a rupee earned! 🐷',
-                  style: TextStyle(
-                    color: cs.onSurface.withValues(alpha: 0.45),
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBillRow(
     String label,

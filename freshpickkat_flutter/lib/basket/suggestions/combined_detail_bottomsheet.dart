@@ -109,101 +109,98 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                             );
                           }
 
-                          return IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Column(
-                                  children: [
-                                    Container(
-                                      width: 28.r,
-                                      height: 28.r,
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primaryGreen.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '${i + 1}',
-                                          style: TextStyle(
-                                            color: AppTheme.primaryGreen,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13.sp,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (!isLast)
-                                      Expanded(
-                                        child: Container(
-                                          width: 2.r,
-                                          color: AppTheme.primaryGreen
-                                              .withValues(
-                                                alpha: 0.1,
-                                              ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                SizedBox(width: 16.w),
-                                Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(bottom: 24.h),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          action.label,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15.sp,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          _stepDescription(action),
-                                          style: TextStyle(
-                                            color: cs.onSurface.withValues(
-                                              alpha: 0.6,
-                                            ),
-                                            fontSize: 13.sp,
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                        if ((action.extraSpend ?? 0) > 0 ||
-                                            (action.benefit ?? 0) > 0) ...[
-                                          SizedBox(height: 10.h),
-                                          Wrap(
-                                            spacing: 8.w,
-                                            runSpacing: 8.h,
-                                            children: [
-                                              if ((action.extraSpend ?? 0) > 0)
-                                                _InfoPill(
-                                                  label:
-                                                      'Spend ₹${action.extraSpend!.formatPrice}',
-                                                ),
-                                              if ((action.benefit ?? 0) > 0)
-                                                _InfoPill(
-                                                  label:
-                                                      'Save ₹${action.benefit!.formatPrice}',
-                                                ),
-                                            ],
-                                          ),
-                                        ],
-                                      ],
-                                    ),
+                          return Stack(
+                            children: [
+                              if (!isLast)
+                                Positioned(
+                                  top: 28.r,
+                                  bottom: 0,
+                                  left: 14.r - 1.r, // Centered relative to 28.r circle
+                                  width: 2.r,
+                                  child: Container(
+                                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                                   ),
                                 ),
-                                Icon(
-                                  _getIcon(action),
-                                  size: 18.r,
-                                  color: cs.onSurface.withValues(alpha: 0.3),
-                                ),
-                              ],
-                            ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 28.r,
+                                    height: 28.r,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryGreen.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${i + 1}',
+                                        style: TextStyle(
+                                          color: AppTheme.primaryGreen,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13.sp,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 16.w),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 24.h),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            action.label,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            _stepDescription(action),
+                                            style: TextStyle(
+                                              color: cs.onSurface.withValues(
+                                                alpha: 0.6,
+                                              ),
+                                              fontSize: 13.sp,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                          if ((action.extraSpend ?? 0) > 0 ||
+                                              (action.benefit ?? 0) > 0) ...[
+                                            SizedBox(height: 10.h),
+                                            Wrap(
+                                              spacing: 8.w,
+                                              runSpacing: 8.h,
+                                              children: [
+                                                if ((action.extraSpend ?? 0) > 0)
+                                                  _InfoPill(
+                                                    label:
+                                                        'Spend ₹${action.extraSpend!.formatPrice}',
+                                                  ),
+                                                if ((action.benefit ?? 0) > 0)
+                                                  _InfoPill(
+                                                    label:
+                                                        'Save ₹${action.benefit!.formatPrice}',
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    _getIcon(action),
+                                    size: 18.r,
+                                    color: cs.onSurface.withValues(alpha: 0.3),
+                                  ),
+                                ],
+                              ),
+                            ],
                           );
                         }),
                         SizedBox(height: 8.h),
@@ -368,48 +365,49 @@ class _ComboTimelineStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              Container(
-                width: 28.r,
-                height: 28.r,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '$stepNumber',
-                    style: TextStyle(
-                      color: AppTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13.sp,
-                    ),
+    return Stack(
+      children: [
+        if (!isLast)
+          Positioned(
+            top: 28.r,
+            bottom: 0,
+            left: 14.r - 1.r,
+            width: 2.r,
+            child: Container(
+              color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+            ),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 28.r,
+              height: 28.r,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '$stepNumber',
+                  style: TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13.sp,
                   ),
                 ),
               ),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 2.r,
-                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 24.h),
-              child: _ComboOfferBreakdownCard(action: action),
             ),
-          ),
-        ],
-      ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 24.h),
+                child: _ComboOfferBreakdownCard(action: action),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

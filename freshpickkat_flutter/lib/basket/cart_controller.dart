@@ -18,6 +18,7 @@ import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
 
 class CartItem {
   final Product product;
@@ -469,6 +470,15 @@ class CartController extends GetxController {
           isPricingStale.value = false;
           // Also update estimate logic if we got config back (if ever exposed)
           _updateDeliveryFeeEstimate();
+          // Notify reward service — delivery fee may have just become free
+          if (Get.isRegistered<RewardCelebrationService>()) {
+            RewardCelebrationService.instance.checkAndTriggerRewards(
+              currentDeliveryFee: deliveryFee,
+              originalDeliveryFee: originalDeliveryFee,
+              currentCouponCode: appliedCoupon.value?.code,
+              currentCouponDiscount: couponDiscount,
+            );
+          }
         }
       } catch (e) {
         debugPrint('Error fetching cart pricing: $e');
@@ -1066,6 +1076,15 @@ class CartController extends GetxController {
               discountAmount: bestDisplay.discountAmount ?? 0,
             );
       _syncAutoAppliedBestCoupon();
+      // Notify reward service — best coupon may have just been auto-applied
+      if (Get.isRegistered<RewardCelebrationService>()) {
+        RewardCelebrationService.instance.checkAndTriggerRewards(
+          currentDeliveryFee: deliveryFee,
+          originalDeliveryFee: originalDeliveryFee,
+          currentCouponCode: appliedCoupon.value?.code,
+          currentCouponDiscount: couponDiscount,
+        );
+      }
       _couponCacheKey = currentCacheKey;
       _hasCouponCacheForCurrentCart = true;
     } catch (e) {
@@ -1656,6 +1675,7 @@ class CartController extends GetxController {
           candidate.isActive && candidate.triggerProductId == triggerProductId,
     );
     if (offer == null || offer.freeProductIds.isEmpty) return;
+
     final isEligible =
         isBogoTriggerVariantEligible(
           baseProduct,
