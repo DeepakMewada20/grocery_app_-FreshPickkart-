@@ -1563,6 +1563,7 @@ class CartController extends GetxController {
       cartItems[index].bogoFreeProductId = freeProductId;
       cartItems.refresh();
       _syncWithServer(); // Explicit sync for selection
+      _scheduleCartRefresh();
     }
   }
 

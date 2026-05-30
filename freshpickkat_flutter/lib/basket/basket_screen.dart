@@ -86,7 +86,8 @@ class _BasketScreenState extends State<BasketScreen> {
 
         return ConfettiBurstWidget(
           child: RewardBannerOverlay(
-            child: Column(
+            child: Builder(
+              builder: (context) => Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
@@ -125,6 +126,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 _buildProceedButton(context, cartController, cs),
               ],
             ),
+          ),
           ),
         );
       }),
