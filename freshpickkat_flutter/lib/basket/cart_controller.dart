@@ -14,6 +14,7 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
+import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:get/get.dart';
@@ -1756,6 +1757,7 @@ class CartController extends GetxController {
           break;
 
         case 'delivery':
+          TabNavigationController.instance.navigateToCategories();
           break;
 
         case 'navigate':
@@ -1771,7 +1773,10 @@ class CartController extends GetxController {
       }
     }
 
-    // Remove the applied suggestion from the list
-    basketSuggestions.remove(suggestion);
+    // Remove the applied suggestion from the list (keep delivery/coupon suggestions visible)
+    final keep = suggestion.actions?.any((a) => a.type == 'delivery' || a.type == 'coupon') ?? false;
+    if (!keep) {
+      basketSuggestions.remove(suggestion);
+    }
   }
 }

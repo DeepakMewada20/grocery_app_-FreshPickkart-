@@ -129,6 +129,7 @@ class SingleCardBody extends StatelessWidget {
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
                 onTap: () => CartController.instance.applyBasketSuggestion(s),
+                showArrow: type != 'delivery',
               ),
             ],
           ),

@@ -123,12 +123,14 @@ class CTAButton extends StatelessWidget {
   final String label;
   final Color accent;
   final VoidCallback onTap;
+  final bool showArrow;
 
   const CTAButton({
     super.key,
     required this.label,
     required this.accent,
     required this.onTap,
+    this.showArrow = true,
   });
 
   @override
@@ -158,8 +160,10 @@ class CTAButton extends StatelessWidget {
               minFontSize: 8,
               maxLines: 1,
             ),
-            SizedBox(width: 3.w),
-            Icon(Icons.arrow_forward_ios_rounded, color: accent, size: 10.r),
+            if (showArrow) ...[
+              SizedBox(width: 3.w),
+              Icon(Icons.arrow_forward_ios_rounded, color: accent, size: 10.r),
+            ],
           ],
         ),
       ),

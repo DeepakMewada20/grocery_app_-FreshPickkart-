@@ -808,9 +808,9 @@ class BasketSuggestionService {
     final remaining = nextMilestone.minOrderAmount;
     final savings = currentFee - nextMilestone.fee;
     final action = _primaryAction(
-      type: 'navigate',
-      label: 'Shop for free delivery',
-      ctaLabel: 'Explore',
+      type: 'delivery',
+      label: 'Free delivery',
+      ctaLabel: 'Auto Apply',
       payload: {
         'minOrderAmount': nextMilestone.minOrderAmount.toStringAsFixed(0),
       },
