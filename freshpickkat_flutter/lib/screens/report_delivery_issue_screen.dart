@@ -93,27 +93,34 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                           SizedBox(height: 16.h),
                           _SectionCard(
                             title: 'Issue type',
-                            child: Column(
-                              children: [
-                                RadioGroup<String>(
-                                  groupValue: _controller.selectedIssueType.value,
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      _controller.selectIssueType(value);
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: Column(
-                                    children: DeliveryIssueController.issueTypes.map(
-                                      (issue) => RadioListTile<String>(
-                                        value: issue,
-                                        title: Text(issue),
-                                        contentPadding: EdgeInsets.zero,
-                                      ),
-                                    ).toList(),
-                                  ),
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _controller.selectedIssueType.value,
+                              isExpanded: true,
+                              items: DeliveryIssueController.issueTypes.map(
+                                (type) => DropdownMenuItem<String>(
+                                  value: type,
+                                  child: Text(type),
                                 ),
-                              ],
+                              ).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  _controller.selectIssueType(value);
+                                  setState(() {});
+                                }
+                              },
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                              decoration: _inputDecoration(
+                                context,
+                                hintText: 'Select issue type',
+                              ),
+                              dropdownColor:
+                                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please select an issue type.';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           SizedBox(height: 16.h),
@@ -126,48 +133,55 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SegmentedButton<String>(
-                                        segments: const [
-                                          ButtonSegment(
-                                            value:
+                                      Wrap(
+                                        spacing: 10.w,
+                                        runSpacing: 8.h,
+                                        children: [
+                                          _buildFieldChip(
+                                            context,
+                                            label: 'Change address',
+                                            isSelected: _controller.isAddressChange,
+                                            onTap: () {
+                                              _controller.selectField(
                                                 DeliveryIssueController.addressChangeField,
-                                            label: Text('Change address'),
+                                              );
+                                              setState(() {});
+                                            },
                                           ),
-                                          ButtonSegment(
-                                            value:
+                                          _buildFieldChip(
+                                            context,
+                                            label: 'Delivery note',
+                                            isSelected: !_controller.isAddressChange,
+                                            onTap: () {
+                                              _controller.selectField(
                                                 DeliveryIssueController.deliveryNoteField,
-                                            label: Text('Delivery note'),
+                                              );
+                                              setState(() {});
+                                            },
                                           ),
                                         ],
-                                        selected: {
-                                          _controller.selectedField.value,
-                                        },
-                                        onSelectionChanged: (values) {
-                                          if (values.isEmpty) return;
-                                          _controller.selectField(values.first);
-                                          setState(() {});
-                                        },
                                       ),
                                       SizedBox(height: 14.h),
-                                      if (_controller.isAddressChange)
-                                        _AddressPreviewCard(
-                                          address:
-                                              _controller.selectedAddress.value ??
-                                              widget.currentAddress,
-                                          onEdit: _controller.pickAddress,
-                                        )
-                                      else
-                                        TextFormField(
-                                          controller: _noteController,
-                                          minLines: 3,
-                                          maxLines: 5,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Delivery note',
-                                            hintText:
-                                                'Add a note for the rider or the delivery team',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                        ),
+                                      SizedBox(
+                                        height: 110.h,
+                                        child: _controller.isAddressChange
+                                            ? _AddressPreviewCard(
+                                                address:
+                                                    _controller.selectedAddress.value ??
+                                                    widget.currentAddress,
+                                                onEdit: _controller.pickAddress,
+                                              )
+                                            : TextFormField(
+                                                controller: _noteController,
+                                                expands: true,
+                                                maxLines: null,
+                                                textInputAction: TextInputAction.newline,
+                                                decoration: _inputDecoration(
+                                                  context,
+                                                  hintText: 'Add a note for the rider or the delivery team',
+                                                ),
+                                              ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -181,11 +195,9 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               minLines: 5,
                               maxLines: 8,
                               textInputAction: TextInputAction.newline,
-                              decoration: const InputDecoration(
-                                labelText: 'Tell us what happened',
-                                hintText:
-                                    'Please describe the delivery issue in detail...',
-                                border: OutlineInputBorder(),
+                              decoration: _inputDecoration(
+                                context,
+                                hintText: 'Please describe the delivery issue in detail...',
                               ),
                               validator: (value) {
                                 final text = value?.trim() ?? '';
@@ -243,6 +255,37 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
     );
   }
 
+  Widget _buildFieldChip(
+    BuildContext context, {
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          color: isSelected ? cs.onSurface.withValues(alpha: 0.06) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isSelected ? cs.onSurface.withValues(alpha: 0.5) : cs.outlineVariant,
+            width: isSelected ? 1.4 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.sp,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: cs.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     try {
@@ -271,6 +314,51 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
       );
     }
   }
+}
+
+InputDecoration _inputDecoration(
+  BuildContext context, {
+  required String hintText,
+  IconData? prefixIcon,
+}) {
+  final cs = Theme.of(context).colorScheme;
+
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: TextStyle(
+      color: cs.onSurface.withValues(alpha: 0.38),
+      fontSize: 14.sp,
+    ),
+    prefixIcon: prefixIcon == null
+        ? null
+        : Icon(
+            prefixIcon,
+            color: cs.onSurface.withValues(alpha: 0.55),
+          ),
+    filled: true,
+    fillColor: Theme.of(context).scaffoldBackgroundColor,
+    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.r),
+      borderSide: BorderSide(color: cs.outlineVariant),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.r),
+      borderSide: BorderSide(color: cs.outlineVariant),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.r),
+      borderSide: BorderSide(color: cs.primary, width: 1.4),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.r),
+      borderSide: const BorderSide(color: Colors.redAccent),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15.r),
+      borderSide: const BorderSide(color: Colors.redAccent, width: 1.4),
+    ),
+  );
 }
 
 class _IntroCard extends StatelessWidget {
@@ -372,37 +460,57 @@ class _AddressPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final addressText = [
+      address.street,
+      address.city,
+      address.state,
+      address.zipCode,
+      address.country,
+    ].where((part) => part.trim().isNotEmpty).join(', ');
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.18)),
+        border: Border.all(color: cs.outlineVariant),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Current address',
-            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Current address',
+                  style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  addressText,
+                  style: TextStyle(fontSize: 13.sp, height: 1.35),
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 6.h),
-          Text(
-            [
-              address.street,
-              address.city,
-              address.state,
-              address.zipCode,
-              address.country,
-            ].where((part) => part.trim().isNotEmpty).join(', '),
-            style: TextStyle(fontSize: 13.sp, height: 1.35),
-          ),
-          SizedBox(height: 10.h),
-          OutlinedButton.icon(
+          SizedBox(width: 10.w),
+          OutlinedButton(
             onPressed: onEdit,
-            icon: const Icon(Icons.edit_location_alt_outlined),
-            label: const Text('Change address'),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              side: BorderSide(color: cs.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+            child: Text(
+              'Change',
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
