@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -101,6 +102,8 @@ class AdminBogoController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadBogoOffers);
     } catch (e) {
+      debugPrint('Error loading BOGO offers: $e');
+      networkController.showError(onRetry: loadBogoOffers);
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

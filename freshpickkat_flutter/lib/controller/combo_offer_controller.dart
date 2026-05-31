@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -57,6 +58,7 @@ class ComboOfferController extends GetxController {
       final offers = await _client.comboOffer.getActiveComboOffers();
       activeComboOffers.assignAll(offers);
     } catch (e) {
+      debugPrint('Error loading active combo offers: $e');
     } finally {
       isLoading.value = false;
     }
@@ -77,6 +79,7 @@ class ComboOfferController extends GetxController {
       final applicable = await _client.comboOffer.checkApplicableCombos(items);
       applicableCombos.assignAll(applicable);
     } catch (e) {
+      debugPrint('Error checking applicable combo offers: $e');
     }
   }
 

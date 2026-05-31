@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -110,6 +111,8 @@ class AdminCategoryOfferController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadCategoryOffers);
     } catch (e) {
+      debugPrint('Error loading category offers: $e');
+      networkController.showError(onRetry: loadCategoryOffers);
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

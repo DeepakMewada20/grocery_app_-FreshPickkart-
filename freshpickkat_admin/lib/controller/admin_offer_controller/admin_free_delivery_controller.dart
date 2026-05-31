@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -61,6 +62,7 @@ class AdminFreeDeliveryController extends GetxController {
       });
       deliveryConfig.value = config;
     } catch (e) {
+      debugPrint('Error loading free delivery config: $e');
     }
   }
 
@@ -101,6 +103,8 @@ class AdminFreeDeliveryController extends GetxController {
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadDeliveryData);
     } catch (e) {
+      debugPrint('Error loading free delivery rules: $e');
+      networkController.showError(onRetry: loadDeliveryData);
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
