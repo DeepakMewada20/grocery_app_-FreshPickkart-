@@ -29,6 +29,7 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -157,13 +158,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _openLocationPicker(initialAddress: deliveryAddress);
       // Give the user a hint why the picker opened
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'This address needs a map location. Please pick your location on the map.',
-          ),
-          backgroundColor: Colors.orange,
-        ),
+      AppSnackbar.show(
+        'Location Needed',
+        'This address needs a map location. Please pick your location on the map.',
       );
       return;
     }

@@ -5,7 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
-import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+
 
 enum PaymentStatus {
   verified,
@@ -334,10 +335,9 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
   Widget _buildSupportButton() {
     return OutlinedButton.icon(
       onPressed: () {
-        Get.snackbar(
+        AppSnackbar.show(
           'Contact Support',
           'Please contact us at support@freshpickkat.com',
-          snackPosition: SnackPosition.BOTTOM,
         );
       },
       style: OutlinedButton.styleFrom(

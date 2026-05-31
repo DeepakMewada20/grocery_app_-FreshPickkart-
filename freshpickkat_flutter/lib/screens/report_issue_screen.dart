@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/support_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get/get.dart';
 
 class ReportIssueScreen extends StatefulWidget {
@@ -197,10 +198,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         description: _descriptionController.text,
       );
     } catch (error) {
-      Get.snackbar(
+      AppSnackbar.error(
         'Unable to submit',
         error.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }

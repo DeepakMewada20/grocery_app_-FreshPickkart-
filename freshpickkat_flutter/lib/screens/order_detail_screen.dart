@@ -16,6 +16,7 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/order_item_grouping.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -695,13 +696,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (deliveredAt != null) {
                   final deadline = deliveredAt.add(const Duration(days: 3));
                   if (DateTime.now().isAfter(deadline)) {
-                    Get.snackbar(
+                    AppSnackbar.show(
                       'Complaint period expired',
                       'You can only report product issues within 3 days of delivery.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      duration: const Duration(seconds: 3),
-                      backgroundColor: Colors.grey.shade800,
-                      colorText: Colors.white,
                     );
                     return;
                   }
@@ -1091,7 +1088,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Future<void> _cancelOrder() async {
     final currentUser = AuthController.instance.currentUser;
     if (currentUser == null) {
-      Get.snackbar('Login required', 'Please login to cancel the order.');
+      AppSnackbar.show('Login required', 'Please login to cancel the order.');
       return;
     }
 
@@ -1106,14 +1103,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
       await _fetch();
       if (mounted) {
-        Get.snackbar(
+        AppSnackbar.show(
           'Order updated',
           'Order cancelled successfully. Refund will be tracked automatically.',
         );
       }
     } catch (e) {
       if (mounted) {
-        Get.snackbar('Cancel failed', '$e');
+        AppSnackbar.error('Cancel failed', '$e');
       }
     } finally {
       if (mounted) {

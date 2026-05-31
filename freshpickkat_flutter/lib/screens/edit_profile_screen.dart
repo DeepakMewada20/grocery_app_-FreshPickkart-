@@ -5,6 +5,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
@@ -149,31 +150,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (widget.successAction == 'navigateHome') {
         // For new user setup - show success and navigate home
         Get.offAllNamed('/home');
-        Get.snackbar(
+        AppSnackbar.show(
           'Success',
           'Profile saved successfully!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
-          colorText: Colors.white,
         );
       } else {
         // For edit profile from more screen - go back with snackbar
         Get.back();
-        Get.snackbar(
+        AppSnackbar.show(
           'Success',
           'Profile updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.8),
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      AppSnackbar.error(
         'Error',
         'Failed to update profile: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
-        colorText: Colors.white,
       );
       debugPrint('Save error: $e');
     } finally {

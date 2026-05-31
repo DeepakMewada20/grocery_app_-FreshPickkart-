@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
 import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -147,12 +148,9 @@ class BannerNavigationHelper {
   }
 
   static void _showSnackbar(String message) {
-    Get.snackbar(
+    AppSnackbar.show(
       'Banner',
       message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-      margin: const EdgeInsets.all(16),
     );
   }
 }

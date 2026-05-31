@@ -5,6 +5,7 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get/get.dart';
 
 /// Displays a full list of products in a grid. The [sortBy] value is forwarded
@@ -70,11 +71,9 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
       }
     } catch (e) {
       debugPrint('Failed to fetch products: $e');
-      Get.snackbar(
+      AppSnackbar.error(
         'Error',
         'Unable to load products',
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
       );
     } finally {
       isLoading.value = false;

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -245,27 +246,9 @@ class _CouponListCard extends StatelessWidget {
 
   Color get _accentColor => AppTheme.primaryGreen;
 
-  void _copyCode(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+  void _copyCode() {
     Clipboard.setData(ClipboardData(text: coupon.code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle, color: cs.onPrimary, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              '"${coupon.code}" copied!',
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        backgroundColor: cs.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AppSnackbar.show('Copied!', '"${coupon.code}" copied!');
   }
 
   @override
@@ -273,7 +256,7 @@ class _CouponListCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTap: () => _copyCode(context),
+      onTap: _copyCode,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
         decoration: BoxDecoration(
@@ -483,7 +466,7 @@ class _CouponListCard extends StatelessWidget {
                   );
                   final copyButton = _CopyCouponButton(
                     accentColor: _accentColor,
-                    onTap: () => _copyCode(context),
+                    onTap: _copyCode,
                   );
                   if (constraints.maxWidth < 330) {
                     return Column(

@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});
@@ -353,13 +354,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           _verificationId = verificationId;
         });
         _startResendTimer();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('OTP resent successfully'),
-            backgroundColor: Color(0xFF00B894),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppSnackbar.show('Success', 'OTP resent successfully');
       },
       onError: (error) {
         setState(() {

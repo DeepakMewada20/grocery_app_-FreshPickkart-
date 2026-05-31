@@ -4,6 +4,7 @@ import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/support_issue_service.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -302,10 +303,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     }
 
     if (mounted) {
-      Get.snackbar(
+      AppSnackbar.error(
         'Unable to open',
         fallbackMessage,
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }

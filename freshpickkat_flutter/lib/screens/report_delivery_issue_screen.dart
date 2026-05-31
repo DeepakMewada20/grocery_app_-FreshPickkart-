@@ -4,6 +4,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/delivery_issue_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:get/get.dart';
 
 class ReportDeliveryIssueScreen extends StatefulWidget {
@@ -297,20 +298,18 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
       if (result is Complaint) {
         Get.back(result: result);
       } else if (result == true) {
-        Get.snackbar(
+        AppSnackbar.show(
           'Updated',
           _controller.isAddressChange
               ? 'Delivery address updated successfully'
               : 'Delivery note saved successfully',
-          snackPosition: SnackPosition.BOTTOM,
         );
         Get.back(result: true);
       }
     } catch (error) {
-      Get.snackbar(
+      AppSnackbar.error(
         'Unable to submit',
         error.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
       );
     }
   }
