@@ -11,7 +11,9 @@ import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/screens/help_support_screen.dart';
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart';
+import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -47,7 +49,6 @@ class _MoreScreenState extends State<MoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authController = AuthController.instance;
     final userController = UserController.instance;
     final cs = Theme.of(context).colorScheme;
 
@@ -125,43 +126,14 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildMenuItem(
                   icon: Icons.logout,
                   title: 'Logout',
-                  onTap: () {
-                    Get.dialog(
-                      AlertDialog(
-                        backgroundColor: cs.surfaceContainerHighest,
-                        title: Text(
-                          'Logout',
-                          style: TextStyle(color: cs.onSurface),
-                        ),
-                        content: Text(
-                          'Are you sure you want to logout?',
-                          style: TextStyle(
-                            color: cs.onSurface.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              authController.signOut();
-                              Get.offAllNamed('/home');
-                            },
-                            child: const Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.redAccent),
-                            ),
-                          ),
-                        ],
-                      ),
+                  onTap: () async {
+                    final confirmed = await Get.dialog<bool>(
+                      const _LogoutDialog(),
                     );
+                    if (confirmed == true) {
+                      TabNavigationController.instance.navigateToHome();
+                      Get.offAll(() => const MainScreen());
+                    }
                   },
                   cs: cs,
                 ),
@@ -559,6 +531,68 @@ class _MoreScreenState extends State<MoreScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LogoutDialog extends StatefulWidget {
+  const _LogoutDialog();
+
+  @override
+  State<_LogoutDialog> createState() => _LogoutDialogState();
+}
+
+class _LogoutDialogState extends State<_LogoutDialog> {
+  bool _isLoggingOut = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return AlertDialog(
+      backgroundColor: cs.surfaceContainerHighest,
+      title: Text('Logout', style: TextStyle(color: cs.onSurface)),
+      content: Text(
+        'Are you sure you want to logout?',
+        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoggingOut ? null : () => Get.back(),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: _isLoggingOut
+              ? null
+              : () async {
+                  final navigator = Navigator.of(context);
+                  setState(() => _isLoggingOut = true);
+                  try {
+                    await AuthController.instance.signOut();
+                  } catch (_) {
+                    // Continue to home even if logout errors
+                  }
+                  navigator.pop(true);
+                },
+          child: _isLoggingOut
+              ? SizedBox(
+                  width: 20.h,
+                  height: 20.h,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.redAccent,
+                  ),
+                )
+              : const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+        ),
+      ],
     );
   }
 }
