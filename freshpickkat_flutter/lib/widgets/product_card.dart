@@ -388,16 +388,7 @@ class _ProductCardState extends State<ProductCard> {
                               height: 32.h.clamp(30.0, 36.0),
                               child: !displayProduct.isAvailable
                                   ? _buildNotAvailableButton(cs)
-                                  : Obx(() {
-                                      final quantity = _cartController
-                                          .getProductQuantity(
-                                        widget.product.productId,
-                                        variantId: _selectedVariantId,
-                                      );
-                                      return quantity == 0
-                                          ? _buildAddButton(cs)
-                                          : _buildQuantitySelector(quantity);
-                                    }),
+                                  : _buildAddOrQuantity(cs),
                             ),
                           ],
                         ),
@@ -411,6 +402,14 @@ class _ProductCardState extends State<ProductCard> {
         ),
       ),
     );
+  }
+
+  Widget _buildAddOrQuantity(ColorScheme cs) {
+    final quantity = _cartController.getProductQuantity(
+      widget.product.productId,
+      variantId: _selectedVariantId,
+    );
+    return quantity == 0 ? _buildAddButton(cs) : _buildQuantitySelector(quantity);
   }
 
   Widget _buildAddButton(ColorScheme cs) {
