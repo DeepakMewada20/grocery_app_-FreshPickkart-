@@ -222,15 +222,6 @@ class ComboOfferCard extends StatelessWidget {
                         ? ElevatedButton.icon(
                             onPressed: () {
                               cartController.addComboOffer(combo);
-                              Get.snackbar(
-                                'Added to Basket',
-                                '${products.length} combo products added from ${combo.name}',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: AppTheme.primaryGreen,
-                                colorText: Colors.white,
-                                duration: const Duration(seconds: 2),
-                                margin: EdgeInsets.all(16.r),
-                              );
                             },
                             icon: const Icon(Icons.add_shopping_cart),
                             label: const Text('Add Combo to Basket'),

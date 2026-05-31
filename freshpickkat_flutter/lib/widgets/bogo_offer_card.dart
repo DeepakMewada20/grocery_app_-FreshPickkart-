@@ -259,12 +259,6 @@ class BogoOfferCard extends StatelessWidget {
                                               triggerVariant?.variantId,
                                         );
                                       }
-                                      Get.snackbar(
-                                        'Offer Added',
-                                        offerText,
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        duration: const Duration(seconds: 2),
-                                      );
                                     },
                               icon: const Icon(
                                 Icons.add_shopping_cart,

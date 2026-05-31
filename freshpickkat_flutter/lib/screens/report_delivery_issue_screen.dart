@@ -105,13 +105,11 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                   },
                                   child: Column(
                                     children: DeliveryIssueController.issueTypes.map(
-                                      (issue) => Obx(() {
-                                        return RadioListTile<String>(
-                                          value: issue,
-                                          title: Text(issue),
-                                          contentPadding: EdgeInsets.zero,
-                                        );
-                                      }),
+                                      (issue) => RadioListTile<String>(
+                                        value: issue,
+                                        title: Text(issue),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
                                     ).toList(),
                                   ),
                                 ),
