@@ -366,6 +366,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildActionsCard(Order order, ColorScheme cs) {
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
@@ -391,7 +392,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isCancelling ? null : _cancelOrder,
+                onPressed: _isCancelling ? null : _showCancelConfirmation,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                ),
                 child: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
               ),
             ),
@@ -463,6 +470,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildAddress(Order order, ColorScheme cs) {
     final address = order.deliveryAddress;
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
@@ -1052,6 +1060,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return Colors.redAccent;
       default:
         return Colors.blueGrey;
+    }
+  }
+
+  Future<void> _showCancelConfirmation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: const Text(
+          'Are you sure you want to cancel this order? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      _cancelOrder();
     }
   }
 
