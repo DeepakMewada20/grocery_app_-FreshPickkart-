@@ -159,6 +159,8 @@ class CartController extends GetxController {
     _scheduleCartRefresh();
   }
 
+  void triggerPricingRefresh() => _scheduleCartRefresh();
+
   @override
   void onInit() {
     super.onInit();

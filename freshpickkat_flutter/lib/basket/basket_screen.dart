@@ -71,6 +71,13 @@ class _BasketScreenState extends State<BasketScreen> {
     });
   }
 
+  Future<void> _onRefresh() async {
+    final cartController = CartController.instance;
+    cartController.triggerPricingRefresh();
+    // Small delay so the RefreshIndicator spinner is visible
+    await Future.delayed(const Duration(milliseconds: 400));
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartController = CartController.instance;
@@ -90,8 +97,11 @@ class _BasketScreenState extends State<BasketScreen> {
               builder: (context) => Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    displacement: 40.h,
+                    child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: [
                         // 🎯 Cart Page Banner
@@ -123,6 +133,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     ),
                   ),
                 ),
+                  ),
                 _buildProceedButton(context, cartController, cs),
               ],
             ),
