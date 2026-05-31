@@ -711,9 +711,6 @@ class _BasketScreenState extends State<BasketScreen> {
   }
 
   Widget _buildBillDetails(CartController cartController, ColorScheme cs) {
-    final showEstimatedDelivery =
-        cartController.isPricingStale.value ||
-        cartController.cartPricing.value?.deliveryPricing == null;
     return Container(
       margin: EdgeInsets.all(16.r),
       padding: EdgeInsets.all(20.r),
@@ -734,80 +731,87 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
           ),
           SizedBox(height: 20.h),
-          _buildBillRow(
-            'MRP Total',
-            '₹${cartController.mrpTotal.formatPrice}',
-            cs: cs,
-          ),
-          if (cartController.productDiscountTotal > 0) ...[
-            SizedBox(height: 12.h),
-            _buildBillRow(
-              'Product Discount',
-              '-₹${cartController.productDiscountTotal.formatPrice}',
-              valueColor: Colors.green,
-              cs: cs,
-            ),
-          ],
-          if (cartController.comboDiscountTotal > 0) ...[
-            SizedBox(height: 12.h),
-            _buildBillRow(
-              'Combo Savings',
-              '-₹${cartController.comboDiscountTotal.formatPrice}',
-              valueColor: Colors.green,
-              cs: cs,
-            ),
-          ],
-          if (cartController.bogoDiscountTotal > 0) ...[
-            SizedBox(height: 12.h),
-            _buildBillRow(
-              'BOGO Savings',
-              '-₹${cartController.bogoDiscountTotal.formatPrice}',
-              valueColor: Colors.green,
-              cs: cs,
-            ),
-          ],
-          SizedBox(height: 12.h),
-          _buildBillRow(
-            'Items Total (Combo Applied)',
-            '₹${cartController.subtotal.formatPrice}',
-            cs: cs,
-          ),
-          if (cartController.couponDiscount > 0) ...[
-            SizedBox(height: 12.h),
-            _buildBillRow(
-              'Coupon Discount',
-              '-₹${cartController.couponDiscount.formatPrice}',
-              valueColor: Colors.green,
-              cs: cs,
-            ),
-          ],
-          SizedBox(height: 12.h),
-          _buildBillRow(
-            showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
-            cartController.deliveryFee == 0
-                ? 'FREE'
-                : '₹${cartController.deliveryFee.formatPrice}',
-            valueColor: cartController.deliveryFee == 0
-                ? Colors.green
-                : cs.onSurface,
-            cs: cs,
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-            child: Divider(color: cs.outlineVariant),
-          ),
-          _buildBillRow(
-            'To Pay',
-            '₹${cartController.totalAmount.formatPrice}',
-            isTotal: true,
-            cs: cs,
-          ),
+          Obx(() {
+            final showEstimatedDelivery =
+                cartController.isPricingStale.value ||
+                cartController.cartPricing.value?.deliveryPricing == null;
+            return Column(
+              children: [
+                _buildBillRow(
+                  'MRP Total',
+                  '₹${cartController.mrpTotal.formatPrice}',
+                  cs: cs,
+                ),
+                if (cartController.productDiscountTotal > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'Product Discount',
+                    '-₹${cartController.productDiscountTotal.formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
+                if (cartController.comboDiscountTotal > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'Combo Savings',
+                    '-₹${cartController.comboDiscountTotal.formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
+                if (cartController.bogoDiscountTotal > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'BOGO Savings',
+                    '-₹${cartController.bogoDiscountTotal.formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
+                SizedBox(height: 12.h),
+                _buildBillRow(
+                  'Items Total (Combo Applied)',
+                  '₹${cartController.subtotal.formatPrice}',
+                  cs: cs,
+                ),
+                if (cartController.couponDiscount > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'Coupon Discount',
+                    '-₹${cartController.couponDiscount.formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
+                SizedBox(height: 12.h),
+                _buildBillRow(
+                  showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
+                  cartController.deliveryFee == 0
+                      ? 'FREE'
+                      : '₹${cartController.deliveryFee.formatPrice}',
+                  valueColor: cartController.deliveryFee == 0
+                      ? Colors.green
+                      : cs.onSurface,
+                  cs: cs,
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  child: Divider(color: cs.outlineVariant),
+                ),
+                _buildBillRow(
+                  'To Pay',
+                  '₹${cartController.totalAmount.formatPrice}',
+                  isTotal: true,
+                  cs: cs,
+                ),
+              ],
+            );
+          }),
         ],
       ),
     );
   }
-
-
 
   Widget _buildBillRow(
     String label,

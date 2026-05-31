@@ -98,8 +98,10 @@ class _ProductCardState extends State<ProductCard> {
 
   Future<void> _handleAddToCart() async {
     if (_authController.isLoggedIn) {
+      _cartController.suspendPricingRefresh();
       _increment();
       await _showBogoSelectionIfNeeded(_displayProduct);
+      _cartController.resumePricingRefresh();
       if (widget.onAddPressed != null) widget.onAddPressed!();
     } else {
       ProtectedNavigationHelper.navigateTo(

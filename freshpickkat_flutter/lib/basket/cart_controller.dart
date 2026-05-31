@@ -142,11 +142,21 @@ class CartController extends GetxController {
   Future<void>? _deliveryConfigInFlight;
   bool _isInitialized = false;
   bool _isInitialSyncComplete = false;
-  Future<void>? _syncLock; // Serial queue for server updates
+  bool _pricingRefreshSuspended = false;
 
+  Future<void>? _syncLock; // Serial queue for server updates
   void markInitialized() {
     _isInitialized = true;
     _scheduleCartRefresh(); // Trigger first sync after initialization
+  }
+
+  void suspendPricingRefresh() {
+    _pricingRefreshSuspended = true;
+  }
+
+  void resumePricingRefresh() {
+    _pricingRefreshSuspended = false;
+    _scheduleCartRefresh();
   }
 
   @override
@@ -177,7 +187,7 @@ class CartController extends GetxController {
   }
 
   void _scheduleCartRefresh() {
-    if (_isInitialLoading || !_isInitialized) return;
+    if (_pricingRefreshSuspended || _isInitialLoading || !_isInitialized) return;
     isPricingStale.value = true;
     unawaited(fetchCartPricing());
     _cartRefreshDebounce?.cancel();
@@ -608,6 +618,7 @@ class CartController extends GetxController {
                 item.variantId ?? '',
                 item.comboId ?? '',
                 item.quantity.toString(),
+                item.bogoFreeProductId ?? '',
               ].join(':'),
             )
             .where((entry) => !entry.startsWith(':'))
@@ -1214,8 +1225,12 @@ class CartController extends GetxController {
     final normalizedItems =
         _buildCartItemInputs()
             .map(
-              (item) =>
-                  '${item.productId}:${item.variantId ?? ''}:${item.quantity}',
+              (item) => [
+                item.productId,
+                item.variantId ?? '',
+                item.quantity.toString(),
+                item.bogoFreeProductId ?? '',
+              ].join(':'),
             )
             .toList()
           ..sort();

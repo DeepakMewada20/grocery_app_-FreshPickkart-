@@ -97,8 +97,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _handleAddToCart(Product product) async {
     ProtectedNavigationHelper.executeProtectedAction(
       onLoggedIn: () async {
+        _cartController.suspendPricingRefresh();
         _incrementQuantity(product);
         await _showBogoSelectionIfNeeded(product);
+        _cartController.resumePricingRefresh();
       },
       productToAdd: product,
     );

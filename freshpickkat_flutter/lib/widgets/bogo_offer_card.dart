@@ -244,6 +244,7 @@ class BogoOfferCard extends StatelessWidget {
                               onPressed: product.productId == null
                                   ? null
                                   : () {
+                                      cart.suspendPricingRefresh();
                                       cart.addItem(
                                         product,
                                         variantId: triggerVariant?.variantId,
@@ -259,6 +260,7 @@ class BogoOfferCard extends StatelessWidget {
                                               triggerVariant?.variantId,
                                         );
                                       }
+                                      cart.resumePricingRefresh();
                                     },
                               icon: const Icon(
                                 Icons.add_shopping_cart,
