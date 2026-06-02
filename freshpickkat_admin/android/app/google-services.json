@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:784305413937:android:9f40fc9af1716c4479da10",
+        "mobilesdk_app_id": "1:784305413937:android:c185d8300afa7c4379da10",
         "android_client_info": {
           "package_name": "com.freshpickkart.admin"
         }
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:784305413937:android:dcd93fd1e4f559c479da10",
+        "mobilesdk_app_id": "1:784305413937:android:0237361e97486fca79da10",
         "android_client_info": {
           "package_name": "com.freshpickkart.customer"
         }

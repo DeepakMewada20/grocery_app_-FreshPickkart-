@@ -42,17 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDPtOOOyV6xlvR5FLYvzLumDGwyDl6NlIk',
-    appId: '1:784305413937:web:419f05cb0f74089a79da10',
+    appId: '1:784305413937:web:29ce015bf5932d6079da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     authDomain: 'freshpickkart-a6824.firebaseapp.com',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    measurementId: 'G-GEJWF4622W',
+    measurementId: 'G-9TMPYELK1H',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDbE8qQGVluyYuKu7omcT3-fl8e6TQNY_c',
-    appId: '1:784305413937:android:9f40fc9af1716c4479da10',
+    appId: '1:784305413937:android:c185d8300afa7c4379da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
@@ -60,7 +60,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:f6127f2c0ec67bd479da10',
+    appId: '1:784305413937:ios:51005c35aa11a36a79da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
@@ -69,7 +69,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBktLdQx7uM7HTOlfor0RilDvJC7qnSNh8',
-    appId: '1:784305413937:ios:14382ace0efbe03179da10',
+    appId: '1:784305413937:ios:4fe0b63ef9e2402d79da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
@@ -78,12 +78,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDPtOOOyV6xlvR5FLYvzLumDGwyDl6NlIk',
-    appId: '1:784305413937:web:46b071cfd4a1ecad79da10',
+    appId: '1:784305413937:web:29ce015bf5932d6079da10',
     messagingSenderId: '784305413937',
     projectId: 'freshpickkart-a6824',
     authDomain: 'freshpickkart-a6824.firebaseapp.com',
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
-    measurementId: 'G-JMBMCTEK49',
+    measurementId: 'G-9TMPYELK1H',
   );
 
 }
