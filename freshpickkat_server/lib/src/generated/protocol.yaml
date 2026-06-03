@@ -20,6 +20,7 @@ banner:
   - toggleBannerActive:
   - updateBannerPriority:
 bogo:
+  - upsertOfferWithConflicts:
   - upsertOffer:
   - deleteOffer:
   - getAllOffers:
@@ -43,6 +44,7 @@ categoryOffer:
 checkout:
   - createOrderAndPayment:
 comboOffer:
+  - upsertComboOfferWithConflicts:
   - upsertComboOffer:
   - deleteComboOffer:
   - getActiveComboOffers:
@@ -83,6 +85,8 @@ coupon:
 freeDelivery:
   - getDeliveryConfig:
   - getUserDeliveryOffer:
+  - setProductFreeDelivery:
+  - setCategoryFreeDelivery:
   - upsertDeliveryConfig:
   - getAllDeliveryRules:
   - getDeliveryRulesPage:

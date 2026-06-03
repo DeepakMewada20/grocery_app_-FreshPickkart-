@@ -537,6 +537,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ],
                           ),
                         ),
+                      if (displayProduct.isFreeDelivery)
+                        Padding(
+                          padding: EdgeInsets.only(top: 12.h, bottom: 4.h),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.local_shipping_outlined,
+                                color: productOfferColor(context),
+                                size: 20.r,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Free Delivery',
+                                style: TextStyle(
+                                  color: productOfferColor(context),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       SizedBox(height: 4.h),
                       const Text(
                         '(Inclusive of all taxes)',

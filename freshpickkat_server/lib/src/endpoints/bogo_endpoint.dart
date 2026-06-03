@@ -2,12 +2,57 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart' as protocol;
 import '../services/notification_outbox_service.dart';
+import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
 
 class BogoEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final OfferConflictService _conflicts = OfferConflictService();
+
+  Future<protocol.OfferMutationResult> upsertOfferWithConflicts(
+    Session session,
+    protocol.BogoOffer offer,
+    String firebaseUid,
+    String idToken, {
+    protocol.NotificationDraft? notificationDraft,
+    bool confirmDisableConflictingCombo = false,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final conflict = await _conflicts.checkBogoConflicts(session, offer);
+    if (conflict.hasConflict) {
+      final comboId = conflict.comboOffer?.comboId;
+      if (!confirmDisableConflictingCombo || comboId == null) {
+        return protocol.OfferMutationResult(
+          success: false,
+          message: conflict.message,
+          conflict: conflict,
+        );
+      }
+      await _conflicts.disableCombo(session, comboId);
+    }
+
+    final result = await _offers.upsertBogoOffer(session, offer);
+    if (result) {
+      await NotificationOutboxService.instance.enqueueCampaign(
+        session: session,
+        draft: notificationDraft,
+        fallbackEntityType: 'bogo',
+        fallbackEntityId: offer.offerId ?? offer.triggerProductId,
+        extraData: {'offerType': 'bogo'},
+      );
+    }
+    return protocol.OfferMutationResult(
+      success: result,
+      message: result ? 'BOGO offer saved.' : 'Failed to save BOGO offer.',
+    );
+  }
 
   Future<bool> upsertOffer(
     Session session,

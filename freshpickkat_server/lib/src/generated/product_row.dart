@@ -29,6 +29,7 @@ abstract class ProductRow
     this.stock,
     this.stockUnit,
     this.discountType,
+    bool? isFreeDelivery,
     int? mostSearchCount,
     int? mostPurchaseCount,
     int? last7DaysSold,
@@ -39,7 +40,8 @@ abstract class ProductRow
     this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : mostSearchCount = mostSearchCount ?? 0,
+  }) : isFreeDelivery = isFreeDelivery ?? false,
+       mostSearchCount = mostSearchCount ?? 0,
        mostPurchaseCount = mostPurchaseCount ?? 0,
        last7DaysSold = last7DaysSold ?? 0,
        last7DaysViews = last7DaysViews ?? 0,
@@ -64,6 +66,7 @@ abstract class ProductRow
     double? stock,
     String? stockUnit,
     String? discountType,
+    bool? isFreeDelivery,
     int? mostSearchCount,
     int? mostPurchaseCount,
     int? last7DaysSold,
@@ -96,6 +99,9 @@ abstract class ProductRow
       stock: (jsonSerialization['stock'] as num?)?.toDouble(),
       stockUnit: jsonSerialization['stockUnit'] as String?,
       discountType: jsonSerialization['discountType'] as String?,
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       mostSearchCount: jsonSerialization['mostSearchCount'] as int?,
       mostPurchaseCount: jsonSerialization['mostPurchaseCount'] as int?,
       last7DaysSold: jsonSerialization['last7DaysSold'] as int?,
@@ -150,6 +156,8 @@ abstract class ProductRow
 
   String? discountType;
 
+  bool isFreeDelivery;
+
   int mostSearchCount;
 
   int mostPurchaseCount;
@@ -191,6 +199,7 @@ abstract class ProductRow
     double? stock,
     String? stockUnit,
     String? discountType,
+    bool? isFreeDelivery,
     int? mostSearchCount,
     int? mostPurchaseCount,
     int? last7DaysSold,
@@ -221,6 +230,7 @@ abstract class ProductRow
       if (stock != null) 'stock': stock,
       if (stockUnit != null) 'stockUnit': stockUnit,
       if (discountType != null) 'discountType': discountType,
+      'isFreeDelivery': isFreeDelivery,
       'mostSearchCount': mostSearchCount,
       'mostPurchaseCount': mostPurchaseCount,
       'last7DaysSold': last7DaysSold,
@@ -287,6 +297,7 @@ class _ProductRowImpl extends ProductRow {
     double? stock,
     String? stockUnit,
     String? discountType,
+    bool? isFreeDelivery,
     int? mostSearchCount,
     int? mostPurchaseCount,
     int? last7DaysSold,
@@ -312,6 +323,7 @@ class _ProductRowImpl extends ProductRow {
          stock: stock,
          stockUnit: stockUnit,
          discountType: discountType,
+         isFreeDelivery: isFreeDelivery,
          mostSearchCount: mostSearchCount,
          mostPurchaseCount: mostPurchaseCount,
          last7DaysSold: last7DaysSold,
@@ -343,6 +355,7 @@ class _ProductRowImpl extends ProductRow {
     Object? stock = _Undefined,
     Object? stockUnit = _Undefined,
     Object? discountType = _Undefined,
+    bool? isFreeDelivery,
     int? mostSearchCount,
     int? mostPurchaseCount,
     int? last7DaysSold,
@@ -377,6 +390,7 @@ class _ProductRowImpl extends ProductRow {
       stock: stock is double? ? stock : this.stock,
       stockUnit: stockUnit is String? ? stockUnit : this.stockUnit,
       discountType: discountType is String? ? discountType : this.discountType,
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       mostSearchCount: mostSearchCount ?? this.mostSearchCount,
       mostPurchaseCount: mostPurchaseCount ?? this.mostPurchaseCount,
       last7DaysSold: last7DaysSold ?? this.last7DaysSold,
@@ -468,6 +482,11 @@ class ProductRowUpdateTable extends _i1.UpdateTable<ProductRowTable> {
         table.discountType,
         value,
       );
+
+  _i1.ColumnValue<bool, bool> isFreeDelivery(bool value) => _i1.ColumnValue(
+    table.isFreeDelivery,
+    value,
+  );
 
   _i1.ColumnValue<int, int> mostSearchCount(int value) => _i1.ColumnValue(
     table.mostSearchCount,
@@ -579,6 +598,11 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
       'discountType',
       this,
     );
+    isFreeDelivery = _i1.ColumnBool(
+      'isFreeDelivery',
+      this,
+      hasDefault: true,
+    );
     mostSearchCount = _i1.ColumnInt(
       'mostSearchCount',
       this,
@@ -658,6 +682,8 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString discountType;
 
+  late final _i1.ColumnBool isFreeDelivery;
+
   late final _i1.ColumnInt mostSearchCount;
 
   late final _i1.ColumnInt mostPurchaseCount;
@@ -694,6 +720,7 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
     stock,
     stockUnit,
     discountType,
+    isFreeDelivery,
     mostSearchCount,
     mostPurchaseCount,
     last7DaysSold,

@@ -2,14 +2,18 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/delivery/delivery_charge_calculator.dart';
 import '../services/delivery/delivery_engine.dart';
 import '../services/notification_outbox_service.dart';
+import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
+import '../services/postgres/postgres_support.dart';
 
 class FreeDeliveryEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
+  final OfferConflictService _conflicts = OfferConflictService();
 
   Future<DeliveryConfig> getDeliveryConfig(Session session) async {
     return DeliveryEngine.getDeliveryConfig(session);
@@ -20,6 +24,145 @@ class FreeDeliveryEndpoint extends Endpoint {
     String userId,
   ) async {
     return DeliveryEngine.getUserDeliveryOffer(session, userId);
+  }
+
+  Future<OfferMutationResult> setProductFreeDelivery(
+    Session session,
+    String productId,
+    bool isFreeDelivery,
+    String firebaseUid,
+    String idToken, {
+    bool confirmDisableConflictingCombo = false,
+    bool forceDisableBogo = false,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    if (isFreeDelivery) {
+      final conflict = await _conflicts.checkFreeDeliveryProductConflicts(
+        session,
+        [productId],
+      );
+      if (conflict.hasConflict) {
+        if (conflict.comboOffer?.comboId != null &&
+            confirmDisableConflictingCombo) {
+          await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
+        } else if (conflict.bogoOffer != null && forceDisableBogo) {
+          await _conflicts.disableBogo(
+            session,
+            conflict.bogoOffer!.triggerProductId,
+          );
+        } else {
+          return OfferMutationResult(
+            success: false,
+            message: conflict.message,
+            conflict: conflict,
+          );
+        }
+      }
+    }
+
+    final parsedId = parseUuid(productId, fieldName: 'productId');
+    final product = await ProductRow.db.findById(session, parsedId);
+    if (product == null) {
+      return OfferMutationResult(success: false, message: 'Product not found.');
+    }
+
+    await ProductRow.db.updateRow(
+      session,
+      product.copyWith(
+        isFreeDelivery: isFreeDelivery,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: isFreeDelivery ? 'enable' : 'disable',
+      entityType: 'product_free_delivery',
+      entityId: productId,
+    );
+    return OfferMutationResult(
+      success: true,
+      message: 'Product Free Delivery updated.',
+    );
+  }
+
+  Future<OfferMutationResult> setCategoryFreeDelivery(
+    Session session,
+    String categoryName,
+    bool isFreeDelivery,
+    String firebaseUid,
+    String idToken, {
+    bool confirmDisableConflictingCombo = false,
+    bool forceDisableBogo = false,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    if (isFreeDelivery) {
+      final conflict = await _conflicts.checkFreeDeliveryCategoryConflicts(
+        session,
+        categoryName,
+      );
+      if (conflict.hasConflict) {
+        if (conflict.comboOffer?.comboId != null &&
+            confirmDisableConflictingCombo) {
+          await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
+        } else if (conflict.bogoOffer != null && forceDisableBogo) {
+          await _conflicts.disableBogo(
+            session,
+            conflict.bogoOffer!.triggerProductId,
+          );
+        } else {
+          return OfferMutationResult(
+            success: false,
+            message: conflict.message,
+            conflict: conflict,
+          );
+        }
+      }
+    }
+
+    final categories = await CategoryRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+    );
+    CategoryRow? category;
+    for (final row in categories) {
+      if (row.name.trim().toLowerCase() == categoryName.trim().toLowerCase()) {
+        category = row;
+        break;
+      }
+    }
+    if (category == null) {
+      return OfferMutationResult(success: false, message: 'Category not found.');
+    }
+
+    await CategoryRow.db.updateRow(
+      session,
+      category.copyWith(
+        isFreeDelivery: isFreeDelivery,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: isFreeDelivery ? 'enable' : 'disable',
+      entityType: 'category_free_delivery',
+      entityId: category.id?.toString(),
+    );
+    return OfferMutationResult(
+      success: true,
+      message: 'Category Free Delivery updated.',
+    );
   }
 
   Future<bool> upsertDeliveryConfig(
@@ -167,12 +310,14 @@ class FreeDeliveryEndpoint extends Endpoint {
     double cartTotal, {
     String? userId,
     String? location,
+    List<CartItemInput>? cartItems,
   }) async {
-    return DeliveryEngine.calculate(
+    return DeliveryChargeCalculator.calculate(
       session: session,
       cartTotal: cartTotal,
       userId: userId,
       location: location,
+      cartItems: cartItems,
     );
   }
 }

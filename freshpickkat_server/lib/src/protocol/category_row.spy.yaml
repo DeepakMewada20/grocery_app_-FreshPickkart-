@@ -6,6 +6,7 @@ fields:
   name: String
   slug: String
   imageUrl: String?
+  isFreeDelivery: bool, default=false
   displayOrder: int, default=0
   status: String, default='active'
   deactivatedAt: DateTime?

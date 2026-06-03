@@ -799,7 +799,10 @@ class _BasketScreenState extends State<BasketScreen> {
                 _buildBillRow(
                   showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
                   cartController.deliveryFee == 0
-                      ? 'FREE'
+                      ? (cartController.freeDeliveryApplied &&
+                              cartController.originalDeliveryFee > 0
+                          ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
+                          : 'FREE')
                       : '₹${cartController.deliveryFee.formatPrice}',
                   valueColor: cartController.deliveryFee == 0
                       ? Colors.green

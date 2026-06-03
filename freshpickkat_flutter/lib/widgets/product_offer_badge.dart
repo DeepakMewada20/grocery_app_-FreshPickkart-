@@ -11,12 +11,16 @@ bool isBogoProduct(Product product) {
 
 bool hasProductOffer(Product product) {
   if (isBogoProduct(product)) return true;
+  if (product.isFreeDelivery) return true;
   return _resolveOfferValue(product) > 0;
 }
 
 String buildProductOfferLabel(Product product) {
   if (isBogoProduct(product)) {
     return 'BUY 1 GET 1';
+  }
+  if (product.isFreeDelivery) {
+    return 'FREE DELIVERY';
   }
 
   final percentValue = _resolveOfferValue(product);
@@ -39,6 +43,9 @@ String buildProductOfferLabel(Product product) {
 String buildProductOfferLabelCard(Product product) {
   if (isBogoProduct(product)) {
     return 'BUY 1 GET 1';
+  }
+  if (product.isFreeDelivery) {
+    return 'FREE DELIVERY';
   }
 
   final percentValue = _resolveOfferValue(product);

@@ -229,7 +229,7 @@ class PostgresOfferSearchService {
         return '';
       case 'free_delivery':
       case 'free delivery':
-        return '';
+        return 'AND is_free_delivery = TRUE';
       default:
         return '';
     }
@@ -340,6 +340,7 @@ class PostgresOfferSearchService {
             default_variant."salePrice",
             0
           ) AS list_price,
+          (p."isFreeDelivery" OR c."isFreeDelivery") AS is_free_delivery,
           $categoryOfferPrice AS category_offer_price
         FROM product p
         JOIN category c ON c.id = p."categoryId"

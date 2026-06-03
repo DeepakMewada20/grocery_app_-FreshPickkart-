@@ -1,0 +1,5 @@
+class: OfferMutationResult
+fields:
+  success: bool
+  message: String?
+  conflict: OfferConflictResponse?

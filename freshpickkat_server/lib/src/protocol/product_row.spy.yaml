@@ -16,6 +16,7 @@ fields:
   stock: double?
   stockUnit: String?
   discountType: String?
+  isFreeDelivery: bool, default=false
   mostSearchCount: int, default=0
   mostPurchaseCount: int, default=0
   last7DaysSold: int, default=0

@@ -245,7 +245,7 @@ class DeliveryEngine {
       appliedRuleType: appliedRuleType,
       appliedRuleName: appliedRuleName,
       freeDeliveryThreshold: freeThreshold,
-      baseDeliveryFee: config.baseDeliveryFee,
+      baseDeliveryFee: deliveryFee < 0 ? 0 : deliveryFee,
     );
   }
 }

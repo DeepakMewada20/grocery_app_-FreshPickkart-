@@ -32,7 +32,10 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue));
+    // Open the dropdown, then select 'Delivery Location Issue'
+    await tester.tap(find.text('Late Delivery'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue).last);
     await tester.pumpAndSettle();
 
     expect(find.text('Update the delivery details directly'), findsOneWidget);
@@ -57,8 +60,12 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue));
+    // Open the dropdown, then select 'Delivery Location Issue'
+    await tester.tap(find.text('Late Delivery'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue).last);
+    await tester.pumpAndSettle();
+
     expect(find.text('Request approval for delivery changes'), findsOneWidget);
     expect(find.text('Change address'), findsWidgets);
     expect(find.text('Delivery note'), findsOneWidget);
@@ -68,6 +75,12 @@ void main() {
 }
 
 Future<void> _pumpApp(WidgetTester tester, Widget child) async {
+  tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
   await tester.pumpWidget(
     ScreenUtilInit(
       designSize: const Size(390, 844),

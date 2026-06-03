@@ -23,5 +23,6 @@ fields:
     stockUnit: String?
     mostSearch: int
     mostPurchases: int
+    isFreeDelivery: bool, default=false
     bogoFreeProductIds: List<String>?
     variants: List<ProductVariant>?

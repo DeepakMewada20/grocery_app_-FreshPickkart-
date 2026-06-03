@@ -494,6 +494,8 @@ class _AddressPreviewCard extends StatelessWidget {
                 SizedBox(height: 4.h),
                 Text(
                   addressText,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 13.sp, height: 1.35),
                 ),
               ],

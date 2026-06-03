@@ -39,9 +39,10 @@ abstract class Product implements _i1.SerializableModel {
     this.stockUnit,
     required this.mostSearch,
     required this.mostPurchases,
+    bool? isFreeDelivery,
     this.bogoFreeProductIds,
     this.variants,
-  });
+  }) : isFreeDelivery = isFreeDelivery ?? false;
 
   factory Product({
     String? productId,
@@ -67,6 +68,7 @@ abstract class Product implements _i1.SerializableModel {
     String? stockUnit,
     required int mostSearch,
     required int mostPurchases,
+    bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
     List<_i2.ProductVariant>? variants,
   }) = _ProductImpl;
@@ -100,6 +102,9 @@ abstract class Product implements _i1.SerializableModel {
       stockUnit: jsonSerialization['stockUnit'] as String?,
       mostSearch: jsonSerialization['mostSearch'] as int,
       mostPurchases: jsonSerialization['mostPurchases'] as int,
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
           ? null
           : _i3.Protocol().deserialize<List<String>>(
@@ -159,6 +164,8 @@ abstract class Product implements _i1.SerializableModel {
 
   int mostPurchases;
 
+  bool isFreeDelivery;
+
   List<String>? bogoFreeProductIds;
 
   List<_i2.ProductVariant>? variants;
@@ -190,6 +197,7 @@ abstract class Product implements _i1.SerializableModel {
     String? stockUnit,
     int? mostSearch,
     int? mostPurchases,
+    bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
     List<_i2.ProductVariant>? variants,
   });
@@ -221,6 +229,7 @@ abstract class Product implements _i1.SerializableModel {
       if (stockUnit != null) 'stockUnit': stockUnit,
       'mostSearch': mostSearch,
       'mostPurchases': mostPurchases,
+      'isFreeDelivery': isFreeDelivery,
       if (bogoFreeProductIds != null)
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
       if (variants != null)
@@ -261,6 +270,7 @@ class _ProductImpl extends Product {
     String? stockUnit,
     required int mostSearch,
     required int mostPurchases,
+    bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
     List<_i2.ProductVariant>? variants,
   }) : super._(
@@ -287,6 +297,7 @@ class _ProductImpl extends Product {
          stockUnit: stockUnit,
          mostSearch: mostSearch,
          mostPurchases: mostPurchases,
+         isFreeDelivery: isFreeDelivery,
          bogoFreeProductIds: bogoFreeProductIds,
          variants: variants,
        );
@@ -319,6 +330,7 @@ class _ProductImpl extends Product {
     Object? stockUnit = _Undefined,
     int? mostSearch,
     int? mostPurchases,
+    bool? isFreeDelivery,
     Object? bogoFreeProductIds = _Undefined,
     Object? variants = _Undefined,
   }) {
@@ -354,6 +366,7 @@ class _ProductImpl extends Product {
       stockUnit: stockUnit is String? ? stockUnit : this.stockUnit,
       mostSearch: mostSearch ?? this.mostSearch,
       mostPurchases: mostPurchases ?? this.mostPurchases,
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       bogoFreeProductIds: bogoFreeProductIds is List<String>?
           ? bogoFreeProductIds
           : this.bogoFreeProductIds?.map((e0) => e0).toList(),

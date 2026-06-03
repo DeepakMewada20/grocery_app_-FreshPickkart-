@@ -1,0 +1,9 @@
+class: OfferConflictResponse
+fields:
+  hasConflict: bool
+  conflictType: String?
+  message: String?
+  productIds: List<String>
+  productNames: List<String>
+  comboOffer: ComboOffer?
+  bogoOffer: BogoOffer?

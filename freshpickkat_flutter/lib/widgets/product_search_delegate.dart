@@ -307,6 +307,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     final offers = [
       (label: 'BOGO', value: 'bogo'),
       (label: 'Combo', value: 'combo'),
+      (label: 'Free Delivery', value: 'free_delivery'),
       (label: 'Up to 40% OFF', value: 'discount_40'),
       (label: 'Trending', value: 'trending'),
       (label: 'Best Seller', value: 'best_seller'),

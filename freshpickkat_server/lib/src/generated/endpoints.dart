@@ -723,6 +723,50 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'bogo',
       endpoint: endpoints['bogo']!,
       methodConnectors: {
+        'upsertOfferWithConflicts': _i1.MethodConnector(
+          name: 'upsertOfferWithConflicts',
+          params: {
+            'offer': _i1.ParameterDescription(
+              name: 'offer',
+              type: _i1.getType<_i28.BogoOffer>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'notificationDraft': _i1.ParameterDescription(
+              name: 'notificationDraft',
+              type: _i1.getType<_i29.NotificationDraft?>(),
+              nullable: true,
+            ),
+            'confirmDisableConflictingCombo': _i1.ParameterDescription(
+              name: 'confirmDisableConflictingCombo',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint)
+                  .upsertOfferWithConflicts(
+                    session,
+                    params['offer'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                    notificationDraft: params['notificationDraft'],
+                    confirmDisableConflictingCombo:
+                        params['confirmDisableConflictingCombo'],
+                  ),
+        ),
         'upsertOffer': _i1.MethodConnector(
           name: 'upsertOffer',
           params: {
@@ -1281,6 +1325,49 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'comboOffer',
       endpoint: endpoints['comboOffer']!,
       methodConnectors: {
+        'upsertComboOfferWithConflicts': _i1.MethodConnector(
+          name: 'upsertComboOfferWithConflicts',
+          params: {
+            'offer': _i1.ParameterDescription(
+              name: 'offer',
+              type: _i1.getType<_i33.ComboOffer>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'notificationDraft': _i1.ParameterDescription(
+              name: 'notificationDraft',
+              type: _i1.getType<_i29.NotificationDraft?>(),
+              nullable: true,
+            ),
+            'force': _i1.ParameterDescription(
+              name: 'force',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i9.ComboOfferEndpoint)
+                  .upsertComboOfferWithConflicts(
+                    session,
+                    params['offer'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                    notificationDraft: params['notificationDraft'],
+                    force: params['force'],
+                  ),
+        ),
         'upsertComboOffer': _i1.MethodConnector(
           name: 'upsertComboOffer',
           params: {
@@ -2610,6 +2697,108 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['userId'],
                       ),
         ),
+        'setProductFreeDelivery': _i1.MethodConnector(
+          name: 'setProductFreeDelivery',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isFreeDelivery': _i1.ParameterDescription(
+              name: 'isFreeDelivery',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'confirmDisableConflictingCombo': _i1.ParameterDescription(
+              name: 'confirmDisableConflictingCombo',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'forceDisableBogo': _i1.ParameterDescription(
+              name: 'forceDisableBogo',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
+                      .setProductFreeDelivery(
+                        session,
+                        params['productId'],
+                        params['isFreeDelivery'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                        confirmDisableConflictingCombo:
+                            params['confirmDisableConflictingCombo'],
+                        forceDisableBogo: params['forceDisableBogo'],
+                      ),
+        ),
+        'setCategoryFreeDelivery': _i1.MethodConnector(
+          name: 'setCategoryFreeDelivery',
+          params: {
+            'categoryName': _i1.ParameterDescription(
+              name: 'categoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isFreeDelivery': _i1.ParameterDescription(
+              name: 'isFreeDelivery',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'confirmDisableConflictingCombo': _i1.ParameterDescription(
+              name: 'confirmDisableConflictingCombo',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'forceDisableBogo': _i1.ParameterDescription(
+              name: 'forceDisableBogo',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
+                      .setCategoryFreeDelivery(
+                        session,
+                        params['categoryName'],
+                        params['isFreeDelivery'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                        confirmDisableConflictingCombo:
+                            params['confirmDisableConflictingCombo'],
+                        forceDisableBogo: params['forceDisableBogo'],
+                      ),
+        ),
         'upsertDeliveryConfig': _i1.MethodConnector(
           name: 'upsertDeliveryConfig',
           params: {
@@ -2832,6 +3021,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'cartItems': _i1.ParameterDescription(
+              name: 'cartItems',
+              type: _i1.getType<List<_i34.CartItemInput>?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -2844,6 +3038,7 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['cartTotal'],
                         userId: params['userId'],
                         location: params['location'],
+                        cartItems: params['cartItems'],
                       ),
         ),
       },

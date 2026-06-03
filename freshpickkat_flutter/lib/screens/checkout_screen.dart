@@ -1908,7 +1908,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _buildBillRow(
             'Delivery Fee',
             cartController.deliveryFee == 0
-                ? 'FREE'
+                ? (cartController.freeDeliveryApplied &&
+                        cartController.originalDeliveryFee > 0
+                    ? 'INR ${cartController.originalDeliveryFee.toStringAsFixed(0)} -> FREE'
+                    : 'FREE')
                 : 'INR ${cartController.deliveryFee.toStringAsFixed(0)}',
             valueColor: cartController.deliveryFee == 0
                 ? Colors.green

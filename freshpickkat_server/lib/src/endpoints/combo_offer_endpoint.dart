@@ -3,6 +3,7 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
 import '../services/notification_outbox_service.dart';
+import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
@@ -11,6 +12,62 @@ class ComboOfferEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
+  final OfferConflictService _conflicts = OfferConflictService();
+
+  Future<OfferMutationResult> upsertComboOfferWithConflicts(
+    Session session,
+    ComboOffer offer,
+    String firebaseUid,
+    String idToken, {
+    NotificationDraft? notificationDraft,
+    bool force = false,
+  }) async {
+    try {
+      await _adminGuard.ensureAdminSeller(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      ValidationService.validateComboOffer(offer);
+
+      final conflict = await _conflicts.checkComboConflicts(session, offer);
+      if (conflict.hasConflict && !force) {
+        return OfferMutationResult(
+          success: false,
+          message: conflict.message,
+          conflict: conflict,
+        );
+      }
+      if (conflict.bogoOffer != null && force) {
+        await _conflicts.disableBogo(session, conflict.bogoOffer!.triggerProductId);
+      }
+
+      final result = await _offers.upsertComboOffer(session, offer);
+      if (result) {
+        await NotificationOutboxService.instance.enqueueCampaign(
+          session: session,
+          draft: notificationDraft,
+          fallbackEntityType: 'combo',
+          fallbackEntityId: offer.comboId ?? offer.name,
+          extraData: {'offerType': 'combo'},
+        );
+        await _audit.write(
+          session,
+          actorFirebaseUid: firebaseUid,
+          action: 'upsert',
+          entityType: 'combo_offer',
+          entityId: offer.comboId,
+        );
+      }
+      return OfferMutationResult(
+        success: result,
+        message: result ? 'Combo offer saved.' : 'Failed to save combo offer.',
+      );
+    } catch (error) {
+      session.log('Error upserting combo offer: ', level: LogLevel.error);
+      return OfferMutationResult(success: false, message: 'Failed to save combo offer.');
+    }
+  }
 
   Future<bool> upsertComboOffer(
     Session session,

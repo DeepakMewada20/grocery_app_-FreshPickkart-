@@ -211,4 +211,57 @@ class AdminFreeDeliveryController extends GetxController {
       return false;
     }
   }
+  Future<OfferMutationResult> setProductFreeDelivery(
+    String productId,
+    bool isFreeDelivery, {
+    bool confirmDisableConflictingCombo = false,
+    bool forceDisableBogo = false,
+  }) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await client.freeDelivery.setProductFreeDelivery(
+        productId,
+        isFreeDelivery,
+        uid,
+        idToken,
+        confirmDisableConflictingCombo: confirmDisableConflictingCombo,
+        forceDisableBogo: forceDisableBogo,
+      );
+    } catch (e) {
+      return OfferMutationResult(
+        success: false,
+        message: 'Unable to update product Free Delivery.',
+      );
+    }
+  }
+
+  Future<OfferMutationResult> setCategoryFreeDelivery(
+    String categoryName,
+    bool isFreeDelivery, {
+    bool confirmDisableConflictingCombo = false,
+    bool forceDisableBogo = false,
+  }) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await client.freeDelivery.setCategoryFreeDelivery(
+        categoryName,
+        isFreeDelivery,
+        uid,
+        idToken,
+        confirmDisableConflictingCombo: confirmDisableConflictingCombo,
+        forceDisableBogo: forceDisableBogo,
+      );
+    } catch (e) {
+      return OfferMutationResult(
+        success: false,
+        message: 'Unable to update category Free Delivery.',
+      );
+    }
+  }
 }

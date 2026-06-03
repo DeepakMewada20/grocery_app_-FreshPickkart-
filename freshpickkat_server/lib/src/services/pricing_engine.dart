@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
-import '../services/delivery/delivery_engine.dart';
+import '../services/delivery/delivery_charge_calculator.dart';
 import '../services/bogo/bogo_eligibility.dart';
 import '../services/postgres/postgres_coupon_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
@@ -396,10 +396,11 @@ class PricingEngine {
       }
     }
 
-    final deliveryPricing = await DeliveryEngine.calculate(
+    final deliveryPricing = await DeliveryChargeCalculator.calculate(
       session: session,
       cartTotal: effectiveSubtotal,
       userId: userId,
+      cartItems: items,
     );
     result.deliveryPricing = deliveryPricing;
     result.deliveryFee = deliveryPricing.deliveryFee;
