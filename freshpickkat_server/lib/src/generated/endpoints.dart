@@ -751,6 +751,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<bool>(),
               nullable: false,
             ),
+            'forceDisableFreeDelivery': _i1.ParameterDescription(
+              name: 'forceDisableFreeDelivery',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -765,6 +770,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     notificationDraft: params['notificationDraft'],
                     confirmDisableConflictingCombo:
                         params['confirmDisableConflictingCombo'],
+                    forceDisableFreeDelivery:
+                        params['forceDisableFreeDelivery'],
                   ),
         ),
         'upsertOffer': _i1.MethodConnector(
@@ -5001,6 +5008,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'freeDelivery': _i1.ParameterDescription(
+              name: 'freeDelivery',
+              type: _i1.getType<bool?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -5015,6 +5027,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     category: params['category'],
                     subcategories: params['subcategories'],
                     sortBy: params['sortBy'],
+                    freeDelivery: params['freeDelivery'],
                   ),
         ),
         'getProductsPage': _i1.MethodConnector(

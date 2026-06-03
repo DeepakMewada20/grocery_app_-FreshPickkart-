@@ -39,3 +39,5 @@ indexes:
     fields: mostSearchCount, id
   product_reorder_count_idx:
     fields: reorderCount, id
+  product_is_free_delivery_idx:
+    fields: isFreeDelivery

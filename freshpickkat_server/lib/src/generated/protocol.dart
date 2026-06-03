@@ -1335,6 +1335,19 @@ class Protocol extends _i1.SerializationManagerServer {
           isUnique: true,
           isPrimary: false,
         ),
+        _i2.IndexDefinition(
+          indexName: 'category_is_free_delivery_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'isFreeDelivery',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
       ],
       managed: true,
     ),
@@ -5135,6 +5148,19 @@ class Protocol extends _i1.SerializationManagerServer {
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'product_is_free_delivery_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'isFreeDelivery',
             ),
           ],
           type: 'btree',

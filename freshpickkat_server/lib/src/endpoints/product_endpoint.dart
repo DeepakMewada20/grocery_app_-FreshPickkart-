@@ -31,6 +31,7 @@ class ProductEndpoint extends Endpoint {
     String? category,
     List<String>? subcategories,
     String sortBy = 'name',
+    bool? freeDelivery,
   }) {
     return _pgProducts.getProducts(
       session,
@@ -40,6 +41,7 @@ class ProductEndpoint extends Endpoint {
       category: category,
       subcategories: subcategories,
       sortBy: sortBy,
+      freeDelivery: freeDelivery,
     );
   }
 

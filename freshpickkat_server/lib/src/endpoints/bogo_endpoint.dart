@@ -4,11 +4,13 @@ import '../generated/protocol.dart' as protocol;
 import '../services/notification_outbox_service.dart';
 import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
+import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
 
 class BogoEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final PostgresAuditLogService _audit = PostgresAuditLogService();
   final OfferConflictService _conflicts = OfferConflictService();
 
   Future<protocol.OfferMutationResult> upsertOfferWithConflicts(
@@ -18,24 +20,35 @@ class BogoEndpoint extends Endpoint {
     String idToken, {
     protocol.NotificationDraft? notificationDraft,
     bool confirmDisableConflictingCombo = false,
+    bool forceDisableFreeDelivery = false,
   }) async {
-    await _adminGuard.ensureAdminSeller(
+    final actor = await _adminGuard.ensureAdminSeller(
       session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
 
-    final conflict = await _conflicts.checkBogoConflicts(session, offer);
-    if (conflict.hasConflict) {
-      final comboId = conflict.comboOffer?.comboId;
-      if (!confirmDisableConflictingCombo || comboId == null) {
-        return protocol.OfferMutationResult(
-          success: false,
-          message: conflict.message,
-          conflict: conflict,
-        );
+    var conflict = await _conflicts.checkBogoConflicts(session, offer);
+    for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
+      if (conflict.comboOffer != null && confirmDisableConflictingCombo) {
+        await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
+      } else if (conflict.productIds.isNotEmpty &&
+          forceDisableFreeDelivery &&
+          !_conflicts.isCategoryFreeDeliveryConflict(conflict)) {
+        for (final pid in conflict.productIds) {
+          await _conflicts.disableFreeDeliveryForProduct(session, pid);
+        }
+      } else {
+        break;
       }
-      await _conflicts.disableCombo(session, comboId);
+      conflict = await _conflicts.checkBogoConflicts(session, offer);
+    }
+    if (conflict.hasConflict) {
+      return protocol.OfferMutationResult(
+        success: false,
+        message: conflict.message,
+        conflict: conflict,
+      );
     }
 
     final result = await _offers.upsertBogoOffer(session, offer);
@@ -46,6 +59,13 @@ class BogoEndpoint extends Endpoint {
         fallbackEntityType: 'bogo',
         fallbackEntityId: offer.offerId ?? offer.triggerProductId,
         extraData: {'offerType': 'bogo'},
+      );
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'upsert_with_conflicts',
+        entityType: 'bogo_offer',
+        entityId: offer.offerId ?? offer.triggerProductId,
       );
     }
     return protocol.OfferMutationResult(

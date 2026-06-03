@@ -16,3 +16,5 @@ indexes:
   category_slug_idx:
     fields: slug
     unique: true
+  category_is_free_delivery_idx:
+    fields: isFreeDelivery

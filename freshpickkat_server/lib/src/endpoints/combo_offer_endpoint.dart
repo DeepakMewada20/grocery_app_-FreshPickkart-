@@ -30,16 +30,31 @@ class ComboOfferEndpoint extends Endpoint {
       );
       ValidationService.validateComboOffer(offer);
 
-      final conflict = await _conflicts.checkComboConflicts(session, offer);
-      if (conflict.hasConflict && !force) {
+      var conflict = await _conflicts.checkComboConflicts(session, offer);
+      if (force) {
+        for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
+          if (conflict.bogoOffer != null) {
+            await _conflicts.disableBogo(
+              session,
+              conflict.bogoOffer!.triggerProductId,
+            );
+          } else if (conflict.productIds.isNotEmpty &&
+              !_conflicts.isCategoryFreeDeliveryConflict(conflict)) {
+            for (final pid in conflict.productIds) {
+              await _conflicts.disableFreeDeliveryForProduct(session, pid);
+            }
+          } else {
+            break;
+          }
+          conflict = await _conflicts.checkComboConflicts(session, offer);
+        }
+      }
+      if (conflict.hasConflict) {
         return OfferMutationResult(
           success: false,
           message: conflict.message,
           conflict: conflict,
         );
-      }
-      if (conflict.bogoOffer != null && force) {
-        await _conflicts.disableBogo(session, conflict.bogoOffer!.triggerProductId);
       }
 
       final result = await _offers.upsertComboOffer(session, offer);
@@ -65,7 +80,10 @@ class ComboOfferEndpoint extends Endpoint {
       );
     } catch (error) {
       session.log('Error upserting combo offer: ', level: LogLevel.error);
-      return OfferMutationResult(success: false, message: 'Failed to save combo offer.');
+      return OfferMutationResult(
+        success: false,
+        message: 'Failed to save combo offer.',
+      );
     }
   }
 

@@ -41,12 +41,18 @@ class FreeDeliveryEndpoint extends Endpoint {
       idToken: idToken,
     );
 
+    final parsedId = parseUuid(productId, fieldName: 'productId');
+    final product = await ProductRow.db.findById(session, parsedId);
+    if (product == null) {
+      return OfferMutationResult(success: false, message: 'Product not found.');
+    }
+
     if (isFreeDelivery) {
-      final conflict = await _conflicts.checkFreeDeliveryProductConflicts(
+      var conflict = await _conflicts.checkFreeDeliveryProductConflicts(
         session,
         [productId],
       );
-      if (conflict.hasConflict) {
+      for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
         if (conflict.comboOffer?.comboId != null &&
             confirmDisableConflictingCombo) {
           await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
@@ -56,19 +62,20 @@ class FreeDeliveryEndpoint extends Endpoint {
             conflict.bogoOffer!.triggerProductId,
           );
         } else {
-          return OfferMutationResult(
-            success: false,
-            message: conflict.message,
-            conflict: conflict,
-          );
+          break;
         }
+        conflict = await _conflicts.checkFreeDeliveryProductConflicts(
+          session,
+          [productId],
+        );
       }
-    }
-
-    final parsedId = parseUuid(productId, fieldName: 'productId');
-    final product = await ProductRow.db.findById(session, parsedId);
-    if (product == null) {
-      return OfferMutationResult(success: false, message: 'Product not found.');
+      if (conflict.hasConflict) {
+        return OfferMutationResult(
+          success: false,
+          message: conflict.message,
+          conflict: conflict,
+        );
+      }
     }
 
     await ProductRow.db.updateRow(
@@ -106,12 +113,31 @@ class FreeDeliveryEndpoint extends Endpoint {
       idToken: idToken,
     );
 
+    final trimmedName = categoryName.trim().toLowerCase();
+    final categories = await CategoryRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+    );
+    CategoryRow? category;
+    for (final row in categories) {
+      if (row.name.trim().toLowerCase() == trimmedName) {
+        category = row;
+        break;
+      }
+    }
+    if (category == null) {
+      return OfferMutationResult(
+        success: false,
+        message: 'Category not found.',
+      );
+    }
+
     if (isFreeDelivery) {
-      final conflict = await _conflicts.checkFreeDeliveryCategoryConflicts(
+      var conflict = await _conflicts.checkFreeDeliveryCategoryConflicts(
         session,
         categoryName,
       );
-      if (conflict.hasConflict) {
+      for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
         if (conflict.comboOffer?.comboId != null &&
             confirmDisableConflictingCombo) {
           await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
@@ -121,28 +147,20 @@ class FreeDeliveryEndpoint extends Endpoint {
             conflict.bogoOffer!.triggerProductId,
           );
         } else {
-          return OfferMutationResult(
-            success: false,
-            message: conflict.message,
-            conflict: conflict,
-          );
+          break;
         }
+        conflict = await _conflicts.checkFreeDeliveryCategoryConflicts(
+          session,
+          categoryName,
+        );
       }
-    }
-
-    final categories = await CategoryRow.db.find(
-      session,
-      where: (t) => t.status.equals('active'),
-    );
-    CategoryRow? category;
-    for (final row in categories) {
-      if (row.name.trim().toLowerCase() == categoryName.trim().toLowerCase()) {
-        category = row;
-        break;
+      if (conflict.hasConflict) {
+        return OfferMutationResult(
+          success: false,
+          message: conflict.message,
+          conflict: conflict,
+        );
       }
-    }
-    if (category == null) {
-      return OfferMutationResult(success: false, message: 'Category not found.');
     }
 
     await CategoryRow.db.updateRow(

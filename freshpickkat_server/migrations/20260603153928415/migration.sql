@@ -4,10 +4,13 @@ BEGIN;
 -- ACTION ALTER TABLE
 --
 ALTER TABLE "category" ADD COLUMN "isFreeDelivery" boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS category_is_free_delivery_idx ON "category" ("isFreeDelivery");
+
 --
 -- ACTION ALTER TABLE
 --
 ALTER TABLE "product" ADD COLUMN "isFreeDelivery" boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS product_is_free_delivery_idx ON "product" ("isFreeDelivery");
 
 --
 -- MIGRATION VERSION FOR freshpickkat

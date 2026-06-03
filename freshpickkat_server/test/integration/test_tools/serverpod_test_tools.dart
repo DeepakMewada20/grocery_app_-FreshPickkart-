@@ -159,6 +159,11 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// }
 /// ```
 ///
+/// [configOverride] A function to override the server configuration. This function is called with
+/// the default server configuration after it is loaded from the config/ directory
+/// and before it is used to start the server. Use this to override particular
+/// settings in the server configuration.
+///
 /// [testGroupTagsOverride] By default Serverpod test tools tags the `withServerpod` test group with `"integration"`.
 /// This is to provide a simple way to only run unit or integration tests.
 /// This property allows this tag to be overridden to something else. Defaults to `['integration']`.
@@ -169,6 +174,7 @@ void withServerpod(
   String testGroupName,
   _i1.TestClosure<TestEndpoints> testClosure, {
   bool? applyMigrations,
+  _i2.ServerpodConfig Function(_i2.ServerpodConfig)? configOverride,
   bool? enableSessionLogging,
   _i2.ExperimentalFeatures? experimentalFeatures,
   _i1.RollbackDatabase? rollbackDatabase,
@@ -191,6 +197,7 @@ void withServerpod(
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
       experimentalFeatures: experimentalFeatures,
+      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
     ),
     maybeRollbackDatabase: rollbackDatabase,
@@ -1050,6 +1057,7 @@ class _BogoEndpoint {
     String idToken, {
     _i14.NotificationDraft? notificationDraft,
     required bool confirmDisableConflictingCombo,
+    required bool forceDisableFreeDelivery,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -1068,6 +1076,7 @@ class _BogoEndpoint {
             'idToken': idToken,
             'notificationDraft': notificationDraft,
             'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
+            'forceDisableFreeDelivery': forceDisableFreeDelivery,
           }),
           serializationManager: _serializationManager,
         );
@@ -5856,6 +5865,7 @@ class _ProductEndpoint {
     String? category,
     List<String>? subcategories,
     required String sortBy,
+    bool? freeDelivery,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -5875,6 +5885,7 @@ class _ProductEndpoint {
             'category': category,
             'subcategories': subcategories,
             'sortBy': sortBy,
+            'freeDelivery': freeDelivery,
           }),
           serializationManager: _serializationManager,
         );

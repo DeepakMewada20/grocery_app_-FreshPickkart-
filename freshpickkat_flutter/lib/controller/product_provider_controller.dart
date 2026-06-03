@@ -29,12 +29,13 @@ class ProductProviderController extends GetxController {
   final currentCategory = ''.obs;
   final currentSubcategories = <String>[].obs;
   final currentSortBy = 'name'.obs;
+  final currentFreeDelivery = false.obs;
 
   String get _cacheKey {
     final sub = currentSubcategories.isEmpty
         ? 'all'
         : currentSubcategories.join(',').toLowerCase();
-    return '${currentCategory.value}|$sub|${currentSortBy.value}';
+    return '${currentCategory.value}|$sub|${currentSortBy.value}|${currentFreeDelivery.value}';
   }
 
   Future<void> fetchProductsIfEmpty() async {
@@ -147,6 +148,11 @@ class ProductProviderController extends GetxController {
     refreshProducts();
   }
 
+  Future<void> setFreeDelivery(bool enabled) async {
+    currentFreeDelivery.value = enabled;
+    refreshProducts();
+  }
+
   Future<void> setSortBy(String sortBy) async {
     currentSortBy.value = sortBy;
     refreshProducts();
@@ -183,6 +189,7 @@ class ProductProviderController extends GetxController {
             ? null
             : currentSubcategories.toList(),
         sortBy: currentSortBy.value,
+        freeDelivery: currentFreeDelivery.value ? true : null,
       );
 
       if (newProducts.length < _cacheLimit) {

@@ -349,6 +349,7 @@ class EndpointBogo extends _i1.EndpointRef {
     String idToken, {
     _i13.NotificationDraft? notificationDraft,
     required bool confirmDisableConflictingCombo,
+    required bool forceDisableFreeDelivery,
   }) => caller.callServerEndpoint<_i11.OfferMutationResult>(
     'bogo',
     'upsertOfferWithConflicts',
@@ -358,6 +359,7 @@ class EndpointBogo extends _i1.EndpointRef {
       'idToken': idToken,
       'notificationDraft': notificationDraft,
       'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
+      'forceDisableFreeDelivery': forceDisableFreeDelivery,
     },
   );
 
@@ -2291,6 +2293,7 @@ class EndpointProduct extends _i1.EndpointRef {
     String? category,
     List<String>? subcategories,
     required String sortBy,
+    bool? freeDelivery,
   }) => caller.callServerEndpoint<List<_i49.Product>>(
     'product',
     'getProducts',
@@ -2301,6 +2304,7 @@ class EndpointProduct extends _i1.EndpointRef {
       'category': category,
       'subcategories': subcategories,
       'sortBy': sortBy,
+      'freeDelivery': freeDelivery,
     },
   );
 

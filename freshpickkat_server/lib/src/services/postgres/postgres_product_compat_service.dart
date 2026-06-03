@@ -41,6 +41,7 @@ class PostgresProductCompatService {
     String? category,
     List<String>? subcategories,
     String sortBy = 'name',
+    bool? freeDelivery,
   }) async {
     final pageSize = clampPageLimit(limit, defaultLimit: 10, maxLimit: 50);
     final resolvedFilters = await _resolveLegacyFilters(
@@ -69,6 +70,10 @@ class PostgresProductCompatService {
         '''
         : '';
 
+    final freeDeliveryPredicate = freeDelivery == true
+        ? 'AND (p."isFreeDelivery" = TRUE OR c."isFreeDelivery" = TRUE)'
+        : '';
+
     final result = await session.db.unsafeQuery(
       '''
       SELECT p.id::text AS "productId"
@@ -77,6 +82,7 @@ class PostgresProductCompatService {
       WHERE p.status = 'active'
         AND c.status = 'active'
         ${resolvedFilters.whereSql}
+        $freeDeliveryPredicate
         $cursorPredicate
       ORDER BY $orderClause
       LIMIT @limit
