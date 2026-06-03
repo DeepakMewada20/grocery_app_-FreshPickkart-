@@ -7,6 +7,8 @@ import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/services/location_service.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -121,7 +123,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             _showSnackBar(e.message, isError: true);
         }
       } catch (e) {
-        // unknown error — skip silently
+        AppLogger.warning('LocationPicker', e.toString());
       } finally {
         if (mounted) {
           setState(() => _isLoadingLocation = false);
@@ -161,7 +163,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         });
       }
     } catch (e) {
-      _showSnackBar('Failed to get address details: $e', isError: true);
+      AppLogger.error('LocationPicker', e);
+      _showSnackBar(ErrorMessages.addressDetailsFailed, isError: true);
     } finally {
       if (mounted) {
         setState(() => _isGeocoding = false);
@@ -206,7 +209,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       _updateMarker(_selectedLocation);
       await _geocodeSelectedLocation();
       _animateMapToLocation();
-      _showSnackBar('Location updated');
+      _showSnackBar(ErrorMessages.locationUpdated);
     } on LocationException catch (e) {
       switch (e.type) {
         case LocationErrorType.serviceDisabled:
@@ -219,7 +222,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           _showSnackBar(e.message, isError: true);
       }
     } catch (e) {
-      _showSnackBar('Something went wrong. Please try again.', isError: true);
+      AppLogger.error('LocationPicker', e);
+      _showSnackBar(ErrorMessages.locationFailed, isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoadingLocation = false);
@@ -308,7 +312,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     } catch (e) {
       _isSaving = false;
       if (mounted) setState(() {});
-      _showSnackBar('Failed to save address: $e', isError: true);
+      AppLogger.error('LocationPicker', e);
+      _showSnackBar(ErrorMessages.addressSaveFailed, isError: true);
     }
   }
 

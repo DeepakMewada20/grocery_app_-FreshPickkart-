@@ -1,6 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -22,7 +23,7 @@ class SupportIssueService {
     final auth = AuthController.instance;
     final user = auth.currentUser;
     if (user == null) {
-      throw Exception('Please login to submit a support issue.');
+      throw Exception(ErrorMessages.loginRequired);
     }
 
     final idToken = await auth.requireIdToken();

@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/controller/product_complaint_controller.dar
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
 class ReportProductIssueScreen extends StatefulWidget {
@@ -174,9 +176,10 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
         description: _descriptionController.text,
       );
     } catch (error) {
+      AppLogger.error('ReportProductIssue', error);
       AppSnackbar.error(
         'Unable to submit',
-        error.toString().replaceFirst('Exception: ', ''),
+        ErrorMessages.somethingWentWrong,
       );
     }
   }

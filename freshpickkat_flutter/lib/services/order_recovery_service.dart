@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/payment_recovery_repository.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:flutter/widgets.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 
 class OrderRecoveryService extends GetxService with WidgetsBindingObserver {
@@ -125,10 +126,13 @@ class OrderRecoveryService extends GetxService with WidgetsBindingObserver {
       }
     } on SocketException {
       lastRecoveryStatus.value = 'Network error';
+      AppLogger.error('Recovery', 'SocketException');
     } on TimeoutException {
       lastRecoveryStatus.value = 'Request timed out';
+      AppLogger.error('Recovery', 'TimeoutException');
     } catch (e) {
-      lastRecoveryStatus.value = 'Error: ${e.toString().substring(0, 30)}';
+      lastRecoveryStatus.value = 'Retrying...';
+      AppLogger.error('Recovery', e);
     } finally {
       isRecovering.value = false;
     }
@@ -234,6 +238,7 @@ class OrderRecoveryService extends GetxService with WidgetsBindingObserver {
       }
     } catch (e) {
       lastRecoveryStatus.value = 'Retry failed';
+      AppLogger.error('Recovery', 'ManualRetry: $e');
     } finally {
       isRecovering.value = false;
     }

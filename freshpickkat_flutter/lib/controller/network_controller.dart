@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 
 enum ConnectionType { wifi, mobile, ethernet, none }
@@ -49,6 +50,7 @@ class NetworkController extends GetxController {
     } catch (e) {
       isConnected.value = false;
       connectionType.value = ConnectionType.none;
+      AppLogger.error('Network', 'Init: $e');
     } finally {
       isChecking.value = false;
     }
@@ -142,10 +144,11 @@ class NetworkController extends GetxController {
           connectionQuality.value = ConnectionQuality.unknown;
           _showBannerWithDelay();
         }
-      } catch (_) {
+      } catch (e) {
         isConnected.value = false;
         connectionQuality.value = ConnectionQuality.unknown;
         _showBannerWithDelay();
+        AppLogger.warning('Network', 'LatencyCheck: $e');
       }
     }
 
@@ -249,7 +252,7 @@ class NetworkController extends GetxController {
       }
 
       return connected;
-    } catch (_) {
+    } catch (e) {
       final previousConnection = isConnected.value;
       isConnected.value = false;
       connectionQuality.value = ConnectionQuality.unknown;
@@ -257,6 +260,7 @@ class NetworkController extends GetxController {
       if (previousConnection) {
         _onConnectionLost();
       }
+      AppLogger.warning('Network', 'Lookup: $e');
       return false;
     } finally {
       if (!isAutoRetry) isChecking.value = false;

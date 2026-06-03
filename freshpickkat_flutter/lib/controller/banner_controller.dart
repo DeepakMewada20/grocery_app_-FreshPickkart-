@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -41,7 +42,7 @@ class BannerController extends GetxController {
       );
       homeTopImageBanners.assignAll(banners);
     } catch (e) {
-      debugPrint('Error loading home top image banners: $e');
+      AppLogger.error('Banner', 'TopImage: $e');
     } finally {
       _isFetching = false;
     }
@@ -74,7 +75,7 @@ class BannerController extends GetxController {
       );
       homeMiddleBanners.assignAll(banners);
     } catch (e) {
-      debugPrint('Error loading home middle banners: $e');
+      AppLogger.error('Banner', 'HomeMiddle: $e');
     } finally {
       isLazyLoadingMiddle.value = false;
     }
@@ -102,8 +103,8 @@ class BannerController extends GetxController {
         }
       }
     } catch (e) {
-      error.value = e.toString();
-      debugPrint('Error loading home banners: $e');
+      error.value = 'Unable to load banners.';
+      AppLogger.error('Banner', 'Home: $e');
     } finally {
       isLoading.value = false;
     }
@@ -137,7 +138,7 @@ class BannerController extends GetxController {
       );
       targetList.assignAll(banners);
     } catch (e) {
-      debugPrint('Error loading banners for $screen: $e');
+      AppLogger.error('Banner', '$screen: $e');
     } finally {
       isLoading.value = false;
     }

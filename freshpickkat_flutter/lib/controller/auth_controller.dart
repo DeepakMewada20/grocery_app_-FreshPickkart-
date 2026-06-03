@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -11,6 +10,8 @@ import 'package:freshpickkat_flutter/controller/notification_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
@@ -35,32 +36,33 @@ class AuthController extends GetxController {
     final details = e.message == null || e.message!.trim().isEmpty
         ? ""
         : ": ${e.message}";
-    debugPrint(
+    AppLogger.error(
+      'Auth',
       "Firebase phone auth failed: code=${e.code}, message=${e.message}",
     );
 
     switch (e.code) {
       case "invalid-phone-number":
-        return "Invalid phone number format";
+        return ErrorMessages.invalidPhone;
       case "too-many-requests":
-        return "Too many requests. Please try again later";
+        return ErrorMessages.tooManyRequests;
       case "quota-exceeded":
-        return "SMS quota exceeded. Try again tomorrow";
+        return ErrorMessages.quotaExceeded;
       case "operation-not-allowed":
-        return "Phone sign-in is not enabled in Firebase Authentication";
+        return ErrorMessages.signInNotEnabled;
       case "billing-not-enabled":
-        return "Firebase billing is not active yet for phone authentication";
+        return "Firebase billing is not active yet for phone authentication.";
       case "app-not-authorized":
       case "invalid-app-credential":
       case "captcha-check-failed":
       case "missing-client-identifier":
         return "Firebase app verification failed. Check Android package name and SHA-1/SHA-256 in Firebase.$details";
       case "network-request-failed":
-        return "Network error. Please check your internet connection";
+        return ErrorMessages.networkError;
       case "invalid-verification-code":
-        return "Invalid OTP code. Please check and try again";
+        return ErrorMessages.invalidOtp;
       case "session-expired":
-        return "OTP expired. Please request a new code";
+        return ErrorMessages.otpExpired;
       default:
         return "Verification failed (${e.code})$details";
     }
@@ -123,7 +125,7 @@ class AuthController extends GetxController {
       try {
         await OrderRealtimeService.instance.startForCurrentUser();
       } catch (e) {
-        debugPrint('Error starting order realtime: $e');
+        AppLogger.error('Auth', 'OrderRealtime: $e');
       }
 
       final pendingProduct = getPendingProductToAdd();
@@ -133,7 +135,7 @@ class AuthController extends GetxController {
 
       executePendingNavigation();
     } catch (e) {
-      debugPrint('Error syncing AppUser: $e');
+      AppLogger.error('Auth', 'SyncAppUser: $e');
     } finally {
       _isRefreshing = false;
     }
@@ -145,11 +147,11 @@ class AuthController extends GetxController {
   Future<String> requireIdToken({bool forceRefresh = false}) async {
     final user = currentUser;
     if (user == null) {
-      throw Exception('Login required.');
+      throw Exception(ErrorMessages.loginRequired);
     }
     final token = await user.getIdToken(forceRefresh);
     if (token == null || token.trim().isEmpty) {
-      throw Exception('Invalid login session.');
+      throw Exception(ErrorMessages.invalidSession);
     }
     return token;
   }
@@ -195,8 +197,8 @@ class AuthController extends GetxController {
       onError(_phoneAuthErrorMessage(e));
       return false;
     } catch (e) {
-      debugPrint('Failed to send OTP: $e');
-      onError('Failed to send OTP: ${e.toString()}');
+      AppLogger.error('Auth', 'SendOTP: $e');
+      onError(ErrorMessages.somethingWentWrong);
       return false;
     }
   }
@@ -229,9 +231,10 @@ class AuthController extends GetxController {
         'error': _phoneAuthErrorMessage(e),
       };
     } catch (e) {
+      AppLogger.error('Auth', 'VerifyOTP: $e');
       return {
         'success': false,
-        'error': 'Something went wrong. Please try again',
+        'error': ErrorMessages.somethingWentWrong,
       };
     }
   }

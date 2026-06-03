@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/support_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
 class ReportIssueScreen extends StatefulWidget {
@@ -198,9 +200,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         description: _descriptionController.text,
       );
     } catch (error) {
+      AppLogger.error('ReportIssue', error);
       AppSnackbar.error(
         'Unable to submit',
-        error.toString().replaceFirst('Exception: ', ''),
+        ErrorMessages.somethingWentWrong,
       );
     }
   }

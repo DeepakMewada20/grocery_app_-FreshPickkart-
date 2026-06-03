@@ -1,4 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -86,7 +88,8 @@ class CategoryProviderController extends GetxController {
 
       categories.assignAll(result);
     } catch (e) {
-      errorMessage.value = e.toString();
+      errorMessage.value = ErrorMessages.loadFailed('categories');
+      AppLogger.error('Categories', e);
     } finally {
       isLoading.value = false;
     }
@@ -103,7 +106,8 @@ class CategoryProviderController extends GetxController {
 
       subCategories.assignAll(result);
     } catch (e) {
-      errorMessage.value = e.toString();
+      errorMessage.value = ErrorMessages.loadFailed('subcategories');
+      AppLogger.error('SubCategories', e);
     } finally {
       isLoading.value = false;
     }

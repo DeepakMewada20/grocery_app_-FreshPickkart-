@@ -30,6 +30,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -142,7 +144,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (cartController.cartItems.isEmpty) {
-      _showError('Your basket is empty');
+      _showError(ErrorMessages.emptyCart);
       return;
     }
 
@@ -168,7 +170,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final keyId = await PaymentConfig.getRazorpayKeyId();
     if (keyId == null || keyId.isEmpty) {
       _showError(
-        'Missing Razorpay key. Configure RAZORPAY_KEY_ID or the cloud function.',
+        ErrorMessages.paymentConfigError,
       );
       return;
     }
@@ -181,7 +183,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (customerPhone.isEmpty) {
         _showError(
-          'Phone number is required for payment. Please update your profile.',
+          ErrorMessages.phoneRequired,
         );
         return;
       }
@@ -199,7 +201,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       if (checkoutResult.success != true || checkoutResult.orderId == null) {
-        _showError(checkoutResult.error ?? 'Failed to initiate checkout');
+        _showError(checkoutResult.error ?? ErrorMessages.paymentFailed);
         return;
       }
 
@@ -214,14 +216,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (paymentOrder == null || paymentOrder.success != true) {
         await paymentService.markPaymentFailed(orderId);
-        _showError(paymentOrder?.error ?? 'Payment order failed');
+        _showError(paymentOrder?.error ?? ErrorMessages.paymentOrderFailed);
         return;
       }
 
       final razorpayOrderId = paymentOrder.razorpayOrderId;
       if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
         await paymentService.markPaymentFailed(orderId);
-        _showError('Invalid payment order response');
+        _showError(ErrorMessages.paymentResponseIncomplete);
         return;
       }
       _currentRazorpayOrderId = razorpayOrderId;
@@ -230,7 +232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           paymentOrder.amount ?? (cartController.totalAmount * 100).round();
       if (amountPaise <= 0) {
         await paymentService.markPaymentFailed(orderId);
-        _showError('Invalid payment amount. Please try again.');
+        _showError(ErrorMessages.invalidAmount);
         return;
       }
 
@@ -256,7 +258,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (_currentOrderId != null) {
         await paymentService.markPaymentFailed(_currentOrderId!);
       }
-      _showError('Failed to start payment: $e');
+      AppLogger.error('Checkout', e);
+      _showError(ErrorMessages.paymentFailed);
     }
   }
 
@@ -735,8 +738,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         trackingEnabled: false,
         userLocation: userLocation,
       );
-    } catch (_) {
-      // Best effort only. Tracking metadata must never block checkout.
+    } catch (e) {
+      AppLogger.warning('Checkout', 'Tracking seed failed: $e');
     }
   }
 
@@ -766,8 +769,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           type: type,
         );
       }
-    } catch (_) {
-      // Ignore geocoding failures and fall back to no seeded user location.
+    } catch (e) {
+      AppLogger.warning('Checkout', 'Geocoding failed: $e');
     }
 
     return null;
@@ -794,7 +797,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final signature = payload['razorpay_signature'] as String? ?? '';
 
     if (orderId == null || razorpayOrderId == null || paymentId == null) {
-      _showError('Payment response incomplete');
+      _showError(ErrorMessages.paymentResponseIncomplete);
       return;
     }
 
@@ -836,9 +839,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
       } catch (e) {
+        AppLogger.error('Checkout', e);
         if (mounted) {
           _showInfo(
-            'Payment received. Recovery will retry automatically: $e',
+            'Payment received. Recovery will retry automatically.',
           );
         }
       }
@@ -963,7 +967,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (decoded is Map && decoded['error'] is Map) {
             return Map<String, dynamic>.from(decoded['error'] as Map);
           }
-        } catch (_) {}
+        } catch (e) {
+      AppLogger.warning('Checkout', 'Error decode: $e');
+    }
       }
     }
     return null;
@@ -1018,13 +1024,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (orderId != null) {
         await paymentService.markPaymentFailed(orderId);
       }
-      _showError(
-        message.isEmpty
-            ? 'Payment failed (code: $code). Please try again.'
-            : 'Payment failed ($code): $message',
-      );
+      _showError(message.isEmpty ? ErrorMessages.paymentFailed : ErrorMessages.paymentError(message));
+      AppLogger.error('Checkout', 'Payment error code=$code msg=$message');
     } catch (e) {
-      _showError('Error handling payment failure: $e');
+      AppLogger.error('Checkout', e);
+      _showError(ErrorMessages.paymentFailed);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/model/product_complaint_type.dart';
 import 'package:freshpickkat_flutter/services/attachment_upload_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -66,21 +67,21 @@ class ProductComplaintController extends GetxController {
     required String description,
   }) async {
     if (isSubmitting.value) {
-      throw Exception('Submission already in progress.');
+      throw Exception(ErrorMessages.submissionInProgress);
     }
     final selectedIds = selectedOrderItemIdsOverride ?? selectedOrderItemIds;
     if (selectedIds.isEmpty) {
-      throw Exception('Select at least one affected product.');
+      throw Exception(ErrorMessages.selectProduct);
     }
     if (selectedImages.isEmpty) {
-      throw Exception('Please attach at least one image.');
+      throw Exception(ErrorMessages.attachImage);
     }
     if (selectedImages.length > 3) {
-      throw Exception('You can attach up to 3 images.');
+      throw Exception(ErrorMessages.maxImages);
     }
 
     final user = AuthController.instance.currentUser;
-    if (user == null) throw Exception('Please login to report an issue.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
 
     isSubmitting.value = true;
     try {

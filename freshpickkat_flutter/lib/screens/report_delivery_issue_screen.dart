@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/controller/delivery_issue_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
 class ReportDeliveryIssueScreen extends StatefulWidget {
@@ -301,15 +303,16 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
         AppSnackbar.show(
           'Updated',
           _controller.isAddressChange
-              ? 'Delivery address updated successfully'
-              : 'Delivery note saved successfully',
+              ? ErrorMessages.deliveryAddressUpdated
+              : ErrorMessages.deliveryNoteSaved,
         );
         Get.back(result: true);
       }
     } catch (error) {
+      AppLogger.error('ReportDeliveryIssue', error);
       AppSnackbar.error(
         'Unable to submit',
-        error.toString().replaceFirst('Exception: ', ''),
+        ErrorMessages.somethingWentWrong,
       );
     }
   }

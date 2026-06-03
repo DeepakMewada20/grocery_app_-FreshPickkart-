@@ -6,6 +6,8 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
@@ -94,7 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return;
       }
     } catch (e) {
-      debugPrint('Validation error: $e');
+      AppLogger.warning('EditProfile', 'Validation error: $e');
       return;
     }
 
@@ -152,22 +154,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Get.offAllNamed('/home');
         AppSnackbar.show(
           'Success',
-          'Profile saved successfully!',
+          ErrorMessages.profileSavedSuccess,
         );
       } else {
         // For edit profile from more screen - go back with snackbar
         Get.back();
         AppSnackbar.show(
           'Success',
-          'Profile updated successfully',
+          ErrorMessages.profileUpdateSuccess,
         );
       }
     } catch (e) {
+      AppLogger.error('EditProfile', e);
       AppSnackbar.error(
         'Error',
-        'Failed to update profile: ${e.toString()}',
+        ErrorMessages.profileSaveFailed,
       );
-      debugPrint('Save error: $e');
     } finally {
       setState(() {
         _isSaving = false;

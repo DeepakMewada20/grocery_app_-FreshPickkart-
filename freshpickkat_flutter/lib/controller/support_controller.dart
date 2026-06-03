@@ -3,6 +3,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/model/support_issue_type.dart';
 import 'package:freshpickkat_flutter/services/support_issue_service.dart';
 import 'package:freshpickkat_flutter/services/support_screenshot_upload_service.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -46,12 +47,12 @@ class SupportController extends GetxController {
     required String description,
   }) async {
     if (isSubmitting.value) {
-      throw Exception('Submission already in progress.');
+      throw Exception(ErrorMessages.submissionInProgress);
     }
 
     final user = AuthController.instance.currentUser;
     if (user == null) {
-      throw Exception('Please login to submit a support issue.');
+      throw Exception(ErrorMessages.loginRequired);
     }
 
     isSubmitting.value = true;

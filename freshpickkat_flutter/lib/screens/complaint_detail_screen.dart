@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 class ComplaintDetailScreen extends StatefulWidget {
@@ -45,10 +47,11 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       );
       setState(() {
         _complaint = complaint;
-        _error = complaint == null ? 'Complaint not found' : null;
+        _error = complaint == null ? ErrorMessages.complaintNotFound : null;
       });
     } catch (error) {
-      setState(() => _error = error.toString());
+      AppLogger.error('ComplaintDetail', error);
+      setState(() => _error = ErrorMessages.loadComplaintsFailed);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -213,7 +216,9 @@ class _AddressChangeSection extends StatelessWidget {
       if (decoded is Map) {
         return Address.fromJson(decoded.map((k, v) => MapEntry('$k', v)));
       }
-    } catch (_) {}
+    } catch (e) {
+      AppLogger.warning('ComplaintDetail', 'JSON decode error: $e');
+    }
     return null;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -47,7 +48,7 @@ class OrderService {
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
-    if (user == null) throw Exception('Login required.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
     final idToken = await auth.requireIdToken();
     return _client.order.updateDeliveryAddress(
       orderId,

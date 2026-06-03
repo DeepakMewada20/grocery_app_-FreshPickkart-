@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -6,6 +5,7 @@ import 'package:freshpickkat_flutter/controller/category_provider_controller.dar
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/services/notification_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 
 class DataInitializationService extends GetxService {
@@ -20,7 +20,7 @@ class DataInitializationService extends GetxService {
   Future<void> initializeAppData() async {
     if (isInitialized.value || isLoading.value) return;
 
-    debugPrint('🚀 Starting Global Data Initialization...');
+    AppLogger.info('Init', 'Starting Global Data Initialization...');
     isLoading.value = true;
 
     try {
@@ -36,9 +36,9 @@ class DataInitializationService extends GetxService {
       ]);
 
       isInitialized.value = true;
-      debugPrint('✅ Global Data Initialization Complete.');
+      AppLogger.info('Init', 'Global Data Initialization Complete.');
     } catch (e) {
-      debugPrint('❌ Error during data initialization: $e');
+      AppLogger.error('Init', e);
     } finally {
       isLoading.value = false;
     }
@@ -50,7 +50,7 @@ class DataInitializationService extends GetxService {
         await AuthController.instance.refreshAppUser();
       }
     } catch (e) {
-      debugPrint('Error init auth: $e');
+      AppLogger.error('Init', 'Auth: $e');
     }
   }
 
@@ -58,7 +58,7 @@ class DataInitializationService extends GetxService {
     try {
       await BannerController.instance.loadHomeBannersIfEmpty();
     } catch (e) {
-      debugPrint('Error init banners: $e');
+      AppLogger.error('Init', 'Banners: $e');
     }
   }
 
@@ -68,7 +68,7 @@ class DataInitializationService extends GetxService {
     try {
       await ProductProviderController.instance.fetchProductsIfEmpty();
     } catch (e) {
-      debugPrint('Error init products: $e');
+      AppLogger.error('Init', 'Products: $e');
     }
   }
 
@@ -77,7 +77,7 @@ class DataInitializationService extends GetxService {
       await NotificationService.init();
       await NotificationService.openPendingTrackingLaunchIfAny();
     } catch (e) {
-      debugPrint('Error init notifications: $e');
+      AppLogger.error('Init', 'Notifications: $e');
     }
   }
 

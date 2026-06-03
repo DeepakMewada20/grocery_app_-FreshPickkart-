@@ -2,6 +2,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
 class DeliveryIssueController extends GetxController {
@@ -66,15 +67,15 @@ class DeliveryIssueController extends GetxController {
 
   Future<Object?> submit(String description, String note) async {
     if (isSubmitting.value) {
-      throw Exception('Submission already in progress.');
+      throw Exception(ErrorMessages.submissionInProgress);
     }
 
     final cleanDescription = description.trim();
     if (!isDeliveryLocationIssue && cleanDescription.length < 20) {
-      throw Exception('Description must be at least 20 characters.');
+      throw Exception(ErrorMessages.descriptionTooShort);
     }
     if (cleanDescription.length > 2000) {
-      throw Exception('Description must be 2000 characters or less.');
+      throw Exception(ErrorMessages.descriptionTooLong);
     }
 
     isSubmitting.value = true;
@@ -83,7 +84,7 @@ class DeliveryIssueController extends GetxController {
         if (isAddressChange) {
           final address = selectedAddress.value;
           if (address == null) {
-            throw Exception('Please select a delivery address.');
+            throw Exception(ErrorMessages.selectDeliveryAddress);
           }
           final updated = await OrderService.instance.updateDeliveryAddress(
             orderId: orderNumber,

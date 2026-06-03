@@ -1,5 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -14,7 +15,7 @@ class RefundService {
 
   Future<RefundRecord?> getRefundStatus(String orderId) async {
     final user = AuthController.instance.currentUser;
-    if (user == null) throw Exception('Login required.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
     final idToken = await AuthController.instance.requireIdToken();
     return _client.refund.getRefundStatus(orderId, user.uid, idToken);
   }

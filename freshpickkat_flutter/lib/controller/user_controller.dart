@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -82,7 +82,7 @@ class UserController extends GetxController {
       userName.value = result.name ?? '';
       userEmail.value = result.email ?? '';
     } catch (e) {
-      debugPrint('Error updating profile: $e');
+      AppLogger.error('User', 'UpdateProfile: $e');
       rethrow;
     } finally {
       isLoading.value = false;
@@ -109,7 +109,7 @@ class UserController extends GetxController {
       await _cacheService.saveUser(result);
       shippingAddress.value = result.shippingAddress;
     } catch (e) {
-      debugPrint('Error updating address: $e');
+      AppLogger.error('User', 'UpdateAddress: $e');
       rethrow;
     } finally {
       isLoading.value = false;
@@ -129,7 +129,7 @@ class UserController extends GetxController {
         _updateFromAppUser(freshUser);
       }
     } catch (e) {
-      debugPrint('Error refreshing user data: $e');
+      AppLogger.error('User', 'RefreshData: $e');
     }
   }
 }

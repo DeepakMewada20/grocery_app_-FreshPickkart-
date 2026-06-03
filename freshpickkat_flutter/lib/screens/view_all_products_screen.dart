@@ -6,6 +6,8 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
 /// Displays a full list of products in a grid. The [sortBy] value is forwarded
@@ -70,10 +72,10 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
         products.assignAll(fetched);
       }
     } catch (e) {
-      debugPrint('Failed to fetch products: $e');
+      AppLogger.error('ViewAllProducts', e);
       AppSnackbar.error(
         'Error',
-        'Unable to load products',
+        ErrorMessages.loadFailed('products'),
       );
     } finally {
       isLoading.value = false;

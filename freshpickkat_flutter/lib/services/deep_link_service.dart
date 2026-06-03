@@ -7,6 +7,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:play_install_referrer/play_install_referrer.dart';
@@ -29,7 +30,7 @@ class DeepLinkService extends GetxService {
     _subscription = _appLinks.uriLinkStream.listen(
       handleUri,
       onError: (Object error, StackTrace stackTrace) {
-        debugPrint('Deep link stream error: $error');
+        AppLogger.error('DeepLink', 'Stream: $error');
       },
     );
 
@@ -49,7 +50,7 @@ class DeepLinkService extends GetxService {
   Future<void> handleUri(Uri uri) async {
     final target = RouteManager.fromUri(uri);
     if (target == null) {
-      debugPrint('Ignoring unsupported deep link: $uri');
+      AppLogger.info('DeepLink', 'Ignoring unsupported deep link: $uri');
       return;
     }
     await openTarget(target);
@@ -74,7 +75,7 @@ class DeepLinkService extends GetxService {
         trimmed,
       );
     } catch (error) {
-      debugPrint('Failed to resolve deep-link product $trimmed: $error');
+      AppLogger.error('DeepLink', 'Product $trimmed: $error');
       return null;
     }
   }
@@ -92,7 +93,7 @@ class DeepLinkService extends GetxService {
       );
       return category?.categoryName;
     } catch (error) {
-      debugPrint('Failed to resolve deep-link category $trimmed: $error');
+      AppLogger.error('DeepLink', 'Category $trimmed: $error');
       return null;
     }
   }
@@ -107,10 +108,10 @@ class DeepLinkService extends GetxService {
       final details = await PlayInstallReferrer.installReferrer;
       final uri = _deepLinkFromReferrer(details.installReferrer);
       if (uri == null) return;
-      debugPrint('Restored deferred deep link from Play referrer: $uri');
+      AppLogger.info('DeepLink', 'Restored deferred deep link from Play referrer: $uri');
       await handleUri(uri);
     } catch (error) {
-      debugPrint('Install referrer unavailable: $error');
+      AppLogger.error('DeepLink', 'Install referrer unavailable: $error');
     }
   }
 

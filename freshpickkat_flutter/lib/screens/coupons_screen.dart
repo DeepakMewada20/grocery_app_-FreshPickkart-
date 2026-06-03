@@ -6,6 +6,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -66,9 +68,10 @@ class _CouponsScreenState extends State<CouponsScreen> {
         });
       }
     } catch (e) {
+      AppLogger.error('Coupons', e);
       if (mounted) {
         setState(() {
-          _error = 'Failed to load coupons. Pull to refresh.';
+          _error = ErrorMessages.couponLoadFailed;
           _initialLoad = false;
         });
       }
@@ -248,7 +251,7 @@ class _CouponListCard extends StatelessWidget {
 
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: coupon.code));
-    AppSnackbar.show('Copied!', '"${coupon.code}" copied!');
+    AppSnackbar.show('Copied!', ErrorMessages.copied(coupon.code));
   }
 
   @override

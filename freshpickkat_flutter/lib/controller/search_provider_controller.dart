@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/search_history_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -87,7 +87,7 @@ class SearchProviderController extends GetxController {
       _nextPageTokenSuggestions = result.nextPageToken;
       hasMoreSuggestions.value = result.nextPageToken != null;
     } catch (e) {
-      debugPrint('Error fetching suggestions: $e');
+      AppLogger.error('Search', 'Suggestions: $e');
       suggestions.clear();
     } finally {
       isLoadingSuggestions.value = false;
@@ -109,7 +109,7 @@ class SearchProviderController extends GetxController {
       _nextPageTokenSuggestions = result.nextPageToken;
       hasMoreSuggestions.value = result.nextPageToken != null;
     } catch (e) {
-      debugPrint('Error loading more suggestions: $e');
+      AppLogger.error('Search', 'MoreSuggestions: $e');
     } finally {
       isLoadingSuggestions.value = false;
     }
@@ -135,7 +135,7 @@ class SearchProviderController extends GetxController {
       hasMoreResults.value = result.nextPageToken != null;
       await saveSearch(normalizedQuery);
     } catch (e) {
-      debugPrint('Error searching products: $e');
+      AppLogger.error('Search', 'Products: $e');
       searchResults.clear();
     } finally {
       isLoadingResults.value = false;
@@ -157,7 +157,7 @@ class SearchProviderController extends GetxController {
       _nextPageTokenResults = result.nextPageToken;
       hasMoreResults.value = result.nextPageToken != null;
     } catch (e) {
-      debugPrint('Error loading more results: $e');
+      AppLogger.error('Search', 'MoreResults: $e');
     } finally {
       isLoadingResults.value = false;
     }
@@ -220,7 +220,7 @@ class SearchProviderController extends GetxController {
       hasMoreOfferResults.value = result.nextPageToken != null;
       if (normalizedQuery.isNotEmpty) await saveSearch(normalizedQuery);
     } catch (e) {
-      debugPrint('Error searching offer products: $e');
+      AppLogger.error('Search', 'OfferProducts: $e');
       offerResults.clear();
     } finally {
       isLoadingResults.value = false;
@@ -243,7 +243,7 @@ class SearchProviderController extends GetxController {
       _nextPageTokenOfferResults = result.nextPageToken;
       hasMoreOfferResults.value = result.nextPageToken != null;
     } catch (e) {
-      debugPrint('Error loading more offer results: $e');
+      AppLogger.error('Search', 'MoreOffer: $e');
     } finally {
       isLoadingResults.value = false;
     }

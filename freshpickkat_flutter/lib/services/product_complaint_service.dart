@@ -1,5 +1,6 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
 class ProductComplaintService {
@@ -35,7 +36,7 @@ class ProductComplaintService {
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
-    if (user == null) throw Exception('Please login to report an issue.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
     final idToken = await auth.requireIdToken();
     return _client.complaint.createProductComplaint(
       firebaseUid: user.uid,
@@ -61,7 +62,7 @@ class ProductComplaintService {
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
-    if (user == null) throw Exception('Please login to report an issue.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
     final idToken = await auth.requireIdToken();
     return _client.complaint.createDeliveryComplaint(
       firebaseUid: user.uid,
@@ -103,7 +104,7 @@ class ProductComplaintService {
   }) async {
     final auth = AuthController.instance;
     final user = auth.currentUser;
-    if (user == null) throw Exception('Please login to view complaints.');
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
     final idToken = await auth.requireIdToken();
     return _client.complaint.listMyComplaints(
       firebaseUid: user.uid,

@@ -8,6 +8,7 @@ import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_detail_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
@@ -167,7 +168,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     try {
       await _client.productRanking.recordProductView(productId);
     } catch (e) {
-      debugPrint('Failed to record product view: $e');
+      AppLogger.error('ProductDetail', 'Record view: $e');
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart' as server;
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
 import '../models/delivery_location.dart';
@@ -29,7 +30,7 @@ class ServerOrderTrackingRepository {
   Stream<OrderTrackingSnapshot?> streamTracking(String orderId) async* {
     final user = AuthController.instance.currentUser;
     if (user == null) {
-      throw Exception('Login required.');
+      throw Exception(ErrorMessages.loginRequired);
     }
     final idToken = await AuthController.instance.requireIdToken();
     await for (final data in _client.orderTracking.streamTrackingForUser(
@@ -44,7 +45,7 @@ class ServerOrderTrackingRepository {
   Future<OrderTrackingSnapshot?> fetchOrder(String orderId) async {
     final user = AuthController.instance.currentUser;
     if (user == null) {
-      throw Exception('Login required.');
+      throw Exception(ErrorMessages.loginRequired);
     }
 
     final idToken = await AuthController.instance.requireIdToken();
@@ -65,7 +66,7 @@ class ServerOrderTrackingRepository {
   }) async {
     final user = AuthController.instance.currentUser;
     if (user == null) {
-      throw Exception('Login required.');
+      throw Exception(ErrorMessages.loginRequired);
     }
 
     final idToken = await AuthController.instance.requireIdToken();
@@ -89,7 +90,7 @@ class ServerOrderTrackingRepository {
   }) async {
     final user = AuthController.instance.currentUser;
     if (user == null) {
-      throw Exception('Login required.');
+      throw Exception(ErrorMessages.loginRequired);
     }
 
     final idToken = await AuthController.instance.requireIdToken();

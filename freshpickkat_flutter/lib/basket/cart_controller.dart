@@ -12,6 +12,8 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
@@ -282,7 +284,7 @@ class CartController extends GetxController {
       try {
         _cachedDeliveryConfig = await client.freeDelivery.getDeliveryConfig();
       } catch (e) {
-        debugPrint('Error fetching delivery config: $e');
+        AppLogger.error('Cart', 'DeliveryConfig: $e');
       }
     }();
 
@@ -327,7 +329,7 @@ class CartController extends GetxController {
           protocolCart,
         );
       } catch (e) {
-        debugPrint('Error syncing cart to server: $e');
+        AppLogger.error('Cart', 'SyncServer: $e');
       } finally {
         completer.complete();
       }
@@ -377,7 +379,7 @@ class CartController extends GetxController {
         }
       } catch (e) {
         _isInitialLoading = false;
-        debugPrint('Error loading cart count from cache: $e');
+        AppLogger.error('Cart', 'CacheLoad: $e');
       }
     }
   }
@@ -396,8 +398,7 @@ class CartController extends GetxController {
         }
       } catch (e) {
         _isInitialLoading = false;
-        debugPrint('Error fetching cart from server: $e');
-        // If server fails, allow local changes to sync anyway to prevent further data loss
+        AppLogger.error('Cart', 'FetchServer: $e');
         _isInitialSyncComplete = true;
       }
     }
@@ -431,7 +432,7 @@ class CartController extends GetxController {
         fallbackItems: fallbackItems,
       );
     } catch (e) {
-      debugPrint('Error refreshing cart current data: $e');
+      AppLogger.error('Cart', 'RefreshCurrentData: $e');
       if (cartItems.isEmpty && localItems.isNotEmpty) {
         cartItems.assignAll(localItems);
       }
@@ -439,7 +440,7 @@ class CartController extends GetxController {
     try {
       await fetchCartPricing();
     } catch (e) {
-      debugPrint('Error refreshing cart pricing: $e');
+      AppLogger.error('Cart', 'RefreshPricing: $e');
     }
   }
 
@@ -493,7 +494,7 @@ class CartController extends GetxController {
           }
         }
       } catch (e) {
-        debugPrint('Error fetching cart pricing: $e');
+        AppLogger.error('Cart', 'Pricing: $e');
       }
     }();
 
@@ -577,7 +578,7 @@ class CartController extends GetxController {
       // Pre-fetch combo products for the UI to show multiple images
       _prefetchComboProductsFromSuggestions(response.suggestions);
     } catch (e) {
-      debugPrint('Error fetching basket suggestions: $e');
+      AppLogger.error('Cart', 'BasketSuggestions: $e');
     } finally {
       isBasketSuggestionsLoading.value = false;
     }
@@ -1101,8 +1102,8 @@ class CartController extends GetxController {
       _couponCacheKey = currentCacheKey;
       _hasCouponCacheForCurrentCart = true;
     } catch (e) {
-      couponError.value = 'Failed to load coupons';
-      debugPrint('Error fetching coupons: $e');
+      couponError.value = ErrorMessages.couponLoadFailed;
+      AppLogger.error('Cart', 'Coupons: $e');
     } finally {
       isLoadingCoupons.value = false;
     }
@@ -1123,11 +1124,12 @@ class CartController extends GetxController {
 
       if (!result.isValid) {
         removeCoupon();
-        couponError.value = result.errorMessage ?? 'Coupon removed';
+        couponError.value = result.errorMessage ?? ErrorMessages.couponRemoved;
       }
     } catch (e) {
       removeCoupon();
-      couponError.value = 'Coupon removed';
+      couponError.value = ErrorMessages.couponRemoved;
+      AppLogger.error('Cart', 'RevalidateCoupon: $e');
     }
   }
 
@@ -1158,14 +1160,14 @@ class CartController extends GetxController {
         await fetchCartPricing();
         return true;
       } else {
-        couponError.value = result.errorMessage ?? 'Invalid coupon';
+        couponError.value = result.errorMessage ?? ErrorMessages.couponInvalid;
         appliedCoupon.value = null;
         await fetchCartPricing();
         return false;
       }
     } catch (e) {
-      couponError.value = 'Error applying coupon';
-      debugPrint('Error applying coupon: $e');
+      couponError.value = ErrorMessages.couponApplyError;
+      AppLogger.error('Cart', 'ApplyCoupon: $e');
       return false;
     } finally {
       isApplyingCoupon.value = false;

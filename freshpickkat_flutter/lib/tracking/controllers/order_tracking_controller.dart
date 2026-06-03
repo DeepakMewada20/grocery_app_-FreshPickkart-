@@ -275,7 +275,7 @@ class OrderTrackingController extends GetxController {
         return;
       }
       if (routePoints.length < 2) {
-        throw Exception('Route has too few points.');
+        throw Exception('Unable to determine delivery route.');
       }
 
       final polylinePoints = routePoints

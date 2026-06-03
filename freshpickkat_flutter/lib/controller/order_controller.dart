@@ -1,6 +1,8 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -31,7 +33,7 @@ class OrderController extends GetxController {
     final user = auth.currentUser;
     if (user == null) {
       orders.clear();
-      errorMessage.value = 'Login required to view orders.';
+      errorMessage.value = ErrorMessages.loginRequired;
       return;
     }
 
@@ -44,7 +46,8 @@ class OrderController extends GetxController {
       );
       await _loadOrders();
     } catch (e) {
-      errorMessage.value = 'Failed to load orders: $e';
+      errorMessage.value = ErrorMessages.loadFailed('orders');
+      AppLogger.error('Orders', e);
     } finally {
       isLoading.value = false;
       _isFetching = false;
@@ -56,8 +59,8 @@ class OrderController extends GetxController {
     _isFetching = true;
     try {
       await _loadOrders();
-    } catch (_) {
-      // Realtime refresh is best-effort.
+    } catch (e) {
+      AppLogger.warning('Orders', 'Realtime refresh: $e');
     } finally {
       _isFetching = false;
     }
@@ -83,7 +86,8 @@ class OrderController extends GetxController {
       if (user == null) return null;
       final idToken = await auth.requireIdToken();
       return await _client.order.getOrderById(orderId, user.uid, idToken);
-    } catch (_) {
+    } catch (e) {
+      AppLogger.warning('Orders', 'fetchOrderById: $e');
       return null;
     }
   }

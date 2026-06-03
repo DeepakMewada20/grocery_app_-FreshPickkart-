@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/screens/report_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/support_issue_service.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -299,12 +301,13 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         mode: LaunchMode.externalApplication,
       );
       if (launched) return;
-    } catch (_) {
+    } catch (e) {
+      AppLogger.error('HelpSupport', e);
     }
 
     if (mounted) {
       AppSnackbar.error(
-        'Unable to open',
+        ErrorMessages.unableToOpen,
         fallbackMessage,
       );
     }

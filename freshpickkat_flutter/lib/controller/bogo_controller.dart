@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
@@ -55,7 +55,7 @@ class BogoController extends GetxController {
       final offers = await _client.bogo.getActiveOffers();
       activeOffers.assignAll(offers);
     } catch (e) {
-      debugPrint('Error loading active BOGO offers: $e');
+      AppLogger.error('Bogo', 'Active: $e');
     } finally {
       isLoading.value = false;
     }
@@ -80,6 +80,7 @@ class BogoController extends GetxController {
       }
       return offer;
     } catch (e) {
+      AppLogger.error('Bogo', 'OfferForProduct: $e');
       return null;
     }
   }

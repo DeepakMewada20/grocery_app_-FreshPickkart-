@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:get/get.dart';
 
@@ -61,7 +61,7 @@ class ProductProviderController extends GetxController {
       );
       trendingProducts.assignAll(rankings.map((item) => item.product).toList());
     } catch (e) {
-      debugPrint('Error fetching trending products: $e');
+      AppLogger.error('Products', 'Trending: $e');
     }
   }
 
@@ -75,7 +75,7 @@ class ProductProviderController extends GetxController {
         rankings.map((item) => item.product).toList(),
       );
     } catch (e) {
-      debugPrint('Error fetching best sellers: $e');
+      AppLogger.error('Products', 'BestSellers: $e');
     }
   }
 
@@ -89,7 +89,7 @@ class ProductProviderController extends GetxController {
         rankings.map((item) => item.product).toList(),
       );
     } catch (e) {
-      debugPrint('Error fetching most viewed products: $e');
+      AppLogger.error('Products', 'MostViewed: $e');
     }
   }
 
@@ -102,7 +102,7 @@ class ProductProviderController extends GetxController {
         rankings.map((item) => item.product).toList(),
       );
     } catch (e) {
-      debugPrint('Error fetching frequently reordered products: $e');
+      AppLogger.error('Products', 'FreqReordered: $e');
     }
   }
 
@@ -161,7 +161,8 @@ class ProductProviderController extends GetxController {
     if (isInitialFetch && _productCache.containsKey(key)) {
       allProducts.assignAll(_productCache[key]!);
       isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
-      debugPrint(
+      AppLogger.info(
+        'Products',
         'Loaded from cache: ${_productCache[key]!.length} products (Key: $key)',
       );
       return;
@@ -205,12 +206,13 @@ class ProductProviderController extends GetxController {
         _productCache[key] = List.from(allProducts);
       }
 
-      debugPrint(
+      AppLogger.info(
+        'Products',
         'Fetched ${newProducts.length} products (Cat: ${currentCategory.value}, Subs: $currentSubcategories, Sort: ${currentSortBy.value}), total: ${allProducts.length}',
       );
     } catch (e) {
-      errorMessage.value = e.toString();
-      debugPrint('Error fetching products: $e');
+      errorMessage.value = 'Unable to load products.';
+      AppLogger.error('Products', e);
     } finally {
       isLoading.value = false;
     }
@@ -269,7 +271,7 @@ class ProductProviderController extends GetxController {
 
       allProducts.assignAll(merged);
     } catch (e) {
-      debugPrint('Error fetching products by ids: $e');
+      AppLogger.error('Products', 'ByIds: $e');
     }
   }
 
