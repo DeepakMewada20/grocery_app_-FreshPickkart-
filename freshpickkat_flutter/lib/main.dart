@@ -26,6 +26,11 @@ import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/modern_splash_screen.dart';
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
+import 'package:freshpickkat_flutter/screens/deep_link_loading_screen.dart';
+import 'package:freshpickkat_flutter/screens/deep_link_not_found_screen.dart';
+import 'package:freshpickkat_flutter/routes/route_manager.dart';
+import 'package:freshpickkat_flutter/services/deep_link_service.dart';
+import 'package:freshpickkat_flutter/services/share_service.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -70,6 +75,8 @@ void main() async {
   Get.put(OrderRealtimeService(), permanent: true);
   Get.lazyPut(() => OrderRecoveryService(), fenix: true);
   Get.lazyPut(() => OrderTrackingController(), fenix: true);
+  Get.put(ShareService(), permanent: true);
+  await Get.putAsync(() => DeepLinkService().init(), permanent: true);
 
   runApp(const MyApp());
 }
@@ -109,17 +116,44 @@ class MyApp extends StatelessWidget {
               ),
             );
           },
-          routes: {
-            // '/address' route removed - using EditProfileScreen instead
-            // '/address': (context) => const AddressScreen(),
-            '/checkout': (context) => const CheckoutScreen(),
-            '/home': (context) => const MainScreen(),
-            '/login': (context) => const PhoneAuthScreen(),
-            '/phone-auth': (context) => const PhoneAuthScreen(),
-            '/offers': (context) => const OffersScreen(),
-            '/combo-offers': (context) => const ComboOffersScreen(),
-            '/coupons': (context) => const CouponsScreen(),
-          },
+          getPages: [
+            GetPage(name: '/checkout', page: () => const CheckoutScreen()),
+            GetPage(name: RouteManager.home, page: () => const MainScreen()),
+            GetPage(name: '/login', page: () => const PhoneAuthScreen()),
+            GetPage(name: '/phone-auth', page: () => const PhoneAuthScreen()),
+            GetPage(name: '/offers', page: () => const OffersScreen()),
+            GetPage(
+              name: '/combo-offers',
+              page: () => const ComboOffersScreen(),
+            ),
+            GetPage(name: '/coupons', page: () => const CouponsScreen()),
+            GetPage(
+              name: RouteManager.productPattern,
+              page: () => const DeepLinkLoadingScreen(
+                type: DeepLinkType.product,
+              ),
+            ),
+            GetPage(
+              name: RouteManager.categoryPattern,
+              page: () => const DeepLinkLoadingScreen(
+                type: DeepLinkType.category,
+              ),
+            ),
+            GetPage(
+              name: RouteManager.offerPattern,
+              page: () => const DeepLinkLoadingScreen(
+                type: DeepLinkType.offer,
+              ),
+            ),
+            GetPage(
+              name: RouteManager.productNotFound,
+              page: () => DeepLinkNotFoundScreen.product(productId: ''),
+            ),
+            GetPage(
+              name: RouteManager.deepLinkNotFound,
+              page: () => const DeepLinkNotFoundScreen(),
+            ),
+          ],
         ),
       ),
     );

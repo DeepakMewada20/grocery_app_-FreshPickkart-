@@ -216,6 +216,23 @@ class ProductProviderController extends GetxController {
     }
   }
 
+  Future<Product?> resolveActiveProductById(String productId) async {
+    final trimmed = productId.trim();
+    if (trimmed.isEmpty) return null;
+
+    Product? findLoaded() {
+      return allProducts.firstWhereOrNull(
+        (product) => product.productId == trimmed && product.isAvailable,
+      );
+    }
+
+    final loaded = findLoaded();
+    if (loaded != null) return loaded;
+
+    await fetchProductsByIds([trimmed]);
+    return findLoaded();
+  }
+
   Future<void> fetchProductsByIds(List<String> productIds) async {
     final trimmedIds = productIds
         .map((id) => id.trim())

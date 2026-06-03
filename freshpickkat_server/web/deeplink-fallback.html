@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FreshPickKat</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7faf7;
+      color: #172019;
+    }
+    main {
+      width: min(420px, calc(100vw - 40px));
+      text-align: center;
+    }
+    img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+    p {
+      margin: 0 0 22px;
+      color: #526157;
+      line-height: 1.5;
+    }
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 20px;
+      border-radius: 8px;
+      background: #1b8a4c;
+      color: white;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/app/icons/Icon-192.png" alt="FreshPickKat">
+    <h1>Opening FreshPickKat</h1>
+    <p>If the app is not installed, continue to Google Play. After install, FreshPickKat will try to restore this link.</p>
+    <a id="storeLink" href="#">Continue</a>
+  </main>
+  <script>
+    (function () {
+      var packageName = 'com.freshpickkart.customer';
+      var currentUrl = window.location.href;
+      var referrer = encodeURIComponent('deep_link=' + encodeURIComponent(currentUrl) + '&utm_source=deeplink');
+      var playUrl = 'https://play.google.com/store/apps/details?id=' + packageName + '&referrer=' + referrer;
+      var intentUrl = 'intent://' + window.location.host + window.location.pathname + window.location.search + '#Intent;scheme=https;package=' + packageName + ';S.browser_fallback_url=' + encodeURIComponent(playUrl) + ';end';
+      var link = document.getElementById('storeLink');
+      link.href = playUrl;
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        window.location.href = playUrl;
+      });
+      if (/Android/i.test(navigator.userAgent)) {
+        window.location.href = intentUrl;
+        window.setTimeout(function () {
+          window.location.href = playUrl;
+        }, 1200);
+      }
+    })();
+  </script>
+</body>
+</html>

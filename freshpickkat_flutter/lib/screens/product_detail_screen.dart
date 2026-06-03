@@ -11,6 +11,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
+import 'package:freshpickkat_flutter/services/share_service.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
@@ -225,7 +226,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.share_outlined, color: Colors.black),
-              onPressed: () {},
+              onPressed: () => ShareService.instance.shareProduct(
+                displayProduct,
+                context: context,
+              ),
             ),
           ],
         ),
