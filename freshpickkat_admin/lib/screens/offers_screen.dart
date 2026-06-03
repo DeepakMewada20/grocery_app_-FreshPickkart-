@@ -274,6 +274,7 @@ class _OffersScreenState extends State<OffersScreen> {
                     Scaffold(
                       backgroundColor: AdminThemeTokens.transparent,
                       floatingActionButton: FloatingActionButton.extended(
+                        heroTag: 'coupons_add_fab',
                         onPressed: _openAddCouponDialog,
                         icon: const Icon(Icons.add),
                         label: const Text('Add Coupon'),

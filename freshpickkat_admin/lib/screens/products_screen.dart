@@ -408,6 +408,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                 bottom: AdminResponsive.bottomInset(context),
                 child: FloatingActionButton.extended(
                   key: const ValueKey('add_product_fab'),
+                  heroTag: 'add_product_fab',
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: AdminThemeTokens.white,
                   onPressed: _openAddProductDialog,
@@ -538,6 +539,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
           SizedBox(height: 12.h),
         ],
         FloatingActionButton.extended(
+          heroTag: 'category_fab_menu',
           onPressed: widget.onToggle,
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: AdminThemeTokens.white,
@@ -591,6 +593,7 @@ class _CategoryFabMenuState extends State<_CategoryFabMenu>
               ),
               SizedBox(width: 12.w),
               FloatingActionButton.small(
+                heroTag: 'category_action_$index',
                 onPressed: onTap,
                 backgroundColor: color,
                 foregroundColor: AdminThemeTokens.white,
