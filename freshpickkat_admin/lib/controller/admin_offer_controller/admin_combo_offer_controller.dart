@@ -155,25 +155,36 @@ class AdminComboOfferController extends GetxController {
     return createComboOffer(offer);
   }
 
-  Future<bool> deleteComboOffer(String comboId) async {
+  Future<bool?> deleteComboOffer(String comboId) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      final result = await client.comboOffer.deleteComboOffer(
-        comboId,
-        uid,
-        idToken,
-      );
-      if (result) {
-        comboOffers.removeWhere((offer) => offer.comboId == comboId);
-        if (totalCount.value > 0) totalCount.value--;
-      }
-      return result;
+      return await AdminSessionService.withRetry(apiCall: () async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        final message = await client.comboOffer.deleteComboOffer(
+          comboId,
+          uid,
+          idToken,
+        );
+        if (message.isEmpty) {
+          comboOffers.removeWhere((offer) => offer.comboId == comboId);
+          if (totalCount.value > 0) totalCount.value--;
+          return true;
+        }
+        await _showDeactivationDialog(message);
+        return null;
+      });
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> _showDeactivationDialog(String message) async {
+    await Get.defaultDialog(
+      title: 'Offer Deactivated',
+      middleText: message,
+      textConfirm: 'OK',
+      onConfirm: () => Get.back(),
+    );
   }
 
   Future<bool> toggleComboOffer(String comboId, bool isActive) async {

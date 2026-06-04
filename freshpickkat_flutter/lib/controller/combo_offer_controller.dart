@@ -106,24 +106,6 @@ class ComboOfferController extends GetxController {
       return false;
     }
   }
-
-  Future<bool> deleteComboOffer(
-    String comboId,
-    String firebaseUid,
-    String idToken,
-  ) async {
-    try {
-      return await _client.comboOffer.deleteComboOffer(
-        comboId,
-        firebaseUid,
-        idToken,
-      );
-    } catch (e) {
-      AppLogger.error('ComboOffer', 'Delete: $e');
-      return false;
-    }
-  }
-
   Future<bool> toggleComboOfferActive(
     String comboId,
     bool isActive,

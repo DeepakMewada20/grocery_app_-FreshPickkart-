@@ -149,7 +149,7 @@ class ProductEndpoint extends Endpoint {
     return true;
   }
 
-  Future<bool> deleteProduct(
+  Future<String> deleteProduct(
     Session session,
     String productId,
     String firebaseUid,
@@ -160,7 +160,7 @@ class ProductEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    final deleted = await _pgProducts.deleteProduct(session, productId);
+    final message = await _pgProducts.deleteProduct(session, productId);
     await _audit.write(
       session,
       actorUserId: actor.id,
@@ -168,7 +168,7 @@ class ProductEndpoint extends Endpoint {
       entityType: 'product',
       entityId: productId,
     );
-    return deleted;
+    return message;
   }
 
   Future<List<String>> getProductSuggestions(

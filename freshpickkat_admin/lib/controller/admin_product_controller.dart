@@ -175,19 +175,31 @@ class AdminProductController extends GetxController {
     }
   }
 
-  Future<void> deleteProduct(String productId) async {
+  Future<bool?> deleteProduct(String productId) async {
     try {
-      await ApiClient().request(() async {
+      final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
-        await _client.product.deleteProduct(productId, uid, idToken);
+        final idToken = await AdminSessionService.requireIdToken();
+        return _client.product.deleteProduct(productId, uid, idToken);
       });
-      products.removeWhere((p) => p.productId == productId);
-      totalCount.value--;
+      if (message.isEmpty) {
+        products.removeWhere((p) => p.productId == productId);
+        totalCount.value--;
+        return true;
+      }
+      await _showDeactivationDialog(message);
+      return null;
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> _showDeactivationDialog(String message) async {
+    await Get.defaultDialog(
+      title: 'Product Deactivated',
+      middleText: message,
+      textConfirm: 'OK',
+      onConfirm: () => Get.back(),
+    );
   }
 }

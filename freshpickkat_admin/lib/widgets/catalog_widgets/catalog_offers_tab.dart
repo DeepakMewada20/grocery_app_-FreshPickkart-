@@ -297,12 +297,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       ),
     );
     if (confirmed != true) return;
-    final success = await widget.comboOfferController.deleteComboOffer(comboId);
+    final result = await widget.comboOfferController.deleteComboOffer(comboId);
     if (!mounted) return;
+    if (result == null) return; // dialog already shown
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success ? 'Combo offer removed' : 'Failed to remove combo offer',
+          result ? 'Combo offer removed' : 'Failed to remove combo offer',
         ),
       ),
     );
@@ -624,14 +625,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       ),
     );
     if (confirmed != true) return;
-    final success = await widget.categoryOfferController.deleteCategoryOffer(
+    final result = await widget.categoryOfferController.deleteCategoryOffer(
       offerId,
     );
     if (!mounted) return;
+    if (result == null) return; // dialog already shown
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success
+          result
               ? 'Category offer removed'
               : 'Failed to remove category offer',
         ),
@@ -1251,7 +1253,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     ? null
                     : () async {
                         setDialogState(() => isRemoving = true);
-                        final success = await _performRemoveOffer(
+                        final result = await _performRemoveOffer(
                           actionType: actionType,
                           product: product,
                           bogoOffers: bogoOffers,
@@ -1259,8 +1261,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           comboOffers: comboOffers,
                         );
                         if (!context.mounted) return;
-                        Navigator.pop(context, success);
-                        if (success) {
+                        Navigator.pop(context, result ?? true);
+                        if (result == null) return; // dialog already shown
+                        if (result) {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(
@@ -1296,7 +1299,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     );
   }
 
-  Future<bool> _performRemoveOffer({
+  Future<bool?> _performRemoveOffer({
     required _OfferCardActionType actionType,
     required Product product,
     required List<BogoOffer> bogoOffers,

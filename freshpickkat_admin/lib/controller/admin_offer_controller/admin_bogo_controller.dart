@@ -116,21 +116,38 @@ class AdminBogoController extends GetxController {
     }
   }
 
-  Future<bool> deleteOffer(String triggerProductId) async {
+  Future<bool?> deleteOffer(String triggerProductId) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      await client.bogo.deleteOffer(triggerProductId, uid, idToken);
-      bogoOffers.removeWhere(
-        (offer) => offer.triggerProductId == triggerProductId,
-      );
-      if (totalCount.value > 0) totalCount.value--;
-      return true;
+      return await AdminSessionService.withRetry(apiCall: () async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        final message = await client.bogo.deleteOffer(
+          triggerProductId,
+          uid,
+          idToken,
+        );
+        if (message.isEmpty) {
+          bogoOffers.removeWhere(
+            (offer) => offer.triggerProductId == triggerProductId,
+          );
+          if (totalCount.value > 0) totalCount.value--;
+          return true;
+        }
+        await _showDeactivationDialog(message);
+        return null;
+      });
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> _showDeactivationDialog(String message) async {
+    await Get.defaultDialog(
+      title: 'Offer Deactivated',
+      middleText: message,
+      textConfirm: 'OK',
+      onConfirm: () => Get.back(),
+    );
   }
 
   Future<bool> upsertOffer(

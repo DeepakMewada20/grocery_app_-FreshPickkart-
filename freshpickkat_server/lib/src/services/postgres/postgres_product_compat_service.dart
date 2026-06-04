@@ -413,19 +413,15 @@ class PostgresProductCompatService {
     });
   }
 
-  Future<bool> deleteProduct(
+  Future<String> deleteProduct(
     Session session,
     String productId,
   ) async {
     final parsedProductId = parseUuid(productId, fieldName: 'productId');
-    return session.db.transaction<bool>((transaction) async {
-      final existing = await ProductRow.db.findById(
-        session,
-        parsedProductId,
-        transaction: transaction,
-      );
-      if (existing == null) return false;
+    final existing = await ProductRow.db.findById(session, parsedProductId);
+    if (existing == null) return 'Product not found';
 
+    await session.db.transaction((transaction) async {
       await ProductRow.db.updateRow(
         session,
         existing.copyWith(
@@ -440,8 +436,73 @@ class PostgresProductCompatService {
         productId: parsedProductId,
         transaction: transaction,
       );
-      return true;
     });
+
+    final refs = await _getProductReferences(session, parsedProductId);
+    if (refs.isEmpty) return '';
+
+    return 'This product is used in ${refs.join(', ')}. It has been deactivated to preserve order history.';
+  }
+
+  Future<List<String>> _getProductReferences(
+    Session session,
+    UuidValue productId,
+  ) async {
+    final refs = <String>[];
+    final orderCount = await OrderItemRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (orderCount > 0) refs.add('$orderCount order(s)');
+
+    final bannerLinkedCount = await BannerLinkedProductRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    final bannerDirectCount = await BannerRow.db.count(
+      session,
+      where: (t) => t.linkedProductId.equals(productId),
+    );
+    final totalBanners = bannerLinkedCount + bannerDirectCount;
+    if (totalBanners > 0) refs.add('$totalBanners banner(s)');
+
+    final bogoTriggerCount = await BogoOfferRow.db.count(
+      session,
+      where: (t) => t.triggerProductId.equals(productId),
+    );
+    if (bogoTriggerCount > 0) refs.add('$bogoTriggerCount BOGO offer(s)');
+
+    final bogoRewardCount = await BogoOfferRewardRow.db.count(
+      session,
+      where: (t) => t.rewardProductId.equals(productId),
+    );
+    if (bogoRewardCount > 0) refs.add('$bogoRewardCount BOGO reward(s)');
+
+    final catScopeCount = await CategoryOfferProductScopeRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (catScopeCount > 0) refs.add('$catScopeCount category offer scope(s)');
+
+    final catExclCount = await CategoryOfferProductExclusionRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (catExclCount > 0) refs.add('$catExclCount category offer exclusion(s)');
+
+    final comboCount = await ComboOfferItemRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (comboCount > 0) refs.add('$comboCount combo offer(s)');
+
+    final couponCount = await CouponProductScopeRow.db.count(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (couponCount > 0) refs.add('$couponCount coupon(s)');
+
+    return refs;
   }
 
   Future<int> migrateProducts(Session session) async {

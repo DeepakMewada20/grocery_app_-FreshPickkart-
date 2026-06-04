@@ -18,7 +18,7 @@ class AdminSessionService {
     return uid;
   }
 
-  static Future<String> requireIdToken({bool forceRefresh = false}) async {
+  static Future<String> requireIdToken({bool forceRefresh = true}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       await AdminAuthFailureHandler.handle(
@@ -34,5 +34,23 @@ class AdminSessionService {
       throw AuthFailureException('Invalid login session. Please login again.');
     }
     return token;
+  }
+
+  static Future<T> withRetry<T>({
+    required Future<T> Function() apiCall,
+    int maxRetries = 2,
+    Duration baseDelay = const Duration(seconds: 1),
+  }) async {
+    int attempt = 0;
+    while (true) {
+      try {
+        return await apiCall();
+      } catch (e) {
+        attempt++;
+        if (attempt >= maxRetries) rethrow;
+        if (e is AuthFailureException || e is NoInternetException) rethrow;
+        await Future.delayed(baseDelay * attempt);
+      }
+    }
   }
 }

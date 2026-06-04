@@ -154,25 +154,36 @@ class AdminCategoryOfferController extends GetxController {
     return createCategoryOffer(offer);
   }
 
-  Future<bool> deleteCategoryOffer(String offerId) async {
+  Future<bool?> deleteCategoryOffer(String offerId) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      final result = await client.categoryOffer.deleteCategoryOffer(
-        offerId,
-        uid,
-        idToken,
-      );
-      if (result) {
-        categoryOffers.removeWhere((offer) => offer.offerId == offerId);
-        if (totalCount.value > 0) totalCount.value--;
-      }
-      return result;
+      return await AdminSessionService.withRetry(apiCall: () async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        final message = await client.categoryOffer.deleteCategoryOffer(
+          offerId,
+          uid,
+          idToken,
+        );
+        if (message.isEmpty) {
+          categoryOffers.removeWhere((offer) => offer.offerId == offerId);
+          if (totalCount.value > 0) totalCount.value--;
+          return true;
+        }
+        await _showDeactivationDialog(message);
+        return null;
+      });
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> _showDeactivationDialog(String message) async {
+    await Get.defaultDialog(
+      title: 'Offer Deactivated',
+      middleText: message,
+      textConfirm: 'OK',
+      onConfirm: () => Get.back(),
+    );
   }
 
   Future<bool> toggleCategoryOffer(String offerId, bool isActive) async {

@@ -1132,7 +1132,7 @@ class _BogoEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteOffer(
+  _i3.Future<String> deleteOffer(
     _i1.TestSessionBuilder sessionBuilder,
     String triggerProductId,
     String firebaseUid,
@@ -1161,7 +1161,7 @@ class _BogoEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1576,7 +1576,7 @@ class _CategoryOfferEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteCategoryOffer(
+  _i3.Future<String> deleteCategoryOffer(
     _i1.TestSessionBuilder sessionBuilder,
     String offerId,
     String firebaseUid,
@@ -1605,7 +1605,7 @@ class _CategoryOfferEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1897,7 +1897,7 @@ class _ComboOfferEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteComboOffer(
+  _i3.Future<String> deleteComboOffer(
     _i1.TestSessionBuilder sessionBuilder,
     String comboId,
     String firebaseUid,
@@ -1926,7 +1926,7 @@ class _ComboOfferEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -6060,7 +6060,7 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteProduct(
+  _i3.Future<String> deleteProduct(
     _i1.TestSessionBuilder sessionBuilder,
     String productId,
     String firebaseUid,
@@ -6089,7 +6089,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _i3.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

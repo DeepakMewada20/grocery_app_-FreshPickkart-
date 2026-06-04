@@ -53,7 +53,7 @@ class CategoryOfferEndpoint extends Endpoint {
     }
   }
 
-  Future<bool> deleteCategoryOffer(
+  Future<String> deleteCategoryOffer(
     Session session,
     String offerId,
     String firebaseUid,
@@ -66,7 +66,7 @@ class CategoryOfferEndpoint extends Endpoint {
         idToken: idToken,
       );
       final result = await _offers.deleteCategoryOffer(session, offerId);
-      if (result) {
+      if (result.isEmpty) {
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,
@@ -81,7 +81,7 @@ class CategoryOfferEndpoint extends Endpoint {
         'Error deleting category offer: $error',
         level: LogLevel.error,
       );
-      return false;
+      return 'An error occurred while removing the offer.';
     }
   }
 

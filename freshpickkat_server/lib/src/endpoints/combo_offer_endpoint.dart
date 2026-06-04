@@ -125,7 +125,7 @@ class ComboOfferEndpoint extends Endpoint {
     }
   }
 
-  Future<bool> deleteComboOffer(
+  Future<String> deleteComboOffer(
     Session session,
     String comboId,
     String firebaseUid,
@@ -138,7 +138,7 @@ class ComboOfferEndpoint extends Endpoint {
         idToken: idToken,
       );
       final result = await _offers.deleteComboOffer(session, comboId);
-      if (result) {
+      if (result.isEmpty) {
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,
@@ -150,7 +150,7 @@ class ComboOfferEndpoint extends Endpoint {
       return result;
     } catch (error) {
       session.log('Error deleting combo offer: $error', level: LogLevel.error);
-      return false;
+      return 'An error occurred while removing the offer.';
     }
   }
 

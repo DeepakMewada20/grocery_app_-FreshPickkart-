@@ -242,7 +242,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       return;
     }
 
-    final confirm = await showDialog<bool>(
+    final confirm = await showDialog<bool?>(
       context: context,
       builder: (context) {
         var isDeleting = false;
@@ -264,11 +264,11 @@ class _ProductsScreenState extends State<ProductsScreen>
                         final messenger = ScaffoldMessenger.of(this.context);
                         setDialogState(() => isDeleting = true);
                         try {
-                          await _productController.deleteProduct(
+                          final result = await _productController.deleteProduct(
                             product.productId!,
                           );
                           if (!context.mounted) return;
-                          Navigator.pop(context, true);
+                          Navigator.pop(context, result);
                         } catch (e) {
                           if (!context.mounted) return;
                           Navigator.pop(context, false);
@@ -296,8 +296,8 @@ class _ProductsScreenState extends State<ProductsScreen>
       },
     );
 
-    if (confirm != true) return;
-    if (!mounted) return;
+    if (confirm == null) return;
+    if (!mounted || confirm != true) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Product deleted')));

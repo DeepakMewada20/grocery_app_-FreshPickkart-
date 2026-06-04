@@ -379,11 +379,11 @@ class EndpointBogo extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteOffer(
+  _i2.Future<String> deleteOffer(
     String triggerProductId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'bogo',
     'deleteOffer',
     {
@@ -540,11 +540,11 @@ class EndpointCategoryOffer extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteCategoryOffer(
+  _i2.Future<String> deleteCategoryOffer(
     String offerId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'categoryOffer',
     'deleteCategoryOffer',
     {
@@ -671,11 +671,11 @@ class EndpointComboOffer extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteComboOffer(
+  _i2.Future<String> deleteComboOffer(
     String comboId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'comboOffer',
     'deleteComboOffer',
     {
@@ -2374,11 +2374,11 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteProduct(
+  _i2.Future<String> deleteProduct(
     String productId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'product',
     'deleteProduct',
     {

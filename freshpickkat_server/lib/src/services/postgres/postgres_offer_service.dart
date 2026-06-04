@@ -82,32 +82,45 @@ class PostgresOfferService {
     });
   }
 
-  Future<bool> deleteBogoOffer(
+  Future<String> deleteBogoOffer(
     Session session,
     String triggerProductId,
   ) async {
     final parsedTriggerId = tryParseUuid(triggerProductId);
-    if (parsedTriggerId == null) return false;
+    if (parsedTriggerId == null) return 'Invalid product ID';
 
     final rows = await BogoOfferRow.db.find(
       session,
       where: (t) => t.triggerProductId.equals(parsedTriggerId),
     );
-    if (rows.isEmpty) return false;
+    if (rows.isEmpty) return 'Offer not found';
 
     final offerId = rows.first.id;
-    if (offerId == null) return false;
+    if (offerId == null) return 'Offer not found';
 
-    await BogoOfferRewardRow.db.deleteWhere(
-      session,
-      where: (t) => t.bogoOfferId.equals(offerId),
-    );
+    final refs = await _getBogoOfferReferences(session, offerId);
+    if (refs.isEmpty) {
+      await BogoOfferRewardRow.db.deleteWhere(
+        session,
+        where: (t) => t.bogoOfferId.equals(offerId),
+      );
+      await BogoOfferRow.db.deleteWhere(
+        session,
+        where: (t) => t.id.equals(offerId),
+      );
+      return '';
+    }
 
-    await BogoOfferRow.db.deleteWhere(
+    final now = DateTime.now().toUtc();
+    await BogoOfferRow.db.updateRow(
       session,
-      where: (t) => t.id.equals(offerId),
+      rows.first.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
-    return true;
+    return 'This offer is used in ${refs.join(' and ')}. It has been deactivated to preserve order history.';
   }
 
   Future<List<BogoOffer>> getAllBogoOffers(Session session) async {
@@ -276,18 +289,36 @@ class PostgresOfferService {
     });
   }
 
-  Future<bool> deleteComboOffer(Session session, String comboId) async {
+  Future<String> deleteComboOffer(Session session, String comboId) async {
     final parsedId = tryParseUuid(comboId);
-    if (parsedId == null) return false;
+    if (parsedId == null) return 'Invalid offer ID';
 
     final row = await ComboOfferRow.db.findById(session, parsedId);
-    if (row == null) return false;
+    if (row == null) return 'Offer not found';
 
-    await ComboOfferRow.db.deleteWhere(
+    final refs = await _getComboOfferReferences(session, parsedId);
+    if (refs.isEmpty) {
+      await ComboOfferItemRow.db.deleteWhere(
+        session,
+        where: (t) => t.comboOfferId.equals(parsedId),
+      );
+      await ComboOfferRow.db.deleteWhere(
+        session,
+        where: (t) => t.id.equals(parsedId),
+      );
+      return '';
+    }
+
+    final now = DateTime.now().toUtc();
+    await ComboOfferRow.db.updateRow(
       session,
-      where: (t) => t.id.equals(parsedId),
+      row.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
-    return true;
+    return 'This offer is used in ${refs.join(' and ')}. It has been deactivated to preserve order history.';
   }
 
   Future<List<ComboOffer>> getActiveComboOffers(Session session) async {
@@ -479,23 +510,28 @@ class PostgresOfferService {
     });
   }
 
-  Future<bool> deleteCategoryOffer(Session session, String offerId) async {
+  Future<String> deleteCategoryOffer(Session session, String offerId) async {
     final parsedId = tryParseUuid(offerId);
-    if (parsedId == null) return false;
+    if (parsedId == null) return 'Invalid offer ID';
 
     final row = await CategoryOfferRow.db.findById(session, parsedId);
-    if (row == null) return false;
+    if (row == null) return 'Offer not found';
 
-    final now = DateTime.now().toUtc();
-    await CategoryOfferRow.db.updateRow(
+    await CategoryOfferProductScopeRow.db.deleteWhere(
       session,
-      row.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
-        updatedAt: now,
-      ),
+      where: (t) => t.categoryOfferId.equals(parsedId),
     );
-    return true;
+
+    await CategoryOfferProductExclusionRow.db.deleteWhere(
+      session,
+      where: (t) => t.categoryOfferId.equals(parsedId),
+    );
+
+    await CategoryOfferRow.db.deleteWhere(
+      session,
+      where: (t) => t.id.equals(parsedId),
+    );
+    return '';
   }
 
   Future<List<CategoryOffer>> getActiveCategoryOffers(Session session) async {
@@ -566,6 +602,37 @@ class PostgresOfferService {
       ),
     );
     return true;
+  }
+
+  Future<List<String>> _getComboOfferReferences(
+    Session session,
+    UuidValue offerId,
+  ) async {
+    final refs = <String>[];
+    final orderCount = await OrderItemRow.db.count(
+      session,
+      where: (t) => t.comboOfferId.equals(offerId),
+    );
+    if (orderCount > 0) refs.add('$orderCount order(s)');
+    final bannerCount = await BannerRow.db.count(
+      session,
+      where: (t) => t.comboOfferId.equals(offerId),
+    );
+    if (bannerCount > 0) refs.add('$bannerCount banner(s)');
+    return refs;
+  }
+
+  Future<List<String>> _getBogoOfferReferences(
+    Session session,
+    UuidValue offerId,
+  ) async {
+    final refs = <String>[];
+    final orderCount = await OrderItemRow.db.count(
+      session,
+      where: (t) => t.bogoOfferId.equals(offerId),
+    );
+    if (orderCount > 0) refs.add('$orderCount order(s)');
+    return refs;
   }
 
   Future<List<BogoOffer>> _hydrateBogoOffers(

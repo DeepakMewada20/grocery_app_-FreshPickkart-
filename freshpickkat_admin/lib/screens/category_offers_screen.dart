@@ -250,14 +250,19 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
                     ? null
                     : () async {
                         setDialogState(() => isDeleting = true);
-                        await _controller.deleteCategoryOffer(
+                        final result = await _controller.deleteCategoryOffer(
                           offer.offerId ?? '',
                         );
                         if (!context.mounted) return;
                         Navigator.pop(context);
+                        if (result == null) return;
                         messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Category offer deleted'),
+                          SnackBar(
+                            content: Text(
+                              result
+                                  ? 'Category offer deleted'
+                                  : 'Failed to delete category offer',
+                            ),
                           ),
                         );
                       },

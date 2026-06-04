@@ -99,18 +99,23 @@ class BogoEndpoint extends Endpoint {
     return result;
   }
 
-  Future<bool> deleteOffer(
+  Future<String> deleteOffer(
     Session session,
     String triggerProductId,
     String firebaseUid,
     String idToken,
   ) async {
-    await _adminGuard.ensureAdminSeller(
-      session,
-      firebaseUid: firebaseUid,
-      idToken: idToken,
-    );
-    return _offers.deleteBogoOffer(session, triggerProductId);
+    try {
+      await _adminGuard.ensureAdminSeller(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      return await _offers.deleteBogoOffer(session, triggerProductId);
+    } catch (error) {
+      session.log('Error deleting bogo offer: $error', level: LogLevel.error);
+      return 'An error occurred while removing the offer.';
+    }
   }
 
   Future<List<protocol.BogoOffer>> getAllOffers(

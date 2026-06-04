@@ -257,11 +257,18 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
                     ? null
                     : () async {
                         setDialogState(() => isDeleting = true);
-                        await _controller.deleteComboOffer(offer.comboId ?? '');
+                        final result = await _controller.deleteComboOffer(offer.comboId ?? '');
                         if (!context.mounted) return;
                         Navigator.pop(context);
+                        if (result == null) return;
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Combo offer deleted')),
+                          SnackBar(
+                            content: Text(
+                              result
+                                  ? 'Combo offer deleted'
+                                  : 'Failed to delete combo offer',
+                            ),
+                          ),
                         );
                       },
                 child: isDeleting
