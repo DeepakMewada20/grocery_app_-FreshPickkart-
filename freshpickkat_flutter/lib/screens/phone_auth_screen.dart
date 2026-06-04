@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});
@@ -17,12 +18,12 @@ class PhoneAuthScreen extends StatefulWidget {
 }
 
 class _PhoneAuthScreenState extends State<PhoneAuthScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, CodeAutoFill {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final FocusNode _phoneFocusNode = FocusNode();
   final FocusNode _otpFocusNode = FocusNode();
-  final AuthController _authController = AuthController();
+  final AuthController _authController = AuthController.instance;
 
   String _countryCode = '+91';
   bool _isLoading = false;
@@ -237,6 +238,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
         });
         _otpSlideController.forward();
         _startResendTimer();
+        _listenForSms();
         Future.delayed(const Duration(milliseconds: 500), () {
           _otpFocusNode.requestFocus();
         });
@@ -354,6 +356,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           _verificationId = verificationId;
         });
         _startResendTimer();
+        cancel();
+        _listenForSms();
         AppSnackbar.show('Success', 'OTP resent successfully');
       },
       onError: (error) {
@@ -365,9 +369,22 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     );
   }
 
+  void _listenForSms() {
+    listenForCode();
+  }
+
+  @override
+  void codeUpdated() {
+    if (code != null && code!.length == 6 && mounted) {
+      _otpController.text = code!;
+      _verifyOTP();
+    }
+  }
+
   void _editPhoneNumber() {
     _otpSlideController.reverse();
     _timer?.cancel();
+    cancel();
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         setState(() {
@@ -382,6 +399,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
   @override
   void dispose() {
+    cancel();
     _phoneController.dispose();
     _otpController.dispose();
     _phoneFocusNode.dispose();

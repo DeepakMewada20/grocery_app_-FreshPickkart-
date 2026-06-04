@@ -325,7 +325,7 @@ class _BannersScreenState extends State<BannersScreen>
                 ? AdminAppTheme.getSuccessColor(context)
                 : AdminAppTheme.getBorderColor(context),
           ),
-          backgroundColor: AdminThemeTokens.white,
+          backgroundColor: AdminAppTheme.getSurfaceColor(context),
           selectedColor: AdminAppTheme.getSuccessColor(
             context,
           ).withValues(alpha: 0.12),

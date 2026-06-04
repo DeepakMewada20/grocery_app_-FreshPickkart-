@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_complaint_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -392,10 +393,10 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      'Resolved' => Colors.green,
-      'Rejected' => Colors.red,
-      'Under Review' => Colors.blue,
-      _ => Colors.orange,
+      'Resolved' => AdminAppTheme.getSuccessColor(context),
+      'Rejected' => AdminAppTheme.getErrorColor(context),
+      'Under Review' => AdminAppTheme.getInfoColor(context),
+      _ => AdminAppTheme.getWarningColor(context),
     };
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),

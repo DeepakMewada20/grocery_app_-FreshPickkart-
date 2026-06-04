@@ -14,15 +14,15 @@ class AdminThemeTokens {
   static const Color lightBorder = Color(0xFFE0E0E0);
 
   // Dark Theme Colors
-  static const Color darkBackground = Color(0xFF0F1512);
-  static const Color darkSurface = Color(0xFF161D19);
-  static const Color darkSurfaceVariant = Color(0xFF1D2721);
-  static const Color darkSurfaceElevated = Color(0xFF1D2721);
-  static const Color darkOnSurface = Color(0xFFF3F8F4);
-  static const Color darkTextPrimary = Color(0xFFF3F8F4);
-  static const Color darkTextSecondary = Color(0xFFAEBBB3);
-  static const Color darkBorder = Color(0xFF2E3A33);
-  static const Color darkDivider = Color(0xFF2E3A33);
+  static const Color darkBackground = Color(0xFF0B0D0E);
+  static const Color darkSurface = Color(0xFF161819);
+  static const Color darkSurfaceVariant = Color(0xFF1F2122);
+  static const Color darkSurfaceElevated = Color(0xFF262829);
+  static const Color darkOnSurface = Color(0xFFF0F2F1);
+  static const Color darkTextPrimary = Color(0xFFF0F2F1);
+  static const Color darkTextSecondary = Color(0xFF9CA0A0);
+  static const Color darkBorder = Color(0xFF333536);
+  static const Color darkDivider = Color(0xFF2A2C2D);
   static const Color darkAccentGreen = Color(0xFF2FBF7A);
 
   static const Color white = Colors.white;
@@ -107,8 +107,11 @@ class AdminAppTheme {
           onSecondary: Colors.white,
           error: isDark ? AdminThemeTokens.darkError : AdminThemeTokens.error,
           onError: Colors.white,
-          outlineVariant: isDark
+          outline: isDark
               ? AdminThemeTokens.darkBorder
+              : const Color(0xFFCACACA),
+          outlineVariant: isDark
+              ? AdminThemeTokens.darkBorder.withValues(alpha: 0.5)
               : const Color(0xFFCACACA),
         );
 
@@ -135,12 +138,13 @@ class AdminAppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: isDark ? 1 : 1.5,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        surfaceTintColor: Colors.transparent,
       ),
       dialogTheme: isDark
           ? DialogThemeData(
-              backgroundColor: surface,
+              backgroundColor: AdminThemeTokens.darkSurfaceElevated,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
@@ -158,8 +162,8 @@ class AdminAppTheme {
           : null,
       bottomSheetTheme: isDark
           ? const BottomSheetThemeData(
-              backgroundColor: AdminThemeTokens.darkSurface,
-              modalBackgroundColor: AdminThemeTokens.darkSurface,
+              backgroundColor: AdminThemeTokens.darkSurfaceElevated,
+              modalBackgroundColor: AdminThemeTokens.darkSurfaceElevated,
               surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
@@ -167,7 +171,10 @@ class AdminAppTheme {
             )
           : null,
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: surface,
+        backgroundColor: isDark
+            ? AdminThemeTokens.darkSurfaceElevated
+            : AdminThemeTokens.lightSurface,
+        surfaceTintColor: Colors.transparent,
         indicatorColor: isDark
             ? primary.withValues(alpha: 0.18)
             : AdminThemeTokens.primary.withValues(alpha: 0.14),

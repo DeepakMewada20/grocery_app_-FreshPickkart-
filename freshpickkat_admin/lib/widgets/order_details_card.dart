@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/utils/order_item_grouping.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -98,21 +99,20 @@ class OrderDetailsCard extends StatelessWidget {
           'Product Discount',
           -productDiscount,
           cs,
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
         ),
       if (comboDiscount > 0)
         _buildSummaryRow(
           'Combo Savings',
           -comboDiscount,
           cs,
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
         ),
-      if (bogoDiscount > 0)
-        _buildSummaryRow(
+      _buildSummaryRow(
           'BOGO Savings',
           -bogoDiscount,
           cs,
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
         ),
       _buildSummaryRow(
         'Items Total',
@@ -126,7 +126,7 @@ class OrderDetailsCard extends StatelessWidget {
               : 'Coupon',
           -couponDiscount,
           cs,
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
         ),
       _buildSummaryRow('Delivery Fee', deliveryFee, cs),
       if (freeDeliveryApplied && deliveryDiscount > 0)
@@ -134,7 +134,7 @@ class OrderDetailsCard extends StatelessWidget {
           'Delivery Fee Waived',
           -deliveryDiscount,
           cs,
-          color: Colors.green,
+          color: AdminAppTheme.getSuccessColor(context),
         ),
       const Divider(height: 12),
       _buildSummaryRow(
@@ -275,7 +275,7 @@ class _ComplaintItemRow extends StatelessWidget {
                     child: Text(
                       'FREE: ${freeItem.productName} x${freeItem.quantity}',
                       style: TextStyle(
-                        color: Colors.green.shade700,
+                        color: AdminAppTheme.getSuccessColor(context),
                         fontWeight: FontWeight.w700,
                         fontSize: 12.sp.clamp(10.0, 13.0),
                       ),

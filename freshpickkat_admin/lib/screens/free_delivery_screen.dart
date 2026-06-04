@@ -676,7 +676,7 @@ class _DeliveryConfigBottomSheetState
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AdminAppTheme.getErrorColor(context)),
     );
   }
 }
@@ -998,7 +998,7 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AdminAppTheme.getErrorColor(context)),
     );
   }
 }
