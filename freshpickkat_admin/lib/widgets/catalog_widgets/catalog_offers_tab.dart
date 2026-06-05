@@ -17,6 +17,7 @@ import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -276,37 +277,21 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   Future<void> _removeComboOffer(ComboOffer offer) async {
     final comboId = offer.comboId;
     if (comboId == null || comboId.isEmpty) return;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showConfirmActionDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Remove Offer'),
-        content: Text('Remove combo offer "${offer.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Remove',
-              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
-            ),
-          ),
-        ],
-      ),
+      title: 'Remove Offer',
+      content: 'Remove combo offer "${offer.name}"?',
+      confirmLabel: 'Remove',
+      onConfirm: () => widget.comboOfferController.deleteComboOffer(comboId),
     );
-    if (confirmed != true) return;
-    final result = await widget.comboOfferController.deleteComboOffer(comboId);
     if (!mounted) return;
-    if (result == null) return; // dialog already shown
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result ? 'Combo offer removed' : 'Failed to remove combo offer',
-        ),
-      ),
-    );
+    if (confirmed == null) return;
+    if (confirmed != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to remove combo offer')),
+      );
+      return;
+    }
   }
 
   Widget _buildComboOfferCard(ComboOffer offer, List<Product> products) {
@@ -388,9 +373,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       value: 'toggle',
                       child: Row(
                         children: [
-                          Icon(Icons.toggle_on),
+                          Icon(
+                            offer.isActive
+                                ? Icons.toggle_on
+                                : Icons.toggle_off_outlined,
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
+                          ),
                           SizedBox(width: 8),
-                          Text('Toggle Active'),
+                          Text(offer.isActive ? 'Active' : 'Inactive'),
                         ],
                       ),
                     ),
@@ -604,41 +596,23 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   Future<void> _removeCategoryOffer(CategoryOffer offer) async {
     final offerId = offer.offerId;
     if (offerId == null || offerId.isEmpty) return;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showConfirmActionDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Remove Offer'),
-        content: Text('Remove category offer "${offer.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              'Remove',
-              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
-            ),
-          ),
-        ],
+      title: 'Remove Offer',
+      content: 'Remove category offer "${offer.name}"?',
+      confirmLabel: 'Remove',
+      onConfirm: () => widget.categoryOfferController.deleteCategoryOffer(
+        offerId,
       ),
-    );
-    if (confirmed != true) return;
-    final result = await widget.categoryOfferController.deleteCategoryOffer(
-      offerId,
     );
     if (!mounted) return;
-    if (result == null) return; // dialog already shown
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result
-              ? 'Category offer removed'
-              : 'Failed to remove category offer',
-        ),
-      ),
-    );
+    if (confirmed == null) return;
+    if (confirmed != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to remove category offer')),
+      );
+      return;
+    }
   }
 
   Widget _buildCategoryOfferCard(CategoryOffer offer, List<Product> products) {
@@ -724,9 +698,16 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                       value: 'toggle',
                       child: Row(
                         children: [
-                          Icon(Icons.toggle_on),
+                          Icon(
+                            offer.isActive
+                                ? Icons.toggle_on
+                                : Icons.toggle_off_outlined,
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
+                          ),
                           SizedBox(width: 8),
-                          Text('Toggle Active'),
+                          Text(offer.isActive ? 'Active' : 'Inactive'),
                         ],
                       ),
                     ),
@@ -1221,7 +1202,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     required List<BogoOffer> bogoOffers,
     required List<CategoryOffer> categoryOffers,
     required List<ComboOffer> comboOffers,
-  }) {
+  }) async {
     final messenger = ScaffoldMessenger.of(context);
     final removeLabel = switch (actionType) {
       _OfferCardActionType.bogo => 'BOGO offer',
@@ -1231,72 +1212,31 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       _OfferCardActionType.none => 'offer',
     };
 
-    return showDialog<bool>(
+    final result = await showConfirmActionDialog(
       context: context,
-      builder: (context) {
-        var isRemoving = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text('Remove Offer'),
-            content: Text(
-              'Remove the $removeLabel from "${product.productName}"?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: isRemoving
-                    ? null
-                    : () => Navigator.pop(context, false),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: isRemoving
-                    ? null
-                    : () async {
-                        setDialogState(() => isRemoving = true);
-                        final result = await _performRemoveOffer(
-                          actionType: actionType,
-                          product: product,
-                          bogoOffers: bogoOffers,
-                          categoryOffers: categoryOffers,
-                          comboOffers: comboOffers,
-                        );
-                        if (!context.mounted) return;
-                        Navigator.pop(context, result ?? true);
-                        if (result == null) return; // dialog already shown
-                        if (result) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${product.productName} offer removed',
-                              ),
-                            ),
-                          );
-                        } else {
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('Failed to remove offer'),
-                            ),
-                          );
-                        }
-                      },
-                child: isRemoving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        'Remove',
-                        style: TextStyle(
-                          color: AdminAppTheme.getErrorColor(context),
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
+      title: 'Remove Offer',
+      content: 'Remove the $removeLabel from "${product.productName}"?',
+      confirmLabel: 'Remove',
+      onConfirm: () => _performRemoveOffer(
+        actionType: actionType,
+        product: product,
+        bogoOffers: bogoOffers,
+        categoryOffers: categoryOffers,
+        comboOffers: comboOffers,
+      ),
     );
+    if (result == null) return null;
+    if (!mounted) return result;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result
+              ? '${product.productName} offer removed'
+              : 'Failed to remove offer',
+        ),
+      ),
+    );
+    return result;
   }
 
   Future<bool?> _performRemoveOffer({
@@ -1774,15 +1714,30 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                               },
                               itemBuilder: (context) => [
                                 if (supportsToggle)
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'toggle',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.toggle_on),
-                                        SizedBox(width: 8),
-                                        Text('Toggle Active'),
-                                      ],
-                                    ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isOfferActive
+                                                ? Icons.toggle_on
+                                                : Icons.toggle_off_outlined,
+                                            color: isOfferActive
+                                                ? AdminAppTheme.getSuccessColor(
+                                                    context,
+                                                  )
+                                                : AdminAppTheme.getErrorColor(
+                                                    context,
+                                                  ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            isOfferActive
+                                                ? 'Active'
+                                                : 'Inactive',
+                                          ),
+                                        ],
+                                      ),
                                   ),
                                 const PopupMenuItem(
                                   value: 'edit',

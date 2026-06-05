@@ -11,6 +11,7 @@ import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_ta
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../widgets/shared_dialogs.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -242,62 +243,21 @@ class _ProductsScreenState extends State<ProductsScreen>
       return;
     }
 
-    final confirm = await showDialog<bool?>(
+    final confirm = await showConfirmActionDialog(
       context: context,
-      builder: (context) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Delete Product'),
-            content: Text('Delete "${product.productName}"?'),
-            actions: [
-              TextButton(
-                onPressed: isDeleting
-                    ? null
-                    : () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: isDeleting
-                    ? null
-                    : () async {
-                        final messenger = ScaffoldMessenger.of(this.context);
-                        setDialogState(() => isDeleting = true);
-                        try {
-                          final result = await _productController.deleteProduct(
-                            product.productId!,
-                          );
-                          if (!context.mounted) return;
-                          Navigator.pop(context, result);
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          Navigator.pop(context, false);
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('Failed to delete product: $e'),
-                            ),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AdminAppTheme.getErrorColor(context),
-                ),
-                child: isDeleting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Delete'),
-              ),
-            ],
-          ),
-        );
-      },
+      title: 'Delete Product',
+      content: 'Delete "${product.productName}"?',
+      confirmLabel: 'Delete',
+      useElevatedButton: true,
+      onConfirm: () => _productController.deleteProduct(product.productId!),
     );
-
-    if (confirm == null) return;
-    if (!mounted || confirm != true) return;
+    if (confirm == null || !mounted) return;
+    if (confirm != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete product')),
+      );
+      return;
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Product deleted')));

@@ -111,16 +111,33 @@ class PostgresOfferService {
       return '';
     }
 
+    return 'This offer is used in ${refs.join(' and ')}. To delete, first remove these associations or deactivate the offer.';
+  }
+
+  Future<bool> setBogoOfferActive(
+    Session session,
+    String triggerProductId,
+    bool isActive,
+  ) async {
+    final parsedTriggerId = tryParseUuid(triggerProductId);
+    if (parsedTriggerId == null) return false;
+
+    final rows = await BogoOfferRow.db.find(
+      session,
+      where: (t) => t.triggerProductId.equals(parsedTriggerId),
+    );
+    if (rows.isEmpty) return false;
+
     final now = DateTime.now().toUtc();
     await BogoOfferRow.db.updateRow(
       session,
       rows.first.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
+        status: isActive ? 'active' : 'inactive',
+        deactivatedAt: isActive ? null : now,
         updatedAt: now,
       ),
     );
-    return 'This offer is used in ${refs.join(' and ')}. It has been deactivated to preserve order history.';
+    return true;
   }
 
   Future<List<BogoOffer>> getAllBogoOffers(Session session) async {
@@ -309,16 +326,7 @@ class PostgresOfferService {
       return '';
     }
 
-    final now = DateTime.now().toUtc();
-    await ComboOfferRow.db.updateRow(
-      session,
-      row.copyWith(
-        status: 'inactive',
-        deactivatedAt: now,
-        updatedAt: now,
-      ),
-    );
-    return 'This offer is used in ${refs.join(' and ')}. It has been deactivated to preserve order history.';
+    return 'This offer is used in ${refs.join(' and ')}. To delete, first remove these associations or deactivate the offer.';
   }
 
   Future<List<ComboOffer>> getActiveComboOffers(Session session) async {

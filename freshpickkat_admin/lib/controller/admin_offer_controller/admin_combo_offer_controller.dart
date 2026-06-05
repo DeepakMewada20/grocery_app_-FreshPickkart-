@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/shared_dialogs.dart';
 import '../../controller/network_controller.dart';
 
 class AdminComboOfferController extends GetxController {
@@ -170,7 +171,10 @@ class AdminComboOfferController extends GetxController {
           if (totalCount.value > 0) totalCount.value--;
           return true;
         }
-        await _showDeactivationDialog(message);
+        final shouldDeactivate = await _showDeactivationDialog(message);
+        if (shouldDeactivate) {
+          await toggleComboOffer(comboId, false);
+        }
         return null;
       });
     } catch (e) {
@@ -178,12 +182,10 @@ class AdminComboOfferController extends GetxController {
     }
   }
 
-  Future<void> _showDeactivationDialog(String message) async {
-    await Get.defaultDialog(
-      title: 'Offer Deactivated',
-      middleText: message,
-      textConfirm: 'OK',
-      onConfirm: () => Get.back(),
+  Future<bool> _showDeactivationDialog(String message) async {
+    return showDeactivationDialog(
+      title: 'Offer In Use',
+      message: message,
     );
   }
 

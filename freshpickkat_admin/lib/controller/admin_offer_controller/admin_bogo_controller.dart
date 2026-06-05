@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import '../../services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/shared_dialogs.dart';
 import '../network_controller.dart';
 
 class AdminBogoController extends GetxController {
@@ -133,7 +134,10 @@ class AdminBogoController extends GetxController {
           if (totalCount.value > 0) totalCount.value--;
           return true;
         }
-        await _showDeactivationDialog(message);
+        final shouldDeactivate = await _showDeactivationDialog(message);
+        if (shouldDeactivate) {
+          await setBogoOfferActive(triggerProductId, false);
+        }
         return null;
       });
     } catch (e) {
@@ -141,13 +145,38 @@ class AdminBogoController extends GetxController {
     }
   }
 
-  Future<void> _showDeactivationDialog(String message) async {
-    await Get.defaultDialog(
-      title: 'Offer Deactivated',
-      middleText: message,
-      textConfirm: 'OK',
-      onConfirm: () => Get.back(),
+  Future<bool> _showDeactivationDialog(String message) async {
+    return showDeactivationDialog(
+      title: 'Offer In Use',
+      message: message,
     );
+  }
+
+  Future<bool> setBogoOfferActive(
+    String triggerProductId,
+    bool isActive,
+  ) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken();
+      final success = await client.bogo.setBogoOfferActive(
+        triggerProductId,
+        isActive,
+        uid,
+        idToken,
+      );
+      if (success) {
+        final index = bogoOffers.indexWhere(
+          (offer) => offer.triggerProductId == triggerProductId,
+        );
+        if (index != -1) {
+          bogoOffers[index] = bogoOffers[index].copyWith(isActive: isActive);
+        }
+      }
+      return success;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<bool> upsertOffer(

@@ -421,6 +421,11 @@ class PostgresProductCompatService {
     final existing = await ProductRow.db.findById(session, parsedProductId);
     if (existing == null) return 'Product not found';
 
+    final refs = await _getProductReferences(session, parsedProductId);
+    if (refs.isNotEmpty) {
+      return 'This product is used in ${refs.join(', ')}. To delete, first remove these associations or deactivate the product.';
+    }
+
     await session.db.transaction((transaction) async {
       await ProductRow.db.updateRow(
         session,
@@ -438,10 +443,27 @@ class PostgresProductCompatService {
       );
     });
 
-    final refs = await _getProductReferences(session, parsedProductId);
-    if (refs.isEmpty) return '';
+    return '';
+  }
 
-    return 'This product is used in ${refs.join(', ')}. It has been deactivated to preserve order history.';
+  Future<bool> setProductActive(
+    Session session,
+    String productId,
+    bool isActive,
+  ) async {
+    final parsedProductId = parseUuid(productId, fieldName: 'productId');
+    final existing = await ProductRow.db.findById(session, parsedProductId);
+    if (existing == null) return false;
+    final now = DateTime.now().toUtc();
+    await ProductRow.db.updateRow(
+      session,
+      existing.copyWith(
+        status: isActive ? 'active' : 'inactive',
+        deactivatedAt: isActive ? null : now,
+        updatedAt: now,
+      ),
+    );
+    return true;
   }
 
   Future<List<String>> _getProductReferences(

@@ -161,14 +161,31 @@ class ProductEndpoint extends Endpoint {
       idToken: idToken,
     );
     final message = await _pgProducts.deleteProduct(session, productId);
-    await _audit.write(
-      session,
-      actorUserId: actor.id,
-      action: 'delete',
-      entityType: 'product',
-      entityId: productId,
-    );
+    if (message.isEmpty) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'delete',
+        entityType: 'product',
+        entityId: productId,
+      );
+    }
     return message;
+  }
+
+  Future<bool> deactivateProduct(
+    Session session,
+    String productId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgProducts.setProductActive(session, productId, isActive);
   }
 
   Future<List<String>> getProductSuggestions(

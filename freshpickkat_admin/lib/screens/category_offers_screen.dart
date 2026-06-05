@@ -8,6 +8,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
+import '../widgets/shared_dialogs.dart';
 
 Future<void> showAddCategoryOfferDialog({
   required BuildContext context,
@@ -230,59 +231,22 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
     );
   }
 
-  void _showDeleteConfirmation(CategoryOffer offer) {
+  Future<void> _showDeleteConfirmation(CategoryOffer offer) async {
     final messenger = ScaffoldMessenger.of(context);
-    showDialog(
+    final result = await showConfirmActionDialog(
       context: context,
-      builder: (context) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text('Delete Category Offer'),
-            content: Text('Are you sure you want to delete "${offer.name}"?'),
-            actions: [
-              TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: isDeleting
-                    ? null
-                    : () async {
-                        setDialogState(() => isDeleting = true);
-                        final result = await _controller.deleteCategoryOffer(
-                          offer.offerId ?? '',
-                        );
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        if (result == null) return;
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              result
-                                  ? 'Category offer deleted'
-                                  : 'Failed to delete category offer',
-                            ),
-                          ),
-                        );
-                      },
-                child: isDeleting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        'Delete',
-                        style: TextStyle(
-                          color: AdminAppTheme.getErrorColor(context),
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
+      title: 'Delete Category Offer',
+      content: 'Are you sure you want to delete "${offer.name}"?',
+      confirmLabel: 'Delete',
+      onConfirm: () => _controller.deleteCategoryOffer(offer.offerId ?? ''),
+    );
+    if (result == null || !mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result ? 'Category offer deleted' : 'Failed to delete category offer',
+        ),
+      ),
     );
   }
 }
@@ -397,9 +361,16 @@ class _CategoryOfferCard extends StatelessWidget {
               value: 'toggle',
               child: Row(
                 children: [
-                  Icon(Icons.toggle_on),
+                  Icon(
+                    offer.isActive
+                        ? Icons.toggle_on
+                        : Icons.toggle_off_outlined,
+                    color: offer.isActive
+                        ? AdminAppTheme.getSuccessColor(context)
+                        : AdminAppTheme.getErrorColor(context),
+                  ),
                   SizedBox(width: 8),
-                  Text('Toggle Active'),
+                  Text(offer.isActive ? 'Active' : 'Inactive'),
                 ],
               ),
             ),

@@ -118,6 +118,26 @@ class BogoEndpoint extends Endpoint {
     }
   }
 
+  Future<bool> setBogoOfferActive(
+    Session session,
+    String triggerProductId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    try {
+      await _adminGuard.ensureAdminSeller(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      return _offers.setBogoOfferActive(session, triggerProductId, isActive);
+    } catch (error) {
+      session.log('Error updating bogo active state: $error', level: LogLevel.error);
+      return false;
+    }
+  }
+
   Future<List<protocol.BogoOffer>> getAllOffers(
     Session session,
     String firebaseUid,

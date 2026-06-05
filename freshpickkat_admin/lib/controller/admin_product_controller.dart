@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import '../widgets/shared_dialogs.dart';
 import 'network_controller.dart';
 
 class AdminProductController extends GetxController {
@@ -179,7 +180,9 @@ class AdminProductController extends GetxController {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
         return _client.product.deleteProduct(productId, uid, idToken);
       });
       if (message.isEmpty) {
@@ -187,19 +190,32 @@ class AdminProductController extends GetxController {
         totalCount.value--;
         return true;
       }
-      await _showDeactivationDialog(message);
+      final shouldDeactivate = await _showDeactivationDialog(message);
+      if (shouldDeactivate == true) {
+        await deactivateProduct(productId);
+      }
       return null;
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> _showDeactivationDialog(String message) async {
-    await Get.defaultDialog(
-      title: 'Product Deactivated',
-      middleText: message,
-      textConfirm: 'OK',
-      onConfirm: () => Get.back(),
+  Future<bool> _showDeactivationDialog(String message) async {
+    return showDeactivationDialog(
+      title: 'Product In Use',
+      message: message,
     );
+  }
+
+  Future<void> deactivateProduct(String productId) async {
+    try {
+      await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        await _client.product.deactivateProduct(productId, false, uid, idToken);
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 }

@@ -456,6 +456,22 @@ class EndpointBogo extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<bool> setBogoOfferActive(
+    String triggerProductId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'bogo',
+    'setBogoOfferActive',
+    {
+      'triggerProductId': triggerProductId,
+      'isActive': isActive,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -2514,6 +2530,22 @@ class EndpointProduct extends _i1.EndpointRef {
     'product',
     'seedProductMetricsForTesting',
     {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> deactivateProduct(
+    String productId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'product',
+    'deactivateProduct',
+    {
+      'productId': productId,
+      'isActive': isActive,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },

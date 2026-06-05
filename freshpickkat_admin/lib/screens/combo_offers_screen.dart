@@ -10,6 +10,7 @@ import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
+import '../widgets/shared_dialogs.dart';
 
 Future<void> showAddComboOfferDialog({
   required BuildContext context,
@@ -237,57 +238,22 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
     );
   }
 
-  void _showDeleteConfirmation(ComboOffer offer) {
+  Future<void> _showDeleteConfirmation(ComboOffer offer) async {
     final messenger = ScaffoldMessenger.of(context);
-    showDialog(
+    final result = await showConfirmActionDialog(
       context: context,
-      builder: (context) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text('Delete Combo Offer'),
-            content: Text('Are you sure you want to delete "${offer.name}"?'),
-            actions: [
-              TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: isDeleting
-                    ? null
-                    : () async {
-                        setDialogState(() => isDeleting = true);
-                        final result = await _controller.deleteComboOffer(offer.comboId ?? '');
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        if (result == null) return;
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              result
-                                  ? 'Combo offer deleted'
-                                  : 'Failed to delete combo offer',
-                            ),
-                          ),
-                        );
-                      },
-                child: isDeleting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        'Delete',
-                        style: TextStyle(
-                          color: AdminAppTheme.getErrorColor(context),
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
+      title: 'Delete Combo Offer',
+      content: 'Are you sure you want to delete "${offer.name}"?',
+      confirmLabel: 'Delete',
+      onConfirm: () => _controller.deleteComboOffer(offer.comboId ?? ''),
+    );
+    if (result == null || !mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result ? 'Combo offer deleted' : 'Failed to delete combo offer',
+        ),
+      ),
     );
   }
 }
@@ -394,9 +360,16 @@ class _ComboOfferCard extends StatelessWidget {
               value: 'toggle',
               child: Row(
                 children: [
-                  Icon(Icons.toggle_on),
+                  Icon(
+                    offer.isActive
+                        ? Icons.toggle_on
+                        : Icons.toggle_off_outlined,
+                    color: offer.isActive
+                        ? AdminAppTheme.getSuccessColor(context)
+                        : AdminAppTheme.getErrorColor(context),
+                  ),
                   SizedBox(width: 8),
-                  Text('Toggle Active'),
+                  Text(offer.isActive ? 'Active' : 'Inactive'),
                 ],
               ),
             ),

@@ -16,6 +16,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/catalog_widgets/catalog_shared_widgets.dart';
+import '../widgets/shared_dialogs.dart';
 
 typedef _AppBanner = client.Banner;
 
@@ -260,56 +261,38 @@ class _BannersScreenState extends State<BannersScreen>
     );
   }
 
-  void _showDeleteConfirmation(client.Banner banner) {
-    final messenger = ScaffoldMessenger.of(context);
-    showDialog(
-      context: context,
-      builder: (context) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text('Delete Banner'),
-            content: banner.isBaseImage
-                ? Text(
-                    'This is a Base Image and cannot be deleted. You must make another banner the Base Image first.',
-                  )
-                : Text('Are you sure you want to delete "${banner.title}"?'),
-            actions: [
-              TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              if (!banner.isBaseImage)
-                TextButton(
-                  onPressed: isDeleting
-                      ? null
-                      : () async {
-                          setDialogState(() => isDeleting = true);
-                          await _controller.deleteBanner(banner.bannerId ?? '');
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Banner deleted')),
-                          );
-                        },
-                  child: isDeleting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: AdminAppTheme.getErrorColor(context),
-                          ),
-                        ),
-                ),
-            ],
+  Future<void> _showDeleteConfirmation(client.Banner banner) async {
+    if (banner.isBaseImage) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Banner'),
+          content: const Text(
+            'This is a Base Image and cannot be deleted. You must make another banner the Base Image first.',
           ),
-        );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showConfirmActionDialog(
+      context: context,
+      title: 'Delete Banner',
+      content: 'Are you sure you want to delete "${banner.title}"?',
+      confirmLabel: 'Delete',
+      onConfirm: () async {
+        await _controller.deleteBanner(banner.bannerId ?? '');
+        return true;
       },
     );
+    if (result != true || !mounted) return;
+    messenger.showSnackBar(const SnackBar(content: Text('Banner deleted')));
   }
 
   Widget _buildFilterChip(String label, _BannerMode? mode) {
