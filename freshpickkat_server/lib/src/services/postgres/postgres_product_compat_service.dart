@@ -409,6 +409,22 @@ class PostgresProductCompatService {
         productId: productId,
         transaction: transaction,
       );
+
+      final comboItems = await ComboOfferItemRow.db.find(
+        session,
+        where: (t) => t.productId.equals(productId),
+        transaction: transaction,
+      );
+      if (comboItems.isNotEmpty) {
+        final comboIds = comboItems.map((item) => item.comboOfferId).toSet();
+        await ComboOfferRow.db.updateWhere(
+          session,
+          columnValues: (t) => [t.updatedAt(DateTime.now().toUtc())],
+          where: (t) => t.id.inSet(comboIds),
+          transaction: transaction,
+        );
+      }
+
       return true;
     });
   }
