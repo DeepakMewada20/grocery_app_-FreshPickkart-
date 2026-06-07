@@ -734,7 +734,18 @@ class PostgresProductCompatService {
       transaction: transaction,
     );
     return rows
-        .where((row) => target.contains(row.name.trim().toLowerCase()))
+        .where((row) {
+          final normalizedRowName = row.name.trim().toLowerCase();
+          if (target.contains(normalizedRowName)) {
+            return true;
+          }
+          final parts = row.name
+              .split(RegExp(r'[,\&]'))
+              .map((e) => e.trim().toLowerCase())
+              .where((e) => e.isNotEmpty)
+              .toSet();
+          return target.any((t) => parts.contains(t));
+        })
         .map((row) => row.id!)
         .toList();
   }
