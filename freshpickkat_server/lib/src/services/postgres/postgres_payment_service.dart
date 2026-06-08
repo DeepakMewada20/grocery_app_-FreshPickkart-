@@ -186,31 +186,51 @@ class PostgresPaymentService {
         paymentRow.copyWith(
           gatewayOrderId: razorpayOrderId,
           gatewayPaymentId: razorpayPaymentId,
-          paymentStatus: 'verifying',
-          gatewayStatus: 'verifying',
+          paymentStatus: 'paid',
+          gatewayStatus: 'captured',
+          paidAt: now,
           updatedAt: now,
         ),
       );
       await CustomerOrderRow.db.updateRow(
         session,
         resolvedOrderRow.copyWith(
-          paymentStatus: 'verifying',
-          orderStatus: 'payment_verification',
+          paymentStatus: 'paid',
+          orderStatus: 'confirmed',
+          confirmedAt: now,
           updatedAt: now,
         ),
       );
 
+      await _processPaidOrderAnalytics(
+        session,
+        orderNumber: resolvedOrderRow.orderNumber,
+      );
+
+      await OrderOutboxService.instance.enqueueOrderPaid(
+        session: session,
+        orderId: resolvedOrderRow.orderNumber,
+        userId: resolvedOrderRow.userId.toString(),
+        status: 'confirmed',
+        amount: resolvedOrderRow.finalAmount,
+        itemCount: resolvedOrderRow.itemCount,
+      );
+
+      await _finalizeSuccessfulPaymentSideEffects(
+        session,
+        order: resolvedOrderRow,
+      );
+
       session.log(
-        'Payment verification started for order $orderNumber, '
+        'Payment completed for order $orderNumber, '
         'razorpayPaymentId: $razorpayPaymentId',
         level: LogLevel.info,
       );
 
       return PaymentVerifyResult(
         success: true,
-        verified: false,
-        message:
-            'Payment is being verified. Please wait for confirmation.',
+        verified: true,
+        message: 'Payment verified successfully',
       );
     } catch (error) {
       return PaymentVerifyResult(
@@ -560,8 +580,8 @@ class PostgresPaymentService {
       final result = await session.db.unsafeQuery(
         '''
         SELECT id FROM customer_order
-        WHERE paymentStatus = @paymentStatus
-          AND orderStatus = @orderStatus
+        WHERE "paymentStatus" = @paymentStatus
+          AND "orderStatus" = @orderStatus
           AND "createdAt" < @cutoff
         LIMIT 200
         ''',
