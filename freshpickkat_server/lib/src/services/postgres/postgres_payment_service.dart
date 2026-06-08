@@ -772,7 +772,17 @@ class PostgresPaymentService {
 
     final q = query?.trim();
     if (q != null && q.isNotEmpty) {
-      conditions.add('co."orderNumber" ILIKE @query');
+      conditions.add(
+        '(co."orderNumber" ILIKE @query '
+        'OR co."id" IN ('
+        'SELECT pt."orderId" FROM "payment_transaction" pt '
+        'WHERE pt."gatewayPaymentId" ILIKE @query'
+        ') '
+        'OR co."userId" IN ('
+        'SELECT au."id" FROM "app_user" au '
+        'WHERE au."phoneNumber" ILIKE @query OR au."email" ILIKE @query'
+        '))',
+      );
       params['query'] = '%$q%';
     }
 

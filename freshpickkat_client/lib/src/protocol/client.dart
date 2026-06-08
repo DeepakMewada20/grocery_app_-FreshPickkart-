@@ -2283,11 +2283,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> adminGetLivePaymentStatus(
+  _i2.Future<Map<String, dynamic>> adminGetLivePaymentStatus(
     String razorpayPaymentId, {
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'payment',
     'adminGetLivePaymentStatus',
     {

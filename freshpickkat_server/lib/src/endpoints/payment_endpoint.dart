@@ -218,7 +218,7 @@ class PaymentEndpoint extends Endpoint {
     );
   }
 
-  Future<protocol.PaymentActionResult> adminGetLivePaymentStatus(
+  Future<Map<String, dynamic>> adminGetLivePaymentStatus(
     Session session,
     String razorpayPaymentId, {
     required String firebaseUid,
@@ -232,28 +232,18 @@ class PaymentEndpoint extends Endpoint {
     try {
       final response = await _gateway.fetchPaymentStatus(razorpayPaymentId);
       if (response['statusCode'] != 200) {
-        return protocol.PaymentActionResult(
-          success: false,
-          error: 'Failed to fetch payment status',
-          message: response['body']?.toString(),
-        );
+        return {
+          'error': 'Failed to fetch payment status',
+          'body': response['body']?.toString(),
+          'statusCode': response['statusCode'],
+        };
       }
       final data = response['data'] as Map<String, dynamic>;
-      final amount = data['amount'] is int
-          ? data['amount'] as int
-          : int.tryParse('${data['amount']}');
-      return protocol.PaymentActionResult(
-        success: true,
-        paymentId: razorpayPaymentId,
-        status: data['status']?.toString(),
-        amount: amount,
-        message: data['description']?.toString(),
-      );
+      return data;
     } catch (e) {
-      return protocol.PaymentActionResult(
-        success: false,
-        error: e.toString(),
-      );
+      return {
+        'error': e.toString(),
+      };
     }
   }
 

@@ -5847,7 +5847,7 @@ class _PaymentEndpoint {
     });
   }
 
-  _i3.Future<_i46.PaymentActionResult> adminGetLivePaymentStatus(
+  _i3.Future<Map<String, dynamic>> adminGetLivePaymentStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String razorpayPaymentId, {
     required String firebaseUid,
@@ -5876,7 +5876,7 @@ class _PaymentEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i46.PaymentActionResult>);
+                as _i3.Future<Map<String, dynamic>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

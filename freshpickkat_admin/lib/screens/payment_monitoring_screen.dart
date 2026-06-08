@@ -19,8 +19,15 @@ class PaymentMonitoringScreen extends StatefulWidget {
 class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
   late final AdminPaymentMonitoringController _controller;
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
-  static const _orderStatuses = ['', 'pending', 'confirmed', 'delivered', 'cancelled'];
+  static const _orderStatuses = [
+    '',
+    'pending',
+    'confirmed',
+    'delivered',
+    'cancelled',
+  ];
   static const _paymentStatuses = [
     '',
     'pending',
@@ -43,11 +50,22 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
             tag: 'payment_monitoring',
           );
     _controller.load();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_controller.isLoadingMore.value &&
+        _controller.hasMore.value) {
+      _controller.loadMore();
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -71,7 +89,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Search by order number...',
+          hintText: 'Search by order, payment ID, phone or email...',
           prefixIcon: const Icon(Icons.search_outlined),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
@@ -86,32 +104,34 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
   Widget _buildFilterChips(BuildContext context) {
     return Padding(
       padding: AdminResponsive.pagePadding(context).copyWith(top: 8, bottom: 4),
-      child: Obx(() => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _filterDropdown(
-              context,
-              label: _controller.statusFilter.value.isEmpty
-                  ? 'Order Status'
-                  : _controller.statusFilter.value,
-              value: _controller.statusFilter.value,
-              items: _orderStatuses,
-              onChanged: _controller.setStatusFilter,
-            ),
-            SizedBox(width: 8.w),
-            _filterDropdown(
-              context,
-              label: _controller.paymentStatusFilter.value.isEmpty
-                  ? 'Payment Status'
-                  : _controller.paymentStatusFilter.value,
-              value: _controller.paymentStatusFilter.value,
-              items: _paymentStatuses,
-              onChanged: _controller.setPaymentStatusFilter,
-            ),
-          ],
+      child: Obx(
+        () => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _filterDropdown(
+                context,
+                label: _controller.statusFilter.value.isEmpty
+                    ? 'Order Status'
+                    : _controller.statusFilter.value,
+                value: _controller.statusFilter.value,
+                items: _orderStatuses,
+                onChanged: _controller.setStatusFilter,
+              ),
+              SizedBox(width: 8.w),
+              _filterDropdown(
+                context,
+                label: _controller.paymentStatusFilter.value.isEmpty
+                    ? 'Payment Status'
+                    : _controller.paymentStatusFilter.value,
+                value: _controller.paymentStatusFilter.value,
+                items: _paymentStatuses,
+                onChanged: _controller.setPaymentStatusFilter,
+              ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 
@@ -138,7 +158,9 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
                 (item) => DropdownMenuItem(
                   value: item,
                   child: Text(
-                    item.isEmpty ? 'All' : item[0].toUpperCase() + item.substring(1),
+                    item.isEmpty
+                        ? 'All'
+                        : item[0].toUpperCase() + item.substring(1),
                     style: AdminTextStyles.body(context),
                   ),
                 ),
@@ -172,34 +194,37 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
       return RefreshIndicator(
         onRefresh: _controller.load,
         child: ListView.separated(
+          controller: _scrollController,
           padding: AdminResponsive.pagePadding(context),
           itemCount:
               _controller.orders.length + (_controller.hasMore.value ? 1 : 0),
           separatorBuilder: (_, _) => SizedBox(height: 8.h),
           itemBuilder: (context, index) {
             if (index >= _controller.orders.length) {
-              return Center(
-                child: OutlinedButton(
-                  onPressed: _controller.isLoadingMore.value
-                      ? null
-                      : _controller.loadMore,
-                  child: Text(
-                    _controller.isLoadingMore.value
-                        ? 'Loading...'
-                        : 'Load more',
-                  ),
-                ),
-              );
+              return _buildLoadingIndicator();
             }
             final order = _controller.orders[index];
             return _OrderCard(
               order: order,
               onTap: () => _openOrderDetail(context, order),
+              onRazorpayDetails: () =>
+                  _showRazorpayDetailSheet(context, order),
             );
           },
         ),
       );
     });
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Obx(
+      () => _controller.isLoadingMore.value
+          ? Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              child: const Center(child: CircularProgressIndicator()),
+            )
+          : SizedBox(height: 16.h),
+    );
   }
 
   Future<void> _openOrderDetail(BuildContext context, Order order) async {
@@ -210,13 +235,272 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
       ),
     );
   }
+
+  Future<void> _showRazorpayDetailSheet(
+    BuildContext context,
+    Order order,
+  ) async {
+    final razorpayPaymentId = order.razorpayPaymentId;
+    if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No Razorpay payment ID available')),
+        );
+      }
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) {
+        return _RazorpayDetailSheetContent(
+          razorpayPaymentId: razorpayPaymentId,
+          controller: _controller,
+        );
+      },
+    );
+  }
+}
+
+class _RazorpayDetailSheetContent extends StatefulWidget {
+  const _RazorpayDetailSheetContent({
+    required this.razorpayPaymentId,
+    required this.controller,
+  });
+
+  final String razorpayPaymentId;
+  final AdminPaymentMonitoringController controller;
+
+  @override
+  State<_RazorpayDetailSheetContent> createState() =>
+      _RazorpayDetailSheetContentState();
+}
+
+class _RazorpayDetailSheetContentState
+    extends State<_RazorpayDetailSheetContent> {
+  Map<String, dynamic>? _data;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final data = await widget.controller.getLivePaymentStatus(
+        widget.razorpayPaymentId,
+      );
+      if (mounted) setState(() => _data = data);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, scrollController) {
+        return Padding(
+          padding: EdgeInsets.only(top: 12.h),
+          child: Column(
+            children: [
+              Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Row(
+                  children: [
+                    Text(
+                      'Razorpay Payment Details',
+                      style: AdminTextStyles.sectionTitle(context),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _load,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Divider(height: 1, color: cs.outlineVariant),
+              Expanded(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
+                    ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.w),
+                          child: Text(
+                            _error!,
+                            style: TextStyle(color: cs.error),
+                          ),
+                        ),
+                      )
+                    : ListView(
+                        controller: scrollController,
+                        padding: EdgeInsets.all(16.w),
+                        children: [
+                          _rpField(
+                            'Payment ID',
+                            _data!['id']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Amount',
+                            _data!['amount'] != null
+                                ? _fmtAmount(_data!['amount'])
+                                : '-',
+                          ),
+                          _rpField(
+                            'Currency',
+                            _data!['currency']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Status',
+                            _data!['status']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Order ID',
+                            _data!['order_id']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Email',
+                            _data!['email']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Contact',
+                            _data!['contact']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Method',
+                            _data!['method']?.toString() ?? '-',
+                          ),
+                          _rpField(
+                            'Description',
+                            _data!['description']?.toString() ?? '-',
+                          ),
+                          if (_data!['fee'] != null)
+                            _rpField(
+                              'Fee',
+                              _fmtAmount(_data!['fee']),
+                            ),
+                          if (_data!['tax'] != null)
+                            _rpField(
+                              'Tax',
+                              _fmtAmount(_data!['tax']),
+                            ),
+                          if (_data!['error_code'] != null)
+                            _rpField(
+                              'Error Code',
+                              _data!['error_code'].toString(),
+                            ),
+                          if (_data!['error_description'] != null)
+                            _rpField(
+                              'Error Description',
+                              _data!['error_description'].toString(),
+                            ),
+                          if (_data!['bank'] != null)
+                            _rpField('Bank', _data!['bank'].toString()),
+                          if (_data!['card_id'] != null)
+                            _rpField('Card ID', _data!['card_id'].toString()),
+                          if (_data!['wallet'] != null)
+                            _rpField('Wallet', _data!['wallet'].toString()),
+                          if (_data!['vpa'] != null)
+                            _rpField('VPA', _data!['vpa'].toString()),
+                          if (_data!['acquirer_data'] != null)
+                            _rpField(
+                              'Acquirer Data',
+                              _data!['acquirer_data'].toString(),
+                            ),
+                          if (_data!['created_at'] != null)
+                            _rpField(
+                              'Created At',
+                              _formatTimestamp(_data!['created_at']),
+                            ),
+                          if (_data!['notes'] != null)
+                            _rpField(
+                              'Notes',
+                              _data!['notes'].toString(),
+                            ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _rpField(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140.w,
+            child: Text(
+              label,
+              style: AdminTextStyles.caption(context).copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimestamp(dynamic ts) {
+    if (ts is int) {
+      final dt =
+          DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toLocal();
+      return '${dt.day}/${dt.month}/${dt.year} '
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+    }
+    return ts.toString();
+  }
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order, required this.onTap});
+  const _OrderCard({
+    required this.order,
+    required this.onTap,
+    required this.onRazorpayDetails,
+  });
 
   final Order order;
   final VoidCallback onTap;
+  final VoidCallback onRazorpayDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +567,56 @@ class _OrderCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (order.razorpayPaymentId != null) ...[
+              SizedBox(height: 8.h),
+              Row(
+                children: [
+                  Icon(Icons.payment, size: 14.r, color: cs.primary),
+                  SizedBox(width: 4.w),
+                  Expanded(
+                    child: Text(
+                      order.razorpayPaymentId!,
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  InkWell(
+                    onTap: onRazorpayDetails,
+                    borderRadius: BorderRadius.circular(6.r),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: cs.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.info_outline,
+                              size: 14.r, color: cs.primary),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'Details',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: cs.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -298,7 +632,11 @@ class _OrderCard extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 11.sp, color: color, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -344,7 +682,7 @@ class _PaymentOrderDetailScreenState
     extends State<_PaymentOrderDetailScreen> {
   Map<String, dynamic>? _paymentDetail;
   Map<String, dynamic>? _refundDetail;
-  PaymentActionResult? _liveStatus;
+  Map<String, dynamic>? _liveStatus;
   bool _loadingDetail = true;
   bool _loadingRefund = false;
   bool _loadingLiveStatus = false;
@@ -437,9 +775,8 @@ class _PaymentOrderDetailScreenState
       body: _loadingDetail
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: AdminResponsive.pagePadding(context).copyWith(
-                bottom: 28.h,
-              ),
+              padding:
+                  AdminResponsive.pagePadding(context).copyWith(bottom: 28.h),
               children: [
                 AdminResponsive.constrainContent(
                   context: context,
@@ -449,8 +786,9 @@ class _PaymentOrderDetailScreenState
                       _OrderInfoPanel(order: widget.order),
                       SizedBox(height: 12.h),
                       _PaymentTransactionPanel(
-                        paymentTransaction: _paymentDetail?['paymentTransaction']
-                            as Map<String, dynamic>?,
+                        paymentTransaction:
+                            _paymentDetail?['paymentTransaction']
+                                as Map<String, dynamic>?,
                         order: widget.order,
                       ),
                       SizedBox(height: 12.h),
@@ -462,9 +800,9 @@ class _PaymentOrderDetailScreenState
                       SizedBox(height: 12.h),
                       _StatusComparisonPanel(
                         order: widget.order,
-                        paymentTransaction: _paymentDetail?[
-                                'paymentTransaction']
-                            as Map<String, dynamic>?,
+                        paymentTransaction:
+                            _paymentDetail?['paymentTransaction']
+                                as Map<String, dynamic>?,
                         razorpayLiveData: _liveStatus,
                       ),
                       SizedBox(height: 12.h),
@@ -578,7 +916,7 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
     required this.onRefresh,
   });
 
-  final PaymentActionResult? liveStatus;
+  final Map<String, dynamic>? liveStatus;
   final bool loading;
   final VoidCallback onRefresh;
 
@@ -608,14 +946,26 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
             ],
           )
         else ...[
-          _InfoRow('Payment ID', liveStatus!.paymentId ?? '-'),
-          _InfoRow('Status', liveStatus!.status ?? '-'),
-          if (liveStatus!.amount != null)
+          _InfoRow('Payment ID', liveStatus!['id']?.toString() ?? '-'),
+          _InfoRow('Status', liveStatus!['status']?.toString() ?? '-'),
+          if (liveStatus!['amount'] != null)
             _InfoRow(
               'Amount',
-              'INR ${(liveStatus!.amount! / 100).toStringAsFixed(2)}',
+              _fmtAmount(liveStatus!['amount']),
             ),
-          _InfoRow('Message', liveStatus!.message ?? '-'),
+          if (liveStatus!['error_code'] != null)
+            _InfoRow('Error Code', liveStatus!['error_code'].toString()),
+          if (liveStatus!['error_description'] != null)
+            _InfoRow(
+              'Error Description',
+              liveStatus!['error_description'].toString(),
+            ),
+          _InfoRow(
+            'Description',
+            liveStatus!['description']?.toString() ?? '-',
+          ),
+          if (liveStatus!['method'] != null)
+            _InfoRow('Method', liveStatus!['method'].toString()),
         ],
       ],
     );
@@ -631,15 +981,16 @@ class _StatusComparisonPanel extends StatelessWidget {
 
   final Order order;
   final Map<String, dynamic>? paymentTransaction;
-  final PaymentActionResult? razorpayLiveData;
+  final Map<String, dynamic>? razorpayLiveData;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final dbPaymentStatus = paymentTransaction?['paymentStatus']?.toString() ?? '-';
+    final dbPaymentStatus =
+        paymentTransaction?['paymentStatus']?.toString() ?? '-';
     final orderPaymentStatus = order.paymentStatus;
-    final razorpayStatus = razorpayLiveData?.status ?? '-';
+    final razorpayStatus = razorpayLiveData?['status']?.toString() ?? '-';
 
     final dbOk = _isSuccessStatus(dbPaymentStatus);
     final orderOk = _isSuccessStatus(orderPaymentStatus);
@@ -673,7 +1024,11 @@ class _StatusComparisonPanel extends StatelessWidget {
             padding: EdgeInsets.only(bottom: 8.h),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: cs.error, size: 18.r),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: cs.error,
+                  size: 18.r,
+                ),
                 SizedBox(width: 6.w),
                 Text(
                   'Status mismatch detected',
@@ -850,7 +1205,6 @@ class _QuickActionsPanel extends StatelessWidget {
                     order.razorpayPaymentId ?? order.razorpayOrderId ?? '',
                   ],
                 );
-                // Copy the URL to clipboard
                 final url = uri.toString();
                 final snack = SnackBar(
                   content: Text('URL copied: $url'),
@@ -896,6 +1250,12 @@ class _InfoPanel extends StatelessWidget {
       ),
     );
   }
+}
+
+String _fmtAmount(dynamic value) {
+  if (value == null) return '-';
+  final amount = value is num ? value : (num.tryParse(value.toString()) ?? 0);
+  return 'INR ${(amount / 100).toStringAsFixed(2)}';
 }
 
 class _InfoRow extends StatelessWidget {
