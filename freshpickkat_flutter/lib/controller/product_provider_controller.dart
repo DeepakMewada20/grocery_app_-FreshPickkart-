@@ -48,8 +48,19 @@ class ProductProviderController extends GetxController {
     final selected =
         currentSubcategories.map((s) => s.trim().toLowerCase()).toSet();
     filteredProducts.assignAll(
-      allProducts.where((p) =>
-          p.subcategory.any((s) => selected.contains(s.trim().toLowerCase()))),
+      allProducts.where((p) {
+        return p.subcategory.any((subName) {
+          final normalizedSub = subName.trim().toLowerCase();
+          if (selected.contains(normalizedSub)) return true;
+
+          final parts = subName
+              .split(RegExp(r'[,&]'))
+              .map((e) => e.trim().toLowerCase())
+              .where((e) => e.isNotEmpty)
+              .toSet();
+          return selected.any((s) => parts.contains(s));
+        });
+      }),
     );
   }
 
