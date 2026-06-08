@@ -258,40 +258,46 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 7.w),
-        decoration: BoxDecoration(
-          color: isSelected ? cs.surface : Colors.transparent,
-          border: Border(
-            left: BorderSide(
-              color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-              width: 4.w,
-            ),
-          ),
-        ),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: imageUrl != null
-                  ? Image.network(
-                      imageUrl,
-                      height: 48.r,
-                      width: 48.r,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.image,
-                        color: cs.onSurface.withValues(alpha: 0.3),
-                      ),
-                    )
-                  : Container(
-                      height: 48.r,
-                      width: 48.r,
-                      color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                      child: Icon(
-                        icon,
-                        color: AppTheme.primaryGreen,
-                        size: 26.r,
-                      ),
-                    ),
+            Container(
+              height: 56.r,
+              width: 56.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? AppTheme.primaryGreen.withValues(alpha: 0.3)
+                    : Colors.transparent,
+              ),
+              child: AnimatedScale(
+                scale: isSelected ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: imageUrl != null
+                      ? Image.network(
+                          imageUrl,
+                          height: 48.r,
+                          width: 48.r,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.image,
+                            color: cs.onSurface.withValues(alpha: 0.3),
+                          ),
+                        )
+                      : Container(
+                          height: 48.r,
+                          width: 48.r,
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                          child: Icon(
+                            icon,
+                            color: AppTheme.primaryGreen,
+                            size: 26.r,
+                          ),
+                        ),
+                ),
+              ),
             ),
             SizedBox(height: 8.h),
             Text(

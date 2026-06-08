@@ -61,7 +61,9 @@ class _LazyMiddleBannerState extends State<_LazyMiddleBanner> {
     if (reveal.offset <= position.pixels + position.viewportDimension + lookahead) {
       _hasTriggered = true;
       _scrollPosition?.removeListener(_onScroll);
-      BannerController.instance.loadHomeMiddleBannersIfEmpty();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        BannerController.instance.loadHomeMiddleBannersIfEmpty();
+      });
     }
   }
 
@@ -144,7 +146,9 @@ class _HomePageState extends State<HomePage>
           !productController.isLoading.value &&
           productController.isMoreDataAvailable.value &&
           mounted) {
-        productController.loadMore();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) productController.loadMore();
+        });
       }
     }
   }
@@ -201,7 +205,9 @@ class _HomePageState extends State<HomePage>
                           scrollInfo.metrics.maxScrollExtent - 200 &&
                       !productController.isLoading.value &&
                       productController.isMoreDataAvailable.value) {
-                    productController.loadMore();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      productController.loadMore();
+                    });
                   }
                   return false;
                 },

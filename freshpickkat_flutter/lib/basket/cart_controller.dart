@@ -336,7 +336,7 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> fetchCartFromCache() async {
+  Future<void> fetchCartFromCache({bool isLoggedIn = false}) async {
     final cachedUser = UserCacheService.instance.loadUser();
     if (cachedUser != null && cachedUser.cart != null) {
       try {
@@ -374,7 +374,7 @@ class CartController extends GetxController {
         cartItems.assignAll(items);
         _isInitialLoading = false;
         // If not logged in, cache is our only source of truth for now
-        if (!AuthController.instance.isLoggedIn) {
+        if (!isLoggedIn) {
           _isInitialSyncComplete = true;
         }
       } catch (e) {

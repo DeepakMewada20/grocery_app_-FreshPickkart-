@@ -66,6 +66,15 @@ class ProductProviderController extends GetxController {
       // error handled in fetchProducts
     } finally {
       _isFetching = false;
+      if (_pendingFilterUpdate) {
+        _pendingFilterUpdate = false;
+        if (currentSubcategories.isEmpty) {
+          refreshProducts();
+        } else {
+          clearProducts();
+          fetchProductsIfEmpty();
+        }
+      }
     }
   }
 
@@ -256,10 +265,6 @@ class ProductProviderController extends GetxController {
       AppLogger.error('Products', e);
     } finally {
       isLoading.value = false;
-      if (_pendingFilterUpdate) {
-        _pendingFilterUpdate = false;
-        refreshProducts();
-      }
     }
   }
 

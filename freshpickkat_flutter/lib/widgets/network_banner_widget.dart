@@ -210,8 +210,12 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
             controller: pageController,
             key: PageStorageKey<String>('banner:${_storageKey.hashCode}'),
             onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                }
               });
             },
             itemBuilder: (context, index) {
