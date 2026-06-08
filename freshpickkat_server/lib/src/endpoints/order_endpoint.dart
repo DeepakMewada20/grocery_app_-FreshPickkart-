@@ -10,11 +10,20 @@ import '../services/postgres/postgres_user_guard_service.dart';
 
 class OrderEndpoint extends Endpoint {
   static const String statusPlaced = 'placed';
+  static const String statusPaymentVerification = 'payment_verification';
   static const String statusConfirmed = 'confirmed';
+  static const String statusPacked = 'packed';
   static const String statusOutForDelivery = 'out_for_delivery';
   static const String statusDelivered = 'delivered';
   static const String statusCancelled = 'cancelled';
+  static const String statusPaymentFailed = 'payment_failed';
+  static const String statusRefunded = 'refunded';
+  static const String paymentPending = 'pending';
+  static const String paymentVerifying = 'verifying';
   static const String paymentPaid = 'paid';
+  static const String paymentFailed = 'failed';
+  static const String paymentCancelled = 'cancelled';
+  static const String paymentRefunded = 'refunded';
 
   final PostgresOrderService _orders = PostgresOrderService();
   final PostgresOrderTrackingService _tracking = PostgresOrderTrackingService();

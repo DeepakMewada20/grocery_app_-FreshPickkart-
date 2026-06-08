@@ -57,7 +57,12 @@ class PaymentEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    return _pgPayments.markPaymentFailed(session, orderId);
+    return _pgPayments.markPaymentFailed(
+      session,
+      orderId,
+      failureType: 'user_cancelled',
+      failureReason: 'User cancelled payment',
+    );
   }
 
   Future<protocol.PaymentActionResult> initiateRefund(
@@ -120,6 +125,150 @@ class PaymentEndpoint extends Endpoint {
         error: e.toString(),
       );
     }
+  }
+
+  Future<protocol.PaymentVerifyResult> completePaymentVerification(
+    Session session,
+    String orderId,
+    String razorpayOrderId,
+    String razorpayPaymentId,
+  ) async {
+    return _pgPayments.completePaymentVerification(
+      session,
+      orderNumber: orderId,
+      razorpayOrderId: razorpayOrderId,
+      razorpayPaymentId: razorpayPaymentId,
+    );
+  }
+
+  Future<protocol.PaymentActionResult> getPaymentStatusWithMessage(
+    Session session,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgPayments.getPaymentStatusWithMessage(session, orderId);
+  }
+
+  Future<protocol.PaymentActionResult> adminReconcileAllPendingPayments(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _pgPayments.reconcileAllPendingPayments(session);
+    final recovered = result['recovered'] ?? 0;
+    final failed = result['failed'] ?? 0;
+    final skipped = result['skipped'] ?? 0;
+    return protocol.PaymentActionResult(
+      success: true,
+      status: recovered > 0 ? 'recovered' : 'checked',
+      message:
+          'Checked all pending payments: $recovered recovered, '
+          '$failed failed, $skipped skipped.',
+    );
+  }
+
+  Future<Map<String, dynamic>> adminGetPaymentDetail(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgPayments.getPaymentDetail(session, orderId);
+  }
+
+  Future<protocol.OrderPage> adminSearchOrders(
+    Session session, {
+    String? query,
+    String? status,
+    String? paymentStatus,
+    required String firebaseUid,
+    required String idToken,
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgPayments.searchOrders(
+      session,
+      query: query,
+      status: status,
+      paymentStatus: paymentStatus,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
+  Future<protocol.PaymentActionResult> adminGetLivePaymentStatus(
+    Session session,
+    String razorpayPaymentId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    try {
+      final response = await _gateway.fetchPaymentStatus(razorpayPaymentId);
+      if (response['statusCode'] != 200) {
+        return protocol.PaymentActionResult(
+          success: false,
+          error: 'Failed to fetch payment status',
+          message: response['body']?.toString(),
+        );
+      }
+      final data = response['data'] as Map<String, dynamic>;
+      final amount = data['amount'] is int
+          ? data['amount'] as int
+          : int.tryParse('${data['amount']}');
+      return protocol.PaymentActionResult(
+        success: true,
+        paymentId: razorpayPaymentId,
+        status: data['status']?.toString(),
+        amount: amount,
+        message: data['description']?.toString(),
+      );
+    } catch (e) {
+      return protocol.PaymentActionResult(
+        success: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> adminGetRefundDetail(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgPayments.getRefundDetail(session, orderId);
   }
 
   Future<protocol.PaymentActionResult> recoverPendingPayments(

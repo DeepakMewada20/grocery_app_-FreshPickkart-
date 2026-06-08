@@ -56,8 +56,18 @@ class RazorpayWebhookRoute extends Route {
     final amountPaise = _extractAmountPaise(payload);
     final currency = _extractCurrency(payload);
 
+    session.log(
+      'Webhook received: event=$event, paymentId=$paymentId, '
+      'razorpayOrderId=$razorpayOrderId, orderNumber=$orderNumber',
+      level: LogLevel.info,
+    );
+
     if (_isPaidEvent(event) && order != null) {
       if (currency != null && currency.toUpperCase() != 'INR') {
+        session.log(
+          'Webhook rejected: invalid currency $currency for order $orderNumber',
+          level: LogLevel.warning,
+        );
         return Response.badRequest(
           body: Body.fromString('Invalid currency'),
         );
@@ -65,6 +75,11 @@ class RazorpayWebhookRoute extends Route {
       if (amountPaise != null) {
         final expected = (order.finalAmount * 100).round();
         if ((expected - amountPaise).abs() > 1) {
+          session.log(
+            'Webhook rejected: amount mismatch for order $orderNumber. '
+            'Expected $expected paise, got $amountPaise paise',
+            level: LogLevel.warning,
+          );
           return Response.badRequest(
             body: Body.fromString('Amount mismatch'),
           );
@@ -74,6 +89,10 @@ class RazorpayWebhookRoute extends Route {
 
     if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
       if (paymentId != null && paymentId.isNotEmpty) {
+        session.log(
+          'Webhook processing refund event: $event for payment $paymentId',
+          level: LogLevel.info,
+        );
         await _refunds.handleRefundWebhook(
           session,
           paymentId: paymentId,
@@ -83,6 +102,10 @@ class RazorpayWebhookRoute extends Route {
       }
     } else if (_isRefundEvent(event)) {
       if (paymentId != null && paymentId.isNotEmpty) {
+        session.log(
+          'Webhook processing refund event: $event for payment $paymentId',
+          level: LogLevel.info,
+        );
         await _refunds.handleRefundWebhook(
           session,
           paymentId: paymentId,
@@ -92,32 +115,58 @@ class RazorpayWebhookRoute extends Route {
       }
     } else if (_isPaidEvent(event)) {
       if (order == null) {
+        session.log(
+          'Webhook: order not found for payment $paymentId',
+          level: LogLevel.warning,
+        );
         return _jsonOk({'success': true, 'message': 'Order not found'});
       }
-      if (order.paymentStatus == 'paid' &&
-          paymentId != null &&
-          paymentId.isNotEmpty) {
+      if (order.paymentStatus == 'paid') {
+        session.log(
+          'Webhook: payment $paymentId already marked as paid for order $orderNumber',
+          level: LogLevel.info,
+        );
         return _jsonOk({'success': true, 'message': 'Already paid'});
       }
-      if (paymentId != null &&
-          paymentId.isNotEmpty &&
-          razorpayOrderId != null &&
-          razorpayOrderId.isNotEmpty) {
-        final result = await _payments.verifyPayment(
+      if (paymentId != null && paymentId.isNotEmpty) {
+        session.log(
+          'Webhook completing payment verification: payment $paymentId, '
+          'order $orderNumber',
+          level: LogLevel.info,
+        );
+        final result = await _payments.completePaymentVerification(
           session,
           orderNumber: order.orderId,
-          razorpayOrderId: razorpayOrderId,
+          razorpayOrderId: razorpayOrderId ?? '',
           razorpayPaymentId: paymentId,
-          razorpaySignature: '',
         );
         if (!result.success || !result.verified) {
+          session.log(
+            'Webhook: payment verification failed for payment $paymentId, '
+            'order $orderNumber: ${result.message ?? result.error}',
+            level: LogLevel.error,
+          );
           return Response.badRequest(
             body: Body.fromString(result.message ?? result.error ?? 'Failed'),
           );
         }
+        session.log(
+          'Webhook: payment $paymentId successfully completed for order $orderNumber',
+          level: LogLevel.info,
+        );
       }
     } else if (_isFailedEvent(event) && order != null) {
-      await _payments.markPaymentFailed(session, order.orderId);
+      session.log(
+        'Webhook: marking payment as failed for order $orderNumber, '
+        'payment $paymentId',
+        level: LogLevel.info,
+      );
+      await _payments.markPaymentFailed(
+        session,
+        order.orderId,
+        failureType: 'failed',
+        failureReason: event,
+      );
     }
 
     return _jsonOk({'success': true});
@@ -219,7 +268,9 @@ class RazorpayWebhookRoute extends Route {
   }
 
   bool _isPaidEvent(String event) {
-    return event == 'payment.captured' || event == 'order.paid';
+    return event == 'payment.captured' ||
+        event == 'payment.authorized' ||
+        event == 'order.paid';
   }
 
   bool _isFailedEvent(String event) {

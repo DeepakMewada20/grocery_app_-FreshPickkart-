@@ -151,6 +151,13 @@ payment:
   - markPaymentFailed:
   - initiateRefund:
   - getPaymentStatus:
+  - completePaymentVerification:
+  - getPaymentStatusWithMessage:
+  - adminReconcileAllPendingPayments:
+  - adminGetPaymentDetail:
+  - adminSearchOrders:
+  - adminGetLivePaymentStatus:
+  - adminGetRefundDetail:
   - recoverPendingPayments:
 pricing:
   - calculateCartPricing:

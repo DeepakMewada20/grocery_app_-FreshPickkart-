@@ -12,6 +12,7 @@ import '../widgets/network_error_widget.dart';
 import 'broadcasts_screen.dart';
 import 'address_change_requests_screen.dart';
 import 'complaint_management_screen.dart';
+import 'payment_monitoring_screen.dart';
 import 'customers_screen.dart';
 import 'live_delivery_screen.dart';
 
@@ -382,6 +383,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const ComplaintManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.payment_outlined),
+              title: Text('Payment Monitoring'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PaymentMonitoringScreen(),
                   ),
                 );
               },

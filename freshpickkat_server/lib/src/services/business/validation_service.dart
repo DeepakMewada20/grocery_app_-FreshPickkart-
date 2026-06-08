@@ -3,15 +3,20 @@ import '../../generated/protocol.dart' as protocol;
 
 class ValidationService {
   static const statusPlaced = 'placed';
+  static const statusPaymentVerification = 'payment_verification';
   static const statusConfirmed = 'confirmed';
   static const statusPacked = 'packed';
   static const statusOutForDelivery = 'out_for_delivery';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
+  static const statusPaymentFailed = 'payment_failed';
+  static const statusRefunded = 'refunded';
 
   static const paymentPending = 'pending';
+  static const paymentVerifying = 'verifying';
   static const paymentPaid = 'paid';
   static const paymentFailed = 'failed';
+  static const paymentCancelled = 'cancelled';
   static const paymentRefunded = 'refunded';
 
   static void validateProduct(protocol.Product product) {
@@ -158,12 +163,23 @@ class ValidationService {
     if (current == next) return;
 
     const allowed = <String, Set<String>>{
-      statusPlaced: {statusConfirmed, statusCancelled},
-      statusConfirmed: {statusPacked, statusCancelled},
+      statusPlaced: {
+        statusPaymentVerification,
+        statusCancelled,
+        statusPaymentFailed,
+      },
+      statusPaymentVerification: {
+        statusConfirmed,
+        statusCancelled,
+        statusPaymentFailed,
+      },
+      statusConfirmed: {statusPacked, statusCancelled, statusRefunded},
       statusPacked: {statusOutForDelivery, statusCancelled},
       statusOutForDelivery: {statusDelivered, statusCancelled},
       statusDelivered: {},
       statusCancelled: {},
+      statusPaymentFailed: {statusCancelled},
+      statusRefunded: {},
     };
 
     final nextAllowed = allowed[current];
@@ -185,13 +201,18 @@ class ValidationService {
 
   static String _getStatusLabel(String status) {
     const labels = {
-      'placed': 'Placed',
-      'pending': 'Placed',
+      'placed': 'Payment Pending',
+      'pending': 'Payment Pending',
+      'payment_verification': 'Payment Verification',
+      'verifying': 'Payment Verification',
       'confirmed': 'Confirmed',
       'packed': 'Packed',
       'out_for_delivery': 'Out for Delivery',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
+      'payment_failed': 'Payment Failed',
+      'failed': 'Payment Failed',
+      'refunded': 'Refunded',
     };
     return labels[status.toLowerCase()] ?? status;
   }
@@ -200,8 +221,10 @@ class ValidationService {
     final value = paymentStatus.toLowerCase().trim();
     const allowed = {
       paymentPending,
+      paymentVerifying,
       paymentPaid,
       paymentFailed,
+      paymentCancelled,
       paymentRefunded,
     };
     if (!allowed.contains(value)) {

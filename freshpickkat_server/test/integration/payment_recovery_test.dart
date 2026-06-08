@@ -1,12 +1,14 @@
 import 'package:test/test.dart';
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
+import 'package:freshpickkat_server/src/services/postgres/postgres_payment_service.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
   withServerpod('Payment recovery', (sessionBuilder, endpoints) {
-    test('create pending order -> verify payment succeeds', () async {
+    test('create pending order -> start verification (two-step)', () async {
       final orderId = await _createPendingOrder(endpoints, sessionBuilder);
 
+      // Step 1: Client reports success → sets to VERIFYING
       final verifyResult = await endpoints.payment.verifyPayment(
         sessionBuilder,
         orderId,
@@ -15,12 +17,54 @@ void main() {
         '',
       );
       expect(verifyResult.success, isTrue);
-      expect(verifyResult.verified, isTrue);
+      expect(verifyResult.verified, isFalse);
 
       final updatedOrder = await _findOrder(sessionBuilder, orderId);
       expect(updatedOrder, isNotNull);
-      expect(updatedOrder!.paymentStatus, equals('paid'));
-      expect(updatedOrder.orderStatus, equals('confirmed'));
+      expect(updatedOrder!.paymentStatus, equals('verifying'));
+      expect(updatedOrder.orderStatus, equals('payment_verification'));
+    });
+
+    test('webhook can complete payment verification directly', () async {
+      final orderId = await _createPendingOrder(endpoints, sessionBuilder);
+      final session = sessionBuilder.build();
+
+      try {
+        // Webhook calls PostgresPaymentService.completePaymentVerification
+        final paymentService = PostgresPaymentService();
+        final result = await paymentService.completePaymentVerification(
+          session,
+          orderNumber: orderId,
+          razorpayOrderId: 'rzp_test_order',
+          razorpayPaymentId: 'fake_payment_id',
+        );
+        expect(result.success, isTrue);
+        expect(result.verified, isTrue);
+
+        final updatedOrder = await _findOrder(sessionBuilder, orderId);
+        expect(updatedOrder, isNotNull);
+        expect(updatedOrder!.paymentStatus, equals('paid'));
+        expect(updatedOrder.orderStatus, equals('confirmed'));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('mark payment as cancelled', () async {
+      final orderId = await _createPendingOrder(endpoints, sessionBuilder);
+
+      final cancelResult = await endpoints.payment.markPaymentFailed(
+        sessionBuilder,
+        orderId,
+        'integration-user',
+        '',
+      );
+      expect(cancelResult.success, isTrue);
+
+      final updatedOrder = await _findOrder(sessionBuilder, orderId);
+      expect(updatedOrder, isNotNull);
+      expect(updatedOrder!.paymentStatus, equals('cancelled'));
+      expect(updatedOrder.orderStatus, equals('payment_failed'));
     });
   });
 }

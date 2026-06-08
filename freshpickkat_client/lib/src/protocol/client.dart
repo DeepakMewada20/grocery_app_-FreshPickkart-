@@ -2207,6 +2207,110 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<_i44.PaymentVerifyResult> completePaymentVerification(
+    String orderId,
+    String razorpayOrderId,
+    String razorpayPaymentId,
+  ) => caller.callServerEndpoint<_i44.PaymentVerifyResult>(
+    'payment',
+    'completePaymentVerification',
+    {
+      'orderId': orderId,
+      'razorpayOrderId': razorpayOrderId,
+      'razorpayPaymentId': razorpayPaymentId,
+    },
+  );
+
+  _i2.Future<_i45.PaymentActionResult> getPaymentStatusWithMessage(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+    'payment',
+    'getPaymentStatusWithMessage',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i45.PaymentActionResult> adminReconcileAllPendingPayments({
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+    'payment',
+    'adminReconcileAllPendingPayments',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> adminGetPaymentDetail(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'payment',
+    'adminGetPaymentDetail',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i40.OrderPage> adminSearchOrders({
+    String? query,
+    String? status,
+    String? paymentStatus,
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i40.OrderPage>(
+    'payment',
+    'adminSearchOrders',
+    {
+      'query': query,
+      'status': status,
+      'paymentStatus': paymentStatus,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
+
+  _i2.Future<_i45.PaymentActionResult> adminGetLivePaymentStatus(
+    String razorpayPaymentId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+    'payment',
+    'adminGetLivePaymentStatus',
+    {
+      'razorpayPaymentId': razorpayPaymentId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> adminGetRefundDetail(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'payment',
+    'adminGetRefundDetail',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<_i45.PaymentActionResult> recoverPendingPayments(
     String userId, {
     required String idToken,

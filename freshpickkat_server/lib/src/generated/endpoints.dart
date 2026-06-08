@@ -4814,6 +4814,241 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'completePaymentVerification': _i1.MethodConnector(
+          name: 'completePaymentVerification',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'razorpayOrderId': _i1.ParameterDescription(
+              name: 'razorpayOrderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'razorpayPaymentId': _i1.ParameterDescription(
+              name: 'razorpayPaymentId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .completePaymentVerification(
+                    session,
+                    params['orderId'],
+                    params['razorpayOrderId'],
+                    params['razorpayPaymentId'],
+                  ),
+        ),
+        'getPaymentStatusWithMessage': _i1.MethodConnector(
+          name: 'getPaymentStatusWithMessage',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .getPaymentStatusWithMessage(
+                    session,
+                    params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'adminReconcileAllPendingPayments': _i1.MethodConnector(
+          name: 'adminReconcileAllPendingPayments',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .adminReconcileAllPendingPayments(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'adminGetPaymentDetail': _i1.MethodConnector(
+          name: 'adminGetPaymentDetail',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .adminGetPaymentDetail(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'adminSearchOrders': _i1.MethodConnector(
+          name: 'adminSearchOrders',
+          params: {
+            'query': _i1.ParameterDescription(
+              name: 'query',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentStatus': _i1.ParameterDescription(
+              name: 'paymentStatus',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .adminSearchOrders(
+                    session,
+                    query: params['query'],
+                    status: params['status'],
+                    paymentStatus: params['paymentStatus'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'adminGetLivePaymentStatus': _i1.MethodConnector(
+          name: 'adminGetLivePaymentStatus',
+          params: {
+            'razorpayPaymentId': _i1.ParameterDescription(
+              name: 'razorpayPaymentId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .adminGetLivePaymentStatus(
+                    session,
+                    params['razorpayPaymentId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'adminGetRefundDetail': _i1.MethodConnector(
+          name: 'adminGetRefundDetail',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i18.PaymentEndpoint)
+                  .adminGetRefundDetail(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
         'recoverPendingPayments': _i1.MethodConnector(
           name: 'recoverPendingPayments',
           params: {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/appcache/payment_recovery_repository.dart';
@@ -87,6 +89,59 @@ class PaymentService {
       orderId,
       user.uid,
       idToken,
+    );
+  }
+
+  Future<PaymentActionResult> getPaymentStatusWithMessage(
+    String paymentId,
+    String orderId,
+  ) async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.payment.getPaymentStatus(
+      paymentId,
+      orderId,
+      user.uid,
+      idToken,
+    );
+  }
+
+  Future<PaymentActionResult> recoverPendingPayments() async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.payment.recoverPendingPayments(
+      user.uid,
+      idToken: idToken,
+      limit: 20,
+    );
+  }
+
+  Future<PaymentActionResult> pollPaymentStatus({
+    required String orderId,
+    required String paymentId,
+    Duration interval = const Duration(seconds: 5),
+    int maxAttempts = 30,
+  }) async {
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        final result = await getPaymentStatusWithMessage(
+          paymentId,
+          orderId,
+        );
+        if (result.status == 'paid' ||
+            result.status == 'failed' ||
+            result.status == 'cancelled') {
+          return result;
+        }
+      } catch (_) {}
+      await Future.delayed(interval);
+    }
+    return PaymentActionResult(
+      success: true,
+      status: 'timeout',
+      message: 'Payment confirmation timed out. Please check later.',
     );
   }
 

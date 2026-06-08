@@ -10,8 +10,10 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 
 enum PaymentStatus {
   verified,
+  verifying,
   pending,
   failed,
+  cancelled,
   unknown,
 }
 
@@ -39,7 +41,9 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     with SingleTickerProviderStateMixin {
   PaymentStatus _status = PaymentStatus.unknown;
   bool _isRetrying = false;
-  String _statusMessage = 'Verifying payment...';
+  bool _isCheckingStatus = false;
+  String _statusMessage = '';
+  String _detailMessage = '';
   Timer? _autoCheckTimer;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -67,66 +71,98 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     });
   }
 
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending':
+        return 'Waiting For Payment';
+      case 'verifying':
+        return 'Payment Verification In Progress';
+      case 'paid':
+        return 'Payment Successful';
+      case 'failed':
+        return 'Payment Failed';
+      case 'cancelled':
+        return 'Payment Cancelled';
+      case 'refunded':
+        return 'Payment Refunded';
+      default:
+        return 'Checking Payment Status...';
+    }
+  }
+
   Future<void> _checkPaymentStatus() async {
     if (!mounted) return;
 
     try {
       final paymentService = PaymentService.instance;
-      final result = await paymentService.verifyPayment(
-        orderId: widget.orderId,
-        razorpayOrderId: '',
-        paymentId: widget.paymentId,
-        signature: '',
-      );
-
-      if (!mounted) return;
-
-      if (result.success == true && result.verified == true) {
-        setState(() {
-          _status = PaymentStatus.verified;
-          _statusMessage = 'Payment Verified!';
-        });
-        _autoCheckTimer?.cancel();
-        widget.onSuccess?.call();
-        return;
-      }
-
-      final gatewayStatus = await paymentService.fetchGatewayPaymentStatus(
+      final statusResult = await paymentService.getPaymentStatusWithMessage(
         widget.paymentId,
         widget.orderId,
       );
 
       if (!mounted) return;
 
-      final status = gatewayStatus.status?.toLowerCase().trim() ?? '';
+      final apiStatus = statusResult.status?.toLowerCase().trim() ?? '';
+      final message = statusResult.message ?? '';
 
-      if (status == 'captured' || status == 'authorized') {
+      if (apiStatus == 'paid') {
         setState(() {
           _status = PaymentStatus.verified;
-          _statusMessage = 'Payment Verified!';
+          _statusMessage = 'Payment Successful';
+          _detailMessage = '';
         });
         _autoCheckTimer?.cancel();
         widget.onSuccess?.call();
-      } else if (status == 'failed' ||
-          status == 'error' ||
-          status == 'refunded') {
+        return;
+      }
+
+      if (apiStatus == 'failed') {
         setState(() {
           _status = PaymentStatus.failed;
-          _statusMessage = 'Payment Failed';
+          _statusMessage = 'Payment could not be confirmed.';
+          _detailMessage = message.isNotEmpty
+              ? message
+              : 'If money was debited from your account, it will either be '
+                  'automatically reversed by your bank or reflected after '
+                  'payment verification.';
         });
         _autoCheckTimer?.cancel();
         widget.onFailed?.call();
-      } else {
-        setState(() {
-          _status = PaymentStatus.pending;
-          _statusMessage = 'Payment is being processed...';
-        });
+        return;
       }
+
+      if (apiStatus == 'cancelled') {
+        setState(() {
+          _status = PaymentStatus.cancelled;
+          _statusMessage = 'Payment Cancelled';
+          _detailMessage = message;
+        });
+        _autoCheckTimer?.cancel();
+        widget.onFailed?.call();
+        return;
+      }
+
+      if (apiStatus == 'verifying') {
+        setState(() {
+          _status = PaymentStatus.verifying;
+          _statusMessage = 'Payment Verification In Progress';
+          _detailMessage = 'We are confirming your payment. '
+              'This should complete shortly.';
+        });
+        return;
+      }
+
+      setState(() {
+        _status = PaymentStatus.pending;
+        _statusMessage = _statusLabel(apiStatus);
+        _detailMessage = message;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _status = PaymentStatus.pending;
         _statusMessage = 'Checking payment status...';
+        _detailMessage = '';
       });
     }
   }
@@ -137,67 +173,53 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     setState(() {
       _isRetrying = true;
       _statusMessage = 'Retrying...';
+      _detailMessage = '';
     });
 
     try {
       final paymentService = PaymentService.instance;
-      final result = await paymentService.verifyPayment(
-        orderId: widget.orderId,
-        razorpayOrderId: '',
-        paymentId: widget.paymentId,
-        signature: '',
-      );
+      final result = await paymentService.recoverPendingPayments();
 
       if (!mounted) return;
 
-      if (result.success == true && result.verified == true) {
-        setState(() {
-          _status = PaymentStatus.verified;
-          _statusMessage = 'Payment Verified!';
-          _isRetrying = false;
-        });
-        _autoCheckTimer?.cancel();
-        widget.onSuccess?.call();
-        return;
-      }
-
-      final gatewayStatus = await paymentService.fetchGatewayPaymentStatus(
-        widget.paymentId,
-        widget.orderId,
-      );
-
-      if (!mounted) return;
-
-      final status = gatewayStatus.status?.toLowerCase().trim() ?? '';
-
-      if (status == 'captured' || status == 'authorized') {
-        setState(() {
-          _status = PaymentStatus.verified;
-          _statusMessage = 'Payment Verified!';
-          _isRetrying = false;
-        });
-        _autoCheckTimer?.cancel();
-        widget.onSuccess?.call();
-      } else if (status == 'failed' || status == 'error') {
-        setState(() {
-          _status = PaymentStatus.failed;
-          _statusMessage = 'Payment Failed. Please contact support.';
-          _isRetrying = false;
-        });
-        _autoCheckTimer?.cancel();
-        widget.onFailed?.call();
+      if (result.success == true) {
+        await _checkPaymentStatus();
       } else {
         setState(() {
-          _statusMessage = 'Still processing. We\'ll notify you when done.';
-          _isRetrying = false;
+          _statusMessage = 'Retry failed. Please try again.';
+          _detailMessage = result.error ?? '';
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _statusMessage = 'Retry failed. Please try again.';
-        _isRetrying = false;
+        _detailMessage = e.toString();
       });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRetrying = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _checkStatusNow() async {
+    if (_isCheckingStatus) return;
+
+    setState(() {
+      _isCheckingStatus = true;
+    });
+
+    try {
+      await _checkPaymentStatus();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingStatus = false;
+        });
+      }
     }
   }
 
@@ -233,20 +255,41 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
             minFontSize: 11,
             maxLines: 3,
           ),
-          if (_status == PaymentStatus.pending) ...[
+          if (_detailMessage.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            AutoSizeText(
+              _detailMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.grey.shade600,
+              ),
+              minFontSize: 10,
+              maxLines: 4,
+            ),
+          ],
+          if (_status == PaymentStatus.pending ||
+              _status == PaymentStatus.verifying) ...[
             SizedBox(height: 16.h),
             _buildRetryButton(),
             SizedBox(height: 8.h),
             Text(
-              'Auto-checking every 10 seconds',
+              _status == PaymentStatus.verifying
+                  ? 'Auto-checking every 10 seconds'
+                  : 'Auto-checking every 10 seconds',
               style: TextStyle(
                 fontSize: 11.sp,
                 color: Colors.grey.shade600,
               ),
             ),
           ],
-          if (_status == PaymentStatus.failed) ...[
+          if (_status == PaymentStatus.failed ||
+              _status == PaymentStatus.cancelled) ...[
             SizedBox(height: 16.h),
+            _buildRetryButton(),
+            SizedBox(height: 8.h),
+            _buildCheckStatusButton(),
+            SizedBox(height: 8.h),
             _buildSupportButton(),
           ],
         ],
@@ -263,6 +306,10 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
         icon = Icons.check_circle;
         color = Colors.green;
         break;
+      case PaymentStatus.verifying:
+        icon = Icons.sync;
+        color = Colors.blue;
+        break;
       case PaymentStatus.pending:
         icon = Icons.hourglass_top;
         color = Colors.orange;
@@ -271,13 +318,18 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
         icon = Icons.error;
         color = Colors.red;
         break;
+      case PaymentStatus.cancelled:
+        icon = Icons.cancel;
+        color = Colors.grey;
+        break;
       case PaymentStatus.unknown:
-        icon = Icons.sync;
+        icon = Icons.help;
         color = Colors.grey;
         break;
     }
 
-    if (_status == PaymentStatus.pending) {
+    if (_status == PaymentStatus.verifying ||
+        _status == PaymentStatus.pending) {
       return ScaleTransition(
         scale: _pulseAnimation,
         child: Container(
@@ -325,7 +377,36 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
             )
           : Icon(Icons.refresh, size: 18.r),
       label: AutoSizeText(
-        _isRetrying ? 'Retrying...' : 'Retry Now',
+        _isRetrying ? 'Retrying...' : 'Retry Payment',
+        maxLines: 1,
+        minFontSize: 11,
+      ),
+    );
+  }
+
+  Widget _buildCheckStatusButton() {
+    return OutlinedButton.icon(
+      onPressed: _isCheckingStatus ? null : _checkStatusNow,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppTheme.primaryGreen,
+        side: const BorderSide(color: AppTheme.primaryGreen),
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+      ),
+      icon: _isCheckingStatus
+          ? SizedBox(
+              width: 18.r,
+              height: 18.r,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppTheme.primaryGreen,
+              ),
+            )
+          : Icon(Icons.search, size: 18.r),
+      label: AutoSizeText(
+        _isCheckingStatus ? 'Checking...' : 'Check Payment Status',
         maxLines: 1,
         minFontSize: 11,
       ),
@@ -357,10 +438,14 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     switch (_status) {
       case PaymentStatus.verified:
         return Colors.green.shade50;
+      case PaymentStatus.verifying:
+        return Colors.blue.shade50;
       case PaymentStatus.pending:
         return Colors.orange.shade50;
       case PaymentStatus.failed:
         return Colors.red.shade50;
+      case PaymentStatus.cancelled:
+        return Colors.grey.shade100;
       case PaymentStatus.unknown:
         return Colors.grey.shade100;
     }
@@ -370,10 +455,14 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     switch (_status) {
       case PaymentStatus.verified:
         return Colors.green.shade200;
+      case PaymentStatus.verifying:
+        return Colors.blue.shade200;
       case PaymentStatus.pending:
         return Colors.orange.shade200;
       case PaymentStatus.failed:
         return Colors.red.shade200;
+      case PaymentStatus.cancelled:
+        return Colors.grey.shade300;
       case PaymentStatus.unknown:
         return Colors.grey.shade300;
     }
@@ -383,10 +472,14 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     switch (_status) {
       case PaymentStatus.verified:
         return Colors.green.shade800;
+      case PaymentStatus.verifying:
+        return Colors.blue.shade800;
       case PaymentStatus.pending:
         return Colors.orange.shade800;
       case PaymentStatus.failed:
         return Colors.red.shade800;
+      case PaymentStatus.cancelled:
+        return Colors.grey.shade700;
       case PaymentStatus.unknown:
         return Colors.grey.shade700;
     }

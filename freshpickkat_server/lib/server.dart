@@ -8,6 +8,7 @@ import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
 import 'src/services/background_task_service.dart';
 import 'src/services/analytics/product_analytics_cron_job.dart';
+import 'src/services/payment_reconciliation_cron_job.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
@@ -74,6 +75,7 @@ void run(List<String> args) async {
   BackgroundTaskService.configure(pod);
   unawaited(BackgroundTaskService.instance.run());
   ProductAnalyticsCronJob(pod).start();
+  PaymentReconciliationCronJob(pod).start();
   unawaited(_runSubCategoryMigration(pod));
 }
 
