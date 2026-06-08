@@ -10,8 +10,13 @@ import 'network_controller.dart';
 class SubcategoryOptionData {
   final String name;
   final String imageUrl;
+  final List<String> names;
 
-  const SubcategoryOptionData({required this.name, required this.imageUrl});
+  const SubcategoryOptionData({
+    required this.name,
+    required this.imageUrl,
+    required this.names,
+  });
 }
 
 class AdminCategoryController extends GetxController {
@@ -75,14 +80,14 @@ class AdminCategoryController extends GetxController {
     final result = <SubcategoryOptionData>[];
     for (final sub in subCategories) {
       if (sub.categoryId != categoryName) continue;
-      for (final name in sub.subCategoriesName) {
-        result.add(
-          SubcategoryOptionData(
-            name: name,
-            imageUrl: sub.subCategoriesUrl,
-          ),
-        );
-      }
+      final joinedName = sub.subCategoriesName.join(', ');
+      result.add(
+        SubcategoryOptionData(
+          name: joinedName,
+          imageUrl: sub.subCategoriesUrl,
+          names: sub.subCategoriesName,
+        ),
+      );
     }
     result.sort((a, b) => a.name.compareTo(b.name));
     return result;

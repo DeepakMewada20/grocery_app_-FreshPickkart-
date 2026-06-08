@@ -396,7 +396,11 @@ Future<void> showAddCategoryDialog({
                               setSheetState(() => imageCtrl.text = url);
                             }
                           } catch (e) {
-                            setSheetState(() => imageError = e.toString());
+                            if (context.mounted) {
+                              setSheetState(
+                                () => imageError = e.toString(),
+                              );
+                            }
                           } finally {
                             if (context.mounted) {
                               setSheetState(() => isUploadingImage = false);
@@ -463,19 +467,27 @@ Future<void> showAddCategoryDialog({
                                   }
 
                                   if (context.mounted) {
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
                                     Navigator.pop(context);
-                                    _showCatalogSnackBar(
-                                      context,
-                                      isEdit
-                                          ? 'Category updated'
-                                          : 'Category added',
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isEdit
+                                              ? 'Category updated'
+                                              : 'Category added',
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
                                     );
                                   }
                                 } catch (error) {
-                                  setSheetState(() {
-                                    isSaving = false;
-                                    imageError = error.toString();
-                                  });
+                                  if (context.mounted) {
+                                    setSheetState(() {
+                                      isSaving = false;
+                                      imageError = error.toString();
+                                    });
+                                  }
                                 }
                               }
                             },
@@ -503,6 +515,11 @@ Future<void> showAddCategoryDialog({
       );
     },
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    nameCtrl.dispose();
+    imageCtrl.dispose();
+  });
 }
 
 Future<void> showAddSubcategoryDialog({
@@ -519,9 +536,16 @@ Future<void> showAddSubcategoryDialog({
   final formKey = GlobalKey<FormState>();
   String selectedCategory =
       subcategoryToEdit?.categoryId ?? controller.categories.first.categoryName;
-  final nameCtrl = TextEditingController(
-    text: subcategoryToEdit?.subCategoriesName.first,
-  );
+  
+  final List<TextEditingController> nameControllers = [];
+  if (isEdit && subcategoryToEdit.subCategoriesName.isNotEmpty) {
+    for (final name in subcategoryToEdit.subCategoriesName) {
+      nameControllers.add(TextEditingController(text: name));
+    }
+  } else {
+    nameControllers.add(TextEditingController());
+  }
+
   final imageCtrl = TextEditingController(
     text: subcategoryToEdit?.subCategoriesUrl,
   );
@@ -593,16 +617,61 @@ Future<void> showAddSubcategoryDialog({
                           setSheetState(() => selectedCategory = val!),
                     ),
                     SizedBox(height: 16.h),
-                    ModernTextField(
-                      controller: nameCtrl,
-                      labelText: 'Subcategory Name',
-                      hintText: 'Enter subcategory name',
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                          ? 'Required'
-                          : null,
+                    ...List.generate(nameControllers.length, (index) {
+                      final ctrl = nameControllers[index];
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: ModernTextField(
+                                controller: ctrl,
+                                labelText: 'Subcategory Name ${index + 1}',
+                                hintText: 'Enter subcategory name',
+                                validator: (value) =>
+                                    (value == null || value.trim().isEmpty)
+                                    ? 'Required'
+                                    : null,
+                              ),
+                            ),
+                            if (nameControllers.length > 1) ...[
+                              SizedBox(width: 8.w),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_outline,
+                                  color: AdminAppTheme.getErrorColor(context),
+                                ),
+                                onPressed: () {
+                                  setSheetState(() {
+                                    ctrl.dispose();
+                                    nameControllers.removeAt(index);
+                                  });
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 8.h),
+                        child: TextButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add More'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AdminAppTheme.getTealColor(context),
+                          ),
+                          onPressed: () {
+                            setSheetState(() {
+                              nameControllers.add(TextEditingController());
+                            });
+                          },
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 16.h),
                     if (imageCtrl.text.trim().isNotEmpty) ...[
                       Center(
                         child: Stack(
@@ -667,7 +736,11 @@ Future<void> showAddSubcategoryDialog({
                               setSheetState(() => imageCtrl.text = url);
                             }
                           } catch (e) {
-                            setSheetState(() => imageError = e.toString());
+                            if (context.mounted) {
+                              setSheetState(
+                                () => imageError = e.toString(),
+                              );
+                            }
                           } finally {
                             if (context.mounted) {
                               setSheetState(() => isUploadingImage = false);
@@ -701,6 +774,15 @@ Future<void> showAddSubcategoryDialog({
                           ? null
                           : () async {
                               if (formKey.currentState!.validate()) {
+                                final names = nameControllers
+                                    .map((c) => c.text.trim())
+                                    .where((n) => n.isNotEmpty)
+                                    .toList();
+                                if (names.isEmpty) {
+                                  setSheetState(() => imageError = 'Please add at least one subcategory name');
+                                  return;
+                                }
+
                                 setSheetState(() {
                                   isSaving = true;
                                   imageError = null;
@@ -709,7 +791,7 @@ Future<void> showAddSubcategoryDialog({
                                 try {
                                   final subCategory = SubCategory(
                                     categoryId: selectedCategory,
-                                    subCategoriesName: [nameCtrl.text.trim()],
+                                    subCategoriesName: names,
                                     subCategoriesUrl: imageCtrl.text
                                         .trim()
                                         .replaceAll('"', '')
@@ -729,19 +811,27 @@ Future<void> showAddSubcategoryDialog({
                                   }
 
                                   if (context.mounted) {
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
                                     Navigator.pop(context);
-                                    _showCatalogSnackBar(
-                                      context,
-                                      isEdit
-                                          ? 'Subcategory updated'
-                                          : 'Subcategory added',
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isEdit
+                                              ? 'Subcategory updated'
+                                              : 'Subcategory added',
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
                                     );
                                   }
                                 } catch (error) {
-                                  setSheetState(() {
-                                    isSaving = false;
-                                    imageError = error.toString();
-                                  });
+                                  if (context.mounted) {
+                                    setSheetState(() {
+                                      isSaving = false;
+                                      imageError = error.toString();
+                                    });
+                                  }
                                 }
                               }
                             },
@@ -771,6 +861,13 @@ Future<void> showAddSubcategoryDialog({
       );
     },
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    for (final ctrl in nameControllers) {
+      ctrl.dispose();
+    }
+    imageCtrl.dispose();
+  });
 }
 
 void _showCatalogSnackBar(BuildContext context, String message) {

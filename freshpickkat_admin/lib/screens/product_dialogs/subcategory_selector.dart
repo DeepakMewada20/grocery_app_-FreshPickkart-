@@ -14,8 +14,8 @@ class SubcategorySelector extends StatefulWidget {
   /// Validation error text shown below the selector.
   final String? errorText;
 
-  /// Called when a chip is tapped — passes the name and new checked state.
-  final void Function(String name, bool checked) onToggle;
+  /// Called when a chip is tapped — passes the names list and new checked state.
+  final void Function(List<String> names, bool checked) onToggle;
 
   const SubcategorySelector({
     super.key,
@@ -74,17 +74,18 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                 children: row0.asMap().entries.map((entry) {
                   final i = entry.key;
                   final option = entry.value;
+                  final isSel = option.names.any((n) => widget.selected.contains(n));
                   return Padding(
                     padding: EdgeInsets.only(
                       right: i < row0.length - 1 ? 8.w : 0,
                     ),
                     child: _SubcategoryChip(
                       option: option,
-                      isSelected: widget.selected.contains(option.name),
+                      isSelected: isSel,
                       size: chipSize,
                       onTap: () => widget.onToggle(
-                        option.name,
-                        !widget.selected.contains(option.name),
+                        option.names,
+                        !isSel,
                       ),
                     ),
                   );
@@ -98,17 +99,18 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                   children: row1.asMap().entries.map((entry) {
                     final i = entry.key;
                     final option = entry.value;
+                    final isSel = option.names.any((n) => widget.selected.contains(n));
                     return Padding(
                       padding: EdgeInsets.only(
                         right: i < row1.length - 1 ? 8.w : 0,
                       ),
                       child: _SubcategoryChip(
                         option: option,
-                        isSelected: widget.selected.contains(option.name),
+                        isSelected: isSel,
                         size: chipSize,
                         onTap: () => widget.onToggle(
-                          option.name,
-                          !widget.selected.contains(option.name),
+                          option.names,
+                          !isSel,
                         ),
                       ),
                     );

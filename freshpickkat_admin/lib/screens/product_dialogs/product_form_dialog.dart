@@ -883,12 +883,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               options: widget.groupedSubcategoryOptionsFor(selectedCategory!),
               selected: selectedSubcategories,
               errorText: subcategoryError,
-              onToggle: (name, checked) {
+              onToggle: (names, checked) {
                 setState(() {
                   if (checked) {
-                    selectedSubcategories.add(name);
+                    selectedSubcategories.addAll(names);
                   } else {
-                    selectedSubcategories.remove(name);
+                    for (final name in names) {
+                      selectedSubcategories.remove(name);
+                    }
                   }
                   subcategoryError = null;
                 });
