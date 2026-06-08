@@ -171,10 +171,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 padding: EdgeInsets.only(top: 16.h),
                 child: _buildTrackingCard(order, cs),
               ),
-            if (_canCancelOrder(order) || _showRefundStatus(order))
+            if (_showActionsCard(order))
               Padding(
                 padding: EdgeInsets.only(top: 16.h),
                 child: _buildActionsCard(order, cs),
+              ),
+            if (_refund != null)
+              Padding(
+                padding: EdgeInsets.only(top: 16.h),
+                child: _buildRefundInfoCard(order, cs),
               ),
             SizedBox(height: 16.h),
             _buildComplaintCta(order, cs),
@@ -368,6 +373,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildActionsCard(Order order, ColorScheme cs) {
+    final bool canCancel = _canCancelOrder(order);
+    final bool paymentBlocked = _isPaymentBlocked(order);
+    final bool showRefund = _showRefundStatus(order);
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
@@ -379,7 +388,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_showRefundStatus(order))
+          if (showRefund)
             AutoSizeText(
               'Refund Status: ${_refundLabel(order)}',
               style: TextStyle(
@@ -389,9 +398,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               maxLines: 2,
               minFontSize: 11,
             ),
-          if (_showRefundStatus(order) && _canCancelOrder(order))
+          if (showRefund && canCancel)
             SizedBox(height: 12.h),
-          if (_canCancelOrder(order))
+          if (paymentBlocked) ...[
+            SizedBox(height: paymentBlocked && showRefund ? 12.h : 0),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cs.outlineVariant,
+                  foregroundColor: cs.onSurface.withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                ),
+                child: Text('Cancel Order'),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              _paymentBlockMessage(order),
+              style: TextStyle(
+                color: cs.error,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+          if (canCancel)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -451,6 +487,73 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRefundInfoCard(Order order, ColorScheme cs) {
+    final refund = _refund;
+    if (refund == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.currency_rupee, size: 20.sp, color: cs.primary),
+              SizedBox(width: 8.w),
+              Text(
+                'Refund Information',
+                style: AppTextStyles.sectionTitle(context)
+                    .copyWith(fontSize: 16.sp),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          _refundInfoRow('Refund Status', _refundLabel(order), cs),
+          SizedBox(height: 10.h),
+          _refundInfoRow('Refund Amount', '₹${refund.amount.formatPrice}', cs),
+          SizedBox(height: 10.h),
+          _refundInfoRow('Refund ID', refund.refundId, cs),
+          SizedBox(height: 10.h),
+          _refundInfoRow('Initiated Date', _formatDate(refund.createdAt), cs),
+          SizedBox(height: 10.h),
+          _refundInfoRow('Expected Time', '5–7 Business Days', cs),
+        ],
+      ),
+    );
+  }
+
+  Widget _refundInfoRow(String label, String value, ColorScheme cs) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.6),
+            fontSize: 13.sp,
+          ),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 13.sp,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1030,17 +1133,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (order.status == 'cancelled' || order.status == 'delivered') {
       return false;
     }
-    if (order.paymentStatus == 'pending' || order.paymentStatus == 'failed') {
-      return false;
-    }
     return order.status == 'placed' ||
         order.status == 'confirmed' ||
         order.status == 'packed' ||
         order.status == 'out_for_delivery';
   }
 
+  bool _isPaymentBlocked(Order order) {
+    return order.paymentStatus == 'pending' ||
+        order.paymentStatus == 'failed' ||
+        order.paymentStatus == 'cancelled';
+  }
+
+  String _paymentBlockMessage(Order order) {
+    switch (order.paymentStatus) {
+      case 'pending':
+        return ErrorMessages.cancelPaymentPending;
+      case 'failed':
+        return ErrorMessages.cancelPaymentFailed;
+      case 'cancelled':
+        return ErrorMessages.cancelPaymentCancelled;
+      default:
+        return '';
+    }
+  }
+
+  bool _showActionsCard(Order order) {
+    return _canCancelOrder(order) || _showRefundStatus(order) || _isPaymentBlocked(order);
+  }
+
   bool _showRefundStatus(Order order) {
-    return order.refundStatus.toLowerCase() != 'none' || _refund != null;
+    return order.refundStatus.toLowerCase() != 'none' &&
+        order.refundStatus.toLowerCase() != '' &&
+        _refund != null;
   }
 
   String _refundLabel(Order order) {
@@ -1078,46 +1203,76 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     final status = order.status;
     final amount = order.finalAmount;
+    final deliveryFee = order.deliveryFee;
+    final refundEstimate = status == 'out_for_delivery'
+        ? amount - deliveryFee
+        : amount;
 
-    if (status == 'packed' || status == 'out_for_delivery') {
-      final showWarning = status == 'out_for_delivery';
-      if (showWarning) {
-        final proceed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Cancel Order'),
-            content: const Text(
-              'Your order is out for delivery. Cancellation may incur charges. A partial refund will be processed if approved.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('No'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Yes, Proceed'),
-              ),
-            ],
+    // Stage 3: Out For Delivery — show warning first
+    if (status == 'out_for_delivery') {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Important Cancellation Notice'),
+          content: Text(
+            'Your order is already out for delivery.\n\n'
+            'If you continue:\n'
+            '• Delivery charges will not be refunded.\n'
+            '• Additional cancellation charges may apply.\n'
+            '• The final refund amount may be lower than the original payment amount.\n\n'
+            'Do you want to continue?',
           ),
-        );
-        if (proceed != true) return;
-      }
-
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Keep Order'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Continue Cancellation'),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return;
       if (!mounted) return;
+      // Fall through to the reason dialog below
+    }
 
+    // Stage 2/3: packed or out_for_delivery — reason dialog
+    if (status == 'packed' || status == 'out_for_delivery') {
       final reasonController = TextEditingController();
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Request Cancellation'),
+          title: const Text('Request Order Cancellation?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Your order is being processed. A cancellation request will be sent for admin approval.',
+              Text(
+                'Your order is currently being prepared.\n\n'
+                'Cancellation requires approval from our team.\n\n'
+                'If approved, the refund will be processed according to our cancellation policy.',
               ),
+              if (status == 'out_for_delivery') ...[
+                SizedBox(height: 12.h),
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    'Estimated refund: ₹${refundEstimate.formatPrice}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: 12.h),
               TextField(
                 controller: reasonController,
@@ -1132,11 +1287,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+              child: const Text('Keep Order'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Yes, Request'),
+              child: const Text('Request Cancellation'),
             ),
           ],
         ),
@@ -1148,21 +1303,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return;
     }
 
+    // Stage 1: placed/confirmed — direct cancel with full refund
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Order'),
+        title: const Text('Cancel Order?'),
         content: Text(
-          'Are you sure you want to cancel this order? Full refund of ₹${amount.formatPrice} will be initiated.',
+          'Your order has not entered processing yet.\n\n'
+          'If you cancel now, you will receive a full refund of ₹${amount.formatPrice}.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+            child: const Text('Keep Order'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes, Cancel'),
+            child: const Text('Cancel Order'),
           ),
         ],
       ),
@@ -1191,10 +1348,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       await _fetch();
       if (mounted) {
         if (result.success) {
-          AppSnackbar.show(
-            'Order updated',
-            result.message ?? ErrorMessages.orderCancelledSuccess,
-          );
+          final msg = _cancelSuccessMessage(result);
+          AppSnackbar.show('Order Cancelled', msg);
         } else {
           AppSnackbar.error(
             'Cancel failed',
@@ -1213,6 +1368,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _isCancelling = false;
         });
       }
+    }
+  }
+
+  String _cancelSuccessMessage(PaymentActionResult result) {
+    switch (result.status) {
+      case 'refunded':
+        return result.message ?? ErrorMessages.refundInitiated;
+      case 'cancelled':
+        return result.message ?? ErrorMessages.orderCancelledSuccess;
+      default:
+        return result.message ?? ErrorMessages.orderCancelledSuccess;
     }
   }
 
@@ -1237,8 +1403,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (mounted) {
         if (result.success) {
           AppSnackbar.show(
-            'Request sent',
-            result.message ?? 'Cancellation requested. Admin will review shortly.',
+            'Request Submitted',
+            result.message ?? ErrorMessages.cancellationRequestSubmitted,
           );
         } else {
           AppSnackbar.error(

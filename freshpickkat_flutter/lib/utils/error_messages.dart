@@ -73,6 +73,28 @@ class ErrorMessages {
   static const String orderCancelledSuccess =
       'Order cancelled successfully. Refund will be tracked automatically.';
   static const String loginToCancel = 'Please login to cancel the order.';
+
+  // Cancel button disabled messages
+  static const String cancelPaymentPending =
+      'Payment is not completed yet.\nYou cannot cancel this order until the payment process is completed.';
+  static const String cancelPaymentFailed =
+      'Payment was not successful.\nThis order cannot be cancelled because no successful payment was received.';
+  static const String cancelPaymentCancelled =
+      'Payment was cancelled.\nThis order is no longer eligible for cancellation.';
+
+  // Post-cancellation status messages
+  static const String cancellationRequestSubmitted =
+      'Your cancellation request has been submitted successfully.\nOur team will review your request and notify you once a decision is made.';
+  static const String cancellationApproved =
+      'Your cancellation request has been approved.\nRefund processing has been started.';
+  static const String cancellationRejected =
+      'Your cancellation request was not approved.\nThe order will continue through the normal delivery process.';
+  static const String refundInitiated =
+      'Refund has been initiated successfully.\nDepending on your payment method and bank processing time, the amount may take up to 5–7 business days to reflect in your account.';
+  static const String refundProcessing =
+      'Your refund is currently being processed.\nMost refunds are completed within 5–7 business days depending on your bank and payment method.';
+  static const String refundCompleted =
+      'Your refund has been completed successfully.\nThe refunded amount should now be available in your original payment method.';
   static const String complaintNotFound = 'Complaint not found.';
   static const String loadComplaintsFailed =
       'Unable to load complaints. Please try again.';

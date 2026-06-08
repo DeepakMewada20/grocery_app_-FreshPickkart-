@@ -527,7 +527,7 @@ class _OrderCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  'INR ${order.finalAmount.toStringAsFixed(0)}',
+                  'INR ${order.finalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],

@@ -15,6 +15,7 @@ import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
@@ -238,7 +239,7 @@ class CartController extends GetxController {
           0,
           double.infinity,
         );
-        message = 'Add ₹${remaining.toStringAsFixed(0)} more for free delivery';
+        message = 'Add ₹${remaining.toDouble().formatPrice} more for free delivery';
       }
     } else if (currentSubtotal >= 300) {
       fee = 0.0;
@@ -246,10 +247,10 @@ class CartController extends GetxController {
     } else if (currentSubtotal >= 200) {
       fee = 20.0;
       message =
-          'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
+          'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toDouble().formatPrice} more for free delivery';
     } else {
       message =
-          'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toStringAsFixed(0)} more for free delivery';
+          'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toDouble().formatPrice} more for free delivery';
     }
     estimatedDeliveryFee.value = fee;
     localDeliveryPricing.value = DeliveryPricingResult(

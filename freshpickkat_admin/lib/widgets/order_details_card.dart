@@ -193,8 +193,8 @@ class OrderDetailsCard extends StatelessWidget {
           SizedBox(width: 12.w),
           Text(
             amount >= 0
-                ? '₹${amount.toStringAsFixed(0)}'
-                : '-₹${(-amount).toStringAsFixed(0)}',
+                ? '₹${amount.toStringAsFixed(2)}'
+                : '-₹${(-amount).toStringAsFixed(2)}',
             style: TextStyle(
               fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
               fontSize: fontSize?.clamp(12.0, 16.0) ?? 13.sp.clamp(11.0, 15.0),
@@ -334,15 +334,15 @@ class _ComplaintItemLine extends StatelessWidget {
         Text('x${item.quantity}', style: AdminTextStyles.caption(context)),
         SizedBox(width: 12.w),
         Text(
-          '₹${item.unitPrice.toStringAsFixed(0)}',
+          '₹${item.unitPrice.toStringAsFixed(2)}',
           style: AdminTextStyles.caption(context),
         ),
         SizedBox(width: 8.w),
         SizedBox(
           width: 80.w,
           child: Text(
-            '₹${item.totalPrice.toStringAsFixed(0)}',
-            textAlign: TextAlign.end,
+'₹${item.totalPrice.toStringAsFixed(2)}',
+    textAlign: TextAlign.end,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),

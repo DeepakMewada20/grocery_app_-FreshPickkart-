@@ -387,7 +387,7 @@ class OrderEndpoint extends Endpoint {
           status: 'refunded',
           amount: (refundRecord.amount * 100).round(),
           message:
-              'Order cancelled. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)} initiated — will credit in 3-5 business days.',
+              'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 5–7 business days to reflect in your account.',
         );
       } catch (e) {
         return protocol.PaymentActionResult(
@@ -430,7 +430,7 @@ class OrderEndpoint extends Endpoint {
       success: updated,
       status: updated ? 'cancellation_requested' : 'error',
       message: updated
-          ? 'Cancellation requested. Admin will review shortly.'
+          ? 'Your cancellation request has been submitted successfully. Our team will review your request and notify you once a decision is made.'
           : 'Failed to request cancellation.',
     );
   }
@@ -481,7 +481,7 @@ class OrderEndpoint extends Endpoint {
         status: 'refunded',
         amount: (refundRecord.amount * 100).round(),
         message:
-            'Cancellation approved. Refund of ₹${refundRecord.amount.toStringAsFixed(2)} initiated.',
+            'Your cancellation request has been approved. Refund processing has been started. Refund of ₹${refundRecord.amount.toStringAsFixed(2)} initiated.',
       );
     } catch (e) {
       return protocol.PaymentActionResult(
@@ -513,7 +513,7 @@ class OrderEndpoint extends Endpoint {
       success: updated,
       status: updated ? 'cancellation_rejected' : 'error',
       message: updated
-          ? 'Cancellation rejected. Order will continue as normal.'
+          ? 'Your cancellation request was not approved. The order will continue through the normal delivery process.'
           : 'Failed to reject cancellation.',
     );
   }

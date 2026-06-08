@@ -277,10 +277,10 @@ class _DeliveryConfigCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Base fee: ₹${config!.baseDeliveryFee.toStringAsFixed(0)}',
+                    'Base fee: ₹${config!.baseDeliveryFee.toStringAsFixed(2)}',
                   ),
                   Text(
-                    'Free threshold: ${config!.freeDeliveryThreshold != null ? '₹${config!.freeDeliveryThreshold!.toStringAsFixed(0)}' : 'Not set'}',
+                    'Free threshold: ${config!.freeDeliveryThreshold != null ? '₹${config!.freeDeliveryThreshold!.toStringAsFixed(2)}' : 'Not set'}',
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -295,8 +295,8 @@ class _DeliveryConfigCard extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
                         slab.maxOrderAmount >= 999999
-                            ? 'Above ₹${slab.minOrderAmount.toStringAsFixed(0)}  ->  ₹${slab.fee.toStringAsFixed(0)}'
-                            : '₹${slab.minOrderAmount.toStringAsFixed(0)} - ₹${slab.maxOrderAmount.toStringAsFixed(0)}  ->  ₹${slab.fee.toStringAsFixed(0)}',
+                            ? 'Above ₹${slab.minOrderAmount.toStringAsFixed(2)}  ->  ₹${slab.fee.toStringAsFixed(2)}'
+                            : '₹${slab.minOrderAmount.toStringAsFixed(2)} - ₹${slab.maxOrderAmount.toStringAsFixed(2)}  ->  ₹${slab.fee.toStringAsFixed(2)}',
                       ),
                     ),
                   ),
@@ -326,7 +326,7 @@ class _DeliveryRuleCard extends StatelessWidget {
       child: ListTile(
         title: Text(rule.name),
         subtitle: Text(
-          'Fee ₹${rule.deliveryFee.toStringAsFixed(0)} • Priority ${rule.priority} • ${rule.targetUserType == 'specific_order' ? 'specific_order (${rule.targetOrderCount})' : (rule.targetUserType ?? 'all users')}',
+          'Fee ₹${rule.deliveryFee.toStringAsFixed(2)} • Priority ${rule.priority} • ${rule.targetUserType == 'specific_order' ? 'specific_order (${rule.targetOrderCount})' : (rule.targetUserType ?? 'all users')}',
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {
@@ -370,23 +370,23 @@ class _DeliveryConfigBottomSheetState
   void initState() {
     super.initState();
     _baseFeeController = TextEditingController(
-      text: widget.config.baseDeliveryFee.toStringAsFixed(0),
+      text: widget.config.baseDeliveryFee.toStringAsFixed(2),
     );
     _freeThresholdController = TextEditingController(
-      text: widget.config.freeDeliveryThreshold?.toStringAsFixed(0) ?? '',
+      text: widget.config.freeDeliveryThreshold?.toStringAsFixed(2) ?? '',
     );
     _slabs = widget.config.slabs
         .map(
           (slab) => _DeliverySlabDraft(
             minCtrl: TextEditingController(
-              text: slab.minOrderAmount.toStringAsFixed(0),
+              text: slab.minOrderAmount.toStringAsFixed(2),
             ),
             maxCtrl: TextEditingController(
               text: slab.maxOrderAmount >= 999999
                   ? ''
-                  : slab.maxOrderAmount.toStringAsFixed(0),
+                  : slab.maxOrderAmount.toStringAsFixed(2),
             ),
-            feeCtrl: TextEditingController(text: slab.fee.toStringAsFixed(0)),
+            feeCtrl: TextEditingController(text: slab.fee.toStringAsFixed(2)),
           ),
         )
         .toList();
@@ -713,7 +713,7 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
       text: rule?.description ?? '',
     );
     _feeController = TextEditingController(
-      text: rule?.deliveryFee.toStringAsFixed(0) ?? '0',
+      text: rule?.deliveryFee.toStringAsFixed(2) ?? '0',
     );
     _priorityController = TextEditingController(
       text: rule?.priority.toString() ?? '1',

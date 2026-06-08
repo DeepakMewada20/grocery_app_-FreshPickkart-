@@ -209,7 +209,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
                 color: AdminAppTheme.getIndigoColor(context),
               ),
               _ChipLabel(
-                label: '₹${order.finalAmount.toStringAsFixed(0)}',
+                label: '₹${order.finalAmount.toStringAsFixed(2)}',
                 color: AdminAppTheme.getSuccessColor(context),
               ),
               _ChipLabel(label: sla.label, color: sla.color),

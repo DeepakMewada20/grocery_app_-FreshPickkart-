@@ -267,7 +267,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _asCurrency(dynamic value) {
     final amount = (value is num) ? value.toDouble() : 0.0;
-    return '₹${amount.toStringAsFixed(0)}';
+    if (amount == amount.truncateToDouble()) {
+      return '₹${amount.toStringAsFixed(0)}';
+    }
+    return '₹${amount.toStringAsFixed(2)}';
   }
 
   Widget _statCard({

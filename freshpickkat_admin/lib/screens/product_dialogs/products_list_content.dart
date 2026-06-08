@@ -494,7 +494,7 @@ class _VariantPriceRow extends StatelessWidget {
     // Fallback: use base price when no variant data available
     if (variants.isEmpty) {
       return CatalogInlineBadge(
-        label: '₹${product.price.toStringAsFixed(0)}',
+        label: '₹${product.price.toStringAsFixed(2)}',
         color: AdminAppTheme.getSuccessColor(context),
       );
     }
@@ -512,7 +512,7 @@ class _VariantPriceRow extends StatelessWidget {
           final qtyLabel = qty == qty.toInt()
               ? qty.toInt().toString()
               : qty.toStringAsFixed(1);
-          final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(0)}';
+          final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(2)}';
 
           return Padding(
             padding: EdgeInsets.only(right: i < variants.length - 1 ? 6.w : 0),

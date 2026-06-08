@@ -512,7 +512,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                               ),
                               SizedBox(height: 6.h),
                               Text(
-                                '₹${price.toStringAsFixed(0)}',
+                                '₹${price.toStringAsFixed(2)}',
                                 style: AdminTextStyles.body(context).copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: AdminAppTheme.getSuccessColor(context),

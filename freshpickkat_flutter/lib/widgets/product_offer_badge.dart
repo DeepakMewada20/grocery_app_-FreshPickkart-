@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 bool isBogoProduct(Product product) {
   return product.discountType?.toLowerCase().trim() == 'bogo' &&
@@ -27,7 +28,7 @@ String buildProductOfferLabel(Product product) {
   final flatValue = _resolveFlatOfferValue(product);
 
   if (product.discountType == 'flat') {
-    return '₹${flatValue.toStringAsFixed(0)} OFF';
+    return '₹${flatValue.formatPrice} OFF';
   }
 
   final formattedPercent = percentValue % 1 == 0
@@ -35,7 +36,7 @@ String buildProductOfferLabel(Product product) {
       : percentValue.toStringAsFixed(1);
 
   if (flatValue > 0) {
-    return '$formattedPercent% OFF (₹${flatValue.toStringAsFixed(0)})';
+    return '$formattedPercent% OFF (₹${flatValue.formatPrice})';
   }
   return '$formattedPercent% OFF';
 }
@@ -52,7 +53,7 @@ String buildProductOfferLabelCard(Product product) {
 
   if (product.discountType == 'flat') {
     final flatValue = _resolveFlatOfferValue(product);
-    return '₹${flatValue.toStringAsFixed(0)} OFF';
+    return '₹${flatValue.formatPrice} OFF';
   }
 
   final formattedPercent = percentValue % 1 == 0

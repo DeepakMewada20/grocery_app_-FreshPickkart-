@@ -324,7 +324,7 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
                       ),
                       title: Text(_variantLabel(variant)),
                       subtitle: Text(
-                        '₹${variant.price.toStringAsFixed(0)} • MRP ₹${variant.realPrice.toStringAsFixed(0)}',
+                        '₹${variant.price.toStringAsFixed(2)} • MRP ₹${variant.realPrice.toStringAsFixed(2)}',
                       ),
                       onTap: () => Navigator.pop(context, variant),
                     );

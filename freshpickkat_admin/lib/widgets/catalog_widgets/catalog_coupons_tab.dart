@@ -414,7 +414,7 @@ class _CatalogCouponCard extends StatelessWidget {
                                 icon: Icons.shopping_bag_outlined,
                                 label: 'Min order',
                                 value:
-                                    '₹${coupon.minOrderAmount.toStringAsFixed(0)}',
+                                    '₹${coupon.minOrderAmount.toStringAsFixed(2)}',
                               ),
                             ),
                             _CouponStatDivider(isDark: isDark),
@@ -432,7 +432,7 @@ class _CatalogCouponCard extends StatelessWidget {
                                   icon: Icons.savings_outlined,
                                   label: 'Max off',
                                   value:
-                                      '₹${coupon.maxDiscount!.toStringAsFixed(0)}',
+                                      '₹${coupon.maxDiscount!.toStringAsFixed(2)}',
                                 ),
                               ),
                             ],

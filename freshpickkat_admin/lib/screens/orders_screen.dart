@@ -985,7 +985,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             children: [
               Text('Combo total', style: AdminTextStyles.caption(context)),
               Text(
-                '₹${group.discountedTotal.toStringAsFixed(0)}',
+                '₹${group.discountedTotal.toStringAsFixed(2)}',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ],
@@ -1011,7 +1011,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           SizedBox(width: 8.w),
           Text('x${item.quantity}', style: AdminTextStyles.caption(context)),
           SizedBox(width: 8.w),
-          Text('₹${item.totalPrice.toStringAsFixed(0)}'),
+          Text('₹${item.totalPrice.toStringAsFixed(2)}'),
         ],
       ),
     );
@@ -1104,7 +1104,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '₹${item.unitPrice.toStringAsFixed(0)} each',
+                '₹${item.unitPrice.toStringAsFixed(2)} each',
                 style: AdminTextStyles.caption(context),
               ),
               Text(
@@ -1156,8 +1156,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
           SizedBox(width: 12.w),
           Text(
             value < 0
-                ? '-₹${(-value).toStringAsFixed(0)}'
-                : '₹${value.toStringAsFixed(0)}',
+                ? '-₹${(-value).toStringAsFixed(2)}'
+                : '₹${value.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: isBold
                   ? 18.sp.clamp(16.0, 20.0)
@@ -1455,7 +1455,7 @@ class _OrderCardState extends State<_OrderCard> {
                       child: Row(
                         children: [
                           AutoSizeText(
-                            '₹${order.finalAmount.toStringAsFixed(0)}',
+                            '₹${order.finalAmount.toStringAsFixed(2)}',
                             maxLines: 1,
                             minFontSize: 14,
                             style: TextStyle(

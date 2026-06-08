@@ -152,7 +152,7 @@ class OfferConflictDialog extends StatelessWidget {
               Text(
                 combo.discountType == 'percentage'
                     ? 'Combo discount: ${combo.discountValue.toStringAsFixed(0)}%'
-                    : 'Combo price benefit: ₹${combo.discountValue.toStringAsFixed(0)}',
+                    : 'Combo price benefit: ₹${combo.discountValue.toStringAsFixed(2)}',
               ),
               const SizedBox(height: 8),
               const Text('Confirming will disable the whole combo.'),

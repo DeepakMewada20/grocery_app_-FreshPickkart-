@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 
 // ─────────────────────────────────────────────
 // REWARD TYPE ENUM — extend for future rewards
@@ -119,7 +120,7 @@ class RewardCelebrationService extends GetxService {
         type: RewardType.freeDelivery,
         title: '🎉 Free Delivery Unlocked!',
         subtitle: savings > 0
-            ? 'You saved ₹${savings.toStringAsFixed(0)} on delivery'
+            ? 'You saved ₹${savings.formatPrice} on delivery'
             : 'Free delivery applied to your order',
         savedAmount: savings,
       ));
@@ -138,7 +139,7 @@ class RewardCelebrationService extends GetxService {
         type: RewardType.couponApplied,
         title: '🎉 Best Offer Applied!',
         subtitle:
-            '₹${currentCouponDiscount.toStringAsFixed(0)} discount added automatically',
+            '₹${currentCouponDiscount.formatPrice} discount added automatically',
         savedAmount: currentCouponDiscount,
       ));
       _couponCelebrated = true;
@@ -157,7 +158,7 @@ class RewardCelebrationService extends GetxService {
         type: RewardType.betterCoupon,
         title: '🎉 Bigger Savings Unlocked!',
         subtitle:
-            'Additional ₹${additional.toStringAsFixed(0)} saved automatically',
+            'Additional ₹${additional.formatPrice} saved automatically',
         savedAmount: additional,
       ));
       _betterCouponCelebrated = true;

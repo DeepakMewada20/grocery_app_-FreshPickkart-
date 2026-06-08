@@ -165,7 +165,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     return (sellingTotal - offer.discountValue).clamp(0, double.infinity);
   }
 
-  String _formatMoney(double value) => '₹${value.toStringAsFixed(0)}';
+  String _formatMoney(double value) =>
+      '₹${value == value.truncateToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}';
 
   BogoOffer? _linkedBogoOffer(Product product, List<BogoOffer> bogoOffers) {
     final productId = product.productId;
@@ -1669,7 +1670,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 ),
                                 SizedBox(height: 8.h),
                                 Text(
-                                  '₹${product.price.toStringAsFixed(0)} • MRP ₹${product.realPrice.toStringAsFixed(0)}',
+                                  '₹${product.price.toStringAsFixed(2)} • MRP ₹${product.realPrice.toStringAsFixed(2)}',
                                 ),
                               ],
                             ),

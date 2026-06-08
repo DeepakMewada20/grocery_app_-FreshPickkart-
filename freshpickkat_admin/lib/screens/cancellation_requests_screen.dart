@@ -612,7 +612,7 @@ class _CancellationOrderCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '₹${order.finalAmount.toStringAsFixed(0)}',
+                  '₹${order.finalAmount.toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],

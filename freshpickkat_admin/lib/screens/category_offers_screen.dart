@@ -310,7 +310,7 @@ class _CategoryOfferCard extends StatelessWidget {
                   child: Text(
                     offer.discountType == 'percentage'
                         ? '${offer.discountValue.toStringAsFixed(0)}% OFF'
-                        : '₹${offer.discountValue.toStringAsFixed(0)} OFF',
+                        : '₹${offer.discountValue.toStringAsFixed(2)} OFF',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -323,7 +323,7 @@ class _CategoryOfferCard extends StatelessWidget {
                 if (offer.maxDiscount != null) ...[
                   const SizedBox(width: 4),
                   Text(
-                    'Max ₹${offer.maxDiscount!.toStringAsFixed(0)}',
+                    'Max ₹${offer.maxDiscount!.toStringAsFixed(2)}',
                     style: TextStyle(
                       fontSize: 10,
                       color: AdminAppTheme.getNeutralColor(context),

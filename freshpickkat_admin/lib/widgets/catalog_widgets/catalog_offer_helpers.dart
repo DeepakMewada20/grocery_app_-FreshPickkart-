@@ -252,7 +252,7 @@ String catalogProductOfferLabel(Product product) {
   if (hasCatalogConfiguredFlatOffer(product)) {
     final value = catalogFlatDiscountValue(product);
     if (value > 0) {
-      return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
+      return 'FLAT ₹${value.toStringAsFixed(2)} OFF';
     }
   }
   return 'No active offer';
@@ -275,7 +275,7 @@ String catalogProductOfferLabelWithLinkedOffers(
   if (hasCatalogConfiguredFlatOffer(product)) {
     final value = catalogFlatDiscountValue(product);
     if (value > 0) {
-      return 'FLAT ₹${value.toStringAsFixed(0)} OFF';
+      return 'FLAT ₹${value.toStringAsFixed(2)} OFF';
     }
   }
   if (_hasCatalogLiveCategoryOffer(product, categoryOffers: categoryOffers)) {
@@ -328,5 +328,5 @@ String catalogCouponValueLabel(Coupon coupon) {
   if (coupon.type == 'PERCENTAGE_DISCOUNT') {
     return '${coupon.discountValue!.toStringAsFixed(0)}%';
   }
-  return '₹${coupon.discountValue!.toStringAsFixed(0)}';
+  return '₹${coupon.discountValue!.toStringAsFixed(2)}';
 }

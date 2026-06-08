@@ -375,7 +375,7 @@ class _ComplaintDetailAdminScreenState
   }
 
   Future<double?> _askAmount(double cap) async {
-    final controller = TextEditingController(text: cap.toStringAsFixed(0));
+    final controller = TextEditingController(text: cap.toStringAsFixed(2));
     final value = await showDialog<double>(
       context: context,
       builder: (context) => AlertDialog(
@@ -384,7 +384,7 @@ class _ComplaintDetailAdminScreenState
           controller: controller,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: 'Max INR ${cap.toStringAsFixed(0)}',
+            labelText: 'Max INR ${cap.toStringAsFixed(2)}',
           ),
         ),
         actions: [

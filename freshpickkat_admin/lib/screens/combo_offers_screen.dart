@@ -320,7 +320,7 @@ class _ComboOfferCard extends StatelessWidget {
                   child: Text(
                     offer.discountType == 'percentage'
                         ? 'MORE ${offer.discountValue.toStringAsFixed(0)}% OFF'
-                        : 'MORE ₹${offer.discountValue.toStringAsFixed(0)} OFF',
+                        : 'MORE ₹${offer.discountValue.toStringAsFixed(2)} OFF',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -592,7 +592,8 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
     return '$baseLabel • $discountLabel';
   }
 
-  String _formatMoney(double value) => '₹${value.toStringAsFixed(0)}';
+  String _formatMoney(double value) =>
+      '₹${value == value.truncateToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}';
 
   String _formatVariantLabel(ProductVariant variant) {
     final quantity = variant.quantityValue % 1 == 0
