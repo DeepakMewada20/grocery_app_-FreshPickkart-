@@ -402,7 +402,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                 ),
-                child: Text(_isCancelling ? 'Cancelling...' : 'Cancel Order'),
+                child: Text(_isCancelling
+                    ? (order.status == 'packed' || order.status == 'out_for_delivery'
+                        ? 'Requesting...'
+                        : 'Cancelling...')
+                    : (order.status == 'packed' || order.status == 'out_for_delivery'
+                        ? 'Request Cancellation'
+                        : 'Cancel Order')),
               ),
             ),
         ],
@@ -1024,9 +1030,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (order.status == 'cancelled' || order.status == 'delivered') {
       return false;
     }
+    if (order.paymentStatus == 'pending' || order.paymentStatus == 'failed') {
+      return false;
+    }
     return order.status == 'placed' ||
-        order.status == 'pending' ||
-        order.status == 'confirmed';
+        order.status == 'confirmed' ||
+        order.status == 'packed' ||
+        order.status == 'out_for_delivery';
   }
 
   bool _showRefundStatus(Order order) {
@@ -1063,12 +1073,87 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Future<void> _showCancelConfirmation() async {
+    final order = _order;
+    if (order == null) return;
+
+    final status = order.status;
+    final amount = order.finalAmount;
+
+    if (status == 'packed' || status == 'out_for_delivery') {
+      final showWarning = status == 'out_for_delivery';
+      if (showWarning) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cancel Order'),
+            content: const Text(
+              'Your order is out for delivery. Cancellation may incur charges. A partial refund will be processed if approved.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Yes, Proceed'),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+      }
+
+      if (!mounted) return;
+
+      final reasonController = TextEditingController();
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Request Cancellation'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your order is being processed. A cancellation request will be sent for admin approval.',
+              ),
+              SizedBox(height: 12.h),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Reason (optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, Request'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed == true) {
+        _requestCancellation(reason: reasonController.text.trim());
+        reasonController.dispose();
+      }
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel Order'),
-        content: const Text(
-          'Are you sure you want to cancel this order? This action cannot be undone.',
+        content: Text(
+          'Are you sure you want to cancel this order? Full refund of ₹${amount.formatPrice} will be initiated.',
         ),
         actions: [
           TextButton(
@@ -1099,21 +1184,73 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
 
     try {
-      await OrderService.instance.cancelOrder(
+      final result = await OrderService.instance.cancelOrder(
         orderId: widget.orderId,
         userId: currentUser.uid,
       );
       await _fetch();
       if (mounted) {
-        AppSnackbar.show(
-          'Order updated',
-          ErrorMessages.orderCancelledSuccess,
-        );
+        if (result.success) {
+          AppSnackbar.show(
+            'Order updated',
+            result.message ?? ErrorMessages.orderCancelledSuccess,
+          );
+        } else {
+          AppSnackbar.error(
+            'Cancel failed',
+            result.error ?? ErrorMessages.cancelFailed,
+          );
+        }
       }
     } catch (e) {
       AppLogger.error('OrderDetail', e);
       if (mounted) {
         AppSnackbar.error('Cancel failed', ErrorMessages.cancelFailed);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCancelling = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _requestCancellation({String reason = ''}) async {
+    final currentUser = AuthController.instance.currentUser;
+    if (currentUser == null) {
+      AppSnackbar.show('Login required', ErrorMessages.loginToCancel);
+      return;
+    }
+
+    setState(() {
+      _isCancelling = true;
+    });
+
+    try {
+      final result = await OrderService.instance.requestCancellation(
+        orderId: widget.orderId,
+        userId: currentUser.uid,
+        reason: reason.isEmpty ? 'User requested cancellation' : reason,
+      );
+      await _fetch();
+      if (mounted) {
+        if (result.success) {
+          AppSnackbar.show(
+            'Request sent',
+            result.message ?? 'Cancellation requested. Admin will review shortly.',
+          );
+        } else {
+          AppSnackbar.error(
+            'Request failed',
+            result.error ?? 'Could not submit cancellation request.',
+          );
+        }
+      }
+    } catch (e) {
+      AppLogger.error('OrderDetail', e);
+      if (mounted) {
+        AppSnackbar.error('Request failed', ErrorMessages.cancelFailed);
       }
     } finally {
       if (mounted) {

@@ -6,6 +6,7 @@ import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
+import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
 
 class OrderEndpoint extends Endpoint {
@@ -30,6 +31,7 @@ class OrderEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
+  final PostgresRefundService _pgRefunds = PostgresRefundService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
     return _orders.createOrder(session, order);
@@ -335,7 +337,7 @@ class OrderEndpoint extends Endpoint {
     return updated;
   }
 
-  Future<bool> cancelOrder(
+  Future<protocol.PaymentActionResult> cancelOrder(
     Session session,
     String orderId,
     String userId, {
@@ -354,18 +356,166 @@ class OrderEndpoint extends Endpoint {
       userId,
       reason: reason,
     );
-    if (updated) {
-      final order = await _orders.getOrderById(session, orderId);
-      if (order != null) {
-        await OrderOutboxService.instance.enqueueOrderStatusChanged(
-          session: session,
-          orderId: orderId,
-          userId: order.userId,
+    if (!updated) {
+      return protocol.PaymentActionResult(
+        success: false,
+        error: 'Failed to cancel order',
+      );
+    }
+
+    final order = await _orders.getOrderById(session, orderId);
+    if (order != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: order.userId,
+        status: 'cancelled',
+      );
+    }
+
+    if (order?.paymentStatus == 'paid') {
+      try {
+        final refundRecord = await _pgRefunds.refund(
+          session,
+          orderNumber: orderId,
+          amount: order!.finalAmount,
+          source: 'cancellation',
+          reason: reason,
+        );
+        return protocol.PaymentActionResult(
+          success: true,
+          status: 'refunded',
+          amount: (refundRecord.amount * 100).round(),
+          message:
+              'Order cancelled. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)} initiated — will credit in 3-5 business days.',
+        );
+      } catch (e) {
+        return protocol.PaymentActionResult(
+          success: true,
           status: 'cancelled',
+          message:
+              'Order cancelled. Refund could not be processed automatically. Contact support.',
         );
       }
     }
-    return updated;
+
+    return protocol.PaymentActionResult(
+      success: true,
+      status: 'cancelled',
+      message: 'Order cancelled successfully.',
+    );
+  }
+
+  /// User requests cancellation for Stage 2/3 orders (needs admin approval).
+  Future<protocol.PaymentActionResult> requestCancellation(
+    Session session,
+    String orderId,
+    String userId, {
+    required String idToken,
+    String reason = 'User requested cancellation',
+  }) async {
+    await _ensureOrderOwner(
+      session,
+      orderId: orderId,
+      firebaseUid: userId,
+      idToken: idToken,
+    );
+    final updated = await _orders.requestCancellation(
+      session,
+      orderId,
+      userId,
+      reason: reason,
+    );
+    return protocol.PaymentActionResult(
+      success: updated,
+      status: updated ? 'cancellation_requested' : 'error',
+      message: updated
+          ? 'Cancellation requested. Admin will review shortly.'
+          : 'Failed to request cancellation.',
+    );
+  }
+
+  /// Admin: List all cancellation requests.
+  Future<protocol.OrderPage> listCancellationRequests(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _orders.listCancellationRequests(
+      session,
+      limit: limit,
+      pageToken: pageToken,
+    );
+  }
+
+  /// Admin: Approve cancellation request and initiate refund.
+  Future<protocol.PaymentActionResult> approveCancellationRequest(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+    double? fixedRefundAmount,
+    String adminNote = '',
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    try {
+      final refundRecord = await _orders.approveCancellationRequest(
+        session,
+        orderId,
+        fixedRefundAmount: fixedRefundAmount,
+        adminNote: adminNote,
+      );
+      return protocol.PaymentActionResult(
+        success: true,
+        status: 'refunded',
+        amount: (refundRecord.amount * 100).round(),
+        message:
+            'Cancellation approved. Refund of ₹${refundRecord.amount.toStringAsFixed(2)} initiated.',
+      );
+    } catch (e) {
+      return protocol.PaymentActionResult(
+        success: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Admin: Reject cancellation request and restore order.
+  Future<protocol.PaymentActionResult> rejectCancellationRequest(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+    String adminNote = '',
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final updated = await _orders.rejectCancellationRequest(
+      session,
+      orderId,
+      adminNote: adminNote,
+    );
+    return protocol.PaymentActionResult(
+      success: updated,
+      status: updated ? 'cancellation_rejected' : 'error',
+      message: updated
+          ? 'Cancellation rejected. Order will continue as normal.'
+          : 'Failed to reject cancellation.',
+    );
   }
 
   Future<bool> assignDeliveryPerson(

@@ -127,6 +127,10 @@ order:
   - updateDeliveryAddress:
   - confirmOrder:
   - cancelOrder:
+  - requestCancellation:
+  - listCancellationRequests:
+  - approveCancellationRequest:
+  - rejectCancellationRequest:
   - assignDeliveryPerson:
   - getDashboardStats:
 orderPg:

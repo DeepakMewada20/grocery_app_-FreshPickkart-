@@ -27,13 +27,27 @@ class OrderService {
     );
   }
 
-  Future<bool> cancelOrder({
+  Future<PaymentActionResult> cancelOrder({
     required String orderId,
     required String userId,
     String reason = 'user_cancelled',
   }) async {
     final idToken = await AuthController.instance.requireIdToken();
     return _client.order.cancelOrder(
+      orderId,
+      userId,
+      idToken: idToken,
+      reason: reason,
+    );
+  }
+
+  Future<PaymentActionResult> requestCancellation({
+    required String orderId,
+    required String userId,
+    String reason = 'User requested cancellation',
+  }) async {
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.order.requestCancellation(
       orderId,
       userId,
       idToken: idToken,

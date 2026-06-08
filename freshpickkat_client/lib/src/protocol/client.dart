@@ -65,15 +65,15 @@ import 'package:freshpickkat_client/src/protocol/broadcast_request.dart'
     as _i38;
 import 'package:freshpickkat_client/src/protocol/broadcast_page.dart' as _i39;
 import 'package:freshpickkat_client/src/protocol/order_page.dart' as _i40;
-import 'package:freshpickkat_client/src/protocol/order_realtime_event.dart'
-    as _i41;
-import 'package:freshpickkat_client/src/protocol/order_tracking_data.dart'
-    as _i42;
-import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
-    as _i43;
-import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
-    as _i44;
 import 'package:freshpickkat_client/src/protocol/payment_action_result.dart'
+    as _i41;
+import 'package:freshpickkat_client/src/protocol/order_realtime_event.dart'
+    as _i42;
+import 'package:freshpickkat_client/src/protocol/order_tracking_data.dart'
+    as _i43;
+import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
+    as _i44;
+import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
     as _i45;
 import 'package:freshpickkat_client/src/protocol/cart_pricing_result.dart'
     as _i46;
@@ -1832,12 +1832,12 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> cancelOrder(
+  _i2.Future<_i41.PaymentActionResult> cancelOrder(
     String orderId,
     String userId, {
     required String idToken,
     required String reason,
-  }) => caller.callServerEndpoint<bool>(
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'order',
     'cancelOrder',
     {
@@ -1845,6 +1845,76 @@ class EndpointOrder extends _i1.EndpointRef {
       'userId': userId,
       'idToken': idToken,
       'reason': reason,
+    },
+  );
+
+  /// User requests cancellation for Stage 2/3 orders (needs admin approval).
+  _i2.Future<_i41.PaymentActionResult> requestCancellation(
+    String orderId,
+    String userId, {
+    required String idToken,
+    required String reason,
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+    'order',
+    'requestCancellation',
+    {
+      'orderId': orderId,
+      'userId': userId,
+      'idToken': idToken,
+      'reason': reason,
+    },
+  );
+
+  /// Admin: List all cancellation requests.
+  _i2.Future<_i40.OrderPage> listCancellationRequests({
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i40.OrderPage>(
+    'order',
+    'listCancellationRequests',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
+
+  /// Admin: Approve cancellation request and initiate refund.
+  _i2.Future<_i41.PaymentActionResult> approveCancellationRequest(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+    double? fixedRefundAmount,
+    required String adminNote,
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+    'order',
+    'approveCancellationRequest',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'fixedRefundAmount': fixedRefundAmount,
+      'adminNote': adminNote,
+    },
+  );
+
+  /// Admin: Reject cancellation request and restore order.
+  _i2.Future<_i41.PaymentActionResult> rejectCancellationRequest(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+    required String adminNote,
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+    'order',
+    'rejectCancellationRequest',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'adminNote': adminNote,
     },
   );
 
@@ -1920,13 +1990,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
   @override
   String get name => 'orderRealtime';
 
-  _i2.Stream<_i41.OrderRealtimeEvent> watchAdminOrders(
+  _i2.Stream<_i42.OrderRealtimeEvent> watchAdminOrders(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i41.OrderRealtimeEvent>,
-        _i41.OrderRealtimeEvent
+        _i2.Stream<_i42.OrderRealtimeEvent>,
+        _i42.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchAdminOrders',
@@ -1937,13 +2007,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i41.OrderRealtimeEvent> watchDashboardUpdates(
+  _i2.Stream<_i42.OrderRealtimeEvent> watchDashboardUpdates(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i41.OrderRealtimeEvent>,
-        _i41.OrderRealtimeEvent
+        _i2.Stream<_i42.OrderRealtimeEvent>,
+        _i42.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchDashboardUpdates',
@@ -1954,13 +2024,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i41.OrderRealtimeEvent> watchUserOrders(
+  _i2.Stream<_i42.OrderRealtimeEvent> watchUserOrders(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i41.OrderRealtimeEvent>,
-        _i41.OrderRealtimeEvent
+        _i2.Stream<_i42.OrderRealtimeEvent>,
+        _i42.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchUserOrders',
@@ -1979,11 +2049,11 @@ class EndpointOrderTracking extends _i1.EndpointRef {
   @override
   String get name => 'orderTracking';
 
-  _i2.Future<_i42.OrderTrackingData?> getTrackingForUser(
+  _i2.Future<_i43.OrderTrackingData?> getTrackingForUser(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i42.OrderTrackingData?>(
+  ) => caller.callServerEndpoint<_i43.OrderTrackingData?>(
     'orderTracking',
     'getTrackingForUser',
     {
@@ -1993,11 +2063,11 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i42.OrderTrackingData?> getTrackingForAdmin(
+  _i2.Future<_i43.OrderTrackingData?> getTrackingForAdmin(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i42.OrderTrackingData?>(
+  ) => caller.callServerEndpoint<_i43.OrderTrackingData?>(
     'orderTracking',
     'getTrackingForAdmin',
     {
@@ -2007,14 +2077,14 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Stream<_i42.OrderTrackingData> streamTrackingForUser(
+  _i2.Stream<_i43.OrderTrackingData> streamTrackingForUser(
     String orderId,
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i42.OrderTrackingData>,
-        _i42.OrderTrackingData
+        _i2.Stream<_i43.OrderTrackingData>,
+        _i43.OrderTrackingData
       >(
         'orderTracking',
         'streamTrackingForUser',
@@ -2026,14 +2096,14 @@ class EndpointOrderTracking extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i42.OrderTrackingData> streamTrackingForAdmin(
+  _i2.Stream<_i43.OrderTrackingData> streamTrackingForAdmin(
     String orderId,
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i42.OrderTrackingData>,
-        _i42.OrderTrackingData
+        _i2.Stream<_i43.OrderTrackingData>,
+        _i43.OrderTrackingData
       >(
         'orderTracking',
         'streamTrackingForAdmin',
@@ -2045,7 +2115,7 @@ class EndpointOrderTracking extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Future<_i42.OrderTrackingData> seedUserLocation(
+  _i2.Future<_i43.OrderTrackingData> seedUserLocation(
     String orderId,
     String firebaseUid,
     String idToken,
@@ -2053,7 +2123,7 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     double? userLongitude,
     String? userAddress,
     String? userLocationType,
-  ) => caller.callServerEndpoint<_i42.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
     'orderTracking',
     'seedUserLocation',
     {
@@ -2067,12 +2137,12 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i42.OrderTrackingData> updateTrackingEnabled(
+  _i2.Future<_i43.OrderTrackingData> updateTrackingEnabled(
     String orderId,
     bool enabled,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i42.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
     'orderTracking',
     'updateTrackingEnabled',
     {
@@ -2083,13 +2153,13 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i42.OrderTrackingData> updateRiderLocation(
+  _i2.Future<_i43.OrderTrackingData> updateRiderLocation(
     String orderId,
     double riderLatitude,
     double riderLongitude,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i42.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
     'orderTracking',
     'updateRiderLocation',
     {
@@ -2131,11 +2201,11 @@ class EndpointPayment extends _i1.EndpointRef {
   @override
   String get name => 'payment';
 
-  _i2.Future<_i43.PaymentOrderResult> createPaymentOrder(
+  _i2.Future<_i44.PaymentOrderResult> createPaymentOrder(
     String orderId,
     double amount,
     String customerPhone,
-  ) => caller.callServerEndpoint<_i43.PaymentOrderResult>(
+  ) => caller.callServerEndpoint<_i44.PaymentOrderResult>(
     'payment',
     'createPaymentOrder',
     {
@@ -2145,12 +2215,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i44.PaymentVerifyResult> verifyPayment(
+  _i2.Future<_i45.PaymentVerifyResult> verifyPayment(
     String orderId,
     String razorpayOrderId,
     String razorpayPaymentId,
     String razorpaySignature,
-  ) => caller.callServerEndpoint<_i44.PaymentVerifyResult>(
+  ) => caller.callServerEndpoint<_i45.PaymentVerifyResult>(
     'payment',
     'verifyPayment',
     {
@@ -2161,11 +2231,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> markPaymentFailed(
+  _i2.Future<_i41.PaymentActionResult> markPaymentFailed(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'markPaymentFailed',
     {
@@ -2175,12 +2245,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> initiateRefund(
+  _i2.Future<_i41.PaymentActionResult> initiateRefund(
     String razorpayPaymentId,
     double amount,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'initiateRefund',
     {
@@ -2191,12 +2261,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> getPaymentStatus(
+  _i2.Future<_i41.PaymentActionResult> getPaymentStatus(
     String razorpayPaymentId,
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'getPaymentStatus',
     {
@@ -2207,11 +2277,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i44.PaymentVerifyResult> completePaymentVerification(
+  _i2.Future<_i45.PaymentVerifyResult> completePaymentVerification(
     String orderId,
     String razorpayOrderId,
     String razorpayPaymentId,
-  ) => caller.callServerEndpoint<_i44.PaymentVerifyResult>(
+  ) => caller.callServerEndpoint<_i45.PaymentVerifyResult>(
     'payment',
     'completePaymentVerification',
     {
@@ -2221,11 +2291,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> getPaymentStatusWithMessage(
+  _i2.Future<_i41.PaymentActionResult> getPaymentStatusWithMessage(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'getPaymentStatusWithMessage',
     {
@@ -2235,10 +2305,10 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> adminReconcileAllPendingPayments({
+  _i2.Future<_i41.PaymentActionResult> adminReconcileAllPendingPayments({
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'adminReconcileAllPendingPayments',
     {
@@ -2311,11 +2381,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentActionResult> recoverPendingPayments(
+  _i2.Future<_i41.PaymentActionResult> recoverPendingPayments(
     String userId, {
     required String idToken,
     required int limit,
-  }) => caller.callServerEndpoint<_i45.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
     'payment',
     'recoverPendingPayments',
     {

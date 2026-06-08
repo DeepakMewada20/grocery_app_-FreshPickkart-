@@ -6,8 +6,10 @@ import 'package:serverpod/serverpod.dart' hide Order;
 import '../../generated/protocol.dart';
 import '../bogo/bogo_eligibility.dart';
 import '../analytics/redis_analytics_service.dart';
+import '../order_outbox_service.dart';
 import 'postgres_offer_service.dart';
 import 'postgres_product_compat_service.dart';
+import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
 
 class PostgresOrderService {
@@ -17,6 +19,7 @@ class PostgresOrderService {
   static final Random _random = Random();
   final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
   final PostgresOfferService _offerService = PostgresOfferService();
+  final PostgresRefundService _refundService = PostgresRefundService();
   final PostgresProductCompatService _productService =
       PostgresProductCompatService();
 
@@ -1188,6 +1191,251 @@ class PostgresOrderService {
       cancellationReason: reason,
     );
   }
+
+  /// List orders with cancellation_requested status (admin).
+  Future<OrderPage> listCancellationRequests(
+    Session session, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final limitVal = limit.clamp(1, 100);
+    final offsetVal = _decodePageToken(pageToken);
+
+    final countResult = await session.db.unsafeQuery(
+      '''
+      SELECT COUNT(*) AS cnt FROM customer_order
+      WHERE "orderStatus" = 'cancellation_requested'
+      ''',
+    );
+    final totalCount = countResult.isNotEmpty
+        ? asInt(countResult.first.toColumnMap()['cnt'])
+        : 0;
+
+    final rows = await session.db.unsafeQuery(
+      '''
+      SELECT co.*
+      FROM customer_order co
+      WHERE co."orderStatus" = 'cancellation_requested'
+      ORDER BY co."updatedAt" DESC
+      LIMIT @limitVal OFFSET @offsetVal
+      ''',
+      parameters: QueryParameters.named({
+        'limitVal': limitVal + 1,
+        'offsetVal': offsetVal,
+      }),
+    );
+
+    final orderRows = rows
+        .map((r) => CustomerOrderRow.fromJson(r.toColumnMap()))
+        .take(limitVal)
+        .toList();
+
+    String? nextPageToken;
+    if (rows.length > limitVal) {
+      nextPageToken = _encodePageToken(offsetVal + limitVal);
+    }
+
+    final orderIds = orderRows.map((r) => r.id!.toString()).toList();
+    final orders = await _hydrateOrders(session, orderedIds: orderIds);
+    return OrderPage(
+      orders: orders,
+      nextPageToken: nextPageToken,
+      totalCount: totalCount,
+    );
+  }
+
+  /// User requests cancellation — sets status to cancellation_requested.
+  /// Stores original status + reason in cancellationReason as JSON.
+  Future<bool> requestCancellation(
+    Session session,
+    String orderNumber,
+    String userReference, {
+    String reason = 'User requested cancellation',
+  }) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) return false;
+
+    final originalStatus = row.orderStatus;
+    final now = DateTime.now().toUtc();
+    final reasonJson = jsonEncode({
+      'reason': reason,
+      'originalStatus': originalStatus,
+    });
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        orderStatus: 'cancellation_requested',
+        cancellationReason: reasonJson,
+        updatedAt: now,
+      ),
+    );
+
+    await OrderOutboxService.instance.enqueueOrderStatusChanged(
+      session: session,
+      orderId: orderNumber,
+      userId: row.userId.toString(),
+      status: 'cancellation_requested',
+    );
+
+    return true;
+  }
+
+  /// Admin approves cancellation request — calculates refund and processes it.
+  Future<RefundRecord> approveCancellationRequest(
+    Session session,
+    String orderNumber, {
+    double? fixedRefundAmount,
+    String adminNote = '',
+  }) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) throw Exception('Order not found');
+
+    final now = DateTime.now().toUtc();
+    final reasonData = _parseCancellationReason(row.cancellationReason);
+    final originalStatus = reasonData['originalStatus'] as String? ?? 'confirmed';
+
+    double refundAmount;
+    if (fixedRefundAmount != null) {
+      refundAmount = fixedRefundAmount;
+    } else if (originalStatus == 'out_for_delivery') {
+      refundAmount = row.finalAmount - row.deliveryFee;
+      if (refundAmount < 0) refundAmount = 0;
+    } else {
+      refundAmount = row.finalAmount;
+    }
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        orderStatus: 'cancelled',
+        paymentStatus: row.paymentStatus == 'paid' ? 'refunded' : row.paymentStatus,
+        refundStatus: 'refund_initiated',
+        cancelledAt: now,
+        cancellationReason: adminNote.isNotEmpty
+            ? 'Approved: $adminNote'
+            : 'Cancellation approved',
+        updatedAt: now,
+      ),
+    );
+
+    await OrderOutboxService.instance.enqueueOrderStatusChanged(
+      session: session,
+      orderId: orderNumber,
+      userId: row.userId.toString(),
+      status: 'cancelled',
+    );
+
+    if (row.paymentStatus == 'paid' && refundAmount > 0) {
+      final refundRecord = await _refundService.refund(
+        session,
+        orderNumber: orderNumber,
+        amount: refundAmount,
+        source: 'cancellation',
+        reason: 'Cancellation refund: $adminNote',
+      );
+      return refundRecord;
+    }
+
+    return _createLocalRefundRecord(session, row, refundAmount);
+  }
+
+  /// Admin rejects cancellation request — restores original status.
+  Future<bool> rejectCancellationRequest(
+    Session session,
+    String orderNumber, {
+    String adminNote = '',
+  }) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) return false;
+
+    final reasonData = _parseCancellationReason(row.cancellationReason);
+    final originalStatus = reasonData['originalStatus'] as String? ?? 'confirmed';
+    final now = DateTime.now().toUtc();
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        orderStatus: originalStatus,
+        cancellationReason: 'Rejected: $adminNote',
+        updatedAt: now,
+      ),
+    );
+
+    await OrderOutboxService.instance.enqueueOrderStatusChanged(
+      session: session,
+      orderId: orderNumber,
+      userId: row.userId.toString(),
+      status: originalStatus,
+    );
+
+    return true;
+  }
+
+  Map<String, dynamic> _parseCancellationReason(String? rawReason) {
+    if (rawReason == null || rawReason.trim().isEmpty) {
+      return {'reason': '', 'originalStatus': 'confirmed'};
+    }
+    try {
+      final parsed = jsonDecode(rawReason);
+      if (parsed is Map<String, dynamic>) return parsed;
+    } catch (_) {}
+    return {'reason': rawReason, 'originalStatus': 'confirmed'};
+  }
+
+  Future<RefundRecord> _createLocalRefundRecord(
+    Session session,
+    CustomerOrderRow order,
+    double amount,
+  ) async {
+    final now = DateTime.now().toUtc();
+    final payment = await PaymentTransactionRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+    );
+    final row = await RefundRecordRow.db.insertRow(
+      session,
+      RefundRecordRow(
+        orderId: order.id!,
+        paymentTransactionId: payment?.id ?? order.id!,
+        userId: order.userId,
+        amount: amount,
+        refundStatus: 'processed',
+        source: 'cancellation',
+        reason: 'Cancellation refund',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    return RefundRecord(
+      refundId: row.id!.toString(),
+      orderId: order.orderNumber,
+      paymentId: row.paymentTransactionId.toString(),
+      userId: row.userId.toString(),
+      amount: amount,
+      status: 'processed',
+      source: 'cancellation',
+      reason: 'Cancellation refund',
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  int _decodePageToken(String? token) {
+    if (token == null || token.isEmpty) return 0;
+    return int.tryParse(token) ?? 0;
+  }
+
+  String _encodePageToken(int offset) => offset.toString();
 
   String _formatAddress(Address address) {
     final parts = [

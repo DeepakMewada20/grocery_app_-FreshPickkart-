@@ -5,12 +5,18 @@ class ValidationService {
   static const statusPlaced = 'placed';
   static const statusPaymentVerification = 'payment_verification';
   static const statusConfirmed = 'confirmed';
+  static const statusProcessing = 'processing';
   static const statusPacked = 'packed';
   static const statusOutForDelivery = 'out_for_delivery';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
   static const statusPaymentFailed = 'payment_failed';
   static const statusRefunded = 'refunded';
+
+  // Cancellation request statuses
+  static const statusCancellationRequested = 'cancellation_requested';
+  static const statusCancellationApproved = 'cancellation_approved';
+  static const statusCancellationRejected = 'cancellation_rejected';
 
   static const paymentPending = 'pending';
   static const paymentVerifying = 'verifying';
@@ -173,13 +179,40 @@ class ValidationService {
         statusCancelled,
         statusPaymentFailed,
       },
-      statusConfirmed: {statusPacked, statusCancelled, statusRefunded},
-      statusPacked: {statusOutForDelivery, statusCancelled},
-      statusOutForDelivery: {statusDelivered, statusCancelled},
+      statusConfirmed: {
+        statusProcessing,
+        statusPacked,
+        statusCancelled,
+        statusRefunded,
+        statusCancellationRequested,
+      },
+      statusProcessing: {
+        statusPacked,
+        statusCancellationRequested,
+      },
+      statusPacked: {
+        statusOutForDelivery,
+        statusCancellationRequested,
+      },
+      statusOutForDelivery: {
+        statusDelivered,
+        statusCancellationRequested,
+      },
       statusDelivered: {},
       statusCancelled: {},
       statusPaymentFailed: {statusCancelled},
       statusRefunded: {},
+      statusCancellationRequested: {
+        statusCancellationApproved,
+        statusCancellationRejected,
+      },
+      statusCancellationApproved: {statusCancelled},
+      statusCancellationRejected: {
+        statusConfirmed,
+        statusProcessing,
+        statusPacked,
+        statusOutForDelivery,
+      },
     };
 
     final nextAllowed = allowed[current];
@@ -206,6 +239,7 @@ class ValidationService {
       'payment_verification': 'Payment Verification',
       'verifying': 'Payment Verification',
       'confirmed': 'Confirmed',
+      'processing': 'Processing',
       'packed': 'Packed',
       'out_for_delivery': 'Out for Delivery',
       'delivered': 'Delivered',
@@ -213,6 +247,9 @@ class ValidationService {
       'payment_failed': 'Payment Failed',
       'failed': 'Payment Failed',
       'refunded': 'Refunded',
+      'cancellation_requested': 'Cancellation Requested',
+      'cancellation_approved': 'Cancellation Approved',
+      'cancellation_rejected': 'Cancellation Rejected',
     };
     return labels[status.toLowerCase()] ?? status;
   }

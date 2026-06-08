@@ -4083,6 +4083,160 @@ class Endpoints extends _i1.EndpointDispatch {
                 reason: params['reason'],
               ),
         ),
+        'requestCancellation': _i1.MethodConnector(
+          name: 'requestCancellation',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'reason': _i1.ParameterDescription(
+              name: 'reason',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i14.OrderEndpoint)
+                  .requestCancellation(
+                    session,
+                    params['orderId'],
+                    params['userId'],
+                    idToken: params['idToken'],
+                    reason: params['reason'],
+                  ),
+        ),
+        'listCancellationRequests': _i1.MethodConnector(
+          name: 'listCancellationRequests',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i14.OrderEndpoint)
+                  .listCancellationRequests(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'approveCancellationRequest': _i1.MethodConnector(
+          name: 'approveCancellationRequest',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'fixedRefundAmount': _i1.ParameterDescription(
+              name: 'fixedRefundAmount',
+              type: _i1.getType<double?>(),
+              nullable: true,
+            ),
+            'adminNote': _i1.ParameterDescription(
+              name: 'adminNote',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i14.OrderEndpoint)
+                  .approveCancellationRequest(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    fixedRefundAmount: params['fixedRefundAmount'],
+                    adminNote: params['adminNote'],
+                  ),
+        ),
+        'rejectCancellationRequest': _i1.MethodConnector(
+          name: 'rejectCancellationRequest',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'adminNote': _i1.ParameterDescription(
+              name: 'adminNote',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i14.OrderEndpoint)
+                  .rejectCancellationRequest(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    adminNote: params['adminNote'],
+                  ),
+        ),
         'assignDeliveryPerson': _i1.MethodConnector(
           name: 'assignDeliveryPerson',
           params: {

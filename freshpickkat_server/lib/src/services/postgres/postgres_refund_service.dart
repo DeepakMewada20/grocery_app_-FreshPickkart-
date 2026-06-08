@@ -249,6 +249,11 @@ class PostgresRefundService {
     if (amount <= 0) {
       throw Exception('Refund amount must be greater than zero.');
     }
+    if (amount > order.finalAmount) {
+      throw Exception(
+        'Refund amount (${amount.toStringAsFixed(2)}) exceeds order amount (${order.finalAmount.toStringAsFixed(2)}).',
+      );
+    }
     final gatewayPaymentId = cleanNullableString(payment.gatewayPaymentId);
     if (gatewayPaymentId == null) {
       throw Exception('Gateway payment id not found.');
