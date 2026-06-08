@@ -733,15 +733,16 @@ class PostgresProductCompatService {
       where: (t) => t.status.equals('active'),
       transaction: transaction,
     );
+    // After migration, subcategory names are stored individually (no commas/ampersands).
+    // We still do a fallback split check to handle any legacy data gracefully.
     return rows
         .where((row) {
           final normalizedRowName = row.name.trim().toLowerCase();
-          if (target.contains(normalizedRowName)) {
-            return true;
-          }
-          final parts = row.name
-              .split(RegExp(r'[,\&]'))
-              .map((e) => e.trim().toLowerCase())
+          if (target.contains(normalizedRowName)) return true;
+          // Fallback: legacy grouped names that haven't been migrated yet
+          final parts = normalizedRowName
+              .split(RegExp(r'[,&]'))
+              .map((e) => e.trim())
               .where((e) => e.isNotEmpty)
               .toSet();
           return target.any((t) => parts.contains(t));

@@ -72,18 +72,29 @@ class PostgresCategoryService {
     );
     subCategories.sort(_sortSubCategoryRows);
 
-    return subCategories.map((row) {
+    final groupedMap = <String, Map<String, dynamic>>{};
+    for (final row in subCategories) {
       final category = categoryById[row.categoryId.toString()];
-      if (category == null) {
-        return null;
-      }
+      if (category == null) continue;
 
+      final secondsSinceEpoch = row.createdAt.millisecondsSinceEpoch ~/ 1000;
+      final key = '${row.categoryId.toString()}|${row.imageUrl ?? ''}|$secondsSinceEpoch';
+
+      groupedMap.putIfAbsent(key, () => {
+        'categoryId': category.name,
+        'names': <String>[],
+        'imageUrl': row.imageUrl ?? '',
+      });
+      (groupedMap[key]!['names'] as List<String>).add(row.name);
+    }
+
+    return groupedMap.values.map((group) {
       return SubCategory(
-        categoryId: category.name,
-        subCategoriesName: [row.name],
-        subCategoriesUrl: row.imageUrl ?? '',
+        categoryId: group['categoryId'] as String,
+        subCategoriesName: group['names'] as List<String>,
+        subCategoriesUrl: group['imageUrl'] as String,
       );
-    }).whereType<SubCategory>().toList();
+    }).toList();
   }
 
   Future<bool> uploadCategory(
@@ -333,7 +344,6 @@ class PostgresCategoryService {
     );
     return true;
   }
-
   Future<bool> deleteSubCategory(
     Session session,
     String categoryName,
@@ -358,7 +368,31 @@ class PostgresCategoryService {
 
     if (subCategory == null) throw Exception('Subcategory not found');
 
-    await SubCategoryRow.db.deleteRow(session, subCategory);
+    final secondsSinceEpoch = subCategory.createdAt.millisecondsSinceEpoch ~/ 1000;
+    final allGroupCandidates = await SubCategoryRow.db.find(
+      session,
+      where: (t) => t.categoryId.equals(category.id!),
+    );
+    final targetGroupRows = allGroupCandidates.where((row) {
+      final sameImage = row.imageUrl == subCategory.imageUrl;
+      final sameSecond = row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
+      return sameImage && sameSecond;
+    }).toList();
+
+    await session.db.transaction((transaction) async {
+      for (final row in targetGroupRows) {
+        await ProductSubCategoryRow.db.deleteWhere(
+          session,
+          where: (t) => t.subCategoryId.equals(row.id!),
+          transaction: transaction,
+        );
+        await SubCategoryRow.db.deleteRow(
+          session,
+          row,
+          transaction: transaction,
+        );
+      }
+    });
 
     await _audit.write(
       session,
@@ -366,11 +400,14 @@ class PostgresCategoryService {
       action: 'delete',
       entityType: 'sub_category',
       entityId: subCategory.id.toString(),
-      metadata: {'name': subCategoryName, 'category': categoryName},
+      metadata: {
+        'name': subCategoryName,
+        'category': categoryName,
+        'deleted_names': targetGroupRows.map((r) => r.name).join(', '),
+      },
     );
     return true;
   }
-
   Future<bool> updateSubCategory(
     Session session,
     String categoryName,
@@ -385,65 +422,124 @@ class PostgresCategoryService {
       idToken: idToken,
     );
 
-    // Resolve OLD parent category (used to find the existing row)
+    // Resolve OLD parent category
     final oldCategory = await _resolveCategory(session, categoryName);
     if (oldCategory == null) throw Exception('Parent category not found');
 
     final oldSlug = _slugify(oldSubName);
-    final existing = await SubCategoryRow.db.findFirstRow(
+    final targetRow = await SubCategoryRow.db.findFirstRow(
       session,
       where: (t) =>
           t.categoryId.equals(oldCategory.id!) & t.slug.equals(oldSlug),
     );
-    if (existing == null) throw Exception('Subcategory not found');
+    if (targetRow == null) throw Exception('Subcategory not found');
 
-    // Resolve NEW parent category (may be different if user changed it)
+    final secondsSinceEpoch = targetRow.createdAt.millisecondsSinceEpoch ~/ 1000;
+    final allUpdateCandidates = await SubCategoryRow.db.find(
+      session,
+      where: (t) => t.categoryId.equals(oldCategory.id!),
+    );
+    final oldGroupRows = allUpdateCandidates.where((row) {
+      final sameImage = row.imageUrl == targetRow.imageUrl;
+      final sameSecond = row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
+      return sameImage && sameSecond;
+    }).toList();
+
+    // Resolve NEW parent category
     final newCategoryName = subCategory.categoryId;
     final newCategory = await _resolveCategory(session, newCategoryName);
     if (newCategory == null) throw Exception('New parent category not found');
 
-    final newName = _requireName(
-      subCategory.subCategoriesName.first,
-      fieldName: 'subCategoryName',
-    );
-    final newSlug = _slugify(newName);
+    final newImageUrl = cleanNullableString(subCategory.subCategoriesUrl);
+    final newNames = subCategory.subCategoriesName
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet();
 
-    // Duplicate check: does newSlug already exist in the NEW parent?
-    final isSameCategory = newCategory.id == oldCategory.id;
-    final isNameUnchanged = newSlug == oldSlug;
-    if (!(isSameCategory && isNameUnchanged)) {
+    if (newNames.isEmpty) {
+      throw Exception('Subcategory name list cannot be empty.');
+    }
+
+    final oldNamesSet = oldGroupRows.map((r) => r.name.toLowerCase()).toSet();
+    for (final name in newNames) {
+      if (oldNamesSet.contains(name.toLowerCase()) && newCategory.id == oldCategory.id) {
+        continue;
+      }
+      final newSlug = _slugify(name);
       final conflict = await SubCategoryRow.db.findFirstRow(
         session,
         where: (t) =>
             t.categoryId.equals(newCategory.id!) & t.slug.equals(newSlug),
       );
       if (conflict != null) {
-        throw Exception(
-          'Subcategory "$newName" already exists in the selected category',
-        );
+        throw Exception('Subcategory "$name" already exists in the selected category');
       }
     }
 
-    // Apply all changes including new parent categoryId
-    existing.categoryId = newCategory.id!;
-    existing.name = newName;
-    existing.slug = newSlug;
-    existing.imageUrl = cleanNullableString(subCategory.subCategoriesUrl);
-    existing.updatedAt = DateTime.now().toUtc();
+    await session.db.transaction((transaction) async {
+      for (final oldRow in oldGroupRows) {
+        if (!newNames.any((n) => n.toLowerCase() == oldRow.name.toLowerCase())) {
+          await ProductSubCategoryRow.db.deleteWhere(
+            session,
+            where: (t) => t.subCategoryId.equals(oldRow.id!),
+            transaction: transaction,
+          );
+          await SubCategoryRow.db.deleteRow(
+            session,
+            oldRow,
+            transaction: transaction,
+          );
+        }
+      }
 
-    await SubCategoryRow.db.updateRow(session, existing);
+      final oldNamesMap = {for (final r in oldGroupRows) r.name.toLowerCase(): r};
+      final now = DateTime.now().toUtc();
+      final groupCreatedAt = targetRow.createdAt;
+
+      for (final name in newNames) {
+        final slug = _slugify(name);
+        final oldRow = oldNamesMap[name.toLowerCase()];
+        if (oldRow != null) {
+          await SubCategoryRow.db.updateRow(
+            session,
+            oldRow.copyWith(
+              categoryId: newCategory.id!,
+              name: name,
+              slug: slug,
+              imageUrl: newImageUrl,
+              updatedAt: now,
+            ),
+            transaction: transaction,
+          );
+        } else {
+          await SubCategoryRow.db.insertRow(
+            session,
+            SubCategoryRow(
+              categoryId: newCategory.id!,
+              name: name,
+              slug: slug,
+              imageUrl: newImageUrl,
+              status: 'active',
+              createdAt: groupCreatedAt,
+              updatedAt: now,
+            ),
+            transaction: transaction,
+          );
+        }
+      }
+    });
 
     await _audit.write(
       session,
       actorUserId: actor.id,
       action: 'update',
       entityType: 'sub_category',
-      entityId: existing.id.toString(),
+      entityId: targetRow.id.toString(),
       metadata: {
         'old_category': categoryName,
         'new_category': newCategoryName,
         'old_name': oldSubName,
-        'new_name': newName,
+        'new_names': newNames.join(', '),
       },
     );
     return true;
