@@ -7,6 +7,14 @@ import '../generated/protocol.dart';
 import 'firebase_service.dart';
 import 'postgres/postgres_support.dart';
 
+class FcmUnregisteredException implements Exception {
+  final String token;
+  FcmUnregisteredException(this.token);
+
+  @override
+  String toString() => 'FcmUnregisteredException: Token $token is no longer registered with FCM';
+}
+
 class FirebaseNotificationService {
   static const String _fcmScope =
       'https://www.googleapis.com/auth/firebase.messaging';
@@ -24,7 +32,7 @@ class FirebaseNotificationService {
     if (data != null) {
       message['data'] = data;
     }
-    await _sendMessage({'message': message});
+    await _sendMessage(token, {'message': message});
   }
 
   Future<void> sendToTopic({
@@ -53,7 +61,7 @@ class FirebaseNotificationService {
         'notification': {'tag': tag},
       };
     }
-    await _sendMessage({'message': message});
+    await _sendMessage(null, {'message': message});
   }
 
   Future<void> sendAdminNewOrder({
@@ -99,8 +107,15 @@ class FirebaseNotificationService {
     final tokens = await _getAdminFcmTokens(session);
     var sent = 0;
     for (final token in tokens) {
-      await sendToToken(token: token, title: title, body: body, data: data);
-      sent++;
+      try {
+        await sendToToken(token: token, title: title, body: body, data: data);
+        sent++;
+      } on FcmUnregisteredException {
+        await UserFcmTokenRow.db.deleteWhere(
+          session,
+          where: (t) => t.fcmToken.equals(token),
+        );
+      }
     }
     return sent;
   }
@@ -126,6 +141,7 @@ class FirebaseNotificationService {
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'order_paid'},
+      session: session,
     );
   }
 
@@ -147,6 +163,7 @@ class FirebaseNotificationService {
       title: title,
       body: body,
       data: {'orderId': orderId, 'type': 'order_status', 'status': status},
+      session: session,
     );
   }
 
@@ -170,6 +187,7 @@ class FirebaseNotificationService {
         'type': 'delivery_started',
         'screen': 'track_order',
       },
+      session: session,
     );
   }
 
@@ -285,6 +303,7 @@ class FirebaseNotificationService {
               'type': 'order_address_updated',
               if (status.isNotEmpty) 'status': status,
             },
+            session: session,
           );
         } catch (e, st) {
           session.log(
@@ -322,9 +341,19 @@ class FirebaseNotificationService {
     required String title,
     required String body,
     Map<String, String>? data,
+    Session? session,
   }) async {
     for (final token in tokens.toSet()) {
-      await sendToToken(token: token, title: title, body: body, data: data);
+      try {
+        await sendToToken(token: token, title: title, body: body, data: data);
+      } on FcmUnregisteredException {
+        if (session != null) {
+          await UserFcmTokenRow.db.deleteWhere(
+            session,
+            where: (t) => t.fcmToken.equals(token),
+          );
+        }
+      }
     }
   }
 
@@ -429,7 +458,7 @@ class FirebaseNotificationService {
     return prefs?.trackOrderNotifications ?? true;
   }
 
-  Future<void> _sendMessage(Map<String, dynamic> payload) async {
+  Future<void> _sendMessage(String? token, Map<String, dynamic> payload) async {
     final credentials = await FirebaseService.getServiceAccountCredentials();
     final client = await clientViaServiceAccount(credentials, [_fcmScope]);
     try {
@@ -442,6 +471,11 @@ class FirebaseNotificationService {
         body: jsonEncode(payload),
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (token != null &&
+            response.statusCode == 404 &&
+            response.body.contains('UNREGISTERED')) {
+          throw FcmUnregisteredException(token);
+        }
         throw StateError(
           'FCM request failed with status ${response.statusCode}: ${response.body}',
         );

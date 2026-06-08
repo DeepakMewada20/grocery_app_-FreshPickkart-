@@ -129,12 +129,12 @@ class _VariantItemEditorState extends State<VariantItemEditor> {
 
     if (widget.draft.baseRealPrice > 0) {
       final newMrp = widget.draft.baseRealPrice * ratio;
-      widget.draft.mrpCtrl.text = newMrp.toStringAsFixed(0);
+      widget.draft.mrpCtrl.text = newMrp.toStringAsFixed(2);
     }
 
     if (widget.draft.basePrice > 0) {
       final newPrice = widget.draft.basePrice * ratio;
-      widget.draft.priceCtrl.text = newPrice.toStringAsFixed(0);
+      widget.draft.priceCtrl.text = newPrice.toStringAsFixed(2);
     }
   }
 

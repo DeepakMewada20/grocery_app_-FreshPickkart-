@@ -293,7 +293,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            '${((currentIndex + 1) / timeline.length * 100).toStringAsFixed(0)}% Complete',
+            '${((currentIndex + 1) / timeline.length * 100).formatPrice}% Complete',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.6),
               fontSize: 12.sp,
@@ -579,7 +579,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
               SizedBox(width: 8.w),
               AutoSizeText(
-                'INR ${item.totalPrice.toStringAsFixed(0)}',
+                'INR ${item.totalPrice.formatPrice}',
                 style: TextStyle(
                   color: cs.onSurface,
                   fontWeight: FontWeight.w600,
@@ -807,7 +807,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
                         SizedBox(width: 8.w),
                         AutoSizeText(
-                          'INR ${item.totalPrice.toStringAsFixed(0)}',
+                          'INR ${item.totalPrice.formatPrice}',
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.75),
                             fontSize: 13.sp,
@@ -892,14 +892,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _buildRow(
             Icons.shopping_bag_outlined,
             'Item Total',
-            'INR ${order.totalAmount.toStringAsFixed(0)}',
+            'INR ${order.totalAmount.formatPrice}',
             cs,
           ),
           if (order.couponApplied != null && order.couponApplied!.isNotEmpty)
             _buildRow(
               Icons.local_offer_outlined,
               'Coupon (${order.couponApplied!.toUpperCase()})',
-              '-INR ${order.discountAmount.toStringAsFixed(0)}',
+              '-INR ${order.discountAmount.formatPrice}',
               cs,
               valueColor: Colors.green,
             )
@@ -907,7 +907,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             _buildRow(
               Icons.discount_outlined,
               'Discount',
-              '-INR ${order.discountAmount.toStringAsFixed(0)}',
+              '-INR ${order.discountAmount.formatPrice}',
               cs,
               valueColor: Colors.green,
             ),
@@ -916,7 +916,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Delivery Fee',
             order.deliveryFee == 0
                 ? 'FREE'
-                : 'INR ${order.deliveryFee.toStringAsFixed(0)}',
+                : 'INR ${order.deliveryFee.formatPrice}',
             cs,
             valueColor: order.deliveryFee == 0 ? Colors.green : null,
           ),
@@ -926,7 +926,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _buildRow(
             Icons.payments_outlined,
             'Paid',
-            'INR ${order.finalAmount.toStringAsFixed(0)}',
+            'INR ${order.finalAmount.formatPrice}',
             cs,
             isTotal: true,
           ),

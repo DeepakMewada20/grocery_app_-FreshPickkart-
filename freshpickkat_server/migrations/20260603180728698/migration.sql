@@ -3,11 +3,11 @@ BEGIN;
 --
 -- ACTION ALTER TABLE
 --
-CREATE INDEX "category_is_free_delivery_idx" ON "category" USING btree ("isFreeDelivery");
+CREATE INDEX IF NOT EXISTS "category_is_free_delivery_idx" ON "category" USING btree ("isFreeDelivery");
 --
 -- ACTION ALTER TABLE
 --
-CREATE INDEX "product_is_free_delivery_idx" ON "product" USING btree ("isFreeDelivery");
+CREATE INDEX IF NOT EXISTS "product_is_free_delivery_idx" ON "product" USING btree ("isFreeDelivery");
 
 --
 -- MIGRATION VERSION FOR freshpickkat

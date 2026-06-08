@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -221,7 +222,7 @@ class _ProductSelectionList extends StatelessWidget {
                 [
                   if (item.variantLabel?.isNotEmpty == true) item.variantLabel!,
                   'Qty ${item.quantity}',
-                  'INR ${item.totalPrice.toStringAsFixed(0)}',
+                  'INR ${item.totalPrice.formatPrice}',
                 ].join(' • '),
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.62),
