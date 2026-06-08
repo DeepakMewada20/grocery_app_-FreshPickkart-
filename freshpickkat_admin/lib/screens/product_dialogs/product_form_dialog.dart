@@ -637,12 +637,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     if (originalMrp > 0) {
       final newMrpValue = originalMrp * ratio;
-      mrpCtrlRef.text = newMrpValue.toStringAsFixed(0);
+      mrpCtrlRef.text = newMrpValue.toStringAsFixed(2);
     }
 
     if (originalPrice > 0) {
       final newPriceValue = originalPrice * ratio;
-      priceCtrlRef.text = newPriceValue.toStringAsFixed(0);
+      priceCtrlRef.text = newPriceValue.toStringAsFixed(2);
     }
   }
 
