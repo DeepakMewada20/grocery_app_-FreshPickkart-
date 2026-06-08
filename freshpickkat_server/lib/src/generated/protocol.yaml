@@ -72,6 +72,8 @@ complaint:
   - reassignRider:
   - rejectComplaint:
   - replyToComplaint:
+  - getRefundForComplaint:
+  - getUserRefundForComplaint:
 coupon:
   - fetchCoupons:
   - uploadCoupon:
@@ -203,6 +205,7 @@ productRanking:
 refund:
   - initiateRefund:
   - getRefundStatus:
+  - adminGetRefundStatus:
 subCategory:
   - getSubCategories:
   - uploadSubCategory:

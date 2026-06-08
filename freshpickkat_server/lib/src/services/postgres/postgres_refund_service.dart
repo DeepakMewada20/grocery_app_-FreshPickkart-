@@ -427,4 +427,21 @@ class PostgresRefundService {
     if (normalized == 'failed') return 'failed';
     return 'pending';
   }
+
+  Future<RefundRecord?> getRefundByComplaintId(
+    Session session,
+    String complaintId,
+  ) async {
+    final id = tryParseUuid(complaintId);
+    if (id == null) return null;
+    final row = await RefundRecordRow.db.findFirstRow(
+      session,
+      where: (t) => t.complaintId.equals(id),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    if (row == null) return null;
+    final order = await CustomerOrderRow.db.findById(session, row.orderId);
+    return _mapRefundRecord(row, order?.orderNumber ?? '');
+  }
 }

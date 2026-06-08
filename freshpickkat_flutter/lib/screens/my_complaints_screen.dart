@@ -178,15 +178,21 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                                           ),
                                         ),
                                         SizedBox(height: 4.h),
-                                        Text(
-                                          '${complaint.issueType} • ${_formatDate(complaint.createdAt)}',
-                                          style: TextStyle(
-                                            color: cs.onSurface.withValues(
-                                              alpha: 0.62,
-                                            ),
-                                            fontSize: 12.sp,
-                                          ),
+                                    Text(
+                                      '${complaint.issueType} • ${_formatDate(complaint.createdAt)}',
+                                      style: TextStyle(
+                                        color: cs.onSurface.withValues(
+                                          alpha: 0.62,
                                         ),
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
+                                    if (complaint.status == 'Resolved' &&
+                                        complaint.resolutionType != null) ...[
+                                      SizedBox(height: 4.h),
+                                      _ResolutionBadge(
+                                          label: complaint.resolutionType!),
+                                    ],
                                       ],
                                     ),
                                   ),
@@ -234,6 +240,32 @@ class _StatusBadge extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w800,
           fontSize: 11.sp,
+        ),
+      ),
+    );
+  }
+}
+
+class _ResolutionBadge extends StatelessWidget {
+  const _ResolutionBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: cs.primary,
+          fontSize: 10.sp,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

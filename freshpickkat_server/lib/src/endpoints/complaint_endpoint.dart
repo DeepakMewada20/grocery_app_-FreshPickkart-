@@ -3,12 +3,14 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_complaint_service.dart';
+import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
 
 class ComplaintEndpoint extends Endpoint {
   final PostgresComplaintService _complaints = PostgresComplaintService();
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
+  final PostgresRefundService _pgRefunds = PostgresRefundService();
 
   Future<Complaint> createComplaint(
     Session session, {
@@ -380,5 +382,35 @@ class ComplaintEndpoint extends Endpoint {
       complaintId: complaintId,
       adminReply: adminReply,
     );
+  }
+
+  /// Admin: Get refund details for a complaint.
+  Future<RefundRecord?> getRefundForComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgRefunds.getRefundByComplaintId(session, complaintId);
+  }
+
+  /// User: Get refund details for their complaint.
+  Future<RefundRecord?> getUserRefundForComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgRefunds.getRefundByComplaintId(session, complaintId);
   }
 }

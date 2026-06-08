@@ -44,4 +44,18 @@ class RefundEndpoint extends Endpoint {
     }
     return _refundService.getRefundStatus(session, orderId);
   }
+
+  Future<protocol.RefundRecord?> adminGetRefundStatus(
+    Session session,
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _refundService.getRefundStatus(session, orderId);
+  }
 }

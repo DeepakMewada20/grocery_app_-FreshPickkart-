@@ -144,12 +144,24 @@ class _ComplaintDetailAdminScreenState
   late Complaint _complaint;
   final _noteController = TextEditingController();
   bool _busy = false;
+  RefundRecord? _complaintRefund;
 
   @override
   void initState() {
     super.initState();
     _complaint = widget.complaint;
     _noteController.text = _complaint.adminNote ?? '';
+    if (_complaint.status == 'Resolved' &&
+        (_complaint.resolutionType?.contains('refund') ?? false)) {
+      _loadRefund();
+    }
+  }
+
+  Future<void> _loadRefund() async {
+    final refund = await widget.controller.getRefundForComplaint(
+      _complaint.complaintId,
+    );
+    if (mounted) setState(() => _complaintRefund = refund);
   }
 
   @override
@@ -186,6 +198,10 @@ class _ComplaintDetailAdminScreenState
                       _InfoRow('Customer phone', _complaint.userPhone),
                   ],
                 ),
+                if (_complaintRefund != null) ...[
+                  SizedBox(height: 12.h),
+                  _RefundInfoCard(refund: _complaintRefund!),
+                ],
                 SizedBox(height: 12.h),
                 OrderDetailsCard(complaint: _complaint),
                 SizedBox(height: 12.h),
@@ -350,6 +366,10 @@ class _ComplaintDetailAdminScreenState
     try {
       final updated = await action();
       if (mounted) setState(() => _complaint = updated);
+      if (updated.status == 'Resolved' &&
+          (updated.resolutionType?.contains('refund') ?? false)) {
+        await _loadRefund();
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -827,5 +847,102 @@ class _ImageGrid extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _RefundInfoCard extends StatelessWidget {
+  const _RefundInfoCard({required this.refund});
+
+  final RefundRecord refund;
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+      case 'refunded':
+        return Colors.green;
+      case 'pending':
+      case 'initiated':
+        return Colors.orange;
+      case 'failed':
+        return Colors.redAccent;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+      case 'refunded':
+        return 'Completed';
+      case 'pending':
+      case 'initiated':
+        return 'Initiated';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final statusColor = _statusColor(refund.status);
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.currency_rupee, size: 18.sp, color: statusColor),
+              SizedBox(width: 8.w),
+              Text(
+                'Refund Information',
+                style: AdminTextStyles.sectionTitle(context),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          _refundRow('Status', _statusLabel(refund.status), statusColor, cs, context),
+          SizedBox(height: 8.h),
+          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, cs, context),
+          SizedBox(height: 8.h),
+          _refundRow('Refund ID', refund.refundId, null, cs, context),
+          SizedBox(height: 8.h),
+          _refundRow('Initiated', _formatDate(refund.createdAt), null, cs, context),
+          SizedBox(height: 8.h),
+          _refundRow('Expected', '5–7 Business Days', null, cs, context),
+        ],
+      ),
+    );
+  }
+
+  Widget _refundRow(String label, String value, Color? valueColor, ColorScheme cs, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AdminTextStyles.caption(context)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: valueColor ?? cs.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    final local = dt.toLocal();
+    return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
 }

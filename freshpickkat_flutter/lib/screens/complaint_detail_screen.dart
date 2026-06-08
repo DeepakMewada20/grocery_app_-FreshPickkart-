@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:freshpickkat_flutter/services/refund_service.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -26,13 +27,26 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   Complaint? _complaint;
   bool _isLoading = false;
   String? _error;
+  RefundRecord? _complaintRefund;
 
   @override
   void initState() {
     super.initState();
     _complaint = widget.complaint;
+    if (_complaint != null) _maybeLoadRefund(_complaint!);
     if (_complaint == null && widget.complaintId != null) {
       _fetch();
+    }
+  }
+
+  void _maybeLoadRefund(Complaint c) {
+    if (c.status == 'Resolved' &&
+        (c.resolutionType?.contains('refund') ?? false)) {
+      RefundService.instance
+          .getRefundByComplaintId(c.complaintId)
+          .then((r) {
+        if (mounted) setState(() => _complaintRefund = r);
+      });
     }
   }
 
@@ -49,6 +63,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
         _complaint = complaint;
         _error = complaint == null ? ErrorMessages.complaintNotFound : null;
       });
+      if (complaint != null) _maybeLoadRefund(complaint);
     } catch (error) {
       AppLogger.error('ComplaintDetail', error);
       setState(() => _error = ErrorMessages.loadComplaintsFailed);
@@ -102,6 +117,14 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                           ),
                         ),
                         SizedBox(height: 12.h),
+                        if (_complaint!.resolutionType != null &&
+                            _complaint!.status == 'Resolved') ...[
+                          _Section(
+                            title: 'Resolution',
+                            child: Text(_complaint!.resolutionType!),
+                          ),
+                          SizedBox(height: 12.h),
+                        ],
                         if (_complaint!.selectedField != null ||
                             (_complaint!.extraData?.isNotEmpty ?? false))
                           ...[
@@ -120,6 +143,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                         ),
                         SizedBox(height: 12.h),
                         _Timeline(status: _complaint!.status),
+                        if (_complaintRefund != null) ...[
+                          SizedBox(height: 12.h),
+                          _RefundInfoCard(refund: _complaintRefund!),
+                        ],
                       ],
                     ),
                   ),
@@ -348,6 +375,111 @@ class _Timeline extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _RefundInfoCard extends StatelessWidget {
+  const _RefundInfoCard({required this.refund});
+
+  final RefundRecord refund;
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+      case 'refunded':
+        return Colors.green;
+      case 'pending':
+      case 'initiated':
+        return Colors.orange;
+      case 'failed':
+        return Colors.redAccent;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+      case 'refunded':
+        return 'Completed';
+      case 'pending':
+      case 'initiated':
+        return 'Initiated';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final statusColor = _statusColor(refund.status);
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.currency_rupee, size: 18.sp, color: statusColor),
+              SizedBox(width: 8.w),
+              Text(
+                'Refund Information',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          _refundRow('Status', _statusLabel(refund.status), statusColor, cs),
+          SizedBox(height: 8.h),
+          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, cs),
+          SizedBox(height: 8.h),
+          _refundRow('Refund ID', refund.refundId, null, cs),
+          SizedBox(height: 8.h),
+          _refundRow('Initiated', _formatDate(refund.createdAt), null, cs),
+          SizedBox(height: 8.h),
+          _refundRow('Expected', '5–7 Business Days', null, cs),
+        ],
+      ),
+    );
+  }
+
+  Widget _refundRow(
+      String label, String value, Color? valueColor, ColorScheme cs) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.62),
+              fontSize: 12.sp,
+            )),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: valueColor ?? cs.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    final local = dt.toLocal();
+    return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
 }
 

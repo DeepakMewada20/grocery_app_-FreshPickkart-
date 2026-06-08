@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_cancellation_controller.dart';
+import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -141,6 +143,26 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
   final _adminNoteController = TextEditingController();
   bool _approving = false;
   bool _rejecting = false;
+  RefundRecord? _refund;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.order.status == 'cancellation_approved') _loadRefund();
+  }
+
+  Future<void> _loadRefund() async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      final r = await ServerpodAdminClient().client.refund.adminGetRefundStatus(
+        widget.order.orderId,
+        uid,
+        token,
+      );
+      if (mounted) setState(() => _refund = r);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -491,6 +513,25 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                       ],
                     ),
                     SizedBox(height: 12.h),
+                    if (_refund != null) ...[
+                      _DetailPanel(
+                        title: 'Refund Status',
+                        children: [
+                          _DetailRow('Status', _refundStatusLabel(_refund!.status)),
+                          _DetailRow(
+                            'Amount',
+                            '₹${_refund!.amount.toStringAsFixed(2)}',
+                          ),
+                          _DetailRow('Refund ID', _refund!.refundId),
+                          _DetailRow(
+                            'Initiated',
+                            _formatDateTime(_refund!.createdAt),
+                          ),
+                          _DetailRow('Expected', '5–7 Business Days'),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                    ],
                     TextField(
                       controller: _adminNoteController,
                       decoration: InputDecoration(
@@ -573,6 +614,21 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
     return '${dt.day}/${dt.month}/${dt.year} '
         '${dt.hour.toString().padLeft(2, '0')}:'
         '${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _refundStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+      case 'refunded':
+        return 'Completed';
+      case 'pending':
+      case 'initiated':
+        return 'Initiated';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status;
+    }
   }
 }
 

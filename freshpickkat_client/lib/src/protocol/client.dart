@@ -41,53 +41,53 @@ import 'package:freshpickkat_client/src/protocol/cart_item_input.dart' as _i22;
 import 'package:freshpickkat_client/src/protocol/complaint.dart' as _i23;
 import 'package:freshpickkat_client/src/protocol/address.dart' as _i24;
 import 'package:freshpickkat_client/src/protocol/complaint_page.dart' as _i25;
-import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i26;
-import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i27;
+import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i26;
+import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i27;
+import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i28;
 import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
-    as _i28;
-import 'package:freshpickkat_client/src/protocol/best_coupon_result.dart'
     as _i29;
-import 'package:freshpickkat_client/src/protocol/delivery_config.dart' as _i30;
+import 'package:freshpickkat_client/src/protocol/best_coupon_result.dart'
+    as _i30;
+import 'package:freshpickkat_client/src/protocol/delivery_config.dart' as _i31;
 import 'package:freshpickkat_client/src/protocol/delivery_pricing_result.dart'
-    as _i31;
-import 'package:freshpickkat_client/src/protocol/delivery_rule.dart' as _i32;
+    as _i32;
+import 'package:freshpickkat_client/src/protocol/delivery_rule.dart' as _i33;
 import 'package:freshpickkat_client/src/protocol/delivery_rule_page.dart'
-    as _i33;
-import 'package:freshpickkat_client/src/protocol/notification_preference.dart'
     as _i34;
-import 'package:freshpickkat_client/src/protocol/notification_history_page.dart'
+import 'package:freshpickkat_client/src/protocol/notification_preference.dart'
     as _i35;
-import 'package:freshpickkat_client/src/protocol/admin_notification_preference.dart'
+import 'package:freshpickkat_client/src/protocol/notification_history_page.dart'
     as _i36;
-import 'package:freshpickkat_client/src/protocol/broadcast_summary.dart'
+import 'package:freshpickkat_client/src/protocol/admin_notification_preference.dart'
     as _i37;
-import 'package:freshpickkat_client/src/protocol/broadcast_request.dart'
+import 'package:freshpickkat_client/src/protocol/broadcast_summary.dart'
     as _i38;
-import 'package:freshpickkat_client/src/protocol/broadcast_page.dart' as _i39;
-import 'package:freshpickkat_client/src/protocol/order_page.dart' as _i40;
+import 'package:freshpickkat_client/src/protocol/broadcast_request.dart'
+    as _i39;
+import 'package:freshpickkat_client/src/protocol/broadcast_page.dart' as _i40;
+import 'package:freshpickkat_client/src/protocol/order_page.dart' as _i41;
 import 'package:freshpickkat_client/src/protocol/payment_action_result.dart'
-    as _i41;
-import 'package:freshpickkat_client/src/protocol/order_realtime_event.dart'
     as _i42;
-import 'package:freshpickkat_client/src/protocol/order_tracking_data.dart'
+import 'package:freshpickkat_client/src/protocol/order_realtime_event.dart'
     as _i43;
-import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
+import 'package:freshpickkat_client/src/protocol/order_tracking_data.dart'
     as _i44;
-import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
+import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
     as _i45;
-import 'package:freshpickkat_client/src/protocol/cart_pricing_result.dart'
+import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
     as _i46;
-import 'package:freshpickkat_client/src/protocol/applied_offer_info.dart'
+import 'package:freshpickkat_client/src/protocol/cart_pricing_result.dart'
     as _i47;
-import 'package:freshpickkat_client/src/protocol/basket_suggestion_result.dart'
+import 'package:freshpickkat_client/src/protocol/applied_offer_info.dart'
     as _i48;
-import 'package:freshpickkat_client/src/protocol/product.dart' as _i49;
-import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i50;
+import 'package:freshpickkat_client/src/protocol/basket_suggestion_result.dart'
+    as _i49;
+import 'package:freshpickkat_client/src/protocol/product.dart' as _i50;
+import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i51;
 import 'package:freshpickkat_client/src/protocol/offer_search_page.dart'
-    as _i51;
-import 'package:freshpickkat_client/src/protocol/product_ranking_item.dart'
     as _i52;
-import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i53;
+import 'package:freshpickkat_client/src/protocol/product_ranking_item.dart'
+    as _i53;
 import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i54;
 import 'package:freshpickkat_client/src/protocol/support_issue.dart' as _i55;
 import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i56;
@@ -1091,6 +1091,36 @@ class EndpointComplaint extends _i1.EndpointRef {
       'adminReply': adminReply,
     },
   );
+
+  /// Admin: Get refund details for a complaint.
+  _i2.Future<_i26.RefundRecord?> getRefundForComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) => caller.callServerEndpoint<_i26.RefundRecord?>(
+    'complaint',
+    'getRefundForComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+    },
+  );
+
+  /// User: Get refund details for their complaint.
+  _i2.Future<_i26.RefundRecord?> getUserRefundForComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) => caller.callServerEndpoint<_i26.RefundRecord?>(
+    'complaint',
+    'getUserRefundForComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+    },
+  );
 }
 
 /// {@category Endpoint}
@@ -1100,10 +1130,10 @@ class EndpointCoupon extends _i1.EndpointRef {
   @override
   String get name => 'coupon';
 
-  _i2.Future<List<_i26.Coupon>> fetchCoupons(
+  _i2.Future<List<_i27.Coupon>> fetchCoupons(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i26.Coupon>>(
+  ) => caller.callServerEndpoint<List<_i27.Coupon>>(
     'coupon',
     'fetchCoupons',
     {
@@ -1113,7 +1143,7 @@ class EndpointCoupon extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> uploadCoupon(
-    _i26.Coupon coupon,
+    _i27.Coupon coupon,
     String firebaseUid,
     String idToken, {
     _i13.NotificationDraft? notificationDraft,
@@ -1145,7 +1175,7 @@ class EndpointCoupon extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> updateCoupon(
-    _i26.Coupon coupon,
+    _i27.Coupon coupon,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -1172,18 +1202,18 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i27.CouponDisplay>> fetchApplicableCoupons(
+  _i2.Future<List<_i28.CouponDisplay>> fetchApplicableCoupons(
     double orderAmount,
-  ) => caller.callServerEndpoint<List<_i27.CouponDisplay>>(
+  ) => caller.callServerEndpoint<List<_i28.CouponDisplay>>(
     'coupon',
     'fetchApplicableCoupons',
     {'orderAmount': orderAmount},
   );
 
-  _i2.Future<_i28.CouponValidationResult> validateCoupon(
+  _i2.Future<_i29.CouponValidationResult> validateCoupon(
     String couponCode,
     double orderAmount,
-  ) => caller.callServerEndpoint<_i28.CouponValidationResult>(
+  ) => caller.callServerEndpoint<_i29.CouponValidationResult>(
     'coupon',
     'validateCoupon',
     {
@@ -1192,12 +1222,12 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i28.CouponValidationResult> applyCoupon(
+  _i2.Future<_i29.CouponValidationResult> applyCoupon(
     String userId,
     String couponCode,
     double cartSubtotal,
     List<_i22.CartItemInput> cartItems,
-  ) => caller.callServerEndpoint<_i28.CouponValidationResult>(
+  ) => caller.callServerEndpoint<_i29.CouponValidationResult>(
     'coupon',
     'applyCoupon',
     {
@@ -1208,11 +1238,11 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i27.CouponDisplay>> getAvailableCoupons(
+  _i2.Future<List<_i28.CouponDisplay>> getAvailableCoupons(
     String userId,
     double cartSubtotal,
     List<_i22.CartItemInput> cartItems,
-  ) => caller.callServerEndpoint<List<_i27.CouponDisplay>>(
+  ) => caller.callServerEndpoint<List<_i28.CouponDisplay>>(
     'coupon',
     'getAvailableCoupons',
     {
@@ -1222,11 +1252,11 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i29.BestCouponResult> getBestCoupon(
+  _i2.Future<_i30.BestCouponResult> getBestCoupon(
     String userId,
     double cartSubtotal,
     List<_i22.CartItemInput> cartItems,
-  ) => caller.callServerEndpoint<_i29.BestCouponResult>(
+  ) => caller.callServerEndpoint<_i30.BestCouponResult>(
     'coupon',
     'getBestCoupon',
     {
@@ -1244,15 +1274,15 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
   @override
   String get name => 'freeDelivery';
 
-  _i2.Future<_i30.DeliveryConfig> getDeliveryConfig() =>
-      caller.callServerEndpoint<_i30.DeliveryConfig>(
+  _i2.Future<_i31.DeliveryConfig> getDeliveryConfig() =>
+      caller.callServerEndpoint<_i31.DeliveryConfig>(
         'freeDelivery',
         'getDeliveryConfig',
         {},
       );
 
-  _i2.Future<_i31.DeliveryPricingResult> getUserDeliveryOffer(String userId) =>
-      caller.callServerEndpoint<_i31.DeliveryPricingResult>(
+  _i2.Future<_i32.DeliveryPricingResult> getUserDeliveryOffer(String userId) =>
+      caller.callServerEndpoint<_i32.DeliveryPricingResult>(
         'freeDelivery',
         'getUserDeliveryOffer',
         {'userId': userId},
@@ -1299,7 +1329,7 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> upsertDeliveryConfig(
-    _i30.DeliveryConfig config,
+    _i31.DeliveryConfig config,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -1312,10 +1342,10 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i32.DeliveryRule>> getAllDeliveryRules(
+  _i2.Future<List<_i33.DeliveryRule>> getAllDeliveryRules(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i32.DeliveryRule>>(
+  ) => caller.callServerEndpoint<List<_i33.DeliveryRule>>(
     'freeDelivery',
     'getAllDeliveryRules',
     {
@@ -1324,12 +1354,12 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i33.DeliveryRulePage> getDeliveryRulesPage(
+  _i2.Future<_i34.DeliveryRulePage> getDeliveryRulesPage(
     String firebaseUid,
     String idToken, {
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i33.DeliveryRulePage>(
+  }) => caller.callServerEndpoint<_i34.DeliveryRulePage>(
     'freeDelivery',
     'getDeliveryRulesPage',
     {
@@ -1341,7 +1371,7 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> upsertDeliveryRule(
-    _i32.DeliveryRule rule,
+    _i33.DeliveryRule rule,
     String firebaseUid,
     String idToken, {
     _i13.NotificationDraft? notificationDraft,
@@ -1386,12 +1416,12 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i31.DeliveryPricingResult> calculateDeliveryPricing(
+  _i2.Future<_i32.DeliveryPricingResult> calculateDeliveryPricing(
     double cartTotal, {
     String? userId,
     String? location,
     List<_i22.CartItemInput>? cartItems,
-  }) => caller.callServerEndpoint<_i31.DeliveryPricingResult>(
+  }) => caller.callServerEndpoint<_i32.DeliveryPricingResult>(
     'freeDelivery',
     'calculateDeliveryPricing',
     {
@@ -1440,17 +1470,17 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i34.NotificationPreference> getPreferences(String firebaseUid) =>
-      caller.callServerEndpoint<_i34.NotificationPreference>(
+  _i2.Future<_i35.NotificationPreference> getPreferences(String firebaseUid) =>
+      caller.callServerEndpoint<_i35.NotificationPreference>(
         'notification',
         'getPreferences',
         {'firebaseUid': firebaseUid},
       );
 
-  _i2.Future<_i34.NotificationPreference> updatePreferences(
+  _i2.Future<_i35.NotificationPreference> updatePreferences(
     String firebaseUid,
-    _i34.NotificationPreference preferences,
-  ) => caller.callServerEndpoint<_i34.NotificationPreference>(
+    _i35.NotificationPreference preferences,
+  ) => caller.callServerEndpoint<_i35.NotificationPreference>(
     'notification',
     'updatePreferences',
     {
@@ -1459,11 +1489,11 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i35.NotificationHistoryPage> listNotifications(
+  _i2.Future<_i36.NotificationHistoryPage> listNotifications(
     String firebaseUid, {
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i35.NotificationHistoryPage>(
+  }) => caller.callServerEndpoint<_i36.NotificationHistoryPage>(
     'notification',
     'listNotifications',
     {
@@ -1511,11 +1541,11 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i36.AdminNotificationPreference>>
+  _i2.Future<List<_i37.AdminNotificationPreference>>
   getAdminNotificationPreferences(
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<List<_i36.AdminNotificationPreference>>(
+  ) => caller.callServerEndpoint<List<_i37.AdminNotificationPreference>>(
     'notification',
     'getAdminNotificationPreferences',
     {
@@ -1524,14 +1554,14 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i36.AdminNotificationPreference>
+  _i2.Future<_i37.AdminNotificationPreference>
   updateAdminNotificationPreference(
     String firebaseUid,
     String idToken,
     String key,
     bool pushEnabled,
     bool soundEnabled,
-  ) => caller.callServerEndpoint<_i36.AdminNotificationPreference>(
+  ) => caller.callServerEndpoint<_i37.AdminNotificationPreference>(
     'notification',
     'updateAdminNotificationPreference',
     {
@@ -1577,11 +1607,11 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i37.BroadcastSummary> createBroadcast(
-    _i38.BroadcastRequest request,
+  _i2.Future<_i38.BroadcastSummary> createBroadcast(
+    _i39.BroadcastRequest request,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i37.BroadcastSummary>(
+  ) => caller.callServerEndpoint<_i38.BroadcastSummary>(
     'notification',
     'createBroadcast',
     {
@@ -1591,11 +1621,11 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i37.BroadcastSummary> saveBroadcastDraft(
-    _i38.BroadcastRequest request,
+  _i2.Future<_i38.BroadcastSummary> saveBroadcastDraft(
+    _i39.BroadcastRequest request,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i37.BroadcastSummary>(
+  ) => caller.callServerEndpoint<_i38.BroadcastSummary>(
     'notification',
     'saveBroadcastDraft',
     {
@@ -1605,11 +1635,11 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i37.BroadcastSummary> sendBroadcastDraft(
+  _i2.Future<_i38.BroadcastSummary> sendBroadcastDraft(
     String firebaseUid,
     String idToken,
     String broadcastId,
-  ) => caller.callServerEndpoint<_i37.BroadcastSummary>(
+  ) => caller.callServerEndpoint<_i38.BroadcastSummary>(
     'notification',
     'sendBroadcastDraft',
     {
@@ -1619,14 +1649,14 @@ class EndpointNotification extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i39.BroadcastPage> listBroadcasts(
+  _i2.Future<_i40.BroadcastPage> listBroadcasts(
     String firebaseUid,
     String idToken, {
     String? status,
     String? query,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i39.BroadcastPage>(
+  }) => caller.callServerEndpoint<_i40.BroadcastPage>(
     'notification',
     'listBroadcasts',
     {
@@ -1694,13 +1724,13 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i40.OrderPage> getOrdersPage({
+  _i2.Future<_i41.OrderPage> getOrdersPage({
     String? status,
     required String firebaseUid,
     required String idToken,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i40.OrderPage>(
+  }) => caller.callServerEndpoint<_i41.OrderPage>(
     'order',
     'getOrdersPage',
     {
@@ -1832,12 +1862,12 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> cancelOrder(
+  _i2.Future<_i42.PaymentActionResult> cancelOrder(
     String orderId,
     String userId, {
     required String idToken,
     required String reason,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'order',
     'cancelOrder',
     {
@@ -1849,12 +1879,12 @@ class EndpointOrder extends _i1.EndpointRef {
   );
 
   /// User requests cancellation for Stage 2/3 orders (needs admin approval).
-  _i2.Future<_i41.PaymentActionResult> requestCancellation(
+  _i2.Future<_i42.PaymentActionResult> requestCancellation(
     String orderId,
     String userId, {
     required String idToken,
     required String reason,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'order',
     'requestCancellation',
     {
@@ -1866,12 +1896,12 @@ class EndpointOrder extends _i1.EndpointRef {
   );
 
   /// Admin: List all cancellation requests.
-  _i2.Future<_i40.OrderPage> listCancellationRequests({
+  _i2.Future<_i41.OrderPage> listCancellationRequests({
     required String firebaseUid,
     required String idToken,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i40.OrderPage>(
+  }) => caller.callServerEndpoint<_i41.OrderPage>(
     'order',
     'listCancellationRequests',
     {
@@ -1883,13 +1913,13 @@ class EndpointOrder extends _i1.EndpointRef {
   );
 
   /// Admin: Approve cancellation request and initiate refund.
-  _i2.Future<_i41.PaymentActionResult> approveCancellationRequest(
+  _i2.Future<_i42.PaymentActionResult> approveCancellationRequest(
     String orderId, {
     required String firebaseUid,
     required String idToken,
     double? fixedRefundAmount,
     required String adminNote,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'order',
     'approveCancellationRequest',
     {
@@ -1902,12 +1932,12 @@ class EndpointOrder extends _i1.EndpointRef {
   );
 
   /// Admin: Reject cancellation request and restore order.
-  _i2.Future<_i41.PaymentActionResult> rejectCancellationRequest(
+  _i2.Future<_i42.PaymentActionResult> rejectCancellationRequest(
     String orderId, {
     required String firebaseUid,
     required String idToken,
     required String adminNote,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'order',
     'rejectCancellationRequest',
     {
@@ -1968,11 +1998,11 @@ class EndpointOrderPg extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i40.OrderPage> getOrdersForUser({
+  _i2.Future<_i41.OrderPage> getOrdersForUser({
     required String userReference,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i40.OrderPage>(
+  }) => caller.callServerEndpoint<_i41.OrderPage>(
     'orderPg',
     'getOrdersForUser',
     {
@@ -1990,13 +2020,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
   @override
   String get name => 'orderRealtime';
 
-  _i2.Stream<_i42.OrderRealtimeEvent> watchAdminOrders(
+  _i2.Stream<_i43.OrderRealtimeEvent> watchAdminOrders(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i42.OrderRealtimeEvent>,
-        _i42.OrderRealtimeEvent
+        _i2.Stream<_i43.OrderRealtimeEvent>,
+        _i43.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchAdminOrders',
@@ -2007,13 +2037,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i42.OrderRealtimeEvent> watchDashboardUpdates(
+  _i2.Stream<_i43.OrderRealtimeEvent> watchDashboardUpdates(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i42.OrderRealtimeEvent>,
-        _i42.OrderRealtimeEvent
+        _i2.Stream<_i43.OrderRealtimeEvent>,
+        _i43.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchDashboardUpdates',
@@ -2024,13 +2054,13 @@ class EndpointOrderRealtime extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i42.OrderRealtimeEvent> watchUserOrders(
+  _i2.Stream<_i43.OrderRealtimeEvent> watchUserOrders(
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i42.OrderRealtimeEvent>,
-        _i42.OrderRealtimeEvent
+        _i2.Stream<_i43.OrderRealtimeEvent>,
+        _i43.OrderRealtimeEvent
       >(
         'orderRealtime',
         'watchUserOrders',
@@ -2049,11 +2079,11 @@ class EndpointOrderTracking extends _i1.EndpointRef {
   @override
   String get name => 'orderTracking';
 
-  _i2.Future<_i43.OrderTrackingData?> getTrackingForUser(
+  _i2.Future<_i44.OrderTrackingData?> getTrackingForUser(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i43.OrderTrackingData?>(
+  ) => caller.callServerEndpoint<_i44.OrderTrackingData?>(
     'orderTracking',
     'getTrackingForUser',
     {
@@ -2063,11 +2093,11 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i43.OrderTrackingData?> getTrackingForAdmin(
+  _i2.Future<_i44.OrderTrackingData?> getTrackingForAdmin(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i43.OrderTrackingData?>(
+  ) => caller.callServerEndpoint<_i44.OrderTrackingData?>(
     'orderTracking',
     'getTrackingForAdmin',
     {
@@ -2077,14 +2107,14 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Stream<_i43.OrderTrackingData> streamTrackingForUser(
+  _i2.Stream<_i44.OrderTrackingData> streamTrackingForUser(
     String orderId,
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i43.OrderTrackingData>,
-        _i43.OrderTrackingData
+        _i2.Stream<_i44.OrderTrackingData>,
+        _i44.OrderTrackingData
       >(
         'orderTracking',
         'streamTrackingForUser',
@@ -2096,14 +2126,14 @@ class EndpointOrderTracking extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Stream<_i43.OrderTrackingData> streamTrackingForAdmin(
+  _i2.Stream<_i44.OrderTrackingData> streamTrackingForAdmin(
     String orderId,
     String firebaseUid,
     String idToken,
   ) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i43.OrderTrackingData>,
-        _i43.OrderTrackingData
+        _i2.Stream<_i44.OrderTrackingData>,
+        _i44.OrderTrackingData
       >(
         'orderTracking',
         'streamTrackingForAdmin',
@@ -2115,7 +2145,7 @@ class EndpointOrderTracking extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Future<_i43.OrderTrackingData> seedUserLocation(
+  _i2.Future<_i44.OrderTrackingData> seedUserLocation(
     String orderId,
     String firebaseUid,
     String idToken,
@@ -2123,7 +2153,7 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     double? userLongitude,
     String? userAddress,
     String? userLocationType,
-  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i44.OrderTrackingData>(
     'orderTracking',
     'seedUserLocation',
     {
@@ -2137,12 +2167,12 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i43.OrderTrackingData> updateTrackingEnabled(
+  _i2.Future<_i44.OrderTrackingData> updateTrackingEnabled(
     String orderId,
     bool enabled,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i44.OrderTrackingData>(
     'orderTracking',
     'updateTrackingEnabled',
     {
@@ -2153,13 +2183,13 @@ class EndpointOrderTracking extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i43.OrderTrackingData> updateRiderLocation(
+  _i2.Future<_i44.OrderTrackingData> updateRiderLocation(
     String orderId,
     double riderLatitude,
     double riderLongitude,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i43.OrderTrackingData>(
+  ) => caller.callServerEndpoint<_i44.OrderTrackingData>(
     'orderTracking',
     'updateRiderLocation',
     {
@@ -2201,11 +2231,11 @@ class EndpointPayment extends _i1.EndpointRef {
   @override
   String get name => 'payment';
 
-  _i2.Future<_i44.PaymentOrderResult> createPaymentOrder(
+  _i2.Future<_i45.PaymentOrderResult> createPaymentOrder(
     String orderId,
     double amount,
     String customerPhone,
-  ) => caller.callServerEndpoint<_i44.PaymentOrderResult>(
+  ) => caller.callServerEndpoint<_i45.PaymentOrderResult>(
     'payment',
     'createPaymentOrder',
     {
@@ -2215,12 +2245,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentVerifyResult> verifyPayment(
+  _i2.Future<_i46.PaymentVerifyResult> verifyPayment(
     String orderId,
     String razorpayOrderId,
     String razorpayPaymentId,
     String razorpaySignature,
-  ) => caller.callServerEndpoint<_i45.PaymentVerifyResult>(
+  ) => caller.callServerEndpoint<_i46.PaymentVerifyResult>(
     'payment',
     'verifyPayment',
     {
@@ -2231,11 +2261,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> markPaymentFailed(
+  _i2.Future<_i42.PaymentActionResult> markPaymentFailed(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'markPaymentFailed',
     {
@@ -2245,12 +2275,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> initiateRefund(
+  _i2.Future<_i42.PaymentActionResult> initiateRefund(
     String razorpayPaymentId,
     double amount,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'initiateRefund',
     {
@@ -2261,12 +2291,12 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> getPaymentStatus(
+  _i2.Future<_i42.PaymentActionResult> getPaymentStatus(
     String razorpayPaymentId,
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'getPaymentStatus',
     {
@@ -2277,11 +2307,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i45.PaymentVerifyResult> completePaymentVerification(
+  _i2.Future<_i46.PaymentVerifyResult> completePaymentVerification(
     String orderId,
     String razorpayOrderId,
     String razorpayPaymentId,
-  ) => caller.callServerEndpoint<_i45.PaymentVerifyResult>(
+  ) => caller.callServerEndpoint<_i46.PaymentVerifyResult>(
     'payment',
     'completePaymentVerification',
     {
@@ -2291,11 +2321,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> getPaymentStatusWithMessage(
+  _i2.Future<_i42.PaymentActionResult> getPaymentStatusWithMessage(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  ) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'getPaymentStatusWithMessage',
     {
@@ -2305,10 +2335,10 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> adminReconcileAllPendingPayments({
+  _i2.Future<_i42.PaymentActionResult> adminReconcileAllPendingPayments({
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'adminReconcileAllPendingPayments',
     {
@@ -2331,7 +2361,7 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i40.OrderPage> adminSearchOrders({
+  _i2.Future<_i41.OrderPage> adminSearchOrders({
     String? query,
     String? status,
     String? paymentStatus,
@@ -2339,7 +2369,7 @@ class EndpointPayment extends _i1.EndpointRef {
     required String idToken,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i40.OrderPage>(
+  }) => caller.callServerEndpoint<_i41.OrderPage>(
     'payment',
     'adminSearchOrders',
     {
@@ -2381,11 +2411,11 @@ class EndpointPayment extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i41.PaymentActionResult> recoverPendingPayments(
+  _i2.Future<_i42.PaymentActionResult> recoverPendingPayments(
     String userId, {
     required String idToken,
     required int limit,
-  }) => caller.callServerEndpoint<_i41.PaymentActionResult>(
+  }) => caller.callServerEndpoint<_i42.PaymentActionResult>(
     'payment',
     'recoverPendingPayments',
     {
@@ -2403,12 +2433,12 @@ class EndpointPricing extends _i1.EndpointRef {
   @override
   String get name => 'pricing';
 
-  _i2.Future<_i46.CartPricingResult> calculateCartPricing(
+  _i2.Future<_i47.CartPricingResult> calculateCartPricing(
     List<_i22.CartItemInput> items, {
     String? userId,
     String? appliedCouponCode,
     required bool autoApplyCoupons,
-  }) => caller.callServerEndpoint<_i46.CartPricingResult>(
+  }) => caller.callServerEndpoint<_i47.CartPricingResult>(
     'pricing',
     'calculateCartPricing',
     {
@@ -2419,21 +2449,21 @@ class EndpointPricing extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i47.AppliedOfferInfo>> getApplicableOffers(
+  _i2.Future<List<_i48.AppliedOfferInfo>> getApplicableOffers(
     List<_i22.CartItemInput> items,
-  ) => caller.callServerEndpoint<List<_i47.AppliedOfferInfo>>(
+  ) => caller.callServerEndpoint<List<_i48.AppliedOfferInfo>>(
     'pricing',
     'getApplicableOffers',
     {'items': items},
   );
 
-  _i2.Future<_i48.BasketSuggestionResult> basketSuggestions(
+  _i2.Future<_i49.BasketSuggestionResult> basketSuggestions(
     List<_i22.CartItemInput>? items, {
     double? cartTotal,
     required String mode,
     String? userId,
     String? appliedCouponCode,
-  }) => caller.callServerEndpoint<_i48.BasketSuggestionResult>(
+  }) => caller.callServerEndpoint<_i49.BasketSuggestionResult>(
     'pricing',
     'basketSuggestions',
     {
@@ -2469,14 +2499,14 @@ class EndpointProduct extends _i1.EndpointRef {
   @override
   String get name => 'product';
 
-  _i2.Future<List<_i49.Product>> getProductsByIds(List<String> productIds) =>
-      caller.callServerEndpoint<List<_i49.Product>>(
+  _i2.Future<List<_i50.Product>> getProductsByIds(List<String> productIds) =>
+      caller.callServerEndpoint<List<_i50.Product>>(
         'product',
         'getProductsByIds',
         {'productIds': productIds},
       );
 
-  _i2.Future<List<_i49.Product>> getProducts({
+  _i2.Future<List<_i50.Product>> getProducts({
     required int limit,
     String? lastProductName,
     String? lastProductId,
@@ -2484,7 +2514,7 @@ class EndpointProduct extends _i1.EndpointRef {
     List<String>? subcategories,
     required String sortBy,
     bool? freeDelivery,
-  }) => caller.callServerEndpoint<List<_i49.Product>>(
+  }) => caller.callServerEndpoint<List<_i50.Product>>(
     'product',
     'getProducts',
     {
@@ -2498,7 +2528,7 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i50.ProductPage> getProductsPage({
+  _i2.Future<_i51.ProductPage> getProductsPage({
     required String firebaseUid,
     required String idToken,
     required int limit,
@@ -2506,7 +2536,7 @@ class EndpointProduct extends _i1.EndpointRef {
     String? category,
     List<String>? subcategories,
     required String sortBy,
-  }) => caller.callServerEndpoint<_i50.ProductPage>(
+  }) => caller.callServerEndpoint<_i51.ProductPage>(
     'product',
     'getProductsPage',
     {
@@ -2537,7 +2567,7 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   _i2.Future<String?> uploadProduct(
-    _i49.Product product,
+    _i50.Product product,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<String?>(
@@ -2551,7 +2581,7 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   _i2.Future<bool> updateProduct(
-    _i49.Product product,
+    _i50.Product product,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -2565,7 +2595,7 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   _i2.Future<String> checkProductUpdateConflicts(
-    _i49.Product product,
+    _i50.Product product,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<String>(
@@ -2615,11 +2645,11 @@ class EndpointProduct extends _i1.EndpointRef {
         {'query': query},
       );
 
-  _i2.Future<_i50.ProductPage> searchProducts(
+  _i2.Future<_i51.ProductPage> searchProducts(
     String query, {
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i50.ProductPage>(
+  }) => caller.callServerEndpoint<_i51.ProductPage>(
     'product',
     'searchProducts',
     {
@@ -2629,12 +2659,12 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i51.OfferSearchPage> getProductsByOffer({
+  _i2.Future<_i52.OfferSearchPage> getProductsByOffer({
     required String offerType,
     required String query,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i51.OfferSearchPage>(
+  }) => caller.callServerEndpoint<_i52.OfferSearchPage>(
     'product',
     'getProductsByOffer',
     {
@@ -2645,11 +2675,11 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i51.OfferSearchPage> getComboProducts({
+  _i2.Future<_i52.OfferSearchPage> getComboProducts({
     required String query,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i51.OfferSearchPage>(
+  }) => caller.callServerEndpoint<_i52.OfferSearchPage>(
     'product',
     'getComboProducts',
     {
@@ -2659,11 +2689,11 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i51.OfferSearchPage> getBogoProducts({
+  _i2.Future<_i52.OfferSearchPage> getBogoProducts({
     required String query,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i51.OfferSearchPage>(
+  }) => caller.callServerEndpoint<_i52.OfferSearchPage>(
     'product',
     'getBogoProducts',
     {
@@ -2673,12 +2703,12 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i51.OfferSearchPage> searchProductsWithOfferFilters({
+  _i2.Future<_i52.OfferSearchPage> searchProductsWithOfferFilters({
     required String query,
     required String offerFilter,
     required int limit,
     String? pageToken,
-  }) => caller.callServerEndpoint<_i51.OfferSearchPage>(
+  }) => caller.callServerEndpoint<_i52.OfferSearchPage>(
     'product',
     'searchProductsWithOfferFilters',
     {
@@ -2747,12 +2777,12 @@ class EndpointProductPg extends _i1.EndpointRef {
   @override
   String get name => 'productPg';
 
-  _i2.Future<_i50.ProductPage> getActiveProductsPage({
+  _i2.Future<_i51.ProductPage> getActiveProductsPage({
     required int limit,
     String? pageToken,
     String? categoryId,
     String? subCategoryId,
-  }) => caller.callServerEndpoint<_i50.ProductPage>(
+  }) => caller.callServerEndpoint<_i51.ProductPage>(
     'productPg',
     'getActiveProductsPage',
     {
@@ -2763,14 +2793,14 @@ class EndpointProductPg extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i50.ProductPage> searchActiveProducts({
+  _i2.Future<_i51.ProductPage> searchActiveProducts({
     required String query,
     required int limit,
     String? pageToken,
     String? categoryId,
     String? subCategoryId,
     required double similarityThreshold,
-  }) => caller.callServerEndpoint<_i50.ProductPage>(
+  }) => caller.callServerEndpoint<_i51.ProductPage>(
     'productPg',
     'searchActiveProducts',
     {
@@ -2828,33 +2858,33 @@ class EndpointProductRanking extends _i1.EndpointRef {
         {'productId': productId},
       );
 
-  _i2.Future<List<_i52.ProductRankingItem>> getTrendingProducts({
+  _i2.Future<List<_i53.ProductRankingItem>> getTrendingProducts({
     required int limit,
-  }) => caller.callServerEndpoint<List<_i52.ProductRankingItem>>(
+  }) => caller.callServerEndpoint<List<_i53.ProductRankingItem>>(
     'productRanking',
     'getTrendingProducts',
     {'limit': limit},
   );
 
-  _i2.Future<List<_i52.ProductRankingItem>> getMostSellingProducts({
+  _i2.Future<List<_i53.ProductRankingItem>> getMostSellingProducts({
     required int limit,
-  }) => caller.callServerEndpoint<List<_i52.ProductRankingItem>>(
+  }) => caller.callServerEndpoint<List<_i53.ProductRankingItem>>(
     'productRanking',
     'getMostSellingProducts',
     {'limit': limit},
   );
 
-  _i2.Future<List<_i52.ProductRankingItem>> getMostViewedProducts({
+  _i2.Future<List<_i53.ProductRankingItem>> getMostViewedProducts({
     required int limit,
-  }) => caller.callServerEndpoint<List<_i52.ProductRankingItem>>(
+  }) => caller.callServerEndpoint<List<_i53.ProductRankingItem>>(
     'productRanking',
     'getMostViewedProducts',
     {'limit': limit},
   );
 
-  _i2.Future<List<_i52.ProductRankingItem>> getFrequentlyReorderedProducts({
+  _i2.Future<List<_i53.ProductRankingItem>> getFrequentlyReorderedProducts({
     required int limit,
-  }) => caller.callServerEndpoint<List<_i52.ProductRankingItem>>(
+  }) => caller.callServerEndpoint<List<_i53.ProductRankingItem>>(
     'productRanking',
     'getFrequentlyReorderedProducts',
     {'limit': limit},
@@ -2868,11 +2898,11 @@ class EndpointRefund extends _i1.EndpointRef {
   @override
   String get name => 'refund';
 
-  _i2.Future<_i53.RefundRecord> initiateRefund(
+  _i2.Future<_i26.RefundRecord> initiateRefund(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i53.RefundRecord>(
+  ) => caller.callServerEndpoint<_i26.RefundRecord>(
     'refund',
     'initiateRefund',
     {
@@ -2882,13 +2912,27 @@ class EndpointRefund extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i53.RefundRecord?> getRefundStatus(
+  _i2.Future<_i26.RefundRecord?> getRefundStatus(
     String orderId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<_i53.RefundRecord?>(
+  ) => caller.callServerEndpoint<_i26.RefundRecord?>(
     'refund',
     'getRefundStatus',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i26.RefundRecord?> adminGetRefundStatus(
+    String orderId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i26.RefundRecord?>(
+    'refund',
+    'adminGetRefundStatus',
     {
       'orderId': orderId,
       'firebaseUid': firebaseUid,

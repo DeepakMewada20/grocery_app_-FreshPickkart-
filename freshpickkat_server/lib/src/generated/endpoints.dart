@@ -2394,6 +2394,68 @@ class Endpoints extends _i1.EndpointDispatch {
                     adminReply: params['adminReply'],
                   ),
         ),
+        'getRefundForComplaint': _i1.MethodConnector(
+          name: 'getRefundForComplaint',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'complaintId': _i1.ParameterDescription(
+              name: 'complaintId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['complaint'] as _i10.ComplaintEndpoint)
+                  .getRefundForComplaint(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    complaintId: params['complaintId'],
+                  ),
+        ),
+        'getUserRefundForComplaint': _i1.MethodConnector(
+          name: 'getUserRefundForComplaint',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'complaintId': _i1.ParameterDescription(
+              name: 'complaintId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['complaint'] as _i10.ComplaintEndpoint)
+                  .getUserRefundForComplaint(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    complaintId: params['complaintId'],
+                  ),
+        ),
       },
     );
     connectors['coupon'] = _i1.EndpointConnector(
@@ -6336,6 +6398,37 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['refund'] as _i23.RefundEndpoint).getRefundStatus(
+                    session,
+                    params['orderId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'adminGetRefundStatus': _i1.MethodConnector(
+          name: 'adminGetRefundStatus',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['refund'] as _i23.RefundEndpoint)
+                  .adminGetRefundStatus(
                     session,
                     params['orderId'],
                     params['firebaseUid'],

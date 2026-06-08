@@ -114,6 +114,18 @@ class AdminComplaintController extends GetxController {
     });
   }
 
+  Future<RefundRecord?> getRefundForComplaint(String complaintId) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.getRefundForComplaint(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaintId,
+      );
+    });
+  }
+
   Future<Complaint> refundComplaint(
     Complaint complaint, {
     required double amount,

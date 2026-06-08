@@ -19,4 +19,15 @@ class RefundService {
     final idToken = await AuthController.instance.requireIdToken();
     return _client.refund.getRefundStatus(orderId, user.uid, idToken);
   }
+
+  Future<RefundRecord?> getRefundByComplaintId(String complaintId) async {
+    final user = AuthController.instance.currentUser;
+    if (user == null) throw Exception(ErrorMessages.loginRequired);
+    final idToken = await AuthController.instance.requireIdToken();
+    return _client.complaint.getUserRefundForComplaint(
+      firebaseUid: user.uid,
+      idToken: idToken,
+      complaintId: complaintId,
+    );
+  }
 }
