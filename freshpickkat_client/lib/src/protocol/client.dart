@@ -393,6 +393,22 @@ class EndpointBogo extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> setBogoOfferActive(
+    String triggerProductId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'bogo',
+    'setBogoOfferActive',
+    {
+      'triggerProductId': triggerProductId,
+      'isActive': isActive,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<List<_i12.BogoOffer>> getAllOffers(
     String firebaseUid,
     String idToken,
@@ -452,22 +468,6 @@ class EndpointBogo extends _i1.EndpointRef {
     'getOfferForProduct',
     {
       'triggerProductId': triggerProductId,
-      'firebaseUid': firebaseUid,
-      'idToken': idToken,
-    },
-  );
-
-  _i2.Future<bool> setBogoOfferActive(
-    String triggerProductId,
-    bool isActive,
-    String firebaseUid,
-    String idToken,
-  ) => caller.callServerEndpoint<bool>(
-    'bogo',
-    'setBogoOfferActive',
-    {
-      'triggerProductId': triggerProductId,
-      'isActive': isActive,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },
@@ -2390,6 +2390,20 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<String> checkProductUpdateConflicts(
+    _i49.Product product,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<String>(
+    'product',
+    'checkProductUpdateConflicts',
+    {
+      'product': product,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<String> deleteProduct(
     String productId,
     String firebaseUid,
@@ -2399,6 +2413,22 @@ class EndpointProduct extends _i1.EndpointRef {
     'deleteProduct',
     {
       'productId': productId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> deactivateProduct(
+    String productId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'product',
+    'deactivateProduct',
+    {
+      'productId': productId,
+      'isActive': isActive,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },
@@ -2530,22 +2560,6 @@ class EndpointProduct extends _i1.EndpointRef {
     'product',
     'seedProductMetricsForTesting',
     {
-      'firebaseUid': firebaseUid,
-      'idToken': idToken,
-    },
-  );
-
-  _i2.Future<bool> deactivateProduct(
-    String productId,
-    bool isActive,
-    String firebaseUid,
-    String idToken,
-  ) => caller.callServerEndpoint<bool>(
-    'product',
-    'deactivateProduct',
-    {
-      'productId': productId,
-      'isActive': isActive,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },

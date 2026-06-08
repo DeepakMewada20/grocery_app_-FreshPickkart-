@@ -160,16 +160,33 @@ class AdminProductController extends GetxController {
 
   Future<void> updateProduct(Product product) async {
     try {
-      await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+
+      // Step 1: Check for variant conflicts before updating
+      final conflictMessage = await ApiClient().request<String>(() async {
+        return _client.product.checkProductUpdateConflicts(
+          product,
+          uid,
+          idToken,
         );
+      });
+
+      if (conflictMessage.isNotEmpty) {
+        final shouldProceed = await showDeactivationDialog(
+          title: 'Variants In Use',
+          message: conflictMessage,
+        );
+        if (!shouldProceed) return;
+      }
+
+      // Step 2: Actually update
+      await ApiClient().request(() async {
         await _client.product.updateProduct(product, uid, idToken);
       });
 
-      // Update local item to avoid full reload if possible,
-      // but simpler is to just refresh the current page or specific item.
       _upsertLocalProduct(product);
     } catch (e) {
       rethrow;

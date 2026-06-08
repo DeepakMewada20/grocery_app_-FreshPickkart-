@@ -840,6 +840,43 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['idToken'],
               ),
         ),
+        'setBogoOfferActive': _i1.MethodConnector(
+          name: 'setBogoOfferActive',
+          params: {
+            'triggerProductId': _i1.ParameterDescription(
+              name: 'triggerProductId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isActive': _i1.ParameterDescription(
+              name: 'isActive',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['bogo'] as _i5.BogoEndpoint).setBogoOfferActive(
+                    session,
+                    params['triggerProductId'],
+                    params['isActive'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
         'getAllOffers': _i1.MethodConnector(
           name: 'getAllOffers',
           params: {
@@ -5184,6 +5221,37 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'checkProductUpdateConflicts': _i1.MethodConnector(
+          name: 'checkProductUpdateConflicts',
+          params: {
+            'product': _i1.ParameterDescription(
+              name: 'product',
+              type: _i1.getType<_i41.Product>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i20.ProductEndpoint)
+                  .checkProductUpdateConflicts(
+                    session,
+                    params['product'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
         'deleteProduct': _i1.MethodConnector(
           name: 'deleteProduct',
           params: {
@@ -5211,6 +5279,43 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['product'] as _i20.ProductEndpoint).deleteProduct(
                     session,
                     params['productId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'deactivateProduct': _i1.MethodConnector(
+          name: 'deactivateProduct',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isActive': _i1.ParameterDescription(
+              name: 'isActive',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i20.ProductEndpoint)
+                  .deactivateProduct(
+                    session,
+                    params['productId'],
+                    params['isActive'],
                     params['firebaseUid'],
                     params['idToken'],
                   ),

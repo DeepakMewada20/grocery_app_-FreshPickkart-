@@ -23,6 +23,7 @@ bogo:
   - upsertOfferWithConflicts:
   - upsertOffer:
   - deleteOffer:
+  - setBogoOfferActive:
   - getAllOffers:
   - getOffersPage:
   - getActiveOffers:
@@ -163,7 +164,9 @@ product:
   - getProductsCount:
   - uploadProduct:
   - updateProduct:
+  - checkProductUpdateConflicts:
   - deleteProduct:
+  - deactivateProduct:
   - getProductSuggestions:
   - searchProducts:
   - getProductsByOffer:

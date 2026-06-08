@@ -149,6 +149,21 @@ class ProductEndpoint extends Endpoint {
     return true;
   }
 
+  Future<String> checkProductUpdateConflicts(
+    Session session,
+    Product product,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final normalized = ProductBusinessService.normalizeForSave(product);
+    return _pgProducts.checkVariantDeletionConflicts(session, normalized);
+  }
+
   Future<String> deleteProduct(
     Session session,
     String productId,

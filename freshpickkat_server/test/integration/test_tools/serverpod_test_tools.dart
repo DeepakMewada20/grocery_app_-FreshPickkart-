@@ -1169,6 +1169,45 @@ class _BogoEndpoint {
     });
   }
 
+  _i3.Future<bool> setBogoOfferActive(
+    _i1.TestSessionBuilder sessionBuilder,
+    String triggerProductId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'bogo',
+            method: 'setBogoOfferActive',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'bogo',
+          methodName: 'setBogoOfferActive',
+          parameters: _i1.testObjectToJson({
+            'triggerProductId': triggerProductId,
+            'isActive': isActive,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<List<_i13.BogoOffer>> getAllOffers(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
@@ -6060,6 +6099,43 @@ class _ProductEndpoint {
     });
   }
 
+  _i3.Future<String> checkProductUpdateConflicts(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i50.Product product,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'product',
+            method: 'checkProductUpdateConflicts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'product',
+          methodName: 'checkProductUpdateConflicts',
+          parameters: _i1.testObjectToJson({
+            'product': product,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<String> deleteProduct(
     _i1.TestSessionBuilder sessionBuilder,
     String productId,
@@ -6090,6 +6166,45 @@ class _ProductEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> deactivateProduct(
+    _i1.TestSessionBuilder sessionBuilder,
+    String productId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'product',
+            method: 'deactivateProduct',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'product',
+          methodName: 'deactivateProduct',
+          parameters: _i1.testObjectToJson({
+            'productId': productId,
+            'isActive': isActive,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

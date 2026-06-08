@@ -917,7 +917,7 @@ class PostgresProductCompatService {
   Future<bool> _isVariantReferenced(
     Session session,
     UuidValue variantId, {
-    required Transaction transaction,
+    Transaction? transaction,
   }) async {
     // bogo_offer.triggerVariantId
     final bogoTriggerCount = await BogoOfferRow.db.count(
@@ -950,6 +950,77 @@ class PostgresProductCompatService {
       transaction: transaction,
     );
     return orderCount > 0;
+  }
+
+  /// Checks whether updating [product] would delete variants that are
+  /// referenced by orders or offers. Returns a human-readable message listing
+  /// the conflicts, or an empty string if no conflicts exist.
+  Future<String> checkVariantDeletionConflicts(
+    Session session,
+    Product product,
+  ) async {
+    final productId = parseUuid(
+      product.productId ?? '',
+      fieldName: 'productId',
+    );
+
+    final existingRows = await ProductVariantRow.db.find(
+      session,
+      where: (t) => t.productId.equals(productId),
+    );
+    if (existingRows.isEmpty) return '';
+
+    final seenSkus = <String?>{};
+    final variants = (product.variants == null || product.variants!.isEmpty)
+        ? <ProductVariant>[
+            ProductVariant(
+              variantId: 'default',
+              quantityValue: product.baseQuantity ?? 1,
+              quantityUnit:
+                  cleanNullableString(product.baseUnit) ??
+                  cleanNullableString(product.quantity) ??
+                  'unit',
+              quantityDescription:
+                  cleanNullableString(product.quantityDescription) ??
+                  cleanNullableString(product.quantity),
+              price: product.price,
+              realPrice: product.realPrice,
+              isAvailable: product.isAvailable,
+              sortOrder: 0,
+            ),
+          ]
+        : product.variants!;
+
+    for (final variant in variants) {
+      final sku = (() {
+        final vId = cleanNullableString(variant.variantId);
+        if (vId == null || vId.isEmpty || vId.toLowerCase() == 'default') {
+          return '${productId.toString()}-default';
+        }
+        return vId;
+      })();
+      seenSkus.add(sku);
+    }
+
+    final variantRefs = <String>[];
+    for (final existing in existingRows) {
+      if (!seenSkus.contains(existing.sku)) {
+        final variantRowId = existing.id;
+        if (variantRowId == null) continue;
+
+        final referenced = await _isVariantReferenced(
+          session,
+          variantRowId,
+        );
+        if (referenced) {
+          variantRefs.add(existing.sku ?? 'unknown');
+        }
+      }
+    }
+
+    if (variantRefs.isEmpty) return '';
+
+    return 'This product has variants (${variantRefs.join(', ')}) that are linked to existing orders or offers. These variants cannot be deleted — they will be hidden instead. Do you want to continue?';
   }
 
   Future<String> _generateUniqueProductSlug(
