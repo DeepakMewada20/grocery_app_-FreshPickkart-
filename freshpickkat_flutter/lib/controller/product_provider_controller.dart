@@ -14,6 +14,7 @@ class ProductProviderController extends GetxController {
 
   // States
   final allProducts = <Product>[].obs;
+  final filteredProducts = <Product>[].obs;
   final trendingProducts = <Product>[].obs;
   final bestSellersProducts = <Product>[].obs;
   final mostViewedProducts = <Product>[].obs;
@@ -24,6 +25,7 @@ class ProductProviderController extends GetxController {
 
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
+  bool _pendingFilterUpdate = false;
 
   // Filters
   final currentCategory = ''.obs;
@@ -36,6 +38,19 @@ class ProductProviderController extends GetxController {
         ? 'all'
         : currentSubcategories.join(',').toLowerCase();
     return '${currentCategory.value}|$sub|${currentSortBy.value}|${currentFreeDelivery.value}';
+  }
+
+  void _applyLocalFilter() {
+    if (currentSubcategories.isEmpty) {
+      filteredProducts.assignAll(allProducts);
+      return;
+    }
+    final selected =
+        currentSubcategories.map((s) => s.trim().toLowerCase()).toSet();
+    filteredProducts.assignAll(
+      allProducts.where((p) =>
+          p.subcategory.any((s) => selected.contains(s.trim().toLowerCase()))),
+    );
   }
 
   Future<void> fetchProductsIfEmpty() async {
@@ -140,12 +155,28 @@ class ProductProviderController extends GetxController {
   }) async {
     currentCategory.value = category ?? '';
     currentSubcategories.assignAll(subcategories ?? []);
-    refreshProducts();
+    _applyLocalFilter();
+    if (_isFetching) {
+      _pendingFilterUpdate = true;
+      return;
+    }
+    if (currentSubcategories.isEmpty) {
+      refreshProducts();
+    } else {
+      clearProducts();
+      fetchProductsIfEmpty();
+    }
   }
 
   Future<void> setSubcategories(List<String> subs) async {
     currentSubcategories.assignAll(subs);
-    refreshProducts();
+    _applyLocalFilter();
+    if (_isFetching) {
+      _pendingFilterUpdate = true;
+      return;
+    }
+    clearProducts();
+    fetchProductsIfEmpty();
   }
 
   Future<void> setFreeDelivery(bool enabled) async {
@@ -209,6 +240,8 @@ class ProductProviderController extends GetxController {
         }
       }
 
+      _applyLocalFilter();
+
       if (isInitialFetch) {
         _productCache[key] = List.from(allProducts);
       }
@@ -222,6 +255,10 @@ class ProductProviderController extends GetxController {
       AppLogger.error('Products', e);
     } finally {
       isLoading.value = false;
+      if (_pendingFilterUpdate) {
+        _pendingFilterUpdate = false;
+        refreshProducts();
+      }
     }
   }
 
@@ -291,6 +328,7 @@ class ProductProviderController extends GetxController {
 
   void clearProducts() {
     allProducts.clear();
+    filteredProducts.clear();
     isMoreDataAvailable.value = true;
   }
 

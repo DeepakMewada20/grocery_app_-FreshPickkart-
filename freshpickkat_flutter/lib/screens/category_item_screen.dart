@@ -410,7 +410,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         );
       }
 
-      if (productController.allProducts.isEmpty) {
+      if (productController.filteredProducts.isEmpty) {
         return Center(
           child: Text(
             'No products found',
@@ -430,10 +430,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               constraints.maxWidth,
             ),
             itemCount:
-                productController.allProducts.length +
+                productController.filteredProducts.length +
                 (productController.isMoreDataAvailable.value ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == productController.allProducts.length) {
+              if (index == productController.filteredProducts.length) {
                 return Center(
                   child: Padding(
                     padding: EdgeInsets.all(16.r),
@@ -445,7 +445,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 );
               }
 
-              final p = productController.allProducts[index];
+              final p = productController.filteredProducts[index];
               return ProductCard(
                 product: p,
                 heroTagSuffix: '_category_grid',
