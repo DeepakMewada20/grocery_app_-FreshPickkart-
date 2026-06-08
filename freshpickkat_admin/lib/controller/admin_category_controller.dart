@@ -74,22 +74,29 @@ class AdminCategoryController extends GetxController {
   }
 
   /// Returns subcategory options with image URLs for the given category name.
+  /// Each subcategory name appears as a separate entry. Entries sharing the
+  /// same image URL are grouped together consecutively.
   List<SubcategoryOptionData> subcategoryOptionsWithImagesFor(
     String categoryName,
   ) {
     final result = <SubcategoryOptionData>[];
     for (final sub in subCategories) {
       if (sub.categoryId != categoryName) continue;
-      final joinedName = sub.subCategoriesName.join(', ');
-      result.add(
-        SubcategoryOptionData(
-          name: joinedName,
-          imageUrl: sub.subCategoriesUrl,
-          names: sub.subCategoriesName,
-        ),
-      );
+      for (final name in sub.subCategoriesName) {
+        result.add(
+          SubcategoryOptionData(
+            name: name,
+            imageUrl: sub.subCategoriesUrl,
+            names: [name],
+          ),
+        );
+      }
     }
-    result.sort((a, b) => a.name.compareTo(b.name));
+    result.sort((a, b) {
+      final imageCmp = a.imageUrl.compareTo(b.imageUrl);
+      if (imageCmp != 0) return imageCmp;
+      return a.name.compareTo(b.name);
+    });
     return result;
   }
 

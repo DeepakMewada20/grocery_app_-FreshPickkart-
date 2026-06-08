@@ -215,19 +215,18 @@ class ProductProviderController extends GetxController {
     final key = _cacheKey;
     final isInitialFetch = allProducts.isEmpty;
 
+    bool loadedFromCache = false;
     if (isInitialFetch && _productCache.containsKey(key)) {
       allProducts.assignAll(_productCache[key]!);
-      isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
-      AppLogger.info(
-        'Products',
-        'Loaded from cache: ${_productCache[key]!.length} products (Key: $key)',
-      );
+      isMoreDataAvailable.value = true;
       _applyLocalFilter();
-      return;
+      loadedFromCache = true;
     }
 
     try {
-      isLoading.value = true;
+      if (!loadedFromCache) {
+        isLoading.value = true;
+      }
       errorMessage.value = '';
 
       final newProducts = await _client.product.getProducts(
@@ -275,7 +274,9 @@ class ProductProviderController extends GetxController {
       errorMessage.value = 'Unable to load products.';
       AppLogger.error('Products', e);
     } finally {
-      isLoading.value = false;
+      if (!loadedFromCache) {
+        isLoading.value = false;
+      }
     }
   }
 
