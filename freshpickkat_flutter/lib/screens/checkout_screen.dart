@@ -114,6 +114,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  Future<void> _markPaymentFailedBestEffort(String orderId) async {
+    try {
+      await paymentService
+          .markPaymentFailed(orderId)
+          .timeout(const Duration(seconds: 15));
+    } catch (e) {
+      AppLogger.warning(
+        "Checkout",
+        "Unable to mark payment failed: $e",
+      );
+    }
+  }
+
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
 
@@ -215,14 +228,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _seedTrackingMetadata(orderId, order);
 
       if (paymentOrder == null || paymentOrder.success != true) {
-        await paymentService.markPaymentFailed(orderId);
+        await _markPaymentFailedBestEffort(orderId);
         _showError(paymentOrder?.error ?? ErrorMessages.paymentOrderFailed);
         return;
       }
 
       final razorpayOrderId = paymentOrder.razorpayOrderId;
       if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
-        await paymentService.markPaymentFailed(orderId);
+        await _markPaymentFailedBestEffort(orderId);
         _showError(ErrorMessages.paymentResponseIncomplete);
         return;
       }
@@ -231,7 +244,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final amountPaise =
           paymentOrder.amount ?? (cartController.totalAmount * 100).round();
       if (amountPaise <= 0) {
-        await paymentService.markPaymentFailed(orderId);
+        await _markPaymentFailedBestEffort(orderId);
         _showError(ErrorMessages.invalidAmount);
         return;
       }
@@ -256,7 +269,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     } catch (e) {
       if (_currentOrderId != null) {
-        await paymentService.markPaymentFailed(_currentOrderId!);
+        await _markPaymentFailedBestEffort(_currentOrderId!);
       }
       AppLogger.error('Checkout', e);
       _showError(ErrorMessages.paymentFailed);
@@ -801,7 +814,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-
     setState(() {
       _loadingStatus = 'Verifying payment...';
     });
@@ -862,6 +874,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<bool> _tryResolvePendingUpiPayment({
     required String orderId,
     required String paymentId,
+    int attempts = 6,
+    Duration retryDelay = const Duration(seconds: 3),
   }) async {
     final razorpayOrderId = _currentRazorpayOrderId;
     if (razorpayOrderId == null || razorpayOrderId.isEmpty) return false;
@@ -874,7 +888,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
     }
 
-    for (var attempt = 0; attempt < 6; attempt++) {
+    for (var attempt = 0; attempt < attempts; attempt++) {
       final user = authController.currentUser;
       if (user == null) return false;
       final idToken = await authController.requireIdToken();
@@ -905,51 +919,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return true;
       }
 
-      if (attempt < 5) {
-        await Future.delayed(const Duration(seconds: 3));
+      if (attempt < attempts - 1) {
+        await Future.delayed(retryDelay);
       }
     }
 
     return false;
-  }
-
-  Future<void> _watchPendingPaymentResolution({
-    required String orderId,
-    required String paymentId,
-  }) async {
-    for (var attempt = 0; attempt < 10; attempt++) {
-      if (!mounted) return;
-
-      final resolved = await _tryResolvePendingUpiPayment(
-        orderId: orderId,
-        paymentId: paymentId,
-      );
-      if (resolved) {
-        return;
-      }
-
-      final user = authController.currentUser;
-      if (user == null) return;
-      final idToken = await authController.requireIdToken();
-      final order = await client.order.getOrderById(
-        orderId,
-        user.uid,
-        idToken,
-      );
-      final orderPaymentStatus = order?.paymentStatus.toLowerCase().trim();
-      if (orderPaymentStatus == 'failed') {
-        _showError('Payment failed. Please try again.');
-        return;
-      }
-
-      if (attempt < 9) {
-        await Future.delayed(const Duration(seconds: 4));
-      }
-    }
-
-    _showInfo(
-      'Payment status is still syncing. If money was debited, please check Orders in a moment.',
-    );
   }
 
   Map<String, dynamic>? _extractRazorpayError(Map<dynamic, dynamic> response) {
@@ -968,8 +943,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             return Map<String, dynamic>.from(decoded['error'] as Map);
           }
         } catch (e) {
-      AppLogger.warning('Checkout', 'Error decode: $e');
-    }
+          AppLogger.warning('Checkout', 'Error decode: $e');
+        }
       }
     }
     return null;
@@ -994,38 +969,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           response['message']?.toString().trim() ??
           response['description']?.toString().trim() ??
           '';
+      final normalizedCode = code.toLowerCase().trim();
+      final normalizedMessage = message.toLowerCase();
+      final isPaymentCancelled =
+          normalizedCode == 'payment_cancelled' ||
+          normalizedCode == '2' ||
+          normalizedMessage.contains('payment cancelled') ||
+          normalizedMessage.contains('payment canceled') ||
+          normalizedMessage.contains('cancelled by user');
 
       if (orderId != null && paymentId != null && paymentId.isNotEmpty) {
-        setState(() {
-          _loadingStatus = 'Finalizing payment status...';
-        });
+        if (mounted) {
+          setState(() {
+            _loadingStatus = 'Finalizing payment status...';
+          });
+        }
         final resolved = await _tryResolvePendingUpiPayment(
           orderId: orderId,
           paymentId: paymentId,
+          attempts: isPaymentCancelled ? 1 : 6,
         );
         if (resolved) {
-          return;
-        }
-
-        if (code == 'payment_cancelled') {
-          _showInfo(
-            'Payment status is syncing. Please wait while we confirm it.',
-          );
-          Future(() async {
-            await _watchPendingPaymentResolution(
-              orderId: orderId,
-              paymentId: paymentId,
-            );
-          });
           return;
         }
       }
 
       if (orderId != null) {
-        await paymentService.markPaymentFailed(orderId);
+        await _markPaymentFailedBestEffort(orderId);
       }
-      _showError(message.isEmpty ? ErrorMessages.paymentFailed : ErrorMessages.paymentError(message));
-      AppLogger.error('Checkout', 'Payment error code=$code msg=$message');
+
+      if (isPaymentCancelled) {
+        _showError('Payment cancelled. Please try again.');
+        AppLogger.warning('Checkout', 'Payment cancelled by user');
+        return;
+      }
+
+      _showError(
+        message.isEmpty
+            ? ErrorMessages.paymentFailed
+            : ErrorMessages.paymentError(message),
+      );
+      AppLogger.error(
+        "Checkout",
+        "Payment error code=$code msg=$message",
+      );
     } catch (e) {
       AppLogger.error('Checkout', e);
       _showError(ErrorMessages.paymentFailed);
@@ -1041,6 +1028,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _errorMessage = safeMessage;
         _isErrorBanner = true;
         _isProcessing = false;
+        _loadingStatus = null;
       });
     }
   }
@@ -1054,6 +1042,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _errorMessage = safeMessage;
         _isErrorBanner = false;
         _isProcessing = false;
+        _loadingStatus = null;
       });
     }
   }
@@ -1909,9 +1898,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             'Delivery Fee',
             cartController.deliveryFee == 0
                 ? (cartController.freeDeliveryApplied &&
-                        cartController.originalDeliveryFee > 0
-                    ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
-                    : 'FREE')
+                          cartController.originalDeliveryFee > 0
+                      ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
+                      : 'FREE')
                 : '₹${cartController.deliveryFee.formatPrice}',
             valueColor: cartController.deliveryFee == 0
                 ? Colors.green
