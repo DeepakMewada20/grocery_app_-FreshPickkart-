@@ -202,6 +202,7 @@ class ProductProviderController extends GetxController {
         'Products',
         'Loaded from cache: ${_productCache[key]!.length} products (Key: $key)',
       );
+      _applyLocalFilter();
       return;
     }
 
@@ -338,6 +339,7 @@ class ProductProviderController extends GetxController {
     if (_productCache.containsKey(key) && _productCache[key]!.isNotEmpty) {
       allProducts.assignAll(_productCache[key]!);
       isMoreDataAvailable.value = _productCache[key]!.length >= _cacheLimit;
+      _applyLocalFilter();
     } else {
       clearProducts();
       fetchProductsIfEmpty();
