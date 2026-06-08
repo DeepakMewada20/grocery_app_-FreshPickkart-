@@ -1859,14 +1859,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(height: 12.h),
           _buildBillRow(
             'MRP Total',
-            '₹${cartController.mrpTotal.toStringAsFixed(0)}',
+            '₹${cartController.mrpTotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.productDiscountTotal > 0) ...[
             SizedBox(height: 8.h),
             _buildBillRow(
               'Product Discount',
-              '-₹${cartController.productDiscountTotal.toStringAsFixed(0)}',
+              '-₹${cartController.productDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -1875,7 +1875,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Combo Savings',
-              '-₹${cartController.comboDiscountTotal.toStringAsFixed(0)}',
+              '-₹${cartController.comboDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -1884,7 +1884,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'BOGO Savings',
-              '-₹${cartController.bogoDiscountTotal.toStringAsFixed(0)}',
+              '-₹${cartController.bogoDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -1892,14 +1892,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(height: 8.h),
           _buildBillRow(
             'Items Total (Combo Applied)',
-            '₹${cartController.subtotal.toStringAsFixed(0)}',
+            '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.couponDiscount > 0) ...[
             SizedBox(height: 8.h),
             _buildBillRow(
               'Coupon Discount',
-              '-₹${cartController.couponDiscount.toStringAsFixed(0)}',
+              '-₹${cartController.couponDiscount.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -1910,9 +1910,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             cartController.deliveryFee == 0
                 ? (cartController.freeDeliveryApplied &&
                         cartController.originalDeliveryFee > 0
-                    ? '₹${cartController.originalDeliveryFee.toStringAsFixed(0)} -> FREE'
+                    ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
                     : 'FREE')
-                : '₹${cartController.deliveryFee.toStringAsFixed(0)}',
+                : '₹${cartController.deliveryFee.formatPrice}',
             valueColor: cartController.deliveryFee == 0
                 ? Colors.green
                 : cs.onSurface,
@@ -1924,7 +1924,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           _buildBillRow(
             'To Pay',
-            '₹${cartController.totalAmount.toStringAsFixed(0)}',
+            '₹${cartController.totalAmount.formatPrice}',
             isTotal: true,
             cs: cs,
           ),

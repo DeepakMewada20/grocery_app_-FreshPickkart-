@@ -480,7 +480,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
           ),
           SizedBox(width: 8.w),
           AutoSizeText(
-            'INR ${item.totalPrice.toStringAsFixed(0)}',
+            'INR ${item.totalPrice.formatPrice}',
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.bold,
@@ -555,7 +555,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     ),
                     SizedBox(width: 8.w),
                     AutoSizeText(
-                      'INR ${item.totalPrice.toStringAsFixed(0)}',
+                      'INR ${item.totalPrice.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.75),
                         fontSize: 13.sp,
@@ -726,14 +726,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         children: [
           _buildBillRow(
             'Item Total',
-            'INR ${order.totalAmount.toStringAsFixed(0)}',
+            'INR ${order.totalAmount.formatPrice}',
             cs: cs,
           ),
           if (order.discountAmount > 0) ...[
             SizedBox(height: 8.h),
             _buildBillRow(
               'Discount',
-              '-INR ${order.discountAmount.toStringAsFixed(0)}',
+              '-INR ${order.discountAmount.formatPrice}',
               cs: cs,
               valueColor: Colors.green,
             ),
@@ -743,7 +743,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             'Delivery Fee',
             order.deliveryFee == 0
                 ? 'FREE'
-                : 'INR ${order.deliveryFee.toStringAsFixed(0)}',
+                : 'INR ${order.deliveryFee.formatPrice}',
             cs: cs,
             valueColor: order.deliveryFee == 0 ? Colors.green : cs.onSurface,
           ),
@@ -759,7 +759,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               ),
               SizedBox(width: 12.w),
               AutoSizeText(
-                'INR ${order.finalAmount.toStringAsFixed(0)}',
+                'INR ${order.finalAmount.formatPrice}',
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontSize: 20.sp,

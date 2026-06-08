@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
@@ -113,7 +114,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             ),
                             SizedBox(width: 8.w),
                             AutoSizeText(
-                              'INR ${order.finalAmount.toStringAsFixed(0)}',
+                              'INR ${order.finalAmount.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface,
                                 fontWeight: FontWeight.bold,
