@@ -844,23 +844,36 @@ class PostgresProductCompatService {
       index++;
     }
 
-    // Clean up removed variants
+    // Clean up removed variants — safe pre-check before attempting delete.
+    // Using try/catch here would abort the whole transaction on FK violation
+    // (PostgreSQL error 25P02). Instead, we check references first.
     for (final existing in existingRows) {
       if (!seenSkus.contains(existing.sku)) {
-        try {
-          await ProductVariantRow.db.deleteRow(
-            session,
-            existing,
-            transaction: transaction,
-          );
-        } catch (e) {
-          // If referenced by an offer, mark as unavailable instead of failing
+        final variantRowId = existing.id;
+        if (variantRowId == null) continue;
+
+        final referenced = await _isVariantReferenced(
+          session,
+          variantRowId,
+          transaction: transaction,
+        );
+
+        if (referenced) {
+          // Referenced by order_item / bogo / combo — cannot delete (ON DELETE RESTRICT).
+          // Mark unavailable so it is hidden from the catalog but keeps FK integrity.
           await ProductVariantRow.db.updateRow(
             session,
             existing.copyWith(
               isAvailable: false,
               updatedAt: DateTime.now().toUtc(),
             ),
+            transaction: transaction,
+          );
+        } else {
+          // Not referenced anywhere — safe to hard-delete.
+          await ProductVariantRow.db.deleteRow(
+            session,
+            existing,
             transaction: transaction,
           );
         }
@@ -895,6 +908,48 @@ class PostgresProductCompatService {
         transaction: transaction,
       );
     }
+  }
+
+  /// Returns true if [variantId] is referenced by any table with
+  /// ON DELETE RESTRICT on product_variant.id.
+  /// Checking before deleting prevents PostgreSQL error 25P02
+  /// (current transaction is aborted) from killing the parent transaction.
+  Future<bool> _isVariantReferenced(
+    Session session,
+    UuidValue variantId, {
+    required Transaction transaction,
+  }) async {
+    // bogo_offer.triggerVariantId
+    final bogoTriggerCount = await BogoOfferRow.db.count(
+      session,
+      where: (t) => t.triggerVariantId.equals(variantId),
+      transaction: transaction,
+    );
+    if (bogoTriggerCount > 0) return true;
+
+    // bogo_offer_reward.rewardVariantId
+    final bogoRewardCount = await BogoOfferRewardRow.db.count(
+      session,
+      where: (t) => t.rewardVariantId.equals(variantId),
+      transaction: transaction,
+    );
+    if (bogoRewardCount > 0) return true;
+
+    // combo_offer_item.productVariantId
+    final comboCount = await ComboOfferItemRow.db.count(
+      session,
+      where: (t) => t.productVariantId.equals(variantId),
+      transaction: transaction,
+    );
+    if (comboCount > 0) return true;
+
+    // order_item.productVariantId
+    final orderCount = await OrderItemRow.db.count(
+      session,
+      where: (t) => t.productVariantId.equals(variantId),
+      transaction: transaction,
+    );
+    return orderCount > 0;
   }
 
   Future<String> _generateUniqueProductSlug(

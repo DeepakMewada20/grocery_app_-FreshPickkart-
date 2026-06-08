@@ -95,6 +95,12 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   late final TextEditingController mrpCtrl;
 
   late List<VariantDraft> extraVariants;
+  // Preserves the original variantId of the first variant so that when the
+  // product is saved, the server generates the same SKU as stored in the DB.
+  // Hardcoding 'default' here causes a SKU mismatch for products whose first
+  // variant was originally saved with a different variantId, which triggers a
+  // spurious DELETE attempt and a PostgreSQL 25P02 transaction-abort error.
+  String _originalFirstVariantId = 'default';
   late String discountType;
   late String baseUnit;
   late String stockUnit;
@@ -164,6 +170,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         .skip(1)
         .map(VariantDraft.fromVariant)
         .toList();
+
+    // Preserve the original variantId from the DB so the server produces the
+    // same SKU on update. Falls back to 'default' for new products.
+    final firstVariantId = product?.variants?.firstOrNull?.variantId.trim();
+    _originalFirstVariantId =
+        (firstVariantId != null && firstVariantId.isNotEmpty)
+            ? firstVariantId
+            : 'default';
 
     discountType = product?.discountType == 'flat' ? 'flat' : 'percentage';
     baseUnit = product?.baseUnit ?? _parseQuantityUnit(product?.quantity ?? '');
@@ -538,7 +552,9 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   List<ProductVariant> _buildVariants() {
     final variants = <ProductVariant>[
       ProductVariant(
-        variantId: 'default',
+        // Use the original variantId so the server computes the same SKU as
+        // stored in the DB. Avoids a spurious DELETE that breaks the transaction.
+        variantId: _originalFirstVariantId,
         quantityValue: _parseQuantityValue(
           '${quantityValueCtrl.text.trim()} $baseUnit',
         ),
