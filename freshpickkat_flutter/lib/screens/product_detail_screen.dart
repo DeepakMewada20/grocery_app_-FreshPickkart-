@@ -49,6 +49,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late final String _controllerTag;
   late String _selectedVariantId;
   bool _isDescriptionExpanded = false;
+  final ScrollController _scrollController = ScrollController();
+  double _appBarOpacity = 0.0;
   StreamSubscription? _cartSubscription;
 
   @override
@@ -67,10 +69,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _syncSelectedVariantFromCart();
     });
     _recordProductView();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _cartSubscription?.cancel();
     Get.delete<ProductDetailController>(tag: _controllerTag);
     super.dispose();
@@ -200,6 +204,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  void _onScroll() {
+    const collapseThreshold = 200.0;
+    final opacity =
+        (_scrollController.offset / collapseThreshold).clamp(0.0, 1.0);
+    if (opacity != _appBarOpacity) {
+      setState(() => _appBarOpacity = opacity);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -219,44 +232,58 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+          backgroundColor: Colors.black.withValues(alpha: _appBarOpacity),
+          elevation: _appBarOpacity * 2,
+          title: Opacity(
+            opacity: _appBarOpacity,
+            child: Text(
+              displayProduct.productName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           automaticallyImplyLeading: false,
           toolbarHeight: 44,
-          leadingWidth: 44,
+          leadingWidth: 42,
           leading: Padding(
-            padding: EdgeInsets.only(left: 4.w),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-                size: 18,
-              ),
-              onPressed: () => Get.back(),
-              style: IconButton.styleFrom(
+            padding: EdgeInsets.only(left: 12.w),
+            child: GestureDetector(
+              onTap: () => Get.back(),
+              child: CircleAvatar(
+                radius: 15,
                 backgroundColor: Colors.grey.withValues(alpha: 0.5),
-                shape: const CircleBorder(),
-                fixedSize: const Size(36, 36),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 16,
+                ),
               ),
             ),
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(right: 4.w),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.share_outlined,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                onPressed: () => ShareService.instance.shareProduct(
+              padding: EdgeInsets.only(right: 12.w),
+              child: GestureDetector(
+                onTap: () => ShareService.instance.shareProduct(
                   displayProduct,
                   context: context,
                 ),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.withValues(alpha: 0.5),
-                  shape: const CircleBorder(),
-                  fixedSize: const Size(36, 36),
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.share_outlined,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
               ),
             ),
@@ -264,6 +291,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         extendBodyBehindAppBar: true,
         body: SingleChildScrollView(
+          controller: _scrollController,
           child: AppResponsive.constrainContent(
             context: context,
             maxWidth: AppResponsive.maxDetailWidth,
