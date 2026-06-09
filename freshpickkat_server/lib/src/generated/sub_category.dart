@@ -19,12 +19,14 @@ abstract class SubCategory
     required this.categoryId,
     required this.subCategoriesName,
     required this.subCategoriesUrl,
-  });
+    bool? isActive,
+  }) : isActive = isActive ?? true;
 
   factory SubCategory({
     required String categoryId,
     required List<String> subCategoriesName,
     required String subCategoriesUrl,
+    bool? isActive,
   }) = _SubCategoryImpl;
 
   factory SubCategory.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -34,6 +36,9 @@ abstract class SubCategory
         jsonSerialization['subCategoriesName'],
       ),
       subCategoriesUrl: jsonSerialization['subCategoriesUrl'] as String,
+      isActive: jsonSerialization['isActive'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 
@@ -43,6 +48,8 @@ abstract class SubCategory
 
   String subCategoriesUrl;
 
+  bool isActive;
+
   /// Returns a shallow copy of this [SubCategory]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -50,6 +57,7 @@ abstract class SubCategory
     String? categoryId,
     List<String>? subCategoriesName,
     String? subCategoriesUrl,
+    bool? isActive,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -58,6 +66,7 @@ abstract class SubCategory
       'categoryId': categoryId,
       'subCategoriesName': subCategoriesName.toJson(),
       'subCategoriesUrl': subCategoriesUrl,
+      'isActive': isActive,
     };
   }
 
@@ -68,6 +77,7 @@ abstract class SubCategory
       'categoryId': categoryId,
       'subCategoriesName': subCategoriesName.toJson(),
       'subCategoriesUrl': subCategoriesUrl,
+      'isActive': isActive,
     };
   }
 
@@ -82,10 +92,12 @@ class _SubCategoryImpl extends SubCategory {
     required String categoryId,
     required List<String> subCategoriesName,
     required String subCategoriesUrl,
+    bool? isActive,
   }) : super._(
          categoryId: categoryId,
          subCategoriesName: subCategoriesName,
          subCategoriesUrl: subCategoriesUrl,
+         isActive: isActive,
        );
 
   /// Returns a shallow copy of this [SubCategory]
@@ -96,12 +108,14 @@ class _SubCategoryImpl extends SubCategory {
     String? categoryId,
     List<String>? subCategoriesName,
     String? subCategoriesUrl,
+    bool? isActive,
   }) {
     return SubCategory(
       categoryId: categoryId ?? this.categoryId,
       subCategoriesName:
           subCategoriesName ?? this.subCategoriesName.map((e0) => e0).toList(),
       subCategoriesUrl: subCategoriesUrl ?? this.subCategoriesUrl,
+      isActive: isActive ?? this.isActive,
     );
   }
 }

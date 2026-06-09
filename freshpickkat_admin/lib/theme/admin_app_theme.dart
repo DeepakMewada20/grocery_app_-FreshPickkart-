@@ -426,16 +426,16 @@ class AdminAppTheme {
               ),
             )
           : null,
-      snackBarTheme: isDark
-          ? SnackBarThemeData(
-              backgroundColor: AdminThemeTokens.darkSurfaceElevated,
-              contentTextStyle: const TextStyle(color: Colors.white),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark ? AdminThemeTokens.darkSurfaceElevated : null,
+        contentTextStyle: isDark ? const TextStyle(color: Colors.white) : null,
+        behavior: isDark ? SnackBarBehavior.floating : null,
+        shape: isDark
+            ? RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-              ),
-            )
-          : null,
+              )
+            : null,
+      ),
       switchTheme: isDark
           ? SwitchThemeData(
               thumbColor: WidgetStateProperty.resolveWith((states) {

@@ -19,13 +19,16 @@ abstract class Category implements _i1.SerializableModel {
     required this.categoryImageUrl,
     required this.subCategory,
     bool? isFreeDelivery,
-  }) : isFreeDelivery = isFreeDelivery ?? false;
+    bool? isActive,
+  }) : isFreeDelivery = isFreeDelivery ?? false,
+       isActive = isActive ?? true;
 
   factory Category({
     required String categoryName,
     required String categoryImageUrl,
     required Map<String, String> subCategory,
     bool? isFreeDelivery,
+    bool? isActive,
   }) = _CategoryImpl;
 
   factory Category.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -38,6 +41,9 @@ abstract class Category implements _i1.SerializableModel {
       isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
+      isActive: jsonSerialization['isActive'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
     );
   }
 
@@ -49,6 +55,8 @@ abstract class Category implements _i1.SerializableModel {
 
   bool isFreeDelivery;
 
+  bool isActive;
+
   /// Returns a shallow copy of this [Category]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -57,6 +65,7 @@ abstract class Category implements _i1.SerializableModel {
     String? categoryImageUrl,
     Map<String, String>? subCategory,
     bool? isFreeDelivery,
+    bool? isActive,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -66,6 +75,7 @@ abstract class Category implements _i1.SerializableModel {
       'categoryImageUrl': categoryImageUrl,
       'subCategory': subCategory.toJson(),
       'isFreeDelivery': isFreeDelivery,
+      'isActive': isActive,
     };
   }
 
@@ -81,11 +91,13 @@ class _CategoryImpl extends Category {
     required String categoryImageUrl,
     required Map<String, String> subCategory,
     bool? isFreeDelivery,
+    bool? isActive,
   }) : super._(
          categoryName: categoryName,
          categoryImageUrl: categoryImageUrl,
          subCategory: subCategory,
          isFreeDelivery: isFreeDelivery,
+         isActive: isActive,
        );
 
   /// Returns a shallow copy of this [Category]
@@ -97,6 +109,7 @@ class _CategoryImpl extends Category {
     String? categoryImageUrl,
     Map<String, String>? subCategory,
     bool? isFreeDelivery,
+    bool? isActive,
   }) {
     return Category(
       categoryName: categoryName ?? this.categoryName,
@@ -113,6 +126,7 @@ class _CategoryImpl extends Category {
             ),
           ),
       isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
+      isActive: isActive ?? this.isActive,
     );
   }
 }

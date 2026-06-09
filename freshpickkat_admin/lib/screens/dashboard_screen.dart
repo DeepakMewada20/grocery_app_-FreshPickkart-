@@ -16,6 +16,7 @@ import 'payment_monitoring_screen.dart';
 import 'cancellation_requests_screen.dart';
 import 'customers_screen.dart';
 import 'live_delivery_screen.dart';
+import 'deactivated_items_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -449,6 +450,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const BroadcastsScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block_flipped),
+              title: const Text('Deactivated Items'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DeactivatedItemsScreen(),
+                  ),
                 );
               },
             ),

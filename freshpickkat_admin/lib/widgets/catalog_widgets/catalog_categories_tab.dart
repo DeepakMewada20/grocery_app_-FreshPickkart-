@@ -4,7 +4,6 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
-import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_picker_button.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_preview.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/modern_text_field.dart';
@@ -233,39 +232,46 @@ class CatalogCategoriesTab extends StatelessWidget {
     required Future<bool> Function() onConfirm,
     required Future<bool> Function(String, bool) onUndo,
   }) {
+    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 final ok = await onConfirm();
-                if (context.mounted && ok) {
-                  showUndoSnackBar(
-                    context,
-                    message: 'Deactivated',
-                    onUndo: () {
-                      onUndo(categoryName, true);
-                    },
+                if (!ok) return;
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: const Text('Deactivated'),
+                      duration: const Duration(seconds: 4),
+                      action: SnackBarAction(
+                        label: 'UNDO',
+                        onPressed: () => onUndo(categoryName, true),
+                      ),
+                    ),
                   );
-                }
               } catch (e) {
-                if (context.mounted) {
-                  _showCatalogSnackBar(context, 'Delete failed: $e');
-                }
+                messenger
+                  ..clearSnackBars()
+                  ..showSnackBar(
+                    SnackBar(content: Text('Delete failed: $e')),
+                  );
               }
             },
             child: Text(
               'Delete',
-              style: TextStyle(color: AdminAppTheme.getErrorColor(context)),
+              style: TextStyle(color: AdminAppTheme.getErrorColor(dialogContext)),
             ),
           ),
         ],

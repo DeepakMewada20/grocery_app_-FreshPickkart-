@@ -488,6 +488,13 @@ class EndpointCategory extends _i1.EndpointRef {
         {},
       );
 
+  _i2.Future<List<_i15.Category>> getAllCategories() =>
+      caller.callServerEndpoint<List<_i15.Category>>(
+        'category',
+        'getAllCategories',
+        {},
+      );
+
   _i2.Future<bool> uploadCategory(
     _i15.Category category,
     String firebaseUid,

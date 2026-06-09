@@ -3,3 +3,4 @@ fields:
     categoryId: String
     subCategoriesName: List<String>
     subCategoriesUrl: String
+    isActive: bool, default=true

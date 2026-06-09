@@ -32,6 +32,7 @@ class AdminCategoryController extends GetxController {
 
   final RxList<Category> categories = <Category>[].obs;
   final RxList<SubCategory> subCategories = <SubCategory>[].obs;
+  final RxList<Category> allCategories = <Category>[].obs;
   final RxBool isLoading = false.obs;
   final RxnString error = RxnString(null);
 
@@ -60,6 +61,27 @@ class AdminCategoryController extends GetxController {
       networkController.showError(onRetry: loadCategories);
     } on RequestTimeoutException {
       networkController.showError(onRetry: loadCategories);
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> loadAllCategories() async {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      final result = await ApiClient().request(() async {
+        return await _client.category.getAllCategories();
+      });
+      allCategories.assignAll(result);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadAllCategories);
+    } on NetworkException {
+      networkController.showError(onRetry: loadAllCategories);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadAllCategories);
     } catch (e) {
       error.value = e.toString();
     } finally {
