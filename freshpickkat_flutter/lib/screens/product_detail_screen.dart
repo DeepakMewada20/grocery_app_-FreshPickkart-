@@ -48,6 +48,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late final ProductDetailController _controller;
   late final String _controllerTag;
   late String _selectedVariantId;
+  bool _isDescriptionExpanded = false;
   StreamSubscription? _cartSubscription;
 
   @override
@@ -593,8 +594,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       SizedBox(height: 12.h),
                       const Divider(color: Colors.white24),
-                      SizedBox(height: 12.h),
-
+                      SizedBox(height: 16.h),
+                      _buildDescriptionSection(displayProduct),
+                      SizedBox(height: 16.h),
+                      const Divider(color: Colors.white24),
+                      SizedBox(height: 16.h),
                       Text(
                         'Related Products',
                         style: TextStyle(
@@ -785,6 +789,114 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
       );
     }
+  }
+
+  Widget _buildDescriptionSection(Product product) {
+    final hasShort = product.shortDescription != null &&
+        product.shortDescription!.trim().isNotEmpty;
+    final hasLong =
+        product.description != null && product.description!.trim().isNotEmpty;
+    final cs = Theme.of(context).colorScheme;
+
+    if (!hasShort && !hasLong) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Text(
+          'There is no short and long description for this product',
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.5),
+            fontSize: 14.sp,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasShort) ...[
+            Text(
+              'Description',
+              style: TextStyle(
+                color: cs.onSurface,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              product.shortDescription!,
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.7),
+                fontSize: 14.sp,
+              ),
+            ),
+            if (hasLong) SizedBox(height: 16.h),
+          ],
+          if (hasLong) ...[
+            if (!hasShort)
+              Text(
+                'Description',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            SizedBox(height: 8.h),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _isDescriptionExpanded = !_isDescriptionExpanded;
+                });
+              },
+              borderRadius: BorderRadius.circular(8.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.description!,
+                    maxLines: _isDescriptionExpanded ? null : 2,
+                    overflow: _isDescriptionExpanded
+                        ? null
+                        : TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.7),
+                      fontSize: 14.sp,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isDescriptionExpanded ? 'Show less' : 'Read more',
+                        style: TextStyle(
+                          color: cs.primary,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Icon(
+                        _isDescriptionExpanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        color: cs.primary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildRelatedProducts(Product currentProduct) {
