@@ -108,33 +108,23 @@ Future<bool> showDeactivationDialog({
   ) ?? false;
 }
 
-void showUndoSnackbar({
-  required String title,
+void showUndoSnackBar(
+  BuildContext context, {
   required String message,
   required VoidCallback onUndo,
-  Duration duration = const Duration(seconds: 5),
 }) {
-  if (Get.isSnackbarOpen) Get.closeCurrentSnackbar();
-
-  Get.snackbar(
-    title,
-    message,
-    snackPosition: SnackPosition.BOTTOM,
-    backgroundColor: AdminThemeTokens.warning,
-    colorText: AdminThemeTokens.white,
-    duration: duration,
-    mainButton: TextButton(
-      onPressed: () {
-        onUndo();
-        Get.closeCurrentSnackbar();
-      },
-      child: const Text(
-        'UNDO',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: onUndo,
         ),
       ),
-    ),
-  );
+    );
 }
+
+

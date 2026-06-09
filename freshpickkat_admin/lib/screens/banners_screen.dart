@@ -280,19 +280,21 @@ class _BannersScreenState extends State<BannersScreen>
       );
       return;
     }
-    final messenger = ScaffoldMessenger.of(context);
     final result = await showConfirmActionDialog(
       context: context,
       title: 'Delete Banner',
       content: 'Are you sure you want to delete "${banner.title}"?',
       confirmLabel: 'Delete',
-      onConfirm: () async {
-        await _controller.deleteBanner(banner.bannerId ?? '');
-        return true;
-      },
+      onConfirm: () => _controller.deleteBanner(banner.bannerId ?? ''),
     );
     if (result != true || !mounted) return;
-    messenger.showSnackBar(const SnackBar(content: Text('Banner deleted')));
+    showUndoSnackBar(
+      context,
+      message: 'Banner deactivated',
+      onUndo: () {
+        _controller.toggleBannerActive(banner.bannerId ?? '', true);
+      },
+    );
   }
 
   Widget _buildFilterChip(String label, _BannerMode? mode) {

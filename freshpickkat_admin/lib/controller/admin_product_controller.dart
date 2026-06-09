@@ -193,7 +193,7 @@ class AdminProductController extends GetxController {
     }
   }
 
-  Future<bool?> deleteProduct(String productId) async {
+  Future<bool> deleteProduct(String productId) async {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -205,47 +205,14 @@ class AdminProductController extends GetxController {
       if (message.isEmpty) {
         products.removeWhere((p) => p.productId == productId);
         totalCount.value--;
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Product has been deactivated',
-          onUndo: () async {
-            await ApiClient().request(() async {
-              final uid = AdminSessionService.requireUid();
-              final idToken = await AdminSessionService.requireIdToken();
-              await _client.product.deactivateProduct(
-                productId,
-                true,
-                uid,
-                idToken,
-              );
-            });
-            await loadInitial();
-          },
-        );
         return true;
       }
       final shouldDeactivate = await _showDeactivationDialog(message);
       if (shouldDeactivate == true) {
-        await deactivateProduct(productId);
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Product has been deactivated',
-          onUndo: () async {
-            await ApiClient().request(() async {
-              final uid = AdminSessionService.requireUid();
-              final idToken = await AdminSessionService.requireIdToken();
-              await _client.product.deactivateProduct(
-                productId,
-                true,
-                uid,
-                idToken,
-              );
-            });
-            await loadInitial();
-          },
-        );
+        await deactivateProduct(productId, false);
+        return true;
       }
-      return null;
+      return false;
     } catch (e) {
       rethrow;
     }
@@ -258,12 +225,12 @@ class AdminProductController extends GetxController {
     );
   }
 
-  Future<void> deactivateProduct(String productId) async {
+  Future<void> deactivateProduct(String productId, bool isActive) async {
     try {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken();
-        await _client.product.deactivateProduct(productId, false, uid, idToken);
+        await _client.product.deactivateProduct(productId, isActive, uid, idToken);
       });
     } catch (e) {
       rethrow;

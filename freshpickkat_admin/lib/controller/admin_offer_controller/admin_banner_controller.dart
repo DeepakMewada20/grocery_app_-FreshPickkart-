@@ -210,13 +210,6 @@ class AdminBannerController extends GetxController {
       if (message.isEmpty) {
         banners.removeWhere((b) => b.bannerId == bannerId);
         if (totalCount.value > 0) totalCount.value--;
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Banner has been deactivated',
-          onUndo: () async {
-            await toggleBannerActive(bannerId, true);
-          },
-        );
         return true;
       }
       final shouldDeactivate = await showDeactivationDialog(
@@ -224,15 +217,7 @@ class AdminBannerController extends GetxController {
         message: message,
       );
       if (shouldDeactivate) {
-        final ok = await toggleBannerActive(bannerId, false);
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Banner has been deactivated',
-          onUndo: () async {
-            await toggleBannerActive(bannerId, true);
-          },
-        );
-        return ok;
+        return toggleBannerActive(bannerId, false);
       }
       return false;
     } catch (e) {

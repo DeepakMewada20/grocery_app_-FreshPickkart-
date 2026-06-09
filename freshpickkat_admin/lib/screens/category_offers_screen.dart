@@ -232,7 +232,6 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
   }
 
   Future<void> _showDeleteConfirmation(CategoryOffer offer) async {
-    final messenger = ScaffoldMessenger.of(context);
     final result = await showConfirmActionDialog(
       context: context,
       title: 'Delete Category Offer',
@@ -240,13 +239,13 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
       confirmLabel: 'Delete',
       onConfirm: () => _controller.deleteCategoryOffer(offer.offerId ?? ''),
     );
-    if (result == null || !mounted) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          result ? 'Category offer deleted' : 'Failed to delete category offer',
-        ),
-      ),
+    if (result != true || !mounted) return;
+    showUndoSnackBar(
+      context,
+      message: 'Category offer deactivated',
+      onUndo: () {
+        _controller.toggleCategoryOffer(offer.offerId ?? '', true);
+      },
     );
   }
 }

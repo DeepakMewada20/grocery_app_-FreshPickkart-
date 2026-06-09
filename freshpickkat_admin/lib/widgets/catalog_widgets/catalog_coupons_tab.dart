@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
@@ -1331,10 +1332,15 @@ Future<void> showDeleteCouponDialog({
   try {
     final ok = await controller.deleteCoupon(coupon.code);
     if (!context.mounted) return;
-    _showCatalogCouponSnackBar(
-      context,
-      ok ? 'Coupon deleted' : 'Delete failed',
-    );
+    if (ok) {
+      showUndoSnackBar(
+        context,
+        message: 'Coupon deactivated',
+        onUndo: () {
+          controller.setCouponActive(coupon.code, true);
+        },
+      );
+    }
   } catch (error) {
     if (!context.mounted) return;
     _showCatalogCouponSnackBar(context, 'Failed to delete coupon: $error');

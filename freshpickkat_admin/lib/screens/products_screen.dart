@@ -252,15 +252,14 @@ class _ProductsScreenState extends State<ProductsScreen>
       onConfirm: () => _productController.deleteProduct(product.productId!),
     );
     if (confirm == null || !mounted) return;
-    if (confirm != true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete product')),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(
+    if (confirm != true) return;
+    showUndoSnackBar(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Product deleted')));
+      message: 'Product deactivated',
+      onUndo: () {
+        _productController.deactivateProduct(product.productId!, true);
+      },
+    );
   }
 
   List<Product> _visibleProducts() {

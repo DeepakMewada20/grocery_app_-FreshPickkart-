@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_picker_button.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/image_preview.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/modern_text_field.dart';
@@ -127,9 +128,11 @@ class CatalogCategoriesTab extends StatelessWidget {
                             title: 'Delete Category',
                             message:
                                 'Are you sure you want to delete "${category.categoryName}"?',
+                            categoryName: category.categoryName,
                             onConfirm: () => controller.deleteCategory(
                               category.categoryName,
                             ),
+                            onUndo: controller.setCategoryActive,
                           );
                         }
                       },
@@ -191,10 +194,12 @@ class CatalogCategoriesTab extends StatelessWidget {
                             title: 'Delete Subcategory',
                             message:
                                 'Are you sure you want to delete "${subCategory.subCategoriesName.first}"?',
+                            categoryName: subCategory.categoryId,
                             onConfirm: () => controller.deleteSubCategory(
                               subCategory.categoryId,
                               subCategory.subCategoriesName.first,
                             ),
+                            onUndo: controller.setCategoryActive,
                           );
                         }
                       },
@@ -224,7 +229,9 @@ class CatalogCategoriesTab extends StatelessWidget {
     required BuildContext context,
     required String title,
     required String message,
-    required Future<void> Function() onConfirm,
+    required String categoryName,
+    required Future<bool> Function() onConfirm,
+    required Future<bool> Function(String, bool) onUndo,
   }) {
     showDialog(
       context: context,
@@ -240,9 +247,15 @@ class CatalogCategoriesTab extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await onConfirm();
-                if (context.mounted) {
-                  _showCatalogSnackBar(context, 'Deleted successfully');
+                final ok = await onConfirm();
+                if (context.mounted && ok) {
+                  showUndoSnackBar(
+                    context,
+                    message: 'Deactivated',
+                    onUndo: () {
+                      onUndo(categoryName, true);
+                    },
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {

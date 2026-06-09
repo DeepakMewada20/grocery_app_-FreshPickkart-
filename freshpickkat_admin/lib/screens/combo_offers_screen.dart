@@ -239,7 +239,6 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
   }
 
   Future<void> _showDeleteConfirmation(ComboOffer offer) async {
-    final messenger = ScaffoldMessenger.of(context);
     final result = await showConfirmActionDialog(
       context: context,
       title: 'Delete Combo Offer',
@@ -247,13 +246,13 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
       confirmLabel: 'Delete',
       onConfirm: () => _controller.deleteComboOffer(offer.comboId ?? ''),
     );
-    if (result == null || !mounted) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          result ? 'Combo offer deleted' : 'Failed to delete combo offer',
-        ),
-      ),
+    if (result != true || !mounted) return;
+    showUndoSnackBar(
+      context,
+      message: 'Combo offer deactivated',
+      onUndo: () {
+        _controller.toggleComboOffer(offer.comboId ?? '', true);
+      },
     );
   }
 }

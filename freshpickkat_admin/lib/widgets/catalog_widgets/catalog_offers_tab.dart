@@ -285,14 +285,14 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       confirmLabel: 'Remove',
       onConfirm: () => widget.comboOfferController.deleteComboOffer(comboId),
     );
-    if (!mounted) return;
-    if (confirmed == null) return;
-    if (confirmed != true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to remove combo offer')),
-      );
-      return;
-    }
+    if (confirmed != true || !mounted) return;
+    showUndoSnackBar(
+      context,
+      message: 'Combo offer removed',
+      onUndo: () {
+        widget.comboOfferController.toggleComboOffer(comboId, true);
+      },
+    );
   }
 
   Widget _buildComboOfferCard(ComboOffer offer, List<Product> products) {
@@ -606,14 +606,17 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         offerId,
       ),
     );
-    if (!mounted) return;
-    if (confirmed == null) return;
-    if (confirmed != true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to remove category offer')),
-      );
-      return;
-    }
+    if (confirmed != true || !mounted) return;
+    showUndoSnackBar(
+      context,
+      message: 'Category offer removed',
+      onUndo: () {
+        widget.categoryOfferController.toggleCategoryOffer(
+          offerId,
+          true,
+        );
+      },
+    );
   }
 
   Widget _buildCategoryOfferCard(CategoryOffer offer, List<Product> products) {
@@ -1204,7 +1207,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     required List<CategoryOffer> categoryOffers,
     required List<ComboOffer> comboOffers,
   }) async {
-    final messenger = ScaffoldMessenger.of(context);
     final removeLabel = switch (actionType) {
       _OfferCardActionType.bogo => 'BOGO offer',
       _OfferCardActionType.directDiscount => 'product offer',
@@ -1226,16 +1228,44 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         comboOffers: comboOffers,
       ),
     );
-    if (result == null) return null;
-    if (!mounted) return result;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          result
-              ? '${product.productName} offer removed'
-              : 'Failed to remove offer',
-        ),
-      ),
+    if (result != true || !mounted) return result;
+    showUndoSnackBar(
+      context,
+      message: '${product.productName} offer removed',
+      onUndo: () {
+        switch (actionType) {
+          case _OfferCardActionType.bogo:
+            final pid = product.productId;
+            if (pid != null) {
+              _bogoController.setBogoOfferActive(pid, true);
+            }
+          case _OfferCardActionType.directDiscount:
+            widget.productController.updateProduct(
+              _buildDirectDiscountProduct(
+                product,
+                isActive: true,
+                clearOffer: false,
+              ),
+            );
+          case _OfferCardActionType.categoryOffer:
+            final offer = _linkedCategoryOffer(product, categoryOffers);
+            final oid = offer?.offerId;
+            if (oid != null) {
+              widget.categoryOfferController.toggleCategoryOffer(
+                oid,
+                true,
+              );
+            }
+          case _OfferCardActionType.comboOffer:
+            final offer = _linkedComboOffer(product, comboOffers);
+            final cid = offer?.comboId;
+            if (cid != null) {
+              widget.comboOfferController.toggleComboOffer(cid, true);
+            }
+          case _OfferCardActionType.none:
+            break;
+        }
+      },
     );
     return result;
   }

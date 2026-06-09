@@ -131,7 +131,7 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<void> deleteCategory(String categoryName) async {
+  Future<bool> deleteCategory(String categoryName) async {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -146,15 +146,7 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Category has been deactivated',
-          onUndo: () async {
-            await setCategoryActive(categoryName, true);
-            await loadCategories();
-          },
-        );
-        return;
+        return true;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Category In Use',
@@ -163,15 +155,9 @@ class AdminCategoryController extends GetxController {
       if (shouldDeactivate) {
         await setCategoryActive(categoryName, false);
         await loadCategories();
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Category has been deactivated',
-          onUndo: () async {
-            await setCategoryActive(categoryName, true);
-            await loadCategories();
-          },
-        );
+        return true;
       }
+      return false;
     } catch (e) {
       rethrow;
     }
@@ -236,7 +222,7 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<void> deleteSubCategory(
+  Future<bool> deleteSubCategory(
     String categoryName,
     String subCategoryName,
   ) async {
@@ -255,15 +241,7 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Subcategory has been deactivated',
-          onUndo: () async {
-            await setCategoryActive(categoryName, true);
-            await loadCategories();
-          },
-        );
-        return;
+        return true;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Sub-Category In Use',
@@ -272,15 +250,9 @@ class AdminCategoryController extends GetxController {
       if (shouldDeactivate) {
         await setCategoryActive(categoryName, false);
         await loadCategories();
-        showUndoSnackbar(
-          title: 'Deactivated',
-          message: 'Subcategory has been deactivated',
-          onUndo: () async {
-            await setCategoryActive(categoryName, true);
-            await loadCategories();
-          },
-        );
+        return true;
       }
+      return false;
     } catch (e) {
       rethrow;
     }
