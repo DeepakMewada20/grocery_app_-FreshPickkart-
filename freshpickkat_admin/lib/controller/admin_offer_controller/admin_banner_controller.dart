@@ -210,12 +210,12 @@ class AdminBannerController extends GetxController {
       if (message.isEmpty) {
         banners.removeWhere((b) => b.bannerId == bannerId);
         if (totalCount.value > 0) totalCount.value--;
-        Get.snackbar(
-          'Success',
-          'Banner deleted successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AdminThemeTokens.success,
-          colorText: AdminThemeTokens.white,
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Banner has been deactivated',
+          onUndo: () async {
+            await toggleBannerActive(bannerId, true);
+          },
         );
         return true;
       }
@@ -224,7 +224,15 @@ class AdminBannerController extends GetxController {
         message: message,
       );
       if (shouldDeactivate) {
-        return toggleBannerActive(bannerId, false);
+        final ok = await toggleBannerActive(bannerId, false);
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Banner has been deactivated',
+          onUndo: () async {
+            await toggleBannerActive(bannerId, true);
+          },
+        );
+        return ok;
       }
       return false;
     } catch (e) {

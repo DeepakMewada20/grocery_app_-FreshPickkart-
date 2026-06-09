@@ -168,11 +168,25 @@ class AdminCategoryOfferController extends GetxController {
         if (message.isEmpty) {
           categoryOffers.removeWhere((offer) => offer.offerId == offerId);
           if (totalCount.value > 0) totalCount.value--;
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'Category offer has been deactivated',
+            onUndo: () async {
+              await toggleCategoryOffer(offerId, true);
+            },
+          );
           return true;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {
           await toggleCategoryOffer(offerId, false);
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'Category offer has been deactivated',
+            onUndo: () async {
+              await toggleCategoryOffer(offerId, true);
+            },
+          );
         }
         return null;
       });

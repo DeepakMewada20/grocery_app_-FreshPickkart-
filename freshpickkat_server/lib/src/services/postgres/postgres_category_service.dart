@@ -206,14 +206,15 @@ class PostgresCategoryService {
       return DependencyChecker.formatRefs(refs);
     }
 
-    // Hard Delete: Delete all subcategories first to avoid foreign key errors
-    await SubCategoryRow.db.deleteWhere(
+    final now = DateTime.now().toUtc();
+    await CategoryRow.db.updateRow(
       session,
-      where: (t) => t.categoryId.equals(category.id!),
+      category.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
-
-    // Now delete the category itself
-    await CategoryRow.db.deleteRow(session, category);
 
     await _audit.write(
       session,
@@ -415,20 +416,17 @@ class PostgresCategoryService {
       return sameImage && sameSecond;
     }).toList();
 
-    await session.db.transaction((transaction) async {
-      for (final row in targetGroupRows) {
-        await ProductSubCategoryRow.db.deleteWhere(
-          session,
-          where: (t) => t.subCategoryId.equals(row.id!),
-          transaction: transaction,
-        );
-        await SubCategoryRow.db.deleteRow(
-          session,
-          row,
-          transaction: transaction,
-        );
-      }
-    });
+    final now = DateTime.now().toUtc();
+    for (final row in targetGroupRows) {
+      await SubCategoryRow.db.updateRow(
+        session,
+        row.copyWith(
+          status: 'inactive',
+          deactivatedAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
 
     await _audit.write(
       session,

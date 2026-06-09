@@ -8,12 +8,6 @@ class DependencyChecker {
     UuidValue productId,
   ) async {
     final refs = <String>[];
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (orderCount > 0) refs.add('$orderCount order(s)');
-
     final bannerLinkedCount = await BannerLinkedProductRow.db.count(
       session,
       where: (t) => t.productId.equals(productId),
@@ -70,12 +64,6 @@ class DependencyChecker {
     UuidValue variantId,
   ) async {
     final refs = <String>[];
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.productVariantId.equals(variantId),
-    );
-    if (orderCount > 0) refs.add('$orderCount order(s)');
-
     final bogoTriggerCount = await BogoOfferRow.db.count(
       session,
       where: (t) => t.triggerVariantId.equals(variantId),

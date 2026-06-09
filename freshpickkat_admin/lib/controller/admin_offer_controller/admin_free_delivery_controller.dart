@@ -180,6 +180,13 @@ class AdminFreeDeliveryController extends GetxController {
       if (message.isEmpty) {
         deliveryRules.removeWhere((rule) => rule.ruleId == ruleId);
         if (totalCount.value > 0) totalCount.value--;
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Delivery rule has been deactivated',
+          onUndo: () async {
+            await toggleDeliveryRule(ruleId, true);
+          },
+        );
         return true;
       }
       final shouldDeactivate = await showDeactivationDialog(
@@ -187,7 +194,15 @@ class AdminFreeDeliveryController extends GetxController {
         message: message,
       );
       if (shouldDeactivate) {
-        return toggleDeliveryRule(ruleId, false);
+        final ok = await toggleDeliveryRule(ruleId, false);
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Delivery rule has been deactivated',
+          onUndo: () async {
+            await toggleDeliveryRule(ruleId, true);
+          },
+        );
+        return ok;
       }
       return false;
     } catch (e) {

@@ -101,13 +101,14 @@ class PostgresOfferService {
 
     final refs = await DependencyChecker.checkBogoOffer(session, offerId);
     if (refs.isEmpty) {
-      await BogoOfferRewardRow.db.deleteWhere(
+      final now = DateTime.now().toUtc();
+      await BogoOfferRow.db.updateRow(
         session,
-        where: (t) => t.bogoOfferId.equals(offerId),
-      );
-      await BogoOfferRow.db.deleteWhere(
-        session,
-        where: (t) => t.id.equals(offerId),
+        rows.first.copyWith(
+          status: 'inactive',
+          deactivatedAt: now,
+          updatedAt: now,
+        ),
       );
       return '';
     }
@@ -316,13 +317,14 @@ class PostgresOfferService {
 
     final refs = await DependencyChecker.checkComboOffer(session, parsedId);
     if (refs.isEmpty) {
-      await ComboOfferItemRow.db.deleteWhere(
+      final now = DateTime.now().toUtc();
+      await ComboOfferRow.db.updateRow(
         session,
-        where: (t) => t.comboOfferId.equals(parsedId),
-      );
-      await ComboOfferRow.db.deleteWhere(
-        session,
-        where: (t) => t.id.equals(parsedId),
+        row.copyWith(
+          status: 'inactive',
+          deactivatedAt: now,
+          updatedAt: now,
+        ),
       );
       return '';
     }
@@ -528,19 +530,14 @@ class PostgresOfferService {
 
     final refs = await DependencyChecker.checkCategoryOffer(session, parsedId);
     if (refs.isEmpty) {
-      await CategoryOfferProductScopeRow.db.deleteWhere(
+      final now = DateTime.now().toUtc();
+      await CategoryOfferRow.db.updateRow(
         session,
-        where: (t) => t.categoryOfferId.equals(parsedId),
-      );
-
-      await CategoryOfferProductExclusionRow.db.deleteWhere(
-        session,
-        where: (t) => t.categoryOfferId.equals(parsedId),
-      );
-
-      await CategoryOfferRow.db.deleteWhere(
-        session,
-        where: (t) => t.id.equals(parsedId),
+        row.copyWith(
+          status: 'inactive',
+          deactivatedAt: now,
+          updatedAt: now,
+        ),
       );
       return '';
     }

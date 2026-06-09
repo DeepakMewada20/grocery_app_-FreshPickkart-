@@ -146,6 +146,14 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Category has been deactivated',
+          onUndo: () async {
+            await setCategoryActive(categoryName, true);
+            await loadCategories();
+          },
+        );
         return;
       }
       final shouldDeactivate = await showDeactivationDialog(
@@ -155,6 +163,14 @@ class AdminCategoryController extends GetxController {
       if (shouldDeactivate) {
         await setCategoryActive(categoryName, false);
         await loadCategories();
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Category has been deactivated',
+          onUndo: () async {
+            await setCategoryActive(categoryName, true);
+            await loadCategories();
+          },
+        );
       }
     } catch (e) {
       rethrow;
@@ -239,6 +255,14 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Subcategory has been deactivated',
+          onUndo: () async {
+            await setCategoryActive(categoryName, true);
+            await loadCategories();
+          },
+        );
         return;
       }
       final shouldDeactivate = await showDeactivationDialog(
@@ -248,6 +272,14 @@ class AdminCategoryController extends GetxController {
       if (shouldDeactivate) {
         await setCategoryActive(categoryName, false);
         await loadCategories();
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Subcategory has been deactivated',
+          onUndo: () async {
+            await setCategoryActive(categoryName, true);
+            await loadCategories();
+          },
+        );
       }
     } catch (e) {
       rethrow;

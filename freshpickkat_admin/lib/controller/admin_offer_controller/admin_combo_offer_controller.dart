@@ -169,11 +169,25 @@ class AdminComboOfferController extends GetxController {
         if (message.isEmpty) {
           comboOffers.removeWhere((offer) => offer.comboId == comboId);
           if (totalCount.value > 0) totalCount.value--;
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'Combo offer has been deactivated',
+            onUndo: () async {
+              await toggleComboOffer(comboId, true);
+            },
+          );
           return true;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {
           await toggleComboOffer(comboId, false);
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'Combo offer has been deactivated',
+            onUndo: () async {
+              await toggleComboOffer(comboId, true);
+            },
+          );
         }
         return null;
       });

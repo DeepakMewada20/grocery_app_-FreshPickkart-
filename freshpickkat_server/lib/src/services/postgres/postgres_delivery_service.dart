@@ -217,9 +217,14 @@ class PostgresDeliveryService {
       return DependencyChecker.formatRefs(refs);
     }
 
-    await DeliveryRuleRow.db.deleteWhere(
+    final now = DateTime.now().toUtc();
+    await DeliveryRuleRow.db.updateRow(
       session,
-      where: (t) => t.id.equals(parsedId),
+      row.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
     return '';
   }

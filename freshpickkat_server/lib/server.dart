@@ -6,6 +6,7 @@ import 'src/services/firebase_service.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
+import 'src/services/backfill_service.dart';
 import 'src/services/background_task_service.dart';
 import 'src/services/analytics/product_analytics_cron_job.dart';
 import 'src/services/payment_reconciliation_cron_job.dart';
@@ -76,6 +77,20 @@ void run(List<String> args) async {
   unawaited(BackgroundTaskService.instance.run());
   ProductAnalyticsCronJob(pod).start();
   PaymentReconciliationCronJob(pod).start();
+
+  // TODO(snapshot-backfill): Remove this block after production deployment.
+  unawaited(_backfillSnapshots(pod));
+}
+
+Future<void> _backfillSnapshots(Serverpod pod) async {
+  try {
+    final session = await pod.createSession();
+    await BackfillService.backfillOrderSnapshots(session);
+    stdout.writeln('Old order snapshots backfilled successfully');
+    await session.close();
+  } catch (e) {
+    stderr.writeln('Snapshot backfill failed: $e');
+  }
 }
 
 Future<void> _initializeFirebaseWithRetry() async {

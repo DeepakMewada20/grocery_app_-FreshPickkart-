@@ -185,9 +185,14 @@ class PostgresCouponService {
       return DependencyChecker.formatRefs(refs);
     }
 
-    await CouponRow.db.deleteWhere(
+    final now = DateTime.now().toUtc();
+    await CouponRow.db.updateRow(
       session,
-      where: (t) => t.code.equals(normalizedCode),
+      row.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
     return '';
   }

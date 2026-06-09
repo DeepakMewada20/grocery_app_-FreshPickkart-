@@ -139,6 +139,13 @@ class AdminCouponController extends GetxController {
       });
       if (message.isEmpty) {
         coupons.removeWhere((c) => c.code == code);
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Coupon has been deactivated',
+          onUndo: () async {
+            await setCouponActive(code, true);
+          },
+        );
         return true;
       }
       final shouldDeactivate = await showDeactivationDialog(
@@ -146,7 +153,15 @@ class AdminCouponController extends GetxController {
         message: message,
       );
       if (shouldDeactivate) {
-        return setCouponActive(code, false);
+        final ok = await setCouponActive(code, false);
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Coupon has been deactivated',
+          onUndo: () async {
+            await setCouponActive(code, true);
+          },
+        );
+        return ok;
       }
       return false;
     } catch (e) {

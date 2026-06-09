@@ -132,11 +132,25 @@ class AdminBogoController extends GetxController {
             (offer) => offer.triggerProductId == triggerProductId,
           );
           if (totalCount.value > 0) totalCount.value--;
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'BOGO offer has been deactivated',
+            onUndo: () async {
+              await setBogoOfferActive(triggerProductId, true);
+            },
+          );
           return true;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {
           await setBogoOfferActive(triggerProductId, false);
+          showUndoSnackbar(
+            title: 'Deactivated',
+            message: 'BOGO offer has been deactivated',
+            onUndo: () async {
+              await setBogoOfferActive(triggerProductId, true);
+            },
+          );
         }
         return null;
       });

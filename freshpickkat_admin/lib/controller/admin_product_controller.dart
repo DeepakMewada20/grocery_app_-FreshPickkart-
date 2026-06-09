@@ -205,11 +205,45 @@ class AdminProductController extends GetxController {
       if (message.isEmpty) {
         products.removeWhere((p) => p.productId == productId);
         totalCount.value--;
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Product has been deactivated',
+          onUndo: () async {
+            await ApiClient().request(() async {
+              final uid = AdminSessionService.requireUid();
+              final idToken = await AdminSessionService.requireIdToken();
+              await _client.product.deactivateProduct(
+                productId,
+                true,
+                uid,
+                idToken,
+              );
+            });
+            await loadInitial();
+          },
+        );
         return true;
       }
       final shouldDeactivate = await _showDeactivationDialog(message);
       if (shouldDeactivate == true) {
         await deactivateProduct(productId);
+        showUndoSnackbar(
+          title: 'Deactivated',
+          message: 'Product has been deactivated',
+          onUndo: () async {
+            await ApiClient().request(() async {
+              final uid = AdminSessionService.requireUid();
+              final idToken = await AdminSessionService.requireIdToken();
+              await _client.product.deactivateProduct(
+                productId,
+                true,
+                uid,
+                idToken,
+              );
+            });
+            await loadInitial();
+          },
+        );
       }
       return null;
     } catch (e) {

@@ -238,9 +238,14 @@ class PostgresBannerService {
       return DependencyChecker.formatRefs(refs);
     }
 
-    await BannerRow.db.deleteWhere(
+    final now = DateTime.now().toUtc();
+    await BannerRow.db.updateRow(
       session,
-      where: (t) => t.id.equals(parsedId),
+      row.copyWith(
+        status: 'inactive',
+        deactivatedAt: now,
+        updatedAt: now,
+      ),
     );
     return '';
   }
