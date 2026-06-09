@@ -8,6 +8,10 @@ class BannerEndpoint extends Endpoint {
   final PostgresBannerService _banners = PostgresBannerService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
 
+  Future<List<Banner>> getInactiveBanners(Session session) async {
+    return _banners.getInactiveBanners(session);
+  }
+
   Future<List<Banner>> getBanners(
     Session session, {
     String? screen,

@@ -11,6 +11,16 @@ class PostgresCouponService {
 
   final PostgresProductCompatService _products;
 
+  Future<List<Coupon>> getInactiveCoupons(Session session) async {
+    final rows = await CouponRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.code,
+      orderDescending: false,
+    );
+    return _hydrateCoupons(session, rows);
+  }
+
   Future<List<Coupon>> fetchCoupons(
     Session session, {
     bool activeOnly = false,

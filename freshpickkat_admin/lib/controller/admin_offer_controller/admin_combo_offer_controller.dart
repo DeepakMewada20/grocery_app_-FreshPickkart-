@@ -20,8 +20,10 @@ class AdminComboOfferController extends GetxController {
   final int pageSize = 20;
 
   final comboOffers = <ComboOffer>[].obs;
+  final inactiveComboOffers = <ComboOffer>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
+  final isLoadingInactive = false.obs;
   final hasMore = true.obs;
   final nextPageToken = RxnString();
   final totalCount = 0.obs;
@@ -124,6 +126,20 @@ class AdminComboOfferController extends GetxController {
   Future<void> ensureAllLoaded() async {
     while (hasMore.value && !isLoadingMore.value) {
       await loadMore();
+    }
+  }
+
+  Future<void> loadInactiveComboOffers() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final result = await ApiClient().request(() async {
+        return await client.comboOffer.getInactiveComboOffers();
+      });
+      inactiveComboOffers.assignAll(result);
+    } catch (_) {
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

@@ -142,6 +142,16 @@ class PostgresOfferService {
     return true;
   }
 
+  Future<List<BogoOffer>> getInactiveBogoOffers(Session session) async {
+    final rows = await BogoOfferRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    return _hydrateBogoOffers(session, rows);
+  }
+
   Future<List<BogoOffer>> getAllBogoOffers(Session session) async {
     final rows = await BogoOfferRow.db.find(
       session,
@@ -344,6 +354,16 @@ class PostgresOfferService {
         .where((row) => _isWithinWindow(now, row.startsAt, row.endsAt))
         .toList();
     return _hydrateComboOffers(session, filtered);
+  }
+
+  Future<List<ComboOffer>> getInactiveComboOffers(Session session) async {
+    final rows = await ComboOfferRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    return _hydrateComboOffers(session, rows);
   }
 
   Future<List<ComboOffer>> getAllComboOffers(Session session) async {
@@ -557,6 +577,16 @@ class PostgresOfferService {
         .where((row) => _isWithinWindow(now, row.startsAt, row.endsAt))
         .toList();
     return _hydrateCategoryOffers(session, filtered);
+  }
+
+  Future<List<CategoryOffer>> getInactiveCategoryOffers(Session session) async {
+    final rows = await CategoryOfferRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    return _hydrateCategoryOffers(session, rows);
   }
 
   Future<List<CategoryOffer>> getAllCategoryOffers(Session session) async {

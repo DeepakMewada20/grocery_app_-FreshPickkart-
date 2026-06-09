@@ -18,7 +18,9 @@ class AdminCouponController extends GetxController {
   );
 
   final RxList<Coupon> coupons = <Coupon>[].obs;
+  final RxList<Coupon> inactiveCoupons = <Coupon>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingInactive = false.obs;
   final RxnString error = RxnString(null);
 
   @override
@@ -52,6 +54,20 @@ class AdminCouponController extends GetxController {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadInactiveCoupons() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final result = await ApiClient().request(() async {
+        return await _client.coupon.getInactiveCoupons();
+      });
+      inactiveCoupons.assignAll(result);
+    } catch (_) {
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

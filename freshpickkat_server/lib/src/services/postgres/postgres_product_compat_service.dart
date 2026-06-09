@@ -113,6 +113,7 @@ class PostgresProductCompatService {
     String? category,
     List<String>? subcategories,
     String sortBy = 'name',
+    String statusFilter = 'active',
   }) async {
     final pageSize = clampPageLimit(limit, defaultLimit: 20, maxLimit: 50);
     final cursor = decodeCursor(pageToken);
@@ -139,6 +140,7 @@ class PostgresProductCompatService {
     final totalCount = await _countProducts(
       session,
       filters: resolvedFilters,
+      statusFilter: statusFilter,
     );
     final result = await session.db.unsafeQuery(
       '''
@@ -150,7 +152,7 @@ class PostgresProductCompatService {
         p."mostPurchaseCount" AS "mostPurchaseCount"
       FROM product p
       JOIN category c ON c.id = p."categoryId"
-      WHERE p.status = 'active'
+      WHERE p.status = @statusFilter
         AND c.status = 'active'
         ${resolvedFilters.whereSql}
         $cursorPredicate
@@ -167,6 +169,7 @@ class PostgresProductCompatService {
           'cursorName': cursor?['name']?.toString(),
         'cursorProductId': cursor?['productId']?.toString(),
         'limit': pageSize + 1,
+        'statusFilter': statusFilter,
       }),
     );
 
@@ -536,17 +539,21 @@ class PostgresProductCompatService {
   Future<int> _countProducts(
     Session session, {
     required _ResolvedProductFilters filters,
+    String statusFilter = 'active',
   }) async {
     final result = await session.db.unsafeQuery(
       '''
       SELECT COUNT(*) AS "totalCount"
       FROM product p
       JOIN category c ON c.id = p."categoryId"
-      WHERE p.status = 'active'
+      WHERE p.status = @statusFilter
         AND c.status = 'active'
         ${filters.whereSql}
       ''',
-      parameters: QueryParameters.named(filters.parameters),
+      parameters: QueryParameters.named({
+        ...filters.parameters,
+        'statusFilter': statusFilter,
+      }),
     );
     return result.isEmpty ? 0 : asInt(result.first.toColumnMap()['totalCount']);
   }

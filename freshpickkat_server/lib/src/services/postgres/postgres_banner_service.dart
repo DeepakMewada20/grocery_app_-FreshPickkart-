@@ -5,6 +5,16 @@ import '../dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresBannerService {
+  Future<List<Banner>> getInactiveBanners(Session session) async {
+    final rows = await BannerRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.priority,
+      orderDescending: false,
+    );
+    return _hydrateBanners(session, rows);
+  }
+
   Future<List<Banner>> getBanners(
     Session session, {
     String? screen,

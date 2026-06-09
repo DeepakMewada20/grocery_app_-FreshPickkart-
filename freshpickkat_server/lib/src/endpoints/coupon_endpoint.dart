@@ -12,6 +12,10 @@ class CouponEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
 
+  Future<List<Coupon>> getInactiveCoupons(Session session) async {
+    return _coupons.getInactiveCoupons(session);
+  }
+
   Future<List<Coupon>> fetchCoupons(
     Session session,
     String firebaseUid,

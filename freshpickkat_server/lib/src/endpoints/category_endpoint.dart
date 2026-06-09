@@ -14,6 +14,10 @@ class CategoryEndpoint extends Endpoint {
     return _categories.getCategories(session);
   }
 
+  Future<List<Category>> getInactiveCategories(Session session) async {
+    return _categories.getInactiveCategories(session);
+  }
+
   Future<List<Category>> getAllCategories(Session session) async {
     return _categories.getAllCategories(session);
   }

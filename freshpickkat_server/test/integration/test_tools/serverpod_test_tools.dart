@@ -741,6 +741,36 @@ class _BannerEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
+  _i3.Future<List<_i10.Banner>> getInactiveBanners(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'banner',
+            method: 'getInactiveBanners',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'banner',
+          methodName: 'getInactiveBanners',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i10.Banner>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<List<_i10.Banner>> getBanners(
     _i1.TestSessionBuilder sessionBuilder, {
     String? screen,
@@ -1208,6 +1238,36 @@ class _BogoEndpoint {
     });
   }
 
+  _i3.Future<List<_i13.BogoOffer>> getInactiveBogoOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'bogo',
+            method: 'getInactiveBogoOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'bogo',
+          methodName: 'getInactiveBogoOffers',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i13.BogoOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<List<_i13.BogoOffer>> getAllOffers(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
@@ -1436,6 +1496,36 @@ class _CategoryEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'category',
           methodName: 'getCategories',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i16.Category>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i16.Category>> getInactiveCategories(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'category',
+            method: 'getInactiveCategories',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'category',
+          methodName: 'getInactiveCategories',
           parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
@@ -1735,6 +1825,36 @@ class _CategoryOfferEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'categoryOffer',
           methodName: 'getActiveCategoryOffers',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i17.CategoryOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i17.CategoryOffer>> getInactiveCategoryOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'categoryOffer',
+            method: 'getInactiveCategoryOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'categoryOffer',
+          methodName: 'getInactiveCategoryOffers',
           parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
@@ -2088,6 +2208,36 @@ class _ComboOfferEndpoint {
           endpointPath: 'comboOffer',
           methodName: 'getActiveComboOffersForProducts',
           parameters: _i1.testObjectToJson({'productIds': productIds}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i21.ComboOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i21.ComboOffer>> getInactiveComboOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'comboOffer',
+            method: 'getInactiveComboOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'comboOffer',
+          methodName: 'getInactiveComboOffers',
+          parameters: _i1.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -3062,6 +3212,36 @@ class _CouponEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
+  _i3.Future<List<_i28.Coupon>> getInactiveCoupons(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'coupon',
+            method: 'getInactiveCoupons',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'coupon',
+          methodName: 'getInactiveCoupons',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i28.Coupon>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<List<_i28.Coupon>> fetchCoupons(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
@@ -3616,6 +3796,36 @@ class _FreeDeliveryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i34.DeliveryRule>> getInactiveDeliveryRules(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'freeDelivery',
+            method: 'getInactiveDeliveryRules',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'freeDelivery',
+          methodName: 'getInactiveDeliveryRules',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i34.DeliveryRule>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -6540,6 +6750,51 @@ class _ProductEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'product',
           methodName: 'getProductsPage',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'limit': limit,
+            'pageToken': pageToken,
+            'category': category,
+            'subcategories': subcategories,
+            'sortBy': sortBy,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i52.ProductPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i52.ProductPage> getInactiveProductsPage(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    required String sortBy,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'product',
+            method: 'getInactiveProductsPage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'product',
+          methodName: 'getInactiveProductsPage',
           parameters: _i1.testObjectToJson({
             'firebaseUid': firebaseUid,
             'idToken': idToken,

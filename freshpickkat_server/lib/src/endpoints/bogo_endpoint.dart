@@ -138,6 +138,10 @@ class BogoEndpoint extends Endpoint {
     }
   }
 
+  Future<List<protocol.BogoOffer>> getInactiveBogoOffers(Session session) async {
+    return _offers.getInactiveBogoOffers(session);
+  }
+
   Future<List<protocol.BogoOffer>> getAllOffers(
     Session session,
     String firebaseUid,

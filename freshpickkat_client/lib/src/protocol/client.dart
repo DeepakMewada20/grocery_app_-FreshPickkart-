@@ -222,6 +222,13 @@ class EndpointBanner extends _i1.EndpointRef {
   @override
   String get name => 'banner';
 
+  _i2.Future<List<_i9.Banner>> getInactiveBanners() =>
+      caller.callServerEndpoint<List<_i9.Banner>>(
+        'banner',
+        'getInactiveBanners',
+        {},
+      );
+
   _i2.Future<List<_i9.Banner>> getBanners({
     String? screen,
     required bool activeOnly,
@@ -409,6 +416,13 @@ class EndpointBogo extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<List<_i12.BogoOffer>> getInactiveBogoOffers() =>
+      caller.callServerEndpoint<List<_i12.BogoOffer>>(
+        'bogo',
+        'getInactiveBogoOffers',
+        {},
+      );
+
   _i2.Future<List<_i12.BogoOffer>> getAllOffers(
     String firebaseUid,
     String idToken,
@@ -485,6 +499,13 @@ class EndpointCategory extends _i1.EndpointRef {
       caller.callServerEndpoint<List<_i15.Category>>(
         'category',
         'getCategories',
+        {},
+      );
+
+  _i2.Future<List<_i15.Category>> getInactiveCategories() =>
+      caller.callServerEndpoint<List<_i15.Category>>(
+        'category',
+        'getInactiveCategories',
         {},
       );
 
@@ -597,6 +618,13 @@ class EndpointCategoryOffer extends _i1.EndpointRef {
       caller.callServerEndpoint<List<_i16.CategoryOffer>>(
         'categoryOffer',
         'getActiveCategoryOffers',
+        {},
+      );
+
+  _i2.Future<List<_i16.CategoryOffer>> getInactiveCategoryOffers() =>
+      caller.callServerEndpoint<List<_i16.CategoryOffer>>(
+        'categoryOffer',
+        'getInactiveCategoryOffers',
         {},
       );
 
@@ -738,6 +766,13 @@ class EndpointComboOffer extends _i1.EndpointRef {
     'getActiveComboOffersForProducts',
     {'productIds': productIds},
   );
+
+  _i2.Future<List<_i20.ComboOffer>> getInactiveComboOffers() =>
+      caller.callServerEndpoint<List<_i20.ComboOffer>>(
+        'comboOffer',
+        'getInactiveComboOffers',
+        {},
+      );
 
   _i2.Future<List<_i20.ComboOffer>> getAllComboOffers(
     String firebaseUid,
@@ -1165,6 +1200,13 @@ class EndpointCoupon extends _i1.EndpointRef {
   @override
   String get name => 'coupon';
 
+  _i2.Future<List<_i27.Coupon>> getInactiveCoupons() =>
+      caller.callServerEndpoint<List<_i27.Coupon>>(
+        'coupon',
+        'getInactiveCoupons',
+        {},
+      );
+
   _i2.Future<List<_i27.Coupon>> fetchCoupons(
     String firebaseUid,
     String idToken,
@@ -1376,6 +1418,13 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<List<_i33.DeliveryRule>> getInactiveDeliveryRules() =>
+      caller.callServerEndpoint<List<_i33.DeliveryRule>>(
+        'freeDelivery',
+        'getInactiveDeliveryRules',
+        {},
+      );
 
   _i2.Future<List<_i33.DeliveryRule>> getAllDeliveryRules(
     String firebaseUid,
@@ -2574,6 +2623,28 @@ class EndpointProduct extends _i1.EndpointRef {
   }) => caller.callServerEndpoint<_i51.ProductPage>(
     'product',
     'getProductsPage',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+      'category': category,
+      'subcategories': subcategories,
+      'sortBy': sortBy,
+    },
+  );
+
+  _i2.Future<_i51.ProductPage> getInactiveProductsPage({
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    required String sortBy,
+  }) => caller.callServerEndpoint<_i51.ProductPage>(
+    'product',
+    'getInactiveProductsPage',
     {
       'firebaseUid': firebaseUid,
       'idToken': idToken,

@@ -136,6 +136,16 @@ class PostgresDeliveryService {
         .toList();
   }
 
+  Future<List<DeliveryRule>> getInactiveDeliveryRules(Session session) async {
+    final rows = await DeliveryRuleRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.priority,
+      orderDescending: false,
+    );
+    return rows.map(_mapRule).toList();
+  }
+
   Future<List<DeliveryRule>> getAllDeliveryRules(Session session) async {
     final rows = await DeliveryRuleRow.db.find(
       session,

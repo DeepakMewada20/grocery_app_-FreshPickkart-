@@ -69,6 +69,12 @@ class DeliveryEngine {
     return _storage.getActiveDeliveryRules(session);
   }
 
+  static Future<List<DeliveryRule>> getInactiveDeliveryRules(
+    Session session,
+  ) {
+    return _storage.getInactiveDeliveryRules(session);
+  }
+
   static Future<List<DeliveryRule>> getAllDeliveryRules(Session session) {
     return _storage.getAllDeliveryRules(session);
   }

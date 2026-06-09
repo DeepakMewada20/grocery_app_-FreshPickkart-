@@ -458,6 +458,16 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'banner',
       endpoint: endpoints['banner']!,
       methodConnectors: {
+        'getInactiveBanners': _i1.MethodConnector(
+          name: 'getInactiveBanners',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['banner'] as _i4.BannerEndpoint)
+                  .getInactiveBanners(session),
+        ),
         'getBanners': _i1.MethodConnector(
           name: 'getBanners',
           params: {
@@ -877,6 +887,16 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'getInactiveBogoOffers': _i1.MethodConnector(
+          name: 'getInactiveBogoOffers',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['bogo'] as _i5.BogoEndpoint)
+                  .getInactiveBogoOffers(session),
+        ),
         'getAllOffers': _i1.MethodConnector(
           name: 'getAllOffers',
           params: {
@@ -1031,6 +1051,16 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['category'] as _i6.CategoryEndpoint)
                   .getCategories(session),
+        ),
+        'getInactiveCategories': _i1.MethodConnector(
+          name: 'getInactiveCategories',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['category'] as _i6.CategoryEndpoint)
+                  .getInactiveCategories(session),
         ),
         'getAllCategories': _i1.MethodConnector(
           name: 'getAllCategories',
@@ -1264,6 +1294,17 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async =>
                   (endpoints['categoryOffer'] as _i7.CategoryOfferEndpoint)
                       .getActiveCategoryOffers(session),
+        ),
+        'getInactiveCategoryOffers': _i1.MethodConnector(
+          name: 'getInactiveCategoryOffers',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['categoryOffer'] as _i7.CategoryOfferEndpoint)
+                      .getInactiveCategoryOffers(session),
         ),
         'getAllCategoryOffers': _i1.MethodConnector(
           name: 'getAllCategoryOffers',
@@ -1555,6 +1596,16 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['productIds'],
                   ),
+        ),
+        'getInactiveComboOffers': _i1.MethodConnector(
+          name: 'getInactiveComboOffers',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i9.ComboOfferEndpoint)
+                  .getInactiveComboOffers(session),
         ),
         'getAllComboOffers': _i1.MethodConnector(
           name: 'getAllComboOffers',
@@ -2545,6 +2596,16 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'coupon',
       endpoint: endpoints['coupon']!,
       methodConnectors: {
+        'getInactiveCoupons': _i1.MethodConnector(
+          name: 'getInactiveCoupons',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coupon'] as _i11.CouponEndpoint)
+                  .getInactiveCoupons(session),
+        ),
         'fetchCoupons': _i1.MethodConnector(
           name: 'fetchCoupons',
           params: {
@@ -3019,6 +3080,17 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['firebaseUid'],
                         params['idToken'],
                       ),
+        ),
+        'getInactiveDeliveryRules': _i1.MethodConnector(
+          name: 'getInactiveDeliveryRules',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
+                      .getInactiveDeliveryRules(session),
         ),
         'getAllDeliveryRules': _i1.MethodConnector(
           name: 'getAllDeliveryRules',
@@ -5646,6 +5718,61 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['product'] as _i20.ProductEndpoint)
                   .getProductsPage(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                    category: params['category'],
+                    subcategories: params['subcategories'],
+                    sortBy: params['sortBy'],
+                  ),
+        ),
+        'getInactiveProductsPage': _i1.MethodConnector(
+          name: 'getInactiveProductsPage',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'category': _i1.ParameterDescription(
+              name: 'category',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'subcategories': _i1.ParameterDescription(
+              name: 'subcategories',
+              type: _i1.getType<List<String>?>(),
+              nullable: true,
+            ),
+            'sortBy': _i1.ParameterDescription(
+              name: 'sortBy',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i20.ProductEndpoint)
+                  .getInactiveProductsPage(
                     session,
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],

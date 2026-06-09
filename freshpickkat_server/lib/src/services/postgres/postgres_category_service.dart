@@ -55,6 +55,45 @@ class PostgresCategoryService {
         .toList();
   }
 
+  Future<List<Category>> getInactiveCategories(Session session) async {
+    final categories = await CategoryRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+    );
+    categories.sort(_sortCategoryRows);
+
+    if (categories.isEmpty) return const [];
+
+    final categoryIds = categories
+        .map((row) => row.id)
+        .whereType<UuidValue>()
+        .toSet();
+    final subCategories = await SubCategoryRow.db.find(
+      session,
+      where: (t) =>
+          t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+    );
+    subCategories.sort(_sortSubCategoryRows);
+
+    final subCategoryMap = <String, Map<String, String>>{};
+    for (final row in subCategories) {
+      subCategoryMap.putIfAbsent(row.categoryId.toString(), () => {});
+      subCategoryMap[row.categoryId.toString()]![row.name] = row.imageUrl ?? '';
+    }
+
+    return categories
+        .map(
+          (row) => Category(
+            categoryName: row.name,
+            categoryImageUrl: row.imageUrl ?? '',
+            subCategory: subCategoryMap[row.id.toString()] ?? const {},
+            isFreeDelivery: row.isFreeDelivery,
+            isActive: false,
+          ),
+        )
+        .toList();
+  }
+
   Future<List<Category>> getAllCategories(Session session) async {
     final categories = await CategoryRow.db.find(session);
     categories.sort(_sortCategoryRows);

@@ -209,6 +209,10 @@ class FreeDeliveryEndpoint extends Endpoint {
     return result;
   }
 
+  Future<List<DeliveryRule>> getInactiveDeliveryRules(Session session) async {
+    return DeliveryEngine.getInactiveDeliveryRules(session);
+  }
+
   Future<List<DeliveryRule>> getAllDeliveryRules(
     Session session,
     String firebaseUid,

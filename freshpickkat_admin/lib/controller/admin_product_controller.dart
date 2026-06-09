@@ -19,12 +19,14 @@ class AdminProductController extends GetxController {
   final int pageSize = 20;
 
   final RxList<Product> products = <Product>[].obs;
+  final RxList<Product> inactiveProducts = <Product>[].obs;
   final RxnString nextPageToken = RxnString(null);
   final RxInt totalCount = 0.obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMore = true.obs;
   final RxnString error = RxnString(null);
+  final RxBool isLoadingInactive = false.obs;
 
   String categoryFilter = 'All';
 
@@ -127,6 +129,30 @@ class AdminProductController extends GetxController {
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> loadInactiveProducts() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final page = await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        return await _client.product.getInactiveProductsPage(
+          firebaseUid: uid,
+          idToken: idToken,
+          limit: 200,
+          sortBy: 'createdAt',
+        );
+      });
+      inactiveProducts.assignAll(page.products);
+    } catch (e) {
+      // silently fail
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

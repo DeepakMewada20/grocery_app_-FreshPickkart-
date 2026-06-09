@@ -11,6 +11,7 @@ admin:
 auth:
   - signOut:
 banner:
+  - getInactiveBanners:
   - getBanners:
   - getBannersPage:
   - getBannerById:
@@ -24,6 +25,7 @@ bogo:
   - upsertOffer:
   - deleteOffer:
   - setBogoOfferActive:
+  - getInactiveBogoOffers:
   - getAllOffers:
   - getOffersPage:
   - getActiveOffers:
@@ -32,6 +34,7 @@ bogo:
   - getOfferForProduct:
 category:
   - getCategories:
+  - getInactiveCategories:
   - getAllCategories:
   - uploadCategory:
   - updateCategory:
@@ -41,6 +44,7 @@ categoryOffer:
   - upsertCategoryOffer:
   - deleteCategoryOffer:
   - getActiveCategoryOffers:
+  - getInactiveCategoryOffers:
   - getAllCategoryOffers:
   - getCategoryOffersPage:
   - setCategoryOfferActive:
@@ -52,6 +56,7 @@ comboOffer:
   - deleteComboOffer:
   - getActiveComboOffers:
   - getActiveComboOffersForProducts:
+  - getInactiveComboOffers:
   - getAllComboOffers:
   - getComboOffersPage:
   - setComboOfferActive:
@@ -77,6 +82,7 @@ complaint:
   - getRefundForComplaint:
   - getUserRefundForComplaint:
 coupon:
+  - getInactiveCoupons:
   - fetchCoupons:
   - uploadCoupon:
   - setCouponActive:
@@ -93,6 +99,7 @@ freeDelivery:
   - setProductFreeDelivery:
   - setCategoryFreeDelivery:
   - upsertDeliveryConfig:
+  - getInactiveDeliveryRules:
   - getAllDeliveryRules:
   - getDeliveryRulesPage:
   - upsertDeliveryRule:
@@ -176,6 +183,7 @@ product:
   - getProductsByIds:
   - getProducts:
   - getProductsPage:
+  - getInactiveProductsPage:
   - getProductsCount:
   - uploadProduct:
   - updateProduct:

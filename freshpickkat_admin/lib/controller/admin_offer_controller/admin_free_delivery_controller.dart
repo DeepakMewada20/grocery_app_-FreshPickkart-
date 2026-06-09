@@ -20,9 +20,11 @@ class AdminFreeDeliveryController extends GetxController {
   final int pageSize = 20;
 
   final deliveryRules = <DeliveryRule>[].obs;
+  final inactiveDeliveryRules = <DeliveryRule>[].obs;
   final deliveryConfig = Rxn<DeliveryConfig>();
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
+  final isLoadingInactive = false.obs;
   final hasMore = true.obs;
   final nextPageToken = RxnString();
   final totalCount = 0.obs;
@@ -135,6 +137,20 @@ class AdminFreeDeliveryController extends GetxController {
       return result;
     } catch (e) {
       return false;
+    }
+  }
+
+  Future<void> loadInactiveDeliveryRules() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final result = await ApiClient().request(() async {
+        return await client.freeDelivery.getInactiveDeliveryRules();
+      });
+      inactiveDeliveryRules.assignAll(result);
+    } catch (_) {
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

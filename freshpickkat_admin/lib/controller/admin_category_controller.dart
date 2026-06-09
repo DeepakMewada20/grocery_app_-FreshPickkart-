@@ -32,8 +32,9 @@ class AdminCategoryController extends GetxController {
 
   final RxList<Category> categories = <Category>[].obs;
   final RxList<SubCategory> subCategories = <SubCategory>[].obs;
-  final RxList<Category> allCategories = <Category>[].obs;
+  final RxList<Category> inactiveCategories = <Category>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingInactive = false.obs;
   final RxnString error = RxnString(null);
 
   @override
@@ -68,24 +69,25 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<void> loadAllCategories() async {
-    isLoading.value = true;
+  Future<void> loadInactiveCategories() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
     error.value = null;
     try {
       final result = await ApiClient().request(() async {
-        return await _client.category.getAllCategories();
+        return await _client.category.getInactiveCategories();
       });
-      allCategories.assignAll(result);
+      inactiveCategories.assignAll(result);
     } on NoInternetException {
-      networkController.showError(onRetry: loadAllCategories);
+      networkController.showError(onRetry: loadInactiveCategories);
     } on NetworkException {
-      networkController.showError(onRetry: loadAllCategories);
+      networkController.showError(onRetry: loadInactiveCategories);
     } on RequestTimeoutException {
-      networkController.showError(onRetry: loadAllCategories);
+      networkController.showError(onRetry: loadInactiveCategories);
     } catch (e) {
       error.value = e.toString();
     } finally {
-      isLoading.value = false;
+      isLoadingInactive.value = false;
     }
   }
 

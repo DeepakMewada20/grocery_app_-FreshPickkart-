@@ -19,8 +19,10 @@ class AdminBannerController extends GetxController {
   final int pageSize = 20;
 
   final banners = <sc.Banner>[].obs;
+  final inactiveBanners = <sc.Banner>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
+  final isLoadingInactive = false.obs;
   final hasMore = true.obs;
   final nextPageToken = Rx<String?>(null);
   final totalCount = 0.obs;
@@ -100,6 +102,20 @@ class AdminBannerController extends GetxController {
   Future<void> ensureAllLoaded() async {
     while (hasMore.value && !isLoadingMore.value) {
       await loadMore();
+    }
+  }
+
+  Future<void> loadInactiveBanners() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final result = await ApiClient().request(() async {
+        return await _client.banner.getInactiveBanners();
+      });
+      inactiveBanners.assignAll(result);
+    } catch (_) {
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

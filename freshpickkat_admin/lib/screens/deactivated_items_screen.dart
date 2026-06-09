@@ -31,39 +31,39 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
   }
 
   void _loadAllData() {
+    final catCtrl = AdminCategoryController.instance;
+    if (catCtrl.inactiveCategories.isEmpty && !catCtrl.isLoadingInactive.value) {
+      catCtrl.loadInactiveCategories();
+    }
     final productCtrl = AdminProductController.instance;
-    if (productCtrl.products.isEmpty && !productCtrl.isLoading.value) {
-      productCtrl.loadInitial();
+    if (productCtrl.inactiveProducts.isEmpty && !productCtrl.isLoadingInactive.value) {
+      productCtrl.loadInactiveProducts();
     }
     final comboCtrl = AdminComboOfferController.instance;
-    if (comboCtrl.comboOffers.isEmpty && !comboCtrl.isLoading.value) {
-      comboCtrl.loadComboOffers();
+    if (comboCtrl.inactiveComboOffers.isEmpty && !comboCtrl.isLoadingInactive.value) {
+      comboCtrl.loadInactiveComboOffers();
     }
     final bogoCtrl = AdminBogoController.instance;
-    if (bogoCtrl.bogoOffers.isEmpty && !bogoCtrl.isLoading.value) {
-      bogoCtrl.loadBogoOffers();
+    if (bogoCtrl.inactiveBogoOffers.isEmpty && !bogoCtrl.isLoadingInactive.value) {
+      bogoCtrl.loadInactiveBogoOffers();
     }
     final catOfferCtrl = AdminCategoryOfferController.instance;
-    if (catOfferCtrl.categoryOffers.isEmpty &&
-        !catOfferCtrl.isLoading.value) {
-      catOfferCtrl.loadCategoryOffers();
+    if (catOfferCtrl.inactiveCategoryOffers.isEmpty &&
+        !catOfferCtrl.isLoadingInactive.value) {
+      catOfferCtrl.loadInactiveCategoryOffers();
     }
     final couponCtrl = AdminCouponController.instance;
-    if (couponCtrl.coupons.isEmpty && !couponCtrl.isLoading.value) {
-      couponCtrl.loadCoupons();
+    if (couponCtrl.inactiveCoupons.isEmpty && !couponCtrl.isLoadingInactive.value) {
+      couponCtrl.loadInactiveCoupons();
     }
     final bannerCtrl = AdminBannerController.instance;
-    if (bannerCtrl.banners.isEmpty && !bannerCtrl.isLoading.value) {
-      bannerCtrl.loadBanners();
+    if (bannerCtrl.inactiveBanners.isEmpty && !bannerCtrl.isLoadingInactive.value) {
+      bannerCtrl.loadInactiveBanners();
     }
     final deliveryCtrl = AdminFreeDeliveryController.instance;
-    if (deliveryCtrl.deliveryRules.isEmpty &&
-        !deliveryCtrl.isLoading.value) {
-      deliveryCtrl.loadDeliveryData();
-    }
-    final catCtrl = AdminCategoryController.instance;
-    if (catCtrl.allCategories.isEmpty && !catCtrl.isLoading.value) {
-      catCtrl.loadAllCategories();
+    if (deliveryCtrl.inactiveDeliveryRules.isEmpty &&
+        !deliveryCtrl.isLoadingInactive.value) {
+      deliveryCtrl.loadInactiveDeliveryRules();
     }
   }
 
@@ -101,8 +101,7 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
         children: [
           _DeactivatedTab<protocol.Category>(
             sourceList:
-                AdminCategoryController.instance.allCategories,
-            isInactive: (c) => c.isActive == false,
+                AdminCategoryController.instance.inactiveCategories,
             displayName: (c) => c.categoryName,
             leadingIcon: (c) =>
                 const Icon(Icons.category_outlined),
@@ -111,11 +110,11 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .setCategoryActive(c.categoryName, true);
             },
             emptyMessage: 'No deactivated categories',
-            isLoading: AdminCategoryController.instance.isLoading,
+            isLoading: AdminCategoryController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.Product>(
-            sourceList: AdminProductController.instance.products,
-            isInactive: (p) => p.isAvailable == false,
+            sourceList:
+                AdminProductController.instance.inactiveProducts,
             displayName: (p) => p.productName,
             leadingIcon: (p) =>
                 const Icon(Icons.shopping_bag_outlined),
@@ -124,11 +123,11 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .deactivateProduct(p.productId!, true);
             },
             emptyMessage: 'No deactivated products',
-            isLoading: AdminProductController.instance.isLoading,
+            isLoading: AdminProductController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.ComboOffer>(
-            sourceList: AdminComboOfferController.instance.comboOffers,
-            isInactive: (o) => o.isActive == false,
+            sourceList:
+                AdminComboOfferController.instance.inactiveComboOffers,
             displayName: (o) => o.name,
             leadingIcon: (o) =>
                 const Icon(Icons.local_offer_outlined),
@@ -137,11 +136,12 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .toggleComboOffer(o.comboId!, true);
             },
             emptyMessage: 'No deactivated combo offers',
-            isLoading: AdminComboOfferController.instance.isLoading,
+            isLoading:
+                AdminComboOfferController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.BogoOffer>(
-            sourceList: AdminBogoController.instance.bogoOffers,
-            isInactive: (o) => o.isActive == false,
+            sourceList:
+                AdminBogoController.instance.inactiveBogoOffers,
             displayName: (o) => o.offerTitle,
             leadingIcon: (o) =>
                 const Icon(Icons.production_quantity_limits_outlined),
@@ -150,12 +150,11 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .setBogoOfferActive(o.triggerProductId, true);
             },
             emptyMessage: 'No deactivated BOGO offers',
-            isLoading: AdminBogoController.instance.isLoading,
+            isLoading: AdminBogoController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.CategoryOffer>(
             sourceList:
-                AdminCategoryOfferController.instance.categoryOffers,
-            isInactive: (o) => o.isActive == false,
+                AdminCategoryOfferController.instance.inactiveCategoryOffers,
             displayName: (o) => o.name,
             leadingIcon: (o) =>
                 const Icon(Icons.category_outlined),
@@ -165,11 +164,11 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             },
             emptyMessage: 'No deactivated category offers',
             isLoading:
-                AdminCategoryOfferController.instance.isLoading,
+                AdminCategoryOfferController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.Coupon>(
-            sourceList: AdminCouponController.instance.coupons,
-            isInactive: (c) => c.isActive == false,
+            sourceList:
+                AdminCouponController.instance.inactiveCoupons,
             displayName: (c) => c.code,
             leadingIcon: (c) =>
                 const Icon(Icons.card_giftcard_outlined),
@@ -178,11 +177,12 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .setCouponActive(c.code, true);
             },
             emptyMessage: 'No deactivated coupons',
-            isLoading: AdminCouponController.instance.isLoading,
+            isLoading:
+                AdminCouponController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.Banner>(
-            sourceList: AdminBannerController.instance.banners,
-            isInactive: (b) => b.active == false,
+            sourceList:
+                AdminBannerController.instance.inactiveBanners,
             displayName: (b) => b.title,
             leadingIcon: (b) =>
                 const Icon(Icons.campaign_outlined),
@@ -191,12 +191,12 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .toggleBannerActive(b.bannerId!, true);
             },
             emptyMessage: 'No deactivated banners',
-            isLoading: AdminBannerController.instance.isLoading,
+            isLoading:
+                AdminBannerController.instance.isLoadingInactive,
           ),
           _DeactivatedTab<protocol.DeliveryRule>(
             sourceList:
-                AdminFreeDeliveryController.instance.deliveryRules,
-            isInactive: (r) => r.isActive == false,
+                AdminFreeDeliveryController.instance.inactiveDeliveryRules,
             displayName: (r) => r.name,
             leadingIcon: (r) =>
                 const Icon(Icons.local_shipping_outlined),
@@ -205,7 +205,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
                   .toggleDeliveryRule(r.ruleId!, true);
             },
             emptyMessage: 'No deactivated delivery rules',
-            isLoading: AdminFreeDeliveryController.instance.isLoading,
+            isLoading:
+                AdminFreeDeliveryController.instance.isLoadingInactive,
           ),
         ],
       ),
@@ -215,7 +216,6 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
 
 class _DeactivatedTab<T> extends StatelessWidget {
   final RxList<T> sourceList;
-  final bool Function(T) isInactive;
   final String Function(T) displayName;
   final Widget Function(T) leadingIcon;
   final Future<void> Function(T) onReactivate;
@@ -224,7 +224,6 @@ class _DeactivatedTab<T> extends StatelessWidget {
 
   const _DeactivatedTab({
     required this.sourceList,
-    required this.isInactive,
     required this.displayName,
     required this.leadingIcon,
     required this.onReactivate,
@@ -239,9 +238,7 @@ class _DeactivatedTab<T> extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final inactiveItems = sourceList.where(isInactive).toList();
-
-      if (inactiveItems.isEmpty) {
+      if (sourceList.isEmpty) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -264,9 +261,9 @@ class _DeactivatedTab<T> extends StatelessWidget {
           horizontal: 14,
           vertical: 14,
         ),
-        itemCount: inactiveItems.length,
+        itemCount: sourceList.length,
         itemBuilder: (context, index) {
-          final item = inactiveItems[index];
+          final item = sourceList[index];
           return Card(
             child: ListTile(
               leading: leadingIcon(item),

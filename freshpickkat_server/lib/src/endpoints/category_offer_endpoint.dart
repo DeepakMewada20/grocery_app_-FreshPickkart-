@@ -89,6 +89,12 @@ class CategoryOfferEndpoint extends Endpoint {
     return _offers.getActiveCategoryOffers(session);
   }
 
+  Future<List<CategoryOffer>> getInactiveCategoryOffers(
+    Session session,
+  ) async {
+    return _offers.getInactiveCategoryOffers(session);
+  }
+
   Future<List<CategoryOffer>> getAllCategoryOffers(
     Session session,
     String firebaseUid,

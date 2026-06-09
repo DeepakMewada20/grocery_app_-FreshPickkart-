@@ -20,8 +20,10 @@ class AdminCategoryOfferController extends GetxController {
   final int pageSize = 20;
 
   final categoryOffers = <CategoryOffer>[].obs;
+  final inactiveCategoryOffers = <CategoryOffer>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
+  final isLoadingInactive = false.obs;
   final hasMore = true.obs;
   final nextPageToken = RxnString();
   final totalCount = 0.obs;
@@ -123,6 +125,20 @@ class AdminCategoryOfferController extends GetxController {
   Future<void> ensureAllLoaded() async {
     while (hasMore.value && !isLoadingMore.value) {
       await loadMore();
+    }
+  }
+
+  Future<void> loadInactiveCategoryOffers() async {
+    if (isLoadingInactive.value) return;
+    isLoadingInactive.value = true;
+    try {
+      final result = await ApiClient().request(() async {
+        return await client.categoryOffer.getInactiveCategoryOffers();
+      });
+      inactiveCategoryOffers.assignAll(result);
+    } catch (_) {
+    } finally {
+      isLoadingInactive.value = false;
     }
   }
 

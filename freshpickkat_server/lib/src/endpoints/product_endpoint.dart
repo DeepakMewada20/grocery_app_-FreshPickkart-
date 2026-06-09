@@ -70,6 +70,32 @@ class ProductEndpoint extends Endpoint {
     );
   }
 
+  Future<ProductPage> getInactiveProductsPage(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    int limit = 20,
+    String? pageToken,
+    String? category,
+    List<String>? subcategories,
+    String sortBy = 'name',
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgProducts.getProductsPage(
+      session,
+      limit: limit,
+      pageToken: pageToken,
+      category: category,
+      subcategories: subcategories,
+      sortBy: sortBy,
+      statusFilter: 'inactive',
+    );
+  }
+
   Future<int> getProductsCount(
     Session session, {
     required String firebaseUid,
