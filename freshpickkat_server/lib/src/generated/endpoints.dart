@@ -5731,16 +5731,6 @@ class Endpoints extends _i1.EndpointDispatch {
         'getInactiveProductsPage': _i1.MethodConnector(
           name: 'getInactiveProductsPage',
           params: {
-            'firebaseUid': _i1.ParameterDescription(
-              name: 'firebaseUid',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'idToken': _i1.ParameterDescription(
-              name: 'idToken',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -5774,8 +5764,6 @@ class Endpoints extends _i1.EndpointDispatch {
               ) async => (endpoints['product'] as _i20.ProductEndpoint)
                   .getInactiveProductsPage(
                     session,
-                    firebaseUid: params['firebaseUid'],
-                    idToken: params['idToken'],
                     limit: params['limit'],
                     pageToken: params['pageToken'],
                     category: params['category'],

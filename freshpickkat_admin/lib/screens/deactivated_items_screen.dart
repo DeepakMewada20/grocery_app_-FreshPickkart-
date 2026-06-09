@@ -22,48 +22,41 @@ class DeactivatedItemsScreen extends StatefulWidget {
 class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _loadedTabs = <int>{};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 8, vsync: this);
-    _loadAllData();
+    _tabController.addListener(_onTabChanged);
+    _loadTabData(0);
   }
 
-  void _loadAllData() {
-    final catCtrl = AdminCategoryController.instance;
-    if (catCtrl.inactiveCategories.isEmpty && !catCtrl.isLoadingInactive.value) {
-      catCtrl.loadInactiveCategories();
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _loadTabData(_tabController.index);
     }
-    final productCtrl = AdminProductController.instance;
-    if (productCtrl.inactiveProducts.isEmpty && !productCtrl.isLoadingInactive.value) {
-      productCtrl.loadInactiveProducts();
-    }
-    final comboCtrl = AdminComboOfferController.instance;
-    if (comboCtrl.inactiveComboOffers.isEmpty && !comboCtrl.isLoadingInactive.value) {
-      comboCtrl.loadInactiveComboOffers();
-    }
-    final bogoCtrl = AdminBogoController.instance;
-    if (bogoCtrl.inactiveBogoOffers.isEmpty && !bogoCtrl.isLoadingInactive.value) {
-      bogoCtrl.loadInactiveBogoOffers();
-    }
-    final catOfferCtrl = AdminCategoryOfferController.instance;
-    if (catOfferCtrl.inactiveCategoryOffers.isEmpty &&
-        !catOfferCtrl.isLoadingInactive.value) {
-      catOfferCtrl.loadInactiveCategoryOffers();
-    }
-    final couponCtrl = AdminCouponController.instance;
-    if (couponCtrl.inactiveCoupons.isEmpty && !couponCtrl.isLoadingInactive.value) {
-      couponCtrl.loadInactiveCoupons();
-    }
-    final bannerCtrl = AdminBannerController.instance;
-    if (bannerCtrl.inactiveBanners.isEmpty && !bannerCtrl.isLoadingInactive.value) {
-      bannerCtrl.loadInactiveBanners();
-    }
-    final deliveryCtrl = AdminFreeDeliveryController.instance;
-    if (deliveryCtrl.inactiveDeliveryRules.isEmpty &&
-        !deliveryCtrl.isLoadingInactive.value) {
-      deliveryCtrl.loadInactiveDeliveryRules();
+  }
+
+  void _loadTabData(int index) {
+    if (!_loadedTabs.add(index)) return;
+    switch (index) {
+      case 0:
+        AdminCategoryController.instance.loadInactiveCategories();
+      case 1:
+        AdminProductController.instance.loadInactiveProducts();
+      case 2:
+        AdminComboOfferController.instance.loadInactiveComboOffers();
+      case 3:
+        AdminBogoController.instance.loadInactiveBogoOffers();
+      case 4:
+        AdminCategoryOfferController.instance.loadInactiveCategoryOffers();
+      case 5:
+        AdminCouponController.instance.loadInactiveCoupons();
+      case 6:
+        AdminBannerController.instance.loadInactiveBanners();
+      case 7:
+        AdminFreeDeliveryController.instance.loadInactiveDeliveryRules();
     }
   }
 
@@ -111,6 +104,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             },
             emptyMessage: 'No deactivated categories',
             isLoading: AdminCategoryController.instance.isLoadingInactive,
+            onRefresh: () => AdminCategoryController.instance
+                .loadInactiveCategories(),
           ),
           _DeactivatedTab<protocol.Product>(
             sourceList:
@@ -124,6 +119,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             },
             emptyMessage: 'No deactivated products',
             isLoading: AdminProductController.instance.isLoadingInactive,
+            onRefresh: () => AdminProductController.instance
+                .loadInactiveProducts(),
           ),
           _DeactivatedTab<protocol.ComboOffer>(
             sourceList:
@@ -138,6 +135,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             emptyMessage: 'No deactivated combo offers',
             isLoading:
                 AdminComboOfferController.instance.isLoadingInactive,
+            onRefresh: () => AdminComboOfferController.instance
+                .loadInactiveComboOffers(),
           ),
           _DeactivatedTab<protocol.BogoOffer>(
             sourceList:
@@ -151,6 +150,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             },
             emptyMessage: 'No deactivated BOGO offers',
             isLoading: AdminBogoController.instance.isLoadingInactive,
+            onRefresh: () => AdminBogoController.instance
+                .loadInactiveBogoOffers(),
           ),
           _DeactivatedTab<protocol.CategoryOffer>(
             sourceList:
@@ -165,6 +166,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             emptyMessage: 'No deactivated category offers',
             isLoading:
                 AdminCategoryOfferController.instance.isLoadingInactive,
+            onRefresh: () => AdminCategoryOfferController.instance
+                .loadInactiveCategoryOffers(),
           ),
           _DeactivatedTab<protocol.Coupon>(
             sourceList:
@@ -179,6 +182,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             emptyMessage: 'No deactivated coupons',
             isLoading:
                 AdminCouponController.instance.isLoadingInactive,
+            onRefresh: () => AdminCouponController.instance
+                .loadInactiveCoupons(),
           ),
           _DeactivatedTab<protocol.Banner>(
             sourceList:
@@ -193,6 +198,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             emptyMessage: 'No deactivated banners',
             isLoading:
                 AdminBannerController.instance.isLoadingInactive,
+            onRefresh: () => AdminBannerController.instance
+                .loadInactiveBanners(),
           ),
           _DeactivatedTab<protocol.DeliveryRule>(
             sourceList:
@@ -207,6 +214,8 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
             emptyMessage: 'No deactivated delivery rules',
             isLoading:
                 AdminFreeDeliveryController.instance.isLoadingInactive,
+            onRefresh: () => AdminFreeDeliveryController.instance
+                .loadInactiveDeliveryRules(),
           ),
         ],
       ),
@@ -221,6 +230,7 @@ class _DeactivatedTab<T> extends StatelessWidget {
   final Future<void> Function(T) onReactivate;
   final String emptyMessage;
   final RxBool isLoading;
+  final Future<void> Function() onRefresh;
 
   const _DeactivatedTab({
     required this.sourceList,
@@ -229,6 +239,7 @@ class _DeactivatedTab<T> extends StatelessWidget {
     required this.onReactivate,
     required this.emptyMessage,
     required this.isLoading,
+    required this.onRefresh,
   });
 
   @override
@@ -239,44 +250,57 @@ class _DeactivatedTab<T> extends StatelessWidget {
       }
 
       if (sourceList.isEmpty) {
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Text(
-              emptyMessage,
-              style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
-                fontSize: 15,
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView(
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      emptyMessage,
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.5),
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         );
       }
 
-      return ListView.builder(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
-        itemCount: sourceList.length,
-        itemBuilder: (context, index) {
-          final item = sourceList[index];
-          return Card(
-            child: ListTile(
-              leading: leadingIcon(item),
-              title: Text(displayName(item)),
-              trailing: TextButton.icon(
-                onPressed: () => _reactivate(context, item),
-                icon: const Icon(Icons.check_circle_outline,
-                    size: 18),
-                label: const Text('Reactivate'),
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+          itemCount: sourceList.length,
+          itemBuilder: (context, index) {
+            final item = sourceList[index];
+            return Card(
+              child: ListTile(
+                leading: leadingIcon(item),
+                title: Text(displayName(item)),
+                trailing: TextButton.icon(
+                  onPressed: () => _reactivate(context, item),
+                  icon: const Icon(Icons.check_circle_outline,
+                      size: 18),
+                  label: const Text('Reactivate'),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       );
     });
   }

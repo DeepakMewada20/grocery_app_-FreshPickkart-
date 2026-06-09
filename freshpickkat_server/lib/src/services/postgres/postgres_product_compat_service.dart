@@ -198,7 +198,11 @@ class PostgresProductCompatService {
       cursorRows.removeLast();
     }
 
-    final products = await _catalog.hydrateProductsByIds(session, productIds);
+    final products = await _catalog.hydrateProductsByIds(
+      session,
+      productIds,
+      statusFilter: statusFilter,
+    );
     final nextPageToken = hasMore && cursorRows.isNotEmpty
         ? encodeCursor(cursorRows.last)
         : null;

@@ -2635,8 +2635,6 @@ class EndpointProduct extends _i1.EndpointRef {
   );
 
   _i2.Future<_i51.ProductPage> getInactiveProductsPage({
-    required String firebaseUid,
-    required String idToken,
     required int limit,
     String? pageToken,
     String? category,
@@ -2646,8 +2644,6 @@ class EndpointProduct extends _i1.EndpointRef {
     'product',
     'getInactiveProductsPage',
     {
-      'firebaseUid': firebaseUid,
-      'idToken': idToken,
       'limit': limit,
       'pageToken': pageToken,
       'category': category,

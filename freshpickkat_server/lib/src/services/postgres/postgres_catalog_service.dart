@@ -329,8 +329,9 @@ class PostgresCatalogService {
 
   Future<List<Product>> hydrateProductsByIds(
     Session session,
-    List<String> orderedProductIds,
-  ) async {
+    List<String> orderedProductIds, {
+    String statusFilter = 'active',
+  }) async {
     if (orderedProductIds.isEmpty) return const [];
 
     final productIds = orderedProductIds
@@ -340,7 +341,7 @@ class PostgresCatalogService {
 
     final products = await ProductRow.db.find(
       session,
-      where: (t) => t.id.inSet(productIds) & t.status.equals('active'),
+      where: (t) => t.id.inSet(productIds) & t.status.equals(statusFilter),
     );
 
     if (products.isEmpty) return const [];

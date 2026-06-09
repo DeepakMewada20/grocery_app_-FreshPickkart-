@@ -135,22 +135,23 @@ class AdminProductController extends GetxController {
   Future<void> loadInactiveProducts() async {
     if (isLoadingInactive.value) return;
     isLoadingInactive.value = true;
+    error.value = null;
     try {
       final page = await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
         return await _client.product.getInactiveProductsPage(
-          firebaseUid: uid,
-          idToken: idToken,
           limit: 200,
-          sortBy: 'createdAt',
+          sortBy: 'name',
         );
       });
       inactiveProducts.assignAll(page.products);
+    } on NoInternetException {
+      networkController.showError(onRetry: loadInactiveProducts);
+    } on NetworkException {
+      networkController.showError(onRetry: loadInactiveProducts);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadInactiveProducts);
     } catch (e) {
-      // silently fail
+      error.value = _friendlyLoadError(e);
     } finally {
       isLoadingInactive.value = false;
     }
