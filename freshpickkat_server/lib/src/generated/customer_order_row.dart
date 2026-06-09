@@ -33,6 +33,8 @@ abstract class CustomerOrderRow
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    this.freeDeliveryReason,
+    this.couponSnapshot,
     required this.finalAmount,
     this.placedAt,
     this.confirmedAt,
@@ -84,6 +86,8 @@ abstract class CustomerOrderRow
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -137,6 +141,8 @@ abstract class CustomerOrderRow
           : _i1.BoolJsonExtension.fromJson(
               jsonSerialization['freeDeliveryApplied'],
             ),
+      freeDeliveryReason: jsonSerialization['freeDeliveryReason'] as String?,
+      couponSnapshot: jsonSerialization['couponSnapshot'] as String?,
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       placedAt: jsonSerialization['placedAt'] == null
           ? null
@@ -229,6 +235,10 @@ abstract class CustomerOrderRow
 
   bool freeDeliveryApplied;
 
+  String? freeDeliveryReason;
+
+  String? couponSnapshot;
+
   double finalAmount;
 
   DateTime? placedAt;
@@ -290,6 +300,8 @@ abstract class CustomerOrderRow
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     double? finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -331,6 +343,8 @@ abstract class CustomerOrderRow
       'originalDeliveryFee': originalDeliveryFee,
       'deliveryDiscountAmount': deliveryDiscountAmount,
       'freeDeliveryApplied': freeDeliveryApplied,
+      if (freeDeliveryReason != null) 'freeDeliveryReason': freeDeliveryReason,
+      if (couponSnapshot != null) 'couponSnapshot': couponSnapshot,
       'finalAmount': finalAmount,
       if (placedAt != null) 'placedAt': placedAt?.toJson(),
       if (confirmedAt != null) 'confirmedAt': confirmedAt?.toJson(),
@@ -412,6 +426,8 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -449,6 +465,8 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          originalDeliveryFee: originalDeliveryFee,
          deliveryDiscountAmount: deliveryDiscountAmount,
          freeDeliveryApplied: freeDeliveryApplied,
+         freeDeliveryReason: freeDeliveryReason,
+         couponSnapshot: couponSnapshot,
          finalAmount: finalAmount,
          placedAt: placedAt,
          confirmedAt: confirmedAt,
@@ -492,6 +510,8 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    Object? freeDeliveryReason = _Undefined,
+    Object? couponSnapshot = _Undefined,
     double? finalAmount,
     Object? placedAt = _Undefined,
     Object? confirmedAt = _Undefined,
@@ -532,6 +552,12 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       deliveryDiscountAmount:
           deliveryDiscountAmount ?? this.deliveryDiscountAmount,
       freeDeliveryApplied: freeDeliveryApplied ?? this.freeDeliveryApplied,
+      freeDeliveryReason: freeDeliveryReason is String?
+          ? freeDeliveryReason
+          : this.freeDeliveryReason,
+      couponSnapshot: couponSnapshot is String?
+          ? couponSnapshot
+          : this.couponSnapshot,
       finalAmount: finalAmount ?? this.finalAmount,
       placedAt: placedAt is DateTime? ? placedAt : this.placedAt,
       confirmedAt: confirmedAt is DateTime? ? confirmedAt : this.confirmedAt,
@@ -663,6 +689,18 @@ class CustomerOrderRowUpdateTable
   _i1.ColumnValue<bool, bool> freeDeliveryApplied(bool value) =>
       _i1.ColumnValue(
         table.freeDeliveryApplied,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> freeDeliveryReason(String? value) =>
+      _i1.ColumnValue(
+        table.freeDeliveryReason,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> couponSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.couponSnapshot,
         value,
       );
 
@@ -852,6 +890,14 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    freeDeliveryReason = _i1.ColumnString(
+      'freeDeliveryReason',
+      this,
+    );
+    couponSnapshot = _i1.ColumnString(
+      'couponSnapshot',
+      this,
+    );
     finalAmount = _i1.ColumnDouble(
       'finalAmount',
       this,
@@ -966,6 +1012,10 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnBool freeDeliveryApplied;
 
+  late final _i1.ColumnString freeDeliveryReason;
+
+  late final _i1.ColumnString couponSnapshot;
+
   late final _i1.ColumnDouble finalAmount;
 
   late final _i1.ColumnDateTime placedAt;
@@ -1022,6 +1072,8 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     originalDeliveryFee,
     deliveryDiscountAmount,
     freeDeliveryApplied,
+    freeDeliveryReason,
+    couponSnapshot,
     finalAmount,
     placedAt,
     confirmedAt,

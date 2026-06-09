@@ -20,6 +20,8 @@ fields:
   originalDeliveryFee: double, default=0
   deliveryDiscountAmount: double, default=0
   freeDeliveryApplied: bool, default=false
+  freeDeliveryReason: String?
+  couponSnapshot: String?
   finalAmount: double
   placedAt: DateTime?
   confirmedAt: DateTime?

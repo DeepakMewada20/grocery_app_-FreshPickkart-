@@ -4,13 +4,19 @@ table: order_item
 fields:
   id: UuidValue?, defaultPersist=random
   orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
-  productId: UuidValue, relation(parent=product, onDelete=Restrict)
-  productVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
-  comboOfferId: UuidValue?, relation(parent=combo_offer, onDelete=Restrict)
-  bogoOfferId: UuidValue?, relation(parent=bogo_offer, onDelete=Restrict)
+  productId: UuidValue
+  productVariantId: UuidValue?
+  comboOfferId: UuidValue?
+  bogoOfferId: UuidValue?
   productNameSnapshot: String
   productImageUrlSnapshot: String?
   variantLabelSnapshot: String?
+  mrpSnapshot: double?
+  skuSnapshot: String?
+  productSlugSnapshot: String?
+  categoryNameSnapshot: String?
+  productStatusSnapshot: String?
+  appliedOfferSnapshot: String?
   quantity: int
   unitPrice: double
   totalPrice: double

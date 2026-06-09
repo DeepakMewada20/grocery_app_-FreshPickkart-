@@ -33,6 +33,8 @@ abstract class Order implements _i1.SerializableModel {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    this.freeDeliveryReason,
+    this.couponSnapshot,
     required this.finalAmount,
     required this.status,
     required this.paymentStatus,
@@ -78,6 +80,8 @@ abstract class Order implements _i1.SerializableModel {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -129,6 +133,8 @@ abstract class Order implements _i1.SerializableModel {
           : _i1.BoolJsonExtension.fromJson(
               jsonSerialization['freeDeliveryApplied'],
             ),
+      freeDeliveryReason: jsonSerialization['freeDeliveryReason'] as String?,
+      couponSnapshot: jsonSerialization['couponSnapshot'] as String?,
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       paymentStatus: jsonSerialization['paymentStatus'] as String,
@@ -204,6 +210,10 @@ abstract class Order implements _i1.SerializableModel {
 
   bool freeDeliveryApplied;
 
+  String? freeDeliveryReason;
+
+  String? couponSnapshot;
+
   double finalAmount;
 
   String status;
@@ -264,6 +274,8 @@ abstract class Order implements _i1.SerializableModel {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -305,6 +317,8 @@ abstract class Order implements _i1.SerializableModel {
       'originalDeliveryFee': originalDeliveryFee,
       'deliveryDiscountAmount': deliveryDiscountAmount,
       'freeDeliveryApplied': freeDeliveryApplied,
+      if (freeDeliveryReason != null) 'freeDeliveryReason': freeDeliveryReason,
+      if (couponSnapshot != null) 'couponSnapshot': couponSnapshot,
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -356,6 +370,8 @@ class _OrderImpl extends Order {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    String? freeDeliveryReason,
+    String? couponSnapshot,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -393,6 +409,8 @@ class _OrderImpl extends Order {
          originalDeliveryFee: originalDeliveryFee,
          deliveryDiscountAmount: deliveryDiscountAmount,
          freeDeliveryApplied: freeDeliveryApplied,
+         freeDeliveryReason: freeDeliveryReason,
+         couponSnapshot: couponSnapshot,
          finalAmount: finalAmount,
          status: status,
          paymentStatus: paymentStatus,
@@ -436,6 +454,8 @@ class _OrderImpl extends Order {
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
+    Object? freeDeliveryReason = _Undefined,
+    Object? couponSnapshot = _Undefined,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -476,6 +496,12 @@ class _OrderImpl extends Order {
       deliveryDiscountAmount:
           deliveryDiscountAmount ?? this.deliveryDiscountAmount,
       freeDeliveryApplied: freeDeliveryApplied ?? this.freeDeliveryApplied,
+      freeDeliveryReason: freeDeliveryReason is String?
+          ? freeDeliveryReason
+          : this.freeDeliveryReason,
+      couponSnapshot: couponSnapshot is String?
+          ? couponSnapshot
+          : this.couponSnapshot,
       finalAmount: finalAmount ?? this.finalAmount,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,

@@ -11,6 +11,7 @@ import 'postgres_offer_service.dart';
 import 'postgres_product_compat_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
+import '../snapshot_builder.dart';
 
 class PostgresOrderService {
   static const int _defaultLimit = 20;
@@ -39,6 +40,12 @@ class PostgresOrderService {
     final bogoOfferIdsByFreeItem = await _validateOrderBogoFreeItems(
       session,
       order,
+    );
+
+    final itemSnapshots = await SnapshotBuilder.instance.buildFromOrderItems(
+      session,
+      items: order.items,
+      bogoOfferIdsByFreeItem: bogoOfferIdsByFreeItem,
     );
 
     try {
@@ -90,6 +97,10 @@ class PostgresOrderService {
           couponReference: order.couponApplied,
           transaction: transaction,
         );
+        final couponSnapshotJson = SnapshotBuilder.instance.buildCouponSnapshot(
+          coupon,
+          order.discountAmount,
+        );
 
         final now = DateTime.now().toUtc();
         final orderNumber = _generateOrderNumber();
@@ -116,6 +127,8 @@ class PostgresOrderService {
             originalDeliveryFee: order.originalDeliveryFee,
             deliveryDiscountAmount: order.deliveryDiscountAmount,
             freeDeliveryApplied: order.freeDeliveryApplied,
+            freeDeliveryReason: cleanNullableString(order.freeDeliveryReason),
+            couponSnapshot: couponSnapshotJson,
             finalAmount: order.finalAmount,
             orderType: order.orderType,
             sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
@@ -166,6 +179,12 @@ class PostgresOrderService {
             productNameSnapshot: item.productName.trim(),
             productImageUrlSnapshot: cleanNullableString(item.productImage),
             variantLabelSnapshot: cleanNullableString(item.variantLabel),
+            mrpSnapshot: itemSnapshots[item.productId]?.mrp,
+            skuSnapshot: itemSnapshots[item.productId]?.sku,
+            productSlugSnapshot: itemSnapshots[item.productId]?.slug,
+            categoryNameSnapshot: itemSnapshots[item.productId]?.categoryName,
+            productStatusSnapshot: itemSnapshots[item.productId]?.productStatus,
+            appliedOfferSnapshot: itemSnapshots[item.productId]?.appliedOfferJson,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
@@ -577,6 +596,12 @@ class PostgresOrderService {
             variantLabel: item.variantLabelSnapshot,
             productName: item.productNameSnapshot,
             productImage: item.productImageUrlSnapshot ?? '',
+            mrp: item.mrpSnapshot,
+            sku: item.skuSnapshot,
+            productSlug: item.productSlugSnapshot,
+            categoryName: item.categoryNameSnapshot,
+            productStatus: item.productStatusSnapshot,
+            appliedOfferSnapshot: item.appliedOfferSnapshot,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
@@ -612,6 +637,8 @@ class PostgresOrderService {
           originalDeliveryFee: order.originalDeliveryFee,
           deliveryDiscountAmount: order.deliveryDiscountAmount,
           freeDeliveryApplied: order.freeDeliveryApplied,
+          freeDeliveryReason: order.freeDeliveryReason,
+          couponSnapshot: order.couponSnapshot,
           finalAmount: order.finalAmount,
           status: order.orderStatus,
           paymentStatus: order.paymentStatus,
@@ -971,6 +998,12 @@ class PostgresOrderService {
         updatedAt: now,
       ),
     );
+
+    if (newStatus == 'cancelled' && row.paymentStatus == 'paid') {
+      await _restoreStockForCancelledOrder(session, row.id!);
+      await _decrementCouponForCancelledOrder(session, row);
+    }
+
     return true;
   }
 
@@ -1192,6 +1225,94 @@ class PostgresOrderService {
     );
   }
 
+  Future<void> _restoreStockForCancelledOrder(
+    Session session,
+    UuidValue orderId,
+  ) async {
+    try {
+      final orderItems = await OrderItemRow.db.find(
+        session,
+        where: (t) => t.orderId.equals(orderId),
+      );
+      if (orderItems.isEmpty) return;
+
+      const unitConversions = <String, double>{
+        'gm': 1.0,
+        'kg': 1000.0,
+        'litre': 1000.0,
+        'ml': 1.0,
+        'pc': 1.0,
+        'pack': 1.0,
+      };
+
+      for (final item in orderItems) {
+        final product = await ProductRow.db.findById(session, item.productId);
+        if (product == null || product.stock == null) continue;
+
+        double restoreAmount = 0;
+        if (item.productVariantId != null) {
+          final variant = await ProductVariantRow.db.findById(
+            session,
+            item.productVariantId!,
+          );
+          if (variant != null) {
+            final vUnit = variant.quantityUnit.toLowerCase();
+            final pUnit = (product.stockUnit ?? product.baseUnit ?? 'unit')
+                .toLowerCase();
+            final inGrams =
+                variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
+            final inBase = inGrams / (unitConversions[pUnit] ?? 1.0);
+            restoreAmount = inBase * item.quantity;
+          } else {
+            restoreAmount = item.quantity.toDouble();
+          }
+        } else {
+          restoreAmount = item.quantity.toDouble();
+        }
+
+        final newStock = product.stock! + restoreAmount;
+
+        await ProductRow.db.updateRow(
+          session,
+          product.copyWith(
+            stock: newStock,
+            status: newStock > 0 ? 'active' : product.status,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+      }
+    } catch (e) {
+      session.log(
+        'Stock restore for cancelled order failed: $e',
+        level: LogLevel.error,
+      );
+    }
+  }
+
+  Future<void> _decrementCouponForCancelledOrder(
+    Session session,
+    CustomerOrderRow order,
+  ) async {
+    if (order.couponId == null) return;
+    try {
+      final coupon = await CouponRow.db.findById(session, order.couponId!);
+      if (coupon == null || coupon.usedCount <= 0) return;
+
+      await CouponRow.db.updateRow(
+        session,
+        coupon.copyWith(
+          usedCount: coupon.usedCount - 1,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+    } catch (e) {
+      session.log(
+        'Coupon usage decrement for cancelled order failed: $e',
+        level: LogLevel.error,
+      );
+    }
+  }
+
   /// List orders with cancellation_requested status (admin).
   Future<OrderPage> listCancellationRequests(
     Session session, {
@@ -1324,6 +1445,11 @@ class PostgresOrderService {
         updatedAt: now,
       ),
     );
+
+    if (row.paymentStatus == 'paid') {
+      await _restoreStockForCancelledOrder(session, row.id!);
+      await _decrementCouponForCancelledOrder(session, row);
+    }
 
     await OrderOutboxService.instance.enqueueOrderStatusChanged(
       session: session,

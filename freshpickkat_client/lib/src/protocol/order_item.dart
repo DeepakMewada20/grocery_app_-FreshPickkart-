@@ -20,6 +20,12 @@ abstract class OrderItem implements _i1.SerializableModel {
     this.variantLabel,
     required this.productName,
     required this.productImage,
+    this.mrp,
+    this.sku,
+    this.productSlug,
+    this.categoryName,
+    this.productStatus,
+    this.appliedOfferSnapshot,
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
@@ -39,6 +45,12 @@ abstract class OrderItem implements _i1.SerializableModel {
     String? variantLabel,
     required String productName,
     required String productImage,
+    double? mrp,
+    String? sku,
+    String? productSlug,
+    String? categoryName,
+    String? productStatus,
+    String? appliedOfferSnapshot,
     required int quantity,
     required double unitPrice,
     required double totalPrice,
@@ -59,6 +71,13 @@ abstract class OrderItem implements _i1.SerializableModel {
       variantLabel: jsonSerialization['variantLabel'] as String?,
       productName: jsonSerialization['productName'] as String,
       productImage: jsonSerialization['productImage'] as String,
+      mrp: (jsonSerialization['mrp'] as num?)?.toDouble(),
+      sku: jsonSerialization['sku'] as String?,
+      productSlug: jsonSerialization['productSlug'] as String?,
+      categoryName: jsonSerialization['categoryName'] as String?,
+      productStatus: jsonSerialization['productStatus'] as String?,
+      appliedOfferSnapshot:
+          jsonSerialization['appliedOfferSnapshot'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       unitPrice: (jsonSerialization['unitPrice'] as num).toDouble(),
       totalPrice: (jsonSerialization['totalPrice'] as num).toDouble(),
@@ -86,6 +105,18 @@ abstract class OrderItem implements _i1.SerializableModel {
   String productName;
 
   String productImage;
+
+  double? mrp;
+
+  String? sku;
+
+  String? productSlug;
+
+  String? categoryName;
+
+  String? productStatus;
+
+  String? appliedOfferSnapshot;
 
   int quantity;
 
@@ -117,6 +148,12 @@ abstract class OrderItem implements _i1.SerializableModel {
     String? variantLabel,
     String? productName,
     String? productImage,
+    double? mrp,
+    String? sku,
+    String? productSlug,
+    String? categoryName,
+    String? productStatus,
+    String? appliedOfferSnapshot,
     int? quantity,
     double? unitPrice,
     double? totalPrice,
@@ -138,6 +175,13 @@ abstract class OrderItem implements _i1.SerializableModel {
       if (variantLabel != null) 'variantLabel': variantLabel,
       'productName': productName,
       'productImage': productImage,
+      if (mrp != null) 'mrp': mrp,
+      if (sku != null) 'sku': sku,
+      if (productSlug != null) 'productSlug': productSlug,
+      if (categoryName != null) 'categoryName': categoryName,
+      if (productStatus != null) 'productStatus': productStatus,
+      if (appliedOfferSnapshot != null)
+        'appliedOfferSnapshot': appliedOfferSnapshot,
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
@@ -167,6 +211,12 @@ class _OrderItemImpl extends OrderItem {
     String? variantLabel,
     required String productName,
     required String productImage,
+    double? mrp,
+    String? sku,
+    String? productSlug,
+    String? categoryName,
+    String? productStatus,
+    String? appliedOfferSnapshot,
     required int quantity,
     required double unitPrice,
     required double totalPrice,
@@ -184,6 +234,12 @@ class _OrderItemImpl extends OrderItem {
          variantLabel: variantLabel,
          productName: productName,
          productImage: productImage,
+         mrp: mrp,
+         sku: sku,
+         productSlug: productSlug,
+         categoryName: categoryName,
+         productStatus: productStatus,
+         appliedOfferSnapshot: appliedOfferSnapshot,
          quantity: quantity,
          unitPrice: unitPrice,
          totalPrice: totalPrice,
@@ -207,6 +263,12 @@ class _OrderItemImpl extends OrderItem {
     Object? variantLabel = _Undefined,
     String? productName,
     String? productImage,
+    Object? mrp = _Undefined,
+    Object? sku = _Undefined,
+    Object? productSlug = _Undefined,
+    Object? categoryName = _Undefined,
+    Object? productStatus = _Undefined,
+    Object? appliedOfferSnapshot = _Undefined,
     int? quantity,
     double? unitPrice,
     double? totalPrice,
@@ -225,6 +287,16 @@ class _OrderItemImpl extends OrderItem {
       variantLabel: variantLabel is String? ? variantLabel : this.variantLabel,
       productName: productName ?? this.productName,
       productImage: productImage ?? this.productImage,
+      mrp: mrp is double? ? mrp : this.mrp,
+      sku: sku is String? ? sku : this.sku,
+      productSlug: productSlug is String? ? productSlug : this.productSlug,
+      categoryName: categoryName is String? ? categoryName : this.categoryName,
+      productStatus: productStatus is String?
+          ? productStatus
+          : this.productStatus,
+      appliedOfferSnapshot: appliedOfferSnapshot is String?
+          ? appliedOfferSnapshot
+          : this.appliedOfferSnapshot,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,

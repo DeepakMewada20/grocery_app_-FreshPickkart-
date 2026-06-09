@@ -24,6 +24,12 @@ abstract class OrderItemRow
     required this.productNameSnapshot,
     this.productImageUrlSnapshot,
     this.variantLabelSnapshot,
+    this.mrpSnapshot,
+    this.skuSnapshot,
+    this.productSlugSnapshot,
+    this.categoryNameSnapshot,
+    this.productStatusSnapshot,
+    this.appliedOfferSnapshot,
     required this.quantity,
     required this.unitPrice,
     required this.totalPrice,
@@ -42,6 +48,12 @@ abstract class OrderItemRow
     required String productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
+    double? mrpSnapshot,
+    String? skuSnapshot,
+    String? productSlugSnapshot,
+    String? categoryNameSnapshot,
+    String? productStatusSnapshot,
+    String? appliedOfferSnapshot,
     required int quantity,
     required double unitPrice,
     required double totalPrice,
@@ -80,6 +92,15 @@ abstract class OrderItemRow
           jsonSerialization['productImageUrlSnapshot'] as String?,
       variantLabelSnapshot:
           jsonSerialization['variantLabelSnapshot'] as String?,
+      mrpSnapshot: (jsonSerialization['mrpSnapshot'] as num?)?.toDouble(),
+      skuSnapshot: jsonSerialization['skuSnapshot'] as String?,
+      productSlugSnapshot: jsonSerialization['productSlugSnapshot'] as String?,
+      categoryNameSnapshot:
+          jsonSerialization['categoryNameSnapshot'] as String?,
+      productStatusSnapshot:
+          jsonSerialization['productStatusSnapshot'] as String?,
+      appliedOfferSnapshot:
+          jsonSerialization['appliedOfferSnapshot'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       unitPrice: (jsonSerialization['unitPrice'] as num).toDouble(),
       totalPrice: (jsonSerialization['totalPrice'] as num).toDouble(),
@@ -115,6 +136,18 @@ abstract class OrderItemRow
 
   String? variantLabelSnapshot;
 
+  double? mrpSnapshot;
+
+  String? skuSnapshot;
+
+  String? productSlugSnapshot;
+
+  String? categoryNameSnapshot;
+
+  String? productStatusSnapshot;
+
+  String? appliedOfferSnapshot;
+
   int quantity;
 
   double unitPrice;
@@ -141,6 +174,12 @@ abstract class OrderItemRow
     String? productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
+    double? mrpSnapshot,
+    String? skuSnapshot,
+    String? productSlugSnapshot,
+    String? categoryNameSnapshot,
+    String? productStatusSnapshot,
+    String? appliedOfferSnapshot,
     int? quantity,
     double? unitPrice,
     double? totalPrice,
@@ -163,6 +202,16 @@ abstract class OrderItemRow
         'productImageUrlSnapshot': productImageUrlSnapshot,
       if (variantLabelSnapshot != null)
         'variantLabelSnapshot': variantLabelSnapshot,
+      if (mrpSnapshot != null) 'mrpSnapshot': mrpSnapshot,
+      if (skuSnapshot != null) 'skuSnapshot': skuSnapshot,
+      if (productSlugSnapshot != null)
+        'productSlugSnapshot': productSlugSnapshot,
+      if (categoryNameSnapshot != null)
+        'categoryNameSnapshot': categoryNameSnapshot,
+      if (productStatusSnapshot != null)
+        'productStatusSnapshot': productStatusSnapshot,
+      if (appliedOfferSnapshot != null)
+        'appliedOfferSnapshot': appliedOfferSnapshot,
       'quantity': quantity,
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
@@ -219,6 +268,12 @@ class _OrderItemRowImpl extends OrderItemRow {
     required String productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
+    double? mrpSnapshot,
+    String? skuSnapshot,
+    String? productSlugSnapshot,
+    String? categoryNameSnapshot,
+    String? productStatusSnapshot,
+    String? appliedOfferSnapshot,
     required int quantity,
     required double unitPrice,
     required double totalPrice,
@@ -234,6 +289,12 @@ class _OrderItemRowImpl extends OrderItemRow {
          productNameSnapshot: productNameSnapshot,
          productImageUrlSnapshot: productImageUrlSnapshot,
          variantLabelSnapshot: variantLabelSnapshot,
+         mrpSnapshot: mrpSnapshot,
+         skuSnapshot: skuSnapshot,
+         productSlugSnapshot: productSlugSnapshot,
+         categoryNameSnapshot: categoryNameSnapshot,
+         productStatusSnapshot: productStatusSnapshot,
+         appliedOfferSnapshot: appliedOfferSnapshot,
          quantity: quantity,
          unitPrice: unitPrice,
          totalPrice: totalPrice,
@@ -255,6 +316,12 @@ class _OrderItemRowImpl extends OrderItemRow {
     String? productNameSnapshot,
     Object? productImageUrlSnapshot = _Undefined,
     Object? variantLabelSnapshot = _Undefined,
+    Object? mrpSnapshot = _Undefined,
+    Object? skuSnapshot = _Undefined,
+    Object? productSlugSnapshot = _Undefined,
+    Object? categoryNameSnapshot = _Undefined,
+    Object? productStatusSnapshot = _Undefined,
+    Object? appliedOfferSnapshot = _Undefined,
     int? quantity,
     double? unitPrice,
     double? totalPrice,
@@ -281,6 +348,20 @@ class _OrderItemRowImpl extends OrderItemRow {
       variantLabelSnapshot: variantLabelSnapshot is String?
           ? variantLabelSnapshot
           : this.variantLabelSnapshot,
+      mrpSnapshot: mrpSnapshot is double? ? mrpSnapshot : this.mrpSnapshot,
+      skuSnapshot: skuSnapshot is String? ? skuSnapshot : this.skuSnapshot,
+      productSlugSnapshot: productSlugSnapshot is String?
+          ? productSlugSnapshot
+          : this.productSlugSnapshot,
+      categoryNameSnapshot: categoryNameSnapshot is String?
+          ? categoryNameSnapshot
+          : this.categoryNameSnapshot,
+      productStatusSnapshot: productStatusSnapshot is String?
+          ? productStatusSnapshot
+          : this.productStatusSnapshot,
+      appliedOfferSnapshot: appliedOfferSnapshot is String?
+          ? appliedOfferSnapshot
+          : this.appliedOfferSnapshot,
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
@@ -342,6 +423,40 @@ class OrderItemRowUpdateTable extends _i1.UpdateTable<OrderItemRowTable> {
   _i1.ColumnValue<String, String> variantLabelSnapshot(String? value) =>
       _i1.ColumnValue(
         table.variantLabelSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> mrpSnapshot(double? value) => _i1.ColumnValue(
+    table.mrpSnapshot,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> skuSnapshot(String? value) => _i1.ColumnValue(
+    table.skuSnapshot,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> productSlugSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.productSlugSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> categoryNameSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.categoryNameSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> productStatusSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.productStatusSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> appliedOfferSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.appliedOfferSnapshot,
         value,
       );
 
@@ -407,6 +522,30 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
       'variantLabelSnapshot',
       this,
     );
+    mrpSnapshot = _i1.ColumnDouble(
+      'mrpSnapshot',
+      this,
+    );
+    skuSnapshot = _i1.ColumnString(
+      'skuSnapshot',
+      this,
+    );
+    productSlugSnapshot = _i1.ColumnString(
+      'productSlugSnapshot',
+      this,
+    );
+    categoryNameSnapshot = _i1.ColumnString(
+      'categoryNameSnapshot',
+      this,
+    );
+    productStatusSnapshot = _i1.ColumnString(
+      'productStatusSnapshot',
+      this,
+    );
+    appliedOfferSnapshot = _i1.ColumnString(
+      'appliedOfferSnapshot',
+      this,
+    );
     quantity = _i1.ColumnInt(
       'quantity',
       this,
@@ -449,6 +588,18 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString variantLabelSnapshot;
 
+  late final _i1.ColumnDouble mrpSnapshot;
+
+  late final _i1.ColumnString skuSnapshot;
+
+  late final _i1.ColumnString productSlugSnapshot;
+
+  late final _i1.ColumnString categoryNameSnapshot;
+
+  late final _i1.ColumnString productStatusSnapshot;
+
+  late final _i1.ColumnString appliedOfferSnapshot;
+
   late final _i1.ColumnInt quantity;
 
   late final _i1.ColumnDouble unitPrice;
@@ -470,6 +621,12 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     productNameSnapshot,
     productImageUrlSnapshot,
     variantLabelSnapshot,
+    mrpSnapshot,
+    skuSnapshot,
+    productSlugSnapshot,
+    categoryNameSnapshot,
+    productStatusSnapshot,
+    appliedOfferSnapshot,
     quantity,
     unitPrice,
     totalPrice,
