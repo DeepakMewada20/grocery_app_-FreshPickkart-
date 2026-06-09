@@ -8,7 +8,7 @@ fields:
   orderStatus: String
   paymentStatus: String
   refundStatus: String
-  couponId: UuidValue?, relation(parent=coupon, onDelete=Restrict)
+  couponId: UuidValue?
   itemCount: int
   totalAmount: double
   discountAmount: double, default=0

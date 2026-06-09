@@ -128,7 +128,7 @@ class CouponEndpoint extends Endpoint {
     }
   }
 
-  Future<bool> deleteCoupon(
+  Future<String> deleteCoupon(
     Session session,
     String code,
     String firebaseUid,
@@ -141,7 +141,7 @@ class CouponEndpoint extends Endpoint {
         idToken: idToken,
       );
       final result = await _coupons.deleteCoupon(session, code);
-      if (result) {
+      if (result.isEmpty) {
         await _audit.write(
           session,
           actorFirebaseUid: firebaseUid,
@@ -153,7 +153,7 @@ class CouponEndpoint extends Endpoint {
       return result;
     } catch (error) {
       session.log('Error deleting coupon: $error', level: LogLevel.error);
-      return false;
+      return 'Error deleting coupon';
     }
   }
 

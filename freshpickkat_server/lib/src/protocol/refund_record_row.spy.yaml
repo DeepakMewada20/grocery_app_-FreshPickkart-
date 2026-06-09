@@ -11,7 +11,7 @@ fields:
   refundStatus: String
   source: String, default='order'
   reason: String, default=''
-  complaintId: UuidValue?, relation(parent=complaint, onDelete=Restrict)
+  complaintId: UuidValue?
   failureReason: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

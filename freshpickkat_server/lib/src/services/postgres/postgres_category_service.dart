@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_admin_guard_service.dart';
 import 'postgres_audit_log_service.dart';
 import 'postgres_support.dart';
@@ -185,7 +186,7 @@ class PostgresCategoryService {
     return true;
   }
 
-  Future<bool> deleteCategory(
+  Future<String> deleteCategory(
     Session session,
     String categoryName,
     String firebaseUid,
@@ -198,7 +199,12 @@ class PostgresCategoryService {
     );
 
     final category = await _resolveCategory(session, categoryName);
-    if (category == null) throw Exception('Category not found');
+    if (category == null) return 'Category not found';
+
+    final refs = await DependencyChecker.checkCategory(session, category.id!);
+    if (refs.isNotEmpty) {
+      return DependencyChecker.formatRefs(refs);
+    }
 
     // Hard Delete: Delete all subcategories first to avoid foreign key errors
     await SubCategoryRow.db.deleteWhere(
@@ -216,6 +222,28 @@ class PostgresCategoryService {
       entityType: 'category',
       entityId: category.id.toString(),
       metadata: {'name': categoryName},
+    );
+    return '';
+  }
+
+  Future<bool> setCategoryActive(
+    Session session,
+    String categoryName,
+    bool isActive, {
+    Transaction? transaction,
+  }) async {
+    final category = await _resolveCategory(session, categoryName);
+    if (category == null) return false;
+
+    final now = DateTime.now().toUtc();
+    await CategoryRow.db.updateRow(
+      session,
+      category.copyWith(
+        status: isActive ? 'active' : 'inactive',
+        deactivatedAt: isActive ? null : now,
+        updatedAt: now,
+      ),
+      transaction: transaction,
     );
     return true;
   }
@@ -344,7 +372,7 @@ class PostgresCategoryService {
     );
     return true;
   }
-  Future<bool> deleteSubCategory(
+  Future<String> deleteSubCategory(
     Session session,
     String categoryName,
     String subCategoryName,
@@ -358,7 +386,7 @@ class PostgresCategoryService {
     );
 
     final category = await _resolveCategory(session, categoryName);
-    if (category == null) throw Exception('Parent category not found');
+    if (category == null) return 'Parent category not found';
 
     final subSlug = _slugify(subCategoryName);
     final subCategory = await SubCategoryRow.db.findFirstRow(
@@ -366,7 +394,15 @@ class PostgresCategoryService {
       where: (t) => t.categoryId.equals(category.id!) & t.slug.equals(subSlug),
     );
 
-    if (subCategory == null) throw Exception('Subcategory not found');
+    if (subCategory == null) return 'Subcategory not found';
+
+    final refs = await DependencyChecker.checkSubCategory(
+      session,
+      subCategory.id!,
+    );
+    if (refs.isNotEmpty) {
+      return DependencyChecker.formatRefs(refs);
+    }
 
     final secondsSinceEpoch = subCategory.createdAt.millisecondsSinceEpoch ~/ 1000;
     final allGroupCandidates = await SubCategoryRow.db.find(
@@ -406,7 +442,7 @@ class PostgresCategoryService {
         'deleted_names': targetGroupRows.map((r) => r.name).join(', '),
       },
     );
-    return true;
+    return '';
   }
   Future<bool> updateSubCategory(
     Session session,

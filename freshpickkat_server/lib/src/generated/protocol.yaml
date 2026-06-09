@@ -35,6 +35,7 @@ category:
   - uploadCategory:
   - updateCategory:
   - deleteCategory:
+  - setCategoryActive:
 categoryOffer:
   - upsertCategoryOffer:
   - deleteCategoryOffer:

@@ -5,7 +5,7 @@ fields:
   id: UuidValue?, defaultPersist=random
   userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
   orderId: UuidValue, relation(parent=customer_order, onDelete=Restrict)
-  orderItemId: UuidValue?, relation(parent=order_item, onDelete=Restrict)
+  orderItemId: UuidValue?
   complaintType: String, default='product'
   title: String, default=''
   selectedProducts: List<ComplaintProductItem>

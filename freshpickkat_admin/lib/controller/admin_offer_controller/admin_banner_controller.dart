@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -203,19 +204,29 @@ class AdminBannerController extends GetxController {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      await ApiClient().request(() async {
-        await _client.banner.deleteBanner(bannerId, uid, idToken);
+      final message = await ApiClient().request(() async {
+        return await _client.banner.deleteBanner(bannerId, uid, idToken);
       });
-      banners.removeWhere((b) => b.bannerId == bannerId);
-      if (totalCount.value > 0) totalCount.value--;
-      Get.snackbar(
-        'Success',
-        'Banner deleted successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.success,
-        colorText: AdminThemeTokens.white,
+      if (message.isEmpty) {
+        banners.removeWhere((b) => b.bannerId == bannerId);
+        if (totalCount.value > 0) totalCount.value--;
+        Get.snackbar(
+          'Success',
+          'Banner deleted successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AdminThemeTokens.success,
+          colorText: AdminThemeTokens.white,
+        );
+        return true;
+      }
+      final shouldDeactivate = await showDeactivationDialog(
+        title: 'Banner In Use',
+        message: message,
       );
-      return true;
+      if (shouldDeactivate) {
+        return toggleBannerActive(bannerId, false);
+      }
+      return false;
     } catch (e) {
       error.value = e.toString();
       Get.snackbar(

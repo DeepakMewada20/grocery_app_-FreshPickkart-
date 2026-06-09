@@ -4,7 +4,7 @@ table: banner_linked_product
 fields:
   id: UuidValue?, defaultPersist=random
   bannerId: UuidValue, relation(parent=banner, onDelete=Cascade)
-  productId: UuidValue, relation(parent=product, onDelete=Restrict)
+  productId: UuidValue
   sortOrder: int, default=0
   createdAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

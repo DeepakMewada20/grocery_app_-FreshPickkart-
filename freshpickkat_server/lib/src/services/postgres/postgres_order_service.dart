@@ -4,11 +4,9 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
-import '../bogo/bogo_eligibility.dart';
 import '../analytics/redis_analytics_service.dart';
 import '../order_outbox_service.dart';
-import 'postgres_offer_service.dart';
-import 'postgres_product_compat_service.dart';
+import '../pricing_engine.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
 import '../snapshot_builder.dart';
@@ -19,10 +17,7 @@ class PostgresOrderService {
   static const String _idempotencyScope = 'order_create';
   static final Random _random = Random();
   final RedisAnalyticsService _analytics = RedisAnalyticsService.instance;
-  final PostgresOfferService _offerService = PostgresOfferService();
   final PostgresRefundService _refundService = PostgresRefundService();
-  final PostgresProductCompatService _productService =
-      PostgresProductCompatService();
 
   Future<String> createPendingOrder(
     Session session, {
@@ -37,16 +32,41 @@ class PostgresOrderService {
     if (order.items.isEmpty) {
       throw Exception('Order must contain at least one item.');
     }
-    final bogoOfferIdsByFreeItem = await _validateOrderBogoFreeItems(
+
+    // --- PHASE 5: Server-side pricing calculation ---
+    final cartItemInputs = _buildCartItemInputs(order);
+
+    final coupon = await _resolveCoupon(
       session,
-      order,
+      couponReference: order.couponApplied,
     );
+
+    final pricing = await PricingEngine.calculateCartPricing(
+      session: session,
+      items: cartItemInputs,
+      userId: order.userId,
+      appliedCouponCode: coupon?.code,
+      autoApplyCoupons: false,
+    );
+
+    final bogoOfferIdsByFreeItem = <String, String>{};
+    for (final freeItem in pricing.freeItems) {
+      if (freeItem.bogoOfferId != null && freeItem.triggerProductId != null) {
+        final key =
+            '${freeItem.productId}_${freeItem.variantId ?? ''}_${freeItem.triggerProductId}';
+        bogoOfferIdsByFreeItem[key] = freeItem.bogoOfferId!;
+      }
+    }
 
     final itemSnapshots = await SnapshotBuilder.instance.buildFromOrderItems(
       session,
       items: order.items,
       bogoOfferIdsByFreeItem: bogoOfferIdsByFreeItem,
     );
+
+    final itemPrices = await _calculateItemPrices(session, order.items);
+    final serverMrpTotal = _calculateServerMrpTotal(itemPrices, order.items);
+    // --- END PHASE 5 ---
 
     try {
       return await session.db.transaction<String>((transaction) async {
@@ -92,23 +112,17 @@ class PostgresOrderService {
           throw Exception('Order is already being processed for this key.');
         }
 
-        final coupon = await _resolveCoupon(
-          session,
-          couponReference: order.couponApplied,
-          transaction: transaction,
-        );
-        final couponSnapshotJson = SnapshotBuilder.instance.buildCouponSnapshot(
-          coupon,
-          order.discountAmount,
-        );
-
         final now = DateTime.now().toUtc();
         final orderNumber = _generateOrderNumber();
         final deliveryOtp = _generateDeliveryOtp();
         final requestHash = jsonEncode(order.toJsonForProtocol());
 
-        final pricingSnapshotJson = SnapshotBuilder.instance.buildPricingSnapshot(order);
-        final deliverySnapshotJson = SnapshotBuilder.instance.buildDeliverySnapshot(order);
+        final pricingSnapshotJson = _buildPricingSnapshot(pricing);
+        final deliverySnapshotJson = _buildDeliverySnapshot(pricing);
+        final couponSnapshotJson = SnapshotBuilder.instance.buildCouponSnapshot(
+          coupon,
+          pricing.couponDiscount,
+        );
         final addressSnapshotJson = SnapshotBuilder.instance.buildAddressSnapshot(
           recipientName: cleanNullableString(order.userName),
           phoneNumber: cleanNullableString(order.userPhone),
@@ -131,22 +145,27 @@ class PostgresOrderService {
             refundStatus: 'none',
             couponId: coupon?.id,
             itemCount: order.itemCount,
-            totalAmount: order.totalAmount,
-            discountAmount: order.discountAmount,
-            mrpTotal: order.mrpTotal,
-            productDiscountAmount: order.productDiscountAmount,
-            comboDiscountAmount: order.comboDiscountAmount,
-            bogoDiscountAmount: order.bogoDiscountAmount,
-            deliveryFee: order.deliveryFee,
-            originalDeliveryFee: order.originalDeliveryFee,
-            deliveryDiscountAmount: order.deliveryDiscountAmount,
-            freeDeliveryApplied: order.freeDeliveryApplied,
-            freeDeliveryReason: cleanNullableString(order.freeDeliveryReason),
+            // --- SERVER-CALCULATED PRICING ---
+            totalAmount: pricing.subtotal,
+            discountAmount: pricing.couponDiscount,
+            mrpTotal: serverMrpTotal,
+            productDiscountAmount: pricing.itemDiscounts,
+            comboDiscountAmount: pricing.comboDiscount,
+            bogoDiscountAmount: pricing.bogoDiscount,
+            deliveryFee: pricing.deliveryFee,
+            originalDeliveryFee: pricing.originalDeliveryFee,
+            deliveryDiscountAmount:
+                pricing.originalDeliveryFee - pricing.deliveryFee,
+            freeDeliveryApplied: pricing.freeDeliveryApplied,
+            freeDeliveryReason: pricing.freeDeliveryApplied
+                ? (pricing.deliveryPricing?.appliedRuleName ?? 'Free Delivery')
+                : null,
+            // --- END SERVER-CALCULATED ---
             couponSnapshot: couponSnapshotJson,
             pricingSnapshot: pricingSnapshotJson,
             deliverySnapshot: deliverySnapshotJson,
             addressSnapshot: addressSnapshotJson,
-            finalAmount: order.finalAmount,
+            finalAmount: pricing.totalAmount,
             orderType: order.orderType,
             sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
             complaintId: cleanNullableString(order.complaintId),
@@ -187,6 +206,10 @@ class PostgresOrderService {
               ? tryParseUuid(bogoOfferIdsByFreeItem[_orderFreeItemKey(item)])
               : null;
 
+          final priceData = itemPrices[_itemPriceKey(item)];
+          final serverUnitPrice = priceData?.unitPrice ?? 0;
+          final serverTotalPrice = serverUnitPrice * item.quantity;
+
           return OrderItemRow(
             orderId: createdOrderId,
             productId: productId,
@@ -201,10 +224,11 @@ class PostgresOrderService {
             productSlugSnapshot: itemSnapshots[item.productId]?.slug,
             categoryNameSnapshot: itemSnapshots[item.productId]?.categoryName,
             productStatusSnapshot: itemSnapshots[item.productId]?.productStatus,
-            appliedOfferSnapshot: itemSnapshots[item.productId]?.appliedOfferJson,
+            appliedOfferSnapshot:
+                itemSnapshots[item.productId]?.appliedOfferJson,
             quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice,
+            unitPrice: serverUnitPrice,
+            totalPrice: serverTotalPrice,
             isFreeItem: item.isFreeItem,
             createdAt: now,
           );
@@ -225,7 +249,7 @@ class PostgresOrderService {
             gatewayName: gatewayName.trim().isEmpty
                 ? 'razorpay'
                 : gatewayName.trim(),
-            amount: order.finalAmount,
+            amount: pricing.totalAmount,
             currencyCode: 'INR',
             paymentStatus: 'pending',
             createdAt: now,
@@ -733,111 +757,6 @@ class PostgresOrderService {
       idempotencyKey:
           'direct-${DateTime.now().millisecondsSinceEpoch}-${order.userId}',
     );
-  }
-
-  Future<Map<String, String>> _validateOrderBogoFreeItems(
-    Session session,
-    Order order,
-  ) async {
-    final freeItems = order.items.where((item) => item.isFreeItem).toList();
-    if (freeItems.isEmpty) return const {};
-
-    final paidItems = order.items.where((item) => !item.isFreeItem).toList();
-    final productIds = <String>{};
-    for (final item in order.items) {
-      if (item.productId.trim().isNotEmpty) productIds.add(item.productId);
-      final triggerId = item.triggerProductId?.trim();
-      if (triggerId != null && triggerId.isNotEmpty) productIds.add(triggerId);
-    }
-    final products = await _productService.getProductsByIds(
-      session,
-      productIds.toList(),
-    );
-    final productById = {
-      for (final product in products)
-        if (product.productId != null) product.productId!: product,
-    };
-    final triggerIds = freeItems
-        .map((item) => item.triggerProductId?.trim())
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toSet()
-        .toList();
-    final offers = await _offerService.getActiveBogoOffersForProducts(
-      session,
-      triggerIds,
-    );
-
-    final offerIdsByFreeItem = <String, String>{};
-    for (final freeItem in freeItems) {
-      if (freeItem.unitPrice != 0 || freeItem.totalPrice != 0) {
-        throw Exception('Invalid free product price.');
-      }
-
-      final triggerId = freeItem.triggerProductId?.trim();
-      if (triggerId == null || triggerId.isEmpty) {
-        throw Exception('Free product is missing trigger product.');
-      }
-
-      final triggerProduct = productById[triggerId];
-      if (triggerProduct == null) {
-        throw Exception('Free product trigger not found.');
-      }
-
-      OrderItem? triggerItem;
-      for (final item in paidItems) {
-        if (item.productId == triggerId) {
-          triggerItem = item;
-          break;
-        }
-      }
-      if (triggerItem == null) {
-        throw Exception('Free product trigger is not in the order.');
-      }
-
-      BogoOffer? offer;
-      for (final candidate in offers) {
-        if (candidate.isActive && candidate.triggerProductId == triggerId) {
-          offer = candidate;
-          break;
-        }
-      }
-      if (offer == null) {
-        throw Exception('Free product offer is not active.');
-      }
-
-      final reward = findBogoReward(
-        offer,
-        freeProductId: freeItem.productId,
-        freeVariantId: freeItem.variantId,
-      );
-      if (reward == null) {
-        throw Exception('Free product is not part of this offer.');
-      }
-
-      if (!isBogoTriggerEligibleForQuantity(
-        triggerProduct: triggerProduct,
-        offer: offer,
-        selectedVariantId: triggerItem.variantId,
-        quantity: triggerItem.quantity,
-      )) {
-        throw Exception('Free product is not unlocked for this order.');
-      }
-
-      final allowedQuantity = calculateBogoFreeQuantity(
-        offer: offer,
-        reward: reward,
-        triggerQuantity: triggerItem.quantity,
-      );
-      if (freeItem.quantity > allowedQuantity) {
-        throw Exception('Free product quantity exceeds offer allowance.');
-      }
-      if (offer.offerId != null) {
-        offerIdsByFreeItem[_orderFreeItemKey(freeItem)] = offer.offerId!;
-      }
-    }
-
-    return offerIdsByFreeItem;
   }
 
   String _comboItemKey(
@@ -1652,6 +1571,137 @@ class PostgresOrderService {
     );
     return true;
   }
+
+  // --- PHASE 5: Server-side pricing helpers ---
+
+  List<CartItemInput> _buildCartItemInputs(Order order) {
+    final bogoTriggerMap = <String, String>{};
+    for (final item in order.items) {
+      if (item.isFreeItem && item.triggerProductId != null) {
+        bogoTriggerMap[item.triggerProductId!] = item.productId;
+      }
+    }
+
+    final result = <CartItemInput>[];
+    for (final item in order.items) {
+      if (item.isFreeItem) continue;
+      result.add(CartItemInput(
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        comboId: item.comboId,
+        bogoFreeProductId: bogoTriggerMap[item.productId],
+      ));
+    }
+    return result;
+  }
+
+  String _itemPriceKey(OrderItem item) {
+    return '${item.productId}|${item.variantId ?? ''}';
+  }
+
+  Future<Map<String, ({double unitPrice, double? mrp})>> _calculateItemPrices(
+    Session session,
+    List<OrderItem> items,
+  ) async {
+    final variantIds = <UuidValue>{};
+    for (final item in items) {
+      if (item.isFreeItem) continue;
+      final vid = item.variantId == null
+          ? null
+          : tryParseUuid(item.variantId!);
+      if (vid != null) variantIds.add(vid);
+    }
+
+    final variantRows = variantIds.isEmpty
+        ? <ProductVariantRow>[]
+        : await ProductVariantRow.db.find(
+            session,
+            where: (t) => t.id.inSet(variantIds),
+          );
+    final variantByKey = {
+      for (final v in variantRows) v.id!.toString(): v,
+    };
+
+    final result = <String, ({double unitPrice, double? mrp})>{};
+    for (final item in items) {
+      if (item.isFreeItem) continue;
+      final key = _itemPriceKey(item);
+
+      double unitPrice;
+      double? mrp;
+      if (item.variantId != null) {
+        final variant = variantByKey[item.variantId!];
+        if (variant != null) {
+          unitPrice = variant.salePrice;
+          mrp = variant.listPrice;
+        } else {
+          unitPrice = 0;
+          mrp = null;
+        }
+      } else {
+        unitPrice = 0;
+        mrp = null;
+      }
+      result[key] = (unitPrice: unitPrice, mrp: mrp);
+    }
+    return result;
+  }
+
+  double _calculateServerMrpTotal(
+    Map<String, ({double unitPrice, double? mrp})> itemPrices,
+    List<OrderItem> items,
+  ) {
+    double total = 0;
+    for (final item in items) {
+      if (item.isFreeItem) continue;
+      final key = _itemPriceKey(item);
+      final priceData = itemPrices[key];
+      if (priceData == null) continue;
+      total += (priceData.mrp ?? priceData.unitPrice) * item.quantity;
+    }
+    return total;
+  }
+
+  String _buildPricingSnapshot(CartPricingResult pricing) {
+    return jsonEncode({
+      'subtotal': pricing.subtotal,
+      'offerDiscount': pricing.itemDiscounts +
+          pricing.comboDiscount +
+          pricing.bogoDiscount,
+      'couponDiscount': pricing.couponDiscount,
+      'deliveryCharge': pricing.deliveryFee,
+      'grandTotal': pricing.totalAmount,
+    });
+  }
+
+  String _buildDeliverySnapshot(CartPricingResult pricing) {
+    return jsonEncode({
+      'deliveryCharge': pricing.deliveryFee,
+      'originalDeliveryFee': pricing.originalDeliveryFee,
+      'deliveryDiscountAmount':
+          pricing.originalDeliveryFee - pricing.deliveryFee,
+      'freeDeliveryApplied': pricing.freeDeliveryApplied,
+      if (pricing.freeDeliveryApplied && pricing.deliveryPricing != null)
+        'freeDeliveryReason': pricing.deliveryPricing!.appliedRuleName,
+    });
+  }
+
+  Future<double> getOrderFinalAmount(
+    Session session,
+    String orderNumber,
+  ) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) {
+      throw Exception('Order not found: $orderNumber');
+    }
+    return row.finalAmount;
+  }
+
+  // --- END PHASE 5 helpers ---
 }
 
 class _OrderCursor {

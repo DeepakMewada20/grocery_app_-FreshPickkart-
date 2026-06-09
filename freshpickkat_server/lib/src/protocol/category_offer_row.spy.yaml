@@ -3,7 +3,7 @@ serverOnly: true
 table: category_offer
 fields:
   id: UuidValue?, defaultPersist=random
-  categoryId: UuidValue, relation(parent=category, onDelete=Restrict)
+  categoryId: UuidValue
   name: String
   description: String?
   discountType: String

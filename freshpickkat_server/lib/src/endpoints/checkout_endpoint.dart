@@ -1,11 +1,13 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
+import '../services/postgres/postgres_order_service.dart';
 import 'order_endpoint.dart';
 import 'payment_endpoint.dart';
 
 class CheckoutEndpoint extends Endpoint {
   final _orderEndpoint = OrderEndpoint();
   final _paymentEndpoint = PaymentEndpoint();
+  final PostgresOrderService _orders = PostgresOrderService();
 
   Future<protocol.CheckoutResult> createOrderAndPayment(
     Session session,
@@ -15,18 +17,24 @@ class CheckoutEndpoint extends Endpoint {
     String customerPhone,
   ) async {
     try {
-      // 1. Create order
+      // 1. Create order (server calculates all pricing internally)
       final orderId = await _orderEndpoint.createPendingOrder(
         session,
         order,
         idempotencyKey,
       );
 
-      // 2. Create payment order
+      // 2. Get server-calculated final amount (ignore client-provided amount)
+      final serverFinalAmount = await _orders.getOrderFinalAmount(
+        session,
+        orderId,
+      );
+
+      // 3. Create payment order with server-calculated amount
       final paymentResult = await _paymentEndpoint.createPaymentOrder(
         session,
         orderId,
-        amount,
+        serverFinalAmount,
         customerPhone,
       );
 

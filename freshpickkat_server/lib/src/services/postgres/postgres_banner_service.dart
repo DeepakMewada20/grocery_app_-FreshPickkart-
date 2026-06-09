@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresBannerService {
@@ -225,14 +226,23 @@ class PostgresBannerService {
     return (await getBannerById(session, parsedId.toString()))!;
   }
 
-  Future<void> deleteBanner(Session session, String bannerId) async {
+  Future<String> deleteBanner(Session session, String bannerId) async {
     final parsedId = tryParseUuid(bannerId);
-    if (parsedId == null) return;
+    if (parsedId == null) return 'Invalid banner ID';
+
+    final row = await BannerRow.db.findById(session, parsedId);
+    if (row == null) return 'Banner not found';
+
+    final refs = await DependencyChecker.checkBanner(session, parsedId);
+    if (refs.isNotEmpty) {
+      return DependencyChecker.formatRefs(refs);
+    }
 
     await BannerRow.db.deleteWhere(
       session,
       where: (t) => t.id.equals(parsedId),
     );
+    return '';
   }
 
   Future<void> toggleBannerActive(

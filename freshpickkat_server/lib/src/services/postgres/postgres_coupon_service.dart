@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_product_compat_service.dart';
 import 'postgres_support.dart';
 
@@ -169,15 +170,26 @@ class PostgresCouponService {
     return true;
   }
 
-  Future<bool> deleteCoupon(Session session, String code) async {
+  Future<String> deleteCoupon(Session session, String code) async {
     final normalizedCode = code.trim().toUpperCase();
-    if (normalizedCode.isEmpty) return false;
+    if (normalizedCode.isEmpty) return 'Invalid coupon code';
+
+    final row = await CouponRow.db.findFirstRow(
+      session,
+      where: (t) => t.code.equals(normalizedCode),
+    );
+    if (row == null) return 'Coupon not found';
+
+    final refs = await DependencyChecker.checkCoupon(session, row.id!);
+    if (refs.isNotEmpty) {
+      return DependencyChecker.formatRefs(refs);
+    }
 
     await CouponRow.db.deleteWhere(
       session,
       where: (t) => t.code.equals(normalizedCode),
     );
-    return true;
+    return '';
   }
 
   Future<CouponValidationResult> applyCoupon(

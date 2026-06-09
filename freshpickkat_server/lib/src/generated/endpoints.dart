@@ -1131,6 +1131,43 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'setCategoryActive': _i1.MethodConnector(
+          name: 'setCategoryActive',
+          params: {
+            'categoryName': _i1.ParameterDescription(
+              name: 'categoryName',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'isActive': _i1.ParameterDescription(
+              name: 'isActive',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['category'] as _i6.CategoryEndpoint)
+                  .setCategoryActive(
+                    session,
+                    params['categoryName'],
+                    params['isActive'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['categoryOffer'] = _i1.EndpointConnector(

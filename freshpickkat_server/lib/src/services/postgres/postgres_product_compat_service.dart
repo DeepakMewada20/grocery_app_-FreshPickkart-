@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_catalog_service.dart';
 import 'postgres_product_search_service.dart';
 import 'postgres_support.dart';
@@ -437,9 +438,9 @@ class PostgresProductCompatService {
     final existing = await ProductRow.db.findById(session, parsedProductId);
     if (existing == null) return 'Product not found';
 
-    final refs = await _getProductReferences(session, parsedProductId);
+    final refs = await DependencyChecker.checkProduct(session, parsedProductId);
     if (refs.isNotEmpty) {
-      return 'This product is used in ${refs.join(', ')}. To delete, first remove these associations or deactivate the product.';
+      return DependencyChecker.formatRefs(refs);
     }
 
     await session.db.transaction((transaction) async {
@@ -482,66 +483,7 @@ class PostgresProductCompatService {
     return true;
   }
 
-  Future<List<String>> _getProductReferences(
-    Session session,
-    UuidValue productId,
-  ) async {
-    final refs = <String>[];
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (orderCount > 0) refs.add('$orderCount order(s)');
 
-    final bannerLinkedCount = await BannerLinkedProductRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    final bannerDirectCount = await BannerRow.db.count(
-      session,
-      where: (t) => t.linkedProductId.equals(productId),
-    );
-    final totalBanners = bannerLinkedCount + bannerDirectCount;
-    if (totalBanners > 0) refs.add('$totalBanners banner(s)');
-
-    final bogoTriggerCount = await BogoOfferRow.db.count(
-      session,
-      where: (t) => t.triggerProductId.equals(productId),
-    );
-    if (bogoTriggerCount > 0) refs.add('$bogoTriggerCount BOGO offer(s)');
-
-    final bogoRewardCount = await BogoOfferRewardRow.db.count(
-      session,
-      where: (t) => t.rewardProductId.equals(productId),
-    );
-    if (bogoRewardCount > 0) refs.add('$bogoRewardCount BOGO reward(s)');
-
-    final catScopeCount = await CategoryOfferProductScopeRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (catScopeCount > 0) refs.add('$catScopeCount category offer scope(s)');
-
-    final catExclCount = await CategoryOfferProductExclusionRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (catExclCount > 0) refs.add('$catExclCount category offer exclusion(s)');
-
-    final comboCount = await ComboOfferItemRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (comboCount > 0) refs.add('$comboCount combo offer(s)');
-
-    final couponCount = await CouponProductScopeRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (couponCount > 0) refs.add('$couponCount coupon(s)');
-
-    return refs;
-  }
 
   Future<int> migrateProducts(Session session) async {
     return 0;
@@ -853,11 +795,11 @@ class PostgresProductCompatService {
         final variantRowId = existing.id;
         if (variantRowId == null) continue;
 
-        final referenced = await _isVariantReferenced(
+        final variantRefs = await DependencyChecker.checkVariant(
           session,
           variantRowId,
-          transaction: transaction,
         );
+        final referenced = variantRefs.isNotEmpty;
 
         if (referenced) {
           // Referenced by order_item / bogo / combo — cannot delete (ON DELETE RESTRICT).
@@ -911,47 +853,7 @@ class PostgresProductCompatService {
     }
   }
 
-  /// Returns true if [variantId] is referenced by any table with
-  /// ON DELETE RESTRICT on product_variant.id.
-  /// Checking before deleting prevents PostgreSQL error 25P02
-  /// (current transaction is aborted) from killing the parent transaction.
-  Future<bool> _isVariantReferenced(
-    Session session,
-    UuidValue variantId, {
-    Transaction? transaction,
-  }) async {
-    // bogo_offer.triggerVariantId
-    final bogoTriggerCount = await BogoOfferRow.db.count(
-      session,
-      where: (t) => t.triggerVariantId.equals(variantId),
-      transaction: transaction,
-    );
-    if (bogoTriggerCount > 0) return true;
 
-    // bogo_offer_reward.rewardVariantId
-    final bogoRewardCount = await BogoOfferRewardRow.db.count(
-      session,
-      where: (t) => t.rewardVariantId.equals(variantId),
-      transaction: transaction,
-    );
-    if (bogoRewardCount > 0) return true;
-
-    // combo_offer_item.productVariantId
-    final comboCount = await ComboOfferItemRow.db.count(
-      session,
-      where: (t) => t.productVariantId.equals(variantId),
-      transaction: transaction,
-    );
-    if (comboCount > 0) return true;
-
-    // order_item.productVariantId
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.productVariantId.equals(variantId),
-      transaction: transaction,
-    );
-    return orderCount > 0;
-  }
 
   /// Checks whether updating [product] would delete variants that are
   /// referenced by orders or offers. Returns a human-readable message listing
@@ -1009,10 +911,11 @@ class PostgresProductCompatService {
         final variantRowId = existing.id;
         if (variantRowId == null) continue;
 
-        final referenced = await _isVariantReferenced(
+        final variantRefs = await DependencyChecker.checkVariant(
           session,
           variantRowId,
         );
+        final referenced = variantRefs.isNotEmpty;
         if (referenced) {
           variantRefs.add(existing.sku ?? 'unknown');
         }

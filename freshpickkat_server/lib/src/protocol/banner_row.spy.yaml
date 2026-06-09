@@ -8,11 +8,11 @@ fields:
   actionType: String
   offerId: String?
   externalUrl: String?
-  linkedProductId: UuidValue?, relation(parent=product, onDelete=Restrict)
-  comboOfferId: UuidValue?, relation(parent=combo_offer, onDelete=Restrict)
-  couponId: UuidValue?, relation(parent=coupon, onDelete=Restrict)
-  linkedCategoryId: UuidValue?, relation(parent=category, onDelete=Restrict)
-  linkedSubCategoryId: UuidValue?, relation(parent=sub_category, onDelete=Restrict)
+  linkedProductId: UuidValue?
+  comboOfferId: UuidValue?
+  couponId: UuidValue?
+  linkedCategoryId: UuidValue?
+  linkedSubCategoryId: UuidValue?
   priority: int, default=0
   isBaseImage: bool, default=false
   startsAt: DateTime

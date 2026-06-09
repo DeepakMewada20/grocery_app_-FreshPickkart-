@@ -81,7 +81,7 @@ class BannerEndpoint extends Endpoint {
     return _banners.updateBanner(session, banner);
   }
 
-  Future<void> deleteBanner(
+  Future<String> deleteBanner(
     Session session,
     String bannerId,
     String firebaseUid,

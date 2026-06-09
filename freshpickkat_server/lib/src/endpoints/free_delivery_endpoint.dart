@@ -283,7 +283,7 @@ class FreeDeliveryEndpoint extends Endpoint {
     return result;
   }
 
-  Future<bool> deleteDeliveryRule(
+  Future<String> deleteDeliveryRule(
     Session session,
     String ruleId,
     String firebaseUid,
@@ -296,7 +296,7 @@ class FreeDeliveryEndpoint extends Endpoint {
     );
 
     final result = await DeliveryEngine.deleteDeliveryRule(session, ruleId);
-    if (result) {
+    if (result.isEmpty) {
       await _audit.write(
         session,
         actorFirebaseUid: firebaseUid,

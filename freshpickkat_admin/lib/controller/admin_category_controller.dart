@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
 import 'network_controller.dart';
@@ -132,16 +133,50 @@ class AdminCategoryController extends GetxController {
 
   Future<void> deleteCategory(String categoryName) async {
     try {
-      await ApiClient().request(() async {
+      final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
-        await _client.category.deleteCategory(categoryName, uid, idToken);
+        return await _client.category.deleteCategory(
+          categoryName,
+          uid,
+          idToken,
+        );
       });
-      await loadCategories();
+      if (message.isEmpty) {
+        await loadCategories();
+        return;
+      }
+      final shouldDeactivate = await showDeactivationDialog(
+        title: 'Category In Use',
+        message: message,
+      );
+      if (shouldDeactivate) {
+        await setCategoryActive(categoryName, false);
+        await loadCategories();
+      }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<bool> setCategoryActive(String categoryName, bool isActive) async {
+    try {
+      return await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        return await _client.category.setCategoryActive(
+          categoryName,
+          isActive,
+          uid,
+          idToken,
+        );
+      });
+    } catch (e) {
+      return false;
     }
   }
 
@@ -190,19 +225,30 @@ class AdminCategoryController extends GetxController {
     String subCategoryName,
   ) async {
     try {
-      await ApiClient().request(() async {
+      final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
-        await _client.subCategory.deleteSubCategory(
+        return await _client.subCategory.deleteSubCategory(
           categoryName,
           subCategoryName,
           uid,
           idToken,
         );
       });
-      await loadCategories();
+      if (message.isEmpty) {
+        await loadCategories();
+        return;
+      }
+      final shouldDeactivate = await showDeactivationDialog(
+        title: 'Sub-Category In Use',
+        message: message,
+      );
+      if (shouldDeactivate) {
+        await setCategoryActive(categoryName, false);
+        await loadCategories();
+      }
     } catch (e) {
       rethrow;
     }

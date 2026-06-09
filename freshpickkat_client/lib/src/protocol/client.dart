@@ -289,11 +289,11 @@ class EndpointBanner extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<void> deleteBanner(
+  _i2.Future<String> deleteBanner(
     String bannerId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<void>(
+  ) => caller.callServerEndpoint<String>(
     'banner',
     'deleteBanner',
     {
@@ -518,15 +518,31 @@ class EndpointCategory extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteCategory(
+  _i2.Future<String> deleteCategory(
     String categoryName,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'category',
     'deleteCategory',
     {
       'categoryName': categoryName,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> setCategoryActive(
+    String categoryName,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'category',
+    'setCategoryActive',
+    {
+      'categoryName': categoryName,
+      'isActive': isActive,
       'firebaseUid': firebaseUid,
       'idToken': idToken,
     },
@@ -1200,11 +1216,11 @@ class EndpointCoupon extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteCoupon(
+  _i2.Future<String> deleteCoupon(
     String code,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'coupon',
     'deleteCoupon',
     {
@@ -1398,11 +1414,11 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteDeliveryRule(
+  _i2.Future<String> deleteDeliveryRule(
     String ruleId,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'freeDelivery',
     'deleteDeliveryRule',
     {
@@ -2999,12 +3015,12 @@ class EndpointSubCategory extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> deleteSubCategory(
+  _i2.Future<String> deleteSubCategory(
     String categoryName,
     String subCategoryName,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<String>(
     'subCategory',
     'deleteSubCategory',
     {

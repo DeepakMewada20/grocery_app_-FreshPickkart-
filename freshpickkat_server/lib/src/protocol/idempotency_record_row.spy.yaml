@@ -5,9 +5,9 @@ fields:
   id: UuidValue?, defaultPersist=random
   scope: String
   idempotencyKey: String
-  userId: UuidValue?, relation(parent=app_user, onDelete=Restrict)
-  orderId: UuidValue?, relation(parent=customer_order, onDelete=Restrict)
-  paymentTransactionId: UuidValue?, relation(parent=payment_transaction, onDelete=Restrict)
+  userId: UuidValue?
+  orderId: UuidValue?
+  paymentTransactionId: UuidValue?
   requestHash: String?
   responseReference: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now

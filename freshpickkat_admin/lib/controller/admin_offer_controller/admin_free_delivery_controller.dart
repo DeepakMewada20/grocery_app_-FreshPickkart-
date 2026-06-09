@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
 import '../../controller/network_controller.dart';
@@ -171,16 +172,24 @@ class AdminFreeDeliveryController extends GetxController {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      final result = await client.freeDelivery.deleteDeliveryRule(
+      final message = await client.freeDelivery.deleteDeliveryRule(
         ruleId,
         uid,
         idToken,
       );
-      if (result) {
+      if (message.isEmpty) {
         deliveryRules.removeWhere((rule) => rule.ruleId == ruleId);
         if (totalCount.value > 0) totalCount.value--;
+        return true;
       }
-      return result;
+      final shouldDeactivate = await showDeactivationDialog(
+        title: 'Delivery Rule In Use',
+        message: message,
+      );
+      if (shouldDeactivate) {
+        return toggleDeliveryRule(ruleId, false);
+      }
+      return false;
     } catch (e) {
       return false;
     }

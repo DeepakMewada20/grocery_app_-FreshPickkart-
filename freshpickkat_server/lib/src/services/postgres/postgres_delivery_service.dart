@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresDeliveryService {
@@ -204,15 +205,23 @@ class PostgresDeliveryService {
     });
   }
 
-  Future<bool> deleteDeliveryRule(Session session, String ruleId) async {
+  Future<String> deleteDeliveryRule(Session session, String ruleId) async {
     final parsedId = tryParseUuid(ruleId);
-    if (parsedId == null) return false;
+    if (parsedId == null) return 'Invalid rule ID';
+
+    final row = await DeliveryRuleRow.db.findById(session, parsedId);
+    if (row == null) return 'Rule not found';
+
+    final refs = await DependencyChecker.checkDeliveryRule(session, parsedId);
+    if (refs.isNotEmpty) {
+      return DependencyChecker.formatRefs(refs);
+    }
 
     await DeliveryRuleRow.db.deleteWhere(
       session,
       where: (t) => t.id.equals(parsedId),
     );
-    return true;
+    return '';
   }
 
   Future<bool> setDeliveryRuleActive(

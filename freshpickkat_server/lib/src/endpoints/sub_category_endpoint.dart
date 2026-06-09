@@ -42,7 +42,7 @@ class SubCategoryEndpoint extends Endpoint {
     );
   }
 
-  Future<bool> deleteSubCategory(
+  Future<String> deleteSubCategory(
     Session session,
     String categoryName,
     String subCategoryName,

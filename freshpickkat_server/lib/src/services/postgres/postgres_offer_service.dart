@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresOfferService {
@@ -98,7 +99,7 @@ class PostgresOfferService {
     final offerId = rows.first.id;
     if (offerId == null) return 'Offer not found';
 
-    final refs = await _getBogoOfferReferences(session, offerId);
+    final refs = await DependencyChecker.checkBogoOffer(session, offerId);
     if (refs.isEmpty) {
       await BogoOfferRewardRow.db.deleteWhere(
         session,
@@ -111,7 +112,7 @@ class PostgresOfferService {
       return '';
     }
 
-    return 'This offer is used in ${refs.join(' and ')}. To delete, first remove these associations or deactivate the offer.';
+    return DependencyChecker.formatRefs(refs);
   }
 
   Future<bool> setBogoOfferActive(
@@ -313,7 +314,7 @@ class PostgresOfferService {
     final row = await ComboOfferRow.db.findById(session, parsedId);
     if (row == null) return 'Offer not found';
 
-    final refs = await _getComboOfferReferences(session, parsedId);
+    final refs = await DependencyChecker.checkComboOffer(session, parsedId);
     if (refs.isEmpty) {
       await ComboOfferItemRow.db.deleteWhere(
         session,
@@ -326,7 +327,7 @@ class PostgresOfferService {
       return '';
     }
 
-    return 'This offer is used in ${refs.join(' and ')}. To delete, first remove these associations or deactivate the offer.';
+    return DependencyChecker.formatRefs(refs);
   }
 
   Future<List<ComboOffer>> getActiveComboOffers(Session session) async {
@@ -525,21 +526,26 @@ class PostgresOfferService {
     final row = await CategoryOfferRow.db.findById(session, parsedId);
     if (row == null) return 'Offer not found';
 
-    await CategoryOfferProductScopeRow.db.deleteWhere(
-      session,
-      where: (t) => t.categoryOfferId.equals(parsedId),
-    );
+    final refs = await DependencyChecker.checkCategoryOffer(session, parsedId);
+    if (refs.isEmpty) {
+      await CategoryOfferProductScopeRow.db.deleteWhere(
+        session,
+        where: (t) => t.categoryOfferId.equals(parsedId),
+      );
 
-    await CategoryOfferProductExclusionRow.db.deleteWhere(
-      session,
-      where: (t) => t.categoryOfferId.equals(parsedId),
-    );
+      await CategoryOfferProductExclusionRow.db.deleteWhere(
+        session,
+        where: (t) => t.categoryOfferId.equals(parsedId),
+      );
 
-    await CategoryOfferRow.db.deleteWhere(
-      session,
-      where: (t) => t.id.equals(parsedId),
-    );
-    return '';
+      await CategoryOfferRow.db.deleteWhere(
+        session,
+        where: (t) => t.id.equals(parsedId),
+      );
+      return '';
+    }
+
+    return DependencyChecker.formatRefs(refs);
   }
 
   Future<List<CategoryOffer>> getActiveCategoryOffers(Session session) async {
@@ -612,36 +618,7 @@ class PostgresOfferService {
     return true;
   }
 
-  Future<List<String>> _getComboOfferReferences(
-    Session session,
-    UuidValue offerId,
-  ) async {
-    final refs = <String>[];
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.comboOfferId.equals(offerId),
-    );
-    if (orderCount > 0) refs.add('$orderCount order(s)');
-    final bannerCount = await BannerRow.db.count(
-      session,
-      where: (t) => t.comboOfferId.equals(offerId),
-    );
-    if (bannerCount > 0) refs.add('$bannerCount banner(s)');
-    return refs;
-  }
 
-  Future<List<String>> _getBogoOfferReferences(
-    Session session,
-    UuidValue offerId,
-  ) async {
-    final refs = <String>[];
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.bogoOfferId.equals(offerId),
-    );
-    if (orderCount > 0) refs.add('$orderCount order(s)');
-    return refs;
-  }
 
   Future<List<BogoOffer>> _hydrateBogoOffers(
     Session session,

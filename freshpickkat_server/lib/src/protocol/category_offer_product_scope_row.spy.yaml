@@ -4,7 +4,7 @@ table: category_offer_product_scope
 fields:
   id: UuidValue?, defaultPersist=random
   categoryOfferId: UuidValue, relation(parent=category_offer, onDelete=Cascade)
-  productId: UuidValue, relation(parent=product, onDelete=Restrict)
+  productId: UuidValue
   createdAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:
   category_offer_product_scope_unique_idx:

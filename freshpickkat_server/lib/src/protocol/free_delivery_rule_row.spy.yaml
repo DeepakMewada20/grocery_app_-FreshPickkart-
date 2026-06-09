@@ -8,8 +8,8 @@ fields:
   ruleType: String
   minOrderAmount: double?
   minItemsCount: int?
-  couponId: UuidValue?, relation(parent=coupon, onDelete=Restrict)
-  userId: UuidValue?, relation(parent=app_user, onDelete=Restrict)
+  couponId: UuidValue?
+  userId: UuidValue?
   waivedAmount: double, default=0
   startsAt: DateTime
   endsAt: DateTime

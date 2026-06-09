@@ -4,8 +4,8 @@ table: combo_offer_item
 fields:
   id: UuidValue?, defaultPersist=random
   comboOfferId: UuidValue, relation(parent=combo_offer, onDelete=Cascade)
-  productId: UuidValue, relation(parent=product, onDelete=Restrict)
-  productVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  productId: UuidValue
+  productVariantId: UuidValue?
   quantity: int
   sortOrder: int, default=0
   createdAt: DateTime, defaultModel=now, defaultPersist=now

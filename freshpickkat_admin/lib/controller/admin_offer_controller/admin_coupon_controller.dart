@@ -1,6 +1,7 @@
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -129,17 +130,25 @@ class AdminCouponController extends GetxController {
 
   Future<bool> deleteCoupon(String code) async {
     try {
-      final ok = await ApiClient().request(() async {
+      final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
         return await _client.coupon.deleteCoupon(code, uid, idToken);
       });
-      if (ok) {
+      if (message.isEmpty) {
         coupons.removeWhere((c) => c.code == code);
+        return true;
       }
-      return ok;
+      final shouldDeactivate = await showDeactivationDialog(
+        title: 'Coupon In Use',
+        message: message,
+      );
+      if (shouldDeactivate) {
+        return setCouponActive(code, false);
+      }
+      return false;
     } catch (e) {
       rethrow;
     }

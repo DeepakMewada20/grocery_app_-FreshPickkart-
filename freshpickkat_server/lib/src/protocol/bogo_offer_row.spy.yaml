@@ -3,8 +3,8 @@ serverOnly: true
 table: bogo_offer
 fields:
   id: UuidValue?, defaultPersist=random
-  triggerProductId: UuidValue, relation(parent=product, onDelete=Restrict)
-  triggerVariantId: UuidValue?, relation(parent=product_variant, onDelete=Restrict)
+  triggerProductId: UuidValue
+  triggerVariantId: UuidValue?
   minTriggerQuantity: int, default=1
   triggerBaseQuantity: double?
   triggerBaseUnit: String?

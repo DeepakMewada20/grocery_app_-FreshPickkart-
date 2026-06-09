@@ -80,7 +80,7 @@ class DeliveryEngine {
     return _storage.upsertDeliveryRule(session, rule);
   }
 
-  static Future<bool> deleteDeliveryRule(Session session, String ruleId) {
+  static Future<String> deleteDeliveryRule(Session session, String ruleId) {
     return _storage.deleteDeliveryRule(session, ruleId);
   }
 
