@@ -220,16 +220,43 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Get.back(),
+          automaticallyImplyLeading: false,
+          toolbarHeight: 44,
+          leadingWidth: 44,
+          leading: Padding(
+            padding: EdgeInsets.only(left: 4.w),
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 18,
+              ),
+              onPressed: () => Get.back(),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey.withValues(alpha: 0.5),
+                shape: const CircleBorder(),
+                fixedSize: const Size(36, 36),
+              ),
+            ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.share_outlined, color: Colors.black),
-              onPressed: () => ShareService.instance.shareProduct(
-                displayProduct,
-                context: context,
+            Padding(
+              padding: EdgeInsets.only(right: 4.w),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.share_outlined,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                onPressed: () => ShareService.instance.shareProduct(
+                  displayProduct,
+                  context: context,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.grey.withValues(alpha: 0.5),
+                  shape: const CircleBorder(),
+                  fixedSize: const Size(36, 36),
+                ),
               ),
             ),
           ],
@@ -670,6 +697,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildAddButton(Product product, int quantity) {
+    if (!product.isAvailable) {
+      return SizedBox(
+        height: 36.h.clamp(34.0, 42.0),
+        child: Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: AutoSizeText(
+            'Not Available',
+            maxLines: 1,
+            minFontSize: 11,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              fontSize: 12.sp,
+            ),
+          ),
+        ),
+      );
+    }
     if (quantity == 0) {
       return SizedBox(
         height: 36.h.clamp(34.0, 42.0),
