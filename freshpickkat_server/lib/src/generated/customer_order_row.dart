@@ -35,6 +35,10 @@ abstract class CustomerOrderRow
     bool? freeDeliveryApplied,
     this.freeDeliveryReason,
     this.couponSnapshot,
+    this.paymentSnapshot,
+    this.addressSnapshot,
+    this.pricingSnapshot,
+    this.deliverySnapshot,
     required this.finalAmount,
     this.placedAt,
     this.confirmedAt,
@@ -88,6 +92,10 @@ abstract class CustomerOrderRow
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -143,6 +151,10 @@ abstract class CustomerOrderRow
             ),
       freeDeliveryReason: jsonSerialization['freeDeliveryReason'] as String?,
       couponSnapshot: jsonSerialization['couponSnapshot'] as String?,
+      paymentSnapshot: jsonSerialization['paymentSnapshot'] as String?,
+      addressSnapshot: jsonSerialization['addressSnapshot'] as String?,
+      pricingSnapshot: jsonSerialization['pricingSnapshot'] as String?,
+      deliverySnapshot: jsonSerialization['deliverySnapshot'] as String?,
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       placedAt: jsonSerialization['placedAt'] == null
           ? null
@@ -239,6 +251,14 @@ abstract class CustomerOrderRow
 
   String? couponSnapshot;
 
+  String? paymentSnapshot;
+
+  String? addressSnapshot;
+
+  String? pricingSnapshot;
+
+  String? deliverySnapshot;
+
   double finalAmount;
 
   DateTime? placedAt;
@@ -302,6 +322,10 @@ abstract class CustomerOrderRow
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     double? finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -345,6 +369,10 @@ abstract class CustomerOrderRow
       'freeDeliveryApplied': freeDeliveryApplied,
       if (freeDeliveryReason != null) 'freeDeliveryReason': freeDeliveryReason,
       if (couponSnapshot != null) 'couponSnapshot': couponSnapshot,
+      if (paymentSnapshot != null) 'paymentSnapshot': paymentSnapshot,
+      if (addressSnapshot != null) 'addressSnapshot': addressSnapshot,
+      if (pricingSnapshot != null) 'pricingSnapshot': pricingSnapshot,
+      if (deliverySnapshot != null) 'deliverySnapshot': deliverySnapshot,
       'finalAmount': finalAmount,
       if (placedAt != null) 'placedAt': placedAt?.toJson(),
       if (confirmedAt != null) 'confirmedAt': confirmedAt?.toJson(),
@@ -428,6 +456,10 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -467,6 +499,10 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          freeDeliveryApplied: freeDeliveryApplied,
          freeDeliveryReason: freeDeliveryReason,
          couponSnapshot: couponSnapshot,
+         paymentSnapshot: paymentSnapshot,
+         addressSnapshot: addressSnapshot,
+         pricingSnapshot: pricingSnapshot,
+         deliverySnapshot: deliverySnapshot,
          finalAmount: finalAmount,
          placedAt: placedAt,
          confirmedAt: confirmedAt,
@@ -512,6 +548,10 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     bool? freeDeliveryApplied,
     Object? freeDeliveryReason = _Undefined,
     Object? couponSnapshot = _Undefined,
+    Object? paymentSnapshot = _Undefined,
+    Object? addressSnapshot = _Undefined,
+    Object? pricingSnapshot = _Undefined,
+    Object? deliverySnapshot = _Undefined,
     double? finalAmount,
     Object? placedAt = _Undefined,
     Object? confirmedAt = _Undefined,
@@ -558,6 +598,18 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       couponSnapshot: couponSnapshot is String?
           ? couponSnapshot
           : this.couponSnapshot,
+      paymentSnapshot: paymentSnapshot is String?
+          ? paymentSnapshot
+          : this.paymentSnapshot,
+      addressSnapshot: addressSnapshot is String?
+          ? addressSnapshot
+          : this.addressSnapshot,
+      pricingSnapshot: pricingSnapshot is String?
+          ? pricingSnapshot
+          : this.pricingSnapshot,
+      deliverySnapshot: deliverySnapshot is String?
+          ? deliverySnapshot
+          : this.deliverySnapshot,
       finalAmount: finalAmount ?? this.finalAmount,
       placedAt: placedAt is DateTime? ? placedAt : this.placedAt,
       confirmedAt: confirmedAt is DateTime? ? confirmedAt : this.confirmedAt,
@@ -701,6 +753,30 @@ class CustomerOrderRowUpdateTable
   _i1.ColumnValue<String, String> couponSnapshot(String? value) =>
       _i1.ColumnValue(
         table.couponSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paymentSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.paymentSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> addressSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.addressSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> pricingSnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.pricingSnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> deliverySnapshot(String? value) =>
+      _i1.ColumnValue(
+        table.deliverySnapshot,
         value,
       );
 
@@ -898,6 +974,22 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'couponSnapshot',
       this,
     );
+    paymentSnapshot = _i1.ColumnString(
+      'paymentSnapshot',
+      this,
+    );
+    addressSnapshot = _i1.ColumnString(
+      'addressSnapshot',
+      this,
+    );
+    pricingSnapshot = _i1.ColumnString(
+      'pricingSnapshot',
+      this,
+    );
+    deliverySnapshot = _i1.ColumnString(
+      'deliverySnapshot',
+      this,
+    );
     finalAmount = _i1.ColumnDouble(
       'finalAmount',
       this,
@@ -1016,6 +1108,14 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString couponSnapshot;
 
+  late final _i1.ColumnString paymentSnapshot;
+
+  late final _i1.ColumnString addressSnapshot;
+
+  late final _i1.ColumnString pricingSnapshot;
+
+  late final _i1.ColumnString deliverySnapshot;
+
   late final _i1.ColumnDouble finalAmount;
 
   late final _i1.ColumnDateTime placedAt;
@@ -1074,6 +1174,10 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     freeDeliveryApplied,
     freeDeliveryReason,
     couponSnapshot,
+    paymentSnapshot,
+    addressSnapshot,
+    pricingSnapshot,
+    deliverySnapshot,
     finalAmount,
     placedAt,
     confirmedAt,

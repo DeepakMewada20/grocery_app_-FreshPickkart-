@@ -22,6 +22,10 @@ fields:
   freeDeliveryApplied: bool, default=false
   freeDeliveryReason: String?
   couponSnapshot: String?
+  paymentSnapshot: String?
+  addressSnapshot: String?
+  pricingSnapshot: String?
+  deliverySnapshot: String?
   finalAmount: double
   placedAt: DateTime?
   confirmedAt: DateTime?

@@ -107,6 +107,20 @@ class PostgresOrderService {
         final deliveryOtp = _generateDeliveryOtp();
         final requestHash = jsonEncode(order.toJsonForProtocol());
 
+        final pricingSnapshotJson = SnapshotBuilder.instance.buildPricingSnapshot(order);
+        final deliverySnapshotJson = SnapshotBuilder.instance.buildDeliverySnapshot(order);
+        final addressSnapshotJson = SnapshotBuilder.instance.buildAddressSnapshot(
+          recipientName: cleanNullableString(order.userName),
+          phoneNumber: cleanNullableString(order.userPhone),
+          streetLine1: order.deliveryAddress.street.trim(),
+          city: order.deliveryAddress.city.trim(),
+          state: order.deliveryAddress.state.trim(),
+          postalCode: order.deliveryAddress.zipCode.trim(),
+          country: order.deliveryAddress.country.trim(),
+          latitude: order.deliveryAddress.latitude,
+          longitude: order.deliveryAddress.longitude,
+        );
+
         final createdOrder = await CustomerOrderRow.db.insertRow(
           session,
           CustomerOrderRow(
@@ -129,6 +143,9 @@ class PostgresOrderService {
             freeDeliveryApplied: order.freeDeliveryApplied,
             freeDeliveryReason: cleanNullableString(order.freeDeliveryReason),
             couponSnapshot: couponSnapshotJson,
+            pricingSnapshot: pricingSnapshotJson,
+            deliverySnapshot: deliverySnapshotJson,
+            addressSnapshot: addressSnapshotJson,
             finalAmount: order.finalAmount,
             orderType: order.orderType,
             sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
@@ -639,6 +656,10 @@ class PostgresOrderService {
           freeDeliveryApplied: order.freeDeliveryApplied,
           freeDeliveryReason: order.freeDeliveryReason,
           couponSnapshot: order.couponSnapshot,
+          paymentSnapshot: order.paymentSnapshot,
+          addressSnapshot: order.addressSnapshot,
+          pricingSnapshot: order.pricingSnapshot,
+          deliverySnapshot: order.deliverySnapshot,
           finalAmount: order.finalAmount,
           status: order.orderStatus,
           paymentStatus: order.paymentStatus,
@@ -1000,8 +1021,18 @@ class PostgresOrderService {
     );
 
     if (newStatus == 'cancelled' && row.paymentStatus == 'paid') {
-      await _restoreStockForCancelledOrder(session, row.id!);
-      await _decrementCouponForCancelledOrder(session, row);
+      await session.db.transaction((transaction) async {
+        await _restoreStockForCancelledOrder(
+          session,
+          row.id!,
+          transaction: transaction,
+        );
+        await _decrementCouponForCancelledOrder(
+          session,
+          row,
+          transaction: transaction,
+        );
+      });
     }
 
     return true;
@@ -1227,8 +1258,9 @@ class PostgresOrderService {
 
   Future<void> _restoreStockForCancelledOrder(
     Session session,
-    UuidValue orderId,
-  ) async {
+    UuidValue orderId, {
+    Transaction? transaction,
+  }) async {
     try {
       final orderItems = await OrderItemRow.db.find(
         session,
@@ -1246,7 +1278,11 @@ class PostgresOrderService {
       };
 
       for (final item in orderItems) {
-        final product = await ProductRow.db.findById(session, item.productId);
+        final product = await ProductRow.db.findById(
+          session,
+          item.productId,
+          transaction: transaction,
+        );
         if (product == null || product.stock == null) continue;
 
         double restoreAmount = 0;
@@ -1254,6 +1290,7 @@ class PostgresOrderService {
           final variant = await ProductVariantRow.db.findById(
             session,
             item.productVariantId!,
+            transaction: transaction,
           );
           if (variant != null) {
             final vUnit = variant.quantityUnit.toLowerCase();
@@ -1279,6 +1316,7 @@ class PostgresOrderService {
             status: newStock > 0 ? 'active' : product.status,
             updatedAt: DateTime.now().toUtc(),
           ),
+          transaction: transaction,
         );
       }
     } catch (e) {
@@ -1291,11 +1329,16 @@ class PostgresOrderService {
 
   Future<void> _decrementCouponForCancelledOrder(
     Session session,
-    CustomerOrderRow order,
-  ) async {
+    CustomerOrderRow order, {
+    Transaction? transaction,
+  }) async {
     if (order.couponId == null) return;
     try {
-      final coupon = await CouponRow.db.findById(session, order.couponId!);
+      final coupon = await CouponRow.db.findById(
+        session,
+        order.couponId!,
+        transaction: transaction,
+      );
       if (coupon == null || coupon.usedCount <= 0) return;
 
       await CouponRow.db.updateRow(
@@ -1304,6 +1347,7 @@ class PostgresOrderService {
           usedCount: coupon.usedCount - 1,
           updatedAt: DateTime.now().toUtc(),
         ),
+        transaction: transaction,
       );
     } catch (e) {
       session.log(
@@ -1432,24 +1476,35 @@ class PostgresOrderService {
       refundAmount = row.finalAmount;
     }
 
-    await CustomerOrderRow.db.updateRow(
-      session,
-      row.copyWith(
-        orderStatus: 'cancelled',
-        paymentStatus: row.paymentStatus == 'paid' ? 'refunded' : row.paymentStatus,
-        refundStatus: 'refund_initiated',
-        cancelledAt: now,
-        cancellationReason: adminNote.isNotEmpty
-            ? 'Approved: $adminNote'
-            : 'Cancellation approved',
-        updatedAt: now,
-      ),
-    );
+    await session.db.transaction((transaction) async {
+      await CustomerOrderRow.db.updateRow(
+        session,
+        row.copyWith(
+          orderStatus: 'cancelled',
+          paymentStatus: row.paymentStatus == 'paid' ? 'refunded' : row.paymentStatus,
+          refundStatus: 'refund_initiated',
+          cancelledAt: now,
+          cancellationReason: adminNote.isNotEmpty
+              ? 'Approved: $adminNote'
+              : 'Cancellation approved',
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
 
-    if (row.paymentStatus == 'paid') {
-      await _restoreStockForCancelledOrder(session, row.id!);
-      await _decrementCouponForCancelledOrder(session, row);
-    }
+      if (row.paymentStatus == 'paid') {
+        await _restoreStockForCancelledOrder(
+          session,
+          row.id!,
+          transaction: transaction,
+        );
+        await _decrementCouponForCancelledOrder(
+          session,
+          row,
+          transaction: transaction,
+        );
+      }
+    });
 
     await OrderOutboxService.instance.enqueueOrderStatusChanged(
       session: session,

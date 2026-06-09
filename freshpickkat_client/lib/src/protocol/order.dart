@@ -35,6 +35,10 @@ abstract class Order implements _i1.SerializableModel {
     bool? freeDeliveryApplied,
     this.freeDeliveryReason,
     this.couponSnapshot,
+    this.paymentSnapshot,
+    this.addressSnapshot,
+    this.pricingSnapshot,
+    this.deliverySnapshot,
     required this.finalAmount,
     required this.status,
     required this.paymentStatus,
@@ -82,6 +86,10 @@ abstract class Order implements _i1.SerializableModel {
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -135,6 +143,10 @@ abstract class Order implements _i1.SerializableModel {
             ),
       freeDeliveryReason: jsonSerialization['freeDeliveryReason'] as String?,
       couponSnapshot: jsonSerialization['couponSnapshot'] as String?,
+      paymentSnapshot: jsonSerialization['paymentSnapshot'] as String?,
+      addressSnapshot: jsonSerialization['addressSnapshot'] as String?,
+      pricingSnapshot: jsonSerialization['pricingSnapshot'] as String?,
+      deliverySnapshot: jsonSerialization['deliverySnapshot'] as String?,
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       paymentStatus: jsonSerialization['paymentStatus'] as String,
@@ -214,6 +226,14 @@ abstract class Order implements _i1.SerializableModel {
 
   String? couponSnapshot;
 
+  String? paymentSnapshot;
+
+  String? addressSnapshot;
+
+  String? pricingSnapshot;
+
+  String? deliverySnapshot;
+
   double finalAmount;
 
   String status;
@@ -276,6 +296,10 @@ abstract class Order implements _i1.SerializableModel {
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -319,6 +343,10 @@ abstract class Order implements _i1.SerializableModel {
       'freeDeliveryApplied': freeDeliveryApplied,
       if (freeDeliveryReason != null) 'freeDeliveryReason': freeDeliveryReason,
       if (couponSnapshot != null) 'couponSnapshot': couponSnapshot,
+      if (paymentSnapshot != null) 'paymentSnapshot': paymentSnapshot,
+      if (addressSnapshot != null) 'addressSnapshot': addressSnapshot,
+      if (pricingSnapshot != null) 'pricingSnapshot': pricingSnapshot,
+      if (deliverySnapshot != null) 'deliverySnapshot': deliverySnapshot,
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -372,6 +400,10 @@ class _OrderImpl extends Order {
     bool? freeDeliveryApplied,
     String? freeDeliveryReason,
     String? couponSnapshot,
+    String? paymentSnapshot,
+    String? addressSnapshot,
+    String? pricingSnapshot,
+    String? deliverySnapshot,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -411,6 +443,10 @@ class _OrderImpl extends Order {
          freeDeliveryApplied: freeDeliveryApplied,
          freeDeliveryReason: freeDeliveryReason,
          couponSnapshot: couponSnapshot,
+         paymentSnapshot: paymentSnapshot,
+         addressSnapshot: addressSnapshot,
+         pricingSnapshot: pricingSnapshot,
+         deliverySnapshot: deliverySnapshot,
          finalAmount: finalAmount,
          status: status,
          paymentStatus: paymentStatus,
@@ -456,6 +492,10 @@ class _OrderImpl extends Order {
     bool? freeDeliveryApplied,
     Object? freeDeliveryReason = _Undefined,
     Object? couponSnapshot = _Undefined,
+    Object? paymentSnapshot = _Undefined,
+    Object? addressSnapshot = _Undefined,
+    Object? pricingSnapshot = _Undefined,
+    Object? deliverySnapshot = _Undefined,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -502,6 +542,18 @@ class _OrderImpl extends Order {
       couponSnapshot: couponSnapshot is String?
           ? couponSnapshot
           : this.couponSnapshot,
+      paymentSnapshot: paymentSnapshot is String?
+          ? paymentSnapshot
+          : this.paymentSnapshot,
+      addressSnapshot: addressSnapshot is String?
+          ? addressSnapshot
+          : this.addressSnapshot,
+      pricingSnapshot: pricingSnapshot is String?
+          ? pricingSnapshot
+          : this.pricingSnapshot,
+      deliverySnapshot: deliverySnapshot is String?
+          ? deliverySnapshot
+          : this.deliverySnapshot,
       finalAmount: finalAmount ?? this.finalAmount,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,

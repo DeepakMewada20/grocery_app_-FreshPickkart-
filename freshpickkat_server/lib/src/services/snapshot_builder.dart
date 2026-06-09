@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../generated/protocol.dart';
 import 'postgres/postgres_support.dart';
@@ -131,16 +131,72 @@ class SnapshotBuilder {
     });
   }
 
-  Future<String?> buildCouponSnapshotFromCode(
-    Session session,
-    String? couponCode,
-    double discountAmount,
-  ) async {
-    if (couponCode == null || couponCode.trim().isEmpty) return null;
-    final coupon = await CouponRow.db.findFirstRow(
-      session,
-      where: (t) => t.code.equals(couponCode.trim().toLowerCase()),
-    );
-    return buildCouponSnapshot(coupon, discountAmount);
+  String buildPaymentSnapshot({
+    required String gatewayName,
+    String? gatewayOrderId,
+    String? gatewayPaymentId,
+    required String paymentStatus,
+    required double amount,
+    DateTime? paidAt,
+  }) {
+    return jsonEncode({
+      'gatewayName': gatewayName,
+      'gatewayOrderId': ?gatewayOrderId,
+      'gatewayPaymentId': ?gatewayPaymentId,
+      'paymentStatus': paymentStatus,
+      'amount': amount,
+      'paidAt': ?paidAt?.toUtc().toIso8601String(),
+    });
+  }
+
+  String buildAddressSnapshot({
+    String? recipientName,
+    String? phoneNumber,
+    required String streetLine1,
+    String? streetLine2,
+    String? landmark,
+    required String city,
+    required String state,
+    required String postalCode,
+    required String country,
+    double? latitude,
+    double? longitude,
+  }) {
+    return jsonEncode({
+      'recipientName': ?recipientName,
+      'phoneNumber': ?phoneNumber,
+      'streetLine1': streetLine1,
+      'streetLine2': ?streetLine2,
+      'landmark': ?landmark,
+      'city': city,
+      'state': state,
+      'postalCode': postalCode,
+      'country': country,
+      'latitude': ?latitude,
+      'longitude': ?longitude,
+    });
+  }
+
+  String buildPricingSnapshot(Order order) {
+    return jsonEncode({
+      'subtotal': order.totalAmount,
+      'offerDiscount': order.productDiscountAmount +
+          order.comboDiscountAmount +
+          order.bogoDiscountAmount,
+      'couponDiscount': order.discountAmount,
+      'deliveryCharge': order.deliveryFee,
+      'grandTotal': order.finalAmount,
+    });
+  }
+
+  String buildDeliverySnapshot(Order order) {
+    return jsonEncode({
+      'deliveryCharge': order.deliveryFee,
+      'originalDeliveryFee': order.originalDeliveryFee,
+      'deliveryDiscountAmount': order.deliveryDiscountAmount,
+      'freeDeliveryApplied': order.freeDeliveryApplied,
+      if (order.freeDeliveryReason != null) 'freeDeliveryReason': order.freeDeliveryReason,
+    });
   }
 }
+

@@ -4,6 +4,7 @@ import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
 import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
+import '../snapshot_builder.dart';
 import 'postgres_support.dart';
 
 class PostgresPaymentService {
@@ -181,26 +182,48 @@ class PostgresPaymentService {
       }
 
       final now = DateTime.now().toUtc();
-      await PaymentTransactionRow.db.updateRow(
-        session,
-        paymentRow.copyWith(
+
+      await session.db.transaction((transaction) async {
+        await PaymentTransactionRow.db.updateRow(
+          session,
+          paymentRow.copyWith(
+            gatewayOrderId: razorpayOrderId,
+            gatewayPaymentId: razorpayPaymentId,
+            paymentStatus: 'paid',
+            gatewayStatus: 'captured',
+            paidAt: now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        final paymentSnapshotJson = SnapshotBuilder.instance.buildPaymentSnapshot(
+          gatewayName: 'razorpay',
           gatewayOrderId: razorpayOrderId,
           gatewayPaymentId: razorpayPaymentId,
           paymentStatus: 'paid',
-          gatewayStatus: 'captured',
+          amount: resolvedOrderRow.finalAmount,
           paidAt: now,
-          updatedAt: now,
-        ),
-      );
-      await CustomerOrderRow.db.updateRow(
-        session,
-        resolvedOrderRow.copyWith(
-          paymentStatus: 'paid',
-          orderStatus: 'confirmed',
-          confirmedAt: now,
-          updatedAt: now,
-        ),
-      );
+        );
+
+        await CustomerOrderRow.db.updateRow(
+          session,
+          resolvedOrderRow.copyWith(
+            paymentStatus: 'paid',
+            orderStatus: 'confirmed',
+            confirmedAt: now,
+            paymentSnapshot: paymentSnapshotJson,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        await _finalizeSuccessfulPaymentSideEffects(
+          session,
+          order: resolvedOrderRow,
+          transaction: transaction,
+        );
+      });
 
       await _processPaidOrderAnalytics(
         session,
@@ -214,11 +237,6 @@ class PostgresPaymentService {
         status: 'confirmed',
         amount: resolvedOrderRow.finalAmount,
         itemCount: resolvedOrderRow.itemCount,
-      );
-
-      await _finalizeSuccessfulPaymentSideEffects(
-        session,
-        order: resolvedOrderRow,
       );
 
       session.log(
@@ -287,9 +305,27 @@ class PostgresPaymentService {
       }
 
       final now = DateTime.now().toUtc();
-      await PaymentTransactionRow.db.updateRow(
-        session,
-        paymentRow.copyWith(
+
+      await session.db.transaction((transaction) async {
+        await PaymentTransactionRow.db.updateRow(
+          session,
+          paymentRow.copyWith(
+            gatewayOrderId: razorpayOrderId.isNotEmpty
+                ? razorpayOrderId
+                : paymentRow.gatewayOrderId,
+            gatewayPaymentId: razorpayPaymentId.isNotEmpty
+                ? razorpayPaymentId
+                : paymentRow.gatewayPaymentId,
+            paymentStatus: 'paid',
+            gatewayStatus: 'captured',
+            paidAt: now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        final paymentSnapshotJson = SnapshotBuilder.instance.buildPaymentSnapshot(
+          gatewayName: 'razorpay',
           gatewayOrderId: razorpayOrderId.isNotEmpty
               ? razorpayOrderId
               : paymentRow.gatewayOrderId,
@@ -297,20 +333,28 @@ class PostgresPaymentService {
               ? razorpayPaymentId
               : paymentRow.gatewayPaymentId,
           paymentStatus: 'paid',
-          gatewayStatus: 'captured',
+          amount: resolvedOrderRow.finalAmount,
           paidAt: now,
-          updatedAt: now,
-        ),
-      );
-      await CustomerOrderRow.db.updateRow(
-        session,
-        resolvedOrderRow.copyWith(
-          paymentStatus: 'paid',
-          orderStatus: 'confirmed',
-          confirmedAt: now,
-          updatedAt: now,
-        ),
-      );
+        );
+
+        await CustomerOrderRow.db.updateRow(
+          session,
+          resolvedOrderRow.copyWith(
+            paymentStatus: 'paid',
+            orderStatus: 'confirmed',
+            confirmedAt: now,
+            paymentSnapshot: paymentSnapshotJson,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        await _finalizeSuccessfulPaymentSideEffects(
+          session,
+          order: resolvedOrderRow,
+          transaction: transaction,
+        );
+      });
 
       await _processPaidOrderAnalytics(
         session,
@@ -324,11 +368,6 @@ class PostgresPaymentService {
         status: 'confirmed',
         amount: resolvedOrderRow.finalAmount,
         itemCount: resolvedOrderRow.itemCount,
-      );
-
-      await _finalizeSuccessfulPaymentSideEffects(
-        session,
-        order: resolvedOrderRow,
       );
 
       session.log(
@@ -995,16 +1034,22 @@ class PostgresPaymentService {
   Future<void> _finalizeSuccessfulPaymentSideEffects(
     Session session, {
     required CustomerOrderRow order,
+    Transaction? transaction,
   }) async {
     await UserCartItemRow.db.deleteWhere(
       session,
       where: (t) => t.userId.equals(order.userId),
+      transaction: transaction,
     );
 
-    await _deductStockForOrderItems(session, order.id!);
+    await _deductStockForOrderItems(session, order.id!, transaction: transaction);
 
     if (order.couponId != null) {
-      final couponRow = await CouponRow.db.findById(session, order.couponId!);
+      final couponRow = await CouponRow.db.findById(
+        session,
+        order.couponId!,
+        transaction: transaction,
+      );
       if (couponRow != null) {
         await CouponRow.db.updateRow(
           session,
@@ -1012,6 +1057,7 @@ class PostgresPaymentService {
             usedCount: couponRow.usedCount + 1,
             updatedAt: DateTime.now().toUtc(),
           ),
+          transaction: transaction,
         );
       }
     }
@@ -1035,8 +1081,9 @@ class PostgresPaymentService {
 
   Future<void> _deductStockForOrderItems(
     Session session,
-    UuidValue orderId,
-  ) async {
+    UuidValue orderId, {
+    Transaction? transaction,
+  }) async {
     try {
       final orderItems = await OrderItemRow.db.find(
         session,
@@ -1053,7 +1100,11 @@ class PostgresPaymentService {
       };
 
       for (final item in orderItems) {
-        final product = await ProductRow.db.findById(session, item.productId);
+        final product = await ProductRow.db.findById(
+          session,
+          item.productId,
+          transaction: transaction,
+        );
         if (product == null || product.stock == null) continue;
 
         double deduction = 0;
@@ -1061,6 +1112,7 @@ class PostgresPaymentService {
           final variant = await ProductVariantRow.db.findById(
             session,
             item.productVariantId!,
+            transaction: transaction,
           );
           if (variant != null) {
             final vUnit = variant.quantityUnit.toLowerCase();
@@ -1099,6 +1151,7 @@ class PostgresPaymentService {
             status: shouldDisable ? 'inactive' : product.status,
             updatedAt: DateTime.now().toUtc(),
           ),
+          transaction: transaction,
         );
       }
     } catch (e) {
