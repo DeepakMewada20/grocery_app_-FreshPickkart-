@@ -479,6 +479,7 @@ class PostgresComplaintService {
     Session session, {
     required String complaintId,
     required String status,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
     String? actorFirebaseUid,
@@ -494,6 +495,7 @@ class PostgresComplaintService {
         final updated = await _approveAddressChange(
           session,
           row: row,
+          adminReply: adminReply,
           adminNote: adminNote,
           resolutionType: resolutionType,
           actorFirebaseUid: actorFirebaseUid,
@@ -505,6 +507,7 @@ class PostgresComplaintService {
         final updated = await _rejectAddressChange(
           session,
           row: row,
+          adminReply: adminReply,
           adminNote: adminNote,
           resolutionType: resolutionType,
           actorFirebaseUid: actorFirebaseUid,
@@ -517,6 +520,7 @@ class PostgresComplaintService {
       session,
       row,
       status: cleanStatus,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: resolutionType,
     );
@@ -554,12 +558,14 @@ class PostgresComplaintService {
   Future<Complaint> rejectComplaint(
     Session session, {
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) {
     return updateComplaintStatus(
       session,
       complaintId: complaintId,
       status: rejectedStatus,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: 'reject',
     );
@@ -621,6 +627,7 @@ class PostgresComplaintService {
     Session session, {
     required String complaintId,
     required double amount,
+    String? adminReply,
     String? adminNote,
   }) async {
     if (amount <= 0) {
@@ -653,6 +660,7 @@ class PostgresComplaintService {
       session,
       row,
       status: resolvedStatus,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: row.complaintType == productType
           ? 'refund'
@@ -665,6 +673,7 @@ class PostgresComplaintService {
   Future<Complaint> retryDelivery(
     Session session, {
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     final row = await _getComplaintRow(session, complaintId);
@@ -687,6 +696,7 @@ class PostgresComplaintService {
       session,
       row,
       status: resolvedStatus,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: 'retry_delivery',
     );
@@ -699,6 +709,7 @@ class PostgresComplaintService {
     required String complaintId,
     required String riderName,
     required String riderPhone,
+    String? adminReply,
     String? adminNote,
   }) async {
     final row = await _getComplaintRow(session, complaintId);
@@ -728,6 +739,7 @@ class PostgresComplaintService {
       session,
       row,
       status: resolvedStatus,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: 'reassign_rider',
     );
@@ -738,6 +750,7 @@ class PostgresComplaintService {
   Future<Complaint> createReplacementOrder(
     Session session, {
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     final row = await _getComplaintRow(session, complaintId);
@@ -834,6 +847,7 @@ class PostgresComplaintService {
       session,
       row,
       status: resolvedStatus,
+      adminReply: adminReply,
       adminNote: adminNote == null || adminNote.trim().isEmpty
           ? 'Replacement order $replacementNumber created.'
           : '${adminNote.trim()} Replacement order $replacementNumber created.',
@@ -1161,11 +1175,13 @@ class PostgresComplaintService {
     Session session,
     ComplaintRow row, {
     required String status,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
     Transaction? transaction,
   }) async {
     final now = DateTime.now().toUtc();
+    final cleanReply = cleanNullableString(adminReply);
     final cleanNote = cleanNullableString(adminNote);
     final cleanResolution = cleanNullableString(resolutionType);
     final updated = await ComplaintRow.db.updateById(
@@ -1173,6 +1189,7 @@ class PostgresComplaintService {
       row.id!,
       columnValues: (t) => [
         t.status(status),
+        if (cleanReply != null) t.adminReply(cleanReply),
         if (cleanNote != null) t.adminNote(cleanNote),
         if (cleanResolution != null) t.resolutionType(cleanResolution),
         t.updatedAt(now),
@@ -1182,6 +1199,7 @@ class PostgresComplaintService {
     return updated ??
         row.copyWith(
           status: status,
+          adminReply: cleanReply ?? row.adminReply,
           adminNote: cleanNote ?? row.adminNote,
           resolutionType: cleanResolution ?? row.resolutionType,
           updatedAt: now,
@@ -1197,6 +1215,7 @@ class PostgresComplaintService {
   Future<ComplaintRow> _approveAddressChange(
     Session session, {
     required ComplaintRow row,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
     String? actorFirebaseUid,
@@ -1214,6 +1233,7 @@ class PostgresComplaintService {
         session,
         row,
         status: resolvedStatus,
+        adminReply: adminReply,
         adminNote: adminNote,
         resolutionType: resolutionType ?? 'address_change_approved',
         transaction: transaction,
@@ -1247,6 +1267,7 @@ class PostgresComplaintService {
   Future<ComplaintRow> _rejectAddressChange(
     Session session, {
     required ComplaintRow row,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
     String? actorFirebaseUid,
@@ -1262,6 +1283,7 @@ class PostgresComplaintService {
         session,
         row,
         status: rejectedStatus,
+        adminReply: adminReply,
         adminNote: cleanNote,
         resolutionType: resolutionType ?? 'address_change_rejected',
         transaction: transaction,

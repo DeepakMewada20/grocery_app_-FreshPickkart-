@@ -142,15 +142,18 @@ class _ComplaintDetailAdminScreen extends StatefulWidget {
 class _ComplaintDetailAdminScreenState
     extends State<_ComplaintDetailAdminScreen> {
   late Complaint _complaint;
-  final _noteController = TextEditingController();
+  final _replyController = TextEditingController();
+  final _internalNoteController = TextEditingController();
   bool _busy = false;
+  bool _showInternalNote = false;
   RefundRecord? _complaintRefund;
 
   @override
   void initState() {
     super.initState();
     _complaint = widget.complaint;
-    _noteController.text = _complaint.adminNote ?? '';
+    _replyController.text = _complaint.adminReply ?? '';
+    _internalNoteController.text = _complaint.adminNote ?? '';
     if (_complaint.status == 'Resolved' &&
         (_complaint.resolutionType?.contains('refund') ?? false)) {
       _loadRefund();
@@ -166,7 +169,8 @@ class _ComplaintDetailAdminScreenState
 
   @override
   void dispose() {
-    _noteController.dispose();
+    _replyController.dispose();
+    _internalNoteController.dispose();
     super.dispose();
   }
 
@@ -209,14 +213,14 @@ class _ComplaintDetailAdminScreenState
                   title: _complaint.title,
                   children: [
                     Text(_complaint.description),
-                    if (_complaint.adminNote?.trim().isNotEmpty == true) ...[
+                    if (_complaint.adminReply?.trim().isNotEmpty == true) ...[
                       SizedBox(height: 12.h),
                       Text(
-                        'Admin note',
+                        'Admin reply',
                         style: AdminTextStyles.sectionTitle(context),
                       ),
                       SizedBox(height: 6.h),
-                      Text(_complaint.adminNote!),
+                      Text(_complaint.adminReply!),
                     ],
                   ],
                 ),
@@ -271,10 +275,10 @@ class _ComplaintDetailAdminScreenState
                 ),
                 SizedBox(height: 12.h),
                 _InfoPanel(
-                  title: 'Admin Note',
+                  title: 'Admin Reply',
                   children: [
                     TextField(
-                      controller: _noteController,
+                      controller: _replyController,
                       minLines: 3,
                       maxLines: 6,
                       decoration: const InputDecoration(
@@ -283,6 +287,49 @@ class _ComplaintDetailAdminScreenState
                     ),
                   ],
                 ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => setState(
+                        () => _showInternalNote = !_showInternalNote,
+                      ),
+                      icon: Icon(
+                        _showInternalNote
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        size: 16.sp,
+                      ),
+                      label: const Text('Admin Note'),
+                    ),
+                  ],
+                ),
+                if (_showInternalNote) ...[
+                  SizedBox(height: 8.h),
+                  _InfoPanel(
+                    title: 'Internal Note',
+                    children: [
+                      Text(
+                        'Ye sirf admin ko hi show hoga. Iska content user ko nahi. '
+                        'Help to find issue and remember work.',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: cs.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      TextField(
+                        controller: _internalNoteController,
+                        minLines: 2,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 SizedBox(height: 12.h),
                 if (_complaint.status != 'Resolved' &&
                     _complaint.status != 'Rejected')
@@ -389,7 +436,8 @@ class _ComplaintDetailAdminScreenState
       () => widget.controller.refundComplaint(
         _complaint,
         amount: amount,
-        adminNote: _noteController.text,
+        adminReply: _replyController.text,
+        adminNote: _internalNoteController.text,
       ),
     );
   }
@@ -430,21 +478,24 @@ class _ComplaintDetailAdminScreenState
   Future<void> _replacement() => _run(
     () => widget.controller.createReplacementOrder(
       _complaint,
-      adminNote: _noteController.text,
+      adminReply: _replyController.text,
+      adminNote: _internalNoteController.text,
     ),
   );
 
   Future<void> _retryDelivery() => _run(
     () => widget.controller.retryDelivery(
       _complaint,
-      adminNote: _noteController.text,
+      adminReply: _replyController.text,
+      adminNote: _internalNoteController.text,
     ),
   );
 
   Future<void> _reject() => _run(
     () => widget.controller.rejectComplaint(
       _complaint,
-      adminNote: _noteController.text,
+      adminReply: _replyController.text,
+      adminNote: _internalNoteController.text,
     ),
   );
 
@@ -452,7 +503,8 @@ class _ComplaintDetailAdminScreenState
     () => widget.controller.updateStatus(
       _complaint,
       'Resolved',
-      adminNote: _noteController.text,
+      adminReply: _replyController.text,
+      adminNote: _internalNoteController.text,
     ),
   );
 
@@ -487,9 +539,10 @@ class _ComplaintDetailAdminScreenState
     await _run(
       () => widget.controller.rejectComplaint(
         _complaint,
-        adminNote: _noteController.text.trim().isEmpty
+        adminReply: _replyController.text,
+        adminNote: _internalNoteController.text.trim().isEmpty
             ? selected
-            : '$selected: ${_noteController.text.trim()}',
+            : '$selected: ${_internalNoteController.text.trim()}',
       ),
     );
   }
@@ -533,7 +586,8 @@ class _ComplaintDetailAdminScreenState
             _complaint,
             riderName: name.text,
             riderPhone: phone.text,
-            adminNote: _noteController.text,
+            adminReply: _replyController.text,
+            adminNote: _internalNoteController.text,
           ),
         );
       }
@@ -893,16 +947,23 @@ class _RefundInfoCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.08),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.currency_rupee, size: 18.sp, color: statusColor),
+              Container(
+                width: 8.r,
+                height: 8.r,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
               SizedBox(width: 8.w),
               Text(
                 'Refund Information',
@@ -911,30 +972,36 @@ class _RefundInfoCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          _refundRow('Status', _statusLabel(refund.status), statusColor, cs, context),
+          _refundRow('Status', _statusLabel(refund.status), statusColor, context),
           SizedBox(height: 8.h),
-          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, cs, context),
+          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, context),
           SizedBox(height: 8.h),
-          _refundRow('Refund ID', refund.refundId, null, cs, context),
+          _refundRow('Refund ID', refund.refundId, null, context),
           SizedBox(height: 8.h),
-          _refundRow('Initiated', _formatDate(refund.createdAt), null, cs, context),
+          _refundRow('Initiated', _formatDate(refund.createdAt), null, context),
           SizedBox(height: 8.h),
-          _refundRow('Expected', '5–7 Business Days', null, cs, context),
+          _refundRow('Expected', '5–7 Business Days', null, context),
         ],
       ),
     );
   }
 
-  Widget _refundRow(String label, String value, Color? valueColor, ColorScheme cs, BuildContext context) {
+  Widget _refundRow(String label, String value, Color? valueColor, BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AdminTextStyles.caption(context)),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: valueColor ?? cs.onSurface,
+        SizedBox(
+          width: 130.w,
+          child: Text(label, style: AdminTextStyles.caption(context)),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? cs.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

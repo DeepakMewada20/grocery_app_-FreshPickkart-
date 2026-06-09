@@ -2582,6 +2582,7 @@ class _ComplaintEndpoint {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
   }) async {
@@ -2601,6 +2602,7 @@ class _ComplaintEndpoint {
             'idToken': idToken,
             'complaintId': complaintId,
             'status': status,
+            'adminReply': adminReply,
             'adminNote': adminNote,
             'resolutionType': resolutionType,
           }),
@@ -2662,6 +2664,7 @@ class _ComplaintEndpoint {
     required String idToken,
     required String complaintId,
     required double amount,
+    String? adminReply,
     String? adminNote,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2680,6 +2683,7 @@ class _ComplaintEndpoint {
             'idToken': idToken,
             'complaintId': complaintId,
             'amount': amount,
+            'adminReply': adminReply,
             'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,
@@ -2702,6 +2706,7 @@ class _ComplaintEndpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2719,6 +2724,7 @@ class _ComplaintEndpoint {
             'firebaseUid': firebaseUid,
             'idToken': idToken,
             'complaintId': complaintId,
+            'adminReply': adminReply,
             'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,
@@ -2741,6 +2747,7 @@ class _ComplaintEndpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2758,6 +2765,7 @@ class _ComplaintEndpoint {
             'firebaseUid': firebaseUid,
             'idToken': idToken,
             'complaintId': complaintId,
+            'adminReply': adminReply,
             'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,
@@ -2782,6 +2790,7 @@ class _ComplaintEndpoint {
     required String complaintId,
     required String riderName,
     required String riderPhone,
+    String? adminReply,
     String? adminNote,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2801,6 +2810,7 @@ class _ComplaintEndpoint {
             'complaintId': complaintId,
             'riderName': riderName,
             'riderPhone': riderPhone,
+            'adminReply': adminReply,
             'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,
@@ -2823,6 +2833,7 @@ class _ComplaintEndpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -2840,6 +2851,7 @@ class _ComplaintEndpoint {
             'firebaseUid': firebaseUid,
             'idToken': idToken,
             'complaintId': complaintId,
+            'adminReply': adminReply,
             'adminNote': adminNote,
           }),
           serializationManager: _serializationManager,

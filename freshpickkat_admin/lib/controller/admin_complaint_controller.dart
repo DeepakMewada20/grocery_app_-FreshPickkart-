@@ -85,6 +85,7 @@ class AdminComplaintController extends GetxController {
   Future<Complaint> updateStatus(
     Complaint complaint,
     String status, {
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -95,6 +96,7 @@ class AdminComplaintController extends GetxController {
         idToken: token,
         complaintId: complaint.complaintId,
         status: status,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });
@@ -129,6 +131,7 @@ class AdminComplaintController extends GetxController {
   Future<Complaint> refundComplaint(
     Complaint complaint, {
     required double amount,
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -139,6 +142,7 @@ class AdminComplaintController extends GetxController {
         idToken: token,
         complaintId: complaint.complaintId,
         amount: amount,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });
@@ -148,6 +152,7 @@ class AdminComplaintController extends GetxController {
 
   Future<Complaint> createReplacementOrder(
     Complaint complaint, {
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -157,6 +162,7 @@ class AdminComplaintController extends GetxController {
         firebaseUid: uid,
         idToken: token,
         complaintId: complaint.complaintId,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });
@@ -166,6 +172,7 @@ class AdminComplaintController extends GetxController {
 
   Future<Complaint> retryDelivery(
     Complaint complaint, {
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -175,6 +182,7 @@ class AdminComplaintController extends GetxController {
         firebaseUid: uid,
         idToken: token,
         complaintId: complaint.complaintId,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });
@@ -186,6 +194,7 @@ class AdminComplaintController extends GetxController {
     Complaint complaint, {
     required String riderName,
     required String riderPhone,
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -197,6 +206,7 @@ class AdminComplaintController extends GetxController {
         complaintId: complaint.complaintId,
         riderName: riderName,
         riderPhone: riderPhone,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });
@@ -206,6 +216,7 @@ class AdminComplaintController extends GetxController {
 
   Future<Complaint> rejectComplaint(
     Complaint complaint, {
+    String? adminReply,
     String? adminNote,
   }) async {
     final updated = await ApiClient().request(() async {
@@ -215,6 +226,7 @@ class AdminComplaintController extends GetxController {
         firebaseUid: uid,
         idToken: token,
         complaintId: complaint.complaintId,
+        adminReply: adminReply,
         adminNote: adminNote,
       );
     });

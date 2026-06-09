@@ -2097,6 +2097,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2119,6 +2124,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
                     status: params['status'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                     resolutionType: params['resolutionType'],
                   ),
@@ -2177,6 +2183,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<double>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2194,6 +2205,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
                     amount: params['amount'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                   ),
         ),
@@ -2215,6 +2227,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2231,6 +2248,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                   ),
         ),
@@ -2252,6 +2270,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2268,6 +2291,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                   ),
         ),
@@ -2299,6 +2323,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2317,6 +2346,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     complaintId: params['complaintId'],
                     riderName: params['riderName'],
                     riderPhone: params['riderPhone'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                   ),
         ),
@@ -2338,6 +2368,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'adminReply': _i1.ParameterDescription(
+              name: 'adminReply',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'adminNote': _i1.ParameterDescription(
               name: 'adminNote',
               type: _i1.getType<String?>(),
@@ -2354,6 +2389,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
+                    adminReply: params['adminReply'],
                     adminNote: params['adminNote'],
                   ),
         ),

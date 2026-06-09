@@ -961,6 +961,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
   }) => caller.callServerEndpoint<_i23.Complaint>(
@@ -971,6 +972,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'idToken': idToken,
       'complaintId': complaintId,
       'status': status,
+      'adminReply': adminReply,
       'adminNote': adminNote,
       'resolutionType': resolutionType,
     },
@@ -995,6 +997,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String idToken,
     required String complaintId,
     required double amount,
+    String? adminReply,
     String? adminNote,
   }) => caller.callServerEndpoint<_i23.Complaint>(
     'complaint',
@@ -1004,6 +1007,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'idToken': idToken,
       'complaintId': complaintId,
       'amount': amount,
+      'adminReply': adminReply,
       'adminNote': adminNote,
     },
   );
@@ -1012,6 +1016,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) => caller.callServerEndpoint<_i23.Complaint>(
     'complaint',
@@ -1020,6 +1025,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'firebaseUid': firebaseUid,
       'idToken': idToken,
       'complaintId': complaintId,
+      'adminReply': adminReply,
       'adminNote': adminNote,
     },
   );
@@ -1028,6 +1034,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) => caller.callServerEndpoint<_i23.Complaint>(
     'complaint',
@@ -1036,6 +1043,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'firebaseUid': firebaseUid,
       'idToken': idToken,
       'complaintId': complaintId,
+      'adminReply': adminReply,
       'adminNote': adminNote,
     },
   );
@@ -1046,6 +1054,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String complaintId,
     required String riderName,
     required String riderPhone,
+    String? adminReply,
     String? adminNote,
   }) => caller.callServerEndpoint<_i23.Complaint>(
     'complaint',
@@ -1056,6 +1065,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'complaintId': complaintId,
       'riderName': riderName,
       'riderPhone': riderPhone,
+      'adminReply': adminReply,
       'adminNote': adminNote,
     },
   );
@@ -1064,6 +1074,7 @@ class EndpointComplaint extends _i1.EndpointRef {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) => caller.callServerEndpoint<_i23.Complaint>(
     'complaint',
@@ -1072,6 +1083,7 @@ class EndpointComplaint extends _i1.EndpointRef {
       'firebaseUid': firebaseUid,
       'idToken': idToken,
       'complaintId': complaintId,
+      'adminReply': adminReply,
       'adminNote': adminNote,
     },
   );

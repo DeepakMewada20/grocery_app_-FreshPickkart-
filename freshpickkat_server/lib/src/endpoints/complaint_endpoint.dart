@@ -232,6 +232,7 @@ class ComplaintEndpoint extends Endpoint {
     required String idToken,
     required String complaintId,
     required String status,
+    String? adminReply,
     String? adminNote,
     String? resolutionType,
   }) async {
@@ -244,6 +245,7 @@ class ComplaintEndpoint extends Endpoint {
       session,
       complaintId: complaintId,
       status: status,
+      adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: resolutionType,
       actorFirebaseUid: firebaseUid,
@@ -270,6 +272,7 @@ class ComplaintEndpoint extends Endpoint {
     required String idToken,
     required String complaintId,
     required double amount,
+    String? adminReply,
     String? adminNote,
   }) async {
     await _adminGuard.ensureAdminSeller(
@@ -281,6 +284,7 @@ class ComplaintEndpoint extends Endpoint {
       session,
       complaintId: complaintId,
       amount: amount,
+      adminReply: adminReply,
       adminNote: adminNote,
     );
   }
@@ -290,6 +294,7 @@ class ComplaintEndpoint extends Endpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     await _adminGuard.ensureAdminSeller(
@@ -300,6 +305,7 @@ class ComplaintEndpoint extends Endpoint {
     return _complaints.createReplacementOrder(
       session,
       complaintId: complaintId,
+      adminReply: adminReply,
       adminNote: adminNote,
     );
   }
@@ -309,6 +315,7 @@ class ComplaintEndpoint extends Endpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     await _adminGuard.ensureAdminSeller(
@@ -319,6 +326,7 @@ class ComplaintEndpoint extends Endpoint {
     return _complaints.retryDelivery(
       session,
       complaintId: complaintId,
+      adminReply: adminReply,
       adminNote: adminNote,
     );
   }
@@ -330,6 +338,7 @@ class ComplaintEndpoint extends Endpoint {
     required String complaintId,
     required String riderName,
     required String riderPhone,
+    String? adminReply,
     String? adminNote,
   }) async {
     await _adminGuard.ensureAdminSeller(
@@ -342,6 +351,7 @@ class ComplaintEndpoint extends Endpoint {
       complaintId: complaintId,
       riderName: riderName,
       riderPhone: riderPhone,
+      adminReply: adminReply,
       adminNote: adminNote,
     );
   }
@@ -351,6 +361,7 @@ class ComplaintEndpoint extends Endpoint {
     required String firebaseUid,
     required String idToken,
     required String complaintId,
+    String? adminReply,
     String? adminNote,
   }) async {
     await _adminGuard.ensureAdminSeller(
@@ -361,6 +372,7 @@ class ComplaintEndpoint extends Endpoint {
     return _complaints.rejectComplaint(
       session,
       complaintId: complaintId,
+      adminReply: adminReply,
       adminNote: adminNote,
     );
   }

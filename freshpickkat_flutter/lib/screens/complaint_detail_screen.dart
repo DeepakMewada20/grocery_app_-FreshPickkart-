@@ -138,7 +138,9 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                           child: Text(
                             _complaint!.adminReply?.trim().isNotEmpty == true
                                 ? _complaint!.adminReply!
-                                : 'No reply yet.',
+                                : _complaint!.adminNote?.trim().isNotEmpty == true
+                                    ? _complaint!.adminNote!
+                                    : 'No reply yet.',
                           ),
                         ),
                         SizedBox(height: 12.h),
@@ -421,56 +423,67 @@ class _RefundInfoCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.08),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.currency_rupee, size: 18.sp, color: statusColor),
+              Container(
+                width: 8.r,
+                height: 8.r,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
               SizedBox(width: 8.w),
               Text(
                 'Refund Information',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900),
               ),
             ],
           ),
           SizedBox(height: 12.h),
-          _refundRow('Status', _statusLabel(refund.status), statusColor, cs),
+          _refundRow('Status', _statusLabel(refund.status), statusColor, context),
           SizedBox(height: 8.h),
-          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, cs),
+          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, context),
           SizedBox(height: 8.h),
-          _refundRow('Refund ID', refund.refundId, null, cs),
+          _refundRow('Refund ID', refund.refundId, null, context),
           SizedBox(height: 8.h),
-          _refundRow('Initiated', _formatDate(refund.createdAt), null, cs),
+          _refundRow('Initiated', _formatDate(refund.createdAt), null, context),
           SizedBox(height: 8.h),
-          _refundRow('Expected', '5–7 Business Days', null, cs),
+          _refundRow('Expected', '5–7 Business Days', null, context),
         ],
       ),
     );
   }
 
-  Widget _refundRow(
-      String label, String value, Color? valueColor, ColorScheme cs) {
+  Widget _refundRow(String label, String value, Color? valueColor, BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
+        SizedBox(
+          width: 100.w,
+          child: Text(
+            label,
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.62),
               fontSize: 12.sp,
-            )),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: valueColor ?? cs.onSurface,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? cs.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
