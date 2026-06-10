@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/orders_screen.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
@@ -99,21 +100,20 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
               child: _complaints.isEmpty
                   ? ListView(
                       padding: AppResponsive.pagePadding(context),
-                      children: const [
-                        SizedBox(height: 220),
-                        Center(child: Text('No complaints yet')),
+                      children: [
+                        const SizedBox(height: 220),
+                        const Center(child: Text('No complaints yet')),
+                        _buildHowToComplainSection(cs),
                       ],
                     )
-                  : ListView.separated(
+                  : ListView(
                       padding: AppResponsive.pagePadding(context).copyWith(
                         bottom: 24.h + MediaQuery.paddingOf(context).bottom,
                       ),
-                      itemCount: _complaints.length +
-                          (_nextPageToken != null ? 1 : 0),
-                      separatorBuilder: (_, _) => SizedBox(height: 10.h),
-                      itemBuilder: (context, index) {
-                        if (index >= _complaints.length) {
-                          return AppResponsive.constrainContent(
+                      children: [
+                        ..._buildComplaintItems(cs),
+                        if (_nextPageToken != null)
+                          AppResponsive.constrainContent(
                             context: context,
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -130,80 +130,10 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                                 ),
                               ),
                             ),
-                          );
-                        }
-                        final complaint = _complaints[index];
-                        return AppResponsive.constrainContent(
-                          context: context,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16.r),
-                            onTap: () => Get.to(
-                              () => ComplaintDetailScreen(complaint: complaint),
-                            ),
-                            child: Container(
-                              padding: EdgeInsets.all(14.r),
-                              decoration: BoxDecoration(
-                                color: cs.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(color: cs.outlineVariant),
-                              ),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10.r),
-                                    child: Image.network(
-                                      complaint.imageUrls.isNotEmpty
-                                          ? complaint.imageUrls.first
-                                          : (complaint.productImage ?? ''),
-                                      width: 56.r,
-                                      height: 56.r,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, _, _) =>
-                                          const Icon(Icons.image_not_supported),
-                                    ),
-                                  ),
-                                  SizedBox(width: 12.w),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          (complaint.productName ??
-                                              complaint.title),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                    Text(
-                                      '${complaint.issueType} • ${_formatDate(complaint.createdAt)}',
-                                      style: TextStyle(
-                                        color: cs.onSurface.withValues(
-                                          alpha: 0.62,
-                                        ),
-                                        fontSize: 12.sp,
-                                      ),
-                                    ),
-                                    if (complaint.status == 'Resolved' &&
-                                        complaint.resolutionType != null) ...[
-                                      SizedBox(height: 4.h),
-                                      _ResolutionBadge(
-                                          label: complaint.resolutionType!),
-                                    ],
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  _StatusBadge(status: complaint.status),
-                                ],
-                              ),
-                            ),
                           ),
-                        );
-                      },
+                        if (_complaints.isNotEmpty)
+                          _buildHowToComplainSection(cs),
+                      ],
                     ),
             ),
     );
@@ -212,6 +142,110 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
   String _formatDate(DateTime date) {
     final local = date.toLocal();
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
+  }
+
+  List<Widget> _buildComplaintItems(ColorScheme cs) {
+    return List.generate(_complaints.length, (index) {
+      final complaint = _complaints[index];
+      return Padding(
+        padding: EdgeInsets.only(bottom: 10.h),
+        child: AppResponsive.constrainContent(
+          context: context,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16.r),
+            onTap: () => Get.to(
+              () => ComplaintDetailScreen(complaint: complaint),
+            ),
+            child: Container(
+              padding: EdgeInsets.all(14.r),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: cs.outlineVariant),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.r),
+                    child: Image.network(
+                      complaint.imageUrls.isNotEmpty
+                          ? complaint.imageUrls.first
+                          : (complaint.productImage ?? ''),
+                      width: 56.r,
+                      height: 56.r,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (complaint.productName ?? complaint.title),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          '${complaint.issueType} • ${_formatDate(complaint.createdAt)}',
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.62),
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                        if (complaint.status == 'Resolved' &&
+                            complaint.resolutionType != null) ...[
+                          SizedBox(height: 4.h),
+                          _ResolutionBadge(label: complaint.resolutionType!),
+                        ],
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  _StatusBadge(status: complaint.status),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildHowToComplainSection(ColorScheme cs) {
+    return Padding(
+      padding: EdgeInsets.only(top: 24.h, bottom: 12.h),
+      child: Column(
+        children: [
+          Icon(Icons.help_outline, size: 24.sp, color: cs.primary),
+          SizedBox(height: 8.h),
+          Text(
+            'How to Report an Issue',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15.sp),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            'You can report a product or delivery issue from your order details page. '
+            'Go to My Orders, tap on a delivered order, and select "Report Product Issue".',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.6),
+              fontSize: 13.sp,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: const Text('Go to My Orders'),
+            onPressed: () => Get.to(() => const OrdersScreen()),
+          ),
+        ],
+      ),
+    );
   }
 }
 

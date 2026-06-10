@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -30,6 +29,7 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  late Order _order;
   bool _isLoading = false;
   final TextEditingController _otpController = TextEditingController();
   Timer? _otpResendTimer;
@@ -40,10 +40,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final AdminOrderController _orderController = AdminOrderController.instance;
 
   @override
+  void initState() {
+    super.initState();
+    _order = widget.order;
+  }
+
+  @override
+  void didUpdateWidget(OrderDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.order != oldWidget.order) {
+      _order = widget.order;
+    }
+  }
+
+  @override
   void dispose() {
     _otpController.dispose();
     _otpResendTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    try {
+      await _orderController.loadInitial(force: true);
+      final updated = _orderController.orders.where(
+        (o) => o.orderId == _order.orderId,
+      ).firstOrNull;
+      if (updated != null && mounted) {
+        setState(() => _order = updated);
+      }
+    } catch (_) {
+    }
   }
 
   void _startResendCountdown() {
@@ -65,7 +92,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.order;
+    final order = _order;
     final groupedItems = groupAdminOrderItems(order.items);
 
     return Scaffold(
@@ -83,32 +110,50 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           runSpacing: 4.h,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.sizeOf(context).width - 140.w,
-              ),
-              child: AutoSizeText(
-                'Order #${order.orderId}',
-                maxLines: 1,
-                minFontSize: 16,
-                overflow: TextOverflow.ellipsis,
-                style: AdminTextStyles.screenTitle(context),
-              ),
+            Text(
+              'Order Details',
+              style: AdminTextStyles.screenTitle(context),
             ),
             _buildStatusChip(order.status),
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          AdminResponsive.pageHorizontalPadding(context),
-          20.h,
-          AdminResponsive.pageHorizontalPadding(context),
-          AdminResponsive.bottomInset(context),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            AdminResponsive.pageHorizontalPadding(context),
+            20.h,
+            AdminResponsive.pageHorizontalPadding(context),
+            AdminResponsive.bottomInset(context),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 8.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AdminAppTheme.getTextSecondaryColor(
+                      context,
+                    ).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Order #${order.orderId}',
+                    style: TextStyle(
+                      fontSize: 13.sp.clamp(11.0, 14.0),
+                      color: AdminAppTheme.getTextSecondaryColor(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 18.h),
             _DetailSection(
               title: 'Customer Info',
               icon: Icons.person_outline,
@@ -296,26 +341,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ],
               ),
             ),
-            if (order.deliveryOtp != null ||
-                order.deliveryPersonName != null) ...[
+            if (order.deliveryPersonName != null &&
+                order.deliveryPersonName!.isNotEmpty) ...[
               SizedBox(height: 18.h),
               _DetailSection(
                 title: 'Delivery Details',
                 icon: Icons.delivery_dining,
                 children: [
-                  if (order.deliveryOtp != null &&
-                      order.deliveryOtp!.isNotEmpty)
-                    _DetailRow(
-                      icon: Icons.pin,
-                      label: 'OTP: ${order.deliveryOtp}',
-                    ),
-                  if (order.deliveryPersonName != null &&
-                      order.deliveryPersonName!.isNotEmpty)
-                    _DetailRow(
-                      icon: Icons.person_pin,
-                      label: order.deliveryPersonName!,
-                      subtitle: order.deliveryPersonPhone,
-                    ),
+                  _DetailRow(
+                    icon: Icons.person_pin,
+                    label: order.deliveryPersonName!,
+                    subtitle: order.deliveryPersonPhone,
+                  ),
                 ],
               ),
             ],
@@ -371,11 +408,44 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
             ],
+            if (order.refundStatus != 'none') ...[
+              SizedBox(height: 18.h),
+              _DetailSection(
+                title: 'Refund Info',
+                icon: Icons.monetization_on_outlined,
+                children: [
+                  _DetailRow(
+                    icon: Icons.info_outline,
+                    label: 'Refund Status: ${order.refundStatus.toUpperCase()}',
+                  ),
+                  if (order.cancelledAt != null)
+                    _DetailRow(
+                      icon: Icons.cancel_outlined,
+                      label: 'Cancelled: ${_formatDate(order.cancelledAt)}',
+                    ),
+                ],
+              ),
+            ],
+            if (order.complaintId != null &&
+                order.complaintId!.isNotEmpty) ...[
+              SizedBox(height: 18.h),
+              _DetailSection(
+                title: 'Complaint',
+                icon: Icons.report_problem_outlined,
+                children: [
+                  _DetailRow(
+                    icon: Icons.description_outlined,
+                    label: 'Complaint ID: ${order.complaintId}',
+                  ),
+                ],
+              ),
+            ],
             SizedBox(height: 24.h),
             _buildLifecycleActions(context, order),
             SizedBox(height: 24.h),
           ],
         ),
+      ),
       ),
     );
   }
@@ -398,6 +468,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   setState(() => _isLoading = true);
                   try {
                     await widget.onStatusChanged('confirmed');
+                    if (mounted) {
+                      setState(() => _order = _order.copyWith(status: 'confirmed'));
+                    }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
                   }
@@ -418,6 +491,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   setState(() => _isLoading = true);
                   try {
                     await widget.onStatusChanged('packed');
+                    if (mounted) {
+                      setState(() => _order = _order.copyWith(status: 'packed'));
+                    }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
                   }
@@ -438,6 +514,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   setState(() => _isLoading = true);
                   try {
                     await widget.onStartDelivery(order);
+                    if (mounted) {
+                      setState(() => _order = _order.copyWith(status: 'out_for_delivery'));
+                    }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
                   }
@@ -458,7 +537,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   setState(() => _otpGenerating = true);
                   try {
                     await _orderController.generateDeliveryOtp(order);
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: const Text(
@@ -471,9 +550,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
                       );
                       widget.onStatusChanged('delivery_otp_pending');
+                      setState(() => _order = _order.copyWith(status: 'delivery_otp_pending'));
                     }
                   } catch (e) {
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Failed: $e'),
@@ -712,7 +792,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     try {
       await _orderController.verifyDeliveryOtp(order, otp);
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Order delivered successfully!'),
@@ -724,6 +804,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         );
         widget.onStatusChanged('delivered');
+        setState(() => _order = _order.copyWith(status: 'delivered'));
       }
     } on ArgumentError {
       if (mounted) {
@@ -746,7 +827,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     setState(() => _otpError = null);
     try {
       await _orderController.resendDeliveryOtp(order);
-      if (mounted) {
+      if (context.mounted) {
         _startResendCountdown();
         _otpController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -760,7 +841,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
       }
     } on StateError catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message),
@@ -770,7 +851,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to resend OTP: $e'),
@@ -1049,7 +1130,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: AdminTextStyles.caption(context),
               ),
               Text(
-                '₹${item.totalPrice.toStringAsFixed(0)}',
+                '₹${item.totalPrice.toStringAsFixed(2)}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],

@@ -229,7 +229,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildOrderInfoCard(ColorScheme cs) {
     final order = _order!;
-    final estimatedDelivery = order.orderedAt.add(const Duration(days: 3));
+    final estimatedDelivery = order.orderedAt.add(const Duration(days: 1));
 
     return Container(
       padding: EdgeInsets.all(16.r),

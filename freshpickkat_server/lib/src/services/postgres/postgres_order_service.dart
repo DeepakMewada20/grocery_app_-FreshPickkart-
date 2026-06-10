@@ -114,7 +114,6 @@ class PostgresOrderService {
 
         final now = DateTime.now().toUtc();
         final orderNumber = _generateOrderNumber();
-        final deliveryOtp = _generateDeliveryOtp();
         final requestHash = jsonEncode(order.toJsonForProtocol());
 
         final pricingSnapshotJson = _buildPricingSnapshot(pricing);
@@ -170,7 +169,6 @@ class PostgresOrderService {
             sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
             complaintId: cleanNullableString(order.complaintId),
             placedAt: now,
-            deliveryOtp: deliveryOtp,
             orderedAt: now,
             createdAt: now,
             updatedAt: now,
@@ -742,10 +740,6 @@ class PostgresOrderService {
     final millis = DateTime.now().millisecondsSinceEpoch;
     final suffix = (_random.nextInt(900) + 100).toString();
     return 'ORD$millis$suffix';
-  }
-
-  String _generateDeliveryOtp() {
-    return (_random.nextInt(9000) + 1000).toString();
   }
 
   Future<String> createOrder(
