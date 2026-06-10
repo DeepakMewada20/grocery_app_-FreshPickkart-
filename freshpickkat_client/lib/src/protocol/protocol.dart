@@ -972,6 +972,15 @@ class Protocol extends _i1.SerializationManager {
           )
           as T;
     }
+    if (t == _i1.getType<Map<String, dynamic>?>()) {
+      return (data != null
+              ? (data as Map).map(
+                  (k, v) =>
+                      MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
+                )
+              : null)
+          as T;
+    }
     if (t == List<List<double>>) {
       return (data as List).map((e) => deserialize<List<double>>(e)).toList()
           as T;

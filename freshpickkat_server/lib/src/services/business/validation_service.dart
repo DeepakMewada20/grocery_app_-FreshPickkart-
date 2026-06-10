@@ -8,6 +8,7 @@ class ValidationService {
   static const statusProcessing = 'processing';
   static const statusPacked = 'packed';
   static const statusOutForDelivery = 'out_for_delivery';
+  static const statusDeliveryOtpPending = 'delivery_otp_pending';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
   static const statusPaymentFailed = 'payment_failed';
@@ -195,6 +196,10 @@ class ValidationService {
         statusCancellationRequested,
       },
       statusOutForDelivery: {
+        statusDeliveryOtpPending,
+        statusCancellationRequested,
+      },
+      statusDeliveryOtpPending: {
         statusDelivered,
         statusCancellationRequested,
       },
@@ -242,6 +247,7 @@ class ValidationService {
       'processing': 'Processing',
       'packed': 'Packed',
       'out_for_delivery': 'Out for Delivery',
+      'delivery_otp_pending': 'Delivery OTP Pending',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
       'payment_failed': 'Payment Failed',

@@ -143,6 +143,10 @@ order:
   - approveCancellationRequest:
   - rejectCancellationRequest:
   - assignDeliveryPerson:
+  - generateDeliveryOtp:
+  - verifyDeliveryOtp:
+  - resendDeliveryOtp:
+  - getActiveDeliveryOtp:
   - getDashboardStats:
 orderPg:
   - createPendingOrder:

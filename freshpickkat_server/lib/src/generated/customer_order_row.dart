@@ -50,6 +50,7 @@ abstract class CustomerOrderRow
     this.deliveryPersonName,
     this.deliveryPersonPhone,
     this.deliveryOtp,
+    this.deliveryOtpExpiresAt,
     String? orderType,
     this.sourceOrderNumber,
     this.complaintId,
@@ -107,6 +108,7 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -186,6 +188,11 @@ abstract class CustomerOrderRow
       deliveryPersonName: jsonSerialization['deliveryPersonName'] as String?,
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
+      deliveryOtpExpiresAt: jsonSerialization['deliveryOtpExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryOtpExpiresAt'],
+            ),
       orderType: jsonSerialization['orderType'] as String?,
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
       complaintId: jsonSerialization['complaintId'] as String?,
@@ -281,6 +288,8 @@ abstract class CustomerOrderRow
 
   String? deliveryOtp;
 
+  DateTime? deliveryOtpExpiresAt;
+
   String orderType;
 
   String? sourceOrderNumber;
@@ -337,6 +346,7 @@ abstract class CustomerOrderRow
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -386,6 +396,8 @@ abstract class CustomerOrderRow
       if (deliveryPersonPhone != null)
         'deliveryPersonPhone': deliveryPersonPhone,
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
+      if (deliveryOtpExpiresAt != null)
+        'deliveryOtpExpiresAt': deliveryOtpExpiresAt?.toJson(),
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
       if (complaintId != null) 'complaintId': complaintId,
@@ -471,6 +483,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -514,6 +527,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          deliveryPersonName: deliveryPersonName,
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
+         deliveryOtpExpiresAt: deliveryOtpExpiresAt,
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
          complaintId: complaintId,
@@ -563,6 +577,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? deliveryPersonName = _Undefined,
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
+    Object? deliveryOtpExpiresAt = _Undefined,
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
     Object? complaintId = _Undefined,
@@ -629,6 +644,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
           ? deliveryPersonPhone
           : this.deliveryPersonPhone,
       deliveryOtp: deliveryOtp is String? ? deliveryOtp : this.deliveryOtp,
+      deliveryOtpExpiresAt: deliveryOtpExpiresAt is DateTime?
+          ? deliveryOtpExpiresAt
+          : this.deliveryOtpExpiresAt,
       orderType: orderType ?? this.orderType,
       sourceOrderNumber: sourceOrderNumber is String?
           ? sourceOrderNumber
@@ -844,6 +862,12 @@ class CustomerOrderRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<DateTime, DateTime> deliveryOtpExpiresAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.deliveryOtpExpiresAt,
+        value,
+      );
+
   _i1.ColumnValue<String, String> orderType(String value) => _i1.ColumnValue(
     table.orderType,
     value,
@@ -1034,6 +1058,10 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'deliveryOtp',
       this,
     );
+    deliveryOtpExpiresAt = _i1.ColumnDateTime(
+      'deliveryOtpExpiresAt',
+      this,
+    );
     orderType = _i1.ColumnString(
       'orderType',
       this,
@@ -1138,6 +1166,8 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString deliveryOtp;
 
+  late final _i1.ColumnDateTime deliveryOtpExpiresAt;
+
   late final _i1.ColumnString orderType;
 
   late final _i1.ColumnString sourceOrderNumber;
@@ -1189,6 +1219,7 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     deliveryPersonName,
     deliveryPersonPhone,
     deliveryOtp,
+    deliveryOtpExpiresAt,
     orderType,
     sourceOrderNumber,
     complaintId,

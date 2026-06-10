@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
@@ -39,12 +41,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Complaint? _activeProductComplaint;
   Complaint? _activeDeliveryComplaint;
   Worker? _ordersWorker;
+  Timer? _otpCountdownTimer;
 
   @override
   void initState() {
     super.initState();
     _ordersWorker = ever(OrderController.instance.orders, (_) {
       _syncFromList();
+    });
+    _otpCountdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _order?.status == 'delivery_otp_pending') {
+        setState(() {});
+      }
     });
     _fetch();
   }
@@ -91,9 +99,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   @override
+  @override
   void dispose() {
     _ordersWorker?.dispose();
-    _ordersWorker = null;
+    _otpCountdownTimer?.cancel();
     super.dispose();
   }
 
@@ -124,6 +133,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (currentStatus == 'cancelled') {
       return ['placed', 'cancelled'];
     }
+    if (currentStatus == 'delivery_otp_pending') {
+      return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivery_otp_pending', 'delivered'];
+    }
     return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivered'];
   }
 
@@ -133,7 +145,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       'confirmed': 1,
       'packed': 2,
       'out_for_delivery': 3,
-      'delivered': 4,
+      'delivery_otp_pending': 4,
+      'delivered': 5,
       'cancelled': 1,
     };
     return statusMap[status] ?? 0;
@@ -145,6 +158,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       'confirmed': 'Confirmed',
       'packed': 'Packed',
       'out_for_delivery': 'On the Way',
+      'delivery_otp_pending': 'OTP Pending',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
     };
@@ -170,6 +184,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Padding(
                 padding: EdgeInsets.only(top: 16.h),
                 child: _buildTrackingCard(order, cs),
+              ),
+            if (order.status == 'delivery_otp_pending')
+              Padding(
+                padding: EdgeInsets.only(top: 16.h),
+                child: _buildDeliveryOtpCard(order, cs),
               ),
             if (_showActionsCard(order))
               Padding(
@@ -488,6 +507,179 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildDeliveryOtpCard(Order order, ColorScheme cs) {
+    DateTime? expiresAt;
+    if (order.deliveryOtpExpiresAt != null) {
+      expiresAt = order.deliveryOtpExpiresAt;
+    }
+    final isExpired =
+        expiresAt != null && expiresAt.isBefore(DateTime.now());
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: Colors.orange.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_user_outlined,
+                  size: 20.sp, color: Colors.orange),
+              SizedBox(width: 8.w),
+              Text(
+                'Delivery Verification',
+                style: AppTextStyles.sectionTitle(context)
+                    .copyWith(color: Colors.orange.shade800),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          if (!isExpired && order.deliveryOtp != null) ...[
+            Row(
+              children: [
+                Text(
+                  'OTP: ',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  order.deliveryOtp!,
+                  style: TextStyle(
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 4,
+                    color: cs.primary,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Order Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 8.h,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.timer_outlined,
+                      size: 16.sp, color: Colors.orange.shade700),
+                  SizedBox(width: 6.w),
+                  Text(
+                    'Expires In: ',
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  Text(
+                    _formatOtpCountdown(expiresAt!),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.orange.shade800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.r),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      size: 16.sp, color: Colors.red.shade400),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'Never share this OTP over phone calls. Only provide this OTP when the order is physically handed over to you.',
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.red.shade600,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Row(
+              children: [
+                Icon(Icons.timer_off_outlined,
+                    size: 20.sp, color: Colors.red.shade400),
+                SizedBox(width: 8.w),
+                Text(
+                  'OTP Expired',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Please request a new OTP.',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: cs.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+          SizedBox(height: 8.h),
+          Text(
+            'Status: ${order.status == 'delivery_otp_pending' ? 'Waiting for Delivery Confirmation' : order.status}',
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.orange.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatOtpCountdown(DateTime expiresAt) {
+    final remaining = expiresAt.difference(DateTime.now());
+    if (remaining.isNegative) return 'Expired';
+    final minutes = remaining.inMinutes;
+    final seconds = remaining.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   Widget _buildRefundInfoCard(Order order, ColorScheme cs) {

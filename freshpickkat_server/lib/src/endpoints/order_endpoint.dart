@@ -1,9 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
 import '../services/business/validation_service.dart';
+import '../services/firebase_notification_service.dart';
 import '../services/order_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
+import '../services/postgres/postgres_delivery_otp_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
 import '../services/postgres/postgres_refund_service.dart';
@@ -15,6 +17,7 @@ class OrderEndpoint extends Endpoint {
   static const String statusConfirmed = 'confirmed';
   static const String statusPacked = 'packed';
   static const String statusOutForDelivery = 'out_for_delivery';
+  static const String statusDeliveryOtpPending = 'delivery_otp_pending';
   static const String statusDelivered = 'delivered';
   static const String statusCancelled = 'cancelled';
   static const String statusPaymentFailed = 'payment_failed';
@@ -32,6 +35,8 @@ class OrderEndpoint extends Endpoint {
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PostgresAuditLogService _audit = PostgresAuditLogService();
   final PostgresRefundService _pgRefunds = PostgresRefundService();
+  final PostgresDeliveryOtpService _deliveryOtp = PostgresDeliveryOtpService();
+  final FirebaseNotificationService _notifications = FirebaseNotificationService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
     return _orders.createOrder(session, order);
@@ -555,6 +560,256 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
+  Future<Map<String, dynamic>> generateDeliveryOtp(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.status != statusOutForDelivery) {
+      throw StateError(
+        'Order status must be "out_for_delivery" to generate delivery OTP. '
+        'Current status: ${order.status}',
+      );
+    }
+
+    final result = await _deliveryOtp.generateOtp(
+      session: session,
+      orderNumber: orderId,
+      adminUserId: actor.id!,
+      customerName: order.userName ?? 'Customer',
+      orderAmount: order.finalAmount,
+    );
+
+    // Send FCM notification to user
+    try {
+      await _notifications.sendDeliveryOtp(
+        session: session,
+        userId: order.userId,
+        orderId: orderId,
+        otp: result['otp'] as String,
+        customerName: order.userName ?? 'Customer',
+        orderAmount: order.finalAmount,
+      );
+    } catch (e, st) {
+      session.log(
+        'Failed to send delivery OTP notification: $e',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: st,
+      );
+      throw StateError(
+        'Failed to send OTP notification to customer. Please try again.',
+      );
+    }
+
+    // Update order status to delivery_otp_pending
+    final updated = await _orders.updateOrderStatus(
+      session,
+      orderId,
+      statusDeliveryOtpPending,
+    );
+    if (!updated) {
+      throw StateError('Failed to update order status.');
+    }
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'generate_delivery_otp',
+      entityType: 'order',
+      entityId: orderId,
+    );
+
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    if (updatedOrder != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: updatedOrder.userId,
+        status: statusDeliveryOtpPending,
+      );
+    }
+
+    return {
+      'success': true,
+      'expiresAt': result['expiresAt'],
+    };
+  }
+
+  Future<Map<String, dynamic>> verifyDeliveryOtp(
+    Session session,
+    String orderId,
+    String otp, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+
+    final result = await _deliveryOtp.verifyOtp(
+      session: session,
+      orderNumber: orderId,
+      otp: otp,
+      adminUserId: actor.id!,
+    );
+
+    // Update order to delivered
+    final updated = await _orders.updateOrderStatus(
+      session,
+      orderId,
+      statusDelivered,
+    );
+    if (!updated) {
+      throw StateError('Failed to update order status.');
+    }
+
+    // Disable tracking
+    await _tracking.updateTrackingEnabled(
+      session,
+      orderNumber: orderId,
+      enabled: false,
+    );
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'verify_delivery_otp',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {'deliveryCompleted': 'true'},
+    );
+
+    // Send delivery success notification
+    try {
+      await _notifications.sendDeliverySuccess(
+        session: session,
+        userId: order.userId,
+        orderId: orderId,
+      );
+    } catch (e, st) {
+      session.log(
+        'Failed to send delivery success notification: $e',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: st,
+      );
+    }
+
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    if (updatedOrder != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: updatedOrder.userId,
+        status: statusDelivered,
+      );
+    }
+
+    return {
+      'success': true,
+      'verifiedAt': result['verifiedAt'],
+    };
+  }
+
+  Future<Map<String, dynamic>> resendDeliveryOtp(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+
+    final result = await _deliveryOtp.resendOtp(
+      session: session,
+      orderNumber: orderId,
+      adminUserId: actor.id!,
+      customerName: order.userName ?? 'Customer',
+      orderAmount: order.finalAmount,
+    );
+
+    // Send FCM with new OTP
+    try {
+      await _notifications.sendDeliveryOtp(
+        session: session,
+        userId: order.userId,
+        orderId: orderId,
+        otp: result['otp'] as String,
+        customerName: order.userName ?? 'Customer',
+        orderAmount: order.finalAmount,
+      );
+    } catch (e, st) {
+      session.log(
+        'Failed to resend delivery OTP notification: $e',
+        level: LogLevel.warning,
+        exception: e,
+        stackTrace: st,
+      );
+      throw StateError(
+        'Failed to send OTP notification to customer. Please try again.',
+      );
+    }
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'resend_delivery_otp',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {'resendCount': result['resendCount'].toString()},
+    );
+
+    return {
+      'success': true,
+      'expiresAt': result['expiresAt'],
+      'resendCount': result['resendCount'],
+    };
+  }
+
+  Future<Map<String, dynamic>?> getActiveDeliveryOtp(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) return null;
+
+    return _deliveryOtp.getActiveOtp(
+      session: session,
+      orderNumber: orderId,
+    );
+  }
+
   Future<Map<String, dynamic>> getDashboardStats(
     Session session,
     String firebaseUid,
@@ -588,6 +843,9 @@ class OrderEndpoint extends Endpoint {
           confirmedCount++;
           break;
         case statusOutForDelivery:
+          outForDeliveryCount++;
+          break;
+        case statusDeliveryOtpPending:
           outForDeliveryCount++;
           break;
         case statusDelivered:

@@ -1,0 +1,17 @@
+class: DeliveryOtpRow
+serverOnly: true
+table: delivery_otp
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
+  otpHash: String
+  expiresAt: DateTime
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  verifiedAt: DateTime?
+  resendCount: int, default=0
+  isActive: bool, default=true
+  generatedByAdminId: UuidValue?
+  verifiedByAdminId: UuidValue?
+indexes:
+  delivery_otp_order_active_idx:
+    fields: orderId, isActive

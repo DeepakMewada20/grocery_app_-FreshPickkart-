@@ -38,6 +38,7 @@ fields:
   deliveryPersonName: String?
   deliveryPersonPhone: String?
   deliveryOtp: String?
+  deliveryOtpExpiresAt: DateTime?
   couponApplied: String?
   orderType: String
   sourceOrderNumber: String?

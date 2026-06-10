@@ -37,6 +37,7 @@ fields:
   deliveryPersonName: String?
   deliveryPersonPhone: String?
   deliveryOtp: String?
+  deliveryOtpExpiresAt: DateTime?
   orderType: String, default='regular'
   sourceOrderNumber: String?
   complaintId: String?

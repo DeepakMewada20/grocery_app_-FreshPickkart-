@@ -55,6 +55,7 @@ abstract class Order implements _i1.SerializableModel {
     this.deliveryPersonName,
     this.deliveryPersonPhone,
     this.deliveryOtp,
+    this.deliveryOtpExpiresAt,
     this.couponApplied,
     required this.orderType,
     this.sourceOrderNumber,
@@ -106,6 +107,7 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? couponApplied,
     required String orderType,
     String? sourceOrderNumber,
@@ -183,6 +185,11 @@ abstract class Order implements _i1.SerializableModel {
       deliveryPersonName: jsonSerialization['deliveryPersonName'] as String?,
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
+      deliveryOtpExpiresAt: jsonSerialization['deliveryOtpExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryOtpExpiresAt'],
+            ),
       couponApplied: jsonSerialization['couponApplied'] as String?,
       orderType: jsonSerialization['orderType'] as String,
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
@@ -266,6 +273,8 @@ abstract class Order implements _i1.SerializableModel {
 
   String? deliveryOtp;
 
+  DateTime? deliveryOtpExpiresAt;
+
   String? couponApplied;
 
   String orderType;
@@ -316,6 +325,7 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? couponApplied,
     String? orderType,
     String? sourceOrderNumber,
@@ -365,6 +375,8 @@ abstract class Order implements _i1.SerializableModel {
       if (deliveryPersonPhone != null)
         'deliveryPersonPhone': deliveryPersonPhone,
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
+      if (deliveryOtpExpiresAt != null)
+        'deliveryOtpExpiresAt': deliveryOtpExpiresAt?.toJson(),
       if (couponApplied != null) 'couponApplied': couponApplied,
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
@@ -420,6 +432,7 @@ class _OrderImpl extends Order {
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
+    DateTime? deliveryOtpExpiresAt,
     String? couponApplied,
     required String orderType,
     String? sourceOrderNumber,
@@ -463,6 +476,7 @@ class _OrderImpl extends Order {
          deliveryPersonName: deliveryPersonName,
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
+         deliveryOtpExpiresAt: deliveryOtpExpiresAt,
          couponApplied: couponApplied,
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
@@ -512,6 +526,7 @@ class _OrderImpl extends Order {
     Object? deliveryPersonName = _Undefined,
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
+    Object? deliveryOtpExpiresAt = _Undefined,
     Object? couponApplied = _Undefined,
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
@@ -582,6 +597,9 @@ class _OrderImpl extends Order {
           ? deliveryPersonPhone
           : this.deliveryPersonPhone,
       deliveryOtp: deliveryOtp is String? ? deliveryOtp : this.deliveryOtp,
+      deliveryOtpExpiresAt: deliveryOtpExpiresAt is DateTime?
+          ? deliveryOtpExpiresAt
+          : this.deliveryOtpExpiresAt,
       couponApplied: couponApplied is String?
           ? couponApplied
           : this.couponApplied,

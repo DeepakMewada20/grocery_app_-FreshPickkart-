@@ -2050,6 +2050,64 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<Map<String, dynamic>> generateDeliveryOtp(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'order',
+    'generateDeliveryOtp',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> verifyDeliveryOtp(
+    String orderId,
+    String otp, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'order',
+    'verifyDeliveryOtp',
+    {
+      'orderId': orderId,
+      'otp': otp,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> resendDeliveryOtp(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'order',
+    'resendDeliveryOtp',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>?> getActiveDeliveryOtp(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>?>(
+    'order',
+    'getActiveDeliveryOtp',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<Map<String, dynamic>> getDashboardStats(
     String firebaseUid,
     String idToken,

@@ -708,6 +708,7 @@ class PostgresOrderService {
           deliveryPersonName: order.deliveryPersonName,
           deliveryPersonPhone: order.deliveryPersonPhone,
           deliveryOtp: order.deliveryOtp,
+          deliveryOtpExpiresAt: order.deliveryOtpExpiresAt,
           orderType: order.orderType,
           sourceOrderNumber: order.sourceOrderNumber,
           complaintId: order.complaintId,
@@ -927,7 +928,8 @@ class PostgresOrderService {
         orderStatus: newStatus,
         confirmedAt: newStatus == 'confirmed' ? now : row.confirmedAt,
         packedAt: newStatus == 'packed' ? now : row.packedAt,
-        outForDeliveryAt: newStatus == 'out_for_delivery'
+        outForDeliveryAt: (newStatus == 'out_for_delivery' ||
+                newStatus == 'delivery_otp_pending')
             ? now
             : row.outForDeliveryAt,
         deliveredAt: newStatus == 'delivered' ? now : row.deliveredAt,

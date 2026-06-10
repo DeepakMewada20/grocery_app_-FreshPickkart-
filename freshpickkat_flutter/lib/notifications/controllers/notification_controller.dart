@@ -276,6 +276,12 @@ class NotificationController extends GetxController {
           await openTrackingOrder(orderId);
         }
         return;
+      case 'delivery_otp':
+        final orderId = data['orderId'];
+        if (orderId != null && orderId.isNotEmpty) {
+          await Get.to(() => OrderDetailScreen(orderId: orderId));
+        }
+        return;
       case 'complaint':
       case 'complaint_status':
       case 'complaint_created':

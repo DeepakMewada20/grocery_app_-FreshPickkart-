@@ -191,6 +191,69 @@ class FirebaseNotificationService {
     );
   }
 
+  Future<void> sendDeliveryOtp({
+    required Session session,
+    required String userId,
+    required String orderId,
+    required String otp,
+    required String customerName,
+    required double orderAmount,
+  }) async {
+    if (!await _allowsOrderTracking(userId, session: session)) return;
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
+
+    final title = 'Delivery Verification Required';
+    final body =
+        'Hello $customerName,\n\n'
+        'Your order #$orderId\n'
+        'worth ₹${orderAmount.toStringAsFixed(0)}\n'
+        'has arrived.\n\n'
+        'Delivery OTP: $otp\n\n'
+        'Share this OTP with the delivery person/admin to confirm successful delivery.\n\n'
+        'OTP valid for 10 minutes.';
+
+    await _sendToTokens(
+      tokens: tokens,
+      title: title,
+      body: body,
+      data: {
+        'orderId': orderId,
+        'type': 'delivery_otp',
+        'screen': 'order_detail',
+      },
+      session: session,
+    );
+  }
+
+  Future<void> sendDeliverySuccess({
+    required Session session,
+    required String userId,
+    required String orderId,
+  }) async {
+    if (!await _allowsOrderTracking(userId, session: session)) return;
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
+
+    final title = 'Order Delivered Successfully';
+    final body =
+        'Order #$orderId\n'
+        'has been marked as delivered.\n\n'
+        'Thank you for shopping with us.';
+
+    await _sendToTokens(
+      tokens: tokens,
+      title: title,
+      body: body,
+      data: {
+        'orderId': orderId,
+        'type': 'order_status',
+        'status': 'delivered',
+      },
+      session: session,
+    );
+  }
+
   Future<void> sendForEvent(
     Session session,
     OrderRealtimeEvent event, {

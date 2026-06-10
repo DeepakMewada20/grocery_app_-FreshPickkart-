@@ -183,6 +183,70 @@ class AdminOrderController extends GetxController {
     }
   }
 
+  Future<Map<String, dynamic>> generateDeliveryOtp(Order order) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.generateDeliveryOtp(
+        order.orderId,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<Map<String, dynamic>> verifyDeliveryOtp(
+    Order order,
+    String otp,
+  ) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.verifyDeliveryOtp(
+        order.orderId,
+        otp,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<Map<String, dynamic>> resendDeliveryOtp(Order order) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.resendDeliveryOtp(
+        order.orderId,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<Map<String, dynamic>?> getActiveDeliveryOtp(Order order) async {
+    try {
+      return await ApiClient().request(() async {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        return await _client.order.getActiveDeliveryOtp(
+          order.orderId,
+          firebaseUid: uid,
+          idToken: idToken,
+        );
+      });
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> startDelivery(Order order) async {
     if (!Get.isRegistered<DeliveryTrackingController>()) {
       await updateOrderStatus(order, 'out_for_delivery');
