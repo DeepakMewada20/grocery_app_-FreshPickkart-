@@ -317,7 +317,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            '${((currentIndex + 1) / timeline.length * 100).formatPrice}% Complete',
+            '${((currentIndex + 1) / timeline.length * 100).round()}% Complete',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.6),
               fontSize: 12.sp,
@@ -521,11 +521,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: Colors.orange.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,66 +531,83 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Row(
             children: [
               Icon(Icons.verified_user_outlined,
-                  size: 20.sp, color: Colors.orange),
+                  size: 20.sp, color: cs.primary),
               SizedBox(width: 8.w),
               Text(
                 'Delivery Verification',
                 style: AppTextStyles.sectionTitle(context)
-                    .copyWith(color: Colors.orange.shade800),
+                    .copyWith(color: cs.primary, fontSize: 16.sp),
               ),
             ],
           ),
           SizedBox(height: 16.h),
           if (!isExpired && order.deliveryOtp != null) ...[
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(14.r),
+              decoration: BoxDecoration(
+                color: cs.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Your OTP',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    order.deliveryOtp!,
+                    style: TextStyle(
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 6,
+                      color: cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12.h),
             Row(
               children: [
+                Icon(Icons.receipt_outlined,
+                    size: 16.sp, color: cs.onSurface.withValues(alpha: 0.5)),
+                SizedBox(width: 6.w),
                 Text(
-                  'OTP: ',
+                  'Order Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  order.deliveryOtp!,
-                  style: TextStyle(
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 4,
-                    color: cs.primary,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: cs.onSurface,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
-            Text(
-              'Order Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
             SizedBox(height: 12.h),
             Container(
+              width: double.infinity,
               padding: EdgeInsets.symmetric(
                 horizontal: 12.w,
-                vertical: 8.h,
+                vertical: 10.h,
               ),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                color: cs.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.timer_outlined,
-                      size: 16.sp, color: Colors.orange.shade700),
+                      size: 16.sp, color: cs.primary),
                   SizedBox(width: 6.w),
                   Text(
                     'Expires In: ',
                     style: TextStyle(
                       fontSize: 13.sp,
-                      color: Colors.orange.shade700,
+                      color: cs.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   Text(
@@ -600,7 +615,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
-                      color: Colors.orange.shade800,
+                      color: cs.primary,
                     ),
                   ),
                 ],
@@ -610,24 +625,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Container(
               padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(8),
+                color: cs.errorContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
-                  color: Colors.red.withValues(alpha: 0.15),
+                  color: cs.error.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.warning_amber_rounded,
-                      size: 16.sp, color: Colors.red.shade400),
+                      size: 16.sp, color: cs.error),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
                       'Never share this OTP over phone calls. Only provide this OTP when the order is physically handed over to you.',
                       style: TextStyle(
                         fontSize: 11.sp,
-                        color: Colors.red.shade600,
+                        color: cs.onErrorContainer,
                         height: 1.3,
                       ),
                     ),
@@ -639,14 +654,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Row(
               children: [
                 Icon(Icons.timer_off_outlined,
-                    size: 20.sp, color: Colors.red.shade400),
+                    size: 20.sp, color: cs.error),
                 SizedBox(width: 8.w),
                 Text(
                   'OTP Expired',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
-                    color: Colors.red.shade600,
+                    color: cs.error,
                   ),
                 ),
               ],
@@ -666,7 +681,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
-              color: Colors.orange.shade700,
+              color: cs.primary.withValues(alpha: 0.8),
             ),
           ),
         ],

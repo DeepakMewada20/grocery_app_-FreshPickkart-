@@ -2050,11 +2050,11 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> generateDeliveryOtp(
+  _i2.Future<bool> generateDeliveryOtp(
     String orderId, {
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<bool>(
     'order',
     'generateDeliveryOtp',
     {
@@ -2064,12 +2064,12 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> verifyDeliveryOtp(
+  _i2.Future<bool> verifyDeliveryOtp(
     String orderId,
     String otp, {
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<bool>(
     'order',
     'verifyDeliveryOtp',
     {
@@ -2080,11 +2080,11 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<Map<String, dynamic>> resendDeliveryOtp(
+  _i2.Future<bool> resendDeliveryOtp(
     String orderId, {
     required String firebaseUid,
     required String idToken,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<bool>(
     'order',
     'resendDeliveryOtp',
     {

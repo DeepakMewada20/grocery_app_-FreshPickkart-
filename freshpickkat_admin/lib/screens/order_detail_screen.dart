@@ -549,7 +549,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                         ),
                       );
-                      widget.onStatusChanged('delivery_otp_pending');
                       setState(() => _order = _order.copyWith(status: 'delivery_otp_pending'));
                     }
                   } catch (e) {
@@ -803,7 +802,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
         );
-        widget.onStatusChanged('delivered');
         setState(() => _order = _order.copyWith(status: 'delivered'));
       }
     } on ArgumentError {

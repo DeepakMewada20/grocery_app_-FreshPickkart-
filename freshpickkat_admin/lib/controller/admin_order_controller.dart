@@ -183,7 +183,7 @@ class AdminOrderController extends GetxController {
     }
   }
 
-  Future<Map<String, dynamic>> generateDeliveryOtp(Order order) async {
+  Future<bool> generateDeliveryOtp(Order order) async {
     return await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
@@ -197,7 +197,7 @@ class AdminOrderController extends GetxController {
     });
   }
 
-  Future<Map<String, dynamic>> verifyDeliveryOtp(
+  Future<bool> verifyDeliveryOtp(
     Order order,
     String otp,
   ) async {
@@ -215,7 +215,7 @@ class AdminOrderController extends GetxController {
     });
   }
 
-  Future<Map<String, dynamic>> resendDeliveryOtp(Order order) async {
+  Future<bool> resendDeliveryOtp(Order order) async {
     return await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(

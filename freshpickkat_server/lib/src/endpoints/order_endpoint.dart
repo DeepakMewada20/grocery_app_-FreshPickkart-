@@ -560,7 +560,7 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
-  Future<Map<String, dynamic>> generateDeliveryOtp(
+  Future<bool> generateDeliveryOtp(
     Session session,
     String orderId, {
     required String firebaseUid,
@@ -575,7 +575,7 @@ class OrderEndpoint extends Endpoint {
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
     }
-    if (order.status != statusOutForDelivery) {
+    if (order.status != statusOutForDelivery && order.status != statusDeliveryOtpPending) {
       throw StateError(
         'Order status must be "out_for_delivery" to generate delivery OTP. '
         'Current status: ${order.status}',
@@ -640,13 +640,10 @@ class OrderEndpoint extends Endpoint {
       );
     }
 
-    return {
-      'success': true,
-      'expiresAt': result['expiresAt'],
-    };
+    return true;
   }
 
-  Future<Map<String, dynamic>> verifyDeliveryOtp(
+  Future<bool> verifyDeliveryOtp(
     Session session,
     String orderId,
     String otp, {
@@ -663,7 +660,7 @@ class OrderEndpoint extends Endpoint {
       throw ArgumentError('Order not found: $orderId');
     }
 
-    final result = await _deliveryOtp.verifyOtp(
+    await _deliveryOtp.verifyOtp(
       session: session,
       orderNumber: orderId,
       otp: otp,
@@ -722,13 +719,10 @@ class OrderEndpoint extends Endpoint {
       );
     }
 
-    return {
-      'success': true,
-      'verifiedAt': result['verifiedAt'],
-    };
+    return true;
   }
 
-  Future<Map<String, dynamic>> resendDeliveryOtp(
+  Future<bool> resendDeliveryOtp(
     Session session,
     String orderId, {
     required String firebaseUid,
@@ -783,11 +777,7 @@ class OrderEndpoint extends Endpoint {
       metadata: {'resendCount': result['resendCount'].toString()},
     );
 
-    return {
-      'success': true,
-      'expiresAt': result['expiresAt'],
-      'resendCount': result['resendCount'],
-    };
+    return true;
   }
 
   Future<Map<String, dynamic>?> getActiveDeliveryOtp(
