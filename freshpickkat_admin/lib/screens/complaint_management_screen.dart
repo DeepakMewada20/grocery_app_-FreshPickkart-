@@ -980,7 +980,7 @@ class _RefundInfoCard extends StatelessWidget {
           SizedBox(height: 8.h),
           _refundRow('Initiated', _formatDate(refund.createdAt), null, context),
           SizedBox(height: 8.h),
-          _refundRow('Expected', '5–7 Business Days', null, context),
+          _refundRow('Expected', '2–5 Business Days', null, context),
         ],
       ),
     );

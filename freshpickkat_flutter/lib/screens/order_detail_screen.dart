@@ -717,7 +717,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           SizedBox(height: 10.h),
           _refundInfoRow('Initiated Date', _formatDate(refund.createdAt), cs),
           SizedBox(height: 10.h),
-          _refundInfoRow('Expected Time', '5–7 Business Days', cs),
+          _refundInfoRow('Expected Time', '2–5 Business Days', cs),
         ],
       ),
     );

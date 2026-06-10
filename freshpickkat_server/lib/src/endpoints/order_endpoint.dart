@@ -392,7 +392,7 @@ class OrderEndpoint extends Endpoint {
           status: 'refunded',
           amount: (refundRecord.amount * 100).round(),
           message:
-              'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 5–7 business days to reflect in your account.',
+              'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 2–5 business days to reflect in your account.',
         );
       } catch (e) {
         return protocol.PaymentActionResult(

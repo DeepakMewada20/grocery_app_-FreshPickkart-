@@ -90,9 +90,9 @@ class ErrorMessages {
   static const String cancellationRejected =
       'Your cancellation request was not approved.\nThe order will continue through the normal delivery process.';
   static const String refundInitiated =
-      'Refund has been initiated successfully.\nDepending on your payment method and bank processing time, the amount may take up to 5–7 business days to reflect in your account.';
+      'Refund has been initiated successfully.\nDepending on your payment method and bank processing time, the amount may take up to 2–5 business days to reflect in your account.';
   static const String refundProcessing =
-      'Your refund is currently being processed.\nMost refunds are completed within 5–7 business days depending on your bank and payment method.';
+      'Your refund is currently being processed.\nMost refunds are completed within 2–5 business days depending on your bank and payment method.';
   static const String refundCompleted =
       'Your refund has been completed successfully.\nThe refunded amount should now be available in your original payment method.';
   static const String complaintNotFound = 'Complaint not found.';
