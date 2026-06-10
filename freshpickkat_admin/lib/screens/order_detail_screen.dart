@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
@@ -94,29 +95,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget build(BuildContext context) {
     final order = _order;
     final groupedItems = groupAdminOrderItems(order.items);
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: AdminThemeTokens.transparent,
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
-        title: Wrap(
-          spacing: 10.w,
-          runSpacing: 4.h,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              'Order Details',
-              style: AdminTextStyles.screenTitle(context),
-            ),
-            _buildStatusChip(order.status),
-          ],
+        title: Text(
+          'Order Details',
+          style: AdminTextStyles.screenTitle(context),
         ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 12.w),
+            child: _buildStatusChip(order.status),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _onRefresh,
@@ -124,36 +125,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
             AdminResponsive.pageHorizontalPadding(context),
-            20.h,
+            8.h,
             AdminResponsive.pageHorizontalPadding(context),
             AdminResponsive.bottomInset(context),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AdminAppTheme.getTextSecondaryColor(
-                      context,
-                    ).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Order #${order.orderId}',
-                    style: TextStyle(
-                      fontSize: 13.sp.clamp(11.0, 14.0),
-                      color: AdminAppTheme.getTextSecondaryColor(context),
-                      fontWeight: FontWeight.w500,
-                    ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 8.h,
+                ),
+                decoration: BoxDecoration(
+                  color: cs.surface,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Text(
+                  'Order #${order.orderId}',
+                  style: TextStyle(
+                    fontSize: 13.sp.clamp(11.0, 14.0),
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              SizedBox(height: 18.h),
+              SizedBox(height: 12.h),
             _DetailSection(
               title: 'Customer Info',
               icon: Icons.person_outline,
@@ -166,58 +164,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   icon: Icons.phone,
                   label: order.userPhone,
                   onCopy: () => _copyToClipboard(order.userPhone, 'Phone'),
+                  onCall: () => _launchPhoneCall(order.userPhone),
                 ),
               ],
             ),
-            SizedBox(height: 18.h),
+            SizedBox(height: 12.h),
             _DetailSection(
               title: 'Delivery Address',
               icon: Icons.location_on_outlined,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: AdminResponsive.cardPadding(context),
-                  decoration: BoxDecoration(
-                    color: AdminAppTheme.getTextSecondaryColor(
-                      context,
-                    ).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AdminAppTheme.getTextSecondaryColor(
-                        context,
-                      ).withValues(alpha: 0.15),
+                Text(
+                  order.deliveryAddress.street,
+                  style: AdminTextStyles.body(context),
+                ),
+                if (order.deliveryAddress.city.isNotEmpty ||
+                    order.deliveryAddress.state.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Text(
+                      '${order.deliveryAddress.city}${order.deliveryAddress.city.isNotEmpty && order.deliveryAddress.state.isNotEmpty ? ", " : ""}${order.deliveryAddress.state}',
+                      style: AdminTextStyles.caption(context),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.deliveryAddress.street,
-                        style: AdminTextStyles.body(context),
-                      ),
-                      if (order.deliveryAddress.city.isNotEmpty ||
-                          order.deliveryAddress.state.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 4.h),
-                          child: Text(
-                            '${order.deliveryAddress.city}${order.deliveryAddress.city.isNotEmpty && order.deliveryAddress.state.isNotEmpty ? ", " : ""}${order.deliveryAddress.state}',
-                            style: AdminTextStyles.caption(context),
-                          ),
-                        ),
-                      if (order.deliveryAddress.zipCode.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 2.h),
-                          child: Text(
-                            'PIN: ${order.deliveryAddress.zipCode}',
-                            style: AdminTextStyles.caption(context),
-                          ),
-                        ),
-                    ],
+                if (order.deliveryAddress.zipCode.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: 2.h),
+                    child: Text(
+                      'PIN: ${order.deliveryAddress.zipCode}',
+                      style: AdminTextStyles.caption(context),
+                    ),
                   ),
-                ),
               ],
             ),
-            SizedBox(height: 18.h),
+            SizedBox(height: 12.h),
             _DetailSection(
               title: 'Payment & Timeline',
               icon: Icons.payment_outlined,
@@ -288,13 +267,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
             SizedBox(height: 16.h),
             Container(
-              padding: AdminResponsive.cardPadding(context),
-              decoration: BoxDecoration(
-                color: AdminAppTheme.getTextSecondaryColor(
-                  context,
-                ).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: AdminAppTheme.getTextSecondaryColor(
+            context,
+          ).withValues(alpha: 0.12),
+          width: 1,
+        ),
+      ),
               child: Column(
                 children: [
                   _amountRow(
@@ -343,7 +326,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
             if (order.deliveryPersonName != null &&
                 order.deliveryPersonName!.isNotEmpty) ...[
-              SizedBox(height: 18.h),
+              SizedBox(height: 12.h),
               _DetailSection(
                 title: 'Delivery Details',
                 icon: Icons.delivery_dining,
@@ -358,21 +341,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
             if (order.cancellationReason != null &&
                 order.cancellationReason!.isNotEmpty) ...[
-              SizedBox(height: 18.h),
+              SizedBox(height: 12.h),
               Container(
                 padding: AdminResponsive.cardPadding(context),
                 decoration: BoxDecoration(
-                  color: AdminAppTheme.getErrorColor(
-                    context,
-                  ).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AdminAppTheme.getErrorColor(
-                      context,
-                    ).withValues(alpha: 0.2),
-                  ),
+                  color: cs.surface,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
                       Icons.info_outline,
@@ -395,11 +373,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           SizedBox(height: 4.h),
                           Text(
                             order.cancellationReason!,
-                            style: TextStyle(
-                              color: AdminAppTheme.getErrorColor(
-                                context,
-                              ),
-                            ),
+                            style: AdminTextStyles.caption(context),
                           ),
                         ],
                       ),
@@ -409,7 +383,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ],
             if (order.refundStatus != 'none') ...[
-              SizedBox(height: 18.h),
+              SizedBox(height: 12.h),
               _DetailSection(
                 title: 'Refund Info',
                 icon: Icons.monetization_on_outlined,
@@ -428,7 +402,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
             if (order.complaintId != null &&
                 order.complaintId!.isNotEmpty) ...[
-              SizedBox(height: 18.h),
+              SizedBox(height: 12.h),
               _DetailSection(
                 title: 'Complaint',
                 icon: Icons.report_problem_outlined,
@@ -588,10 +562,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (buttons.isEmpty) {
       return Text(
         'No further action available',
-        style: TextStyle(
-          color: AdminAppTheme.getTextSecondaryColor(context),
-          fontSize: 12.sp.clamp(10.0, 13.0),
-        ),
+        style: AdminTextStyles.caption(context),
       );
     }
 
@@ -599,15 +570,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildOtpVerificationSection(BuildContext context, Order order) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: AdminResponsive.cardPadding(context),
       decoration: BoxDecoration(
-        color: AdminAppTheme.getWarningContainerColor(context).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AdminAppTheme.getWarningColor(context).withValues(alpha: 0.3),
-        ),
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,7 +586,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(
                 Icons.verified_user_outlined,
-                color: AdminAppTheme.getWarningColor(context),
+                color: cs.primary,
                 size: 22.sp,
               ),
               SizedBox(width: 8.w),
@@ -625,7 +595,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16.sp.clamp(14.0, 18.0),
-                  color: AdminAppTheme.getWarningColor(context),
+                  color: cs.primary,
                 ),
               ),
             ],
@@ -636,7 +606,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14.sp.clamp(12.0, 16.0),
-              color: AdminAppTheme.getTextSecondaryColor(context),
+              color: cs.onSurface,
             ),
           ),
           SizedBox(height: 10.h),
@@ -899,23 +869,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildStatusChip(String status) {
+    final cs = Theme.of(context).colorScheme;
     final color = AdminAppTheme.getOrderStatusColor(context, status);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: cs.outlineVariant),
       ),
-      child: Text(
-        status.replaceAll('_', ' ').toUpperCase(),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w600,
-          fontSize: 11.sp.clamp(9.0, 12.0),
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6.r,
+            height: 6.r,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: 6.w),
+          Text(
+            status.replaceAll('_', ' ').toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 11.sp.clamp(9.0, 12.0),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1230,6 +1216,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ),
     );
   }
+
+  void _launchPhoneCall(String phone) async {
+    final uri = Uri.parse('tel:${phone.replaceAll(RegExp(r'[^\d+]'), '')}');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not launch phone dialer'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 }
 
 class _DetailSection extends StatelessWidget {
@@ -1247,36 +1248,46 @@ class _DetailSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 20.sp.clamp(18.0, 22.0),
-              color: AdminAppTheme.getTextSecondaryColor(context),
-            ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.sizeOf(context).width * 0.72,
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: AdminResponsive.cardPadding(context),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20.sp.clamp(18.0, 22.0),
+                color: cs.onSurface.withValues(alpha: 0.5),
               ),
-              child: Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AdminTextStyles.sectionTitle(context),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.72,
+                ),
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AdminTextStyles.sectionTitle(context),
+                ),
               ),
-            ),
-            trailing ?? const SizedBox.shrink(),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        ...children,
-      ],
+              trailing ?? const SizedBox.shrink(),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          ...children,
+        ],
+      ),
     );
   }
 }
@@ -1287,60 +1298,88 @@ class _DetailRow extends StatelessWidget {
     required this.label,
     this.subtitle,
     this.onCopy,
+    this.onCall,
   });
 
   final IconData icon;
   final String label;
   final String? subtitle;
   final VoidCallback? onCopy;
+  final VoidCallback? onCall;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(
             icon,
             size: 18.sp.clamp(16.0, 20.0),
-            color: AdminAppTheme.getTextSecondaryColor(context),
+            color: cs.onSurface.withValues(alpha: 0.5),
           ),
           SizedBox(width: 12.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15.sp.clamp(13.0, 16.0)),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    maxLines: 2,
+            child: subtitle == null
+                ? Text(
+                    label,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AdminAppTheme.getTextSecondaryColor(context),
-                      fontSize: 13.sp.clamp(11.0, 14.0),
-                    ),
+                    style: AdminTextStyles.body(context),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: AdminTextStyles.body(context),
+                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AdminTextStyles.caption(context),
+                        ),
+                    ],
                   ),
-              ],
-            ),
           ),
-          if (onCopy != null)
-            IconButton(
-              icon: Icon(
-                Icons.copy,
-                size: 18,
-                color: AdminAppTheme.getTextSecondaryColor(context),
+          if (onCall != null)
+            SizedBox(
+              width: 32.r,
+              height: 32.r,
+              child: IconButton(
+                icon: Icon(
+                  Icons.phone,
+                  size: 18,
+                  color: cs.primary,
+                ),
+                onPressed: onCall,
+                tooltip: 'Call',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-              onPressed: onCopy,
-              tooltip: 'Copy',
-              constraints: const BoxConstraints(),
-              padding: EdgeInsets.zero,
+            ),
+          if (onCopy != null)
+            SizedBox(
+              width: 32.r,
+              height: 32.r,
+              child: IconButton(
+                icon: Icon(
+                  Icons.copy,
+                  size: 18,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
+                onPressed: onCopy,
+                tooltip: 'Copy',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ),
         ],
       ),
