@@ -102,8 +102,8 @@ class _LiveDeliveryMapPreviewScreenState
     );
     final codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
-      targetWidth: 95,
-      targetHeight: 95,
+      targetWidth: 55,
+      targetHeight: 55,
     );
     final frame = await codec.getNextFrame();
     final byteData = await frame.image.toByteData(
