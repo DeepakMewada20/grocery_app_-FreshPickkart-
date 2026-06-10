@@ -99,7 +99,7 @@ class ErrorMessages {
   static const String loadComplaintsFailed =
       'Unable to load complaints. Please try again.';
   static const String complaintPeriodExpired =
-      'You can only report product issues within 3 days of delivery.';
+      'You can only report product issues within 1 day of delivery.';
 
   // ── Profile ──
   static const String profileSaveFailed =

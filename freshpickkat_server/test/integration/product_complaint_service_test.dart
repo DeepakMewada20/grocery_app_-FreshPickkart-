@@ -7,7 +7,7 @@ import 'test_tools/serverpod_test_tools.dart';
 void main() {
   withServerpod('Product complaint service', (sessionBuilder, endpoints) {
     test(
-      'creates complaint for own delivered order item within 3 days',
+      'creates complaint for own delivered order item within 1 day',
       () async {
         final seed = await _seedDeliveredOrder(sessionBuilder);
         final session = sessionBuilder.build();
@@ -77,7 +77,7 @@ void main() {
       );
       final expired = await _seedDeliveredOrder(
         sessionBuilder,
-        deliveredAt: DateTime.now().toUtc().subtract(const Duration(days: 4)),
+        deliveredAt: DateTime.now().toUtc().subtract(const Duration(days: 2)),
       );
       final session = sessionBuilder.build();
       try {

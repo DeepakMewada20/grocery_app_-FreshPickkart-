@@ -997,12 +997,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               if (isDelivered) {
                 final deliveredAt = order.deliveredAt;
                 if (deliveredAt != null) {
-                  final deadline = deliveredAt.add(const Duration(days: 3));
-                  if (DateTime.now().isAfter(deadline)) {
-                    AppSnackbar.show(
-                      'Complaint period expired',
-                      'You can only report product issues within 3 days of delivery.',
-                    );
+                  final deadline = deliveredAt.add(const Duration(days: 1));
+                    if (DateTime.now().isAfter(deadline)) {
+                      AppSnackbar.show(
+                        'Complaint period expired',
+                        'You can only report product issues within 1 day of delivery.',
+                      );
                     return;
                   }
                 }

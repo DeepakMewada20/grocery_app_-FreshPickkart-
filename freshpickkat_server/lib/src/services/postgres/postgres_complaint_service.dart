@@ -87,10 +87,10 @@ class PostgresComplaintService {
       throw Exception('Product complaints can be raised after delivery.');
     }
 
-    final deadline = order.deliveredAt!.toUtc().add(const Duration(days: 3));
+    final deadline = order.deliveredAt!.toUtc().add(const Duration(days: 1));
     if (DateTime.now().toUtc().isAfter(deadline)) {
       throw Exception(
-        'Complaint period expired. Complaints can be raised only within 3 days after delivery.',
+        'Complaint period expired. Complaints can be raised only within 1 day after delivery.',
       );
     }
 
