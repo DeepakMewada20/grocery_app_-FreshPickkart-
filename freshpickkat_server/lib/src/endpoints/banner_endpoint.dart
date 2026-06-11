@@ -12,6 +12,19 @@ class BannerEndpoint extends Endpoint {
     return _banners.getInactiveBanners(session);
   }
 
+  Future<List<Banner>> getAllAdminBanners(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _banners.getAllBanners(session);
+  }
+
   Future<List<Banner>> getBanners(
     Session session, {
     String? screen,

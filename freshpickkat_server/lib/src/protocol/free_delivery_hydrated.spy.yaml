@@ -1,0 +1,5 @@
+class: FreeDeliveryHydrated
+fields:
+  deliveryConfig: DeliveryConfig
+  deliveryRules: List<DeliveryRule>
+  totalCount: int

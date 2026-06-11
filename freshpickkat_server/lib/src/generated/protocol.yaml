@@ -6,12 +6,14 @@ admin:
   - getAllUsers:
   - getDashboardStats:
   - getAnalytics:
+  - getDashboardHydrated:
   - getAuditLogs:
   - getActiveUsersWithStats:
 auth:
   - signOut:
 banner:
   - getInactiveBanners:
+  - getAllAdminBanners:
   - getBanners:
   - getBannersPage:
   - getBannerById:
@@ -32,10 +34,13 @@ bogo:
   - getActiveOfferForProduct:
   - getActiveBogoOffersForProducts:
   - getOfferForProduct:
+cart:
+  - getCartHydratedData:
 category:
   - getCategories:
   - getInactiveCategories:
   - getAllCategories:
+  - getCategoryHierarchy:
   - uploadCategory:
   - updateCategory:
   - deleteCategory:
@@ -101,10 +106,13 @@ freeDelivery:
   - getInactiveDeliveryRules:
   - getAllDeliveryRules:
   - getDeliveryRulesPage:
+  - getFreeDeliveryHydrated:
   - upsertDeliveryRule:
   - deleteDeliveryRule:
   - setDeliveryRuleActive:
   - calculateDeliveryPricing:
+home:
+  - getHomePageHydrated:
 notification:
   - registerFcmToken:
   - unregisterFcmToken:
@@ -123,6 +131,8 @@ notification:
   - sendBroadcastDraft:
   - listBroadcasts:
   - deleteBroadcastDraft:
+orderDetail:
+  - getOrderDetailHydrated:
 order:
   - createOrder:
   - createPendingOrder:
@@ -204,6 +214,8 @@ product:
   - incrementProductSearch:
   - incrementProductPurchase:
   - seedProductMetricsForTesting:
+productForm:
+  - getProductFormReferenceData:
 productPg:
   - getActiveProductsPage:
   - searchActiveProducts:

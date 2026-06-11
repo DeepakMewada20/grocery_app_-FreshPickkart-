@@ -51,21 +51,37 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return;
     }
-    await _loadConfig();
-    await loadMore(isInitial: true);
+    await _loadHydrated();
     if (loadAll) {
       await ensureAllLoaded();
     }
   }
 
-  Future<void> _loadConfig() async {
+  Future<void> _loadHydrated() async {
+    isLoading.value = true;
     try {
-      final config = await ApiClient().request(() async {
-        return client.freeDelivery.getDeliveryConfig();
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final hydrated = await ApiClient().request(() async {
+        return client.freeDelivery.getFreeDeliveryHydrated(uid, idToken);
       });
-      deliveryConfig.value = config;
+      deliveryConfig.value = hydrated.deliveryConfig;
+      deliveryRules.assignAll(hydrated.deliveryRules);
+      totalCount.value = hydrated.totalCount;
+      hasMore.value = false;
+    } on NoInternetException {
+      networkController.showError(onRetry: loadDeliveryData);
+    } on NetworkException {
+      networkController.showError(onRetry: loadDeliveryData);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadDeliveryData);
     } catch (e) {
-      debugPrint('Error loading free delivery config: $e');
+      debugPrint('Error loading free delivery data: $e');
+      networkController.showError(onRetry: loadDeliveryData);
+    } finally {
+      isLoading.value = false;
     }
   }
 

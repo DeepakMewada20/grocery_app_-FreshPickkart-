@@ -1,0 +1,4 @@
+class: CategoryHierarchy
+fields:
+  categories: List<Category>
+  subCategories: List<SubCategory>

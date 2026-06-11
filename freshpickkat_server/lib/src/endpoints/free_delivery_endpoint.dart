@@ -168,6 +168,24 @@ class FreeDeliveryEndpoint extends Endpoint {
     );
   }
 
+  Future<FreeDeliveryHydrated> getFreeDeliveryHydrated(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final results = await Future.wait([
+      DeliveryEngine.getDeliveryConfig(session),
+      getAllDeliveryRules(session, firebaseUid, idToken),
+    ]);
+    final config = results[0] as DeliveryConfig;
+    final rules = results[1] as List<DeliveryRule>;
+    return FreeDeliveryHydrated(
+      deliveryConfig: config,
+      deliveryRules: rules,
+      totalCount: rules.length,
+    );
+  }
+
   Future<bool> upsertDeliveryRule(
     Session session,
     DeliveryRule rule,

@@ -7,6 +7,36 @@ class PostgresCatalogService {
   static const int _defaultLimit = 20;
   static const int _maxLimit = 50;
 
+  Future<List<String>> getActiveProductIds(
+    Session session, {
+    int limit = _defaultLimit,
+  }) async {
+    final pageSize = clampPageLimit(
+      limit,
+      defaultLimit: _defaultLimit,
+      maxLimit: _maxLimit,
+    );
+
+    final result = await session.db.unsafeQuery(
+      '''
+      SELECT p.id::text AS "productId"
+      FROM product p
+      JOIN category c ON c.id = p."categoryId"
+      WHERE p.status = 'active'
+        AND c.status = 'active'
+      ORDER BY p."createdAt" DESC, p.id DESC
+      LIMIT @limit
+      ''',
+      parameters: QueryParameters.named({'limit': pageSize}),
+    );
+
+    return result
+        .map((row) => row.toColumnMap()['productId']?.toString())
+        .where((id) => id != null && id.isNotEmpty)
+        .cast<String>()
+        .toList();
+  }
+
   Future<ProductPage> getActiveProductsPage(
     Session session, {
     int limit = _defaultLimit,
@@ -339,21 +369,43 @@ class PostgresCatalogService {
         .whereType<UuidValue>()
         .toSet();
 
-    final products = await ProductRow.db.find(
+    var products = await ProductRow.db.find(
       session,
       where: (t) => t.id.inSet(productIds) & t.status.equals(statusFilter),
     );
 
-    if (products.isEmpty) return const [];
+    // --- Batch 1: Independent queries ---
+    final batch1 = await Future.wait([
+      Future.value(products),
+      ProductVariantRow.db.find(
+        session,
+        where: (t) => t.productId.inSet(productIds),
+      ),
+      ProductSubCategoryRow.db.find(
+        session,
+        where: (t) => t.productId.inSet(productIds),
+      ),
+      BogoOfferRow.db.find(
+        session,
+        where: (t) =>
+            t.triggerProductId.inSet(productIds) & t.status.equals('active'),
+      ),
+      ComboOfferItemRow.db.find(
+        session,
+        where: (t) => t.productId.inSet(productIds),
+      ),
+    ] as List<Future<dynamic>>);
+
+    products = batch1[0] as List<ProductRow>;
+    final variants = batch1[1] as List<ProductVariantRow>;
+    final mappings = batch1[2] as List<ProductSubCategoryRow>;
+    final bogoOfferRows = batch1[3] as List<BogoOfferRow>;
+    final comboItemRows = batch1[4] as List<ComboOfferItemRow>;
 
     final productById = {
       for (final product in products) product.id!.toString(): product,
     };
 
-    final variants = await ProductVariantRow.db.find(
-      session,
-      where: (t) => t.productId.inSet(productIds),
-    );
     final variantsByProduct = <String, List<ProductVariantRow>>{};
     for (final variant in variants) {
       variantsByProduct
@@ -361,47 +413,7 @@ class PostgresCatalogService {
           .add(variant);
     }
 
-    final mappings = await ProductSubCategoryRow.db.find(
-      session,
-      where: (t) => t.productId.inSet(productIds),
-    );
-    final subCategoryIds = mappings.map((row) => row.subCategoryId).toSet();
-    final subCategories = subCategoryIds.isEmpty
-        ? <SubCategoryRow>[]
-        : await SubCategoryRow.db.find(
-            session,
-            where: (t) =>
-                t.id.inSet(subCategoryIds) & t.status.equals('active'),
-          );
-    final subCategoryById = {
-      for (final subCategory in subCategories)
-        subCategory.id!.toString(): subCategory,
-    };
-    final subCategoryNamesByProduct = <String, List<String>>{};
-    for (final mapping in mappings) {
-      final subCategory = subCategoryById[mapping.subCategoryId.toString()];
-      if (subCategory == null) continue;
-
-      subCategoryNamesByProduct
-          .putIfAbsent(mapping.productId.toString(), () => [])
-          .add(subCategory.name);
-    }
-
-    final categoryIds = products.map((product) => product.categoryId).toSet();
-    final categories = await CategoryRow.db.find(
-      session,
-      where: (t) => t.id.inSet(categoryIds) & t.status.equals('active'),
-    );
-    final categoryById = {
-      for (final category in categories) category.id!.toString(): category,
-    };
-
     final now = DateTime.now().toUtc();
-    final bogoOfferRows = await BogoOfferRow.db.find(
-      session,
-      where: (t) =>
-          t.triggerProductId.inSet(productIds) & t.status.equals('active'),
-    );
     final activeBogoOfferRows = bogoOfferRows.where(
       (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
     );
@@ -412,12 +424,67 @@ class PostgresCatalogService {
       for (final row in activeBogoOfferRows)
         row.id!.toString(): row.triggerProductId.toString(),
     };
-    final bogoRewardRows = activeBogoOfferIds.isEmpty
-        ? const <BogoOfferRewardRow>[]
-        : await BogoOfferRewardRow.db.find(
-            session,
-            where: (t) => t.bogoOfferId.inSet(activeBogoOfferIds),
-          );
+
+    final subCategoryIds = mappings.map((row) => row.subCategoryId).toSet();
+    final categoryIds = products.map((product) => product.categoryId).toSet();
+    final comboOfferIdSet = comboItemRows.map((r) => r.comboOfferId).toSet();
+
+    // --- Batch 2: Dependent queries ---
+    final batch2 = await Future.wait([
+      subCategoryIds.isEmpty
+          ? Future.value(<SubCategoryRow>[])
+          : SubCategoryRow.db.find(
+              session,
+              where: (t) =>
+                  t.id.inSet(subCategoryIds) & t.status.equals('active'),
+            ),
+      CategoryRow.db.find(
+        session,
+        where: (t) => t.id.inSet(categoryIds) & t.status.equals('active'),
+      ),
+      activeBogoOfferIds.isEmpty
+          ? Future.value(<BogoOfferRewardRow>[])
+          : BogoOfferRewardRow.db.find(
+              session,
+              where: (t) => t.bogoOfferId.inSet(activeBogoOfferIds),
+            ),
+      CategoryOfferRow.db.find(
+        session,
+        where: (t) =>
+            t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+      ),
+      comboOfferIdSet.isEmpty
+          ? Future.value(<ComboOfferRow>[])
+          : ComboOfferRow.db.find(
+              session,
+              where: (t) =>
+                  t.id.inSet(comboOfferIdSet) & t.status.equals('active'),
+            ),
+    ] as List<Future<dynamic>>);
+
+    final subCategories = batch2[0] as List<SubCategoryRow>;
+    final categories = batch2[1] as List<CategoryRow>;
+    final bogoRewardRows = batch2[2] as List<BogoOfferRewardRow>;
+    final categoryOfferRows = batch2[3] as List<CategoryOfferRow>;
+    final activeComboOfferRows = batch2[4] as List<ComboOfferRow>;
+
+    final subCategoryById = {
+      for (final subCategory in subCategories)
+        subCategory.id!.toString(): subCategory,
+    };
+    final subCategoryNamesByProduct = <String, List<String>>{};
+    for (final mapping in mappings) {
+      final subCategory = subCategoryById[mapping.subCategoryId.toString()];
+      if (subCategory == null) continue;
+      subCategoryNamesByProduct
+          .putIfAbsent(mapping.productId.toString(), () => [])
+          .add(subCategory.name);
+    }
+
+    final categoryById = {
+      for (final category in categories) category.id!.toString(): category,
+    };
+
     final bogoRewardsByProduct = <String, Set<String>>{};
     for (final reward in bogoRewardRows) {
       final triggerProductId =
@@ -428,30 +495,15 @@ class PostgresCatalogService {
           .add(reward.rewardProductId.toString());
     }
 
-    // Fetch active category offers
-    final categoryOffers = await CategoryOfferRow.db.find(
-      session,
-      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
-    );
-    final activeCategoryOffers = categoryOffers.where(
+    final activeCategoryOffers = categoryOfferRows.where(
       (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
     ).toList();
-    // Sort by priority (higher first)
     activeCategoryOffers.sort((a, b) => b.priority.compareTo(a.priority));
+    final categoryOfferByCategory = {
+      for (final o in activeCategoryOffers)
+        o.categoryId.toString(): o,
+    };
 
-    // Fetch active combo offers for these products
-    final comboItemRows = await ComboOfferItemRow.db.find(
-      session,
-      where: (t) => t.productId.inSet(productIds),
-    );
-    final comboOfferIdSet = comboItemRows.map((r) => r.comboOfferId).toSet();
-    final activeComboOfferRows = comboOfferIdSet.isEmpty
-        ? const <ComboOfferRow>[]
-        : await ComboOfferRow.db.find(
-            session,
-            where: (t) =>
-                t.id.inSet(comboOfferIdSet) & t.status.equals('active'),
-          );
     final activeComboOffers = activeComboOfferRows.where(
       (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
     ).toList();
@@ -477,7 +529,7 @@ class PostgresCatalogService {
       if (category == null) continue;
 
       final variantRows =
-          variantsByProduct[productId] ?? const <ProductVariantRow>[];
+          variantsByProduct[productId] ?? <ProductVariantRow>[];
       variantRows.sort((a, b) {
         if (a.isDefault != b.isDefault) return b.isDefault ? 1 : -1;
         final sortOrderCompare = a.sortOrder.compareTo(b.sortOrder);
@@ -514,7 +566,7 @@ class PostgresCatalogService {
       double? resolvedDiscountValue;
 
       // 1. Check for Category Offer first
-      final applicableCategoryOffer = activeCategoryOffers.where((o) => o.categoryId == productRow.categoryId).firstOrNull;
+      final applicableCategoryOffer = categoryOfferByCategory[productRow.categoryId.toString()];
       if (applicableCategoryOffer != null) {
         double categoryOfferPrice = salePrice;
         if (applicableCategoryOffer.discountType == 'percentage') {
@@ -580,8 +632,8 @@ class PostgresCatalogService {
           comboOfferIds: (comboByProduct[productId]?.isEmpty == true)
               ? null
               : comboByProduct[productId],
-          hasCategoryOffer: activeCategoryOffers
-              .any((o) => o.categoryId == productRow.categoryId),
+          hasCategoryOffer:
+              categoryOfferByCategory.containsKey(productRow.categoryId.toString()),
           variants: mappedVariants.isEmpty ? null : mappedVariants,
         ),
       );

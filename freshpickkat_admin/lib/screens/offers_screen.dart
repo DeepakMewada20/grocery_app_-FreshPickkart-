@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
@@ -32,7 +34,8 @@ class OffersScreen extends StatefulWidget {
   State<OffersScreen> createState() => _OffersScreenState();
 }
 
-class _OffersScreenState extends State<OffersScreen> {
+class _OffersScreenState extends State<OffersScreen>
+    with SingleTickerProviderStateMixin {
   final AdminCategoryController _categoryController =
       AdminCategoryController.instance;
   final AdminCouponController _couponController =
@@ -55,51 +58,106 @@ class _OffersScreenState extends State<OffersScreen> {
   String _offerCategoryFilter = 'All';
   bool _isOfferFabExpanded = false;
   final GlobalKey _offersTabFabKey = GlobalKey();
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _tabController.addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensureDataLoaded();
+      _loadTabData(_tabController.index);
     });
   }
 
-  Future<void> _ensureDataLoaded() async {
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _loadTabData(_tabController.index);
+    }
+  }
+
+  void _loadTabData(int tabIndex) {
     final futures = <Future<void>>[];
-    if (_categoryController.categories.isEmpty &&
-        !_categoryController.isLoading.value) {
-      futures.add(_categoryController.loadCategories());
-    }
-    if (_couponController.coupons.isEmpty &&
-        !_couponController.isLoading.value) {
-      futures.add(_couponController.loadCoupons());
-    }
-    if (_productController.products.isEmpty &&
-        !_productController.isLoading.value) {
-      futures.add(_productController.loadInitial());
-    }
-    if (_bogoController.bogoOffers.isEmpty &&
-        !_bogoController.isLoading.value) {
-      futures.add(_bogoController.loadBogoOffers(loadAll: true));
-    }
-    if (_categoryOfferController.categoryOffers.isEmpty &&
-        !_categoryOfferController.isLoading.value) {
-      futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
-    }
-    if (_comboOfferController.comboOffers.isEmpty &&
-        !_comboOfferController.isLoading.value) {
-      futures.add(_comboOfferController.loadComboOffers(loadAll: true));
-    }
-    if (_freeDeliveryController.deliveryRules.isEmpty &&
-        !_freeDeliveryController.isLoading.value) {
-      futures.add(_freeDeliveryController.loadDeliveryData(loadAll: true));
-    }
-    if (_bannerController.banners.isEmpty &&
-        !_bannerController.isLoading.value) {
-      futures.add(_bannerController.loadBanners(loadAll: true));
+    switch (tabIndex) {
+      case 0:
+        if (_categoryController.categories.isEmpty &&
+            !_categoryController.isLoading.value) {
+          futures.add(_categoryController.loadCategories());
+        }
+        if (_couponController.coupons.isEmpty &&
+            !_couponController.isLoading.value) {
+          futures.add(_couponController.loadCoupons());
+        }
+        if (_productController.products.isEmpty &&
+            !_productController.isLoading.value) {
+          futures.add(_productController.loadInitial());
+        }
+        if (_bogoController.bogoOffers.isEmpty &&
+            !_bogoController.isLoading.value) {
+          futures.add(_bogoController.loadBogoOffers(loadAll: true));
+        }
+        if (_categoryOfferController.categoryOffers.isEmpty &&
+            !_categoryOfferController.isLoading.value) {
+          futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
+        }
+        if (_comboOfferController.comboOffers.isEmpty &&
+            !_comboOfferController.isLoading.value) {
+          futures.add(_comboOfferController.loadComboOffers(loadAll: true));
+        }
+        if (_freeDeliveryController.deliveryRules.isEmpty &&
+            !_freeDeliveryController.isLoading.value) {
+          futures.add(_freeDeliveryController.loadDeliveryData(loadAll: true));
+        }
+        if (_bannerController.banners.isEmpty &&
+            !_bannerController.isLoading.value) {
+          futures.add(_bannerController.loadBanners(loadAll: true));
+        }
+      case 1:
+        if (_categoryController.categories.isEmpty &&
+            !_categoryController.isLoading.value) {
+          futures.add(_categoryController.loadCategories());
+        }
+        if (_productController.products.isEmpty &&
+            !_productController.isLoading.value) {
+          futures.add(_productController.loadInitial());
+        }
+        if (_bogoController.bogoOffers.isEmpty &&
+            !_bogoController.isLoading.value) {
+          futures.add(_bogoController.loadBogoOffers(loadAll: true));
+        }
+        if (_categoryOfferController.categoryOffers.isEmpty &&
+            !_categoryOfferController.isLoading.value) {
+          futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
+        }
+        if (_comboOfferController.comboOffers.isEmpty &&
+            !_comboOfferController.isLoading.value) {
+          futures.add(_comboOfferController.loadComboOffers(loadAll: true));
+        }
+      case 2:
+        if (_couponController.coupons.isEmpty &&
+            !_couponController.isLoading.value) {
+          futures.add(_couponController.loadCoupons());
+        }
+      case 3:
+        if (_freeDeliveryController.deliveryRules.isEmpty &&
+            !_freeDeliveryController.isLoading.value) {
+          futures.add(_freeDeliveryController.loadDeliveryData(loadAll: true));
+        }
+      case 4:
+        if (_bannerController.banners.isEmpty &&
+            !_bannerController.isLoading.value) {
+          futures.add(_bannerController.loadBanners(loadAll: true));
+        }
     }
     if (futures.isEmpty) return;
-    await Future.wait(futures);
+    unawaited(Future.wait(futures));
   }
 
   Future<void> _refreshAll() async {
@@ -180,17 +238,13 @@ class _OffersScreenState extends State<OffersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 5,
-      child: Builder(
-        builder: (context) {
-          final tabController = DefaultTabController.of(context);
-          return AnimatedBuilder(
-            animation: tabController,
-            builder: (context, _) {
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (context, _) {
               return Scaffold(
                 appBar: AdminAppBar(
                   title: TabBar(
+                    controller: _tabController,
                     isScrollable: true,
                     labelColor: AdminThemeTokens.white,
                     unselectedLabelColor: AdminThemeTokens.white.withValues(
@@ -206,6 +260,7 @@ class _OffersScreenState extends State<OffersScreen> {
                   ),
                 ),
                 body: TabBarView(
+                  controller: _tabController,
                   children: [
                     OffersDashboardTab(
                       couponController: _couponController,
@@ -300,9 +355,6 @@ class _OffersScreenState extends State<OffersScreen> {
               );
             },
           );
-        },
-      ),
-    );
   }
 }
 

@@ -1,0 +1,4 @@
+class: AdminDashboardHydrated
+fields:
+  stats: AdminDashboardStats
+  analytics: AdminAnalytics

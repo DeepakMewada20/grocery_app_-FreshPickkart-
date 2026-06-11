@@ -56,15 +56,41 @@ class AdminBogoController extends GetxController {
       totalCount.value = 0;
     }
     if (!force && bogoOffers.isNotEmpty) {
-      if (loadAll) {
-        await ensureAllLoaded();
-      }
       return;
     }
 
-    await loadMore(isInitial: true);
     if (loadAll) {
-      await ensureAllLoaded();
+      await _loadAllBogoOffers();
+    } else {
+      await loadMore(isInitial: true);
+    }
+  }
+
+  Future<void> _loadAllBogoOffers() async {
+    isLoading.value = true;
+    networkController.hideError();
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final all = await ApiClient().request(() async {
+        return client.bogo.getAllOffers(uid, idToken);
+      });
+      bogoOffers.assignAll(all);
+      totalCount.value = all.length;
+      hasMore.value = false;
+    } on NoInternetException {
+      networkController.showError(onRetry: loadBogoOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadBogoOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadBogoOffers);
+    } catch (e) {
+      debugPrint('Error loading all BOGO offers: $e');
+      networkController.showError(onRetry: loadBogoOffers);
+    } finally {
+      isLoading.value = false;
     }
   }
 

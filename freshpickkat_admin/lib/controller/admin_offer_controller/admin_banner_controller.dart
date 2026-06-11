@@ -42,14 +42,40 @@ class AdminBannerController extends GetxController {
       totalCount.value = 0;
     }
     if (!force && banners.isNotEmpty) {
-      if (loadAll) {
-        await ensureAllLoaded();
-      }
       return;
     }
-    await loadMore(isInitial: true);
     if (loadAll) {
-      await ensureAllLoaded();
+      await _loadAllBanners();
+    } else {
+      await loadMore(isInitial: true);
+    }
+  }
+
+  Future<void> _loadAllBanners() async {
+    isLoading.value = true;
+    error.value = null;
+    networkController.hideError();
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final all = await ApiClient().request(() async {
+        return _client.banner.getAllAdminBanners(uid, idToken);
+      });
+      banners.assignAll(all);
+      totalCount.value = all.length;
+      hasMore.value = false;
+    } on NoInternetException {
+      networkController.showError(onRetry: loadBanners);
+    } on NetworkException {
+      networkController.showError(onRetry: loadBanners);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadBanners);
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
     }
   }
 

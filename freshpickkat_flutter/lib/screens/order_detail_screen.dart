@@ -12,7 +12,7 @@ import 'package:freshpickkat_flutter/screens/report_delivery_issue_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
-import 'package:freshpickkat_flutter/services/refund_service.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/order_item_grouping.dart';
@@ -63,20 +63,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       _error = null;
     });
 
-    final order = await OrderController.instance.fetchOrderById(widget.orderId);
-    final refund = await RefundService.instance.getRefundStatus(widget.orderId);
-    if (order != null) {
-      await _loadOrderComplaint(order);
-    }
-    if (mounted) {
-      setState(() {
-        _order = order;
-        _refund = refund;
-        _isLoading = false;
-        if (order == null) {
-          _error = ErrorMessages.orderNotFound;
+    try {
+      final auth = AuthController.instance;
+      final user = auth.currentUser;
+      if (user == null) {
+        if (mounted) {
+          setState(() {
+            _error = ErrorMessages.loginRequired;
+            _isLoading = false;
+          });
         }
-      });
+        return;
+      }
+      final idToken = await auth.requireIdToken();
+      final hydrated = await ServerpodClient()
+          .client
+          .orderDetail
+          .getOrderDetailHydrated(widget.orderId, user.uid, idToken);
+      if (mounted) {
+        setState(() {
+          _order = hydrated.order;
+          _refund = hydrated.refund;
+          _activeProductComplaint = hydrated.activeProductComplaint;
+          _activeDeliveryComplaint = hydrated.activeDeliveryComplaint;
+          _isLoading = false;
+          if (hydrated.order == null) {
+            _error = ErrorMessages.orderNotFound;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 

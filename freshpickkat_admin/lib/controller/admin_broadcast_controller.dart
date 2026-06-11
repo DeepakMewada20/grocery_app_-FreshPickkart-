@@ -22,25 +22,34 @@ class AdminBroadcastController extends GetxController {
   }
 
   Future<void> refreshAll() async {
-    await Future.wait([loadHistory(), loadScheduled(), loadDrafts()]);
+    await _loadAll();
   }
 
   Future<void> loadHistory() async {
-    final items = await _load(status: 'sent');
-    history.assignAll(items);
+    if (history.isEmpty && scheduled.isEmpty && drafts.isEmpty) {
+      await _loadAll();
+    } else {
+      history.value = history;
+    }
   }
 
   Future<void> loadScheduled() async {
-    final items = await _load(status: 'scheduled');
-    scheduled.assignAll(items);
+    if (history.isEmpty && scheduled.isEmpty && drafts.isEmpty) {
+      await _loadAll();
+    } else {
+      scheduled.value = scheduled;
+    }
   }
 
   Future<void> loadDrafts() async {
-    final items = await _load(status: 'draft');
-    drafts.assignAll(items);
+    if (history.isEmpty && scheduled.isEmpty && drafts.isEmpty) {
+      await _loadAll();
+    } else {
+      drafts.value = drafts;
+    }
   }
 
-  Future<List<BroadcastSummary>> _load({required String status}) async {
+  Future<void> _loadAll() async {
     isLoading.value = true;
     error.value = null;
     try {
@@ -50,15 +59,16 @@ class AdminBroadcastController extends GetxController {
         return _client.notification.listBroadcasts(
           uid,
           token,
-          status: status,
+          status: null,
           query: searchQuery.trim().isEmpty ? null : searchQuery.trim(),
           limit: 50,
         );
       });
-      return page.items;
+      history.assignAll(page.items.where((b) => b.status == 'sent'));
+      scheduled.assignAll(page.items.where((b) => b.status == 'scheduled'));
+      drafts.assignAll(page.items.where((b) => b.status == 'draft'));
     } catch (e) {
       error.value = cleanError(e);
-      return const [];
     } finally {
       isLoading.value = false;
     }

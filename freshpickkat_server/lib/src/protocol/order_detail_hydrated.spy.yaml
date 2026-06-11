@@ -1,0 +1,6 @@
+class: OrderDetailHydrated
+fields:
+  order: Order?
+  refund: RefundRecord?
+  activeProductComplaint: Complaint?
+  activeDeliveryComplaint: Complaint?

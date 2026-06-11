@@ -16,10 +16,21 @@ class OfferWidgetState extends State<OfferWidget> {
   DeliveryPricingResult? _offer;
   bool _isLoading = true;
 
+  static DeliveryPricingResult? _cachedHydratedOffer;
+
+  static void cacheHydratedOffer(DeliveryPricingResult? offer) {
+    _cachedHydratedOffer = offer;
+  }
+
   @override
   void initState() {
     super.initState();
-    _fetchOffer();
+    if (_cachedHydratedOffer != null) {
+      _offer = _cachedHydratedOffer;
+      _isLoading = false;
+    } else {
+      _fetchOffer();
+    }
   }
 
   Future<void> fetchOffer() => _fetchOffer();

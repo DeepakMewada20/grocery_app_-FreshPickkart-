@@ -199,6 +199,12 @@ class BannerController extends GetxController {
     }).toList();
   }
 
+  void populateFromHydrated(client.HomePageHydratedData data) {
+    homeTopImageBanners.assignAll(data.topImageBanners);
+    homeTopBanners.assignAll(data.topBanners);
+    homeMiddleBanners.assignAll(data.middleBanners);
+  }
+
   /// Central tap handler — delegates to BannerNavigationHelper
   Future<void> onBannerTap(client.Banner banner) async {
     await BannerNavigationHelper.navigate(banner);

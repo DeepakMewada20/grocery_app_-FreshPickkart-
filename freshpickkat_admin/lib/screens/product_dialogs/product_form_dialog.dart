@@ -3,13 +3,9 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
-import 'package:get/get.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
-import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/widgets/products_screen_widgets/widgets.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -120,11 +116,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   String? subcategoryError;
   String? categoryError;
 
-  AdminCategoryOfferController get _categoryOfferController =>
-      AdminCategoryOfferController.instance;
-  AdminComboOfferController get _comboOfferController =>
-      AdminComboOfferController.instance;
-  AdminBogoController get _bogoController => AdminBogoController.instance;
+  List<BogoOffer> _bogoOffers = [];
+  List<ComboOffer> _comboOffers = [];
+  List<CategoryOffer> _categoryOffers = [];
+  bool _isOfferDataLoading = false;
 
   bool get isEditMode => widget.product != null;
   Product? get product => widget.product;
@@ -392,22 +387,24 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     if (_didRequestOfferData) return;
     _didRequestOfferData = true;
 
-    final futures = <Future<void>>[];
-    if (_categoryOfferController.categoryOffers.isEmpty &&
-        !_categoryOfferController.isLoading.value) {
-      futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
+    _isOfferDataLoading = true;
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final data = await ServerpodAdminClient()
+          .client
+          .productForm
+          .getProductFormReferenceData(uid, idToken);
+      _bogoOffers = data.bogoOffers;
+      _comboOffers = data.comboOffers;
+      _categoryOffers = data.categoryOffers;
+    } catch (_) {
+    } finally {
+      _isOfferDataLoading = false;
+      if (mounted) setState(() {});
     }
-    if (_comboOfferController.comboOffers.isEmpty &&
-        !_comboOfferController.isLoading.value) {
-      futures.add(_comboOfferController.loadComboOffers(loadAll: true));
-    }
-    if (_bogoController.bogoOffers.isEmpty &&
-        !_bogoController.isLoading.value) {
-      futures.add(_bogoController.loadBogoOffers(loadAll: true));
-    }
-
-    if (futures.isEmpty) return;
-    await Future.wait(futures);
   }
 
   Future<List<Product>> _fetchAllProductsForCategory(String category) async {
@@ -1233,13 +1230,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return SectionCard(
       icon: Icons.local_activity_outlined,
       title: 'Related Offers',
-      child: Obx(() {
+      child: () {
         final summaries = _relatedOfferSummaries();
-        final isLoading =
-            _categoryOfferController.isLoading.value ||
-            _comboOfferController.isLoading.value ||
-            _bogoController.isLoading.value;
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1262,7 +1254,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                 ),
               ),
             ),
-            if (isLoading) ...[
+            if (_isOfferDataLoading) ...[
               const SizedBox(height: 12),
               const LinearProgressIndicator(minHeight: 3),
             ],
@@ -1282,7 +1274,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             ],
           ],
         );
-      }),
+      }(),
     );
   }
 
@@ -1311,7 +1303,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     }
 
     if (categoryName != null && categoryName.isNotEmpty) {
-      final categoryOffers = _categoryOfferController.categoryOffers.where((
+      final categoryOffers = _categoryOffers.where((
         offer,
       ) {
         if (!_isOfferLive(
@@ -1350,7 +1342,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     }
 
     if (productId != null) {
-      final comboOffers = _comboOfferController.comboOffers.where((offer) {
+      final comboOffers = _comboOffers.where((offer) {
         if (!_isOfferLive(
           offer.startDate,
           offer.endDate,
@@ -1374,7 +1366,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         );
       }
 
-      final bogoOffer = _bogoController.bogoOffers
+      final bogoOffer = _bogoOffers
           .cast<BogoOffer?>()
           .firstWhere(
             (offer) => offer?.triggerProductId == productId,

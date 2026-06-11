@@ -22,6 +22,17 @@ class CategoryEndpoint extends Endpoint {
     return _categories.getAllCategories(session);
   }
 
+  Future<CategoryHierarchy> getCategoryHierarchy(Session session) async {
+    final results = await Future.wait([
+      _categories.getCategories(session),
+      _categories.getSubCategories(session),
+    ]);
+    return CategoryHierarchy(
+      categories: results[0] as List<Category>,
+      subCategories: results[1] as List<SubCategory>,
+    );
+  }
+
   Future<bool> uploadCategory(
     Session session,
     Category category,

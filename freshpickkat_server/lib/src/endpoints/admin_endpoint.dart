@@ -73,6 +73,26 @@ class AdminEndpoint extends Endpoint {
     return _adminService.getAnalytics(session);
   }
 
+  Future<protocol.AdminDashboardHydrated> getDashboardHydrated(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final results = await Future.wait([
+      _adminService.getDashboardStats(session),
+      _adminService.getAnalytics(session),
+    ]);
+    return protocol.AdminDashboardHydrated(
+      stats: results[0] as protocol.AdminDashboardStats,
+      analytics: results[1] as protocol.AdminAnalytics,
+    );
+  }
+
   Future<List<protocol.AdminAuditLogEntry>> getAuditLogs(
     Session session,
     String firebaseUid,

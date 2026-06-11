@@ -372,5 +372,14 @@ class ProductProviderController extends GetxController {
     await fetchProductsIfEmpty();
   }
 
+  void populateFromHydrated(HomePageHydratedData data) {
+    allProducts.assignAll(data.products);
+    trendingProducts.assignAll(data.trendingProducts);
+    bestSellersProducts.assignAll(data.bestSellersProducts);
+    mostViewedProducts.assignAll(data.mostViewedProducts);
+    frequentlyReorderedProducts.assignAll(data.frequentlyReorderedProducts);
+    _applyLocalFilter();
+  }
+
   bool get hasData => allProducts.isNotEmpty;
 }

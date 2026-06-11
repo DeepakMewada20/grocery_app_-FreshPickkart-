@@ -1,0 +1,15 @@
+class: HomePageHydratedData
+fields:
+  topImageBanners: List<Banner>
+  topBanners: List<Banner>
+  middleBanners: List<Banner>
+  products: List<Product>
+  trendingProducts: List<Product>
+  bestSellersProducts: List<Product>
+  mostViewedProducts: List<Product>
+  frequentlyReorderedProducts: List<Product>
+  activeBogoOffers: List<BogoOffer>
+  activeComboOffers: List<ComboOffer>
+  deliveryOffer: DeliveryPricingResult?
+  categories: List<Category>
+  subCategories: List<SubCategory>

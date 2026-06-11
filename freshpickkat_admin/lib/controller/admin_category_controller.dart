@@ -48,14 +48,11 @@ class AdminCategoryController extends GetxController {
     error.value = null;
     networkController.hideError();
     try {
-      final results = await ApiClient().request(() async {
-        return await Future.wait([
-          _client.category.getCategories(),
-          _client.subCategory.getSubCategories(),
-        ]);
+      final hierarchy = await ApiClient().request(() async {
+        return await _client.category.getCategoryHierarchy();
       });
-      categories.assignAll(results[0] as List<Category>);
-      subCategories.assignAll(results[1] as List<SubCategory>);
+      categories.assignAll(hierarchy.categories);
+      subCategories.assignAll(hierarchy.subCategories);
     } on NoInternetException {
       networkController.showError(onRetry: loadCategories);
     } on NetworkException {

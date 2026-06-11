@@ -15,6 +15,15 @@ class PostgresBannerService {
     return _hydrateBanners(session, rows);
   }
 
+  Future<List<Banner>> getAllBanners(Session session) async {
+    final rows = await BannerRow.db.find(
+      session,
+      orderBy: (t) => t.priority,
+      orderDescending: false,
+    );
+    return _hydrateBanners(session, rows);
+  }
+
   Future<List<Banner>> getBanners(
     Session session, {
     String? screen,

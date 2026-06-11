@@ -65,15 +65,41 @@ class AdminCategoryOfferController extends GetxController {
       totalCount.value = 0;
     }
     if (!force && categoryOffers.isNotEmpty) {
-      if (loadAll) {
-        await ensureAllLoaded();
-      }
       return;
     }
 
-    await loadMore(isInitial: true);
     if (loadAll) {
-      await ensureAllLoaded();
+      await _loadAllCategoryOffers();
+    } else {
+      await loadMore(isInitial: true);
+    }
+  }
+
+  Future<void> _loadAllCategoryOffers() async {
+    isLoading.value = true;
+    networkController.hideError();
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final all = await ApiClient().request(() async {
+        return client.categoryOffer.getAllCategoryOffers(uid, idToken);
+      });
+      categoryOffers.assignAll(all);
+      totalCount.value = all.length;
+      hasMore.value = false;
+    } on NoInternetException {
+      networkController.showError(onRetry: loadCategoryOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadCategoryOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadCategoryOffers);
+    } catch (e) {
+      debugPrint('Error loading all category offers: $e');
+      networkController.showError(onRetry: loadCategoryOffers);
+    } finally {
+      isLoading.value = false;
     }
   }
 

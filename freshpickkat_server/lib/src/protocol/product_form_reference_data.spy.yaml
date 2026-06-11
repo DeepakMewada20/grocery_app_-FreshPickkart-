@@ -1,0 +1,5 @@
+class: ProductFormReferenceData
+fields:
+  bogoOffers: List<BogoOffer>
+  comboOffers: List<ComboOffer>
+  categoryOffers: List<CategoryOffer>

@@ -33,20 +33,17 @@ class AdminDashboardController extends GetxController {
     error.value = null;
     networkController.hideError();
     try {
-      final results = await ApiClient().request(() async {
+      final hydrated = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
 
-        return await Future.wait([
-          _client.admin.getDashboardStats(uid, idToken),
-          _client.admin.getAnalytics(uid, idToken),
-        ]);
+        return _client.admin.getDashboardHydrated(uid, idToken);
       });
 
-      stats.value = results[0] as AdminDashboardStats;
-      analytics.value = results[1] as AdminAnalytics;
+      stats.value = hydrated.stats;
+      analytics.value = hydrated.analytics;
     } on NoInternetException {
       networkController.showError(onRetry: loadDashboard);
     } on NetworkException {

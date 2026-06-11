@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
-import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/services/home_data_service.dart';
 import 'package:freshpickkat_flutter/widgets/categories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
 import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage>
   final networkController = NetworkController.instance;
   final productController = ProductProviderController.instance;
   final bannerController = BannerController.instance;
-  final bogoController = BogoController.instance;
   final offerWidgetKey = GlobalKey<OfferWidgetState>();
   bool _hasRestoredScrollOffset = false;
 
@@ -113,8 +112,6 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     _scrollController.addListener(_storeScrollOffset);
-
-    bannerController.loadHomeTopImageBannersIfEmpty();
 
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;
@@ -130,12 +127,7 @@ class _HomePageState extends State<HomePage>
   Future<void> _onRefresh() async {
     _savedScrollOffset = 0;
     _hasRestoredScrollOffset = false;
-    await Future.wait([
-      productController.forceFetchProducts(),
-      bannerController.forceLoadAllBanners(),
-      bogoController.forceFetchActiveOffers(),
-      offerWidgetKey.currentState?.fetchOffer() ?? Future.value(),
-    ]);
+    await HomeDataService().fetchHomePageData();
   }
 
   void _storeScrollOffset() {

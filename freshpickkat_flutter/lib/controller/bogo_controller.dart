@@ -67,6 +67,10 @@ class BogoController extends GetxController {
     );
   }
 
+  void populateFromHydrated(HomePageHydratedData data) {
+    activeOffers.assignAll(data.activeBogoOffers);
+  }
+
   Future<BogoOffer?> fetchOfferForProduct(String productId) async {
     final existing = getOfferForProduct(productId);
     if (existing != null) return existing;

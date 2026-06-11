@@ -27,12 +27,9 @@ class CategoryProviderController extends GetxController {
 
     _isFetching = true;
     try {
-      await Future.wait([
-        fetchCategories(),
-        fetchSubCategories(),
-      ]);
+      await _fetchHierarchy();
     } catch (e) {
-      // error handled in individual methods
+      // error handled in _fetchHierarchy
     } finally {
       _isFetching = false;
     }
@@ -44,12 +41,9 @@ class CategoryProviderController extends GetxController {
 
     _isFetching = true;
     try {
-      await Future.wait([
-        fetchCategories(),
-        fetchSubCategories(),
-      ]);
+      await _fetchHierarchy();
     } catch (e) {
-      // error handled in individual methods
+      // error handled in _fetchHierarchy
     } finally {
       _isFetching = false;
     }
@@ -67,26 +61,22 @@ class CategoryProviderController extends GetxController {
 
     _isFetching = true;
     try {
-      await Future.wait([
-        fetchCategories(),
-        fetchSubCategories(),
-      ]);
+      await _fetchHierarchy();
     } catch (e) {
-      // error handled in individual methods
+      // error handled in _fetchHierarchy
     } finally {
       _isFetching = false;
     }
   }
 
-  Future<void> fetchCategories() async {
-    if (categories.isNotEmpty) return;
+  Future<void> _fetchHierarchy() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final List<Category> result = await _client.category.getCategories();
-
-      categories.assignAll(result);
+      final hierarchy = await _client.category.getCategoryHierarchy();
+      categories.assignAll(hierarchy.categories);
+      subCategories.assignAll(hierarchy.subCategories);
     } catch (e) {
       errorMessage.value = ErrorMessages.loadFailed('categories');
       AppLogger.error('Categories', e);
@@ -95,22 +85,9 @@ class CategoryProviderController extends GetxController {
     }
   }
 
-  Future<void> fetchSubCategories() async {
-    if (subCategories.isNotEmpty) return;
-    try {
-      isLoading.value = true;
-      errorMessage.value = '';
-
-      final List<SubCategory> result = await _client.subCategory
-          .getSubCategories();
-
-      subCategories.assignAll(result);
-    } catch (e) {
-      errorMessage.value = ErrorMessages.loadFailed('subcategories');
-      AppLogger.error('SubCategories', e);
-    } finally {
-      isLoading.value = false;
-    }
+  void populateFromHydrated(HomePageHydratedData data) {
+    categories.assignAll(data.categories);
+    subCategories.assignAll(data.subCategories);
   }
 
   // Utility methods

@@ -64,6 +64,10 @@ class ComboOfferController extends GetxController {
     }
   }
 
+  void populateFromHydrated(HomePageHydratedData data) {
+    activeComboOffers.assignAll(data.activeComboOffers);
+  }
+
   Future<void> checkApplicableCombos(List<CartItem> cartItems) async {
     try {
       final items = cartItems

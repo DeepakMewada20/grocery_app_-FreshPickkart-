@@ -1,0 +1,6 @@
+class: CartHydratedData
+fields:
+  cartPricing: CartPricingResult?
+  basketSuggestions: BasketSuggestionResult?
+  availableCoupons: List<CouponDisplay>
+  deliveryConfig: DeliveryConfig

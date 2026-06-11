@@ -1,0 +1,164 @@
+import 'package:serverpod/serverpod.dart';
+
+import '../../generated/protocol.dart';
+import '../analytics/product_ranking_service.dart';
+import '../delivery/delivery_engine.dart';
+import 'postgres_banner_service.dart';
+import 'postgres_catalog_service.dart';
+import 'postgres_category_service.dart';
+import 'postgres_offer_service.dart';
+
+class PostgresHomeService {
+  final PostgresCatalogService _catalog = PostgresCatalogService();
+  final PostgresBannerService _banner = PostgresBannerService();
+  final PostgresCategoryService _category = PostgresCategoryService();
+  final PostgresOfferService _offer = PostgresOfferService();
+  final ProductRankingService _ranking = ProductRankingService();
+
+  Future<HomePageHydratedData> getHomePageHydrated(
+    Session session, {
+    String? userId,
+    int productLimit = 20,
+    int rankingLimit = 10,
+  }) async {
+    final phase1Results = await Future.wait([
+      // Non-product fetches
+      _banner.getBanners(session, screen: 'home_top_image', activeOnly: true),
+      _banner.getBanners(session, screen: 'home_top', activeOnly: true),
+      _banner.getBanners(session, screen: 'home_middle', activeOnly: true),
+      _offer.getActiveBogoOffers(session),
+      _offer.getActiveComboOffers(session),
+      _category.getCategories(session),
+      _category.getSubCategories(session),
+      _getDeliveryOffer(session, userId),
+      // Product ID fetches (lightweight, no hydration)
+      _catalog.getActiveProductIds(session, limit: productLimit),
+      _ranking.getRankedProductIds(
+        session,
+        limit: rankingLimit,
+        metricType: 'trending',
+        metricColumn: 'trendingScore',
+      ),
+      _ranking.getRankedProductIds(
+        session,
+        limit: rankingLimit,
+        metricType: 'most_selling',
+        metricColumn: 'mostPurchaseCount',
+      ),
+      _ranking.getRankedProductIds(
+        session,
+        limit: rankingLimit,
+        metricType: 'most_viewed',
+        metricColumn: 'mostSearchCount',
+      ),
+      _ranking.getRankedProductIds(
+        session,
+        limit: rankingLimit,
+        metricType: 'frequently_reordered',
+        metricColumn: 'reorderCount',
+      ),
+    ]);
+
+    final topImageBanners = phase1Results[0] as List<Banner>;
+    final topBannersRaw = phase1Results[1] as List<Banner>;
+    final middleBanners = phase1Results[2] as List<Banner>;
+    final bogoOffers = phase1Results[3] as List<BogoOffer>;
+    final comboOffers = phase1Results[4] as List<ComboOffer>;
+    final categories = phase1Results[5] as List<Category>;
+    final subCategories = phase1Results[6] as List<SubCategory>;
+    final deliveryOffer = phase1Results[7] as DeliveryPricingResult?;
+    final catalogProductIds = phase1Results[8] as List<String>;
+    final trendingRows = phase1Results[9] as List<RankingRow>;
+    final sellingRows = phase1Results[10] as List<RankingRow>;
+    final viewedRows = phase1Results[11] as List<RankingRow>;
+    final reorderRows = phase1Results[12] as List<RankingRow>;
+
+    // Merge + deduplicate all product IDs
+    final allIds = <String>{...catalogProductIds};
+    for (final row in trendingRows) {
+      allIds.add(row.productId);
+    }
+    for (final row in sellingRows) {
+      allIds.add(row.productId);
+    }
+    for (final row in viewedRows) {
+      allIds.add(row.productId);
+    }
+    for (final row in reorderRows) {
+      allIds.add(row.productId);
+    }
+
+    // Hydrate all products in a single call
+    final hydratedProducts = await _catalog.hydrateProductsByIds(
+      session,
+      allIds.toList(),
+    );
+    final productMap = {
+      for (final product in hydratedProducts)
+        if (product.productId != null) product.productId!: product,
+    };
+
+    // Build ranking items from rows + hydrated products
+    final trendingItems = ProductRankingService.buildRankingItems(
+      rows: trendingRows,
+      productsById: productMap,
+      metricType: 'trending',
+    );
+    final sellingItems = ProductRankingService.buildRankingItems(
+      rows: sellingRows,
+      productsById: productMap,
+      metricType: 'most_selling',
+    );
+    final viewedItems = ProductRankingService.buildRankingItems(
+      rows: viewedRows,
+      productsById: productMap,
+      metricType: 'most_viewed',
+    );
+    final reorderItems = ProductRankingService.buildRankingItems(
+      rows: reorderRows,
+      productsById: productMap,
+      metricType: 'frequently_reordered',
+    );
+
+    // Map product IDs to section products
+    final products = catalogProductIds
+        .map((id) => productMap[id])
+        .where((p) => p != null)
+        .cast<Product>()
+        .toList();
+
+    return HomePageHydratedData(
+      topImageBanners: topImageBanners,
+      topBanners: topBannersRaw
+          .where((b) => !b.screenPlacements.contains('home_top_image'))
+          .toList(),
+      middleBanners: middleBanners,
+      products: products,
+      trendingProducts:
+          trendingItems.map((r) => r.product).toList(),
+      bestSellersProducts:
+          sellingItems.map((r) => r.product).toList(),
+      mostViewedProducts:
+          viewedItems.map((r) => r.product).toList(),
+      frequentlyReorderedProducts:
+          reorderItems.map((r) => r.product).toList(),
+      activeBogoOffers: bogoOffers,
+      activeComboOffers: comboOffers,
+      categories: categories,
+      subCategories: subCategories,
+      deliveryOffer: deliveryOffer,
+    );
+  }
+
+  Future<DeliveryPricingResult?> _getDeliveryOffer(
+    Session session,
+    String? userId,
+  ) async {
+    if (userId == null || userId.isEmpty) return null;
+    try {
+      return await DeliveryEngine.getUserDeliveryOffer(session, userId);
+    } catch (_) {
+      return null;
+    }
+  }
+}

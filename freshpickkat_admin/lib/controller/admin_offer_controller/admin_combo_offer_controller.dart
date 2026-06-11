@@ -66,15 +66,41 @@ class AdminComboOfferController extends GetxController {
       totalCount.value = 0;
     }
     if (!force && comboOffers.isNotEmpty) {
-      if (loadAll) {
-        await ensureAllLoaded();
-      }
       return;
     }
 
-    await loadMore(isInitial: true);
     if (loadAll) {
-      await ensureAllLoaded();
+      await _loadAllComboOffers();
+    } else {
+      await loadMore(isInitial: true);
+    }
+  }
+
+  Future<void> _loadAllComboOffers() async {
+    isLoading.value = true;
+    networkController.hideError();
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final all = await ApiClient().request(() async {
+        return client.comboOffer.getAllComboOffers(uid, idToken);
+      });
+      comboOffers.assignAll(all);
+      totalCount.value = all.length;
+      hasMore.value = false;
+    } on NoInternetException {
+      networkController.showError(onRetry: loadComboOffers);
+    } on NetworkException {
+      networkController.showError(onRetry: loadComboOffers);
+    } on RequestTimeoutException {
+      networkController.showError(onRetry: loadComboOffers);
+    } catch (e) {
+      debugPrint('Error loading all combo offers: $e');
+      networkController.showError(onRetry: loadComboOffers);
+    } finally {
+      isLoading.value = false;
     }
   }
 

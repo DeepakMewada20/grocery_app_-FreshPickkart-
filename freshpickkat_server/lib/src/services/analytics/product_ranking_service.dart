@@ -58,7 +58,7 @@ class ProductRankingService {
     );
   }
 
-  Future<List<ProductRankingItem>> _rankByColumn(
+  Future<List<RankingRow>> getRankedProductIds(
     Session session, {
     required int limit,
     required String metricType,
@@ -89,13 +89,13 @@ class ProductRankingService {
       parameters: QueryParameters.named({'limit': pageSize}),
     );
 
-    final rows = <_RankingRow>[];
+    final rows = <RankingRow>[];
     for (final row in result) {
       final map = row.toColumnMap();
       final productId = map['productId']?.toString();
       if (productId == null || productId.isEmpty) continue;
       rows.add(
-        _RankingRow(
+        RankingRow(
           productId: productId,
           metricValue: asDouble(map['metricValue']),
           last7DaysSold: asInt(map['last7DaysSold']),
@@ -105,16 +105,14 @@ class ProductRankingService {
         ),
       );
     }
+    return rows;
+  }
 
-    final products = await _catalog.hydrateProductsByIds(
-      session,
-      rows.map((row) => row.productId).toList(),
-    );
-    final productsById = {
-      for (final product in products)
-        if (product.productId != null) product.productId!: product,
-    };
-
+  static List<ProductRankingItem> buildRankingItems({
+    required List<RankingRow> rows,
+    required Map<String, Product> productsById,
+    required String metricType,
+  }) {
     final ranked = <ProductRankingItem>[];
     for (var index = 0; index < rows.length; index++) {
       final row = rows[index];
@@ -135,10 +133,39 @@ class ProductRankingService {
     }
     return ranked;
   }
+
+  Future<List<ProductRankingItem>> _rankByColumn(
+    Session session, {
+    required int limit,
+    required String metricType,
+    required String metricColumn,
+  }) async {
+    final rows = await getRankedProductIds(
+      session,
+      limit: limit,
+      metricType: metricType,
+      metricColumn: metricColumn,
+    );
+
+    final products = await _catalog.hydrateProductsByIds(
+      session,
+      rows.map((row) => row.productId).toList(),
+    );
+    final productsById = {
+      for (final product in products)
+        if (product.productId != null) product.productId!: product,
+    };
+
+    return ProductRankingService.buildRankingItems(
+      rows: rows,
+      productsById: productsById,
+      metricType: metricType,
+    );
+  }
 }
 
-class _RankingRow {
-  const _RankingRow({
+class RankingRow {
+  const RankingRow({
     required this.productId,
     required this.metricValue,
     required this.last7DaysSold,

@@ -205,15 +205,115 @@ class CartController extends GetxController {
   Future<void> _runCartMetaRefresh() async {
     if (_isInitialLoading) return;
     try {
+      final items = _buildCartItemInputs();
+      if (items.isEmpty) {
+        await Future.wait([
+          _syncWithServer(),
+          _ensureDeliveryConfigLoaded(),
+          fetchAvailableCoupons(),
+          _revalidateAppliedCoupon(),
+          fetchCartPricing(),
+          fetchBasketSuggestions(),
+        ]);
+        return;
+      }
+
       await Future.wait([
         _syncWithServer(),
-        _ensureDeliveryConfigLoaded(),
-        fetchAvailableCoupons(),
-        _revalidateAppliedCoupon(),
-        fetchCartPricing(),
-        fetchBasketSuggestions(),
+        _fetchHydratedCartMeta(items),
       ]);
     } finally {}
+  }
+
+  Future<void> _fetchHydratedCartMeta(List<CartItemInput> items) async {
+    try {
+      final hydrated = await client.cart.getCartHydratedData(
+        items,
+        userId: AuthController.instance.currentUser?.uid,
+        appliedCouponCode: appliedCoupon.value?.code,
+        autoApplyCoupons: false,
+        basketMode: 'cart',
+      );
+
+      final snapshot = _buildPricingSnapshot();
+
+      if (hydrated.cartPricing != null) {
+        cartPricing.value = hydrated.cartPricing;
+        _lastPricingSnapshot = snapshot;
+        isPricingStale.value = false;
+      }
+
+      _cachedDeliveryConfig = hydrated.deliveryConfig;
+      _updateDeliveryFeeEstimate();
+
+      if (hydrated.basketSuggestions != null) {
+        final suggestions = hydrated.basketSuggestions!;
+        bestBasketSuggestion.value =
+            suggestions.bestSuggestion ??
+            (suggestions.suggestions.isNotEmpty
+                ? suggestions.suggestions.first
+                : null);
+        basketSuggestions.assignAll(
+          suggestions.otherSuggestions ??
+              (suggestions.suggestions.length > 1
+                  ? suggestions.suggestions.skip(1).toList(growable: false)
+                  : const <BasketSuggestion>[]),
+        );
+        _lastSuggestedCartSnapshot = _buildMeaningfulCartSnapshot();
+        _prefetchComboProductsFromSuggestions(suggestions.suggestions);
+      }
+
+      availableCoupons.assignAll(hydrated.availableCoupons);
+      final bestDisplay =
+          hydrated.availableCoupons.firstWhereOrNull(
+            (coupon) => coupon.isBest,
+          ) ??
+          hydrated.availableCoupons.firstWhereOrNull(
+            (coupon) =>
+                coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
+          );
+      bestCoupon.value = bestDisplay == null
+          ? null
+          : BestCouponResult(
+              bestCouponCode: bestDisplay.code,
+              discountAmount: bestDisplay.discountAmount ?? 0,
+            );
+      _couponCacheKey = _buildCouponCacheKey();
+      _hasCouponCacheForCurrentCart = true;
+
+      final coupon = appliedCoupon.value;
+      if (coupon != null) {
+        final stillValid = hydrated.availableCoupons.any(
+          (c) => c.code.toUpperCase() == coupon.code.toUpperCase(),
+        );
+        if (!stillValid) {
+          removeCoupon();
+          couponError.value = ErrorMessages.couponRemoved;
+        }
+      }
+
+      if (Get.isRegistered<RewardCelebrationService>()) {
+        RewardCelebrationService.instance.checkAndTriggerRewards(
+          currentDeliveryFee: deliveryFee,
+          originalDeliveryFee: originalDeliveryFee,
+          currentCouponCode: appliedCoupon.value?.code,
+          currentCouponDiscount: couponDiscount,
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Cart', 'HydratedMeta: $e');
+      _fallbackToIndividualMetaFetches(items);
+    }
+  }
+
+  Future<void> _fallbackToIndividualMetaFetches(List<CartItemInput> items) async {
+    await Future.wait([
+      _ensureDeliveryConfigLoaded(),
+      fetchAvailableCoupons(),
+      _revalidateAppliedCoupon(),
+      fetchCartPricing(),
+      fetchBasketSuggestions(),
+    ]);
   }
 
   void _updateDeliveryFeeEstimate() {

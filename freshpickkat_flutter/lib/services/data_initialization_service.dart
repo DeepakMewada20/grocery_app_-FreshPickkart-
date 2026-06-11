@@ -1,9 +1,5 @@
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
-import 'package:freshpickkat_flutter/controller/banner_controller.dart';
-import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
-import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
-import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
-import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/services/home_data_service.dart';
 import 'package:freshpickkat_flutter/services/notification_service.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
@@ -24,16 +20,10 @@ class DataInitializationService extends GetxService {
     isLoading.value = true;
 
     try {
-      // Run critical fetches in parallel
-      // Auth and Notifications run in background (non-blocking)
-      // Categories is now deferred to its own screen.
       _initAuth();
       _initNotifications();
 
-      await Future.wait([
-        _initBanners(),
-        _initInitialProducts(),
-      ]);
+      await HomeDataService().fetchHomePageData();
 
       isInitialized.value = true;
       AppLogger.info('Init', 'Global Data Initialization Complete.');
@@ -54,23 +44,7 @@ class DataInitializationService extends GetxService {
     }
   }
 
-  Future<void> _initBanners() async {
-    try {
-      await BannerController.instance.loadHomeBannersIfEmpty();
-    } catch (e) {
-      AppLogger.error('Init', 'Banners: $e');
-    }
-  }
-
-
-
-  Future<void> _initInitialProducts() async {
-    try {
-      await ProductProviderController.instance.fetchProductsIfEmpty();
-    } catch (e) {
-      AppLogger.error('Init', 'Products: $e');
-    }
-  }
+  
 
   Future<void> _initNotifications() async {
     try {
@@ -85,13 +59,7 @@ class DataInitializationService extends GetxService {
   Future<void> refreshAllData() async {
     isLoading.value = true;
     try {
-      await Future.wait([
-        BannerController.instance.forceLoadAllBanners(),
-        CategoryProviderController.instance.forceFetchCategories(),
-        BogoController.instance.forceFetchActiveOffers(),
-        ComboOfferController.instance.forceFetchActiveComboOffers(),
-        ProductProviderController.instance.forceFetchProducts(),
-      ]);
+      await HomeDataService().fetchHomePageData();
     } finally {
       isLoading.value = false;
     }
