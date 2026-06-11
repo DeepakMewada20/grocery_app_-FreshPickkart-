@@ -36,11 +36,11 @@ class _CategoriesScreenWithStickyHeaderState
   final Map<int, GlobalKey> _categoryKeys = {};
   final GlobalKey _allItemsKey = GlobalKey();
   int? _tappedCategoryIndex;
+  List<double> _categoryOffsets = [];
 
   @override
   void initState() {
     super.initState();
-    // Lazy load categories only when this screen is accessed
     categoryController.fetchCategoriesIfEmpty();
     _itemsScrollController.addListener(_onItemsScroll);
     BannerController.instance.loadBannersForScreen('category_page');
@@ -53,6 +53,11 @@ class _CategoriesScreenWithStickyHeaderState
             for (int i = 0; i < categories.length; i++) {
               _categoryKeys[i] = GlobalKey();
             }
+          });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _computeCategoryOffsets();
+            _calibrateCategoryOffsets();
           });
         }
       }
@@ -74,6 +79,63 @@ class _CategoriesScreenWithStickyHeaderState
       for (int i = 0; i < categoryController.categories.length; i++) {
         _categoryKeys[i] = GlobalKey();
       }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _computeCategoryOffsets();
+        _calibrateCategoryOffsets();
+      });
+    }
+  }
+
+  void _computeCategoryOffsets() {
+    if (!mounted || !context.mounted) return;
+    final width = MediaQuery.of(context).size.width;
+    final sidebarWidth = AppResponsive.railWidth(context);
+    final availableWidth = width - sidebarWidth - 9.w - 20.w;
+    final columns = AppResponsive.categoryGridColumnsForWidth(availableWidth);
+    final cellWidth = availableWidth / columns;
+    final aspectRatio = MediaQuery.of(context).orientation == Orientation.landscape
+        ? 0.86
+        : 0.78;
+    final cellHeight = cellWidth / aspectRatio;
+    const spacing = 12.0;
+    const categoryNameHeight = 40.0;
+    const dividerHeight = 16.0;
+
+    _categoryOffsets = [0.0];
+    for (int i = 0; i < categoryController.categories.length; i++) {
+      final prevOffset = _categoryOffsets[i];
+      final categoryName = categoryController.categories[i].categoryName;
+      final subCount = categoryController.subCategories
+          .where(
+            (sc) =>
+                sc.categoryId.trim().toLowerCase() ==
+                categoryName.trim().toLowerCase(),
+          )
+          .length;
+      final rows = subCount > 0 ? (subCount / columns).ceil() : 1;
+      final gridHeight = subCount > 0
+          ? rows * cellHeight + (rows - 1) * spacing
+          : 50.0;
+      _categoryOffsets.add(prevOffset + categoryNameHeight + gridHeight + dividerHeight);
+    }
+  }
+
+  void _calibrateCategoryOffsets() {
+    if (_categoryOffsets.length <= categoryController.categories.length) return;
+    for (int i = 0; i < categoryController.categories.length; i++) {
+      final renderBox =
+          _categoryKeys[i]?.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        final offset = renderBox.localToGlobal(Offset.zero);
+        final scrollCurrent = _itemsScrollController.hasClients
+            ? _itemsScrollController.offset
+            : 0.0;
+        final viewportTop =
+            (context.findRenderObject() as RenderBox?)?.localToGlobal(Offset.zero).dy ?? 0;
+        final docOffset = scrollCurrent + offset.dy - viewportTop;
+        _categoryOffsets[i] = docOffset;
+      }
     }
   }
 
@@ -83,42 +145,35 @@ class _CategoriesScreenWithStickyHeaderState
 
   void _onItemsScroll() {
     if (_isAutoScrolling || categoryController.categories.isEmpty) return;
+    _syncScrollState();
+  }
 
-    const stickyHeaderHeight = 120.0;
-    int newSelectedIndex = 0;
+  void _syncScrollState() {
+    if (!mounted || categoryController.categories.isEmpty) return;
+    if (_categoryOffsets.length <= categoryController.categories.length) return;
 
-    for (int i = 0; i < categoryController.categories.length; i++) {
-      final RenderBox? renderBox =
-          _categoryKeys[i]?.currentContext?.findRenderObject() as RenderBox?;
+    final offset = _itemsScrollController.hasClients
+        ? _itemsScrollController.offset
+        : 0.0;
 
-      if (renderBox != null) {
-        final position = renderBox.localToGlobal(Offset.zero);
-        if (position.dy <= stickyHeaderHeight) {
-          newSelectedIndex = i;
-        }
+    int newIndex = 0;
+    for (int i = 0; i < _categoryOffsets.length; i++) {
+      if (offset >= _categoryOffsets[i] - 50) {
+        newIndex = i;
       }
     }
-
-    final maxScroll = _itemsScrollController.position.maxScrollExtent;
-    if (_itemsScrollController.offset >= maxScroll - 100) {
-      final allItemsIndex = categoryController.categories.length;
-      if (_selectedCategoryIndex != allItemsIndex) {
-        setState(() {
-          _selectedCategoryIndex = allItemsIndex;
-          _currentStickyHeader = 'All Items';
-        });
-        _scrollCategoryIntoView(allItemsIndex);
-      }
-      return;
+    if (newIndex >= categoryController.categories.length) {
+      newIndex = categoryController.categories.length;
     }
 
-    if (_selectedCategoryIndex != newSelectedIndex) {
+    if (_selectedCategoryIndex != newIndex) {
       setState(() {
-        _selectedCategoryIndex = newSelectedIndex;
-        _currentStickyHeader =
-            categoryController.categories[newSelectedIndex].categoryName;
+        _selectedCategoryIndex = newIndex;
+        _currentStickyHeader = newIndex < categoryController.categories.length
+            ? categoryController.categories[newIndex].categoryName
+            : 'All Items';
       });
-      _scrollCategoryIntoView(newSelectedIndex);
+      _scrollCategoryIntoView(newIndex);
     }
   }
 
@@ -145,38 +200,102 @@ class _CategoriesScreenWithStickyHeaderState
     setState(() {
       _selectedCategoryIndex = index;
       _isAutoScrolling = true;
+      if (index < categoryController.categories.length) {
+        _currentStickyHeader =
+            categoryController.categories[index].categoryName;
+      } else {
+        _currentStickyHeader = 'All Items';
+      }
     });
 
-    if (index < categoryController.categories.length) {
-      _currentStickyHeader = categoryController.categories[index].categoryName;
-      final context = _categoryKeys[index]?.currentContext;
-      if (context != null) {
-        Scrollable.ensureVisible(
-          context,
-          duration: const Duration(milliseconds: 500),
+    if (!_itemsScrollController.hasClients) {
+      _isAutoScrolling = false;
+      return;
+    }
+
+    _scrollToCategory(index).then((_) {
+      _isAutoScrolling = false;
+      _syncScrollState();
+    });
+  }
+
+  Future<void> _scrollToCategory(int index) async {
+    if (!_itemsScrollController.hasClients) return;
+
+    // "All Items" — scroll to bottom using the dedicated key
+    if (index >= categoryController.categories.length) {
+      final allCtx = _allItemsKey.currentContext;
+      if (allCtx != null && allCtx.findRenderObject() != null) {
+        await Scrollable.ensureVisible(
+          allCtx,
+          duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
           alignment: 0.0,
-        ).then((_) {
-          _isAutoScrolling = false;
-        });
+        );
       } else {
-        _isAutoScrolling = false;
+        await _itemsScrollController.animateTo(
+          _itemsScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
       }
-    } else {
-      _currentStickyHeader = 'All Items';
-      final context = _allItemsKey.currentContext;
-      if (context != null) {
-        Scrollable.ensureVisible(
-          context,
-          duration: const Duration(milliseconds: 500),
+      return;
+    }
+
+    // Fast path: widget already built → precise scroll
+    final ctx = _categoryKeys[index]?.currentContext;
+    if (ctx != null && ctx.findRenderObject() != null) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: 0.0,
+      );
+      if (mounted) _calibrateCategoryOffsets();
+      return;
+    }
+
+    // Slow path: widget not built.
+    // Pre-computed offsets have accumulated error for higher indices,
+    // so we add an adaptive overshoot (500px + 50px per index) to
+    // guarantee the target widget enters the build tree.
+    // After the overshoot, ensureVisible corrects to the exact position.
+    final baseOffset = index < _categoryOffsets.length
+        ? _categoryOffsets[index]
+        : index * 250.0;
+    final overshoot = 500.0 + index * 50.0;
+
+    await _itemsScrollController.animateTo(
+      (baseOffset + overshoot)
+          .clamp(0.0, _itemsScrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+
+    for (int attempt = 0; attempt < 3; attempt++) {
+      final retryCtx = _categoryKeys[index]?.currentContext;
+      if (retryCtx != null && retryCtx.findRenderObject() != null) {
+        await Scrollable.ensureVisible(
+          retryCtx,
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
           alignment: 0.0,
-        ).then((_) {
-          _isAutoScrolling = false;
-        });
-      } else {
-        _isAutoScrolling = false;
+        );
+        if (mounted) _calibrateCategoryOffsets();
+        return;
       }
+      if (!_itemsScrollController.hasClients) return;
+      await _itemsScrollController.animateTo(
+        (_itemsScrollController.offset + 300)
+            .clamp(0.0, _itemsScrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      if (!mounted) return;
     }
   }
 

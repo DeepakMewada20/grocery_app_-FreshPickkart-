@@ -1,6 +1,8 @@
 ## Goal
 Eliminate multiple API calls per screen by implementing server-side hydration across admin and user apps, then add offer chips to admin product cards.
 
+## Current Task: (completed) Fix category screen scroll sync, verify variant-level offer badges
+
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
 - Offer data (BOGO, combo, category offer, free delivery) must be hydrated server-side into Product model — no extra client calls
@@ -52,8 +54,18 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - Admin product form dialog uses local lists instead of GetX controllers (simpler, no reactive overhead)
 
 ## Next Steps
-- (done) Home page hydration reduced from 5 `hydrateProductsByIds()` calls to 1 (see `getHomePageHydrated()` in `postgres_home_service.dart`)
-- (done) Fixed `hydrateProductsByIds` crash: `const <ProductVariantRow>[]` → `<ProductVariantRow>[]` (unmodifiable list cannot be sorted)
+1. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
+2. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
+3. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
+
+## Recent Fixes
+### Category Screen Scroll Sync (`cetegoris_screen_with_stick_heder.dart`)
+- Simplified `_scrollToCategory`: removed complex `_estimateCategoryOffset` with nearest-built lookup
+- **Overshoot + correct strategy**: (1) `Scrollable.ensureVisible` if widget built (fast path); (2) otherwise `animateTo` to `_categoryOffsets[index] + 500px` buffer to force ListView to build the target widget; (3) retry `Scrollable.ensureVisible` for precise alignment; (4) progressive 200px nudges if widget still not built (up to 3 retries)
+- Added `_calibrateCategoryOffsets()`: after each category tap scroll, calibrates known offsets using actual render box positions for future accuracy
+- Fixed landscape aspect ratio in `_computeCategoryOffsets` (0.86 vs 0.78)
+- Empty subcategory sections use a fixed 50px estimate instead of a full grid cell height
+- "All Items" separated into its own scroll-to-bottom path
 
 ## Key Optimizations
 - **Home page DB queries reduced**: ~63 → ~23 per load. Fetch IDs first (5 simple SQL queries), merge + deduplicate, hydrate once (10 queries), distribute results.
