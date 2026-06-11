@@ -66,6 +66,8 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - Fixed landscape aspect ratio in `_computeCategoryOffsets` (0.86 vs 0.78)
 - Empty subcategory sections use a fixed 50px estimate instead of a full grid cell height
 - "All Items" separated into its own scroll-to-bottom path
+- **`cacheExtent: 10000` on items ListView**: forces all category widgets to stay alive, so `Scrollable.ensureVisible` always has a valid context — no more two-phase overshoot retry, just a single smooth animation
+- **`_onCategoryTap` no longer calls `_syncScrollState`**: header and sidebar are set by `setState` before the scroll, and `_syncScrollState` only runs on manual scroll — prevents inaccurate offsets from overwriting the header after a tap
 
 ## Key Optimizations
 - **Home page DB queries reduced**: ~63 → ~23 per load. Fetch IDs first (5 simple SQL queries), merge + deduplicate, hydrate once (10 queries), distribute results.

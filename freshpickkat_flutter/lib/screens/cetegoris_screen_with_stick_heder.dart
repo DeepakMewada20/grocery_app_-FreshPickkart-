@@ -208,6 +208,8 @@ class _CategoriesScreenWithStickyHeaderState
       }
     });
 
+    _scrollCategoryIntoView(index);
+
     if (!_itemsScrollController.hasClients) {
       _isAutoScrolling = false;
       return;
@@ -215,7 +217,6 @@ class _CategoriesScreenWithStickyHeaderState
 
     _scrollToCategory(index).then((_) {
       _isAutoScrolling = false;
-      _syncScrollState();
     });
   }
 
@@ -242,7 +243,7 @@ class _CategoriesScreenWithStickyHeaderState
       return;
     }
 
-    // Fast path: widget already built → precise scroll
+    // All widgets are kept alive via cacheExtent → context is always valid.
     final ctx = _categoryKeys[index]?.currentContext;
     if (ctx != null && ctx.findRenderObject() != null) {
       await Scrollable.ensureVisible(
@@ -252,50 +253,6 @@ class _CategoriesScreenWithStickyHeaderState
         alignment: 0.0,
       );
       if (mounted) _calibrateCategoryOffsets();
-      return;
-    }
-
-    // Slow path: widget not built.
-    // Pre-computed offsets have accumulated error for higher indices,
-    // so we add an adaptive overshoot (500px + 50px per index) to
-    // guarantee the target widget enters the build tree.
-    // After the overshoot, ensureVisible corrects to the exact position.
-    final baseOffset = index < _categoryOffsets.length
-        ? _categoryOffsets[index]
-        : index * 250.0;
-    final overshoot = 500.0 + index * 50.0;
-
-    await _itemsScrollController.animateTo(
-      (baseOffset + overshoot)
-          .clamp(0.0, _itemsScrollController.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-
-    await Future<void>.delayed(const Duration(milliseconds: 150));
-    if (!mounted) return;
-
-    for (int attempt = 0; attempt < 3; attempt++) {
-      final retryCtx = _categoryKeys[index]?.currentContext;
-      if (retryCtx != null && retryCtx.findRenderObject() != null) {
-        await Scrollable.ensureVisible(
-          retryCtx,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          alignment: 0.0,
-        );
-        if (mounted) _calibrateCategoryOffsets();
-        return;
-      }
-      if (!_itemsScrollController.hasClients) return;
-      await _itemsScrollController.animateTo(
-        (_itemsScrollController.offset + 300)
-            .clamp(0.0, _itemsScrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeInOut,
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 80));
-      if (!mounted) return;
     }
   }
 
@@ -581,6 +538,7 @@ class _CategoriesScreenWithStickyHeaderState
         },
         child: ListView(
           controller: _itemsScrollController,
+          cacheExtent: 10000,
           padding: EdgeInsets.only(left: 10.w, right: 10.w),
           children: [
             ...List.generate(categoryController.categories.length, (
