@@ -182,7 +182,9 @@ class PostgresOfferSearchService {
         .map((row) => row.toColumnMap()['productId']?.toString())
         .whereType<String>()
         .toList();
-    final products = await _catalog.hydrateProductsByIds(session, productIds);
+    final products = _catalog.flattenToVariantProducts(
+      await _catalog.hydrateProductsByIds(session, productIds),
+    );
     final bogoOffers = normalizedType == 'bogo'
         ? await _offers.getActiveBogoOffersForProducts(
             session,

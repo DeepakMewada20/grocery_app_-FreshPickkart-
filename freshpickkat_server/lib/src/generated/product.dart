@@ -18,6 +18,7 @@ abstract class Product
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   Product._({
     this.productId,
+    this.variantId,
     required this.productName,
     required this.category,
     required this.imageUrl,
@@ -50,6 +51,7 @@ abstract class Product
 
   factory Product({
     String? productId,
+    String? variantId,
     required String productName,
     required String category,
     required String imageUrl,
@@ -82,6 +84,7 @@ abstract class Product
   factory Product.fromJson(Map<String, dynamic> jsonSerialization) {
     return Product(
       productId: jsonSerialization['productId'] as String?,
+      variantId: jsonSerialization['variantId'] as String?,
       productName: jsonSerialization['productName'] as String,
       category: jsonSerialization['category'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String,
@@ -135,6 +138,8 @@ abstract class Product
   }
 
   String? productId;
+
+  String? variantId;
 
   String productName;
 
@@ -195,6 +200,7 @@ abstract class Product
   @_i1.useResult
   Product copyWith({
     String? productId,
+    String? variantId,
     String? productName,
     String? category,
     String? imageUrl,
@@ -228,6 +234,7 @@ abstract class Product
     return {
       '__className__': 'Product',
       if (productId != null) 'productId': productId,
+      if (variantId != null) 'variantId': variantId,
       'productName': productName,
       'category': category,
       'imageUrl': imageUrl,
@@ -266,6 +273,7 @@ abstract class Product
     return {
       '__className__': 'Product',
       if (productId != null) 'productId': productId,
+      if (variantId != null) 'variantId': variantId,
       'productName': productName,
       'category': category,
       'imageUrl': imageUrl,
@@ -310,6 +318,7 @@ class _Undefined {}
 class _ProductImpl extends Product {
   _ProductImpl({
     String? productId,
+    String? variantId,
     required String productName,
     required String category,
     required String imageUrl,
@@ -339,6 +348,7 @@ class _ProductImpl extends Product {
     List<_i2.ProductVariant>? variants,
   }) : super._(
          productId: productId,
+         variantId: variantId,
          productName: productName,
          category: category,
          imageUrl: imageUrl,
@@ -374,6 +384,7 @@ class _ProductImpl extends Product {
   @override
   Product copyWith({
     Object? productId = _Undefined,
+    Object? variantId = _Undefined,
     String? productName,
     String? category,
     String? imageUrl,
@@ -404,6 +415,7 @@ class _ProductImpl extends Product {
   }) {
     return Product(
       productId: productId is String? ? productId : this.productId,
+      variantId: variantId is String? ? variantId : this.variantId,
       productName: productName ?? this.productName,
       category: category ?? this.category,
       imageUrl: imageUrl ?? this.imageUrl,

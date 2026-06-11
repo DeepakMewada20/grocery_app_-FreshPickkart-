@@ -1,6 +1,7 @@
 class: Product
 fields:
     productId: String?
+    variantId: String?
     productName: String
     category: String
     imageUrl: String

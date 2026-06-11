@@ -103,7 +103,8 @@ class PostgresProductCompatService {
         .map((row) => row.toColumnMap()['productId']?.toString())
         .whereType<String>()
         .toList();
-    return _catalog.hydrateProductsByIds(session, productIds);
+    final products = await _catalog.hydrateProductsByIds(session, productIds);
+    return _catalog.flattenToVariantProducts(products);
   }
 
   Future<ProductPage> getProductsPage(
@@ -208,7 +209,7 @@ class PostgresProductCompatService {
         : null;
 
     return ProductPage(
-      products: products,
+      products: _catalog.flattenToVariantProducts(products),
       nextPageToken: nextPageToken,
       totalCount: totalCount,
     );

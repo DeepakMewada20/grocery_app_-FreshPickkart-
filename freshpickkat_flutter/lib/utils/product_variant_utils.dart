@@ -118,5 +118,10 @@ Product applyVariantToProduct(Product product, {String? variantId}) {
     realPrice: selectedVariant.realPrice,
     isAvailable: selectedVariant.isAvailable,
     variants: sortedProductVariants(product),
+    bogoFreeProductIds:
+        selectedVariant.bogoFreeProductIds ?? product.bogoFreeProductIds,
+    isFreeDelivery: selectedVariant.isFreeDelivery,
+    comboOfferIds:
+        selectedVariant.comboOfferIds ?? product.comboOfferIds,
   );
 }

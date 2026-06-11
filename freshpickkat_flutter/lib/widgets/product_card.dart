@@ -12,7 +12,7 @@ import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
@@ -20,6 +20,7 @@ import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -53,15 +54,17 @@ class _ProductCardState extends State<ProductCard> {
   final AuthController _authController = AuthController.instance;
   final CartController _cartController = CartController.instance;
   bool _isPressed = false;
-  late String _selectedVariantId;
   StreamSubscription? _cartSubscription;
+
+  String get _variantId =>
+      widget.product.variantId?.isNotEmpty == true
+          ? widget.product.variantId!
+          : 'default';
 
   @override
   void initState() {
     super.initState();
-    _selectedVariantId = inferProductVariantId(widget.product);
     _cartSubscription = _cartController.cartItems.listen((_) {
-      _syncSelectedVariantFromCart();
       if (mounted) setState(() {});
     });
   }
@@ -73,27 +76,14 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Product get _displayProduct =>
-      applyVariantToProduct(widget.product, variantId: _selectedVariantId);
-
-  void _syncSelectedVariantFromCart() {
-    if (!mounted) return;
-    final cartItem = _cartController.cartItems.firstWhereOrNull(
-      (item) => item.product.productId == widget.product.productId,
-    );
-    if (cartItem == null) return;
-    final actualVariantId =
-        cartItem.variantId ?? inferProductVariantId(widget.product);
-    if (actualVariantId != _selectedVariantId) {
-      setState(() => _selectedVariantId = actualVariantId);
-    }
-  }
+      applyVariantToProduct(widget.product, variantId: _variantId);
 
   void _increment() {
-    _cartController.addItem(widget.product, variantId: _selectedVariantId);
+    _cartController.addItem(widget.product, variantId: _variantId);
   }
 
   void _decrement() {
-    _cartController.removeItem(widget.product, variantId: _selectedVariantId);
+    _cartController.removeItem(widget.product, variantId: _variantId);
   }
 
   Future<void> _handleAddToCart() async {
@@ -122,7 +112,7 @@ class _ProductCardState extends State<ProductCard> {
     final cartItem = _cartController.cartItems.firstWhereOrNull(
       (item) =>
           item.product.productId == product.productId &&
-          (item.variantId ?? 'default') == _selectedVariantId,
+          (item.variantId ?? 'default') == _variantId,
     );
     if (cartItem?.bogoFreeProductId != null) return;
 
@@ -131,7 +121,7 @@ class _ProductCardState extends State<ProductCard> {
         (isBogoTriggerVariantEligible(
               widget.product,
               offer: offer,
-              selectedVariantId: _selectedVariantId,
+              selectedVariantId: _variantId,
             ) &&
             isBogoTriggerQuantityEligible(offer, cartItem?.quantity ?? 0));
 
@@ -139,7 +129,7 @@ class _ProductCardState extends State<ProductCard> {
       _cartController.setBogoSelection(
         product.productId!,
         freeProductIds.first,
-        triggerVariantId: _selectedVariantId,
+        triggerVariantId: _variantId,
       );
       return;
     }
@@ -149,7 +139,7 @@ class _ProductCardState extends State<ProductCard> {
       Get.bottomSheet(
         BogoSelectionBottomSheet(
           triggerProductId: product.productId!,
-          triggerVariantId: _selectedVariantId,
+          triggerVariantId: _variantId,
           freeProductIds: freeProductIds,
         ),
         isScrollControlled: true,
@@ -162,7 +152,6 @@ class _ProductCardState extends State<ProductCard> {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final displayProduct = _displayProduct;
-    final variants = sortedProductVariants(widget.product);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -273,70 +262,26 @@ class _ProductCardState extends State<ProductCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (variants.length > 1) ...[
-                              SizedBox(
-                                height: 26.h.clamp(22.0, 30.0),
-                                child: DropdownButton<String>(
-                                  value: _selectedVariantId,
-                                  isExpanded: true,
-                                  isDense: true,
-                                  iconSize: 14.r,
-                                  underline: const SizedBox.shrink(),
-                                  style: GoogleFonts.inter(
-                                    color: cs.onSurface.withValues(
-                                      alpha: 0.5,
-                                    ),
+                            SizedBox(
+                              height: 26.h.clamp(22.0, 30.0),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: AutoSizeText(
+                                  productFullQuantityLabel(displayProduct),
+                                  style: AppTextStyles.productQuantity(
+                                    context,
+                                  ).copyWith(
                                     fontSize: widget.quantityFontSize?.sp ??
                                         AppTextStyles.productQuantity(
                                           context,
                                         ).fontSize,
-                                    fontWeight: FontWeight.w400,
                                   ),
-                                  dropdownColor: cs.surface,
-                                  items: variants.map(
-                                    (variant) {
-                                      return DropdownMenuItem(
-                                        value: variant.variantId,
-                                        child: Text(
-                                          formatQuantityString(
-                                            variant.quantityValue,
-                                            variant.quantityUnit,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      );
-                                    },
-                                  ).toList(),
-                                  onChanged: (value) {
-                                    if (value == null) return;
-                                    setState(() {
-                                      _selectedVariantId = value;
-                                    });
-                                  },
+                                  maxLines: 1,
+                                  minFontSize: 8,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ] else ...[
-                              SizedBox(
-                                height: 26.h.clamp(22.0, 30.0),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: AutoSizeText(
-                                    productFullQuantityLabel(displayProduct),
-                                    style: AppTextStyles.productQuantity(
-                                      context,
-                                    ).copyWith(
-                                      fontSize: widget.quantityFontSize?.sp ??
-                                          AppTextStyles.productQuantity(
-                                            context,
-                                          ).fontSize,
-                                    ),
-                                    maxLines: 1,
-                                    minFontSize: 8,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                             SizedBox(height: 3.h),
 
                             Row(
@@ -409,7 +354,7 @@ class _ProductCardState extends State<ProductCard> {
   Widget _buildAddOrQuantity(ColorScheme cs) {
     final quantity = _cartController.getProductQuantity(
       widget.product.productId,
-      variantId: _selectedVariantId,
+      variantId: _variantId,
     );
     return quantity == 0 ? _buildAddButton(cs) : _buildQuantitySelector(quantity);
   }

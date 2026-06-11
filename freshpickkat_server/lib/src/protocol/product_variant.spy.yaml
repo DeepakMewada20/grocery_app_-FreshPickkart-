@@ -8,3 +8,6 @@ fields:
   realPrice: double
   isAvailable: bool
   sortOrder: int?
+  bogoFreeProductIds: List<String>?
+  comboOfferIds: List<String>?
+  isFreeDelivery: bool, default=false

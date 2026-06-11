@@ -5471,6 +5471,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'false',
         ),
         _i2.ColumnDefinition(
+          name: 'isFreeDelivery',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+          columnDefault: 'false',
+        ),
+        _i2.ColumnDefinition(
           name: 'sortOrder',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,

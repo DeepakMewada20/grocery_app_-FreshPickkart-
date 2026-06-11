@@ -93,8 +93,12 @@ class PostgresHomeService {
       session,
       allIds.toList(),
     );
+    final flatProducts = _catalog.flattenToVariantProducts(
+      hydratedProducts,
+      onlyDefaultVariant: true,
+    );
     final productMap = {
-      for (final product in hydratedProducts)
+      for (final product in flatProducts)
         if (product.productId != null) product.productId!: product,
     };
 

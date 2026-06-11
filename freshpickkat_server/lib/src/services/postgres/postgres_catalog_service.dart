@@ -135,7 +135,7 @@ class PostgresCatalogService {
         : null;
 
     return ProductPage(
-      products: products,
+      products: flattenToVariantProducts(products),
       nextPageToken: nextPageToken,
       totalCount: totalCount,
     );
@@ -276,7 +276,7 @@ class PostgresCatalogService {
         : null;
 
     return ProductPage(
-      products: products,
+      products: flattenToVariantProducts(products),
       nextPageToken: nextPageToken,
       totalCount: totalCount,
     );
@@ -416,14 +416,10 @@ class PostgresCatalogService {
     final now = DateTime.now().toUtc();
     final activeBogoOfferRows = bogoOfferRows.where(
       (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-    );
+    ).toList();
     final activeBogoOfferIds = activeBogoOfferRows
         .map((row) => row.id!)
         .toSet();
-    final triggerProductByOfferId = {
-      for (final row in activeBogoOfferRows)
-        row.id!.toString(): row.triggerProductId.toString(),
-    };
 
     final subCategoryIds = mappings.map((row) => row.subCategoryId).toSet();
     final categoryIds = products.map((product) => product.categoryId).toSet();
@@ -468,6 +464,28 @@ class PostgresCatalogService {
     final categoryOfferRows = batch2[3] as List<CategoryOfferRow>;
     final activeComboOfferRows = batch2[4] as List<ComboOfferRow>;
 
+    // Build variant-level BOGO maps (depends on bogoRewardRows from batch 2)
+    final bogoByVariant = <String, Map<String, Set<String>>>{};
+    final bogoByProductOnly = <String, Set<String>>{};
+    for (final bogoOffer in activeBogoOfferRows) {
+      final triggerProductId = bogoOffer.triggerProductId.toString();
+      final triggerVariantIdStr = bogoOffer.triggerVariantId?.toString();
+      for (final reward in bogoRewardRows) {
+        if (reward.bogoOfferId != bogoOffer.id) continue;
+        final rewardProductId = reward.rewardProductId.toString();
+        if (triggerVariantIdStr != null && triggerVariantIdStr.isNotEmpty) {
+          bogoByVariant
+              .putIfAbsent(triggerProductId, () => {})
+              .putIfAbsent(triggerVariantIdStr, () => <String>{})
+              .add(rewardProductId);
+        } else {
+          bogoByProductOnly
+              .putIfAbsent(triggerProductId, () => <String>{})
+              .add(rewardProductId);
+        }
+      }
+    }
+
     final subCategoryById = {
       for (final subCategory in subCategories)
         subCategory.id!.toString(): subCategory,
@@ -486,13 +504,21 @@ class PostgresCatalogService {
     };
 
     final bogoRewardsByProduct = <String, Set<String>>{};
-    for (final reward in bogoRewardRows) {
-      final triggerProductId =
-          triggerProductByOfferId[reward.bogoOfferId.toString()];
-      if (triggerProductId == null) continue;
-      bogoRewardsByProduct
-          .putIfAbsent(triggerProductId, () => <String>{})
-          .add(reward.rewardProductId.toString());
+    for (final entry in bogoByProductOnly.entries) {
+      bogoRewardsByProduct[entry.key] = entry.value;
+    }
+    // For variant-level BOGO, also add to product-level aggregate
+    // (so product-level field still reflects that BOGO exists for some variant)
+    for (final entry in bogoByVariant.entries) {
+      final allVariantsBogo = <String>{};
+      for (final variantEntry in entry.value.entries) {
+        allVariantsBogo.addAll(variantEntry.value);
+      }
+      if (allVariantsBogo.isNotEmpty) {
+        bogoRewardsByProduct
+            .putIfAbsent(entry.key, () => <String>{})
+            .addAll(allVariantsBogo);
+      }
     }
 
     final activeCategoryOffers = categoryOfferRows.where(
@@ -510,14 +536,29 @@ class PostgresCatalogService {
     final activeComboOfferIds =
         activeComboOffers.map((r) => r.id!.toString()).toSet();
     final comboByProduct = <String, List<String>>{};
+    // Variant-level combo tracking: productId -> {variantId -> [comboOfferId]}
+    final comboByVariant = <String, Map<String, List<String>>>{};
     for (final item in comboItemRows) {
       final comboOfferId = item.comboOfferId.toString();
       if (!activeComboOfferIds.contains(comboOfferId)) continue;
       final productId = item.productId.toString();
-      comboByProduct.putIfAbsent(productId, () => []).add(comboOfferId);
+      final variantIdStr = item.productVariantId?.toString();
+      if (variantIdStr != null && variantIdStr.isNotEmpty) {
+        comboByVariant
+            .putIfAbsent(productId, () => {})
+            .putIfAbsent(variantIdStr, () => [])
+            .add(comboOfferId);
+      } else {
+        comboByProduct.putIfAbsent(productId, () => []).add(comboOfferId);
+      }
     }
     for (final list in comboByProduct.values) {
       list.sort();
+    }
+    for (final map in comboByVariant.values) {
+      for (final list in map.values) {
+        list.sort();
+      }
     }
 
     final hydrated = <Product>[];
@@ -539,16 +580,42 @@ class PostgresCatalogService {
 
       final mappedVariants = variantRows
           .map(
-            (variant) => ProductVariant(
-              variantId: variant.id!.toString(),
-              quantityValue: variant.quantityValue,
-              quantityUnit: variant.quantityUnit,
-              quantityDescription: variant.quantityDescription,
-              price: variant.salePrice,
-              realPrice: variant.listPrice,
-              isAvailable: variant.isAvailable,
-              sortOrder: variant.sortOrder,
-            ),
+            (variant) {
+              final variantIdStr = variant.id!.toString();
+              // Variant-level BOGO: check variant-specific first, then product-level
+              final variantBogo =
+                  bogoByVariant[productId]?[variantIdStr]?.toList()?..sort();
+              final productBogo =
+                  bogoByProductOnly[productId]?.toList()?..sort();
+              final resolvedBogo = variantBogo?.isNotEmpty == true
+                  ? variantBogo
+                  : productBogo?.isNotEmpty == true
+                      ? productBogo
+                      : null;
+              // Variant-level combo: check variant-specific first, then product-level
+              final variantCombo = comboByVariant[productId]?[variantIdStr];
+              final resolvedCombo = variantCombo?.isNotEmpty == true
+                  ? variantCombo
+                  : comboByProduct[productId]?.isNotEmpty == true
+                      ? comboByProduct[productId]
+                      : null;
+              return ProductVariant(
+                variantId: variantIdStr,
+                quantityValue: variant.quantityValue,
+                quantityUnit: variant.quantityUnit,
+                quantityDescription: variant.quantityDescription,
+                price: variant.salePrice,
+                realPrice: variant.listPrice,
+                isAvailable: variant.isAvailable,
+                sortOrder: variant.sortOrder,
+                bogoFreeProductIds:
+                    resolvedBogo?.isEmpty == true ? null : resolvedBogo,
+                comboOfferIds:
+                    resolvedCombo?.isEmpty == true ? null : resolvedCombo,
+                isFreeDelivery:
+                    variant.isFreeDelivery || productRow.isFreeDelivery,
+              );
+            },
           )
           .toList();
 
@@ -599,6 +666,7 @@ class PostgresCatalogService {
       hydrated.add(
         Product(
           productId: productRow.id!.toString(),
+          variantId: defaultVariant?.id?.toString(),
           productName: productRow.name,
           category: category.name,
           shortDescription: productRow.shortDescription,
@@ -640,6 +708,58 @@ class PostgresCatalogService {
     }
 
     return hydrated;
+  }
+
+  List<Product> flattenToVariantProducts(
+    List<Product> products, {
+    bool onlyDefaultVariant = false,
+  }) {
+    if (products.isEmpty) return const [];
+
+    final result = <Product>[];
+    for (final product in products) {
+      final variants = product.variants ?? [];
+      if (variants.isEmpty) {
+        result.add(product.copyWith(variants: []));
+        continue;
+      }
+
+      final targetVariants = onlyDefaultVariant
+          ? variants.take(1).toList()
+          : variants;
+
+      for (final variant in targetVariants) {
+        final quantityDesc = variant.quantityDescription;
+        final quantityLabel = quantityDesc != null && quantityDesc.isNotEmpty
+            ? quantityDesc
+            : '${_compactNumber(variant.quantityValue)} ${variant.quantityUnit}'
+                .trim();
+
+        result.add(
+          product.copyWith(
+            variantId: variant.variantId,
+            price: variant.price,
+            realPrice: variant.realPrice,
+            quantity: quantityLabel,
+            baseQuantity: variant.quantityValue,
+            baseUnit: variant.quantityUnit,
+            quantityDescription: variant.quantityDescription,
+            isAvailable: variant.isAvailable,
+            discount: product.realPrice > 0 && product.realPrice > variant.price
+                ? double.parse(
+                    (((product.realPrice - variant.price) / product.realPrice) * 100)
+                        .toStringAsFixed(2),
+                  )
+                : 0.0,
+            variants: [],
+            bogoFreeProductIds: variant.bogoFreeProductIds,
+            isFreeDelivery: variant.isFreeDelivery,
+            comboOfferIds: variant.comboOfferIds,
+          ),
+        );
+      }
+    }
+    return result;
   }
 
   String _formatQuantity(ProductVariantRow? variant, ProductRow product) {

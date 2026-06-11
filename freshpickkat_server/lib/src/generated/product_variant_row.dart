@@ -26,11 +26,13 @@ abstract class ProductVariantRow
     required this.listPrice,
     bool? isAvailable,
     bool? isDefault,
+    bool? isFreeDelivery,
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : isAvailable = isAvailable ?? true,
        isDefault = isDefault ?? false,
+       isFreeDelivery = isFreeDelivery ?? false,
        sortOrder = sortOrder ?? 0,
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -47,6 +49,7 @@ abstract class ProductVariantRow
     required double listPrice,
     bool? isAvailable,
     bool? isDefault,
+    bool? isFreeDelivery,
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -73,6 +76,9 @@ abstract class ProductVariantRow
       isDefault: jsonSerialization['isDefault'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isDefault']),
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       sortOrder: jsonSerialization['sortOrder'] as int?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -110,6 +116,8 @@ abstract class ProductVariantRow
 
   bool isDefault;
 
+  bool isFreeDelivery;
+
   int sortOrder;
 
   DateTime createdAt;
@@ -134,6 +142,7 @@ abstract class ProductVariantRow
     double? listPrice,
     bool? isAvailable,
     bool? isDefault,
+    bool? isFreeDelivery,
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -154,6 +163,7 @@ abstract class ProductVariantRow
       'listPrice': listPrice,
       'isAvailable': isAvailable,
       'isDefault': isDefault,
+      'isFreeDelivery': isFreeDelivery,
       'sortOrder': sortOrder,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -210,6 +220,7 @@ class _ProductVariantRowImpl extends ProductVariantRow {
     required double listPrice,
     bool? isAvailable,
     bool? isDefault,
+    bool? isFreeDelivery,
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -225,6 +236,7 @@ class _ProductVariantRowImpl extends ProductVariantRow {
          listPrice: listPrice,
          isAvailable: isAvailable,
          isDefault: isDefault,
+         isFreeDelivery: isFreeDelivery,
          sortOrder: sortOrder,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -246,6 +258,7 @@ class _ProductVariantRowImpl extends ProductVariantRow {
     double? listPrice,
     bool? isAvailable,
     bool? isDefault,
+    bool? isFreeDelivery,
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -264,6 +277,7 @@ class _ProductVariantRowImpl extends ProductVariantRow {
       listPrice: listPrice ?? this.listPrice,
       isAvailable: isAvailable ?? this.isAvailable,
       isDefault: isDefault ?? this.isDefault,
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -326,6 +340,11 @@ class ProductVariantRowUpdateTable
 
   _i1.ColumnValue<bool, bool> isDefault(bool value) => _i1.ColumnValue(
     table.isDefault,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> isFreeDelivery(bool value) => _i1.ColumnValue(
+    table.isFreeDelivery,
     value,
   );
 
@@ -393,6 +412,11 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    isFreeDelivery = _i1.ColumnBool(
+      'isFreeDelivery',
+      this,
+      hasDefault: true,
+    );
     sortOrder = _i1.ColumnInt(
       'sortOrder',
       this,
@@ -432,6 +456,8 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnBool isDefault;
 
+  late final _i1.ColumnBool isFreeDelivery;
+
   late final _i1.ColumnInt sortOrder;
 
   late final _i1.ColumnDateTime createdAt;
@@ -451,6 +477,7 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
     listPrice,
     isAvailable,
     isDefault,
+    isFreeDelivery,
     sortOrder,
     createdAt,
     updatedAt,

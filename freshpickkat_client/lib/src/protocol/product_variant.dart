@@ -11,6 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i2;
 
 abstract class ProductVariant implements _i1.SerializableModel {
   ProductVariant._({
@@ -22,7 +23,10 @@ abstract class ProductVariant implements _i1.SerializableModel {
     required this.realPrice,
     required this.isAvailable,
     this.sortOrder,
-  });
+    this.bogoFreeProductIds,
+    this.comboOfferIds,
+    bool? isFreeDelivery,
+  }) : isFreeDelivery = isFreeDelivery ?? false;
 
   factory ProductVariant({
     required String variantId,
@@ -33,6 +37,9 @@ abstract class ProductVariant implements _i1.SerializableModel {
     required double realPrice,
     required bool isAvailable,
     int? sortOrder,
+    List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? isFreeDelivery,
   }) = _ProductVariantImpl;
 
   factory ProductVariant.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -47,6 +54,19 @@ abstract class ProductVariant implements _i1.SerializableModel {
         jsonSerialization['isAvailable'],
       ),
       sortOrder: jsonSerialization['sortOrder'] as int?,
+      bogoFreeProductIds: jsonSerialization['bogoFreeProductIds'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['bogoFreeProductIds'],
+            ),
+      comboOfferIds: jsonSerialization['comboOfferIds'] == null
+          ? null
+          : _i2.Protocol().deserialize<List<String>>(
+              jsonSerialization['comboOfferIds'],
+            ),
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
     );
   }
 
@@ -66,6 +86,12 @@ abstract class ProductVariant implements _i1.SerializableModel {
 
   int? sortOrder;
 
+  List<String>? bogoFreeProductIds;
+
+  List<String>? comboOfferIds;
+
+  bool isFreeDelivery;
+
   /// Returns a shallow copy of this [ProductVariant]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -78,6 +104,9 @@ abstract class ProductVariant implements _i1.SerializableModel {
     double? realPrice,
     bool? isAvailable,
     int? sortOrder,
+    List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? isFreeDelivery,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -92,6 +121,10 @@ abstract class ProductVariant implements _i1.SerializableModel {
       'realPrice': realPrice,
       'isAvailable': isAvailable,
       if (sortOrder != null) 'sortOrder': sortOrder,
+      if (bogoFreeProductIds != null)
+        'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
+      if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
+      'isFreeDelivery': isFreeDelivery,
     };
   }
 
@@ -113,6 +146,9 @@ class _ProductVariantImpl extends ProductVariant {
     required double realPrice,
     required bool isAvailable,
     int? sortOrder,
+    List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? isFreeDelivery,
   }) : super._(
          variantId: variantId,
          quantityValue: quantityValue,
@@ -122,6 +158,9 @@ class _ProductVariantImpl extends ProductVariant {
          realPrice: realPrice,
          isAvailable: isAvailable,
          sortOrder: sortOrder,
+         bogoFreeProductIds: bogoFreeProductIds,
+         comboOfferIds: comboOfferIds,
+         isFreeDelivery: isFreeDelivery,
        );
 
   /// Returns a shallow copy of this [ProductVariant]
@@ -137,6 +176,9 @@ class _ProductVariantImpl extends ProductVariant {
     double? realPrice,
     bool? isAvailable,
     Object? sortOrder = _Undefined,
+    Object? bogoFreeProductIds = _Undefined,
+    Object? comboOfferIds = _Undefined,
+    bool? isFreeDelivery,
   }) {
     return ProductVariant(
       variantId: variantId ?? this.variantId,
@@ -149,6 +191,13 @@ class _ProductVariantImpl extends ProductVariant {
       realPrice: realPrice ?? this.realPrice,
       isAvailable: isAvailable ?? this.isAvailable,
       sortOrder: sortOrder is int? ? sortOrder : this.sortOrder,
+      bogoFreeProductIds: bogoFreeProductIds is List<String>?
+          ? bogoFreeProductIds
+          : this.bogoFreeProductIds?.map((e0) => e0).toList(),
+      comboOfferIds: comboOfferIds is List<String>?
+          ? comboOfferIds
+          : this.comboOfferIds?.map((e0) => e0).toList(),
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
     );
   }
 }
