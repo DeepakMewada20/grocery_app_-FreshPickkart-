@@ -19,16 +19,13 @@ abstract class Category
     required this.categoryName,
     required this.categoryImageUrl,
     required this.subCategory,
-    bool? isFreeDelivery,
     bool? isActive,
-  }) : isFreeDelivery = isFreeDelivery ?? false,
-       isActive = isActive ?? true;
+  }) : isActive = isActive ?? true;
 
   factory Category({
     required String categoryName,
     required String categoryImageUrl,
     required Map<String, String> subCategory,
-    bool? isFreeDelivery,
     bool? isActive,
   }) = _CategoryImpl;
 
@@ -39,9 +36,6 @@ abstract class Category
       subCategory: _i2.Protocol().deserialize<Map<String, String>>(
         jsonSerialization['subCategory'],
       ),
-      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       isActive: jsonSerialization['isActive'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
@@ -54,8 +48,6 @@ abstract class Category
 
   Map<String, String> subCategory;
 
-  bool isFreeDelivery;
-
   bool isActive;
 
   /// Returns a shallow copy of this [Category]
@@ -65,7 +57,6 @@ abstract class Category
     String? categoryName,
     String? categoryImageUrl,
     Map<String, String>? subCategory,
-    bool? isFreeDelivery,
     bool? isActive,
   });
   @override
@@ -75,7 +66,6 @@ abstract class Category
       'categoryName': categoryName,
       'categoryImageUrl': categoryImageUrl,
       'subCategory': subCategory.toJson(),
-      'isFreeDelivery': isFreeDelivery,
       'isActive': isActive,
     };
   }
@@ -87,7 +77,6 @@ abstract class Category
       'categoryName': categoryName,
       'categoryImageUrl': categoryImageUrl,
       'subCategory': subCategory.toJson(),
-      'isFreeDelivery': isFreeDelivery,
       'isActive': isActive,
     };
   }
@@ -103,13 +92,11 @@ class _CategoryImpl extends Category {
     required String categoryName,
     required String categoryImageUrl,
     required Map<String, String> subCategory,
-    bool? isFreeDelivery,
     bool? isActive,
   }) : super._(
          categoryName: categoryName,
          categoryImageUrl: categoryImageUrl,
          subCategory: subCategory,
-         isFreeDelivery: isFreeDelivery,
          isActive: isActive,
        );
 
@@ -121,7 +108,6 @@ class _CategoryImpl extends Category {
     String? categoryName,
     String? categoryImageUrl,
     Map<String, String>? subCategory,
-    bool? isFreeDelivery,
     bool? isActive,
   }) {
     return Category(
@@ -138,7 +124,6 @@ class _CategoryImpl extends Category {
               value0,
             ),
           ),
-      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       isActive: isActive ?? this.isActive,
     );
   }

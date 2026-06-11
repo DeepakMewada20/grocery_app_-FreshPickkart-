@@ -48,7 +48,6 @@ class PostgresCategoryService {
             categoryName: row.name,
             categoryImageUrl: row.imageUrl ?? '',
             subCategory: subCategoryMap[row.id.toString()] ?? const {},
-            isFreeDelivery: row.isFreeDelivery,
             isActive: row.status == 'active',
           ),
         )
@@ -87,7 +86,6 @@ class PostgresCategoryService {
             categoryName: row.name,
             categoryImageUrl: row.imageUrl ?? '',
             subCategory: subCategoryMap[row.id.toString()] ?? const {},
-            isFreeDelivery: row.isFreeDelivery,
             isActive: false,
           ),
         )
@@ -123,7 +121,6 @@ class PostgresCategoryService {
             categoryName: row.name,
             categoryImageUrl: row.imageUrl ?? '',
             subCategory: subCategoryMap[row.id.toString()] ?? const {},
-            isFreeDelivery: row.isFreeDelivery,
             isActive: row.status == 'active',
           ),
         )
@@ -210,7 +207,6 @@ class PostgresCategoryService {
           name: categoryName,
           slug: slug,
           imageUrl: cleanNullableString(category.categoryImageUrl),
-          isFreeDelivery: category.isFreeDelivery,
           status: 'active',
           createdAt: DateTime.now().toUtc(),
           updatedAt: DateTime.now().toUtc(),
@@ -352,7 +348,6 @@ class PostgresCategoryService {
     existing.name = newName;
     existing.slug = newSlug;
     existing.imageUrl = cleanNullableString(category.categoryImageUrl);
-    existing.isFreeDelivery = category.isFreeDelivery;
     existing.updatedAt = DateTime.now().toUtc();
 
     await CategoryRow.db.updateRow(session, existing);

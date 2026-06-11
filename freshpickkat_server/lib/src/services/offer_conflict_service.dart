@@ -37,21 +37,6 @@ class OfferConflictService {
     );
   }
 
-  Future<OfferConflictResponse> checkFreeDeliveryCategoryConflicts(
-    Session session,
-    String categoryName,
-  ) async {
-    final productIds = await _activeProductIdsForCategory(
-      session,
-      categoryName,
-    );
-    return _checkProductOfferConflicts(
-      session,
-      productIds: productIds,
-      sourceType: 'free_delivery',
-    );
-  }
-
   Future<OfferConflictResponse> checkComboConflicts(
     Session session,
     ComboOffer offer,
@@ -80,21 +65,20 @@ class OfferConflictService {
       );
     }
 
-    final freeDelivery = await _freeDeliveryConflicts(session, productIds);
-    if (freeDelivery.products.isNotEmpty) {
+    final freeDeliveryProducts = await _freeDeliveryProducts(
+      session,
+      productIds,
+    );
+    if (freeDeliveryProducts.isNotEmpty) {
       return OfferConflictResponse(
         hasConflict: true,
-        conflictType: freeDelivery.hasCategoryConflict
-            ? 'combo_category_free_delivery'
-            : 'combo_product_free_delivery',
-        message: freeDelivery.hasCategoryConflict
-            ? 'This combo contains a product from a category with active Free Delivery. Disable category Free Delivery first.'
-            : 'This combo contains a product with active Free Delivery.',
-        productIds: freeDelivery.products
+        conflictType: 'combo_product_free_delivery',
+        message: 'This combo contains a product with active Free Delivery.',
+        productIds: freeDeliveryProducts
             .map((product) => product.productId)
             .whereType<String>()
             .toList(),
-        productNames: freeDelivery.products
+        productNames: freeDeliveryProducts
             .map((product) => product.productName)
             .toList(),
       );
@@ -147,10 +131,6 @@ class OfferConflictService {
     return true;
   }
 
-  bool isCategoryFreeDeliveryConflict(OfferConflictResponse conflict) {
-    return conflict.conflictType?.contains("category_free_delivery") ?? false;
-  }
-
   Future<OfferConflictResponse> _checkProductOfferConflicts(
     Session session, {
     required List<String> productIds,
@@ -181,21 +161,21 @@ class OfferConflictService {
         );
       }
     } else {
-      final freeDelivery = await _freeDeliveryConflicts(session, ids);
-      if (freeDelivery.products.isNotEmpty) {
+      final freeDeliveryProducts = await _freeDeliveryProducts(
+        session,
+        ids,
+      );
+      if (freeDeliveryProducts.isNotEmpty) {
         return OfferConflictResponse(
           hasConflict: true,
-          conflictType: freeDelivery.hasCategoryConflict
-              ? 'bogo_category_free_delivery'
-              : 'bogo_product_free_delivery',
-          message: freeDelivery.hasCategoryConflict
-              ? 'BOGO conflicts with category-level Free Delivery. Disable category Free Delivery first.'
-              : 'BOGO conflicts with active Free Delivery on this product.',
-          productIds: freeDelivery.products
+          conflictType: 'bogo_product_free_delivery',
+          message:
+              'BOGO conflicts with active Free Delivery on this product.',
+          productIds: freeDeliveryProducts
               .map((product) => product.productId)
               .whereType<String>()
               .toList(),
-          productNames: freeDelivery.products
+          productNames: freeDeliveryProducts
               .map((product) => product.productName)
               .toList(),
         );
@@ -222,79 +202,12 @@ class OfferConflictService {
     return _none();
   }
 
-  Future<_FreeDeliveryConflictDetail> _freeDeliveryConflicts(
+  Future<List<Product>> _freeDeliveryProducts(
     Session session,
     List<String> productIds,
   ) async {
     final products = await _products.getProductsByIds(session, productIds);
-    final result = <String, Product>{};
-    var hasCategoryConflict = false;
-    for (final product in products) {
-      if (product.isFreeDelivery) {
-        final productId = product.productId;
-        if (productId != null) result[productId] = product;
-      }
-    }
-
-    final categoryNames = products
-        .map((p) => p.category)
-        .where((c) => c.trim().isNotEmpty)
-        .toSet()
-        .toList();
-    if (categoryNames.isNotEmpty) {
-      final freeCategories = await CategoryRow.db.find(
-        session,
-        where: (t) =>
-            t.name.inSet(categoryNames.toSet()) & t.isFreeDelivery.equals(true),
-      );
-      final freeCategoryNames = freeCategories
-          .map((c) => c.name.trim().toLowerCase())
-          .toSet();
-      if (freeCategoryNames.isNotEmpty) {
-        for (final product in products) {
-          if (freeCategoryNames.contains(
-            product.category.trim().toLowerCase(),
-          )) {
-            hasCategoryConflict = true;
-            final productId = product.productId;
-            if (productId != null) result[productId] = product;
-          }
-        }
-      }
-    }
-
-    return _FreeDeliveryConflictDetail(
-      products: result.values.toList(),
-      hasCategoryConflict: hasCategoryConflict,
-    );
-  }
-
-  Future<List<String>> _activeProductIdsForCategory(
-    Session session,
-    String categoryName,
-  ) async {
-    final normalizedCategory = categoryName.trim().toLowerCase();
-    if (normalizedCategory.isEmpty) return const [];
-
-    final result = await session.db.unsafeQuery(
-      """
-      SELECT p.id::text AS "productId"
-      FROM product p
-      JOIN category c ON c.id = p."categoryId"
-      WHERE p.status = @activeStatus
-        AND c.status = @activeStatus
-        AND lower(trim(c.name)) = @categoryName
-      """,
-      parameters: QueryParameters.named({
-        "activeStatus": "active",
-        "categoryName": normalizedCategory,
-      }),
-    );
-
-    return result
-        .map((row) => row.toColumnMap()["productId"]?.toString())
-        .whereType<String>()
-        .toList();
+    return products.where((product) => product.isFreeDelivery).toList();
   }
 
   Future<List<String>> _productNames(
@@ -312,12 +225,4 @@ class OfferConflictService {
   );
 }
 
-class _FreeDeliveryConflictDetail {
-  const _FreeDeliveryConflictDetail({
-    required this.products,
-    required this.hasCategoryConflict,
-  });
 
-  final List<Product> products;
-  final bool hasCategoryConflict;
-}

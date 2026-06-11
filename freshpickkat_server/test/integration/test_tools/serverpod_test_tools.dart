@@ -3723,49 +3723,6 @@ class _FreeDeliveryEndpoint {
     });
   }
 
-  _i3.Future<_i12.OfferMutationResult> setCategoryFreeDelivery(
-    _i1.TestSessionBuilder sessionBuilder,
-    String categoryName,
-    bool isFreeDelivery,
-    String firebaseUid,
-    String idToken, {
-    required bool confirmDisableConflictingCombo,
-    required bool forceDisableBogo,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'freeDelivery',
-            method: 'setCategoryFreeDelivery',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'freeDelivery',
-          methodName: 'setCategoryFreeDelivery',
-          parameters: _i1.testObjectToJson({
-            'categoryName': categoryName,
-            'isFreeDelivery': isFreeDelivery,
-            'firebaseUid': firebaseUid,
-            'idToken': idToken,
-            'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
-            'forceDisableBogo': forceDisableBogo,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _i3.Future<_i12.OfferMutationResult>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
   _i3.Future<bool> upsertDeliveryConfig(
     _i1.TestSessionBuilder sessionBuilder,
     _i32.DeliveryConfig config,
@@ -5404,7 +5361,7 @@ class _OrderEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> generateDeliveryOtp(
+  _i3.Future<bool> generateDeliveryOtp(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId, {
     required String firebaseUid,
@@ -5433,7 +5390,7 @@ class _OrderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -5441,7 +5398,7 @@ class _OrderEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> verifyDeliveryOtp(
+  _i3.Future<bool> verifyDeliveryOtp(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId,
     String otp, {
@@ -5472,7 +5429,7 @@ class _OrderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -5480,7 +5437,7 @@ class _OrderEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> resendDeliveryOtp(
+  _i3.Future<bool> resendDeliveryOtp(
     _i1.TestSessionBuilder sessionBuilder,
     String orderId, {
     required String firebaseUid,
@@ -5509,7 +5466,7 @@ class _OrderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<bool>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

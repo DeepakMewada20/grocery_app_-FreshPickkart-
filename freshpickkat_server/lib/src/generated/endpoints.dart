@@ -2998,57 +2998,6 @@ class Endpoints extends _i1.EndpointDispatch {
                         forceDisableBogo: params['forceDisableBogo'],
                       ),
         ),
-        'setCategoryFreeDelivery': _i1.MethodConnector(
-          name: 'setCategoryFreeDelivery',
-          params: {
-            'categoryName': _i1.ParameterDescription(
-              name: 'categoryName',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'isFreeDelivery': _i1.ParameterDescription(
-              name: 'isFreeDelivery',
-              type: _i1.getType<bool>(),
-              nullable: false,
-            ),
-            'firebaseUid': _i1.ParameterDescription(
-              name: 'firebaseUid',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'idToken': _i1.ParameterDescription(
-              name: 'idToken',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'confirmDisableConflictingCombo': _i1.ParameterDescription(
-              name: 'confirmDisableConflictingCombo',
-              type: _i1.getType<bool>(),
-              nullable: false,
-            ),
-            'forceDisableBogo': _i1.ParameterDescription(
-              name: 'forceDisableBogo',
-              type: _i1.getType<bool>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _i1.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['freeDelivery'] as _i12.FreeDeliveryEndpoint)
-                      .setCategoryFreeDelivery(
-                        session,
-                        params['categoryName'],
-                        params['isFreeDelivery'],
-                        params['firebaseUid'],
-                        params['idToken'],
-                        confirmDisableConflictingCombo:
-                            params['confirmDisableConflictingCombo'],
-                        forceDisableBogo: params['forceDisableBogo'],
-                      ),
-        ),
         'upsertDeliveryConfig': _i1.MethodConnector(
           name: 'upsertDeliveryConfig',
           params: {

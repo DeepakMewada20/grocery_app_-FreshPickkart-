@@ -38,8 +38,7 @@ class ComboOfferEndpoint extends Endpoint {
               session,
               conflict.bogoOffer!.triggerProductId,
             );
-          } else if (conflict.productIds.isNotEmpty &&
-              !_conflicts.isCategoryFreeDeliveryConflict(conflict)) {
+          } else if (conflict.productIds.isNotEmpty) {
             for (final pid in conflict.productIds) {
               await _conflicts.disableFreeDeliveryForProduct(session, pid);
             }

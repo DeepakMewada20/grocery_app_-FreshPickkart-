@@ -3,5 +3,4 @@ fields:
     categoryName: String
     categoryImageUrl: String
     subCategory: Map<String, String>
-    isFreeDelivery: bool, default=false
     isActive: bool, default=true

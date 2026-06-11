@@ -97,7 +97,6 @@ freeDelivery:
   - getDeliveryConfig:
   - getUserDeliveryOffer:
   - setProductFreeDelivery:
-  - setCategoryFreeDelivery:
   - upsertDeliveryConfig:
   - getInactiveDeliveryRules:
   - getAllDeliveryRules:

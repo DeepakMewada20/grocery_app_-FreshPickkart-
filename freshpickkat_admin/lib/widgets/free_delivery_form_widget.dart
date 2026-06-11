@@ -2,30 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class FreeDeliveryPromotionSection extends StatefulWidget {
+class FreeDeliveryPromotionSection extends StatelessWidget {
   const FreeDeliveryPromotionSection({
     super.key,
     required this.freeDeliveryProducts,
-    required this.categories,
     required this.onToggleProduct,
-    required this.onToggleCategory,
     required this.onAddFreeDeliveryProducts,
   });
 
   final List<Product> freeDeliveryProducts;
-  final List<Category> categories;
   final void Function(Product product, bool enabled) onToggleProduct;
-  final void Function(Category category, bool enabled) onToggleCategory;
   final VoidCallback onAddFreeDeliveryProducts;
-
-  @override
-  State<FreeDeliveryPromotionSection> createState() =>
-      _FreeDeliveryPromotionSectionState();
-}
-
-class _FreeDeliveryPromotionSectionState
-    extends State<FreeDeliveryPromotionSection> {
-  bool _categoriesExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,65 +25,11 @@ class _FreeDeliveryPromotionSectionState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Product & Category Free Delivery',
+              'Product Free Delivery',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            SizedBox(height: 16.h),
-            InkWell(
-              onTap: () => setState(() => _categoriesExpanded = !_categoriesExpanded),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.h),
-                child: Row(
-                  children: [
-                    Text(
-                      'Categories (${widget.categories.length})',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const Spacer(),
-                    Icon(
-                      _categoriesExpanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (_categoriesExpanded) ...[
-              SizedBox(height: 4.h),
-              Padding(
-                padding: EdgeInsets.only(left: 16.w),
-                child: Text(
-                  'Applies to every active product in this category',
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: cs.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              SizedBox(height: 8.h),
-              if (widget.categories.isEmpty)
-                Padding(
-                  padding: EdgeInsets.only(left: 16.w),
-                  child: const Text('No categories available'),
-                )
-              else
-                ...widget.categories.map(
-                  (category) => SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.only(left: 16.w),
-                    title: Text(category.categoryName),
-                    value: category.isFreeDelivery,
-                    onChanged: (value) =>
-                        widget.onToggleCategory(category, value),
-                  ),
-                ),
-            ],
             SizedBox(height: 16.h),
             Row(
               children: [
@@ -109,7 +42,7 @@ class _FreeDeliveryPromotionSectionState
                   ),
                 ),
                 FilledButton.tonalIcon(
-                  onPressed: widget.onAddFreeDeliveryProducts,
+                  onPressed: onAddFreeDeliveryProducts,
                   icon: const Icon(Icons.add, size: 14),
                   label: const Text(
                     'Add Free Delivery Products',
@@ -124,7 +57,7 @@ class _FreeDeliveryPromotionSectionState
               ],
             ),
             SizedBox(height: 8.h),
-            if (widget.freeDeliveryProducts.isEmpty)
+            if (freeDeliveryProducts.isEmpty)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
                 child: Center(
@@ -137,7 +70,7 @@ class _FreeDeliveryPromotionSectionState
                 ),
               )
             else
-              ...widget.freeDeliveryProducts.map(
+              ...freeDeliveryProducts.map(
                 (product) => SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   secondary: product.imageUrl.isEmpty
@@ -159,7 +92,7 @@ class _FreeDeliveryPromotionSectionState
                   subtitle: Text(product.category),
                   value: true,
                   onChanged: product.isAvailable
-                      ? (value) => widget.onToggleProduct(product, value)
+                      ? (value) => onToggleProduct(product, value)
                       : null,
                 ),
               ),

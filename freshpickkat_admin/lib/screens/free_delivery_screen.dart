@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
-import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -25,7 +24,6 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   final AdminFreeDeliveryController _controller =
       AdminFreeDeliveryController.instance;
   final AdminProductController _productController = AdminProductController.instance;
-  final AdminCategoryController _categoryController = AdminCategoryController.instance;
 
   List<Product> get _freeDeliveryProducts =>
       _productController.products.where((p) => p.isFreeDelivery).toList();
@@ -72,9 +70,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
                 SizedBox(height: 16.h),
                 FreeDeliveryPromotionSection(
                   freeDeliveryProducts: _freeDeliveryProducts,
-                  categories: _categoryController.categories,
                   onToggleProduct: _toggleProductFreeDelivery,
-                  onToggleCategory: _toggleCategoryFreeDelivery,
                   onAddFreeDeliveryProducts: _addFreeDeliveryProducts,
                 ),
                 SizedBox(height: 16.h),
@@ -135,35 +131,6 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       if (index != -1) {
         _productController.products[index] = product.copyWith(isFreeDelivery: enabled);
       }
-    }
-  }
-
-  Future<void> _toggleCategoryFreeDelivery(Category category, bool enabled) async {
-    final result = await _controller.setCategoryFreeDelivery(
-      category.categoryName,
-      enabled,
-    );
-    if (!mounted) return;
-    final shouldRetry = await _showConflictIfNeeded(result.conflict);
-    if (shouldRetry == true) {
-      final retry = await _controller.setCategoryFreeDelivery(
-        category.categoryName,
-        enabled,
-        confirmDisableConflictingCombo: true,
-        forceDisableBogo: true,
-      );
-      if (!mounted) return;
-      _showMutationSnack(retry);
-      if (retry.success) {
-        await _categoryController.loadCategories();
-        await _productController.loadInitial();
-      }
-      return;
-    }
-    _showMutationSnack(result);
-    if (result.success) {
-      await _categoryController.loadCategories();
-      await _productController.loadInitial();
     }
   }
 

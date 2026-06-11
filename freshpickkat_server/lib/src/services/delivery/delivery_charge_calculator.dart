@@ -55,18 +55,6 @@ class DeliveryChargeCalculator {
       where: (t) => t.id.inSet(productIds) & t.status.equals('active'),
     );
     if (products.isEmpty) return false;
-    if (products.any((product) => product.isFreeDelivery)) return true;
-
-    final categoryIds = products.map((product) => product.categoryId).toSet();
-    if (categoryIds.isEmpty) return false;
-
-    final categories = await CategoryRow.db.find(
-      session,
-      where: (t) =>
-          t.id.inSet(categoryIds) &
-          t.status.equals('active') &
-          t.isFreeDelivery.equals(true),
-    );
-    return categories.isNotEmpty;
+    return products.any((product) => product.isFreeDelivery);
   }
 }

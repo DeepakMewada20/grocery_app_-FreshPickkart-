@@ -544,7 +544,7 @@ class PostgresCatalogService {
           stockUnit: productRow.stockUnit,
           mostSearch: productRow.mostSearchCount,
           mostPurchases: productRow.mostPurchaseCount,
-          isFreeDelivery: productRow.isFreeDelivery || category.isFreeDelivery,
+          isFreeDelivery: productRow.isFreeDelivery,
           bogoFreeProductIds: bogoFreeProductIds?.isEmpty == true
               ? null
               : bogoFreeProductIds,

@@ -19,14 +19,12 @@ abstract class CategoryRow
     required this.name,
     required this.slug,
     this.imageUrl,
-    bool? isFreeDelivery,
     int? displayOrder,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : isFreeDelivery = isFreeDelivery ?? false,
-       displayOrder = displayOrder ?? 0,
+  }) : displayOrder = displayOrder ?? 0,
        status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -36,7 +34,6 @@ abstract class CategoryRow
     required String name,
     required String slug,
     String? imageUrl,
-    bool? isFreeDelivery,
     int? displayOrder,
     String? status,
     DateTime? deactivatedAt,
@@ -52,9 +49,6 @@ abstract class CategoryRow
       name: jsonSerialization['name'] as String,
       slug: jsonSerialization['slug'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String?,
-      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
-          ? null
-          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       displayOrder: jsonSerialization['displayOrder'] as int?,
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
@@ -84,8 +78,6 @@ abstract class CategoryRow
 
   String? imageUrl;
 
-  bool isFreeDelivery;
-
   int displayOrder;
 
   String status;
@@ -107,7 +99,6 @@ abstract class CategoryRow
     String? name,
     String? slug,
     String? imageUrl,
-    bool? isFreeDelivery,
     int? displayOrder,
     String? status,
     DateTime? deactivatedAt,
@@ -122,7 +113,6 @@ abstract class CategoryRow
       'name': name,
       'slug': slug,
       if (imageUrl != null) 'imageUrl': imageUrl,
-      'isFreeDelivery': isFreeDelivery,
       'displayOrder': displayOrder,
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
@@ -174,7 +164,6 @@ class _CategoryRowImpl extends CategoryRow {
     required String name,
     required String slug,
     String? imageUrl,
-    bool? isFreeDelivery,
     int? displayOrder,
     String? status,
     DateTime? deactivatedAt,
@@ -185,7 +174,6 @@ class _CategoryRowImpl extends CategoryRow {
          name: name,
          slug: slug,
          imageUrl: imageUrl,
-         isFreeDelivery: isFreeDelivery,
          displayOrder: displayOrder,
          status: status,
          deactivatedAt: deactivatedAt,
@@ -202,7 +190,6 @@ class _CategoryRowImpl extends CategoryRow {
     String? name,
     String? slug,
     Object? imageUrl = _Undefined,
-    bool? isFreeDelivery,
     int? displayOrder,
     String? status,
     Object? deactivatedAt = _Undefined,
@@ -214,7 +201,6 @@ class _CategoryRowImpl extends CategoryRow {
       name: name ?? this.name,
       slug: slug ?? this.slug,
       imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
-      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       displayOrder: displayOrder ?? this.displayOrder,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
@@ -241,11 +227,6 @@ class CategoryRowUpdateTable extends _i1.UpdateTable<CategoryRowTable> {
 
   _i1.ColumnValue<String, String> imageUrl(String? value) => _i1.ColumnValue(
     table.imageUrl,
-    value,
-  );
-
-  _i1.ColumnValue<bool, bool> isFreeDelivery(bool value) => _i1.ColumnValue(
-    table.isFreeDelivery,
     value,
   );
 
@@ -293,11 +274,6 @@ class CategoryRowTable extends _i1.Table<_i1.UuidValue?> {
       'imageUrl',
       this,
     );
-    isFreeDelivery = _i1.ColumnBool(
-      'isFreeDelivery',
-      this,
-      hasDefault: true,
-    );
     displayOrder = _i1.ColumnInt(
       'displayOrder',
       this,
@@ -332,8 +308,6 @@ class CategoryRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString imageUrl;
 
-  late final _i1.ColumnBool isFreeDelivery;
-
   late final _i1.ColumnInt displayOrder;
 
   late final _i1.ColumnString status;
@@ -350,7 +324,6 @@ class CategoryRowTable extends _i1.Table<_i1.UuidValue?> {
     name,
     slug,
     imageUrl,
-    isFreeDelivery,
     displayOrder,
     status,
     deactivatedAt,

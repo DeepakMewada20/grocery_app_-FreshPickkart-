@@ -1166,13 +1166,6 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
         ),
         _i2.ColumnDefinition(
-          name: 'isFreeDelivery',
-          columnType: _i2.ColumnType.boolean,
-          isNullable: false,
-          dartType: 'bool',
-          columnDefault: 'false',
-        ),
-        _i2.ColumnDefinition(
           name: 'displayOrder',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
@@ -1233,19 +1226,6 @@ class Protocol extends _i1.SerializationManagerServer {
           ],
           type: 'btree',
           isUnique: true,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'category_is_free_delivery_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'isFreeDelivery',
-            ),
-          ],
-          type: 'btree',
-          isUnique: false,
           isPrimary: false,
         ),
       ],

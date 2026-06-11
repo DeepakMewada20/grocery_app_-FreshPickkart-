@@ -1,0 +1,50 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "category",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "isFreeDelivery"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [
+          "category_is_free_delivery_idx"
+        ],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"isFreeDelivery\" of table \"category\" will be dropped.",
+            "table": "category",
+            "columns": [
+              "isFreeDelivery"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"isFreeDelivery\" of table \"category\" will be dropped.",
+      "table": "category",
+      "columns": [
+        "isFreeDelivery"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

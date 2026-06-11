@@ -1385,26 +1385,6 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i11.OfferMutationResult> setCategoryFreeDelivery(
-    String categoryName,
-    bool isFreeDelivery,
-    String firebaseUid,
-    String idToken, {
-    required bool confirmDisableConflictingCombo,
-    required bool forceDisableBogo,
-  }) => caller.callServerEndpoint<_i11.OfferMutationResult>(
-    'freeDelivery',
-    'setCategoryFreeDelivery',
-    {
-      'categoryName': categoryName,
-      'isFreeDelivery': isFreeDelivery,
-      'firebaseUid': firebaseUid,
-      'idToken': idToken,
-      'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
-      'forceDisableBogo': forceDisableBogo,
-    },
-  );
-
   _i2.Future<bool> upsertDeliveryConfig(
     _i31.DeliveryConfig config,
     String firebaseUid,

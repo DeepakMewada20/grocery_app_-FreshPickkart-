@@ -33,8 +33,7 @@ class BogoEndpoint extends Endpoint {
       if (conflict.comboOffer != null && confirmDisableConflictingCombo) {
         await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
       } else if (conflict.productIds.isNotEmpty &&
-          forceDisableFreeDelivery &&
-          !_conflicts.isCategoryFreeDeliveryConflict(conflict)) {
+          forceDisableFreeDelivery) {
         for (final pid in conflict.productIds) {
           await _conflicts.disableFreeDeliveryForProduct(session, pid);
         }

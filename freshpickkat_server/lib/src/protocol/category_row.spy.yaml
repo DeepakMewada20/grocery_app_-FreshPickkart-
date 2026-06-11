@@ -6,7 +6,6 @@ fields:
   name: String
   slug: String
   imageUrl: String?
-  isFreeDelivery: bool, default=false
   displayOrder: int, default=0
   status: String, default='active'
   deactivatedAt: DateTime?
@@ -16,5 +15,3 @@ indexes:
   category_slug_idx:
     fields: slug
     unique: true
-  category_is_free_delivery_idx:
-    fields: isFreeDelivery
