@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_complaint_controller.dart';
+import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -154,9 +155,32 @@ class _ComplaintDetailAdminScreenState
     _complaint = widget.complaint;
     _replyController.text = _complaint.adminReply ?? '';
     _internalNoteController.text = _complaint.adminNote ?? '';
-    if (_complaint.status == 'Resolved' &&
-        (_complaint.resolutionType?.contains('refund') ?? false)) {
-      _loadRefund();
+    _loadHydrated();
+  }
+
+  Future<void> _loadHydrated() async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      final hydrated = await widget.controller.getComplaintDetailHydrated(
+        _complaint.complaintId,
+        uid,
+        token,
+      );
+      if (mounted) {
+        setState(() {
+          _complaint = hydrated.complaint;
+          _complaintRefund = hydrated.refund;
+          _replyController.text = hydrated.complaint.adminReply ?? '';
+          _internalNoteController.text = hydrated.complaint.adminNote ?? '';
+        });
+      }
+    } catch (e) {
+      // fallback: just load refund if needed
+      if (_complaint.status == 'Resolved' &&
+          (_complaint.resolutionType?.contains('refund') ?? false)) {
+        _loadRefund();
+      }
     }
   }
 

@@ -73,11 +73,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _refreshFuture = Future.microtask(() async {
-      await _refreshCartWithTimestamp();
-      await BannerController.instance.loadBannersForScreen('checkout_page');
-      await orderRecoveryService.recoverPendingPayments(
-        trigger: 'checkout_open',
-      );
+      await _refreshCheckoutHydrated();
     });
 
     ever(networkController.connectionRestoredTrigger, (_) {
@@ -85,14 +81,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (networkController.isConnected.value) {
         final currentRoute = Get.currentRoute;
         if (currentRoute.contains('checkout')) {
-          _refreshCartWithTimestamp();
+          _refreshCheckoutHydrated();
         }
       }
     });
   }
 
-  Future<void> _refreshCartWithTimestamp() async {
-    await cartController.refreshCartCurrentData();
+  Future<void> _refreshCheckoutHydrated() async {
+    try {
+      await cartController.revalidateOnly();
+
+      final items = cartController.buildCartItemInputs();
+      if (items.isNotEmpty) {
+        final hydrated = await client.checkout.getCheckoutInitHydrated(
+          items,
+          userId: AuthController.instance.currentUser?.uid,
+          appliedCouponCode: cartController.appliedCoupon.value?.code,
+          autoApplyCoupons: false,
+          basketMode: 'cart',
+        );
+        cartController.applyCartHydratedData(hydrated.cartData);
+        BannerController.instance.checkoutPageBanners
+            .assignAll(hydrated.checkoutBanners);
+      } else {
+        cartController.cartPricing.value = null;
+        await BannerController.instance.loadBannersForScreen('checkout_page');
+      }
+
+      await orderRecoveryService.recoverPendingPayments(
+        trigger: 'checkout_open',
+      );
+    } catch (e) {
+      AppLogger.error('Checkout', 'HydratedInit: $e');
+      await cartController.refreshCartCurrentData();
+      await BannerController.instance.loadBannersForScreen('checkout_page');
+      await orderRecoveryService.recoverPendingPayments(
+        trigger: 'checkout_open',
+      );
+    }
     _lastRefreshTime = DateTime.now();
   }
 
@@ -144,7 +170,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (shouldRefresh) {
       _setProcessing(true, clearError: true, status: 'Refreshing basket...');
-      await _refreshCartWithTimestamp();
+      await cartController.refreshCartCurrentData();
+      _lastRefreshTime = DateTime.now();
     } else {
       // If we just finished waiting for _refreshFuture above, we are already "Processing"
       if (!_isProcessing) {

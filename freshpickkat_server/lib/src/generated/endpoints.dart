@@ -1551,6 +1551,49 @@ class Endpoints extends _i1.EndpointDispatch {
       name: 'checkout',
       endpoint: endpoints['checkout']!,
       methodConnectors: {
+        'getCheckoutInitHydrated': _i1.MethodConnector(
+          name: 'getCheckoutInitHydrated',
+          params: {
+            'items': _i1.ParameterDescription(
+              name: 'items',
+              type: _i1.getType<List<_i34.CartItemInput>>(),
+              nullable: false,
+            ),
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'appliedCouponCode': _i1.ParameterDescription(
+              name: 'appliedCouponCode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'autoApplyCoupons': _i1.ParameterDescription(
+              name: 'autoApplyCoupons',
+              type: _i1.getType<bool>(),
+              nullable: false,
+            ),
+            'basketMode': _i1.ParameterDescription(
+              name: 'basketMode',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['checkout'] as _i9.CheckoutEndpoint)
+                  .getCheckoutInitHydrated(
+                    session,
+                    params['items'],
+                    userId: params['userId'],
+                    appliedCouponCode: params['appliedCouponCode'],
+                    autoApplyCoupons: params['autoApplyCoupons'],
+                    basketMode: params['basketMode'],
+                  ),
+        ),
         'createOrderAndPayment': _i1.MethodConnector(
           name: 'createOrderAndPayment',
           params: {
@@ -2663,6 +2706,68 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                     complaintId: params['complaintId'],
                     adminReply: params['adminReply'],
+                  ),
+        ),
+        'getComplaintDetailHydrated': _i1.MethodConnector(
+          name: 'getComplaintDetailHydrated',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'complaintId': _i1.ParameterDescription(
+              name: 'complaintId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['complaint'] as _i11.ComplaintEndpoint)
+                  .getComplaintDetailHydrated(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    complaintId: params['complaintId'],
+                  ),
+        ),
+        'getUserComplaintDetailHydrated': _i1.MethodConnector(
+          name: 'getUserComplaintDetailHydrated',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'complaintId': _i1.ParameterDescription(
+              name: 'complaintId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['complaint'] as _i11.ComplaintEndpoint)
+                  .getUserComplaintDetailHydrated(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    complaintId: params['complaintId'],
                   ),
         ),
         'getRefundForComplaint': _i1.MethodConnector(

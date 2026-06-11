@@ -1,0 +1,4 @@
+class: CheckoutInitHydrated
+fields:
+  cartData: CartHydratedData
+  checkoutBanners: List<Banner>

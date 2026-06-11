@@ -234,6 +234,20 @@ class AdminComplaintController extends GetxController {
     return updated;
   }
 
+  Future<ComplaintDetailHydrated> getComplaintDetailHydrated(
+    String complaintId,
+    String uid,
+    String token,
+  ) async {
+    return ApiClient().request(() async {
+      return _client.complaint.getComplaintDetailHydrated(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaintId,
+      );
+    });
+  }
+
   void _replace(Complaint updated) {
     final index = complaints.indexWhere(
       (item) => item.complaintId == updated.complaintId,

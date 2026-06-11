@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
-import 'package:freshpickkat_flutter/services/refund_service.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -33,21 +34,39 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   void initState() {
     super.initState();
     _complaint = widget.complaint;
-    if (_complaint != null) _maybeLoadRefund(_complaint!);
+    if (_complaint != null) {
+      _loadHydrated(_complaint!.complaintId);
+    }
     if (_complaint == null && widget.complaintId != null) {
       _fetch();
     }
   }
 
-  void _maybeLoadRefund(Complaint c) {
-    if (c.status == 'Resolved' &&
-        (c.resolutionType?.contains('refund') ?? false)) {
-      RefundService.instance
-          .getRefundByComplaintId(c.complaintId)
-          .then((r) {
-        if (mounted) setState(() => _complaintRefund = r);
-      });
+  Future<void> _loadHydrated(String complaintId) async {
+    try {
+      final client = ServerpodClient().client;
+      final user = AuthController.instance.currentUser;
+      if (user == null) return;
+      final idToken = await AuthController.instance.requireIdToken();
+      final hydrated = await client.complaint.getUserComplaintDetailHydrated(
+        firebaseUid: user.uid,
+        idToken: idToken,
+        complaintId: complaintId,
+      );
+      if (mounted) {
+        setState(() {
+          _complaint = hydrated.complaint;
+          _complaintRefund = hydrated.refund;
+        });
+      }
+    } catch (e) {
+      AppLogger.error('ComplaintDetail', 'Hydrated: $e');
+      _maybeLoadRefund(_complaint!);
     }
+  }
+
+  void _maybeLoadRefund(Complaint c) {
+    // kept as fallback — no longer needed for hydrated path
   }
 
   Future<void> _fetch() async {

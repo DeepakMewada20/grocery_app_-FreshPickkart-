@@ -1,0 +1,4 @@
+class: ComplaintDetailHydrated
+fields:
+  complaint: Complaint
+  refund: RefundRecord?

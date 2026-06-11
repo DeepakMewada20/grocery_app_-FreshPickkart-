@@ -225,6 +225,82 @@ class CartController extends GetxController {
     } finally {}
   }
 
+  void applyCartHydratedData(CartHydratedData hydrated) {
+    final snapshot = _buildPricingSnapshot();
+
+    if (hydrated.cartPricing != null) {
+      cartPricing.value = hydrated.cartPricing;
+      _lastPricingSnapshot = snapshot;
+      isPricingStale.value = false;
+    }
+
+    _cachedDeliveryConfig = hydrated.deliveryConfig;
+    _updateDeliveryFeeEstimate();
+
+    if (hydrated.basketSuggestions != null) {
+      final suggestions = hydrated.basketSuggestions!;
+      bestBasketSuggestion.value =
+          suggestions.bestSuggestion ??
+          (suggestions.suggestions.isNotEmpty
+              ? suggestions.suggestions.first
+              : null);
+      basketSuggestions.assignAll(
+        suggestions.otherSuggestions ??
+            (suggestions.suggestions.length > 1
+                ? suggestions.suggestions.skip(1).toList(growable: false)
+                : const <BasketSuggestion>[]),
+      );
+      _lastSuggestedCartSnapshot = _buildMeaningfulCartSnapshot();
+      _prefetchComboProductsFromSuggestions(suggestions.suggestions);
+    }
+
+    availableCoupons.assignAll(hydrated.availableCoupons);
+    final bestDisplay =
+        hydrated.availableCoupons.firstWhereOrNull(
+          (coupon) => coupon.isBest,
+        ) ??
+        hydrated.availableCoupons.firstWhereOrNull(
+          (coupon) =>
+              coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
+        );
+    bestCoupon.value = bestDisplay == null
+        ? null
+        : BestCouponResult(
+            bestCouponCode: bestDisplay.code,
+            discountAmount: bestDisplay.discountAmount ?? 0,
+          );
+    _couponCacheKey = _buildCouponCacheKey();
+    _hasCouponCacheForCurrentCart = true;
+
+    final coupon = appliedCoupon.value;
+    if (coupon != null) {
+      final stillValid = hydrated.availableCoupons.any(
+        (c) => c.code.toUpperCase() == coupon.code.toUpperCase(),
+      );
+      if (!stillValid) {
+        removeCoupon();
+        couponError.value = ErrorMessages.couponRemoved;
+      }
+    }
+
+    if (Get.isRegistered<RewardCelebrationService>()) {
+      RewardCelebrationService.instance.checkAndTriggerRewards(
+        currentDeliveryFee: deliveryFee,
+        originalDeliveryFee: originalDeliveryFee,
+        currentCouponCode: appliedCoupon.value?.code,
+        currentCouponDiscount: couponDiscount,
+      );
+    }
+  }
+
+  /// Public wrapper to revalidate stored cart items against server state.
+  Future<void> revalidateStoredCart(
+    List<protocol.CartItem> storedCart, {
+    Map<String, CartItem>? fallbackItems,
+  }) async {
+    await _revalidateStoredCart(storedCart, fallbackItems: fallbackItems);
+  }
+
   Future<void> _fetchHydratedCartMeta(List<CartItemInput> items) async {
     try {
       final hydrated = await client.cart.getCartHydratedData(
@@ -234,72 +310,7 @@ class CartController extends GetxController {
         autoApplyCoupons: false,
         basketMode: 'cart',
       );
-
-      final snapshot = _buildPricingSnapshot();
-
-      if (hydrated.cartPricing != null) {
-        cartPricing.value = hydrated.cartPricing;
-        _lastPricingSnapshot = snapshot;
-        isPricingStale.value = false;
-      }
-
-      _cachedDeliveryConfig = hydrated.deliveryConfig;
-      _updateDeliveryFeeEstimate();
-
-      if (hydrated.basketSuggestions != null) {
-        final suggestions = hydrated.basketSuggestions!;
-        bestBasketSuggestion.value =
-            suggestions.bestSuggestion ??
-            (suggestions.suggestions.isNotEmpty
-                ? suggestions.suggestions.first
-                : null);
-        basketSuggestions.assignAll(
-          suggestions.otherSuggestions ??
-              (suggestions.suggestions.length > 1
-                  ? suggestions.suggestions.skip(1).toList(growable: false)
-                  : const <BasketSuggestion>[]),
-        );
-        _lastSuggestedCartSnapshot = _buildMeaningfulCartSnapshot();
-        _prefetchComboProductsFromSuggestions(suggestions.suggestions);
-      }
-
-      availableCoupons.assignAll(hydrated.availableCoupons);
-      final bestDisplay =
-          hydrated.availableCoupons.firstWhereOrNull(
-            (coupon) => coupon.isBest,
-          ) ??
-          hydrated.availableCoupons.firstWhereOrNull(
-            (coupon) =>
-                coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
-          );
-      bestCoupon.value = bestDisplay == null
-          ? null
-          : BestCouponResult(
-              bestCouponCode: bestDisplay.code,
-              discountAmount: bestDisplay.discountAmount ?? 0,
-            );
-      _couponCacheKey = _buildCouponCacheKey();
-      _hasCouponCacheForCurrentCart = true;
-
-      final coupon = appliedCoupon.value;
-      if (coupon != null) {
-        final stillValid = hydrated.availableCoupons.any(
-          (c) => c.code.toUpperCase() == coupon.code.toUpperCase(),
-        );
-        if (!stillValid) {
-          removeCoupon();
-          couponError.value = ErrorMessages.couponRemoved;
-        }
-      }
-
-      if (Get.isRegistered<RewardCelebrationService>()) {
-        RewardCelebrationService.instance.checkAndTriggerRewards(
-          currentDeliveryFee: deliveryFee,
-          originalDeliveryFee: originalDeliveryFee,
-          currentCouponCode: appliedCoupon.value?.code,
-          currentCouponDiscount: couponDiscount,
-        );
-      }
+      applyCartHydratedData(hydrated);
     } catch (e) {
       AppLogger.error('Cart', 'HydratedMeta: $e');
       _fallbackToIndividualMetaFetches(items);
@@ -503,6 +514,43 @@ class CartController extends GetxController {
         _isInitialSyncComplete = true;
       }
     }
+  }
+
+  /// Revalidates stored cart items without fetching pricing.
+  /// Returns true if revalidation occurred, false if cart was empty.
+  Future<bool> revalidateOnly() async {
+    final localItems = List<CartItem>.from(cartItems);
+    if (localItems.isEmpty) return false;
+
+    final stored = localItems
+        .map(
+          (item) => protocol.CartItem(
+            productId: item.product.productId ?? '',
+            variantId: item.variantId,
+            quantity: item.quantity,
+            bogoFreeProductId: item.bogoFreeProductId,
+            comboId: item.comboId,
+            comboName: item.comboName,
+            comboDiscountType: item.comboDiscountType,
+            comboDiscountValue: item.comboDiscountValue,
+            comboItemQuantity: item.comboItemQuantity,
+          ),
+        )
+        .toList();
+
+    final fallbackItems = {
+      for (final item in localItems) _cartItemKeyFromUi(item): item,
+    };
+
+    try {
+      await _revalidateStoredCart(stored, fallbackItems: fallbackItems);
+    } catch (e) {
+      AppLogger.error('Cart', 'RevalidateOnly: $e');
+      if (cartItems.isEmpty && localItems.isNotEmpty) {
+        cartItems.assignAll(localItems);
+      }
+    }
+    return true;
   }
 
   Future<void> refreshCartCurrentData() async {
@@ -1344,6 +1392,10 @@ class CartController extends GetxController {
       subtotal.toStringAsFixed(2),
       normalizedItems.join('|'),
     ].join('::');
+  }
+
+  List<CartItemInput> buildCartItemInputs() {
+    return _buildCartItemInputs();
   }
 
   List<CartItemInput> _buildCartItemInputs() {

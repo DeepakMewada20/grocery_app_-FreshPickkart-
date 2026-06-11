@@ -396,6 +396,67 @@ class ComplaintEndpoint extends Endpoint {
     );
   }
 
+  /// Admin: Get complaint detail hydrated with refund.
+  Future<ComplaintDetailHydrated> getComplaintDetailHydrated(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final complaint = await _complaints.getComplaintAdmin(
+      session,
+      complaintId: complaintId,
+    );
+    if (complaint == null) {
+      throw ArgumentError('Complaint not found: $complaintId');
+    }
+    RefundRecord? refund;
+    if (complaint.status == 'Resolved' &&
+        (complaint.resolutionType?.contains('refund') ?? false)) {
+      refund = await _pgRefunds.getRefundByComplaintId(session, complaintId);
+    }
+    return ComplaintDetailHydrated(
+      complaint: complaint,
+      refund: refund,
+    );
+  }
+
+  /// User: Get complaint detail hydrated with refund.
+  Future<ComplaintDetailHydrated> getUserComplaintDetailHydrated(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final complaint = await _complaints.getMyComplaint(
+      session,
+      user: user,
+      complaintId: complaintId,
+    );
+    if (complaint == null) {
+      throw ArgumentError('Complaint not found: $complaintId');
+    }
+    RefundRecord? refund;
+    if (complaint.status == 'Resolved' &&
+        (complaint.resolutionType?.contains('refund') ?? false)) {
+      refund = await _pgRefunds.getRefundByComplaintId(session, complaintId);
+    }
+    return ComplaintDetailHydrated(
+      complaint: complaint,
+      refund: refund,
+    );
+  }
+
   /// Admin: Get refund details for a complaint.
   Future<RefundRecord?> getRefundForComplaint(
     Session session, {

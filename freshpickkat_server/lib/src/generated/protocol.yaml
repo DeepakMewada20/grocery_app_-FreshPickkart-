@@ -54,6 +54,7 @@ categoryOffer:
   - getCategoryOffersPage:
   - setCategoryOfferActive:
 checkout:
+  - getCheckoutInitHydrated:
   - createOrderAndPayment:
 comboOffer:
   - upsertComboOfferWithConflicts:
@@ -84,6 +85,8 @@ complaint:
   - reassignRider:
   - rejectComplaint:
   - replyToComplaint:
+  - getComplaintDetailHydrated:
+  - getUserComplaintDetailHydrated:
   - getRefundForComplaint:
   - getUserRefundForComplaint:
 coupon:
