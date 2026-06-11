@@ -1,36 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class FreeDeliveryPromotionSection extends StatelessWidget {
+class FreeDeliveryPromotionSection extends StatefulWidget {
   const FreeDeliveryPromotionSection({
     super.key,
-    required this.products,
+    required this.freeDeliveryProducts,
     required this.categories,
-    required this.query,
-    required this.onQueryChanged,
     required this.onToggleProduct,
     required this.onToggleCategory,
+    required this.onAddFreeDeliveryProducts,
   });
 
-  final List<Product> products;
+  final List<Product> freeDeliveryProducts;
   final List<Category> categories;
-  final String query;
-  final ValueChanged<String> onQueryChanged;
   final void Function(Product product, bool enabled) onToggleProduct;
   final void Function(Category category, bool enabled) onToggleCategory;
+  final VoidCallback onAddFreeDeliveryProducts;
+
+  @override
+  State<FreeDeliveryPromotionSection> createState() =>
+      _FreeDeliveryPromotionSectionState();
+}
+
+class _FreeDeliveryPromotionSectionState
+    extends State<FreeDeliveryPromotionSection> {
+  bool _categoriesExpanded = false;
 
   @override
   Widget build(BuildContext context) {
-    final normalized = query.trim().toLowerCase();
-    final filteredProducts = products.where((product) {
-      if (normalized.isEmpty) return product.isFreeDelivery;
-      return product.productName.toLowerCase().contains(normalized) ||
-          product.category.toLowerCase().contains(normalized);
-    }).take(12).toList();
-    final filteredCategories = categories.where((category) {
-      if (normalized.isEmpty) return category.isFreeDelivery;
-      return category.categoryName.toLowerCase().contains(normalized);
-    }).take(8).toList();
+    final cs = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -44,51 +43,105 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              onChanged: onQueryChanged,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search products or categories',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Categories',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            if (filteredCategories.isEmpty)
-              const Text('Search categories to enable Free Delivery')
-            else
-              ...filteredCategories.map(
-                (category) => SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(category.categoryName),
-                  subtitle: const Text('Applies to every active product in this category'),
-                  value: category.isFreeDelivery,
-                  onChanged: (value) => onToggleCategory(category, value),
+            SizedBox(height: 16.h),
+            InkWell(
+              onTap: () => setState(() => _categoriesExpanded = !_categoriesExpanded),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                child: Row(
+                  children: [
+                    Text(
+                      'Categories (${widget.categories.length})',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      _categoriesExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      size: 20,
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 12),
-            Text(
-              'Products',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
             ),
-            const SizedBox(height: 8),
-            if (filteredProducts.isEmpty)
-              const Text('Search products to enable Free Delivery')
+            if (_categoriesExpanded) ...[
+              SizedBox(height: 4.h),
+              Padding(
+                padding: EdgeInsets.only(left: 16.w),
+                child: Text(
+                  'Applies to every active product in this category',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              if (widget.categories.isEmpty)
+                Padding(
+                  padding: EdgeInsets.only(left: 16.w),
+                  child: const Text('No categories available'),
+                )
+              else
+                ...widget.categories.map(
+                  (category) => SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.only(left: 16.w),
+                    title: Text(category.categoryName),
+                    value: category.isFreeDelivery,
+                    onChanged: (value) =>
+                        widget.onToggleCategory(category, value),
+                  ),
+                ),
+            ],
+            SizedBox(height: 16.h),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Products',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: widget.onAddFreeDeliveryProducts,
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text(
+                    'Add Free Delivery Products',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            if (widget.freeDeliveryProducts.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                child: Center(
+                  child: Text(
+                    'No free delivery products added',
+                    style: TextStyle(
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
             else
-              ...filteredProducts.map(
+              ...widget.freeDeliveryProducts.map(
                 (product) => SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   secondary: product.imageUrl.isEmpty
-                      ? const Icon(Icons.inventory_2_outlined)
+                      ? Icon(Icons.inventory_2_outlined, color: cs.onSurfaceVariant)
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: Image.network(
@@ -96,16 +149,17 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
                             width: 44,
                             height: 44,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => const Icon(
+                            errorBuilder: (_, _, _) => Icon(
                               Icons.inventory_2_outlined,
+                              color: cs.onSurfaceVariant,
                             ),
                           ),
                         ),
                   title: Text(product.productName),
                   subtitle: Text(product.category),
-                  value: product.isFreeDelivery,
+                  value: true,
                   onChanged: product.isAvailable
-                      ? (value) => onToggleProduct(product, value)
+                      ? (value) => widget.onToggleProduct(product, value)
                       : null,
                 ),
               ),

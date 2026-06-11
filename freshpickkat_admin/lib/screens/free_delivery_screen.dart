@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 
 import '../widgets/free_delivery_form_widget.dart';
 import '../widgets/network_error_widget.dart';
+import '../widgets/product_selection_dialog.dart';
 
 class FreeDeliveryScreen extends StatefulWidget {
   const FreeDeliveryScreen({super.key});
@@ -25,7 +26,9 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       AdminFreeDeliveryController.instance;
   final AdminProductController _productController = AdminProductController.instance;
   final AdminCategoryController _categoryController = AdminCategoryController.instance;
-  String _promotionQuery = '';
+
+  List<Product> get _freeDeliveryProducts =>
+      _productController.products.where((p) => p.isFreeDelivery).toList();
 
   @override
   bool get wantKeepAlive => true;
@@ -68,12 +71,11 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
                 ),
                 SizedBox(height: 16.h),
                 FreeDeliveryPromotionSection(
-                  products: _productController.products,
+                  freeDeliveryProducts: _freeDeliveryProducts,
                   categories: _categoryController.categories,
-                  query: _promotionQuery,
-                  onQueryChanged: (value) => setState(() => _promotionQuery = value),
                   onToggleProduct: _toggleProductFreeDelivery,
                   onToggleCategory: _toggleCategoryFreeDelivery,
+                  onAddFreeDeliveryProducts: _addFreeDeliveryProducts,
                 ),
                 SizedBox(height: 16.h),
                 Text(
@@ -180,6 +182,37 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
         backgroundColor: result.success ? null : AdminAppTheme.getErrorColor(context),
       ),
     );
+  }
+
+  Future<void> _addFreeDeliveryProducts() async {
+    final currentFreeProducts = _productController.products
+        .where((p) => p.isFreeDelivery && p.productId != null)
+        .toList();
+    final initialSelections = currentFreeProducts
+        .map((p) => ProductSelectionResult(product: p))
+        .toList();
+    final results = await ProductSelectionDialog.showMultiSelectBottomSheet(
+      context: context,
+      title: 'Select Free Delivery Products',
+      initialSelections: initialSelections,
+    );
+    if (results == null) return;
+    final oldIds = currentFreeProducts.map((p) => p.productId!).toSet();
+    final newIds = results.map((r) => r.productId).toSet();
+    for (final r in results) {
+      if (oldIds.contains(r.productId)) continue;
+      final product = _productController.products.firstWhereOrNull(
+        (p) => p.productId == r.productId,
+      );
+      if (product != null) {
+        await _toggleProductFreeDelivery(product, true);
+      }
+    }
+    for (final p in currentFreeProducts) {
+      if (!newIds.contains(p.productId)) {
+        await _toggleProductFreeDelivery(p, false);
+      }
+    }
   }
 
   void _showConfigDialog() {
