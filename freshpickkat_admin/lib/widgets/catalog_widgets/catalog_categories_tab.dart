@@ -249,18 +249,42 @@ class CatalogCategoriesTab extends StatelessWidget {
               try {
                 final ok = await onConfirm();
                 if (!ok) return;
-                messenger
-                  ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: const Text('Deactivated'),
-                      duration: const Duration(seconds: 4),
-                      action: SnackBarAction(
-                        label: 'UNDO',
-                        onPressed: () => onUndo(categoryName, true),
-                      ),
+                const undoDuration = Duration(seconds: 4);
+                messenger.clearSnackBars();
+                final ctrl = messenger.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Deactivated',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
+                    duration: undoDuration,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    action: SnackBarAction(
+                      label: 'UNDO',
+                      textColor: Colors.white,
+                      onPressed: () => onUndo(categoryName, true),
+                    ),
+                  ),
+                );
+                Future.delayed(undoDuration, () => ctrl.close());
               } catch (e) {
                 messenger
                   ..clearSnackBars()

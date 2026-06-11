@@ -112,19 +112,50 @@ void showUndoSnackBar(
   BuildContext context, {
   required String message,
   required VoidCallback onUndo,
+  Duration duration = const Duration(seconds: 4),
 }) {
-  ScaffoldMessenger.of(context)
-    ..clearSnackBars()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'UNDO',
-          onPressed: onUndo,
-        ),
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.clearSnackBars();
+  final controller = messenger.showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
-    );
+      duration: duration,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      action: SnackBarAction(
+        label: 'UNDO',
+        textColor: Colors.white,
+        onPressed: onUndo,
+      ),
+    ),
+  );
+  // Flutter me SnackBarAction wali snackbar ka internal timer
+  // kabhi kabhi dialog close hone ke baad properly start nahi hota.
+  // ScaffoldFeatureController se explicitly close karo — yeh safe hai
+  // chahe snackbar already dismiss ho chuki ho (UNDO press karne se).
+  Future.delayed(duration, () {
+    controller.close();
+  });
 }
 
 
