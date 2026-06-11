@@ -42,8 +42,11 @@ abstract class Product
     required this.mostPurchases,
     bool? isFreeDelivery,
     this.bogoFreeProductIds,
+    this.comboOfferIds,
+    bool? hasCategoryOffer,
     this.variants,
-  }) : isFreeDelivery = isFreeDelivery ?? false;
+  }) : isFreeDelivery = isFreeDelivery ?? false,
+       hasCategoryOffer = hasCategoryOffer ?? false;
 
   factory Product({
     String? productId,
@@ -71,6 +74,8 @@ abstract class Product
     required int mostPurchases,
     bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? hasCategoryOffer,
     List<_i2.ProductVariant>? variants,
   }) = _ProductImpl;
 
@@ -110,6 +115,16 @@ abstract class Product
           ? null
           : _i3.Protocol().deserialize<List<String>>(
               jsonSerialization['bogoFreeProductIds'],
+            ),
+      comboOfferIds: jsonSerialization['comboOfferIds'] == null
+          ? null
+          : _i3.Protocol().deserialize<List<String>>(
+              jsonSerialization['comboOfferIds'],
+            ),
+      hasCategoryOffer: jsonSerialization['hasCategoryOffer'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['hasCategoryOffer'],
             ),
       variants: jsonSerialization['variants'] == null
           ? null
@@ -169,6 +184,10 @@ abstract class Product
 
   List<String>? bogoFreeProductIds;
 
+  List<String>? comboOfferIds;
+
+  bool hasCategoryOffer;
+
   List<_i2.ProductVariant>? variants;
 
   /// Returns a shallow copy of this [Product]
@@ -200,6 +219,8 @@ abstract class Product
     int? mostPurchases,
     bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? hasCategoryOffer,
     List<_i2.ProductVariant>? variants,
   });
   @override
@@ -233,6 +254,8 @@ abstract class Product
       'isFreeDelivery': isFreeDelivery,
       if (bogoFreeProductIds != null)
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
+      if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
+      'hasCategoryOffer': hasCategoryOffer,
       if (variants != null)
         'variants': variants?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -269,6 +292,8 @@ abstract class Product
       'isFreeDelivery': isFreeDelivery,
       if (bogoFreeProductIds != null)
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
+      if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
+      'hasCategoryOffer': hasCategoryOffer,
       if (variants != null)
         'variants': variants?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
     };
@@ -309,6 +334,8 @@ class _ProductImpl extends Product {
     required int mostPurchases,
     bool? isFreeDelivery,
     List<String>? bogoFreeProductIds,
+    List<String>? comboOfferIds,
+    bool? hasCategoryOffer,
     List<_i2.ProductVariant>? variants,
   }) : super._(
          productId: productId,
@@ -336,6 +363,8 @@ class _ProductImpl extends Product {
          mostPurchases: mostPurchases,
          isFreeDelivery: isFreeDelivery,
          bogoFreeProductIds: bogoFreeProductIds,
+         comboOfferIds: comboOfferIds,
+         hasCategoryOffer: hasCategoryOffer,
          variants: variants,
        );
 
@@ -369,6 +398,8 @@ class _ProductImpl extends Product {
     int? mostPurchases,
     bool? isFreeDelivery,
     Object? bogoFreeProductIds = _Undefined,
+    Object? comboOfferIds = _Undefined,
+    bool? hasCategoryOffer,
     Object? variants = _Undefined,
   }) {
     return Product(
@@ -407,6 +438,10 @@ class _ProductImpl extends Product {
       bogoFreeProductIds: bogoFreeProductIds is List<String>?
           ? bogoFreeProductIds
           : this.bogoFreeProductIds?.map((e0) => e0).toList(),
+      comboOfferIds: comboOfferIds is List<String>?
+          ? comboOfferIds
+          : this.comboOfferIds?.map((e0) => e0).toList(),
+      hasCategoryOffer: hasCategoryOffer ?? this.hasCategoryOffer,
       variants: variants is List<_i2.ProductVariant>?
           ? variants
           : this.variants?.map((e0) => e0.copyWith()).toList(),

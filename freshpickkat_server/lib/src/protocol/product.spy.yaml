@@ -25,4 +25,6 @@ fields:
     mostPurchases: int
     isFreeDelivery: bool, default=false
     bogoFreeProductIds: List<String>?
+    comboOfferIds: List<String>?
+    hasCategoryOffer: bool, default=false
     variants: List<ProductVariant>?

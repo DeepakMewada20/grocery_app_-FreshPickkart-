@@ -443,7 +443,9 @@ class _ProductAdminCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: 6.h),
+                    _OfferChips(product: product),
+                    SizedBox(height: 4.h),
                     _VariantPriceRow(product: product),
                   ],
                 ),
@@ -473,6 +475,71 @@ class _ProductAdminCard extends StatelessWidget {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Offer chips ───────────────────────────────────────────────────────────────
+
+class _OfferChips extends StatelessWidget {
+  const _OfferChips({required this.product});
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = <Widget>[];
+
+    if (product.bogoFreeProductIds != null &&
+        product.bogoFreeProductIds!.isNotEmpty) {
+      chips.add(_offerChip(context, 'BOGO', AdminAppTheme.getWarningColor(context)));
+    }
+
+    if (product.comboOfferIds != null &&
+        product.comboOfferIds!.isNotEmpty) {
+      chips.add(_offerChip(context, 'COMBO', const Color(0xFF7C4DFF)));
+    }
+
+    if (product.isFreeDelivery) {
+      chips.add(_offerChip(context, 'FREE DELIVERY', AdminAppTheme.getSuccessColor(context)));
+    }
+
+    if (product.hasCategoryOffer) {
+      chips.add(_offerChip(context, 'CATEGORY OFFER', const Color(0xFFFF6F00)));
+    }
+
+    if (product.discountType == 'percentage' || product.discountType == 'flat') {
+      final label = product.discountType == 'percentage'
+          ? '${product.discountValue?.toStringAsFixed(0) ?? ''}% OFF'
+          : '₹${product.discountValue?.toStringAsFixed(0) ?? ''} OFF';
+      chips.add(_offerChip(context, label, const Color(0xFFD32F2F)));
+    }
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 4.w,
+      runSpacing: 4.h,
+      children: chips,
+    );
+  }
+
+  Widget _offerChip(BuildContext context, String label, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4.r),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9.sp,
+          fontWeight: FontWeight.w700,
+          color: color,
+          height: 1.2,
         ),
       ),
     );

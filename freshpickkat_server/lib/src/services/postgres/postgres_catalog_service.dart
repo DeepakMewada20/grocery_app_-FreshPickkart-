@@ -439,6 +439,35 @@ class PostgresCatalogService {
     // Sort by priority (higher first)
     activeCategoryOffers.sort((a, b) => b.priority.compareTo(a.priority));
 
+    // Fetch active combo offers for these products
+    final comboItemRows = await ComboOfferItemRow.db.find(
+      session,
+      where: (t) => t.productId.inSet(productIds),
+    );
+    final comboOfferIdSet = comboItemRows.map((r) => r.comboOfferId).toSet();
+    final activeComboOfferRows = comboOfferIdSet.isEmpty
+        ? const <ComboOfferRow>[]
+        : await ComboOfferRow.db.find(
+            session,
+            where: (t) =>
+                t.id.inSet(comboOfferIdSet) & t.status.equals('active'),
+          );
+    final activeComboOffers = activeComboOfferRows.where(
+      (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
+    ).toList();
+    final activeComboOfferIds =
+        activeComboOffers.map((r) => r.id!.toString()).toSet();
+    final comboByProduct = <String, List<String>>{};
+    for (final item in comboItemRows) {
+      final comboOfferId = item.comboOfferId.toString();
+      if (!activeComboOfferIds.contains(comboOfferId)) continue;
+      final productId = item.productId.toString();
+      comboByProduct.putIfAbsent(productId, () => []).add(comboOfferId);
+    }
+    for (final list in comboByProduct.values) {
+      list.sort();
+    }
+
     final hydrated = <Product>[];
     for (final productId in orderedProductIds) {
       final productRow = productById[productId];
@@ -548,6 +577,11 @@ class PostgresCatalogService {
           bogoFreeProductIds: bogoFreeProductIds?.isEmpty == true
               ? null
               : bogoFreeProductIds,
+          comboOfferIds: (comboByProduct[productId]?.isEmpty == true)
+              ? null
+              : comboByProduct[productId],
+          hasCategoryOffer: activeCategoryOffers
+              .any((o) => o.categoryId == productRow.categoryId),
           variants: mappedVariants.isEmpty ? null : mappedVariants,
         ),
       );
