@@ -693,22 +693,6 @@ class OrderEndpoint extends Endpoint {
       metadata: {'deliveryCompleted': 'true'},
     );
 
-    // Send delivery success notification
-    try {
-      await _notifications.sendDeliverySuccess(
-        session: session,
-        userId: order.userId,
-        orderId: orderId,
-      );
-    } catch (e, st) {
-      session.log(
-        'Failed to send delivery success notification: $e',
-        level: LogLevel.warning,
-        exception: e,
-        stackTrace: st,
-      );
-    }
-
     final updatedOrder = await _orders.getOrderById(session, orderId);
     if (updatedOrder != null) {
       await OrderOutboxService.instance.enqueueOrderStatusChanged(

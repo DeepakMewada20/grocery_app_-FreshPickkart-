@@ -283,76 +283,8 @@ class FirebaseNotificationService {
             stackTrace: st,
           );
         }
-        if (userId != null && userId.isNotEmpty) {
-          try {
-            await sendUserPaymentSuccess(
-              session: session,
-              userId: userId,
-              orderId: orderId,
-              amount: amount,
-              itemCount: itemCount,
-            );
-          } catch (e, st) {
-            session.log(
-              'Failed to send user payment success notification: $e',
-              level: LogLevel.warning,
-              exception: e,
-              stackTrace: st,
-            );
-          }
-          if (status.isNotEmpty) {
-            try {
-              await sendUserStatusUpdate(
-                session: session,
-                userId: userId,
-                orderId: orderId,
-                status: status,
-              );
-            } catch (e, st) {
-              session.log(
-                'Failed to send user status update notification: $e',
-                level: LogLevel.warning,
-                exception: e,
-                stackTrace: st,
-              );
-            }
-          }
-        }
         return;
       case 'order_status_changed':
-        if (userId == null || userId.isEmpty) return;
-        if (isDeliveryStarted || status == 'out_for_delivery') {
-          try {
-            await sendDeliveryStarted(
-              session: session,
-              userId: userId,
-              orderId: orderId,
-            );
-          } catch (e, st) {
-            session.log(
-              'Failed to send delivery started notification: $e',
-              level: LogLevel.warning,
-              exception: e,
-              stackTrace: st,
-            );
-          }
-        } else {
-          try {
-            await sendUserStatusUpdate(
-              session: session,
-              userId: userId,
-              orderId: orderId,
-              status: status.isEmpty ? 'updated' : status,
-            );
-          } catch (e, st) {
-            session.log(
-              'Failed to send user status update notification: $e',
-              level: LogLevel.warning,
-              exception: e,
-              stackTrace: st,
-            );
-          }
-        }
         return;
       case 'order_address_updated':
         if (userId == null || userId.isEmpty) return;
