@@ -1332,7 +1332,7 @@ Future<void> showDeleteCouponDialog({
   try {
     final ok = await controller.deleteCoupon(coupon.code);
     if (!context.mounted) return;
-    if (ok) {
+    if (ok == true) {
       showUndoSnackBar(
         context,
         message: 'Coupon deactivated',

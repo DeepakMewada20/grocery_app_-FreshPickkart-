@@ -1291,7 +1291,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               clearOffer: true,
             ),
           );
-          return true;
+          return null;
         case _OfferCardActionType.categoryOffer:
           final offer = _linkedCategoryOffer(product, categoryOffers);
           final offerId = offer?.offerId;

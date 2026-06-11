@@ -144,7 +144,7 @@ class AdminCouponController extends GetxController {
     }
   }
 
-  Future<bool> deleteCoupon(String code) async {
+  Future<bool?> deleteCoupon(String code) async {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -155,7 +155,7 @@ class AdminCouponController extends GetxController {
       });
       if (message.isEmpty) {
         coupons.removeWhere((c) => c.code == code);
-        return true;
+        return null;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Coupon In Use',

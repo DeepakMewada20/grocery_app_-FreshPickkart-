@@ -152,7 +152,7 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<bool> deleteCategory(String categoryName) async {
+  Future<bool?> deleteCategory(String categoryName) async {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -167,7 +167,7 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
-        return true;
+        return null;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Category In Use',
@@ -243,7 +243,7 @@ class AdminCategoryController extends GetxController {
     }
   }
 
-  Future<bool> deleteSubCategory(
+  Future<bool?> deleteSubCategory(
     String categoryName,
     String subCategoryName,
   ) async {
@@ -262,7 +262,7 @@ class AdminCategoryController extends GetxController {
       });
       if (message.isEmpty) {
         await loadCategories();
-        return true;
+        return null;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Sub-Category In Use',

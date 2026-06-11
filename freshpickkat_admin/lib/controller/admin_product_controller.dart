@@ -220,7 +220,7 @@ class AdminProductController extends GetxController {
     }
   }
 
-  Future<bool> deleteProduct(String productId) async {
+  Future<bool?> deleteProduct(String productId) async {
     try {
       final message = await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
@@ -232,7 +232,7 @@ class AdminProductController extends GetxController {
       if (message.isEmpty) {
         products.removeWhere((p) => p.productId == productId);
         totalCount.value--;
-        return true;
+        return null;
       }
       final shouldDeactivate = await _showDeactivationDialog(message);
       if (shouldDeactivate == true) {

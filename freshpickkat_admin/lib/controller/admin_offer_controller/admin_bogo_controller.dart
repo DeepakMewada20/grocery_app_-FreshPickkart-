@@ -159,7 +159,7 @@ class AdminBogoController extends GetxController {
     }
   }
 
-  Future<bool> deleteOffer(String triggerProductId) async {
+  Future<bool?> deleteOffer(String triggerProductId) async {
     try {
       return await AdminSessionService.withRetry(apiCall: () async {
         final uid = AdminSessionService.requireUid();
@@ -174,7 +174,7 @@ class AdminBogoController extends GetxController {
             (offer) => offer.triggerProductId == triggerProductId,
           );
           if (totalCount.value > 0) totalCount.value--;
-          return true;
+          return null;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {

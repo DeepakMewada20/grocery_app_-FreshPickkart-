@@ -229,7 +229,7 @@ class CatalogCategoriesTab extends StatelessWidget {
     required String title,
     required String message,
     required String categoryName,
-    required Future<bool> Function() onConfirm,
+    required Future<bool?> Function() onConfirm,
     required Future<bool> Function(String, bool) onUndo,
   }) {
     final messenger = ScaffoldMessenger.of(context);
@@ -248,7 +248,7 @@ class CatalogCategoriesTab extends StatelessWidget {
               Navigator.pop(dialogContext);
               try {
                 final ok = await onConfirm();
-                if (!ok) return;
+                if (ok != true) return;
                 const undoDuration = Duration(seconds: 4);
                 messenger.clearSnackBars();
                 final ctrl = messenger.showSnackBar(

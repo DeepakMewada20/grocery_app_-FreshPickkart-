@@ -197,7 +197,7 @@ class AdminCategoryOfferController extends GetxController {
     return createCategoryOffer(offer);
   }
 
-  Future<bool> deleteCategoryOffer(String offerId) async {
+  Future<bool?> deleteCategoryOffer(String offerId) async {
     try {
       return await AdminSessionService.withRetry(apiCall: () async {
         final uid = AdminSessionService.requireUid();
@@ -210,7 +210,7 @@ class AdminCategoryOfferController extends GetxController {
         if (message.isEmpty) {
           categoryOffers.removeWhere((offer) => offer.offerId == offerId);
           if (totalCount.value > 0) totalCount.value--;
-          return true;
+          return null;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {

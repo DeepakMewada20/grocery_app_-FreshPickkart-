@@ -198,7 +198,7 @@ class AdminComboOfferController extends GetxController {
     return createComboOffer(offer);
   }
 
-  Future<bool> deleteComboOffer(String comboId) async {
+  Future<bool?> deleteComboOffer(String comboId) async {
     try {
       return await AdminSessionService.withRetry(apiCall: () async {
         final uid = AdminSessionService.requireUid();
@@ -211,7 +211,7 @@ class AdminComboOfferController extends GetxController {
         if (message.isEmpty) {
           comboOffers.removeWhere((offer) => offer.comboId == comboId);
           if (totalCount.value > 0) totalCount.value--;
-          return true;
+          return null;
         }
         final shouldDeactivate = await _showDeactivationDialog(message);
         if (shouldDeactivate) {

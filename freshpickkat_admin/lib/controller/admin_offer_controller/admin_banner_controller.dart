@@ -238,7 +238,7 @@ class AdminBannerController extends GetxController {
     }
   }
 
-  Future<bool> deleteBanner(String bannerId) async {
+  Future<bool?> deleteBanner(String bannerId) async {
     try {
       isLoading.value = true;
       error.value = null;
@@ -252,7 +252,7 @@ class AdminBannerController extends GetxController {
       if (message.isEmpty) {
         banners.removeWhere((b) => b.bannerId == bannerId);
         if (totalCount.value > 0) totalCount.value--;
-        return true;
+        return null;
       }
       final shouldDeactivate = await showDeactivationDialog(
         title: 'Banner In Use',
