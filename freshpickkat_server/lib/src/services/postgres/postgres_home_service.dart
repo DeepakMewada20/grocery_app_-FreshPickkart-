@@ -95,7 +95,7 @@ class PostgresHomeService {
     );
     final flatProducts = _catalog.flattenToVariantProducts(
       hydratedProducts,
-      onlyDefaultVariant: true,
+      useFeaturedVariant: true,
     );
     final productMap = {
       for (final product in flatProducts)

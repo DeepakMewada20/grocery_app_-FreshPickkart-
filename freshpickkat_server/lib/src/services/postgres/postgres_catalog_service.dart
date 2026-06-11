@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../featured_variant_resolver.dart';
 import 'postgres_support.dart';
 
 class PostgresCatalogService {
@@ -713,6 +714,7 @@ class PostgresCatalogService {
   List<Product> flattenToVariantProducts(
     List<Product> products, {
     bool onlyDefaultVariant = false,
+    bool useFeaturedVariant = false,
   }) {
     if (products.isEmpty) return const [];
 
@@ -724,9 +726,14 @@ class PostgresCatalogService {
         continue;
       }
 
-      final targetVariants = onlyDefaultVariant
-          ? variants.take(1).toList()
-          : variants;
+      List<ProductVariant> targetVariants;
+      if (useFeaturedVariant) {
+        targetVariants = [FeaturedVariantResolver.resolve(variants)];
+      } else if (onlyDefaultVariant) {
+        targetVariants = variants.take(1).toList();
+      } else {
+        targetVariants = variants;
+      }
 
       for (final variant in targetVariants) {
         final quantityDesc = variant.quantityDescription;

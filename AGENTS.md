@@ -73,6 +73,7 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - **Home page DB queries reduced**: ~63 → ~23 per load. Fetch IDs first (5 simple SQL queries), merge + deduplicate, hydrate once (10 queries), distribute results.
 - **`ProductRankingService` refactored**: `_RankingRow` → public `RankingRow`; new `getRankedProductIds()` returns unhydrated rows; static `buildRankingItems()` constructs `ProductRankingItem` from rows + product map.
 - **`PostgresCatalogService.getActiveProductIds()`**: New method returning just product IDs (no hydration, no cursor/pagination needed for home page).
+- **`FeaturedVariantResolver`**: New service that selects the best variant per product using priority rules (BOGO > Free Delivery > Combo > Discount > Default). Replaces `onlyDefaultVariant: true` on the homepage — now each product displays its most valuable variant with correct badges and pricing.
 
 ## Relevant Files
 - `freshpickkat_server/lib/src/protocol/product.spy.yaml`: added `comboOfferIds`, `hasCategoryOffer`
