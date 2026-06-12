@@ -381,7 +381,8 @@ class PostgresCatalogService {
       Future.value(products),
       ProductVariantRow.db.find(
         session,
-        where: (t) => t.productId.inSet(productIds),
+        where: (t) =>
+            t.productId.inSet(productIds) & t.status.equals('active'),
       ),
       ProductSubCategoryRow.db.find(
         session,
@@ -625,7 +626,7 @@ class PostgresCatalogService {
                 quantityDescription: variant.quantityDescription,
                 price: variant.salePrice,
                 realPrice: variant.listPrice,
-                isAvailable: variant.isAvailable,
+                isAvailable: variant.isAvailable && variant.status == 'active',
                 sortOrder: variant.sortOrder,
                 bogoFreeProductIds:
                     resolvedBogo?.isEmpty == true ? null : resolvedBogo,
@@ -677,10 +678,17 @@ class PostgresCatalogService {
         resolvedDiscountType = 'bogo';
       }
 
-      final discountValue = listPrice > salePrice ? listPrice - salePrice : 0.0;
-      final discountPercent = listPrice > 0 && discountValue > 0
-          ? (discountValue / listPrice) * 100
+      final flatDiscount = listPrice > salePrice ? listPrice - salePrice : 0.0;
+      final discountPercent = listPrice > 0 && flatDiscount > 0
+          ? (flatDiscount / listPrice) * 100
           : 0.0;
+
+      final resolvedDiscountValueFinal = resolvedDiscountValue ??
+          (resolvedDiscountType == 'percentage'
+              ? double.parse(discountPercent.toStringAsFixed(2))
+              : flatDiscount > 0
+                  ? double.parse(flatDiscount.toStringAsFixed(2))
+                  : null);
 
       hydrated.add(
         Product(
@@ -695,9 +703,7 @@ class PostgresCatalogService {
           realPrice: listPrice,
           discount: double.parse(discountPercent.toStringAsFixed(2)),
           discountType: resolvedDiscountType,
-          discountValue: resolvedDiscountValue ?? (discountValue > 0
-              ? double.parse(discountValue.toStringAsFixed(2))
-              : null),
+          discountValue: resolvedDiscountValueFinal,
           isAvailable:
               productRow.status == 'active' &&
               (defaultVariant == null || defaultVariant.isAvailable),

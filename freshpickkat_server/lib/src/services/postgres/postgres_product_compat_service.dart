@@ -346,7 +346,7 @@ class PostgresProductCompatService {
     });
   }
 
-  Future<bool> updateProduct(
+  Future<Product?> updateProduct(
     Session session,
     Product product,
   ) async {
@@ -355,7 +355,7 @@ class PostgresProductCompatService {
       fieldName: 'productId',
     );
 
-    return session.db.transaction<bool>((transaction) async {
+    return session.db.transaction<Product?>((transaction) async {
       final existing = await ProductRow.db.findById(
         session,
         productId,
@@ -432,7 +432,12 @@ class PostgresProductCompatService {
         );
       }
 
-      return true;
+      final hydrated = await _catalog.hydrateProductsByIds(
+        session,
+        [productId.toString()],
+        statusFilter: 'active',
+      );
+      return hydrated.isNotEmpty ? hydrated.first : null;
     });
   }
 
@@ -715,8 +720,11 @@ class PostgresProductCompatService {
       where: (t) => t.productId.equals(productId),
       transaction: transaction,
     );
-    final existingMap = {for (final row in existingRows) row.sku: row};
-    final seenSkus = <String?>{};
+    final existingMap = {
+      for (final row in existingRows)
+        if (row.id != null) row.id.toString(): row,
+    };
+    final matchedIds = <String>{};
 
     final variants = (product.variants == null || product.variants!.isEmpty)
         ? <ProductVariant>[
@@ -739,25 +747,32 @@ class PostgresProductCompatService {
 
     var index = 0;
     for (final variant in variants) {
-      final sku = (() {
-        final vId = cleanNullableString(variant.variantId);
-        if (vId == null || vId.isEmpty || vId.toLowerCase() == 'default') {
-          return '${productId.toString()}-default';
+      final vId = cleanNullableString(variant.variantId);
+      final isDefaultVariant =
+          vId == null || vId.isEmpty || vId.toLowerCase() == 'default';
+
+      // Try to match by UUID primary key
+      final existingRow = (() {
+        if (isDefaultVariant) {
+          return existingMap[productId.toString()];
         }
-        return vId;
+        final parsed = tryParseUuid(vId);
+        if (parsed != null) {
+          return existingMap[vId];
+        }
+        return null;
       })();
-      seenSkus.add(sku);
 
       final label =
           cleanNullableString(variant.quantityDescription) ??
           '${variant.quantityValue} ${variant.quantityUnit}'.trim();
 
-      if (existingMap.containsKey(sku)) {
-        // Update existing variant
-        final existing = existingMap[sku]!;
+      if (existingRow != null) {
+        // Update existing variant (matched by UUID id)
+        matchedIds.add(existingRow.id.toString());
         await ProductVariantRow.db.updateRow(
           session,
-          existing.copyWith(
+          existingRow.copyWith(
             label: label,
             quantityValue: variant.quantityValue,
             quantityUnit: variant.quantityUnit.trim(),
@@ -768,12 +783,17 @@ class PostgresProductCompatService {
             isAvailable: variant.isAvailable,
             isDefault: index == 0,
             sortOrder: variant.sortOrder ?? index,
+            status: 'active',
+            deactivatedAt: null,
             updatedAt: DateTime.now().toUtc(),
           ),
           transaction: transaction,
         );
       } else {
-        // Insert new variant
+        // Insert new variant — generate SKU from the product UUID + index
+        final sku = isDefaultVariant
+            ? '${productId.toString()}-default'
+            : '${productId.toString()}-$index';
         await ProductVariantRow.db.insertRow(
           session,
           ProductVariantRow(
@@ -789,6 +809,7 @@ class PostgresProductCompatService {
             isAvailable: variant.isAvailable,
             isDefault: index == 0,
             sortOrder: variant.sortOrder ?? index,
+            status: 'active',
           ),
           transaction: transaction,
         );
@@ -796,33 +817,27 @@ class PostgresProductCompatService {
       index++;
     }
 
-    // Clean up removed variants — safe pre-check before attempting delete.
-    // Using try/catch here would abort the whole transaction on FK violation
-    // (PostgreSQL error 25P02). Instead, we check references first.
+    // Clean up removed variants.
     for (final existing in existingRows) {
-      if (!seenSkus.contains(existing.sku)) {
-        final variantRowId = existing.id;
-        if (variantRowId == null) continue;
-
+      if (existing.id != null && !matchedIds.contains(existing.id.toString())) {
         final variantRefs = await DependencyChecker.checkVariant(
           session,
-          variantRowId,
+          existing.id!,
         );
-        final referenced = variantRefs.isNotEmpty;
-
-        if (referenced) {
-          // Referenced by order_item / bogo / combo — cannot delete (ON DELETE RESTRICT).
-          // Mark unavailable so it is hidden from the catalog but keeps FK integrity.
+        if (variantRefs.isNotEmpty) {
+          // Referenced — soft-delete via status
           await ProductVariantRow.db.updateRow(
             session,
             existing.copyWith(
               isAvailable: false,
+              status: 'inactive',
+              deactivatedAt: DateTime.now().toUtc(),
               updatedAt: DateTime.now().toUtc(),
             ),
             transaction: transaction,
           );
         } else {
-          // Not referenced anywhere — safe to hard-delete.
+          // Not referenced — safe to hard-delete.
           await ProductVariantRow.db.deleteRow(
             session,
             existing,
@@ -882,7 +897,7 @@ class PostgresProductCompatService {
     );
     if (existingRows.isEmpty) return '';
 
-    final seenSkus = <String?>{};
+    final matchedIds = <String>{};
     final variants = (product.variants == null || product.variants!.isEmpty)
         ? <ProductVariant>[
             ProductVariant(
@@ -903,36 +918,36 @@ class PostgresProductCompatService {
         : product.variants!;
 
     for (final variant in variants) {
-      final sku = (() {
-        final vId = cleanNullableString(variant.variantId);
-        if (vId == null || vId.isEmpty || vId.toLowerCase() == 'default') {
-          return '${productId.toString()}-default';
-        }
-        return vId;
-      })();
-      seenSkus.add(sku);
-    }
+      final vId = cleanNullableString(variant.variantId);
+      final isDefaultVariant =
+          vId == null || vId.isEmpty || vId.toLowerCase() == 'default';
 
-    final variantRefs = <String>[];
-    for (final existing in existingRows) {
-      if (!seenSkus.contains(existing.sku)) {
-        final variantRowId = existing.id;
-        if (variantRowId == null) continue;
-
-        final variantRefs = await DependencyChecker.checkVariant(
-          session,
-          variantRowId,
-        );
-        final referenced = variantRefs.isNotEmpty;
-        if (referenced) {
-          variantRefs.add(existing.sku ?? 'unknown');
+      if (isDefaultVariant) {
+        matchedIds.add(productId.toString());
+      } else {
+        final parsed = tryParseUuid(vId);
+        if (parsed != null) {
+          matchedIds.add(vId);
         }
       }
     }
 
-    if (variantRefs.isEmpty) return '';
+    final refs = <String>[];
+    for (final existing in existingRows) {
+      if (existing.id != null && !matchedIds.contains(existing.id.toString())) {
+        final variantRefs = await DependencyChecker.checkVariant(
+          session,
+          existing.id!,
+        );
+        if (variantRefs.isNotEmpty) {
+          refs.add(existing.sku ?? 'unknown');
+        }
+      }
+    }
 
-    return 'This product has variants (${variantRefs.join(', ')}) that are linked to existing orders or offers. These variants cannot be deleted — they will be hidden instead. Do you want to continue?';
+    if (refs.isEmpty) return '';
+
+    return 'This product has variants (${refs.join(', ')}) that are linked to existing orders or offers. These variants cannot be deleted — they will be hidden instead. Do you want to continue?';
   }
 
   Future<String> _generateUniqueProductSlug(

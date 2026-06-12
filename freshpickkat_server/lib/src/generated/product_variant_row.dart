@@ -28,12 +28,15 @@ abstract class ProductVariantRow
     bool? isDefault,
     bool? isFreeDelivery,
     int? sortOrder,
+    String? status,
+    this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : isAvailable = isAvailable ?? true,
        isDefault = isDefault ?? false,
        isFreeDelivery = isFreeDelivery ?? false,
        sortOrder = sortOrder ?? 0,
+       status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -51,6 +54,8 @@ abstract class ProductVariantRow
     bool? isDefault,
     bool? isFreeDelivery,
     int? sortOrder,
+    String? status,
+    DateTime? deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ProductVariantRowImpl;
@@ -80,6 +85,12 @@ abstract class ProductVariantRow
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       sortOrder: jsonSerialization['sortOrder'] as int?,
+      status: jsonSerialization['status'] as String?,
+      deactivatedAt: jsonSerialization['deactivatedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deactivatedAt'],
+            ),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -120,6 +131,10 @@ abstract class ProductVariantRow
 
   int sortOrder;
 
+  String status;
+
+  DateTime? deactivatedAt;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -144,6 +159,8 @@ abstract class ProductVariantRow
     bool? isDefault,
     bool? isFreeDelivery,
     int? sortOrder,
+    String? status,
+    DateTime? deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -165,6 +182,8 @@ abstract class ProductVariantRow
       'isDefault': isDefault,
       'isFreeDelivery': isFreeDelivery,
       'sortOrder': sortOrder,
+      'status': status,
+      if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -222,6 +241,8 @@ class _ProductVariantRowImpl extends ProductVariantRow {
     bool? isDefault,
     bool? isFreeDelivery,
     int? sortOrder,
+    String? status,
+    DateTime? deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -238,6 +259,8 @@ class _ProductVariantRowImpl extends ProductVariantRow {
          isDefault: isDefault,
          isFreeDelivery: isFreeDelivery,
          sortOrder: sortOrder,
+         status: status,
+         deactivatedAt: deactivatedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -260,6 +283,8 @@ class _ProductVariantRowImpl extends ProductVariantRow {
     bool? isDefault,
     bool? isFreeDelivery,
     int? sortOrder,
+    String? status,
+    Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -279,6 +304,10 @@ class _ProductVariantRowImpl extends ProductVariantRow {
       isDefault: isDefault ?? this.isDefault,
       isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       sortOrder: sortOrder ?? this.sortOrder,
+      status: status ?? this.status,
+      deactivatedAt: deactivatedAt is DateTime?
+          ? deactivatedAt
+          : this.deactivatedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -353,6 +382,17 @@ class ProductVariantRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
+    table.status,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> deactivatedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.deactivatedAt,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -422,6 +462,15 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    status = _i1.ColumnString(
+      'status',
+      this,
+      hasDefault: true,
+    );
+    deactivatedAt = _i1.ColumnDateTime(
+      'deactivatedAt',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -460,6 +509,10 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt sortOrder;
 
+  late final _i1.ColumnString status;
+
+  late final _i1.ColumnDateTime deactivatedAt;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -479,6 +532,8 @@ class ProductVariantRowTable extends _i1.Table<_i1.UuidValue?> {
     isDefault,
     isFreeDelivery,
     sortOrder,
+    status,
+    deactivatedAt,
     createdAt,
     updatedAt,
   ];

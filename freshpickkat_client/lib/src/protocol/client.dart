@@ -2899,11 +2899,11 @@ class EndpointProduct extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<bool> updateProduct(
+  _i2.Future<_i58.Product?> updateProduct(
     _i58.Product product,
     String firebaseUid,
     String idToken,
-  ) => caller.callServerEndpoint<bool>(
+  ) => caller.callServerEndpoint<_i58.Product?>(
     'product',
     'updateProduct',
     {

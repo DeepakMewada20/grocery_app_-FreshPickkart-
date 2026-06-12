@@ -209,12 +209,14 @@ class AdminProductController extends GetxController {
         if (!shouldProceed) return;
       }
 
-      // Step 2: Actually update
-      await ApiClient().request(() async {
-        await _client.product.updateProduct(product, uid, idToken);
+      // Step 2: Actually update — server returns the full hydrated product
+      final updatedProduct = await ApiClient().request<Product?>(() async {
+        return _client.product.updateProduct(product, uid, idToken);
       });
 
-      _upsertLocalProduct(product);
+      if (updatedProduct != null) {
+        _upsertLocalProduct(updatedProduct);
+      }
     } catch (e) {
       rethrow;
     }

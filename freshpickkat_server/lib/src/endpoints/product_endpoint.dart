@@ -138,7 +138,7 @@ class ProductEndpoint extends Endpoint {
     return newId;
   }
 
-  Future<bool> updateProduct(
+  Future<Product?> updateProduct(
     Session session,
     Product product,
     String firebaseUid,
@@ -156,16 +156,18 @@ class ProductEndpoint extends Endpoint {
     final normalized = ProductBusinessService.normalizeForSave(product);
     ValidationService.validateProduct(normalized);
 
-    await _pgProducts.updateProduct(session, normalized);
-    await _audit.write(
-      session,
-      actorUserId: actor.id,
-      action: 'update',
-      entityType: 'product',
-      entityId: product.productId!,
-      metadata: {'name': normalized.productName},
-    );
-    return true;
+    final updatedProduct = await _pgProducts.updateProduct(session, normalized);
+    if (updatedProduct != null) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'update',
+        entityType: 'product',
+        entityId: product.productId!,
+        metadata: {'name': normalized.productName},
+      );
+    }
+    return updatedProduct;
   }
 
   Future<String> checkProductUpdateConflicts(

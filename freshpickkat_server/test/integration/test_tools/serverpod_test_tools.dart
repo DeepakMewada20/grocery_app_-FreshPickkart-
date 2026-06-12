@@ -7438,7 +7438,7 @@ class _ProductEndpoint {
     });
   }
 
-  _i3.Future<bool> updateProduct(
+  _i3.Future<_i59.Product?> updateProduct(
     _i1.TestSessionBuilder sessionBuilder,
     _i59.Product product,
     String firebaseUid,
@@ -7467,7 +7467,7 @@ class _ProductEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<bool>);
+                as _i3.Future<_i59.Product?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
