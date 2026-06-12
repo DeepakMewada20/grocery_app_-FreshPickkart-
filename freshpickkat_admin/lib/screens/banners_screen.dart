@@ -159,7 +159,7 @@ class _BannersScreenState extends State<BannersScreen>
                 final isHero = b.screenPlacements.contains('home_top_image');
 
                 if (_filterMode == _BannerMode.homeTopImage) {
-                  // show all banners for home top image mode
+                  matchesMode = isHero;
                 } else if (_filterMode == _BannerMode.normal) {
                   matchesMode = !isHero;
                 }

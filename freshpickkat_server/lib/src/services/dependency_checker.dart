@@ -8,16 +8,11 @@ class DependencyChecker {
     UuidValue productId,
   ) async {
     final refs = <String>[];
-    final bannerLinkedCount = await BannerLinkedProductRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    final bannerDirectCount = await BannerRow.db.count(
+    final bannerCount = await BannerRow.db.count(
       session,
       where: (t) => t.linkedProductId.equals(productId),
     );
-    final totalBanners = bannerLinkedCount + bannerDirectCount;
-    if (totalBanners > 0) refs.add('$totalBanners banner(s)');
+    if (bannerCount > 0) refs.add('$bannerCount banner(s)');
 
     final bogoTriggerCount = await BogoOfferRow.db.count(
       session,
@@ -235,27 +230,6 @@ class DependencyChecker {
     UuidValue ruleId,
   ) async {
     return <String>[];
-  }
-
-  /// Checks if a banner is referenced by any entity.
-  static Future<List<String>> checkBanner(
-    Session session,
-    UuidValue bannerId,
-  ) async {
-    final refs = <String>[];
-    final linkedProductCount = await BannerLinkedProductRow.db.count(
-      session,
-      where: (t) => t.bannerId.equals(bannerId),
-    );
-    if (linkedProductCount > 0) refs.add('$linkedProductCount linked product(s)');
-
-    final placementCount = await BannerPlacementRow.db.count(
-      session,
-      where: (t) => t.bannerId.equals(bannerId),
-    );
-    if (placementCount > 0) refs.add('$placementCount placement(s)');
-
-    return refs;
   }
 
   /// Builds a human-readable error message from a list of references.

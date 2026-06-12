@@ -26,6 +26,8 @@ abstract class BannerRow
     this.couponId,
     this.linkedCategoryId,
     this.linkedSubCategoryId,
+    String? screenPlacements,
+    this.linkedProductIds,
     int? priority,
     bool? isBaseImage,
     required this.startsAt,
@@ -34,7 +36,8 @@ abstract class BannerRow
     this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : priority = priority ?? 0,
+  }) : screenPlacements = screenPlacements ?? '',
+       priority = priority ?? 0,
        isBaseImage = isBaseImage ?? false,
        status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
@@ -52,6 +55,8 @@ abstract class BannerRow
     _i1.UuidValue? couponId,
     _i1.UuidValue? linkedCategoryId,
     _i1.UuidValue? linkedSubCategoryId,
+    String? screenPlacements,
+    String? linkedProductIds,
     int? priority,
     bool? isBaseImage,
     required DateTime startsAt,
@@ -95,6 +100,8 @@ abstract class BannerRow
           : _i1.UuidValueJsonExtension.fromJson(
               jsonSerialization['linkedSubCategoryId'],
             ),
+      screenPlacements: jsonSerialization['screenPlacements'] as String?,
+      linkedProductIds: jsonSerialization['linkedProductIds'] as String?,
       priority: jsonSerialization['priority'] as int?,
       isBaseImage: jsonSerialization['isBaseImage'] == null
           ? null
@@ -145,6 +152,10 @@ abstract class BannerRow
 
   _i1.UuidValue? linkedSubCategoryId;
 
+  String screenPlacements;
+
+  String? linkedProductIds;
+
   int priority;
 
   bool isBaseImage;
@@ -179,6 +190,8 @@ abstract class BannerRow
     _i1.UuidValue? couponId,
     _i1.UuidValue? linkedCategoryId,
     _i1.UuidValue? linkedSubCategoryId,
+    String? screenPlacements,
+    String? linkedProductIds,
     int? priority,
     bool? isBaseImage,
     DateTime? startsAt,
@@ -205,6 +218,8 @@ abstract class BannerRow
         'linkedCategoryId': linkedCategoryId?.toJson(),
       if (linkedSubCategoryId != null)
         'linkedSubCategoryId': linkedSubCategoryId?.toJson(),
+      'screenPlacements': screenPlacements,
+      if (linkedProductIds != null) 'linkedProductIds': linkedProductIds,
       'priority': priority,
       'isBaseImage': isBaseImage,
       'startsAt': startsAt.toJson(),
@@ -266,6 +281,8 @@ class _BannerRowImpl extends BannerRow {
     _i1.UuidValue? couponId,
     _i1.UuidValue? linkedCategoryId,
     _i1.UuidValue? linkedSubCategoryId,
+    String? screenPlacements,
+    String? linkedProductIds,
     int? priority,
     bool? isBaseImage,
     required DateTime startsAt,
@@ -286,6 +303,8 @@ class _BannerRowImpl extends BannerRow {
          couponId: couponId,
          linkedCategoryId: linkedCategoryId,
          linkedSubCategoryId: linkedSubCategoryId,
+         screenPlacements: screenPlacements,
+         linkedProductIds: linkedProductIds,
          priority: priority,
          isBaseImage: isBaseImage,
          startsAt: startsAt,
@@ -312,6 +331,8 @@ class _BannerRowImpl extends BannerRow {
     Object? couponId = _Undefined,
     Object? linkedCategoryId = _Undefined,
     Object? linkedSubCategoryId = _Undefined,
+    String? screenPlacements,
+    Object? linkedProductIds = _Undefined,
     int? priority,
     bool? isBaseImage,
     DateTime? startsAt,
@@ -341,6 +362,10 @@ class _BannerRowImpl extends BannerRow {
       linkedSubCategoryId: linkedSubCategoryId is _i1.UuidValue?
           ? linkedSubCategoryId
           : this.linkedSubCategoryId,
+      screenPlacements: screenPlacements ?? this.screenPlacements,
+      linkedProductIds: linkedProductIds is String?
+          ? linkedProductIds
+          : this.linkedProductIds,
       priority: priority ?? this.priority,
       isBaseImage: isBaseImage ?? this.isBaseImage,
       startsAt: startsAt ?? this.startsAt,
@@ -417,6 +442,18 @@ class BannerRowUpdateTable extends _i1.UpdateTable<BannerRowTable> {
     table.linkedSubCategoryId,
     value,
   );
+
+  _i1.ColumnValue<String, String> screenPlacements(String value) =>
+      _i1.ColumnValue(
+        table.screenPlacements,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> linkedProductIds(String? value) =>
+      _i1.ColumnValue(
+        table.linkedProductIds,
+        value,
+      );
 
   _i1.ColumnValue<int, int> priority(int value) => _i1.ColumnValue(
     table.priority,
@@ -506,6 +543,15 @@ class BannerRowTable extends _i1.Table<_i1.UuidValue?> {
       'linkedSubCategoryId',
       this,
     );
+    screenPlacements = _i1.ColumnString(
+      'screenPlacements',
+      this,
+      hasDefault: true,
+    );
+    linkedProductIds = _i1.ColumnString(
+      'linkedProductIds',
+      this,
+    );
     priority = _i1.ColumnInt(
       'priority',
       this,
@@ -567,6 +613,10 @@ class BannerRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnUuid linkedSubCategoryId;
 
+  late final _i1.ColumnString screenPlacements;
+
+  late final _i1.ColumnString linkedProductIds;
+
   late final _i1.ColumnInt priority;
 
   late final _i1.ColumnBool isBaseImage;
@@ -596,6 +646,8 @@ class BannerRowTable extends _i1.Table<_i1.UuidValue?> {
     couponId,
     linkedCategoryId,
     linkedSubCategoryId,
+    screenPlacements,
+    linkedProductIds,
     priority,
     isBaseImage,
     startsAt,

@@ -86,15 +86,6 @@ Future<String> _seedBanner(TestSessionBuilder sessionBuilder) async {
       ),
     );
 
-    await protocol.BannerPlacementRow.db.insertRow(
-      session,
-      protocol.BannerPlacementRow(
-        bannerId: inserted.id!,
-        placementKey: 'home_top',
-        createdAt: now,
-      ),
-    );
-
     return inserted.id!.toString();
   } finally {
     await session.close();

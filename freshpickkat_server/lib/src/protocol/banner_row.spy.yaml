@@ -13,6 +13,8 @@ fields:
   couponId: UuidValue?
   linkedCategoryId: UuidValue?
   linkedSubCategoryId: UuidValue?
+  screenPlacements: String, default=''
+  linkedProductIds: String?
   priority: int, default=0
   isBaseImage: bool, default=false
   startsAt: DateTime

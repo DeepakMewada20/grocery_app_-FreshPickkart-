@@ -1,0 +1,67 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "deleteTable",
+      "deleteTable": "banner_placement"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "deleteTable",
+      "deleteTable": "banner_linked_product"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "banner",
+        "schema": "public",
+        "addColumns": [
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "screenPlacements",
+            "columnType": 0,
+            "isNullable": false,
+            "columnDefault": "''::text",
+            "dartType": "String"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "linkedProductIds",
+            "columnType": 0,
+            "isNullable": true,
+            "dartType": "String?"
+          }
+        ],
+        "deleteColumns": [],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "tableDropped",
+      "message": "Table \"banner_placement\" will be dropped.",
+      "table": "banner_placement",
+      "columns": [],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "tableDropped",
+      "message": "Table \"banner_linked_product\" will be dropped.",
+      "table": "banner_linked_product",
+      "columns": [],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

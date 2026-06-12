@@ -1,7 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresBannerService {
@@ -40,17 +39,16 @@ class PostgresBannerService {
 
     if (activeOnly) {
       banners = banners.where((banner) => banner.active).toList();
+      banners = banners.where((banner) {
+        if (banner.isBaseImage) return true;
+        return !now.isBefore(
+              banner.startDate.subtract(const Duration(days: 1)),
+            ) &&
+            !now.isAfter(
+              banner.endDate.add(const Duration(days: 1)),
+            );
+      }).toList();
     }
-
-    banners = banners.where((banner) {
-      if (banner.isBaseImage) return true;
-      return !now.isBefore(
-            banner.startDate.subtract(const Duration(days: 1)),
-          ) &&
-          !now.isAfter(
-            banner.endDate.add(const Duration(days: 1)),
-          );
-    }).toList();
 
     final normalizedScreen = cleanNullableString(screen);
     if (normalizedScreen != null) {
@@ -142,6 +140,10 @@ class PostgresBannerService {
           couponId: refs.couponId,
           linkedCategoryId: refs.categoryId,
           linkedSubCategoryId: null,
+          screenPlacements: placements.join(','),
+          linkedProductIds: linkedProductIds.isEmpty
+              ? null
+              : linkedProductIds.map((id) => id.toString()).join(','),
           priority: banner.priority,
           isBaseImage: banner.isBaseImage,
           startsAt: banner.startDate.toUtc(),
@@ -154,18 +156,6 @@ class PostgresBannerService {
         transaction: transaction,
       );
 
-      await _syncPlacements(
-        session,
-        bannerId: inserted.id!,
-        placements: placements,
-        transaction: transaction,
-      );
-      await _syncLinkedProducts(
-        session,
-        bannerId: inserted.id!,
-        productIds: linkedProductIds,
-        transaction: transaction,
-      );
       return inserted;
     });
 
@@ -217,6 +207,10 @@ class PostgresBannerService {
           couponId: refs.couponId,
           linkedCategoryId: refs.categoryId,
           linkedSubCategoryId: null,
+          screenPlacements: placements.join(','),
+          linkedProductIds: linkedProductIds.isEmpty
+              ? null
+              : linkedProductIds.map((id) => id.toString()).join(','),
           priority: banner.priority,
           isBaseImage: banner.isBaseImage,
           startsAt: banner.startDate.toUtc(),
@@ -225,19 +219,6 @@ class PostgresBannerService {
           deactivatedAt: banner.active ? null : now,
           updatedAt: now,
         ),
-        transaction: transaction,
-      );
-
-      await _syncPlacements(
-        session,
-        bannerId: parsedId,
-        placements: placements,
-        transaction: transaction,
-      );
-      await _syncLinkedProducts(
-        session,
-        bannerId: parsedId,
-        productIds: linkedProductIds,
         transaction: transaction,
       );
     });
@@ -251,11 +232,6 @@ class PostgresBannerService {
 
     final row = await BannerRow.db.findById(session, parsedId);
     if (row == null) return 'Banner not found';
-
-    final refs = await DependencyChecker.checkBanner(session, parsedId);
-    if (refs.isNotEmpty) {
-      return DependencyChecker.formatRefs(refs);
-    }
 
     final now = DateTime.now().toUtc();
     await BannerRow.db.updateRow(
@@ -317,20 +293,6 @@ class PostgresBannerService {
   ) async {
     if (rows.isEmpty) return const [];
 
-    final bannerIds = rows.map((row) => row.id!).toSet();
-    final placements = await BannerPlacementRow.db.find(
-      session,
-      where: (t) => t.bannerId.inSet(bannerIds),
-      orderBy: (t) => t.createdAt,
-      orderDescending: false,
-    );
-    final linkedProducts = await BannerLinkedProductRow.db.find(
-      session,
-      where: (t) => t.bannerId.inSet(bannerIds),
-      orderBy: (t) => t.sortOrder,
-      orderDescending: false,
-    );
-
     final categoryIds = rows
         .map((row) => row.linkedCategoryId)
         .whereType<UuidValue>()
@@ -359,23 +321,16 @@ class PostgresBannerService {
       for (final coupon in coupons) coupon.id!.toString(): coupon,
     };
 
-    final placementsByBanner = <String, List<String>>{};
-    for (final placement in placements) {
-      placementsByBanner
-          .putIfAbsent(placement.bannerId.toString(), () => [])
-          .add(placement.placementKey);
-    }
-
-    final linkedProductsByBanner = <String, List<String>>{};
-    for (final link in linkedProducts) {
-      linkedProductsByBanner
-          .putIfAbsent(link.bannerId.toString(), () => [])
-          .add(link.productId.toString());
-    }
-
     return rows
         .map((row) {
-          final linkedIds = linkedProductsByBanner[row.id!.toString()];
+          final linkedIdsStr = row.linkedProductIds;
+          final linkedIds = linkedIdsStr == null || linkedIdsStr.trim().isEmpty
+              ? null
+              : linkedIdsStr
+                  .split(',')
+                  .map((id) => id.trim())
+                  .where((id) => id.isNotEmpty)
+                  .toList();
           final categoryName = row.linkedCategoryId == null
               ? null
               : categoryById[row.linkedCategoryId.toString()]?.name;
@@ -395,9 +350,7 @@ class PostgresBannerService {
             comboId: row.comboOfferId?.toString(),
             couponCode: couponCode,
             externalUrl: row.externalUrl,
-            screenPlacements:
-                (placementsByBanner[row.id!.toString()] ?? const <String>[])
-                    .join(','),
+            screenPlacements: row.screenPlacements,
             priority: row.priority,
             startDate: row.startsAt,
             endDate: row.endsAt,
@@ -491,71 +444,6 @@ class PostgresBannerService {
     return productIds;
   }
 
-  Future<void> _syncPlacements(
-    Session session, {
-    required UuidValue bannerId,
-    required List<String> placements,
-    required Transaction transaction,
-  }) async {
-    final existing = await BannerPlacementRow.db.find(
-      session,
-      where: (t) => t.bannerId.equals(bannerId),
-      transaction: transaction,
-    );
-    if (existing.isNotEmpty) {
-      await BannerPlacementRow.db.delete(
-        session,
-        existing,
-        transaction: transaction,
-      );
-    }
-
-    for (final placement in placements) {
-      await BannerPlacementRow.db.insertRow(
-        session,
-        BannerPlacementRow(
-          bannerId: bannerId,
-          placementKey: placement,
-          createdAt: DateTime.now().toUtc(),
-        ),
-        transaction: transaction,
-      );
-    }
-  }
-
-  Future<void> _syncLinkedProducts(
-    Session session, {
-    required UuidValue bannerId,
-    required List<UuidValue> productIds,
-    required Transaction transaction,
-  }) async {
-    final existing = await BannerLinkedProductRow.db.find(
-      session,
-      where: (t) => t.bannerId.equals(bannerId),
-      transaction: transaction,
-    );
-    if (existing.isNotEmpty) {
-      await BannerLinkedProductRow.db.delete(
-        session,
-        existing,
-        transaction: transaction,
-      );
-    }
-
-    for (var i = 0; i < productIds.length; i++) {
-      await BannerLinkedProductRow.db.insertRow(
-        session,
-        BannerLinkedProductRow(
-          bannerId: bannerId,
-          productId: productIds[i],
-          sortOrder: i,
-          createdAt: DateTime.now().toUtc(),
-        ),
-        transaction: transaction,
-      );
-    }
-  }
-
   Future<void> _unsetOtherBaseImages(
     Session session, {
     required List<String> placements,
@@ -564,25 +452,26 @@ class PostgresBannerService {
   }) async {
     if (placements.isEmpty) return;
 
-    final placementRows = await BannerPlacementRow.db.find(
-      session,
-      where: (t) => t.placementKey.inSet(placements.toSet()),
-      transaction: transaction,
-    );
-    final bannerIds = placementRows
-        .map((row) => row.bannerId)
-        .where((id) => excludeBannerId == null || id != excludeBannerId)
-        .toSet();
-    if (bannerIds.isEmpty) return;
-
-    final rows = await BannerRow.db.find(
-      session,
-      where: (t) => t.id.inSet(bannerIds),
-      transaction: transaction,
-    );
     final now = DateTime.now().toUtc();
-    for (final row in rows) {
-      if (!row.isBaseImage) continue;
+    final allRows = await BannerRow.db.find(
+      session,
+      where: (t) =>
+          t.isBaseImage.equals(true) &
+          (excludeBannerId == null
+              ? t.id.notEquals(null)
+              : t.id.notEquals(excludeBannerId)),
+      transaction: transaction,
+    );
+
+    for (final row in allRows) {
+      final rowPlacements = row.screenPlacements
+          .split(',')
+          .map((p) => p.trim())
+          .where((p) => p.isNotEmpty)
+          .toList();
+      final sharesPlacement = placements.any((p) => rowPlacements.contains(p));
+      if (!sharesPlacement) continue;
+
       await BannerRow.db.updateRow(
         session,
         row.copyWith(
