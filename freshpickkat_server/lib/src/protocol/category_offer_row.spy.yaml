@@ -15,5 +15,7 @@ fields:
   endsAt: DateTime
   status: String, default='active'
   deactivatedAt: DateTime?
+  scopeProductIds: String?
+  excludeProductIds: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

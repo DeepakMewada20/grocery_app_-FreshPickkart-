@@ -332,7 +332,7 @@ class PostgresProductCompatService {
       );
       await _replaceProductSubCategories(
         session,
-        productId: productId,
+        productRow: inserted,
         subCategoryNames: product.subcategory,
         transaction: transaction,
       );
@@ -407,7 +407,7 @@ class PostgresProductCompatService {
       );
       await _replaceProductSubCategories(
         session,
-        productId: productId,
+        productRow: updated,
         subCategoryNames: product.subcategory,
         transaction: transaction,
       );
@@ -638,13 +638,13 @@ class PostgresProductCompatService {
         return const _ResolvedProductFilters(noResults: true);
       }
       clauses.add('''
+        AND p."subCategoryIds" IS NOT NULL
         AND EXISTS (
           SELECT 1
-          FROM product_sub_category psc
-          JOIN sub_category sc ON sc.id = psc."subCategoryId"
-          WHERE psc."productId" = p.id
-            AND psc."subCategoryId" = ANY(@subCategoryIds::uuid[])
+          FROM sub_category sc
+          WHERE sc.id = ANY(@subCategoryIds::uuid[])
             AND sc.status = 'active'
+            AND sc.id::text = ANY(string_to_array(p."subCategoryIds", ','))
         )
       ''');
       params['subCategoryIds'] = subCategoryIds
@@ -850,31 +850,22 @@ class PostgresProductCompatService {
 
   Future<void> _replaceProductSubCategories(
     Session session, {
-    required UuidValue productId,
+    required ProductRow productRow,
     required List<String> subCategoryNames,
     required Transaction transaction,
   }) async {
-    await ProductSubCategoryRow.db.deleteWhere(
-      session,
-      where: (t) => t.productId.equals(productId),
-      transaction: transaction,
-    );
-
     final subCategoryIds = await _resolveSubCategoryIdsByNames(
       session,
       subCategoryNames,
       transaction: transaction,
     );
-    for (final subCategoryId in subCategoryIds.toSet()) {
-      await ProductSubCategoryRow.db.insertRow(
-        session,
-        ProductSubCategoryRow(
-          productId: productId,
-          subCategoryId: subCategoryId,
-        ),
-        transaction: transaction,
-      );
-    }
+    final idsStr = subCategoryIds.map((id) => id.toString()).join(',');
+    final updated = productRow.copyWith(subCategoryIds: idsStr.isEmpty ? null : idsStr);
+    await ProductRow.db.updateRow(
+      session,
+      updated,
+      transaction: transaction,
+    );
   }
 
 

@@ -74,11 +74,12 @@ class PostgresCatalogService {
         AND (
           @subCategoryId::uuid IS NULL OR EXISTS (
             SELECT 1
-            FROM product_sub_category psc
-            JOIN sub_category sc ON sc.id = psc."subCategoryId"
-            WHERE psc."productId" = p.id
-              AND psc."subCategoryId" = @subCategoryId::uuid
+            FROM sub_category sc
+            WHERE sc.id = @subCategoryId::uuid
               AND sc.status = 'active'
+              AND @subCategoryId::uuid = ANY(
+                string_to_array(p."subCategoryIds", ',')::uuid[]
+              )
           )
         )
         AND (
@@ -298,13 +299,14 @@ class PostgresCatalogService {
         AND c.status = 'active'
         AND (@categoryId IS NULL OR p."categoryId" = @categoryId)
         AND (
-          @subCategoryId IS NULL OR EXISTS (
+          @subCategoryId::uuid IS NULL OR EXISTS (
             SELECT 1
-            FROM product_sub_category psc
-            JOIN sub_category sc ON sc.id = psc."subCategoryId"
-            WHERE psc."productId" = p.id
-              AND psc."subCategoryId" = @subCategoryId
+            FROM sub_category sc
+            WHERE sc.id = @subCategoryId::uuid
               AND sc.status = 'active'
+              AND @subCategoryId::uuid = ANY(
+                string_to_array(p."subCategoryIds", ',')::uuid[]
+              )
           )
         )
       ''',
@@ -339,11 +341,12 @@ class PostgresCatalogService {
         AND (
           @subCategoryId::uuid IS NULL OR EXISTS (
             SELECT 1
-            FROM product_sub_category psc
-            JOIN sub_category sc ON sc.id = psc."subCategoryId"
-            WHERE psc."productId" = p.id
-              AND psc."subCategoryId" = @subCategoryId::uuid
+            FROM sub_category sc
+            WHERE sc.id = @subCategoryId::uuid
               AND sc.status = 'active'
+              AND @subCategoryId::uuid = ANY(
+                string_to_array(p."subCategoryIds", ',')::uuid[]
+              )
           )
         )
       ''',
@@ -384,10 +387,6 @@ class PostgresCatalogService {
         where: (t) =>
             t.productId.inSet(productIds) & t.status.equals('active'),
       ),
-      ProductSubCategoryRow.db.find(
-        session,
-        where: (t) => t.productId.inSet(productIds),
-      ),
       BogoOfferRow.db.find(
         session,
         where: (t) =>
@@ -401,9 +400,8 @@ class PostgresCatalogService {
 
     products = batch1[0] as List<ProductRow>;
     final variants = batch1[1] as List<ProductVariantRow>;
-    final mappings = batch1[2] as List<ProductSubCategoryRow>;
-    final bogoOfferRows = batch1[3] as List<BogoOfferRow>;
-    final comboItemRows = batch1[4] as List<ComboOfferItemRow>;
+    final bogoOfferRows = batch1[2] as List<BogoOfferRow>;
+    final comboItemRows = batch1[3] as List<ComboOfferItemRow>;
 
     final productById = {
       for (final product in products) product.id!.toString(): product,
@@ -424,7 +422,11 @@ class PostgresCatalogService {
         .map((row) => row.id!)
         .toSet();
 
-    final subCategoryIds = mappings.map((row) => row.subCategoryId).toSet();
+    final subCategoryIds = products
+        .map((p) => p.subCategoryIds)
+        .whereType<String>()
+        .expand((s) => s.split(',').map((id) => tryParseUuid(id.trim())).whereType<UuidValue>())
+        .toSet();
     final categoryIds = products.map((product) => product.categoryId).toSet();
     final comboOfferIdSet = comboItemRows.map((r) => r.comboOfferId).toSet();
 
@@ -494,12 +496,21 @@ class PostgresCatalogService {
         subCategory.id!.toString(): subCategory,
     };
     final subCategoryNamesByProduct = <String, List<String>>{};
-    for (final mapping in mappings) {
-      final subCategory = subCategoryById[mapping.subCategoryId.toString()];
-      if (subCategory == null) continue;
-      subCategoryNamesByProduct
-          .putIfAbsent(mapping.productId.toString(), () => [])
-          .add(subCategory.name);
+    for (final product in products) {
+      final ids = product.subCategoryIds;
+      if (ids == null || ids.isEmpty) continue;
+      final names = <String>[];
+      for (final idStr in ids.split(',')) {
+        final trimmed = idStr.trim();
+        if (trimmed.isEmpty) continue;
+        final subCategory = subCategoryById[trimmed];
+        if (subCategory != null) {
+          names.add(subCategory.name);
+        }
+      }
+      if (names.isNotEmpty) {
+        subCategoryNamesByProduct[product.id!.toString()] = names;
+      }
     }
 
     final categoryById = {

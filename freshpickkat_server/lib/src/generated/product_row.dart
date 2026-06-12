@@ -26,6 +26,7 @@ abstract class ProductRow
     this.baseUnit,
     this.baseQuantity,
     this.quantityDescription,
+    this.subCategoryIds,
     this.stock,
     this.stockUnit,
     this.discountType,
@@ -63,6 +64,7 @@ abstract class ProductRow
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    String? subCategoryIds,
     double? stock,
     String? stockUnit,
     String? discountType,
@@ -96,6 +98,7 @@ abstract class ProductRow
       baseUnit: jsonSerialization['baseUnit'] as String?,
       baseQuantity: (jsonSerialization['baseQuantity'] as num?)?.toDouble(),
       quantityDescription: jsonSerialization['quantityDescription'] as String?,
+      subCategoryIds: jsonSerialization['subCategoryIds'] as String?,
       stock: (jsonSerialization['stock'] as num?)?.toDouble(),
       stockUnit: jsonSerialization['stockUnit'] as String?,
       discountType: jsonSerialization['discountType'] as String?,
@@ -150,6 +153,8 @@ abstract class ProductRow
 
   String? quantityDescription;
 
+  String? subCategoryIds;
+
   double? stock;
 
   String? stockUnit;
@@ -196,6 +201,7 @@ abstract class ProductRow
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    String? subCategoryIds,
     double? stock,
     String? stockUnit,
     String? discountType,
@@ -227,6 +233,7 @@ abstract class ProductRow
       if (baseQuantity != null) 'baseQuantity': baseQuantity,
       if (quantityDescription != null)
         'quantityDescription': quantityDescription,
+      if (subCategoryIds != null) 'subCategoryIds': subCategoryIds,
       if (stock != null) 'stock': stock,
       if (stockUnit != null) 'stockUnit': stockUnit,
       if (discountType != null) 'discountType': discountType,
@@ -294,6 +301,7 @@ class _ProductRowImpl extends ProductRow {
     String? baseUnit,
     double? baseQuantity,
     String? quantityDescription,
+    String? subCategoryIds,
     double? stock,
     String? stockUnit,
     String? discountType,
@@ -320,6 +328,7 @@ class _ProductRowImpl extends ProductRow {
          baseUnit: baseUnit,
          baseQuantity: baseQuantity,
          quantityDescription: quantityDescription,
+         subCategoryIds: subCategoryIds,
          stock: stock,
          stockUnit: stockUnit,
          discountType: discountType,
@@ -352,6 +361,7 @@ class _ProductRowImpl extends ProductRow {
     Object? baseUnit = _Undefined,
     Object? baseQuantity = _Undefined,
     Object? quantityDescription = _Undefined,
+    Object? subCategoryIds = _Undefined,
     Object? stock = _Undefined,
     Object? stockUnit = _Undefined,
     Object? discountType = _Undefined,
@@ -387,6 +397,9 @@ class _ProductRowImpl extends ProductRow {
       quantityDescription: quantityDescription is String?
           ? quantityDescription
           : this.quantityDescription,
+      subCategoryIds: subCategoryIds is String?
+          ? subCategoryIds
+          : this.subCategoryIds,
       stock: stock is double? ? stock : this.stock,
       stockUnit: stockUnit is String? ? stockUnit : this.stockUnit,
       discountType: discountType is String? ? discountType : this.discountType,
@@ -464,6 +477,12 @@ class ProductRowUpdateTable extends _i1.UpdateTable<ProductRowTable> {
   _i1.ColumnValue<String, String> quantityDescription(String? value) =>
       _i1.ColumnValue(
         table.quantityDescription,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> subCategoryIds(String? value) =>
+      _i1.ColumnValue(
+        table.subCategoryIds,
         value,
       );
 
@@ -586,6 +605,10 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
       'quantityDescription',
       this,
     );
+    subCategoryIds = _i1.ColumnString(
+      'subCategoryIds',
+      this,
+    );
     stock = _i1.ColumnDouble(
       'stock',
       this,
@@ -676,6 +699,8 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString quantityDescription;
 
+  late final _i1.ColumnString subCategoryIds;
+
   late final _i1.ColumnDouble stock;
 
   late final _i1.ColumnString stockUnit;
@@ -717,6 +742,7 @@ class ProductRowTable extends _i1.Table<_i1.UuidValue?> {
     baseUnit,
     baseQuantity,
     quantityDescription,
+    subCategoryIds,
     stock,
     stockUnit,
     discountType,

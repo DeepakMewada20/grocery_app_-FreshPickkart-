@@ -764,7 +764,6 @@ class PostgresOfferService {
   ) async {
     if (rows.isEmpty) return [];
 
-    final offerIds = rows.map((row) => row.id!).toSet();
     final categoryIds = rows.map((row) => row.categoryId).toSet();
     final categories = await CategoryRow.db.find(
       session,
@@ -773,29 +772,6 @@ class PostgresOfferService {
     final categoryById = {
       for (final category in categories) category.id!.toString(): category,
     };
-
-    final scopes = await CategoryOfferProductScopeRow.db.find(
-      session,
-      where: (t) => t.categoryOfferId.inSet(offerIds),
-    );
-    final exclusions = await CategoryOfferProductExclusionRow.db.find(
-      session,
-      where: (t) => t.categoryOfferId.inSet(offerIds),
-    );
-
-    final scopeIdsByOffer = <String, List<String>>{};
-    for (final scope in scopes) {
-      scopeIdsByOffer
-          .putIfAbsent(scope.categoryOfferId.toString(), () => [])
-          .add(scope.productId.toString());
-    }
-
-    final exclusionIdsByOffer = <String, List<String>>{};
-    for (final exclusion in exclusions) {
-      exclusionIdsByOffer
-          .putIfAbsent(exclusion.categoryOfferId.toString(), () => [])
-          .add(exclusion.productId.toString());
-    }
 
     return rows.map((row) {
       final category = categoryById[row.categoryId.toString()];
@@ -810,8 +786,12 @@ class PostgresOfferService {
         discountValue: row.discountValue,
         maxDiscount: row.maxDiscountAmount,
         minOrderAmount: row.minOrderAmount,
-        productIds: scopeIdsByOffer[row.id!.toString()],
-        excludeProductIds: exclusionIdsByOffer[row.id!.toString()],
+        productIds: row.scopeProductIds != null && row.scopeProductIds!.isNotEmpty
+            ? row.scopeProductIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+            : null,
+        excludeProductIds: row.excludeProductIds != null && row.excludeProductIds!.isNotEmpty
+            ? row.excludeProductIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+            : null,
         startDate: row.startsAt,
         endDate: row.endsAt,
         isActive: row.status == 'active',
@@ -932,59 +912,23 @@ class PostgresOfferService {
     required List<String> exclusions,
     required Transaction transaction,
   }) async {
-    final existingScopes = await CategoryOfferProductScopeRow.db.find(
-      session,
-      where: (t) => t.categoryOfferId.equals(offerId),
-      transaction: transaction,
+    final scopeStr = productIds
+        .map(tryParseUuid)
+        .whereType<UuidValue>()
+        .map((id) => id.toString())
+        .join(',');
+    final exclStr = exclusions
+        .map(tryParseUuid)
+        .whereType<UuidValue>()
+        .map((id) => id.toString())
+        .join(',');
+    final row = await CategoryOfferRow.db.findById(session, offerId, transaction: transaction);
+    if (row == null) return;
+    final updated = row.copyWith(
+      scopeProductIds: scopeStr.isEmpty ? null : scopeStr,
+      excludeProductIds: exclStr.isEmpty ? null : exclStr,
     );
-    if (existingScopes.isNotEmpty) {
-      await CategoryOfferProductScopeRow.db.delete(
-        session,
-        existingScopes,
-        transaction: transaction,
-      );
-    }
-
-    final existingExclusions = await CategoryOfferProductExclusionRow.db.find(
-      session,
-      where: (t) => t.categoryOfferId.equals(offerId),
-      transaction: transaction,
-    );
-    if (existingExclusions.isNotEmpty) {
-      await CategoryOfferProductExclusionRow.db.delete(
-        session,
-        existingExclusions,
-        transaction: transaction,
-      );
-    }
-
-    for (final rawProductId in productIds) {
-      final productId = tryParseUuid(rawProductId);
-      if (productId == null) continue;
-      await CategoryOfferProductScopeRow.db.insertRow(
-        session,
-        CategoryOfferProductScopeRow(
-          categoryOfferId: offerId,
-          productId: productId,
-          createdAt: DateTime.now().toUtc(),
-        ),
-        transaction: transaction,
-      );
-    }
-
-    for (final rawProductId in exclusions) {
-      final productId = tryParseUuid(rawProductId);
-      if (productId == null) continue;
-      await CategoryOfferProductExclusionRow.db.insertRow(
-        session,
-        CategoryOfferProductExclusionRow(
-          categoryOfferId: offerId,
-          productId: productId,
-          createdAt: DateTime.now().toUtc(),
-        ),
-        transaction: transaction,
-      );
-    }
+    await CategoryOfferRow.db.updateRow(session, updated, transaction: transaction);
   }
 
   Future<CategoryRow?> _resolveCategory(

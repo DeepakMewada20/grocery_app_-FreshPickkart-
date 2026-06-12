@@ -28,6 +28,8 @@ abstract class CategoryOfferRow
     required this.endsAt,
     String? status,
     this.deactivatedAt,
+    this.scopeProductIds,
+    this.excludeProductIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : priority = priority ?? 0,
@@ -49,6 +51,8 @@ abstract class CategoryOfferRow
     required DateTime endsAt,
     String? status,
     DateTime? deactivatedAt,
+    String? scopeProductIds,
+    String? excludeProductIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _CategoryOfferRowImpl;
@@ -79,6 +83,8 @@ abstract class CategoryOfferRow
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deactivatedAt'],
             ),
+      scopeProductIds: jsonSerialization['scopeProductIds'] as String?,
+      excludeProductIds: jsonSerialization['excludeProductIds'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -119,6 +125,10 @@ abstract class CategoryOfferRow
 
   DateTime? deactivatedAt;
 
+  String? scopeProductIds;
+
+  String? excludeProductIds;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -143,6 +153,8 @@ abstract class CategoryOfferRow
     DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
+    String? scopeProductIds,
+    String? excludeProductIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -163,6 +175,8 @@ abstract class CategoryOfferRow
       'endsAt': endsAt.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
+      if (scopeProductIds != null) 'scopeProductIds': scopeProductIds,
+      if (excludeProductIds != null) 'excludeProductIds': excludeProductIds,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -220,6 +234,8 @@ class _CategoryOfferRowImpl extends CategoryOfferRow {
     required DateTime endsAt,
     String? status,
     DateTime? deactivatedAt,
+    String? scopeProductIds,
+    String? excludeProductIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -236,6 +252,8 @@ class _CategoryOfferRowImpl extends CategoryOfferRow {
          endsAt: endsAt,
          status: status,
          deactivatedAt: deactivatedAt,
+         scopeProductIds: scopeProductIds,
+         excludeProductIds: excludeProductIds,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -258,6 +276,8 @@ class _CategoryOfferRowImpl extends CategoryOfferRow {
     DateTime? endsAt,
     String? status,
     Object? deactivatedAt = _Undefined,
+    Object? scopeProductIds = _Undefined,
+    Object? excludeProductIds = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -281,6 +301,12 @@ class _CategoryOfferRowImpl extends CategoryOfferRow {
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
           : this.deactivatedAt,
+      scopeProductIds: scopeProductIds is String?
+          ? scopeProductIds
+          : this.scopeProductIds,
+      excludeProductIds: excludeProductIds is String?
+          ? excludeProductIds
+          : this.excludeProductIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -358,6 +384,18 @@ class CategoryOfferRowUpdateTable
         value,
       );
 
+  _i1.ColumnValue<String, String> scopeProductIds(String? value) =>
+      _i1.ColumnValue(
+        table.scopeProductIds,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> excludeProductIds(String? value) =>
+      _i1.ColumnValue(
+        table.excludeProductIds,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -425,6 +463,14 @@ class CategoryOfferRowTable extends _i1.Table<_i1.UuidValue?> {
       'deactivatedAt',
       this,
     );
+    scopeProductIds = _i1.ColumnString(
+      'scopeProductIds',
+      this,
+    );
+    excludeProductIds = _i1.ColumnString(
+      'excludeProductIds',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -463,6 +509,10 @@ class CategoryOfferRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime deactivatedAt;
 
+  late final _i1.ColumnString scopeProductIds;
+
+  late final _i1.ColumnString excludeProductIds;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -482,6 +532,8 @@ class CategoryOfferRowTable extends _i1.Table<_i1.UuidValue?> {
     endsAt,
     status,
     deactivatedAt,
+    scopeProductIds,
+    excludeProductIds,
     createdAt,
     updatedAt,
   ];

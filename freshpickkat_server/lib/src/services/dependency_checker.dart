@@ -26,16 +26,22 @@ class DependencyChecker {
     );
     if (bogoRewardCount > 0) refs.add('$bogoRewardCount BOGO reward(s)');
 
-    final catScopeCount = await CategoryOfferProductScopeRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
+    final catScopeResult = await session.db.unsafeQuery(
+      'SELECT COUNT(*) AS cnt FROM category_offer WHERE scopeProductIds IS NOT NULL AND @id::text = ANY(string_to_array(scopeProductIds, \',\'))',
+      parameters: QueryParameters.named({'id': productId}),
     );
+    final catScopeCount = catScopeResult.isNotEmpty
+        ? (catScopeResult.first.toColumnMap()['cnt'] as int?) ?? 0
+        : 0;
     if (catScopeCount > 0) refs.add('$catScopeCount category offer scope(s)');
 
-    final catExclCount = await CategoryOfferProductExclusionRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
+    final catExclResult = await session.db.unsafeQuery(
+      'SELECT COUNT(*) AS cnt FROM category_offer WHERE excludeProductIds IS NOT NULL AND @id::text = ANY(string_to_array(excludeProductIds, \',\'))',
+      parameters: QueryParameters.named({'id': productId}),
     );
+    final catExclCount = catExclResult.isNotEmpty
+        ? (catExclResult.first.toColumnMap()['cnt'] as int?) ?? 0
+        : 0;
     if (catExclCount > 0) refs.add('$catExclCount category offer exclusion(s)');
 
     final comboCount = await ComboOfferItemRow.db.count(
@@ -44,10 +50,13 @@ class DependencyChecker {
     );
     if (comboCount > 0) refs.add('$comboCount combo offer(s)');
 
-    final couponCount = await CouponProductScopeRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
+    final couponResult = await session.db.unsafeQuery(
+      'SELECT COUNT(*) AS cnt FROM coupon WHERE productIds IS NOT NULL AND @id::text = ANY(string_to_array(productIds, \',\'))',
+      parameters: QueryParameters.named({'id': productId}),
     );
+    final couponCount = couponResult.isNotEmpty
+        ? (couponResult.first.toColumnMap()['cnt'] as int?) ?? 0
+        : 0;
     if (couponCount > 0) refs.add('$couponCount coupon(s)');
 
     return refs;
@@ -119,10 +128,13 @@ class DependencyChecker {
     UuidValue subCategoryId,
   ) async {
     final refs = <String>[];
-    final productSubCount = await ProductSubCategoryRow.db.count(
-      session,
-      where: (t) => t.subCategoryId.equals(subCategoryId),
+    final productSubResult = await session.db.unsafeQuery(
+      'SELECT COUNT(*) AS cnt FROM product WHERE subCategoryIds IS NOT NULL AND @id::text = ANY(string_to_array(subCategoryIds, \',\'))',
+      parameters: QueryParameters.named({'id': subCategoryId}),
     );
+    final productSubCount = productSubResult.isNotEmpty
+        ? (productSubResult.first.toColumnMap()['cnt'] as int?) ?? 0
+        : 0;
     if (productSubCount > 0) refs.add('$productSubCount product mapping(s)');
 
     final bannerCount = await BannerRow.db.count(
@@ -145,12 +157,6 @@ class DependencyChecker {
       where: (t) => t.couponId.equals(couponId),
     );
     if (orderCount > 0) refs.add('$orderCount order(s)');
-
-    final scopeCount = await CouponProductScopeRow.db.count(
-      session,
-      where: (t) => t.couponId.equals(couponId),
-    );
-    if (scopeCount > 0) refs.add('$scopeCount product scope(s)');
 
     final bannerCount = await BannerRow.db.count(
       session,
@@ -209,18 +215,6 @@ class DependencyChecker {
     UuidValue offerId,
   ) async {
     final refs = <String>[];
-    final scopeCount = await CategoryOfferProductScopeRow.db.count(
-      session,
-      where: (t) => t.categoryOfferId.equals(offerId),
-    );
-    if (scopeCount > 0) refs.add('$scopeCount product scope(s)');
-
-    final exclCount = await CategoryOfferProductExclusionRow.db.count(
-      session,
-      where: (t) => t.categoryOfferId.equals(offerId),
-    );
-    if (exclCount > 0) refs.add('$exclCount product exclusion(s)');
-
     return refs;
   }
 

@@ -18,6 +18,7 @@ fields:
   endsAt: DateTime
   status: String, default='active'
   deactivatedAt: DateTime?
+  productIds: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

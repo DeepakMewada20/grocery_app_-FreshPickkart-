@@ -328,18 +328,6 @@ class PostgresCouponService {
   ) async {
     if (rows.isEmpty) return const [];
 
-    final couponIds = rows.map((row) => row.id!).toSet();
-    final scopes = await CouponProductScopeRow.db.find(
-      session,
-      where: (t) => t.couponId.inSet(couponIds),
-    );
-    final scopeProductIdsByCoupon = <String, List<String>>{};
-    for (final scope in scopes) {
-      scopeProductIdsByCoupon
-          .putIfAbsent(scope.couponId.toString(), () => [])
-          .add(scope.productId.toString());
-    }
-
     return rows
         .map(
           (row) => Coupon(
@@ -351,7 +339,9 @@ class PostgresCouponService {
             minOrderAmount: row.minOrderAmount,
             maxDiscount: row.maxDiscountAmount,
             maxDiscountAmount: row.maxDiscountAmount,
-            productIds: scopeProductIdsByCoupon[row.id!.toString()],
+            productIds: row.productIds != null && row.productIds!.isNotEmpty
+                ? row.productIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+                : null,
             loyaltyRequiredOrders: row.loyaltyRequiredOrders,
             startDate: row.startsAt,
             endDate: row.endsAt,
@@ -371,43 +361,15 @@ class PostgresCouponService {
     required List<String> productIds,
     required Transaction transaction,
   }) async {
-    final desiredIds = productIds
+    final idsStr = productIds
         .map(tryParseUuid)
         .whereType<UuidValue>()
-        .toSet();
-
-    final existing = await CouponProductScopeRow.db.find(
-      session,
-      where: (t) => t.couponId.equals(couponId),
-      transaction: transaction,
-    );
-    final existingByProductId = {
-      for (final row in existing) row.productId.toString(): row,
-    };
-
-    final toDelete = existing.where(
-      (row) => !desiredIds.contains(row.productId),
-    );
-    if (toDelete.isNotEmpty) {
-      await CouponProductScopeRow.db.delete(
-        session,
-        toDelete.toList(),
-        transaction: transaction,
-      );
-    }
-
-    for (final productId in desiredIds) {
-      if (existingByProductId.containsKey(productId.toString())) continue;
-      await CouponProductScopeRow.db.insertRow(
-        session,
-        CouponProductScopeRow(
-          couponId: couponId,
-          productId: productId,
-          createdAt: DateTime.now().toUtc(),
-        ),
-        transaction: transaction,
-      );
-    }
+        .map((id) => id.toString())
+        .join(',');
+    final row = await CouponRow.db.findById(session, couponId, transaction: transaction);
+    if (row == null) return;
+    final updated = row.copyWith(productIds: idsStr.isEmpty ? null : idsStr);
+    await CouponRow.db.updateRow(session, updated, transaction: transaction);
   }
 
   Future<List<_CouponEvaluation>> _evaluateCoupons(

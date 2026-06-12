@@ -84,13 +84,13 @@ class PostgresProductSearchService {
       return;
     }
 
-    final mappings = await ProductSubCategoryRow.db.find(
-      session,
-      where: (t) => t.productId.equals(productId),
-      transaction: transaction,
-    );
-
-    final subCategoryIds = mappings.map((row) => row.subCategoryId).toSet();
+    final subCategoryIds = (product.subCategoryIds != null && product.subCategoryIds!.isNotEmpty)
+        ? product.subCategoryIds!
+            .split(',')
+            .map((s) => tryParseUuid(s.trim()))
+            .whereType<UuidValue>()
+            .toSet()
+        : <UuidValue>{};
     final subCategories = subCategoryIds.isEmpty
         ? <SubCategoryRow>[]
         : await SubCategoryRow.db.find(

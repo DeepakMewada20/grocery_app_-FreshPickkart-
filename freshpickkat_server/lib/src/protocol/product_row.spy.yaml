@@ -13,6 +13,7 @@ fields:
   baseUnit: String?
   baseQuantity: double?
   quantityDescription: String?
+  subCategoryIds: String?
   stock: double?
   stockUnit: String?
   discountType: String?
