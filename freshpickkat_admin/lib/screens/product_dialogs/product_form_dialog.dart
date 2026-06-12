@@ -145,9 +145,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
               .toString(),
     );
     quantityDescriptionCtrl = TextEditingController(
-      text:
-          product?.quantityDescription ??
-          _parseQuantityDescription(product?.quantity ?? ''),
+      text: product?.quantityDescription ?? '',
     );
     countryOfOriginCtrl = TextEditingController(
       text: product?.countryOfOrigin ?? 'India',
@@ -533,13 +531,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     }
     if (lower.contains('pack')) return 'pack';
     return 'gm';
-  }
-
-  String _parseQuantityDescription(String text) {
-    final normalized = text.trim();
-    final separatorIndex = normalized.indexOf('•');
-    if (separatorIndex == -1) return '';
-    return normalized.substring(separatorIndex + 1).trim();
   }
 
   String _buildQuantityLabel() {

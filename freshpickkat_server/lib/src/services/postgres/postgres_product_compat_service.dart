@@ -307,8 +307,7 @@ class PostgresProductCompatService {
           baseUnit: cleanNullableString(product.baseUnit),
           baseQuantity: product.baseQuantity,
           quantityDescription:
-              cleanNullableString(product.quantityDescription) ??
-              cleanNullableString(product.quantity),
+              cleanNullableString(product.quantityDescription),
           stock: product.stock,
           stockUnit: cleanNullableString(product.stockUnit),
           discountType: product.discountType,
@@ -385,8 +384,7 @@ class PostgresProductCompatService {
         baseUnit: cleanNullableString(product.baseUnit),
         baseQuantity: product.baseQuantity,
         quantityDescription:
-            cleanNullableString(product.quantityDescription) ??
-            cleanNullableString(product.quantity),
+            cleanNullableString(product.quantityDescription),
         stock: product.stock,
         stockUnit: cleanNullableString(product.stockUnit),
         discountType: product.discountType,
@@ -730,8 +728,7 @@ class PostgresProductCompatService {
                   cleanNullableString(product.quantity) ??
                   'unit',
               quantityDescription:
-                  cleanNullableString(product.quantityDescription) ??
-                  cleanNullableString(product.quantity),
+                  cleanNullableString(product.quantityDescription),
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,
@@ -896,8 +893,7 @@ class PostgresProductCompatService {
                   cleanNullableString(product.quantity) ??
                   'unit',
               quantityDescription:
-                  cleanNullableString(product.quantityDescription) ??
-                  cleanNullableString(product.quantity),
+                  cleanNullableString(product.quantityDescription),
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,
