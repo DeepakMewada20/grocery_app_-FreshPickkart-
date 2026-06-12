@@ -26,9 +26,10 @@ class DependencyChecker {
     );
     if (bogoRewardCount > 0) refs.add('$bogoRewardCount BOGO reward(s)');
 
+    final idStr = productId.toString();
     final catScopeResult = await session.db.unsafeQuery(
-      'SELECT COUNT(*) AS cnt FROM category_offer WHERE scopeProductIds IS NOT NULL AND @id::text = ANY(string_to_array(scopeProductIds, \',\'))',
-      parameters: QueryParameters.named({'id': productId}),
+      'SELECT COUNT(*) AS cnt FROM category_offer WHERE "scopeProductIds" IS NOT NULL AND @id = ANY(string_to_array("scopeProductIds", \',\'))',
+      parameters: QueryParameters.named({'id': idStr}),
     );
     final catScopeCount = catScopeResult.isNotEmpty
         ? (catScopeResult.first.toColumnMap()['cnt'] as int?) ?? 0
@@ -36,8 +37,8 @@ class DependencyChecker {
     if (catScopeCount > 0) refs.add('$catScopeCount category offer scope(s)');
 
     final catExclResult = await session.db.unsafeQuery(
-      'SELECT COUNT(*) AS cnt FROM category_offer WHERE excludeProductIds IS NOT NULL AND @id::text = ANY(string_to_array(excludeProductIds, \',\'))',
-      parameters: QueryParameters.named({'id': productId}),
+      'SELECT COUNT(*) AS cnt FROM category_offer WHERE "excludeProductIds" IS NOT NULL AND @id = ANY(string_to_array("excludeProductIds", \',\'))',
+      parameters: QueryParameters.named({'id': idStr}),
     );
     final catExclCount = catExclResult.isNotEmpty
         ? (catExclResult.first.toColumnMap()['cnt'] as int?) ?? 0
@@ -51,8 +52,8 @@ class DependencyChecker {
     if (comboCount > 0) refs.add('$comboCount combo offer(s)');
 
     final couponResult = await session.db.unsafeQuery(
-      'SELECT COUNT(*) AS cnt FROM coupon WHERE productIds IS NOT NULL AND @id::text = ANY(string_to_array(productIds, \',\'))',
-      parameters: QueryParameters.named({'id': productId}),
+      'SELECT COUNT(*) AS cnt FROM coupon WHERE "productIds" IS NOT NULL AND @id = ANY(string_to_array("productIds", \',\'))',
+      parameters: QueryParameters.named({'id': idStr}),
     );
     final couponCount = couponResult.isNotEmpty
         ? (couponResult.first.toColumnMap()['cnt'] as int?) ?? 0
@@ -128,9 +129,10 @@ class DependencyChecker {
     UuidValue subCategoryId,
   ) async {
     final refs = <String>[];
+    final subIdStr = subCategoryId.toString();
     final productSubResult = await session.db.unsafeQuery(
-      'SELECT COUNT(*) AS cnt FROM product WHERE subCategoryIds IS NOT NULL AND @id::text = ANY(string_to_array(subCategoryIds, \',\'))',
-      parameters: QueryParameters.named({'id': subCategoryId}),
+      'SELECT COUNT(*) AS cnt FROM product WHERE "subCategoryIds" IS NOT NULL AND @id = ANY(string_to_array("subCategoryIds", \',\'))',
+      parameters: QueryParameters.named({'id': subIdStr}),
     );
     final productSubCount = productSubResult.isNotEmpty
         ? (productSubResult.first.toColumnMap()['cnt'] as int?) ?? 0

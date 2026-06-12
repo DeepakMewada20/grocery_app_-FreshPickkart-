@@ -57,10 +57,12 @@ class PostgresCatalogService {
 
     final totalCount = await _countBrowseProducts(
       session,
-      categoryId: parsedCategoryId,
-      subCategoryId: parsedSubCategoryId,
+      categoryId: categoryId,
+      subCategoryId: subCategoryId,
     );
 
+    final catIdStr = categoryId?.toString();
+    final subCatIdStr = subCategoryId?.toString();
     final result = await session.db.unsafeQuery(
       '''
       SELECT
@@ -70,32 +72,32 @@ class PostgresCatalogService {
       JOIN category c ON c.id = p."categoryId"
       WHERE p.status = 'active'
         AND c.status = 'active'
-        AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
+        AND (@categoryId:text IS NULL OR p."categoryId"::text = @categoryId:text)
         AND (
-          @subCategoryId::uuid IS NULL OR EXISTS (
+          @subCategoryId:text IS NULL OR EXISTS (
             SELECT 1
             FROM sub_category sc
-            WHERE sc.id = @subCategoryId::uuid
+            WHERE sc.id::text = @subCategoryId:text
               AND sc.status = 'active'
-              AND @subCategoryId::uuid = ANY(
-                string_to_array(p."subCategoryIds", ',')::uuid[]
+              AND @subCategoryId:text = ANY(
+                string_to_array(p."subCategoryIds", ',')
               )
           )
         )
         AND (
-          @cursorCreatedAt::timestamp IS NULL
-          OR p."createdAt" < @cursorCreatedAt::timestamp
+          @cursorCreatedAt:timestamp IS NULL
+          OR p."createdAt" < @cursorCreatedAt:timestamp
           OR (
-            p."createdAt" = @cursorCreatedAt::timestamp
-            AND p.id::text < @cursorProductId
+            p."createdAt" = @cursorCreatedAt:timestamp
+            AND p.id::text < @cursorProductId:text
           )
         )
       ORDER BY p."createdAt" DESC, p.id DESC
-      LIMIT @limit
+      LIMIT @limit:int4
       ''',
       parameters: QueryParameters.named({
-        'categoryId': parsedCategoryId,
-        'subCategoryId': parsedSubCategoryId,
+        'categoryId': catIdStr,
+        'subCategoryId': subCatIdStr,
         'cursorCreatedAt': cursor?.createdAt,
         'cursorProductId': cursor?.productId,
         'limit': pageSize + 1,
@@ -175,11 +177,13 @@ class PostgresCatalogService {
     final totalCount = await _countSearchProducts(
       session,
       query: normalizedQuery,
-      categoryId: parsedCategoryId,
-      subCategoryId: parsedSubCategoryId,
+      categoryId: categoryId,
+      subCategoryId: subCategoryId,
       similarityThreshold: threshold,
     );
 
+    final catIdStr = categoryId?.toString();
+    final subCatIdStr = subCategoryId?.toString();
     final result = await session.db.unsafeQuery(
       '''
       WITH ranked AS (
@@ -193,16 +197,17 @@ class PostgresCatalogService {
         WHERE p.status = 'active'
           AND c.status = 'active'
           AND psd."searchText" ILIKE '%' || @query || '%'
-          AND similarity(psd."searchText", @query) > @threshold::float8
-          AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
+          AND similarity(psd."searchText", @query) > @threshold:float8
+          AND (@categoryId:text IS NULL OR p."categoryId"::text = @categoryId:text)
           AND (
-            @subCategoryId::uuid IS NULL OR EXISTS (
+            @subCategoryId:text IS NULL OR EXISTS (
               SELECT 1
-              FROM product_sub_category psc
-              JOIN sub_category sc ON sc.id = psc."subCategoryId"
-              WHERE psc."productId" = p.id
-                AND psc."subCategoryId" = @subCategoryId::uuid
+              FROM sub_category sc
+              WHERE sc.id::text = @subCategoryId:text
                 AND sc.status = 'active'
+                AND @subCategoryId:text = ANY(
+                  string_to_array(p."subCategoryIds", ',')
+                )
             )
           )
       )
@@ -212,27 +217,27 @@ class PostgresCatalogService {
         "sourceCreatedAt"
       FROM ranked
       WHERE (
-        @cursorRank::float8 IS NULL
-        OR "rank" < @cursorRank::float8
+        @cursorRank:float8 IS NULL
+        OR "rank" < @cursorRank:float8
         OR (
-          "rank" = @cursorRank::float8
+          "rank" = @cursorRank:float8
           AND (
-            "sourceCreatedAt" < @cursorCreatedAt::timestamp
+            "sourceCreatedAt" < @cursorCreatedAt:timestamp
             OR (
-              "sourceCreatedAt" = @cursorCreatedAt::timestamp
-              AND "productId" < @cursorProductId
+              "sourceCreatedAt" = @cursorCreatedAt:timestamp
+              AND "productId" < @cursorProductId:text
             )
           )
         )
       )
       ORDER BY "rank" DESC, "sourceCreatedAt" DESC, "productId" DESC
-      LIMIT @limit
+      LIMIT @limit:int4
       ''',
       parameters: QueryParameters.named({
         'query': normalizedQuery,
         'threshold': threshold,
-        'categoryId': parsedCategoryId,
-        'subCategoryId': parsedSubCategoryId,
+        'categoryId': catIdStr,
+        'subCategoryId': subCatIdStr,
         'cursorRank': cursor?.rank,
         'cursorCreatedAt': cursor?.createdAt,
         'cursorProductId': cursor?.productId,
@@ -287,33 +292,51 @@ class PostgresCatalogService {
 
   Future<int> _countBrowseProducts(
     Session session, {
-    required UuidValue? categoryId,
-    required UuidValue? subCategoryId,
+    required String? categoryId,
+    required String? subCategoryId,
   }) async {
+    String query;
+    Map<String, Object?> params;
+
+    if (categoryId != null && subCategoryId != null) {
+      query = "SELECT COUNT(*) AS \"totalCount\""
+          " FROM product p"
+          " JOIN category c ON c.id = p.\"categoryId\""
+          " WHERE p.status = 'active'"
+          "  AND c.status = 'active'"
+          "  AND p.\"categoryId\"::text = @categoryId"
+          "  AND p.\"subCategoryIds\" IS NOT NULL"
+          "  AND ',' || p.\"subCategoryIds\" || ',' LIKE '%,' || @subCategoryId || ',%'";
+      params = {'categoryId': categoryId, 'subCategoryId': subCategoryId};
+    } else if (categoryId != null) {
+      query = "SELECT COUNT(*) AS \"totalCount\""
+          " FROM product p"
+          " JOIN category c ON c.id = p.\"categoryId\""
+          " WHERE p.status = 'active'"
+          "  AND c.status = 'active'"
+          "  AND p.\"categoryId\"::text = @categoryId";
+      params = {'categoryId': categoryId};
+    } else if (subCategoryId != null) {
+      query = "SELECT COUNT(*) AS \"totalCount\""
+          " FROM product p"
+          " JOIN category c ON c.id = p.\"categoryId\""
+          " WHERE p.status = 'active'"
+          "  AND c.status = 'active'"
+          "  AND p.\"subCategoryIds\" IS NOT NULL"
+          "  AND ',' || p.\"subCategoryIds\" || ',' LIKE '%,' || @subCategoryId || ',%'";
+      params = {'subCategoryId': subCategoryId};
+    } else {
+      query = "SELECT COUNT(*) AS \"totalCount\""
+          " FROM product p"
+          " JOIN category c ON c.id = p.\"categoryId\""
+          " WHERE p.status = 'active'"
+          "  AND c.status = 'active'";
+      params = {};
+    }
+
     final result = await session.db.unsafeQuery(
-      '''
-      SELECT COUNT(*) AS "totalCount"
-      FROM product p
-      JOIN category c ON c.id = p."categoryId"
-      WHERE p.status = 'active'
-        AND c.status = 'active'
-        AND (@categoryId IS NULL OR p."categoryId" = @categoryId)
-        AND (
-          @subCategoryId::uuid IS NULL OR EXISTS (
-            SELECT 1
-            FROM sub_category sc
-            WHERE sc.id = @subCategoryId::uuid
-              AND sc.status = 'active'
-              AND @subCategoryId::uuid = ANY(
-                string_to_array(p."subCategoryIds", ',')::uuid[]
-              )
-          )
-        )
-      ''',
-      parameters: QueryParameters.named({
-        'categoryId': categoryId,
-        'subCategoryId': subCategoryId,
-      }),
+      query,
+      parameters: QueryParameters.named(params),
     );
 
     if (result.isEmpty) return 0;
@@ -323,39 +346,60 @@ class PostgresCatalogService {
   Future<int> _countSearchProducts(
     Session session, {
     required String query,
-    required UuidValue? categoryId,
-    required UuidValue? subCategoryId,
+    required String? categoryId,
+    required String? subCategoryId,
     required double similarityThreshold,
   }) async {
-    final result = await session.db.unsafeQuery(
-      '''
-      SELECT COUNT(*) AS "totalCount"
-      FROM product_search_document psd
-      JOIN product p ON p.id = psd."productId"
-      JOIN category c ON c.id = p."categoryId"
-      WHERE p.status = 'active'
-        AND c.status = 'active'
-        AND psd."searchText" ILIKE '%' || @query || '%'
-        AND similarity(psd."searchText", @query) > @threshold::float8
-        AND (@categoryId::uuid IS NULL OR p."categoryId" = @categoryId::uuid)
-        AND (
-          @subCategoryId::uuid IS NULL OR EXISTS (
-            SELECT 1
-            FROM sub_category sc
-            WHERE sc.id = @subCategoryId::uuid
-              AND sc.status = 'active'
-              AND @subCategoryId::uuid = ANY(
-                string_to_array(p."subCategoryIds", ',')::uuid[]
-              )
-          )
-        )
-      ''',
-      parameters: QueryParameters.named({
+    String sql;
+    Map<String, Object?> params;
+
+    final baseQuery = "SELECT COUNT(*) AS \"totalCount\""
+        " FROM product_search_document psd"
+        " JOIN product p ON p.id = psd.\"productId\""
+        " JOIN category c ON c.id = p.\"categoryId\""
+        " WHERE p.status = 'active'"
+        "  AND c.status = 'active'"
+        "  AND psd.\"searchText\" ILIKE '%' || @query || '%'"
+        "  AND similarity(psd.\"searchText\", @query) > @threshold::float8";
+
+    if (categoryId != null && subCategoryId != null) {
+      sql = "$baseQuery"
+          " AND p.\"categoryId\"::text = @categoryId"
+          " AND p.\"subCategoryIds\" IS NOT NULL"
+          " AND @subCategoryId = ANY(string_to_array(p.\"subCategoryIds\", ','))";
+      params = {
         'query': query,
         'threshold': similarityThreshold,
         'categoryId': categoryId,
         'subCategoryId': subCategoryId,
-      }),
+      };
+    } else if (categoryId != null) {
+      sql = "$baseQuery AND p.\"categoryId\"::text = @categoryId";
+      params = {
+        'query': query,
+        'threshold': similarityThreshold,
+        'categoryId': categoryId,
+      };
+    } else if (subCategoryId != null) {
+      sql = "$baseQuery"
+          " AND p.\"subCategoryIds\" IS NOT NULL"
+          " AND @subCategoryId = ANY(string_to_array(p.\"subCategoryIds\", ','))";
+      params = {
+        'query': query,
+        'threshold': similarityThreshold,
+        'subCategoryId': subCategoryId,
+      };
+    } else {
+      sql = baseQuery;
+      params = {
+        'query': query,
+        'threshold': similarityThreshold,
+      };
+    }
+
+    final result = await session.db.unsafeQuery(
+      sql,
+      parameters: QueryParameters.named(params),
     );
 
     if (result.isEmpty) return 0;

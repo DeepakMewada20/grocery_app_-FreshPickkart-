@@ -584,16 +584,17 @@ class PostgresCategoryService {
     await session.db.transaction((transaction) async {
       for (final oldRow in oldGroupRows) {
         if (!newNames.any((n) => n.toLowerCase() == oldRow.name.toLowerCase())) {
+          final oldIdStr = oldRow.id!.toString();
           await session.db.unsafeQuery(
             '''UPDATE product
                SET "subCategoryIds" = (
                  SELECT string_agg(elem, ',')
                  FROM unnest(string_to_array("subCategoryIds", ',')) AS elem
-                 WHERE elem != @id::text
+                 WHERE elem != @id
                )
                WHERE "subCategoryIds" IS NOT NULL
-                 AND @id::text = ANY(string_to_array("subCategoryIds", ','))''',
-            parameters: QueryParameters.named({'id': oldRow.id!}),
+                 AND @id = ANY(string_to_array("subCategoryIds", ','))''',
+            parameters: QueryParameters.named({'id': oldIdStr}),
             transaction: transaction,
           );
           await SubCategoryRow.db.deleteRow(
