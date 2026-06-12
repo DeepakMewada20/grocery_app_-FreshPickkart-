@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../effective_offer_resolver.dart';
 import '../featured_variant_resolver.dart';
 import 'postgres_support.dart';
 
@@ -579,6 +580,21 @@ class PostgresCatalogService {
         return a.label.compareTo(b.label);
       });
 
+      // Build free delivery sources for inheritance
+      final defaultForFD = variantRows.cast<ProductVariantRow?>().firstWhere(
+        (v) => v != null && v.isDefault,
+        orElse: () => variantRows.cast<ProductVariantRow?>().firstWhere(
+          (v) => v != null && v.isAvailable,
+          orElse: () => variantRows.isEmpty ? null : variantRows.first,
+        ),
+      );
+      final freeDeliverySources = <ProductVariantRow>[
+        for (final v in variantRows)
+          if (v.isFreeDelivery) v,
+        if (productRow.isFreeDelivery && defaultForFD != null)
+          defaultForFD,
+      ];
+
       final mappedVariants = variantRows
           .map(
             (variant) {
@@ -613,8 +629,10 @@ class PostgresCatalogService {
                     resolvedBogo?.isEmpty == true ? null : resolvedBogo,
                 comboOfferIds:
                     resolvedCombo?.isEmpty == true ? null : resolvedCombo,
-                isFreeDelivery:
-                    variant.isFreeDelivery || productRow.isFreeDelivery,
+                isFreeDelivery: EffectiveOfferResolver.effectiveFreeDelivery(
+                  quantityValue: variant.quantityValue,
+                  quantityUnit: variant.quantityUnit,
+                  freeDeliverySources: freeDeliverySources,),
               );
             },
           )
