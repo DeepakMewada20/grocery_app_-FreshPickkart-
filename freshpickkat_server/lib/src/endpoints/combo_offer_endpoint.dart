@@ -7,6 +7,7 @@ import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
+import '../services/variant_offer_exclusivity_service.dart';
 
 class ComboOfferEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
@@ -29,6 +30,19 @@ class ComboOfferEndpoint extends Endpoint {
         idToken: idToken,
       );
       ValidationService.validateComboOffer(offer);
+
+      final exclusivityErr =
+          await VariantOfferExclusivityService.validateComboSave(
+        session,
+        offer,
+        existingComboId: offer.comboId,
+      );
+      if (exclusivityErr != null) {
+        return OfferMutationResult(
+          success: false,
+          message: exclusivityErr,
+        );
+      }
 
       var conflict = await _conflicts.checkComboConflicts(session, offer);
       if (force) {
@@ -100,6 +114,17 @@ class ComboOfferEndpoint extends Endpoint {
         idToken: idToken,
       );
       ValidationService.validateComboOffer(offer);
+
+      final exclusivityErr =
+          await VariantOfferExclusivityService.validateComboSave(
+        session,
+        offer,
+        existingComboId: offer.comboId,
+      );
+      if (exclusivityErr != null) {
+        return false;
+      }
+
       final result = await _offers.upsertComboOffer(session, offer);
       if (result) {
         await NotificationOutboxService.instance.enqueueCampaign(

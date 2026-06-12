@@ -604,9 +604,11 @@ class PostgresCatalogService {
                   bogoByVariant[productId]?[variantIdStr]?.toList()?..sort();
               final productBogo =
                   bogoByProductOnly[productId]?.toList()?..sort();
+              // Product-level BOGO applies only to the default variant
               final resolvedBogo = variantBogo?.isNotEmpty == true
                   ? variantBogo
-                  : productBogo?.isNotEmpty == true
+                  : (productBogo?.isNotEmpty == true &&
+                          variant.id == defaultForFD?.id)
                       ? productBogo
                       : null;
               // Variant-level combo: check variant-specific first, then product-level

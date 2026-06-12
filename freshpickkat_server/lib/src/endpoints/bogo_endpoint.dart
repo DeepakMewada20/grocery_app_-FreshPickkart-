@@ -6,6 +6,7 @@ import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
+import '../services/variant_offer_exclusivity_service.dart';
 
 class BogoEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
@@ -27,6 +28,18 @@ class BogoEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
+
+    final exclusivityErr = await VariantOfferExclusivityService.validateBogoSave(
+      session,
+      offer,
+      existingOfferId: offer.offerId,
+    );
+    if (exclusivityErr != null) {
+      return protocol.OfferMutationResult(
+        success: false,
+        message: exclusivityErr,
+      );
+    }
 
     var conflict = await _conflicts.checkBogoConflicts(session, offer);
     for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
@@ -85,6 +98,16 @@ class BogoEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
+
+    final exclusivityErr = await VariantOfferExclusivityService.validateBogoSave(
+      session,
+      offer,
+      existingOfferId: offer.offerId,
+    );
+    if (exclusivityErr != null) {
+      throw Exception(exclusivityErr);
+    }
+
     final result = await _offers.upsertBogoOffer(session, offer);
     if (result) {
       await NotificationOutboxService.instance.enqueueCampaign(
