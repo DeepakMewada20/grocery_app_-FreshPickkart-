@@ -209,7 +209,7 @@ class PostgresProductCompatService {
         : null;
 
     return ProductPage(
-      products: _catalog.flattenToVariantProducts(products),
+      products: products,
       nextPageToken: nextPageToken,
       totalCount: totalCount,
     );

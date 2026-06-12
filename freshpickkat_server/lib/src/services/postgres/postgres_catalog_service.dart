@@ -643,11 +643,9 @@ class PostgresCatalogService {
           categoryOfferPrice = listPrice - applicableCategoryOffer.discountValue;
         }
 
-        // If category offer gives a better price, use it
+        // Use the lower price but keep the product's own discount type/value
         if (categoryOfferPrice < salePrice) {
           salePrice = categoryOfferPrice;
-          resolvedDiscountType = applicableCategoryOffer.discountType;
-          resolvedDiscountValue = applicableCategoryOffer.discountValue;
         }
       }
 

@@ -512,7 +512,7 @@ class _OfferChips extends StatelessWidget {
     if (product.discountType == 'percentage' || product.discountType == 'flat') {
       final label = product.discountType == 'percentage'
           ? '${product.discountValue?.toStringAsFixed(0) ?? ''}% OFF'
-          : '₹${product.discountValue?.toStringAsFixed(0) ?? ''} OFF';
+          : 'FLAT ₹${product.discountValue?.toStringAsFixed(0) ?? ''} OFF';
       chips.add(_offerChip(context, label, const Color(0xFFD32F2F)));
     }
 
