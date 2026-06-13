@@ -12,103 +12,129 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:freshpickkat_client/src/protocol/admin_auth_result.dart' as _i3;
-import 'package:freshpickkat_client/src/protocol/app_user.dart' as _i4;
-import 'package:freshpickkat_client/src/protocol/admin_dashboard_stats.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_auth_result.dart'
+    as _i3;
+import 'package:freshpickkat_client/src/protocol/data_flow/app_user.dart'
+    as _i4;
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_dashboard_stats.dart'
     as _i5;
-import 'package:freshpickkat_client/src/protocol/admin_analytics.dart' as _i6;
-import 'package:freshpickkat_client/src/protocol/admin_dashboard_hydrated.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_analytics.dart'
+    as _i6;
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_dashboard_hydrated.dart'
     as _i7;
-import 'package:freshpickkat_client/src/protocol/admin_audit_log_entry.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_audit_log_entry.dart'
     as _i8;
-import 'package:freshpickkat_client/src/protocol/active_user_statistics.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/active_user_statistics.dart'
     as _i9;
-import 'package:freshpickkat_client/src/protocol/banner.dart' as _i10;
-import 'package:freshpickkat_client/src/protocol/banner_page.dart' as _i11;
-import 'package:freshpickkat_client/src/protocol/offer_mutation_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/banner.dart' as _i10;
+import 'package:freshpickkat_client/src/protocol/data_flow/banner_page.dart'
+    as _i11;
+import 'package:freshpickkat_client/src/protocol/data_flow/offer_mutation_result.dart'
     as _i12;
-import 'package:freshpickkat_client/src/protocol/bogo_offer.dart' as _i13;
-import 'package:freshpickkat_client/src/protocol/notification_draft.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer.dart'
+    as _i13;
+import 'package:freshpickkat_client/src/protocol/data_flow/notification_draft.dart'
     as _i14;
-import 'package:freshpickkat_client/src/protocol/bogo_offer_page.dart' as _i15;
-import 'package:freshpickkat_client/src/protocol/cart_hydrated_data.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer_page.dart'
+    as _i15;
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_hydrated_data.dart'
     as _i16;
-import 'package:freshpickkat_client/src/protocol/cart_item_input.dart' as _i17;
-import 'package:freshpickkat_client/src/protocol/category.dart' as _i18;
-import 'package:freshpickkat_client/src/protocol/category_hierarchy.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item_input.dart'
+    as _i17;
+import 'package:freshpickkat_client/src/protocol/data_flow/category.dart'
+    as _i18;
+import 'package:freshpickkat_client/src/protocol/data_flow/category_hierarchy.dart'
     as _i19;
-import 'package:freshpickkat_client/src/protocol/category_offer.dart' as _i20;
-import 'package:freshpickkat_client/src/protocol/category_offer_page.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/category_offer.dart'
+    as _i20;
+import 'package:freshpickkat_client/src/protocol/data_flow/category_offer_page.dart'
     as _i21;
-import 'package:freshpickkat_client/src/protocol/checkout_init_hydrated.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/checkout_init_hydrated.dart'
     as _i22;
-import 'package:freshpickkat_client/src/protocol/checkout_result.dart' as _i23;
-import 'package:freshpickkat_client/src/protocol/order.dart' as _i24;
-import 'package:freshpickkat_client/src/protocol/combo_offer.dart' as _i25;
-import 'package:freshpickkat_client/src/protocol/combo_offer_page.dart' as _i26;
-import 'package:freshpickkat_client/src/protocol/complaint.dart' as _i27;
-import 'package:freshpickkat_client/src/protocol/address.dart' as _i28;
-import 'package:freshpickkat_client/src/protocol/complaint_page.dart' as _i29;
-import 'package:freshpickkat_client/src/protocol/complaint_detail_hydrated.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/checkout_result.dart'
+    as _i23;
+import 'package:freshpickkat_client/src/protocol/data_flow/order.dart' as _i24;
+import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer.dart'
+    as _i25;
+import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer_page.dart'
+    as _i26;
+import 'package:freshpickkat_client/src/protocol/data_flow/complaint.dart'
+    as _i27;
+import 'package:freshpickkat_client/src/protocol/data_flow/address.dart'
+    as _i28;
+import 'package:freshpickkat_client/src/protocol/data_flow/complaint_page.dart'
+    as _i29;
+import 'package:freshpickkat_client/src/protocol/data_flow/complaint_detail_hydrated.dart'
     as _i30;
-import 'package:freshpickkat_client/src/protocol/refund_record.dart' as _i31;
-import 'package:freshpickkat_client/src/protocol/coupon.dart' as _i32;
-import 'package:freshpickkat_client/src/protocol/coupon_display.dart' as _i33;
-import 'package:freshpickkat_client/src/protocol/coupon_validation_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/refund_record.dart'
+    as _i31;
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon.dart' as _i32;
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon_display.dart'
+    as _i33;
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon_validation_result.dart'
     as _i34;
-import 'package:freshpickkat_client/src/protocol/best_coupon_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/best_coupon_result.dart'
     as _i35;
-import 'package:freshpickkat_client/src/protocol/delivery_config.dart' as _i36;
-import 'package:freshpickkat_client/src/protocol/delivery_pricing_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_config.dart'
+    as _i36;
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_pricing_result.dart'
     as _i37;
-import 'package:freshpickkat_client/src/protocol/delivery_rule.dart' as _i38;
-import 'package:freshpickkat_client/src/protocol/delivery_rule_page.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule.dart'
+    as _i38;
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule_page.dart'
     as _i39;
-import 'package:freshpickkat_client/src/protocol/free_delivery_hydrated.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/free_delivery_hydrated.dart'
     as _i40;
-import 'package:freshpickkat_client/src/protocol/home_page_hydrated_data.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/home_page_hydrated_data.dart'
     as _i41;
-import 'package:freshpickkat_client/src/protocol/notification_preference.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/notification_preference.dart'
     as _i42;
-import 'package:freshpickkat_client/src/protocol/notification_history_page.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/notification_history_page.dart'
     as _i43;
-import 'package:freshpickkat_client/src/protocol/admin_notification_preference.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_notification_preference.dart'
     as _i44;
-import 'package:freshpickkat_client/src/protocol/broadcast_summary.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/broadcast_summary.dart'
     as _i45;
-import 'package:freshpickkat_client/src/protocol/broadcast_request.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/broadcast_request.dart'
     as _i46;
-import 'package:freshpickkat_client/src/protocol/broadcast_page.dart' as _i47;
-import 'package:freshpickkat_client/src/protocol/order_detail_hydrated.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/broadcast_page.dart'
+    as _i47;
+import 'package:freshpickkat_client/src/protocol/data_flow/order_detail_hydrated.dart'
     as _i48;
-import 'package:freshpickkat_client/src/protocol/order_page.dart' as _i49;
-import 'package:freshpickkat_client/src/protocol/payment_action_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/order_page.dart'
+    as _i49;
+import 'package:freshpickkat_client/src/protocol/data_flow/payment_action_result.dart'
     as _i50;
-import 'package:freshpickkat_client/src/protocol/order_realtime_event.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/order_realtime_event.dart'
     as _i51;
-import 'package:freshpickkat_client/src/protocol/order_tracking_data.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/order_tracking_data.dart'
     as _i52;
-import 'package:freshpickkat_client/src/protocol/payment_order_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/payment_order_result.dart'
     as _i53;
-import 'package:freshpickkat_client/src/protocol/payment_verify_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/payment_verify_result.dart'
     as _i54;
-import 'package:freshpickkat_client/src/protocol/cart_pricing_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_pricing_result.dart'
     as _i55;
-import 'package:freshpickkat_client/src/protocol/applied_offer_info.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/applied_offer_info.dart'
     as _i56;
-import 'package:freshpickkat_client/src/protocol/basket_suggestion_result.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/basket_suggestion_result.dart'
     as _i57;
-import 'package:freshpickkat_client/src/protocol/product.dart' as _i58;
-import 'package:freshpickkat_client/src/protocol/product_page.dart' as _i59;
-import 'package:freshpickkat_client/src/protocol/offer_search_page.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product.dart'
+    as _i58;
+import 'package:freshpickkat_client/src/protocol/data_flow/product_page.dart'
+    as _i59;
+import 'package:freshpickkat_client/src/protocol/data_flow/offer_search_page.dart'
     as _i60;
-import 'package:freshpickkat_client/src/protocol/product_form_reference_data.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product_form_reference_data.dart'
     as _i61;
-import 'package:freshpickkat_client/src/protocol/product_ranking_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
     as _i62;
-import 'package:freshpickkat_client/src/protocol/sub_category.dart' as _i63;
-import 'package:freshpickkat_client/src/protocol/support_issue.dart' as _i64;
-import 'package:freshpickkat_client/src/protocol/cart_item.dart' as _i65;
+import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
+    as _i63;
+import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
+    as _i64;
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+    as _i65;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i66;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
