@@ -245,6 +245,54 @@ class PostgresBannerService {
     return '';
   }
 
+  Future<HardDeleteResponse> hardDeleteBanner(
+    Session session,
+    String bannerId,
+  ) async {
+    final parsedId = tryParseUuid(bannerId);
+    if (parsedId == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'invalid_id',
+        message: 'Invalid banner ID.',
+      );
+    }
+
+    final row = await BannerRow.db.findById(session, parsedId);
+    if (row == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'not_found',
+        message: 'Banner not found.',
+      );
+    }
+
+    try {
+      await session.db.transaction((transaction) async {
+        await BannerRow.db.deleteRow(
+          session,
+          row,
+          transaction: transaction,
+        );
+      });
+      return HardDeleteResponse(
+        success: true,
+        action: 'hard_delete',
+        message: 'Banner permanently deleted.',
+      );
+    } on DatabaseQueryException catch (e) {
+      if (e.code == PgErrorCode.foreignKeyViolation) {
+        return HardDeleteResponse(
+          success: false,
+          action: 'requires_confirmation',
+          message:
+              'This banner became linked with other records and cannot be permanently deleted.',
+        );
+      }
+      rethrow;
+    }
+  }
+
   Future<void> toggleBannerActive(
     Session session,
     String bannerId,

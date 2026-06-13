@@ -20,12 +20,16 @@ banner:
   - createBanner:
   - updateBanner:
   - deleteBanner:
+  - checkBannerDeleteImpact:
+  - hardDeleteBanner:
   - toggleBannerActive:
   - updateBannerPriority:
 bogo:
   - upsertOfferWithConflicts:
   - upsertOffer:
   - deleteOffer:
+  - checkBogoDeleteImpact:
+  - hardDeleteBogoOffer:
   - setBogoOfferActive:
   - getInactiveBogoOffers:
   - getAllOffers:
@@ -48,6 +52,8 @@ category:
 categoryOffer:
   - upsertCategoryOffer:
   - deleteCategoryOffer:
+  - checkCategoryOfferDeleteImpact:
+  - hardDeleteCategoryOffer:
   - getActiveCategoryOffers:
   - getInactiveCategoryOffers:
   - getAllCategoryOffers:
@@ -60,6 +66,8 @@ comboOffer:
   - upsertComboOfferWithConflicts:
   - upsertComboOffer:
   - deleteComboOffer:
+  - checkComboDeleteImpact:
+  - hardDeleteComboOffer:
   - getActiveComboOffers:
   - getActiveComboOffersForProducts:
   - getInactiveComboOffers:
@@ -96,6 +104,8 @@ coupon:
   - setCouponActive:
   - updateCoupon:
   - deleteCoupon:
+  - checkCouponDeleteImpact:
+  - hardDeleteCoupon:
   - fetchApplicableCoupons:
   - validateCoupon:
   - applyCoupon:
@@ -205,6 +215,8 @@ product:
   - updateProduct:
   - checkProductUpdateConflicts:
   - deleteProduct:
+  - checkProductDeleteImpact:
+  - hardDeleteProduct:
   - deactivateProduct:
   - getProductSuggestions:
   - searchProducts:

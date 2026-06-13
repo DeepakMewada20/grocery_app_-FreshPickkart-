@@ -1,11 +1,13 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart' as protocol;
+import '../services/delete_impact_service.dart';
 import '../services/notification_outbox_service.dart';
 import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
+import '../services/postgres/postgres_support.dart';
 import '../services/variant_offer_exclusivity_service.dart';
 
 class BogoEndpoint extends Endpoint {
@@ -138,6 +140,60 @@ class BogoEndpoint extends Endpoint {
       session.log('Error deleting bogo offer: $error', level: LogLevel.error);
       return 'An error occurred while removing the offer.';
     }
+  }
+
+  Future<protocol.DeleteImpactResponse> checkBogoDeleteImpact(
+    Session session,
+    String triggerProductId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final parsedTriggerId = tryParseUuid(triggerProductId);
+    if (parsedTriggerId == null) {
+      return protocol.DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+
+    final rows = await protocol.BogoOfferRow.db.find(
+      session,
+      where: (t) => t.triggerProductId.equals(parsedTriggerId),
+    );
+    if (rows.isEmpty || rows.first.id == null) {
+      return protocol.DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+
+    return DeleteImpactService.checkBogoImpact(session, rows.first.id!);
+  }
+
+  Future<protocol.HardDeleteResponse> hardDeleteBogoOffer(
+    Session session,
+    String triggerProductId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _offers.hardDeleteBogoOffer(
+      session,
+      triggerProductId,
+    );
+    if (result.success) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'hard_delete',
+        entityType: 'bogo_offer',
+        metadata: {'triggerProductId': triggerProductId},
+      );
+    }
+    return result;
   }
 
   Future<bool> setBogoOfferActive(

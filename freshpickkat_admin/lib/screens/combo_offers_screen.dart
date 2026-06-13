@@ -239,21 +239,31 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
   }
 
   Future<void> _showDeleteConfirmation(ComboOffer offer) async {
-    final result = await showConfirmActionDialog(
-      context: context,
-      title: 'Delete Combo Offer',
-      content: 'Are you sure you want to delete "${offer.name}"?',
-      confirmLabel: 'Delete',
-      onConfirm: () => _controller.deleteComboOffer(offer.comboId ?? ''),
-    );
-    if (result != true || !mounted) return;
-    showUndoSnackBar(
-      context,
-      message: 'Combo offer deactivated',
-      onUndo: () {
-        _controller.toggleComboOffer(offer.comboId ?? '', true);
-      },
-    );
+    try {
+      final result = await _controller.deleteComboOffer(offer.comboId ?? '');
+      if (!mounted) return;
+      if (result == null) {
+        showUndoSnackBar(
+          context,
+          message: 'Combo offer permanently deleted',
+          onUndo: () {},
+        );
+      } else if (result == true) {
+        showUndoSnackBar(
+          context,
+          message: 'Combo offer deactivated',
+          onUndo: () {
+            _controller.toggleComboOffer(offer.comboId ?? '', true);
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete: $e')),
+        );
+      }
+    }
   }
 }
 

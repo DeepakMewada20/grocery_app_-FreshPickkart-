@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/delete_impact_dialog.dart';
 import '../../widgets/shared_dialogs.dart';
 import '../../controller/network_controller.dart';
 
@@ -202,33 +203,42 @@ class AdminCategoryOfferController extends GetxController {
       return await AdminSessionService.withRetry(apiCall: () async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken();
-        final message = await client.categoryOffer.deleteCategoryOffer(
+
+        final impact = await client.categoryOffer.checkCategoryOfferDeleteImpact(
           offerId,
           uid,
           idToken,
         );
-        if (message.isEmpty) {
-          categoryOffers.removeWhere((offer) => offer.offerId == offerId);
-          if (totalCount.value > 0) totalCount.value--;
-          return null;
+
+        final choice = await showDeleteImpactDialog(
+          context: Get.context!,
+          impact: impact,
+          entityName: 'Category Offer',
+        );
+
+        switch (choice) {
+          case DeleteChoice.hardDelete:
+            final result = await client.categoryOffer.hardDeleteCategoryOffer(
+              offerId,
+              uid,
+              idToken,
+            );
+            if (result.success) {
+              categoryOffers.removeWhere((offer) => offer.offerId == offerId);
+              if (totalCount.value > 0) totalCount.value--;
+              return null;
+            }
+            return false;
+          case DeleteChoice.softDelete:
+            await toggleCategoryOffer(offerId, false);
+            return true;
+          case DeleteChoice.cancel:
+            return false;
         }
-        final shouldDeactivate = await _showDeactivationDialog(message);
-        if (shouldDeactivate) {
-          await toggleCategoryOffer(offerId, false);
-          return true;
-        }
-        return false;
       });
     } catch (e) {
       return false;
     }
-  }
-
-  Future<bool> _showDeactivationDialog(String message) async {
-    return showDeactivationDialog(
-      title: 'Offer In Use',
-      message: message,
-    );
   }
 
   Future<bool> toggleCategoryOffer(String offerId, bool isActive) async {

@@ -280,21 +280,31 @@ class _BannersScreenState extends State<BannersScreen>
       );
       return;
     }
-    final result = await showConfirmActionDialog(
-      context: context,
-      title: 'Delete Banner',
-      content: 'Are you sure you want to delete "${banner.title}"?',
-      confirmLabel: 'Delete',
-      onConfirm: () => _controller.deleteBanner(banner.bannerId ?? ''),
-    );
-    if (result != true || !mounted) return;
-    showUndoSnackBar(
-      context,
-      message: 'Banner deactivated',
-      onUndo: () {
-        _controller.toggleBannerActive(banner.bannerId ?? '', true);
-      },
-    );
+    try {
+      final result = await _controller.deleteBanner(banner.bannerId ?? '');
+      if (!mounted) return;
+      if (result == null) {
+        showUndoSnackBar(
+          context,
+          message: 'Banner permanently deleted',
+          onUndo: () {},
+        );
+      } else if (result == true) {
+        showUndoSnackBar(
+          context,
+          message: 'Banner deactivated',
+          onUndo: () {
+            _controller.toggleBannerActive(banner.bannerId ?? '', true);
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete banner: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildFilterChip(String label, _BannerMode? mode) {

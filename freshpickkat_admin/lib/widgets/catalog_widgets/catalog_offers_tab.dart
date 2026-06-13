@@ -1207,7 +1207,17 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     required List<CategoryOffer> categoryOffers,
     required List<ComboOffer> comboOffers,
   }) async {
-    final removeLabel = switch (actionType) {
+    final result = await _performRemoveOffer(
+      actionType: actionType,
+      product: product,
+      bogoOffers: bogoOffers,
+      categoryOffers: categoryOffers,
+      comboOffers: comboOffers,
+    );
+    if (!mounted || result == false) return result;
+
+    final effectiveType = actionType;
+    final removeLabel = switch (effectiveType) {
       _OfferCardActionType.bogo => 'BOGO offer',
       _OfferCardActionType.directDiscount => 'product offer',
       _OfferCardActionType.categoryOffer => 'category offer',
@@ -1215,25 +1225,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       _OfferCardActionType.none => 'offer',
     };
 
-    final result = await showConfirmActionDialog(
-      context: context,
-      title: 'Remove Offer',
-      content: 'Remove the $removeLabel from "${product.productName}"?',
-      confirmLabel: 'Remove',
-      onConfirm: () => _performRemoveOffer(
-        actionType: actionType,
-        product: product,
-        bogoOffers: bogoOffers,
-        categoryOffers: categoryOffers,
-        comboOffers: comboOffers,
-      ),
-    );
-    if (result != true || !mounted) return result;
     showUndoSnackBar(
       context,
-      message: '${product.productName} offer removed',
+      message: result == null
+          ? '${product.productName} $removeLabel permanently deleted'
+          : '${product.productName} $removeLabel removed',
       onUndo: () {
-        switch (actionType) {
+        switch (effectiveType) {
           case _OfferCardActionType.bogo:
             final pid = product.productId;
             if (pid != null) {

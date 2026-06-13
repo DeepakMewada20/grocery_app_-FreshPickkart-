@@ -3,10 +3,12 @@ import '../generated/protocol.dart';
 import '../services/analytics/redis_analytics_service.dart';
 import '../services/business/product_business_service.dart';
 import '../services/business/validation_service.dart';
+import '../services/delete_impact_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_search_service.dart';
 import '../services/postgres/postgres_product_compat_service.dart';
+import '../services/postgres/postgres_support.dart';
 
 class ProductEndpoint extends Endpoint {
   final PostgresProductCompatService _pgProducts =
@@ -207,6 +209,48 @@ class ProductEndpoint extends Endpoint {
       );
     }
     return message;
+  }
+
+  Future<DeleteImpactResponse> checkProductDeleteImpact(
+    Session session,
+    String productId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final parsedId = tryParseUuid(productId);
+    if (parsedId == null) {
+      return DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+    return DeleteImpactService.checkProductImpact(session, parsedId);
+  }
+
+  Future<HardDeleteResponse> hardDeleteProduct(
+    Session session,
+    String productId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _pgProducts.hardDeleteProduct(session, productId);
+    if (result.success) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'hard_delete',
+        entityType: 'product',
+        entityId: productId,
+      );
+    }
+    return result;
   }
 
   Future<bool> deactivateProduct(

@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/delete_impact_dialog.dart';
 import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
@@ -246,22 +247,38 @@ class AdminBannerController extends GetxController {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      final message = await ApiClient().request(() async {
-        return await _client.banner.deleteBanner(bannerId, uid, idToken);
-      });
-      if (message.isEmpty) {
-        banners.removeWhere((b) => b.bannerId == bannerId);
-        if (totalCount.value > 0) totalCount.value--;
-        return null;
-      }
-      final shouldDeactivate = await showDeactivationDialog(
-        title: 'Banner In Use',
-        message: message,
+
+      final impact = await _client.banner.checkBannerDeleteImpact(
+        bannerId,
+        uid,
+        idToken,
       );
-      if (shouldDeactivate) {
-        return toggleBannerActive(bannerId, false);
+
+      final choice = await showDeleteImpactDialog(
+        context: Get.context!,
+        impact: impact,
+        entityName: 'Banner',
+      );
+
+      switch (choice) {
+        case DeleteChoice.hardDelete:
+          final result = await _client.banner.hardDeleteBanner(
+            bannerId,
+            uid,
+            idToken,
+          );
+          if (result.success) {
+            banners.removeWhere((b) => b.bannerId == bannerId);
+            if (totalCount.value > 0) totalCount.value--;
+            return null;
+          }
+          return false;
+        case DeleteChoice.softDelete:
+          await toggleBannerActive(bannerId, false);
+          return true;
+        case DeleteChoice.cancel:
+          return false;
       }
-      return false;
     } catch (e) {
       error.value = e.toString();
       Get.snackbar(

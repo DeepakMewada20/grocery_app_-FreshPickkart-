@@ -474,6 +474,46 @@ class PostgresProductCompatService {
     return '';
   }
 
+  Future<HardDeleteResponse> hardDeleteProduct(
+    Session session,
+    String productId,
+  ) async {
+    final parsedProductId = parseUuid(productId, fieldName: 'productId');
+    final existing = await ProductRow.db.findById(session, parsedProductId);
+    if (existing == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'not_found',
+        message: 'Product not found.',
+      );
+    }
+
+    try {
+      await session.db.transaction((transaction) async {
+        await ProductRow.db.deleteRow(
+          session,
+          existing,
+          transaction: transaction,
+        );
+      });
+      return HardDeleteResponse(
+        success: true,
+        action: 'hard_delete',
+        message: 'Product permanently deleted.',
+      );
+    } on DatabaseQueryException catch (e) {
+      if (e.code == PgErrorCode.foreignKeyViolation) {
+        return HardDeleteResponse(
+          success: false,
+          action: 'requires_confirmation',
+          message:
+              'This product became linked with other records and cannot be permanently deleted.',
+        );
+      }
+      rethrow;
+    }
+  }
+
   Future<bool> setProductActive(
     Session session,
     String productId,

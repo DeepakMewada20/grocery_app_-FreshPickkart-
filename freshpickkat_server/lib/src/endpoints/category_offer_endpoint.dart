@@ -2,10 +2,12 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/delete_impact_service.dart';
 import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
+import '../services/postgres/postgres_support.dart';
 
 class CategoryOfferEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();
@@ -83,6 +85,48 @@ class CategoryOfferEndpoint extends Endpoint {
       );
       return 'An error occurred while removing the offer.';
     }
+  }
+
+  Future<DeleteImpactResponse> checkCategoryOfferDeleteImpact(
+    Session session,
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final parsedId = tryParseUuid(offerId);
+    if (parsedId == null) {
+      return DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+    return DeleteImpactService.checkCategoryOfferImpact(session, parsedId);
+  }
+
+  Future<HardDeleteResponse> hardDeleteCategoryOffer(
+    Session session,
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _offers.hardDeleteCategoryOffer(session, offerId);
+    if (result.success) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'hard_delete',
+        entityType: 'category_offer',
+        entityId: offerId,
+      );
+    }
+    return result;
   }
 
   Future<List<CategoryOffer>> getActiveCategoryOffers(Session session) {

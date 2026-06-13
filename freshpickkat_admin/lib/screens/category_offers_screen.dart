@@ -232,21 +232,31 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
   }
 
   Future<void> _showDeleteConfirmation(CategoryOffer offer) async {
-    final result = await showConfirmActionDialog(
-      context: context,
-      title: 'Delete Category Offer',
-      content: 'Are you sure you want to delete "${offer.name}"?',
-      confirmLabel: 'Delete',
-      onConfirm: () => _controller.deleteCategoryOffer(offer.offerId ?? ''),
-    );
-    if (result != true || !mounted) return;
-    showUndoSnackBar(
-      context,
-      message: 'Category offer deactivated',
-      onUndo: () {
-        _controller.toggleCategoryOffer(offer.offerId ?? '', true);
-      },
-    );
+    try {
+      final result = await _controller.deleteCategoryOffer(offer.offerId ?? '');
+      if (!mounted) return;
+      if (result == null) {
+        showUndoSnackBar(
+          context,
+          message: 'Category offer permanently deleted',
+          onUndo: () {},
+        );
+      } else if (result == true) {
+        showUndoSnackBar(
+          context,
+          message: 'Category offer deactivated',
+          onUndo: () {
+            _controller.toggleCategoryOffer(offer.offerId ?? '', true);
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete: $e')),
+        );
+      }
+    }
   }
 }
 

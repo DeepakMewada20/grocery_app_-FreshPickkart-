@@ -1,0 +1,4 @@
+class: DeleteImpactReference
+fields:
+  type: String
+  count: int

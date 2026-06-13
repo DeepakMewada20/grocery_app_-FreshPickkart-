@@ -207,6 +207,57 @@ class PostgresCouponService {
     return '';
   }
 
+  Future<HardDeleteResponse> hardDeleteCoupon(
+    Session session,
+    String code,
+  ) async {
+    final normalizedCode = code.trim().toUpperCase();
+    if (normalizedCode.isEmpty) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'invalid_code',
+        message: 'Invalid coupon code.',
+      );
+    }
+
+    final row = await CouponRow.db.findFirstRow(
+      session,
+      where: (t) => t.code.equals(normalizedCode),
+    );
+    if (row == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'not_found',
+        message: 'Coupon not found.',
+      );
+    }
+
+    try {
+      await session.db.transaction((transaction) async {
+        await CouponRow.db.deleteRow(
+          session,
+          row,
+          transaction: transaction,
+        );
+      });
+      return HardDeleteResponse(
+        success: true,
+        action: 'hard_delete',
+        message: 'Coupon permanently deleted.',
+      );
+    } on DatabaseQueryException catch (e) {
+      if (e.code == PgErrorCode.foreignKeyViolation) {
+        return HardDeleteResponse(
+          success: false,
+          action: 'requires_confirmation',
+          message:
+              'This coupon became linked with other records and cannot be permanently deleted.',
+        );
+      }
+      rethrow;
+    }
+  }
+
   Future<CouponValidationResult> applyCoupon(
     Session session, {
     required String userId,

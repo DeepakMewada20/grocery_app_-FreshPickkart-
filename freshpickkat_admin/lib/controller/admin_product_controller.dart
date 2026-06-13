@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import '../widgets/delete_impact_dialog.dart';
 import '../widgets/shared_dialogs.dart';
 import 'network_controller.dart';
 
@@ -224,34 +225,45 @@ class AdminProductController extends GetxController {
 
   Future<bool?> deleteProduct(String productId) async {
     try {
-      final message = await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
-        return _client.product.deleteProduct(productId, uid, idToken);
-      });
-      if (message.isEmpty) {
-        products.removeWhere((p) => p.productId == productId);
-        totalCount.value--;
-        return null;
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+
+      final impact = await _client.product.checkProductDeleteImpact(
+        productId,
+        uid,
+        idToken,
+      );
+
+      final choice = await showDeleteImpactDialog(
+        context: Get.context!,
+        impact: impact,
+        entityName: 'Product',
+      );
+
+      switch (choice) {
+        case DeleteChoice.hardDelete:
+          final result = await _client.product.hardDeleteProduct(
+            productId,
+            uid,
+            idToken,
+          );
+          if (result.success) {
+            products.removeWhere((p) => p.productId == productId);
+            totalCount.value--;
+            return null;
+          }
+          return false;
+        case DeleteChoice.softDelete:
+          await deactivateProduct(productId, false);
+          return true;
+        case DeleteChoice.cancel:
+          return false;
       }
-      final shouldDeactivate = await _showDeactivationDialog(message);
-      if (shouldDeactivate == true) {
-        await deactivateProduct(productId, false);
-        return true;
-      }
-      return false;
     } catch (e) {
       rethrow;
     }
-  }
-
-  Future<bool> _showDeactivationDialog(String message) async {
-    return showDeactivationDialog(
-      title: 'Product In Use',
-      message: message,
-    );
   }
 
   Future<void> deactivateProduct(String productId, bool isActive) async {

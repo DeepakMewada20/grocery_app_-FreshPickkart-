@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import '../../services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/delete_impact_dialog.dart';
 import '../../widgets/shared_dialogs.dart';
 import '../network_controller.dart';
 
@@ -164,35 +165,44 @@ class AdminBogoController extends GetxController {
       return await AdminSessionService.withRetry(apiCall: () async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken();
-        final message = await client.bogo.deleteOffer(
+
+        final impact = await client.bogo.checkBogoDeleteImpact(
           triggerProductId,
           uid,
           idToken,
         );
-        if (message.isEmpty) {
-          bogoOffers.removeWhere(
-            (offer) => offer.triggerProductId == triggerProductId,
-          );
-          if (totalCount.value > 0) totalCount.value--;
-          return null;
+
+        final choice = await showDeleteImpactDialog(
+          context: Get.context!,
+          impact: impact,
+          entityName: 'BOGO Offer',
+        );
+
+        switch (choice) {
+          case DeleteChoice.hardDelete:
+            final result = await client.bogo.hardDeleteBogoOffer(
+              triggerProductId,
+              uid,
+              idToken,
+            );
+            if (result.success) {
+              bogoOffers.removeWhere(
+                (offer) => offer.triggerProductId == triggerProductId,
+              );
+              if (totalCount.value > 0) totalCount.value--;
+              return null;
+            }
+            return false;
+          case DeleteChoice.softDelete:
+            await setBogoOfferActive(triggerProductId, false);
+            return true;
+          case DeleteChoice.cancel:
+            return false;
         }
-        final shouldDeactivate = await _showDeactivationDialog(message);
-        if (shouldDeactivate) {
-          await setBogoOfferActive(triggerProductId, false);
-          return true;
-        }
-        return false;
       });
     } catch (e) {
       return false;
     }
-  }
-
-  Future<bool> _showDeactivationDialog(String message) async {
-    return showDeactivationDialog(
-      title: 'Offer In Use',
-      message: message,
-    );
   }
 
   Future<bool> setBogoOfferActive(

@@ -2,11 +2,13 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/delete_impact_service.dart';
 import '../services/notification_outbox_service.dart';
 import '../services/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
+import '../services/postgres/postgres_support.dart';
 import '../services/variant_offer_exclusivity_service.dart';
 
 class ComboOfferEndpoint extends Endpoint {
@@ -176,6 +178,48 @@ class ComboOfferEndpoint extends Endpoint {
       session.log('Error deleting combo offer: $error', level: LogLevel.error);
       return 'An error occurred while removing the offer.';
     }
+  }
+
+  Future<DeleteImpactResponse> checkComboDeleteImpact(
+    Session session,
+    String comboId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final parsedId = tryParseUuid(comboId);
+    if (parsedId == null) {
+      return DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+    return DeleteImpactService.checkComboImpact(session, parsedId);
+  }
+
+  Future<HardDeleteResponse> hardDeleteComboOffer(
+    Session session,
+    String comboId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _offers.hardDeleteComboOffer(session, comboId);
+    if (result.success) {
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'hard_delete',
+        entityType: 'combo_offer',
+        entityId: comboId,
+      );
+    }
+    return result;
   }
 
   Future<List<ComboOffer>> getActiveComboOffers(Session session) {

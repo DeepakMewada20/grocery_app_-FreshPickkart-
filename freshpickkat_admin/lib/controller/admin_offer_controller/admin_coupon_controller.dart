@@ -1,6 +1,7 @@
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/delete_impact_dialog.dart';
 import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -146,25 +147,41 @@ class AdminCouponController extends GetxController {
 
   Future<bool?> deleteCoupon(String code) async {
     try {
-      final message = await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken(
-          forceRefresh: false,
-        );
-        return await _client.coupon.deleteCoupon(code, uid, idToken);
-      });
-      if (message.isEmpty) {
-        coupons.removeWhere((c) => c.code == code);
-        return null;
-      }
-      final shouldDeactivate = await showDeactivationDialog(
-        title: 'Coupon In Use',
-        message: message,
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
       );
-      if (shouldDeactivate) {
-        return setCouponActive(code, false);
+
+      final impact = await _client.coupon.checkCouponDeleteImpact(
+        code,
+        uid,
+        idToken,
+      );
+
+      final choice = await showDeleteImpactDialog(
+        context: Get.context!,
+        impact: impact,
+        entityName: 'Coupon',
+      );
+
+      switch (choice) {
+        case DeleteChoice.hardDelete:
+          final result = await _client.coupon.hardDeleteCoupon(
+            code,
+            uid,
+            idToken,
+          );
+          if (result.success) {
+            coupons.removeWhere((c) => c.code == code);
+            return null;
+          }
+          return false;
+        case DeleteChoice.softDelete:
+          await setCouponActive(code, false);
+          return true;
+        case DeleteChoice.cancel:
+          return false;
       }
-      return false;
     } catch (e) {
       rethrow;
     }

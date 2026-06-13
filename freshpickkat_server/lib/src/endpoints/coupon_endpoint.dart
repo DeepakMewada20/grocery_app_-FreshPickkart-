@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
+import '../services/delete_impact_service.dart';
 import '../services/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
@@ -159,6 +160,52 @@ class CouponEndpoint extends Endpoint {
       session.log('Error deleting coupon: $error', level: LogLevel.error);
       return 'Error deleting coupon';
     }
+  }
+
+  Future<DeleteImpactResponse> checkCouponDeleteImpact(
+    Session session,
+    String code,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final normalizedCode = code.trim().toUpperCase();
+    final row = await CouponRow.db.findFirstRow(
+      session,
+      where: (t) => t.code.equals(normalizedCode),
+    );
+    if (row == null || row.id == null) {
+      return DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+    return DeleteImpactService.checkCouponImpact(session, row.id!);
+  }
+
+  Future<HardDeleteResponse> hardDeleteCoupon(
+    Session session,
+    String code,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _coupons.hardDeleteCoupon(session, code);
+    if (result.success) {
+      await _audit.write(
+        session,
+        actorFirebaseUid: firebaseUid,
+        action: 'hard_delete',
+        entityType: 'coupon',
+        metadata: {'entityRef': code.trim().toUpperCase()},
+      );
+    }
+    return result;
   }
 
   Future<List<CouponDisplay>> fetchApplicableCoupons(

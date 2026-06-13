@@ -1,0 +1,4 @@
+class: DeleteImpactResponse
+fields:
+  canHardDelete: bool
+  references: List<DeleteImpactReference>

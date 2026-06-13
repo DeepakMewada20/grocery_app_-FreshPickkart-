@@ -1,8 +1,10 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/delete_impact_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_banner_service.dart';
+import '../services/postgres/postgres_support.dart';
 
 class BannerEndpoint extends Endpoint {
   final PostgresBannerService _banners = PostgresBannerService();
@@ -110,6 +112,39 @@ class BannerEndpoint extends Endpoint {
       idToken: idToken,
     );
     return _banners.deleteBanner(session, bannerId);
+  }
+
+  Future<DeleteImpactResponse> checkBannerDeleteImpact(
+    Session session,
+    String bannerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final parsedId = tryParseUuid(bannerId);
+    if (parsedId == null) {
+      return DeleteImpactResponse(canHardDelete: true, references: []);
+    }
+    return DeleteImpactService.checkBannerImpact(session, parsedId);
+  }
+
+  Future<HardDeleteResponse> hardDeleteBanner(
+    Session session,
+    String bannerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _banners.hardDeleteBanner(session, bannerId);
+    return result;
   }
 
   Future<void> toggleBannerActive(

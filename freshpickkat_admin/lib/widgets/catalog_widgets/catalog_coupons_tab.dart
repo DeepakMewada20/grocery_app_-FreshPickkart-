@@ -1305,34 +1305,16 @@ Future<void> showDeleteCouponDialog({
   required AdminCouponController controller,
   required Coupon coupon,
 }) async {
-  final shouldDelete = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: Text('Delete ${coupon.code}?'),
-        content: const Text(
-          'This will permanently remove the coupon from Firestore.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      );
-    },
-  );
-
-  if (shouldDelete != true) return;
-
   try {
-    final ok = await controller.deleteCoupon(coupon.code);
+    final result = await controller.deleteCoupon(coupon.code);
     if (!context.mounted) return;
-    if (ok == true) {
+    if (result == null) {
+      showUndoSnackBar(
+        context,
+        message: 'Coupon permanently deleted',
+        onUndo: () {},
+      );
+    } else if (result == true) {
       showUndoSnackBar(
         context,
         message: 'Coupon deactivated',

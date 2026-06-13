@@ -745,6 +745,68 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idToken'],
                   ),
         ),
+        'checkBannerDeleteImpact': _i1.MethodConnector(
+          name: 'checkBannerDeleteImpact',
+          params: {
+            'bannerId': _i1.ParameterDescription(
+              name: 'bannerId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['banner'] as _i4.BannerEndpoint)
+                  .checkBannerDeleteImpact(
+                    session,
+                    params['bannerId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'hardDeleteBanner': _i1.MethodConnector(
+          name: 'hardDeleteBanner',
+          params: {
+            'bannerId': _i1.ParameterDescription(
+              name: 'bannerId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['banner'] as _i4.BannerEndpoint).hardDeleteBanner(
+                    session,
+                    params['bannerId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
         'toggleBannerActive': _i1.MethodConnector(
           name: 'toggleBannerActive',
           params: {
@@ -941,6 +1003,68 @@ class Endpoints extends _i1.EndpointDispatch {
                 params['firebaseUid'],
                 params['idToken'],
               ),
+        ),
+        'checkBogoDeleteImpact': _i1.MethodConnector(
+          name: 'checkBogoDeleteImpact',
+          params: {
+            'triggerProductId': _i1.ParameterDescription(
+              name: 'triggerProductId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['bogo'] as _i5.BogoEndpoint).checkBogoDeleteImpact(
+                    session,
+                    params['triggerProductId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'hardDeleteBogoOffer': _i1.MethodConnector(
+          name: 'hardDeleteBogoOffer',
+          params: {
+            'triggerProductId': _i1.ParameterDescription(
+              name: 'triggerProductId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['bogo'] as _i5.BogoEndpoint).hardDeleteBogoOffer(
+                    session,
+                    params['triggerProductId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
         ),
         'setBogoOfferActive': _i1.MethodConnector(
           name: 'setBogoOfferActive',
@@ -1435,6 +1559,70 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'checkCategoryOfferDeleteImpact': _i1.MethodConnector(
+          name: 'checkCategoryOfferDeleteImpact',
+          params: {
+            'offerId': _i1.ParameterDescription(
+              name: 'offerId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['categoryOffer'] as _i8.CategoryOfferEndpoint)
+                      .checkCategoryOfferDeleteImpact(
+                        session,
+                        params['offerId'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'hardDeleteCategoryOffer': _i1.MethodConnector(
+          name: 'hardDeleteCategoryOffer',
+          params: {
+            'offerId': _i1.ParameterDescription(
+              name: 'offerId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['categoryOffer'] as _i8.CategoryOfferEndpoint)
+                      .hardDeleteCategoryOffer(
+                        session,
+                        params['offerId'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
         'getActiveCategoryOffers': _i1.MethodConnector(
           name: 'getActiveCategoryOffers',
           params: {},
@@ -1756,6 +1944,68 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['comboOffer'] as _i10.ComboOfferEndpoint)
                   .deleteComboOffer(
+                    session,
+                    params['comboId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'checkComboDeleteImpact': _i1.MethodConnector(
+          name: 'checkComboDeleteImpact',
+          params: {
+            'comboId': _i1.ParameterDescription(
+              name: 'comboId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i10.ComboOfferEndpoint)
+                  .checkComboDeleteImpact(
+                    session,
+                    params['comboId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'hardDeleteComboOffer': _i1.MethodConnector(
+          name: 'hardDeleteComboOffer',
+          params: {
+            'comboId': _i1.ParameterDescription(
+              name: 'comboId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['comboOffer'] as _i10.ComboOfferEndpoint)
+                  .hardDeleteComboOffer(
                     session,
                     params['comboId'],
                     params['firebaseUid'],
@@ -3017,6 +3267,68 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['coupon'] as _i12.CouponEndpoint).deleteCoupon(
+                    session,
+                    params['code'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'checkCouponDeleteImpact': _i1.MethodConnector(
+          name: 'checkCouponDeleteImpact',
+          params: {
+            'code': _i1.ParameterDescription(
+              name: 'code',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coupon'] as _i12.CouponEndpoint)
+                  .checkCouponDeleteImpact(
+                    session,
+                    params['code'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'hardDeleteCoupon': _i1.MethodConnector(
+          name: 'hardDeleteCoupon',
+          params: {
+            'code': _i1.ParameterDescription(
+              name: 'code',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coupon'] as _i12.CouponEndpoint).hardDeleteCoupon(
                     session,
                     params['code'],
                     params['firebaseUid'],
@@ -6361,6 +6673,68 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['product'] as _i23.ProductEndpoint).deleteProduct(
+                    session,
+                    params['productId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'checkProductDeleteImpact': _i1.MethodConnector(
+          name: 'checkProductDeleteImpact',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i23.ProductEndpoint)
+                  .checkProductDeleteImpact(
+                    session,
+                    params['productId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'hardDeleteProduct': _i1.MethodConnector(
+          name: 'hardDeleteProduct',
+          params: {
+            'productId': _i1.ParameterDescription(
+              name: 'productId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['product'] as _i23.ProductEndpoint)
+                  .hardDeleteProduct(
                     session,
                     params['productId'],
                     params['firebaseUid'],

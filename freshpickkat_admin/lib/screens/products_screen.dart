@@ -243,23 +243,33 @@ class _ProductsScreenState extends State<ProductsScreen>
       return;
     }
 
-    final confirm = await showConfirmActionDialog(
-      context: context,
-      title: 'Delete Product',
-      content: 'Delete "${product.productName}"?',
-      confirmLabel: 'Delete',
-      useElevatedButton: true,
-      onConfirm: () => _productController.deleteProduct(product.productId!),
-    );
-    if (confirm == null || !mounted) return;
-    if (confirm != true) return;
-    showUndoSnackBar(
-      context,
-      message: 'Product deactivated',
-      onUndo: () {
-        _productController.deactivateProduct(product.productId!, true);
-      },
-    );
+    try {
+      final result = await _productController.deleteProduct(
+        product.productId!,
+      );
+      if (!mounted) return;
+      if (result == null) {
+        showUndoSnackBar(
+          context,
+          message: 'Product permanently deleted',
+          onUndo: () {},
+        );
+      } else if (result == true) {
+        showUndoSnackBar(
+          context,
+          message: 'Product deactivated',
+          onUndo: () {
+            _productController.deactivateProduct(product.productId!, true);
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete product: $e')),
+        );
+      }
+    }
   }
 
   List<Product> _visibleProducts() {
