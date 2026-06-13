@@ -121,7 +121,7 @@ Future<DeleteChoice> _showReferencesDialog(
         children: [
           Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 24),
           const SizedBox(width: 10),
-          const Text('Permanent Delete Not Possible'),
+          const Expanded(child: Text('Permanent Delete Not Possible')),
         ],
       ),
       content: SingleChildScrollView(
