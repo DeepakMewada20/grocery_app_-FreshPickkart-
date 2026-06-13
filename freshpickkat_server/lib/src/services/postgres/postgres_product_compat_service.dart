@@ -488,30 +488,12 @@ class PostgresProductCompatService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await ProductRow.db.deleteRow(
-          session,
-          existing,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'Product permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This product became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await ProductRow.db.deleteRow(session, existing);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Product permanently deleted.',
+    );
   }
 
   Future<bool> setProductActive(

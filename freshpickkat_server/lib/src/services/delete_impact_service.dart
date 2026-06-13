@@ -9,14 +9,6 @@ class DeleteImpactService {
   ) async {
     final refs = <DeleteImpactReference>[];
 
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.productId.equals(productId),
-    );
-    if (orderCount > 0) {
-      refs.add(DeleteImpactReference(type: 'orders', count: orderCount));
-    }
-
     final bannerCount = await BannerRow.db.count(
       session,
       where: (t) => t.linkedProductId.equals(productId),
@@ -120,14 +112,6 @@ class DeleteImpactService {
   ) async {
     final refs = <DeleteImpactReference>[];
 
-    final orderCount = await CustomerOrderRow.db.count(
-      session,
-      where: (t) => t.couponId.equals(couponId),
-    );
-    if (orderCount > 0) {
-      refs.add(DeleteImpactReference(type: 'orders', count: orderCount));
-    }
-
     final bannerCount = await BannerRow.db.count(
       session,
       where: (t) => t.couponId.equals(couponId),
@@ -161,14 +145,6 @@ class DeleteImpactService {
   ) async {
     final refs = <DeleteImpactReference>[];
 
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.bogoOfferId.equals(offerId),
-    );
-    if (orderCount > 0) {
-      refs.add(DeleteImpactReference(type: 'orders', count: orderCount));
-    }
-
     final offerIdStr = offerId.toString();
     final bannerResult = await session.db.unsafeQuery(
       'SELECT COUNT(*) AS cnt FROM banner WHERE "actionType" = \'offer\' AND "offerId" = @id',
@@ -192,14 +168,6 @@ class DeleteImpactService {
     UuidValue comboId,
   ) async {
     final refs = <DeleteImpactReference>[];
-
-    final orderCount = await OrderItemRow.db.count(
-      session,
-      where: (t) => t.comboOfferId.equals(comboId),
-    );
-    if (orderCount > 0) {
-      refs.add(DeleteImpactReference(type: 'orders', count: orderCount));
-    }
 
     final bannerCount = await BannerRow.db.count(
       session,

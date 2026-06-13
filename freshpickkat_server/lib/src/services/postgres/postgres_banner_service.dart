@@ -267,30 +267,12 @@ class PostgresBannerService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await BannerRow.db.deleteRow(
-          session,
-          row,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'Banner permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This banner became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await BannerRow.db.deleteRow(session, row);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Banner permanently deleted.',
+    );
   }
 
   Future<void> toggleBannerActive(

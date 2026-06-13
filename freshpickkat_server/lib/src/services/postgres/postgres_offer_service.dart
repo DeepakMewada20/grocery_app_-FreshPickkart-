@@ -141,30 +141,12 @@ class PostgresOfferService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await BogoOfferRow.db.deleteRow(
-          session,
-          rows.first,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'BOGO offer permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This offer became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await BogoOfferRow.db.deleteRow(session, rows.first);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'BOGO offer permanently deleted.',
+    );
   }
 
   Future<bool> setBogoOfferActive(
@@ -415,30 +397,12 @@ class PostgresOfferService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await ComboOfferRow.db.deleteRow(
-          session,
-          row,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'Combo offer permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This offer became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await ComboOfferRow.db.deleteRow(session, row);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Combo offer permanently deleted.',
+    );
   }
 
   Future<List<ComboOffer>> getActiveComboOffers(Session session) async {
@@ -686,30 +650,12 @@ class PostgresOfferService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await CategoryOfferRow.db.deleteRow(
-          session,
-          row,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'Category offer permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This offer became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await CategoryOfferRow.db.deleteRow(session, row);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Category offer permanently deleted.',
+    );
   }
 
   Future<List<CategoryOffer>> getActiveCategoryOffers(Session session) async {

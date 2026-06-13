@@ -232,30 +232,12 @@ class PostgresCouponService {
       );
     }
 
-    try {
-      await session.db.transaction((transaction) async {
-        await CouponRow.db.deleteRow(
-          session,
-          row,
-          transaction: transaction,
-        );
-      });
-      return HardDeleteResponse(
-        success: true,
-        action: 'hard_delete',
-        message: 'Coupon permanently deleted.',
-      );
-    } on DatabaseQueryException catch (e) {
-      if (e.code == PgErrorCode.foreignKeyViolation) {
-        return HardDeleteResponse(
-          success: false,
-          action: 'requires_confirmation',
-          message:
-              'This coupon became linked with other records and cannot be permanently deleted.',
-        );
-      }
-      rethrow;
-    }
+    await CouponRow.db.deleteRow(session, row);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Coupon permanently deleted.',
+    );
   }
 
   Future<CouponValidationResult> applyCoupon(
