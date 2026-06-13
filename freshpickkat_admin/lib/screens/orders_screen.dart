@@ -221,6 +221,42 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  Future<void> _generateDeliveryOtp(Order order) async {
+    try {
+      final success = await _orderController.generateDeliveryOtp(order);
+      if (success && mounted) {
+        final index =
+            _orderController.orders.indexWhere((o) => o.orderId == order.orderId);
+        if (index != -1) {
+          _orderController.orders[index] =
+              order.copyWith(status: 'delivery_otp_pending');
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Delivery OTP generated for order ${order.orderId}'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate OTP: $e'),
+          backgroundColor: AdminAppTheme.getErrorColor(context),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<bool> _showLocationDialog() async {
     final result = await showDialog<bool>(
       context: context,
@@ -512,6 +548,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               onStatusChanged: (status) =>
                                   _updateStatus(order, status),
                               onStartDelivery: _startDelivery,
+                              onGenerateOtp: _generateDeliveryOtp,
                             );
                           },
                         ),
@@ -608,6 +645,7 @@ class _OrderCard extends StatefulWidget {
     required this.onTap,
     required this.onStatusChanged,
     required this.onStartDelivery,
+    required this.onGenerateOtp,
   });
 
   final Order order;
@@ -615,6 +653,7 @@ class _OrderCard extends StatefulWidget {
   final VoidCallback onTap;
   final Future<void> Function(String) onStatusChanged;
   final Future<void> Function(Order order) onStartDelivery;
+  final Future<void> Function(Order order) onGenerateOtp;
 
   @override
   State<_OrderCard> createState() => _OrderCardState();
@@ -922,16 +961,16 @@ class _OrderCardState extends State<_OrderCard> {
       buttons.add(
         _lifecycleButton(
           context: context,
-          label: 'Mark Delivered',
+          label: 'Generate Delivery OTP',
           color: primaryColor,
-          icon: Icons.check_circle_outline,
+          icon: Icons.pin_outlined,
           isLoading: _isLoading,
           onPressed: _isLoading
               ? null
               : () async {
                   setState(() => _isLoading = true);
                   try {
-                    await onStatusChanged('delivered');
+                    await widget.onGenerateOtp(order);
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
                   }
@@ -948,6 +987,17 @@ class _OrderCardState extends State<_OrderCard> {
           onPressed: () {
             Get.to(() => LiveDeliveryMapPreviewScreen(order: order));
           },
+        ),
+      );
+    } else if (order.status == 'delivery_otp_pending') {
+      buttons.add(
+        _lifecycleButton(
+          context: context,
+          label: 'Enter OTP to Deliver',
+          color: primaryColor,
+          icon: Icons.pin_outlined,
+          isLoading: false,
+          onPressed: widget.onTap,
         ),
       );
     }
