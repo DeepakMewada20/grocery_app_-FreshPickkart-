@@ -487,21 +487,33 @@ class _OfferChips extends StatelessWidget {
   const _OfferChips({required this.product});
   final Product product;
 
+  bool get _hasFreeDelivery =>
+      product.isFreeDelivery ||
+      (product.variants?.any((v) => v.isFreeDelivery) ?? false);
+
+  bool get _hasBogo =>
+      (product.bogoFreeProductIds?.isNotEmpty ?? false) ||
+      (product.variants?.any((v) => v.bogoFreeProductIds?.isNotEmpty == true) ??
+          false);
+
+  bool get _hasCombo =>
+      (product.comboOfferIds?.isNotEmpty ?? false) ||
+      (product.variants?.any((v) => v.comboOfferIds?.isNotEmpty == true) ??
+          false);
+
   @override
   Widget build(BuildContext context) {
     final chips = <Widget>[];
 
-    if (product.bogoFreeProductIds != null &&
-        product.bogoFreeProductIds!.isNotEmpty) {
+    if (_hasBogo) {
       chips.add(_offerChip(context, 'BOGO', AdminAppTheme.getWarningColor(context)));
     }
 
-    if (product.comboOfferIds != null &&
-        product.comboOfferIds!.isNotEmpty) {
+    if (_hasCombo) {
       chips.add(_offerChip(context, 'COMBO', const Color(0xFF7C4DFF)));
     }
 
-    if (product.isFreeDelivery) {
+    if (_hasFreeDelivery) {
       chips.add(_offerChip(context, 'FREE DELIVERY', AdminAppTheme.getSuccessColor(context)));
     }
 

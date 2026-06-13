@@ -120,7 +120,7 @@ Product applyVariantToProduct(Product product, {String? variantId}) {
     variants: sortedProductVariants(product),
     bogoFreeProductIds:
         selectedVariant.bogoFreeProductIds ?? product.bogoFreeProductIds,
-    isFreeDelivery: selectedVariant.isFreeDelivery,
+    isFreeDelivery: selectedVariant.isFreeDelivery || product.isFreeDelivery,
     comboOfferIds:
         selectedVariant.comboOfferIds ?? product.comboOfferIds,
   );
