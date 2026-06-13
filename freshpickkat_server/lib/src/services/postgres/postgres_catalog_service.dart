@@ -837,7 +837,7 @@ class PostgresCatalogService {
                         .toStringAsFixed(2),
                   )
                 : 0.0,
-            variants: [],
+            variants: product.variants,
             bogoFreeProductIds: variant.bogoFreeProductIds,
             isFreeDelivery: variant.isFreeDelivery,
             comboOfferIds: variant.comboOfferIds,

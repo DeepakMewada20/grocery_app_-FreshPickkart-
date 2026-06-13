@@ -247,16 +247,15 @@ class ProductProviderController extends GetxController {
         isMoreDataAvailable.value = false;
       }
 
-      final existingIds = allProducts
-          .map((p) => p.productId)
-          .whereType<String>()
+      final existingKeys = allProducts
+          .map((p) => '${p.productId}_${p.variantId ?? "default"}')
           .toSet();
 
       for (final product in newProducts) {
-        final id = product.productId;
-        if (id != null && !existingIds.contains(id)) {
+        final key = '${product.productId}_${product.variantId ?? "default"}';
+        if (product.productId != null && !existingKeys.contains(key)) {
           allProducts.add(product);
-          existingIds.add(id);
+          existingKeys.add(key);
         }
       }
 
@@ -319,16 +318,15 @@ class ProductProviderController extends GetxController {
       if (fetched.isEmpty) return;
 
       final merged = [...allProducts];
-      final existingIds = merged
-          .map((product) => product.productId)
-          .whereType<String>()
+      final existingKeys = merged
+          .map((product) => '${product.productId}_${product.variantId ?? "default"}')
           .toSet();
 
       for (final product in fetched) {
-        final productId = product.productId;
-        if (productId == null || existingIds.contains(productId)) continue;
+        final key = '${product.productId}_${product.variantId ?? "default"}';
+        if (product.productId == null || existingKeys.contains(key)) continue;
         merged.add(product);
-        existingIds.add(productId);
+        existingKeys.add(key);
       }
 
       allProducts.assignAll(merged);
