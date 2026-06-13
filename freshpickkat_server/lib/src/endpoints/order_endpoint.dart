@@ -10,6 +10,7 @@ import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
 import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
+import '../services/realtime_service.dart';
 
 class OrderEndpoint extends Endpoint {
   static const String statusPlaced = 'placed';
@@ -638,6 +639,16 @@ class OrderEndpoint extends Endpoint {
         userId: updatedOrder.userId,
         status: statusDeliveryOtpPending,
       );
+      await RealtimeService().broadcastOrderEvent(
+        session,
+        protocol.OrderRealtimeEvent(
+          eventType: 'status_changed',
+          orderId: orderId,
+          status: statusDeliveryOtpPending,
+          userId: updatedOrder.userId,
+          createdAt: DateTime.now(),
+        ),
+      );
     }
 
     return true;
@@ -700,6 +711,16 @@ class OrderEndpoint extends Endpoint {
         orderId: orderId,
         userId: updatedOrder.userId,
         status: statusDelivered,
+      );
+      await RealtimeService().broadcastOrderEvent(
+        session,
+        protocol.OrderRealtimeEvent(
+          eventType: 'status_changed',
+          orderId: orderId,
+          status: statusDelivered,
+          userId: updatedOrder.userId,
+          createdAt: DateTime.now(),
+        ),
       );
     }
 

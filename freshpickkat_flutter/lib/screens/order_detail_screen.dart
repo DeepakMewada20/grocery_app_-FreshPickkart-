@@ -155,7 +155,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (currentStatus == 'cancelled') {
       return ['placed', 'cancelled'];
     }
-    if (currentStatus == 'delivery_otp_pending') {
+    if (currentStatus == 'delivery_otp_pending' || currentStatus == 'delivered') {
       return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivery_otp_pending', 'delivered'];
     }
     return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivered'];
@@ -189,11 +189,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildContent(ColorScheme cs) {
     final order = _order!;
-    return SingleChildScrollView(
-      padding: AppResponsive.pagePadding(context).copyWith(
-        bottom: 24.h + MediaQuery.paddingOf(context).bottom,
-      ),
-      child: AppResponsive.constrainContent(
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: AppResponsive.pagePadding(context).copyWith(
+          bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+        ),
+        child: AppResponsive.constrainContent(
         context: context,
         maxWidth: AppResponsive.maxDetailWidth,
         child: Column(
@@ -232,6 +235,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             _buildTotals(order, cs),
           ],
         ),
+      ),
       ),
     );
   }
@@ -287,7 +291,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                           child: Center(
                             child: Icon(
-                              isCompleted
+                              isCompleted || (isCurrent && status == 'delivered')
                                   ? Icons.check
                                   : (isCurrent
                                         ? Icons.circle
@@ -558,42 +562,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Text(
                 'Delivery Verification',
                 style: AppTextStyles.sectionTitle(context)
-                    .copyWith(color: cs.primary, fontSize: 16.sp),
+                    .copyWith(fontSize: 16.sp),
               ),
             ],
           ),
           SizedBox(height: 16.h),
           if (!isExpired && order.deliveryOtp != null) ...[
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(14.r),
-              decoration: BoxDecoration(
-                color: cs.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Your OTP',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: cs.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    order.deliveryOtp!,
-                    style: TextStyle(
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 6,
-                      color: cs.primary,
-                    ),
-                  ),
-                ],
+            Text(
+              'Your One-Time Password',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: 4.h),
+            Text(
+              order.deliveryOtp!,
+              style: TextStyle(
+                fontSize: 28.sp,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 6,
+                color: cs.onSurface,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+            SizedBox(height: 16.h),
             Row(
               children: [
                 Icon(Icons.receipt_outlined,
@@ -610,80 +604,59 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
             ),
             SizedBox(height: 12.h),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.w,
-                vertical: 10.h,
-              ),
-              decoration: BoxDecoration(
-                color: cs.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.timer_outlined,
-                      size: 16.sp, color: cs.primary),
-                  SizedBox(width: 6.w),
-                  Text(
-                    'Expires In: ',
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: cs.onSurface.withValues(alpha: 0.7),
-                    ),
+            Row(
+              children: [
+                Icon(Icons.timer_outlined,
+                    size: 16.sp, color: cs.onSurface.withValues(alpha: 0.5)),
+                SizedBox(width: 6.w),
+                Text(
+                  'Expires in: ',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                   ),
-                  Text(
-                    _formatOtpCountdown(expiresAt!),
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: cs.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Container(
-              padding: EdgeInsets.all(12.r),
-              decoration: BoxDecoration(
-                color: cs.errorContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: cs.error.withValues(alpha: 0.2),
                 ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.warning_amber_rounded,
-                      size: 16.sp, color: cs.error),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      'Never share this OTP over phone calls. Only provide this OTP when the order is physically handed over to you.',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: cs.onErrorContainer,
-                        height: 1.3,
-                      ),
+                Text(
+                  _formatOtpCountdown(expiresAt!),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline,
+                    size: 14.sp, color: cs.onSurface.withValues(alpha: 0.4)),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    'Provide this OTP only when the order is physically handed over to you.',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                      height: 1.3,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ] else ...[
             Row(
               children: [
                 Icon(Icons.timer_off_outlined,
-                    size: 20.sp, color: cs.error),
+                    size: 20.sp, color: cs.onSurface.withValues(alpha: 0.5)),
                 SizedBox(width: 8.w),
                 Text(
                   'OTP Expired',
                   style: TextStyle(
                     fontSize: 16.sp,
-                    fontWeight: FontWeight.w700,
-                    color: cs.error,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -697,13 +670,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ],
-          SizedBox(height: 8.h),
+          SizedBox(height: 12.h),
           Text(
             'Status: ${order.status == 'delivery_otp_pending' ? 'Waiting for Delivery Confirmation' : order.status}',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
-              color: cs.primary.withValues(alpha: 0.8),
+              color: cs.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],
