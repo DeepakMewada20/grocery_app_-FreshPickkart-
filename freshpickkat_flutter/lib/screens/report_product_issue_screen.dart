@@ -95,10 +95,29 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FormCard(
-                      child: _ProductSelectionList(
-                        items: widget.items,
-                        controller: _controller,
+                    Obx(
+                      () => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _FormCard(
+                            hasError: _controller.productError.value != null,
+                            child: _ProductSelectionList(
+                              items: widget.items,
+                              controller: _controller,
+                            ),
+                          ),
+                          if (_controller.productError.value != null)
+                            Padding(
+                              padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                              child: Text(
+                                _controller.productError.value!,
+                                style: TextStyle(
+                                  color: cs.error,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     SizedBox(height: 16.h),
@@ -136,7 +155,12 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                           SizedBox(height: 18.h),
                           _FieldLabel('Images (1-3 required)'),
                           SizedBox(height: 8.h),
-                          _ImagePicker(controller: _controller),
+                          Obx(
+                            () => _ImagePicker(
+                              controller: _controller,
+                              error: _controller.imageError.value,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -177,6 +201,11 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
         description: _descriptionController.text,
       );
     } catch (error) {
+      final msg = error.toString();
+      if (msg.contains(ErrorMessages.selectProduct) ||
+          msg.contains(ErrorMessages.attachImage)) {
+        return;
+      }
       AppLogger.error('ReportProductIssue', error);
       AppSnackbar.error(
         'Unable to submit',
@@ -281,76 +310,97 @@ class _BlockedState extends StatelessWidget {
 }
 
 class _ImagePicker extends StatelessWidget {
-  const _ImagePicker({required this.controller});
+  const _ImagePicker({required this.controller, this.error});
 
   final ProductComplaintController controller;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Obx(() {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(12.r),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: cs.outlineVariant),
-        ),
-        child: Column(
-          children: [
-            Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(12.r),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: error != null ? cs.error : cs.outlineVariant,
+            ),
+          ),
+          child: Obx(
+            () => Column(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed:
-                        controller.isPicking.value ||
-                            controller.selectedImages.length >= 3
-                        ? null
-                        : controller.pickGalleryImages,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(
-                      controller.isPicking.value ? 'Opening...' : 'Gallery',
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            controller.isPicking.value ||
+                                controller.selectedImages.length >= 3
+                            ? null
+                            : controller.pickGalleryImages,
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(
+                          controller.isPicking.value
+                              ? 'Opening...'
+                              : 'Gallery',
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed:
+                            controller.isPicking.value ||
+                                controller.selectedImages.length >= 3
+                            ? null
+                            : controller.pickCameraImage,
+                        icon: const Icon(Icons.photo_camera_outlined),
+                        label: const Text('Camera'),
+                      ),
+                    ),
+                  ],
+                ),
+                if (controller.selectedImages.isNotEmpty) ...[
+                  SizedBox(height: 10.h),
+                  ...controller.selectedImages.map(
+                    (image) => ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.image_outlined),
+                      title: Text(
+                        image.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => controller.removeImage(image),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed:
-                        controller.isPicking.value ||
-                            controller.selectedImages.length >= 3
-                        ? null
-                        : controller.pickCameraImage,
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text('Camera'),
-                  ),
-                ),
+                ],
               ],
             ),
-            if (controller.selectedImages.isNotEmpty) ...[
-              SizedBox(height: 10.h),
-              ...controller.selectedImages.map(
-                (image) => ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.image_outlined),
-                  title: Text(
-                    image.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => controller.removeImage(image),
-                  ),
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
-      );
-    });
+        if (error != null)
+          Padding(
+            padding: EdgeInsets.only(top: 4.h, left: 4.w),
+            child: Text(
+              error!,
+              style: TextStyle(
+                color: cs.error,
+                fontSize: 12.sp,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -420,9 +470,10 @@ class _SuccessState extends StatelessWidget {
 }
 
 class _FormCard extends StatelessWidget {
-  const _FormCard({required this.child});
+  const _FormCard({required this.child, this.hasError = false});
 
   final Widget child;
+  final bool hasError;
 
   @override
   Widget build(BuildContext context) {
@@ -433,7 +484,9 @@ class _FormCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: cs.outlineVariant),
+        border: Border.all(
+          color: hasError ? cs.error : cs.outlineVariant,
+        ),
       ),
       child: child,
     );

@@ -14,6 +14,8 @@ class ProductComplaintController extends GetxController {
   final selectedOrderItemIds = <String>[].obs;
   final isPicking = false.obs;
   final isSubmitting = false.obs;
+  final productError = Rxn<String>();
+  final imageError = Rxn<String>();
   final submittedComplaint = Rxn<Complaint>();
 
   final _attachments = AttachmentUploadService.instance;
@@ -25,6 +27,7 @@ class ProductComplaintController extends GetxController {
   }
 
   Future<void> pickGalleryImages() async {
+    imageError.value = null;
     if (isPicking.value || selectedImages.length >= 3) return;
     isPicking.value = true;
     try {
@@ -37,6 +40,7 @@ class ProductComplaintController extends GetxController {
   }
 
   Future<void> pickCameraImage() async {
+    imageError.value = null;
     if (isPicking.value || selectedImages.length >= 3) return;
     isPicking.value = true;
     try {
@@ -48,10 +52,12 @@ class ProductComplaintController extends GetxController {
   }
 
   void removeImage(XFile image) {
+    imageError.value = null;
     selectedImages.remove(image);
   }
 
   void toggleOrderItem(String orderItemId) {
+    productError.value = null;
     final id = orderItemId.trim();
     if (id.isEmpty) return;
     if (selectedOrderItemIds.contains(id)) {
@@ -69,11 +75,15 @@ class ProductComplaintController extends GetxController {
     if (isSubmitting.value) {
       throw Exception(ErrorMessages.submissionInProgress);
     }
+    productError.value = null;
+    imageError.value = null;
     final selectedIds = selectedOrderItemIdsOverride ?? selectedOrderItemIds;
     if (selectedIds.isEmpty) {
+      productError.value = ErrorMessages.selectProduct;
       throw Exception(ErrorMessages.selectProduct);
     }
     if (selectedImages.isEmpty) {
+      imageError.value = ErrorMessages.attachImage;
       throw Exception(ErrorMessages.attachImage);
     }
     if (selectedImages.length > 3) {
