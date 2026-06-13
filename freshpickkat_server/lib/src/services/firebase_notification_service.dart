@@ -312,11 +312,17 @@ class FirebaseNotificationService {
       case 'refund_processed':
         if (isRefundProcessed && userId != null && userId.isNotEmpty) {
           try {
-            await sendUserStatusUpdate(
+            if (!await _allowsOrderTracking(userId, session: session)) return;
+            final tokens = await _getUserFcmTokens(userId, session: session);
+            if (tokens.isEmpty) return;
+            await _sendToTokens(
+              tokens: tokens,
+              title: 'Refund processed',
+              body: amount > 0
+                  ? 'Refund of ₹${amount.toStringAsFixed(2)} processed for order $orderId.'
+                  : 'Refund processed for order $orderId.',
+              data: {'orderId': orderId, 'type': 'refund_processed'},
               session: session,
-              userId: userId,
-              orderId: orderId,
-              status: 'cancelled',
             );
           } catch (e, st) {
             session.log(

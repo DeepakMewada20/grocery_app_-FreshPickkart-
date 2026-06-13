@@ -77,17 +77,19 @@ class OrderOutboxService {
     required Session session,
     required String orderId,
     required String? userId,
+    required double amount,
   }) {
     final event = OrderRealtimeEvent(
       eventType: 'refund_processed',
       orderId: orderId,
-      status: 'cancelled',
+      status: 'refunded',
       userId: userId,
     );
     return _enqueue(
       session: session,
       dedupeKey: 'refund_processed:$orderId',
       event: event,
+      amount: amount,
     );
   }
 

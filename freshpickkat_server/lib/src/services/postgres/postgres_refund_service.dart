@@ -217,10 +217,12 @@ class PostgresRefundService {
     });
 
     if (normalizedStatus == 'processed') {
+      final refund = await _findLatestRefundForOrder(session, order.id!);
       await OrderOutboxService.instance.enqueueRefundProcessed(
         session: session,
         orderId: order.orderNumber,
         userId: order.userId.toString(),
+        amount: refund?.amount ?? 0.0,
       );
     }
   }
@@ -366,6 +368,7 @@ class PostgresRefundService {
       session: session,
       orderId: order.orderNumber,
       userId: order.userId.toString(),
+      amount: cappedAmount,
     );
     return mapped;
   }

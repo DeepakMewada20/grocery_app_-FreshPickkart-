@@ -648,7 +648,7 @@ class PostgresComplaintService {
       throw Exception('No refundable amount remains for this complaint.');
     }
 
-    await _refunds.refund(
+    final refund = await _refunds.refund(
       session,
       orderNumber: order.orderNumber,
       amount: cappedAmount,
@@ -656,6 +656,11 @@ class PostgresComplaintService {
       reason: row.title.isEmpty ? row.issueType : row.title,
       complaintId: row.id,
     );
+    if (refund.status == 'failed') {
+      throw Exception(
+        'Refund failed at payment gateway. Please try again.',
+      );
+    }
     final updated = await _updateComplaintResolution(
       session,
       row,
@@ -1566,11 +1571,14 @@ class PostgresComplaintService {
     final user = await AppUserRow.db.findById(session, row.userId);
     final firebaseUid = user?.firebaseUid;
     if (firebaseUid == null || firebaseUid.trim().isEmpty) return;
+    final body = row.status == 'resolved' && row.resolutionType != null
+        ? 'Your ${row.complaintType} complaint has been resolved with ${row.resolutionType!.replaceAll('_', ' ')}.'
+        : 'Your ${row.complaintType} complaint status is now ${row.status}.';
     await NotificationOutboxService.instance.enqueueTopicNotification(
       session: session,
       topic: _userTopic(firebaseUid),
       title: 'Complaint ${row.status}',
-      body: 'Your ${row.complaintType} complaint status is now ${row.status}.',
+      body: body,
       type: 'complaint_status',
       entityType: 'complaint',
       entityId: row.id?.toString(),
@@ -1579,6 +1587,7 @@ class PostgresComplaintService {
         'complaintId': row.id?.toString() ?? '',
         'complaintType': row.complaintType,
         'status': row.status,
+        if (row.resolutionType != null) 'resolutionType': row.resolutionType!,
       },
     );
   }
