@@ -366,6 +366,21 @@ class OrderEndpoint extends Endpoint {
     }
 
     if (order.paymentStatus == 'paid') {
+      // Step 1: Cancel the order first in the database
+      final updated = await _orders.cancelOrder(
+        session,
+        orderId,
+        userId,
+        reason: reason,
+      );
+      if (!updated) {
+        return protocol.PaymentActionResult(
+          success: false,
+          error: 'Failed to cancel the order. Please try again.',
+        );
+      }
+
+      // Step 2: Call the refund API
       try {
         final refundRecord = await _pgRefunds.refund(
           session,
@@ -375,18 +390,11 @@ class OrderEndpoint extends Endpoint {
           reason: reason,
         );
 
-        final updated = await _orders.cancelOrder(
-          session,
-          orderId,
-          userId,
-          reason: reason,
-        );
-        if (!updated) {
+        if (refundRecord.status == 'failed') {
           return protocol.PaymentActionResult(
             success: true,
-            status: 'refunded',
-            message:
-                'Refund processed. Please contact support for cancellation.',
+            status: 'cancelled',
+            message: 'Order cancelled, but refund could not be initiated automatically. Please contact support.',
           );
         }
 
@@ -404,10 +412,17 @@ class OrderEndpoint extends Endpoint {
           message:
               'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 2–5 business days to reflect in your account.',
         );
-      } catch (e) {
+      } catch (e, stackTrace) {
+        session.log(
+          'Refund failed during user cancellation: $e',
+          level: LogLevel.error,
+          exception: e,
+          stackTrace: stackTrace,
+        );
         return protocol.PaymentActionResult(
-          success: false,
-          error: 'Refund could not be processed. Please try again.',
+          success: true,
+          status: 'cancelled',
+          message: 'Order cancelled, but refund could not be processed automatically. Please contact support.',
         );
       }
     }
