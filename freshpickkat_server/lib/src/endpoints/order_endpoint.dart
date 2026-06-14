@@ -356,6 +356,62 @@ class OrderEndpoint extends Endpoint {
       firebaseUid: userId,
       idToken: idToken,
     );
+
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      return protocol.PaymentActionResult(
+        success: false,
+        error: 'Order not found',
+      );
+    }
+
+    if (order.paymentStatus == 'paid') {
+      try {
+        final refundRecord = await _pgRefunds.refund(
+          session,
+          orderNumber: orderId,
+          amount: order.finalAmount,
+          source: 'cancellation',
+          reason: reason,
+        );
+
+        final updated = await _orders.cancelOrder(
+          session,
+          orderId,
+          userId,
+          reason: reason,
+        );
+        if (!updated) {
+          return protocol.PaymentActionResult(
+            success: true,
+            status: 'refunded',
+            message:
+                'Refund processed. Please contact support for cancellation.',
+          );
+        }
+
+        await OrderOutboxService.instance.enqueueOrderStatusChanged(
+          session: session,
+          orderId: orderId,
+          userId: order.userId,
+          status: 'cancelled',
+        );
+
+        return protocol.PaymentActionResult(
+          success: true,
+          status: 'refunded',
+          amount: (refundRecord.amount * 100).round(),
+          message:
+              'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 2–5 business days to reflect in your account.',
+        );
+      } catch (e) {
+        return protocol.PaymentActionResult(
+          success: false,
+          error: 'Refund could not be processed. Please try again.',
+        );
+      }
+    }
+
     final updated = await _orders.cancelOrder(
       session,
       orderId,
@@ -369,41 +425,12 @@ class OrderEndpoint extends Endpoint {
       );
     }
 
-    final order = await _orders.getOrderById(session, orderId);
-    if (order != null) {
-      await OrderOutboxService.instance.enqueueOrderStatusChanged(
-        session: session,
-        orderId: orderId,
-        userId: order.userId,
-        status: 'cancelled',
-      );
-    }
-
-    if (order?.paymentStatus == 'paid') {
-      try {
-        final refundRecord = await _pgRefunds.refund(
-          session,
-          orderNumber: orderId,
-          amount: order!.finalAmount,
-          source: 'cancellation',
-          reason: reason,
-        );
-        return protocol.PaymentActionResult(
-          success: true,
-          status: 'refunded',
-          amount: (refundRecord.amount * 100).round(),
-          message:
-              'Refund has been initiated successfully. Full refund of ₹${refundRecord.amount.toStringAsFixed(2)}. Depending on your payment method and bank processing time, the amount may take up to 2–5 business days to reflect in your account.',
-        );
-      } catch (e) {
-        return protocol.PaymentActionResult(
-          success: true,
-          status: 'cancelled',
-          message:
-              'Order cancelled. Refund could not be processed automatically. Contact support.',
-        );
-      }
-    }
+    await OrderOutboxService.instance.enqueueOrderStatusChanged(
+      session: session,
+      orderId: orderId,
+      userId: order.userId,
+      status: 'cancelled',
+    );
 
     return protocol.PaymentActionResult(
       success: true,
