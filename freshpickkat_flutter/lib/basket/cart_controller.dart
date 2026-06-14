@@ -1142,8 +1142,15 @@ class CartController extends GetxController {
     return cartPricing.value?.bogoDiscount ?? 0;
   }
 
+  double get categoryOfferDiscountTotal {
+    return cartPricing.value?.categoryOfferDiscount ?? 0;
+  }
+
   double get totalSavings {
-    return productDiscountTotal + comboDiscountTotal + bogoDiscountTotal;
+    return productDiscountTotal +
+        comboDiscountTotal +
+        bogoDiscountTotal +
+        categoryOfferDiscountTotal;
   }
 
   double get deliveryFee {

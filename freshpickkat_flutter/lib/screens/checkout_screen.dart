@@ -1905,6 +1905,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               cs: cs,
             ),
           ],
+          if (cartController.categoryOfferDiscountTotal > 0) ...[
+            SizedBox(height: 8.h),
+            _buildBillRow(
+              'Category Offer Savings',
+              '-₹${cartController.categoryOfferDiscountTotal.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
           SizedBox(height: 8.h),
           _buildBillRow(
             'Items Total (Combo Applied)',

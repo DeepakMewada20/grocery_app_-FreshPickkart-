@@ -780,6 +780,15 @@ class _BasketScreenState extends State<BasketScreen> {
                     cs: cs,
                   ),
                 ],
+                if (cartController.categoryOfferDiscountTotal > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'Category Offer Savings',
+                    '-₹${cartController.categoryOfferDiscountTotal.formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
                 SizedBox(height: 12.h),
                 _buildBillRow(
                   'Items Total (Combo Applied)',
@@ -905,7 +914,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AutoSizeText(
+                  Obx(() => AutoSizeText(
                     '₹${cartController.totalAmount.formatPrice}',
                     maxLines: 1,
                     minFontSize: 12,
@@ -913,7 +922,7 @@ class _BasketScreenState extends State<BasketScreen> {
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
+                  )),
                   AutoSizeText(
                     'TOTAL AMOUNT',
                     maxLines: 1,
