@@ -218,7 +218,7 @@ class PaymentEndpoint extends Endpoint {
     );
   }
 
-  Future<Map<String, dynamic>> adminGetLivePaymentStatus(
+  Future<protocol.RazorpayPaymentStatus> adminGetLivePaymentStatus(
     Session session,
     String razorpayPaymentId, {
     required String firebaseUid,
@@ -232,18 +232,51 @@ class PaymentEndpoint extends Endpoint {
     try {
       final response = await _gateway.fetchPaymentStatus(razorpayPaymentId);
       if (response['statusCode'] != 200) {
-        return {
-          'error': 'Failed to fetch payment status',
-          'body': response['body']?.toString(),
-          'statusCode': response['statusCode'],
-        };
+        session.log(
+          'Live payment status fetch failed for $razorpayPaymentId: '
+          'statusCode=${response['statusCode']}, body=${response['body']}',
+          level: LogLevel.error,
+        );
+        return protocol.RazorpayPaymentStatus(
+          error: 'Failed to fetch payment status',
+          body: response['body']?.toString(),
+          statusCode: response['statusCode'],
+        );
       }
       final data = response['data'] as Map<String, dynamic>;
-      return data;
+        return protocol.RazorpayPaymentStatus(
+          id: data['id'] as String?,
+          status: data['status'] as String?,
+          amount: data['amount'] as int?,
+        currency: data['currency'] as String?,
+        orderId: data['order_id'] as String?,
+        method: data['method'] as String?,
+        captured: data['captured'] as bool?,
+        refundStatus: data['refund_status'] as String?,
+        amountRefunded: data['amount_refunded'] as int?,
+        fee: data['fee'] as int?,
+        tax: data['tax'] as int?,
+        bank: data['bank'] as String?,
+        wallet: data['wallet'] as String?,
+        vpa: data['vpa'] as String?,
+        email: data['email'] as String?,
+        contact: data['contact'] as String?,
+        cardId: data['card_id'] as String?,
+        acquirerData: data['acquirer_data']?.toString(),
+        description: data['description'] as String?,
+        notes: data['notes']?.toString(),
+        errorCode: data['error_code'] as String?,
+        errorDescription: data['error_description'] as String?,
+        createdAt: data['created_at'] as int?,
+      );
     } catch (e) {
-      return {
-        'error': e.toString(),
-      };
+      session.log(
+        'Live payment status exception for $razorpayPaymentId: $e',
+        level: LogLevel.error,
+      );
+      return protocol.RazorpayPaymentStatus(
+        error: e.toString(),
+      );
     }
   }
 

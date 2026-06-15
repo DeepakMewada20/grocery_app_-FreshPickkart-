@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_payment_monitoring_controller.dart';
+import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -282,7 +283,7 @@ class _RazorpayDetailSheetContent extends StatefulWidget {
 
 class _RazorpayDetailSheetContentState
     extends State<_RazorpayDetailSheetContent> {
-  Map<String, dynamic>? _data;
+  RazorpayPaymentStatus? _data;
   bool _loading = true;
   String? _error;
 
@@ -363,87 +364,51 @@ class _RazorpayDetailSheetContentState
                         controller: scrollController,
                         padding: EdgeInsets.all(16.w),
                         children: [
-                          _rpField(
-                            'Payment ID',
-                            _data!['id']?.toString() ?? '-',
-                          ),
+                          _rpField('Payment ID', _data!.id ?? '-'),
                           _rpField(
                             'Amount',
-                            _data!['amount'] != null
-                                ? _fmtAmount(_data!['amount'])
+                            _data!.amount != null
+                                ? _fmtAmount(_data!.amount)
                                 : '-',
                           ),
-                          _rpField(
-                            'Currency',
-                            _data!['currency']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Status',
-                            _data!['status']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Order ID',
-                            _data!['order_id']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Email',
-                            _data!['email']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Contact',
-                            _data!['contact']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Method',
-                            _data!['method']?.toString() ?? '-',
-                          ),
-                          _rpField(
-                            'Description',
-                            _data!['description']?.toString() ?? '-',
-                          ),
-                          if (_data!['fee'] != null)
-                            _rpField(
-                              'Fee',
-                              _fmtAmount(_data!['fee']),
-                            ),
-                          if (_data!['tax'] != null)
-                            _rpField(
-                              'Tax',
-                              _fmtAmount(_data!['tax']),
-                            ),
-                          if (_data!['error_code'] != null)
-                            _rpField(
-                              'Error Code',
-                              _data!['error_code'].toString(),
-                            ),
-                          if (_data!['error_description'] != null)
+                          _rpField('Currency', _data!.currency ?? '-'),
+                          _rpField('Status', _data!.status ?? '-'),
+                          _rpField('Order ID', _data!.orderId ?? '-'),
+                          _rpField('Email', _data!.email ?? '-'),
+                          _rpField('Contact', _data!.contact ?? '-'),
+                          _rpField('Method', _data!.method ?? '-'),
+                          _rpField('Description', _data!.description ?? '-'),
+                          if (_data!.fee != null)
+                            _rpField('Fee', _fmtAmount(_data!.fee)),
+                          if (_data!.tax != null)
+                            _rpField('Tax', _fmtAmount(_data!.tax)),
+                          if (_data!.errorCode != null)
+                            _rpField('Error Code', _data!.errorCode.toString()),
+                          if (_data!.errorDescription != null)
                             _rpField(
                               'Error Description',
-                              _data!['error_description'].toString(),
+                              _data!.errorDescription.toString(),
                             ),
-                          if (_data!['bank'] != null)
-                            _rpField('Bank', _data!['bank'].toString()),
-                          if (_data!['card_id'] != null)
-                            _rpField('Card ID', _data!['card_id'].toString()),
-                          if (_data!['wallet'] != null)
-                            _rpField('Wallet', _data!['wallet'].toString()),
-                          if (_data!['vpa'] != null)
-                            _rpField('VPA', _data!['vpa'].toString()),
-                          if (_data!['acquirer_data'] != null)
+                          if (_data!.bank != null)
+                            _rpField('Bank', _data!.bank.toString()),
+                          if (_data!.cardId != null)
+                            _rpField('Card ID', _data!.cardId.toString()),
+                          if (_data!.wallet != null)
+                            _rpField('Wallet', _data!.wallet.toString()),
+                          if (_data!.vpa != null)
+                            _rpField('VPA', _data!.vpa.toString()),
+                          if (_data!.acquirerData != null)
                             _rpField(
                               'Acquirer Data',
-                              _data!['acquirer_data'].toString(),
+                              _data!.acquirerData.toString(),
                             ),
-                          if (_data!['created_at'] != null)
+                          if (_data!.createdAt != null)
                             _rpField(
                               'Created At',
-                              _formatTimestamp(_data!['created_at']),
+                              _formatTimestamp(_data!.createdAt),
                             ),
-                          if (_data!['notes'] != null)
-                            _rpField(
-                              'Notes',
-                              _data!['notes'].toString(),
-                            ),
+                          if (_data!.notes != null)
+                            _rpField('Notes', _data!.notes.toString()),
                         ],
                       ),
               ),
@@ -480,8 +445,8 @@ class _RazorpayDetailSheetContentState
     );
   }
 
-  String _formatTimestamp(dynamic ts) {
-    if (ts is int) {
+  String _formatTimestamp(int? ts) {
+    if (ts != null) {
       final dt =
           DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toLocal();
       return '${dt.day}/${dt.month}/${dt.year} '
@@ -682,7 +647,7 @@ class _PaymentOrderDetailScreenState
     extends State<_PaymentOrderDetailScreen> {
   Map<String, dynamic>? _paymentDetail;
   Map<String, dynamic>? _refundDetail;
-  Map<String, dynamic>? _liveStatus;
+  RazorpayPaymentStatus? _liveStatus;
   bool _loadingDetail = true;
   bool _loadingRefund = false;
   bool _loadingLiveStatus = false;
@@ -700,22 +665,47 @@ class _PaymentOrderDetailScreenState
       final detail = await widget.controller.getPaymentDetail(
         widget.order.orderId,
       );
-      if (mounted) setState(() => _paymentDetail = detail);
+      if (mounted) {
+        setState(() {
+          _paymentDetail = detail;
+          final liveStatus = detail['razorpayLiveStatus'] as Map<String, dynamic>?;
+          _liveStatus = liveStatus != null
+              ? RazorpayPaymentStatus.fromJson(liveStatus)
+              : null;
+        });
+      }
     } catch (_) {}
     if (mounted) setState(() => _loadingDetail = false);
   }
 
   Future<void> _loadLiveStatus() async {
-    final razorpayPaymentId = _paymentDetail?['paymentTransaction']
-        ?['gatewayPaymentId'] as String?;
-    if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) return;
+    final razorpayPaymentId = widget.order.razorpayPaymentId ??
+        _paymentDetail?['paymentTransaction']?['gatewayPaymentId'] as String?;
+    if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) {
+      debugPrint(
+        'RazorpayLiveStatus: gatewayPaymentId not found for order ${widget.order.orderId}',
+      );
+      return;
+    }
     setState(() => _loadingLiveStatus = true);
     try {
       final status = await widget.controller.getLivePaymentStatus(
         razorpayPaymentId,
       );
-      if (mounted) setState(() => _liveStatus = status);
-    } catch (_) {}
+      if (mounted) {
+        if (status.error != null) {
+          debugPrint(
+            'RazorpayLiveStatus error for $razorpayPaymentId: '
+            '${status.error}, '
+            'body: ${status.body}, '
+            'statusCode: ${status.statusCode}',
+          );
+        }
+        setState(() => _liveStatus = status);
+      }
+    } catch (e) {
+      debugPrint('RazorpayLiveStatus exception for $razorpayPaymentId: $e');
+    }
     if (mounted) setState(() => _loadingLiveStatus = false);
   }
 
@@ -916,7 +906,7 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
     required this.onRefresh,
   });
 
-  final Map<String, dynamic>? liveStatus;
+  final RazorpayPaymentStatus? liveStatus;
   final bool loading;
   final VoidCallback onRefresh;
 
@@ -945,31 +935,106 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
               ),
             ],
           )
-        else ...[
-          _InfoRow('Payment ID', liveStatus!['id']?.toString() ?? '-'),
-          _InfoRow('Status', liveStatus!['status']?.toString() ?? '-'),
-          if (liveStatus!['amount'] != null)
-            _InfoRow(
-              'Amount',
-              _fmtAmount(liveStatus!['amount']),
+        else if (liveStatus!.error != null) ...[
+          Container(
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: AdminAppTheme.getErrorColor(context).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8.r),
             ),
-          if (liveStatus!['error_code'] != null)
-            _InfoRow('Error Code', liveStatus!['error_code'].toString()),
-          if (liveStatus!['error_description'] != null)
-            _InfoRow(
-              'Error Description',
-              liveStatus!['error_description'].toString(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: AdminAppTheme.getErrorColor(context),
+                      size: 16.r,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Failed to fetch live status',
+                      style: TextStyle(
+                        color: AdminAppTheme.getErrorColor(context),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                _InfoRow('Error', liveStatus!.error.toString()),
+                if (liveStatus!.statusCode != null)
+                  _InfoRow('Status Code', liveStatus!.statusCode.toString()),
+              ],
             ),
-          _InfoRow(
-            'Description',
-            liveStatus!['description']?.toString() ?? '-',
           ),
-          if (liveStatus!['method'] != null)
-            _InfoRow('Method', liveStatus!['method'].toString()),
+          SizedBox(height: 8.h),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Tap to retry',
+                  style: AdminTextStyles.caption(context),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: onRefresh,
+              ),
+            ],
+          ),
+        ] else ...[
+          _InfoRow('Payment ID', liveStatus!.id ?? '-'),
+          _InfoRow('Status', liveStatus!.status ?? '-'),
+          if (liveStatus!.amount != null)
+            _InfoRow('Amount', _fmtAmount(liveStatus!.amount)),
+          if (liveStatus!.orderId != null)
+            _InfoRow('Order ID', liveStatus!.orderId.toString()),
+          if (liveStatus!.method != null)
+            _InfoRow('Method', liveStatus!.method.toString()),
+          if (liveStatus!.captured != null)
+            _InfoRow('Captured', liveStatus!.captured.toString()),
+          if (liveStatus!.refundStatus != null)
+            _InfoRow('Refund Status', liveStatus!.refundStatus.toString()),
+          if (liveStatus!.amountRefunded != null && liveStatus!.amountRefunded! > 0)
+            _InfoRow('Amount Refunded', _fmtAmount(liveStatus!.amountRefunded)),
+          if (liveStatus!.fee != null)
+            _InfoRow('Razorpay Fee', _fmtAmount(liveStatus!.fee)),
+          if (liveStatus!.tax != null)
+            _InfoRow('GST', _fmtAmount(liveStatus!.tax)),
+          if (liveStatus!.bank != null && liveStatus!.bank!.isNotEmpty)
+            _InfoRow('Bank', liveStatus!.bank.toString()),
+          if (liveStatus!.wallet != null && liveStatus!.wallet!.isNotEmpty)
+            _InfoRow('Wallet', liveStatus!.wallet.toString()),
+          if (liveStatus!.vpa != null && liveStatus!.vpa!.isNotEmpty)
+            _InfoRow('UPI VPA', liveStatus!.vpa.toString()),
+          if (liveStatus!.email != null && liveStatus!.email!.isNotEmpty)
+            _InfoRow('Email', liveStatus!.email.toString()),
+          if (liveStatus!.contact != null && liveStatus!.contact!.isNotEmpty)
+            _InfoRow('Contact', liveStatus!.contact.toString()),
+          if (liveStatus!.createdAt != null)
+            _InfoRow('Created At', _formatRazorpayTs(liveStatus!.createdAt)),
+          _InfoRow('Description', liveStatus!.description ?? '-'),
+          if (liveStatus!.errorCode != null)
+            _InfoRow('Error Code', liveStatus!.errorCode.toString()),
+          if (liveStatus!.errorDescription != null)
+            _InfoRow('Error Description', liveStatus!.errorDescription.toString()),
         ],
       ],
     );
   }
+}
+
+String _formatRazorpayTs(int? ts) {
+  if (ts != null) {
+    final dt =
+        DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toLocal();
+    return '${dt.day}/${dt.month}/${dt.year} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+  }
+  return '-';
 }
 
 class _StatusComparisonPanel extends StatelessWidget {
@@ -981,7 +1046,7 @@ class _StatusComparisonPanel extends StatelessWidget {
 
   final Order order;
   final Map<String, dynamic>? paymentTransaction;
-  final Map<String, dynamic>? razorpayLiveData;
+  final RazorpayPaymentStatus? razorpayLiveData;
 
   @override
   Widget build(BuildContext context) {
@@ -990,7 +1055,7 @@ class _StatusComparisonPanel extends StatelessWidget {
     final dbPaymentStatus =
         paymentTransaction?['paymentStatus']?.toString() ?? '-';
     final orderPaymentStatus = order.paymentStatus;
-    final razorpayStatus = razorpayLiveData?['status']?.toString() ?? '-';
+    final razorpayStatus = razorpayLiveData?.status ?? '-';
 
     final dbOk = _isSuccessStatus(dbPaymentStatus);
     final orderOk = _isSuccessStatus(orderPaymentStatus);

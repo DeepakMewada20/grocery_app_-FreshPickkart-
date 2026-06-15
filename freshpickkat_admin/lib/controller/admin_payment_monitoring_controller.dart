@@ -113,7 +113,7 @@ class AdminPaymentMonitoringController extends GetxController {
     });
   }
 
-  Future<Map<String, dynamic>> getLivePaymentStatus(
+  Future<RazorpayPaymentStatus> getLivePaymentStatus(
     String razorpayPaymentId,
   ) async {
     return ApiClient().request(() async {

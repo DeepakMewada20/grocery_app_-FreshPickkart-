@@ -1,0 +1,28 @@
+class: RazorpayPaymentStatus
+fields:
+  id: String?
+  status: String?
+  amount: int?
+  currency: String?
+  orderId: String?
+  method: String?
+  captured: bool?
+  refundStatus: String?
+  amountRefunded: int?
+  fee: int?
+  tax: int?
+  bank: String?
+  wallet: String?
+  vpa: String?
+  email: String?
+  contact: String?
+  cardId: String?
+  acquirerData: String?
+  description: String?
+  notes: String?
+  errorCode: String?
+  errorDescription: String?
+  createdAt: int?
+  error: String?
+  statusCode: int?
+  body: String?
