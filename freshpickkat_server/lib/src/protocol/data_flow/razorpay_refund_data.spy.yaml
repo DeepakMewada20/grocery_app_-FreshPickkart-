@@ -1,0 +1,14 @@
+class: RazorpayRefundData
+fields:
+  id: String
+  paymentId: String
+  amount: int
+  status: String
+  speedProcessed: String?
+  speedRequested: String?
+  receipt: String?
+  acquirerData: String?
+  notes: String?
+  errorCode: String?
+  errorDescription: String?
+  createdAt: int?

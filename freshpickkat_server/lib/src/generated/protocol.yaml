@@ -198,6 +198,7 @@ payment:
   - adminGetPaymentDetail:
   - adminSearchOrders:
   - adminGetLivePaymentStatus:
+  - adminGetPaymentOrderDetailHydrated:
   - adminGetRefundDetail:
   - recoverPendingPayments:
 pricing:

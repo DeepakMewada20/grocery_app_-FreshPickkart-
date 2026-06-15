@@ -377,7 +377,6 @@ class PostgresRefundService {
         'Refund failed for order ${order.orderNumber}: $errorMsg',
         level: LogLevel.error,
       );
-      throw Exception(errorMsg);
     }
 
     return mapped;
@@ -427,6 +426,7 @@ class PostgresRefundService {
       source: row.source,
       reason: row.reason,
       complaintId: row.complaintId?.toString(),
+      failureReason: row.failureReason,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     );

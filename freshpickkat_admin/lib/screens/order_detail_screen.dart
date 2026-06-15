@@ -109,18 +109,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _refund = result;
           _order = _order.copyWith(refundStatus: result.status);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Refund retried successfully. Amount: ₹${result.amount.toStringAsFixed(2)}',
+        if (result.status == 'failed') {
+          debugPrint('Refund retry failed for order ${_order.orderId}: ${result.failureReason}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Refund failed: ${result.failureReason ?? "Unknown error"}',
+              ),
+              backgroundColor: AdminAppTheme.getErrorColor(context),
+              behavior: SnackBarBehavior.floating,
             ),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Refund retried successfully. Amount: ₹${result.amount.toStringAsFixed(2)}',
+              ),
+              backgroundColor: AdminAppTheme.getSuccessColor(context),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
-      debugPrint('Refund retry failed for order ${_order.orderId}: $e');
+      debugPrint('Refund retry exception for order ${_order.orderId}: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

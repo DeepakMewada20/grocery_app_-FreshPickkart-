@@ -280,6 +280,20 @@ class PaymentEndpoint extends Endpoint {
     }
   }
 
+  Future<protocol.PaymentOrderDetailHydrated> adminGetPaymentOrderDetailHydrated(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _pgPayments.getPaymentOrderDetailHydrated(session, orderId);
+  }
+
   Future<Map<String, dynamic>> adminGetRefundDetail(
     Session session,
     String orderId, {

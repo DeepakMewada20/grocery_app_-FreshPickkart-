@@ -6136,6 +6136,37 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                   ),
         ),
+        'adminGetPaymentOrderDetailHydrated': _i1.MethodConnector(
+          name: 'adminGetPaymentOrderDetailHydrated',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['payment'] as _i21.PaymentEndpoint)
+                  .adminGetPaymentOrderDetailHydrated(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
         'adminGetRefundDetail': _i1.MethodConnector(
           name: 'adminGetRefundDetail',
           params: {

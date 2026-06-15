@@ -772,6 +772,135 @@ class PostgresPaymentService {
   }
 
   /// Read-only: Returns aggregated payment detail for admin monitoring.
+  Future<PaymentOrderDetailHydrated> getPaymentOrderDetailHydrated(
+    Session session,
+    String orderNumber,
+  ) async {
+    final orderRow = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber.trim()),
+    );
+    if (orderRow == null) {
+      return PaymentOrderDetailHydrated(error: 'Order not found');
+    }
+
+    final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(orderRow.id!),
+    );
+
+    PaymentTransaction? paymentTransaction;
+    if (paymentRow != null) {
+      paymentTransaction = PaymentTransaction(
+        gatewayOrderId: cleanNullableString(paymentRow.gatewayOrderId),
+        gatewayPaymentId: cleanNullableString(paymentRow.gatewayPaymentId),
+        amount: paymentRow.amount.toInt(),
+        paymentStatus: paymentRow.paymentStatus,
+        gatewayStatus: paymentRow.gatewayStatus,
+        failureReason: paymentRow.failureReason,
+      );
+    }
+
+    final refundRows = await RefundRecordRow.db.find(
+      session,
+      where: (t) => t.orderId.equals(orderRow.id!),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+      limit: 5,
+    );
+
+    List<RefundRecord>? refundRecords;
+    if (refundRows.isNotEmpty) {
+      refundRecords = refundRows.map((r) => RefundRecord(
+        refundId: r.id?.toString() ?? '',
+        orderId: r.orderId.toString(),
+        paymentId: r.paymentTransactionId.toString(),
+        userId: r.userId.toString(),
+        amount: r.amount,
+        status: r.refundStatus,
+        gatewayRefundId: r.gatewayRefundId,
+        source: r.source,
+        reason: r.reason,
+        complaintId: r.complaintId?.toString(),
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      )).toList();
+    }
+
+    RazorpayPaymentStatus? razorpayLiveStatus;
+    final paymentId = cleanNullableString(paymentRow?.gatewayPaymentId);
+    if (paymentId != null) {
+      try {
+        final statusResult = await _gateway.fetchPaymentStatus(paymentId);
+        final data = statusResult['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          razorpayLiveStatus = RazorpayPaymentStatus(
+            id: data['id'] as String?,
+            status: data['status'] as String?,
+            amount: data['amount'] as int?,
+            currency: data['currency'] as String?,
+            orderId: data['order_id'] as String?,
+            method: data['method'] as String?,
+            captured: data['captured'] as bool?,
+            refundStatus: data['refund_status'] as String?,
+            amountRefunded: data['amount_refunded'] as int?,
+            fee: data['fee'] as int?,
+            tax: data['tax'] as int?,
+            bank: data['bank'] as String?,
+            wallet: data['wallet'] as String?,
+            vpa: data['vpa'] as String?,
+            email: data['email'] as String?,
+            contact: data['contact'] as String?,
+            cardId: data['card_id'] as String?,
+            acquirerData: data['acquirer_data']?.toString(),
+            description: data['description'] as String?,
+            notes: data['notes']?.toString(),
+            errorCode: data['error_code'] as String?,
+            errorDescription: data['error_description'] as String?,
+            createdAt: data['created_at'] as int?,
+          );
+        }
+      } catch (_) {}
+    }
+
+    RazorpayRefundData? razorpayRefundData;
+    final gatewayRefundId = refundRows.isNotEmpty
+        ? cleanNullableString(refundRows.first.gatewayRefundId)
+        : null;
+    if (gatewayRefundId != null && paymentId != null) {
+      try {
+        final gatewayRefund = await _gateway.fetchRefund(
+          paymentId: paymentId,
+          refundId: gatewayRefundId,
+        );
+        final data = gatewayRefund['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          razorpayRefundData = RazorpayRefundData(
+            id: data['id'] as String? ?? '',
+            paymentId: data['payment_id'] as String? ?? '',
+            amount: data['amount'] as int? ?? 0,
+            status: data['status'] as String? ?? '',
+            speedProcessed: data['speed_processed'] as String?,
+            speedRequested: data['speed_requested'] as String?,
+            receipt: data['receipt'] as String?,
+            acquirerData: data['acquirer_data']?.toString(),
+            notes: data['notes']?.toString(),
+            errorCode: data['error_code'] as String?,
+            errorDescription: data['error_description'] as String?,
+            createdAt: data['created_at'] as int?,
+          );
+        }
+      } catch (_) {}
+    }
+
+    return PaymentOrderDetailHydrated(
+      paymentTransaction: paymentTransaction,
+      refundRecords: refundRecords,
+      razorpayLiveStatus: razorpayLiveStatus,
+      razorpayRefundData: razorpayRefundData,
+    );
+  }
+
   Future<Map<String, dynamic>> getPaymentDetail(
     Session session,
     String orderNumber,

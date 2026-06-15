@@ -645,79 +645,27 @@ class _PaymentOrderDetailScreen extends StatefulWidget {
 
 class _PaymentOrderDetailScreenState
     extends State<_PaymentOrderDetailScreen> {
-  Map<String, dynamic>? _paymentDetail;
-  Map<String, dynamic>? _refundDetail;
-  RazorpayPaymentStatus? _liveStatus;
-  bool _loadingDetail = true;
-  bool _loadingRefund = false;
-  bool _loadingLiveStatus = false;
+  PaymentOrderDetailHydrated? _hydrated;
+  bool _loading = true;
   bool _reconciling = false;
 
   @override
   void initState() {
     super.initState();
-    _loadPaymentDetail();
+    _load();
   }
 
-  Future<void> _loadPaymentDetail() async {
-    setState(() => _loadingDetail = true);
+  Future<void> _load() async {
+    setState(() => _loading = true);
     try {
-      final detail = await widget.controller.getPaymentDetail(
+      final data = await widget.controller.getPaymentOrderDetailHydrated(
         widget.order.orderId,
       );
-      if (mounted) {
-        setState(() {
-          _paymentDetail = detail;
-          final liveStatus = detail['razorpayLiveStatus'] as Map<String, dynamic>?;
-          _liveStatus = liveStatus != null
-              ? RazorpayPaymentStatus.fromJson(liveStatus)
-              : null;
-        });
-      }
-    } catch (_) {}
-    if (mounted) setState(() => _loadingDetail = false);
-  }
-
-  Future<void> _loadLiveStatus() async {
-    final razorpayPaymentId = widget.order.razorpayPaymentId ??
-        _paymentDetail?['paymentTransaction']?['gatewayPaymentId'] as String?;
-    if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) {
-      debugPrint(
-        'RazorpayLiveStatus: gatewayPaymentId not found for order ${widget.order.orderId}',
-      );
-      return;
-    }
-    setState(() => _loadingLiveStatus = true);
-    try {
-      final status = await widget.controller.getLivePaymentStatus(
-        razorpayPaymentId,
-      );
-      if (mounted) {
-        if (status.error != null) {
-          debugPrint(
-            'RazorpayLiveStatus error for $razorpayPaymentId: '
-            '${status.error}, '
-            'body: ${status.body}, '
-            'statusCode: ${status.statusCode}',
-          );
-        }
-        setState(() => _liveStatus = status);
-      }
+      if (mounted) setState(() => _hydrated = data);
     } catch (e) {
-      debugPrint('RazorpayLiveStatus exception for $razorpayPaymentId: $e');
+      debugPrint('PaymentOrderDetailHydrated error: $e');
     }
-    if (mounted) setState(() => _loadingLiveStatus = false);
-  }
-
-  Future<void> _loadRefundDetail() async {
-    setState(() => _loadingRefund = true);
-    try {
-      final detail = await widget.controller.getRefundDetail(
-        widget.order.orderId,
-      );
-      if (mounted) setState(() => _refundDetail = detail);
-    } catch (_) {}
-    if (mounted) setState(() => _loadingRefund = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _reconcile() async {
@@ -730,7 +678,7 @@ class _PaymentOrderDetailScreenState
             content: Text(result.message ?? 'Reconciliation complete'),
           ),
         );
-        _loadPaymentDetail();
+        _load();
       }
     } catch (e) {
       if (mounted) {
@@ -749,6 +697,10 @@ class _PaymentOrderDetailScreenState
       appBar: AdminAppBar(
         title: Text('Order #${widget.order.orderId}'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loading ? null : _load,
+          ),
           TextButton.icon(
             onPressed: _reconciling ? null : _reconcile,
             icon: _reconciling
@@ -762,7 +714,7 @@ class _PaymentOrderDetailScreenState
           ),
         ],
       ),
-      body: _loadingDetail
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding:
@@ -776,30 +728,28 @@ class _PaymentOrderDetailScreenState
                       _OrderInfoPanel(order: widget.order),
                       SizedBox(height: 12.h),
                       _PaymentTransactionPanel(
-                        paymentTransaction:
-                            _paymentDetail?['paymentTransaction']
-                                as Map<String, dynamic>?,
+                        paymentTransaction: _hydrated?.paymentTransaction,
                         order: widget.order,
                       ),
                       SizedBox(height: 12.h),
                       _RazorpayLiveStatusPanel(
-                        liveStatus: _liveStatus,
-                        loading: _loadingLiveStatus,
-                        onRefresh: _loadLiveStatus,
+                        liveStatus: _hydrated?.razorpayLiveStatus,
+                        loading: false,
+                        onRefresh: _load,
                       ),
                       SizedBox(height: 12.h),
                       _StatusComparisonPanel(
                         order: widget.order,
                         paymentTransaction:
-                            _paymentDetail?['paymentTransaction']
-                                as Map<String, dynamic>?,
-                        razorpayLiveData: _liveStatus,
+                            _hydrated?.paymentTransaction,
+                        razorpayLiveData: _hydrated?.razorpayLiveStatus,
                       ),
                       SizedBox(height: 12.h),
                       _RefundInfoPanel(
-                        refundDetail: _refundDetail,
-                        loading: _loadingRefund,
-                        onRefresh: _loadRefundDetail,
+                        refundRecords: _hydrated?.refundRecords,
+                        razorpayRefundData: _hydrated?.razorpayRefundData,
+                        loading: false,
+                        onRefresh: _load,
                       ),
                       SizedBox(height: 12.h),
                       _OrderTimelinePanel(order: widget.order),
@@ -851,7 +801,7 @@ class _PaymentTransactionPanel extends StatelessWidget {
     required this.order,
   });
 
-  final Map<String, dynamic>? paymentTransaction;
+  final PaymentTransaction? paymentTransaction;
   final Order order;
 
   @override
@@ -872,27 +822,27 @@ class _PaymentTransactionPanel extends StatelessWidget {
       children: [
         _InfoRow(
           'Gateway Order ID',
-          paymentTransaction!['gatewayOrderId']?.toString() ?? '-',
+          paymentTransaction!.gatewayOrderId ?? '-',
         ),
         _InfoRow(
           'Gateway Payment ID',
-          paymentTransaction!['gatewayPaymentId']?.toString() ?? '-',
+          paymentTransaction!.gatewayPaymentId ?? '-',
         ),
         _InfoRow(
           'Amount',
-          paymentTransaction!['amount']?.toString() ?? '-',
+          paymentTransaction!.amount?.toString() ?? '-',
         ),
         _InfoRow(
           'Status',
-          paymentTransaction!['paymentStatus']?.toString() ?? '-',
+          paymentTransaction!.paymentStatus ?? '-',
         ),
         _InfoRow(
           'Gateway Status',
-          paymentTransaction!['gatewayStatus']?.toString() ?? '-',
+          paymentTransaction!.gatewayStatus ?? '-',
         ),
         _InfoRow(
           'Failure Reason',
-          paymentTransaction!['failureReason']?.toString() ?? 'None',
+          paymentTransaction!.failureReason ?? 'None',
         ),
       ],
     );
@@ -1045,15 +995,14 @@ class _StatusComparisonPanel extends StatelessWidget {
   });
 
   final Order order;
-  final Map<String, dynamic>? paymentTransaction;
+  final PaymentTransaction? paymentTransaction;
   final RazorpayPaymentStatus? razorpayLiveData;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final dbPaymentStatus =
-        paymentTransaction?['paymentStatus']?.toString() ?? '-';
+    final dbPaymentStatus = paymentTransaction?.paymentStatus ?? '-';
     final orderPaymentStatus = order.paymentStatus;
     final razorpayStatus = razorpayLiveData?.status ?? '-';
 
@@ -1119,12 +1068,14 @@ class _StatusComparisonPanel extends StatelessWidget {
 
 class _RefundInfoPanel extends StatelessWidget {
   const _RefundInfoPanel({
-    required this.refundDetail,
+    required this.refundRecords,
+    required this.razorpayRefundData,
     required this.loading,
     required this.onRefresh,
   });
 
-  final Map<String, dynamic>? refundDetail;
+  final List<RefundRecord>? refundRecords;
+  final RazorpayRefundData? razorpayRefundData;
   final bool loading;
   final VoidCallback onRefresh;
 
@@ -1138,12 +1089,12 @@ class _RefundInfoPanel extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 12),
             child: LinearProgressIndicator(),
           )
-        else if (refundDetail == null || refundDetail!.isEmpty)
+        else if (refundRecords == null || refundRecords!.isEmpty)
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'Tap to check refunds',
+                  'No refunds found',
                   style: AdminTextStyles.caption(context),
                 ),
               ),
@@ -1154,15 +1105,15 @@ class _RefundInfoPanel extends StatelessWidget {
             ],
           )
         else ...[
-          _InfoRow('Refund Count', '${refundDetail!['refunds']?.length ?? 0}'),
-          if (refundDetail!['razorpayRefundData'] != null) ...[
+          _InfoRow('Refund Count', '${refundRecords!.length}'),
+          if (razorpayRefundData != null) ...[
             const Text(
               'Razorpay Refund Data:',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 4.h),
-            Text(
-              refundDetail!['razorpayRefundData'].toString(),
+            SelectableText(
+              razorpayRefundData.toString(),
               style: AdminTextStyles.caption(context),
             ),
           ],

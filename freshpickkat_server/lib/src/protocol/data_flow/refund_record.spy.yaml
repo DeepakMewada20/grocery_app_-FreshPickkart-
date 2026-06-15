@@ -10,5 +10,6 @@ fields:
   source: String
   reason: String
   complaintId: String?
+  failureReason: String?
   createdAt: DateTime
   updatedAt: DateTime?

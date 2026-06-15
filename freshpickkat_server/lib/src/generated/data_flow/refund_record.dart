@@ -25,6 +25,7 @@ abstract class RefundRecord
     required this.source,
     required this.reason,
     this.complaintId,
+    this.failureReason,
     required this.createdAt,
     this.updatedAt,
   });
@@ -40,6 +41,7 @@ abstract class RefundRecord
     required String source,
     required String reason,
     String? complaintId,
+    String? failureReason,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) = _RefundRecordImpl;
@@ -56,6 +58,7 @@ abstract class RefundRecord
       source: jsonSerialization['source'] as String,
       reason: jsonSerialization['reason'] as String,
       complaintId: jsonSerialization['complaintId'] as String?,
+      failureReason: jsonSerialization['failureReason'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -85,6 +88,8 @@ abstract class RefundRecord
 
   String? complaintId;
 
+  String? failureReason;
+
   DateTime createdAt;
 
   DateTime? updatedAt;
@@ -103,6 +108,7 @@ abstract class RefundRecord
     String? source,
     String? reason,
     String? complaintId,
+    String? failureReason,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -120,6 +126,7 @@ abstract class RefundRecord
       'source': source,
       'reason': reason,
       if (complaintId != null) 'complaintId': complaintId,
+      if (failureReason != null) 'failureReason': failureReason,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -139,6 +146,7 @@ abstract class RefundRecord
       'source': source,
       'reason': reason,
       if (complaintId != null) 'complaintId': complaintId,
+      if (failureReason != null) 'failureReason': failureReason,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -164,6 +172,7 @@ class _RefundRecordImpl extends RefundRecord {
     required String source,
     required String reason,
     String? complaintId,
+    String? failureReason,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -177,6 +186,7 @@ class _RefundRecordImpl extends RefundRecord {
          source: source,
          reason: reason,
          complaintId: complaintId,
+         failureReason: failureReason,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -196,6 +206,7 @@ class _RefundRecordImpl extends RefundRecord {
     String? source,
     String? reason,
     Object? complaintId = _Undefined,
+    Object? failureReason = _Undefined,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
   }) {
@@ -212,6 +223,9 @@ class _RefundRecordImpl extends RefundRecord {
       source: source ?? this.source,
       reason: reason ?? this.reason,
       complaintId: complaintId is String? ? complaintId : this.complaintId,
+      failureReason: failureReason is String?
+          ? failureReason
+          : this.failureReason,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
     );

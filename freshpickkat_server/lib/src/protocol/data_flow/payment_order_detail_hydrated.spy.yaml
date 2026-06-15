@@ -1,0 +1,7 @@
+class: PaymentOrderDetailHydrated
+fields:
+  paymentTransaction: PaymentTransaction?
+  refundRecords: List<RefundRecord>?
+  razorpayLiveStatus: RazorpayPaymentStatus?
+  razorpayRefundData: RazorpayRefundData?
+  error: String?

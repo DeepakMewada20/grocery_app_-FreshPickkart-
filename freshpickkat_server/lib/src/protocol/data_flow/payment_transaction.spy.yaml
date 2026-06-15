@@ -1,0 +1,8 @@
+class: PaymentTransaction
+fields:
+  gatewayOrderId: String?
+  gatewayPaymentId: String?
+  amount: int?
+  paymentStatus: String?
+  gatewayStatus: String?
+  failureReason: String?

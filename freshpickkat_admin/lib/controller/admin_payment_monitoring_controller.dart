@@ -101,11 +101,13 @@ class AdminPaymentMonitoringController extends GetxController {
     });
   }
 
-  Future<Map<String, dynamic>> getPaymentDetail(String orderId) async {
+  Future<PaymentOrderDetailHydrated> getPaymentOrderDetailHydrated(
+    String orderId,
+  ) async {
     return ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();
       final token = await AdminSessionService.requireIdToken();
-      return _client.payment.adminGetPaymentDetail(
+      return _client.payment.adminGetPaymentOrderDetailHydrated(
         orderId,
         firebaseUid: uid,
         idToken: token,
@@ -121,18 +123,6 @@ class AdminPaymentMonitoringController extends GetxController {
       final token = await AdminSessionService.requireIdToken();
       return _client.payment.adminGetLivePaymentStatus(
         razorpayPaymentId,
-        firebaseUid: uid,
-        idToken: token,
-      );
-    });
-  }
-
-  Future<Map<String, dynamic>> getRefundDetail(String orderId) async {
-    return ApiClient().request(() async {
-      final uid = AdminSessionService.requireUid();
-      final token = await AdminSessionService.requireIdToken();
-      return _client.payment.adminGetRefundDetail(
-        orderId,
         firebaseUid: uid,
         idToken: token,
       );

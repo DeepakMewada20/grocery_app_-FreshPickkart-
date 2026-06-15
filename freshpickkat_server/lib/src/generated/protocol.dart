@@ -89,95 +89,98 @@ import 'data_flow/order_page.dart' as _i74;
 import 'data_flow/order_realtime_event.dart' as _i75;
 import 'data_flow/order_tracking_data.dart' as _i76;
 import 'data_flow/payment_action_result.dart' as _i77;
-import 'data_flow/payment_order_result.dart' as _i78;
-import 'data_flow/payment_verify_result.dart' as _i79;
-import 'data_flow/pricing_line_item.dart' as _i80;
-import 'data_flow/product.dart' as _i81;
-import 'data_flow/product_form_reference_data.dart' as _i82;
-import 'data_flow/product_page.dart' as _i83;
-import 'data_flow/product_ranking_item.dart' as _i84;
-import 'data_flow/product_variant.dart' as _i85;
-import 'data_flow/razorpay_payment_status.dart' as _i86;
-import 'data_flow/refund_record.dart' as _i87;
-import 'data_flow/register_fcm_token_request.dart' as _i88;
-import 'data_flow/sub_category.dart' as _i89;
-import 'data_flow/support_issue.dart' as _i90;
-import 'db_rows/admin_audit_log_row.dart' as _i91;
-import 'db_rows/admin_notification_preference_row.dart' as _i92;
-import 'db_rows/app_user_row.dart' as _i93;
-import 'db_rows/banner_row.dart' as _i94;
-import 'db_rows/bogo_offer_reward_row.dart' as _i95;
-import 'db_rows/bogo_offer_row.dart' as _i96;
-import 'db_rows/category_offer_row.dart' as _i97;
-import 'db_rows/category_row.dart' as _i98;
-import 'db_rows/combo_offer_item_row.dart' as _i99;
-import 'db_rows/combo_offer_row.dart' as _i100;
-import 'db_rows/complaint_row.dart' as _i101;
-import 'db_rows/coupon_row.dart' as _i102;
-import 'db_rows/customer_order_row.dart' as _i103;
-import 'db_rows/delivery_config_row.dart' as _i104;
-import 'db_rows/delivery_otp_row.dart' as _i105;
-import 'db_rows/delivery_rule_row.dart' as _i106;
-import 'db_rows/delivery_slab_row.dart' as _i107;
-import 'db_rows/free_delivery_rule_row.dart' as _i108;
-import 'db_rows/idempotency_record_row.dart' as _i109;
-import 'db_rows/notification_campaign_row.dart' as _i110;
-import 'db_rows/notification_outbox_row.dart' as _i111;
-import 'db_rows/notification_preference_row.dart' as _i112;
-import 'db_rows/notification_user_state_row.dart' as _i113;
-import 'db_rows/order_address_row.dart' as _i114;
-import 'db_rows/order_item_row.dart' as _i115;
-import 'db_rows/order_notification_outbox_row.dart' as _i116;
-import 'db_rows/order_tracking_row.dart' as _i117;
-import 'db_rows/payment_transaction_row.dart' as _i118;
-import 'db_rows/product_row.dart' as _i119;
-import 'db_rows/product_search_document_row.dart' as _i120;
-import 'db_rows/product_search_rebuild_job_row.dart' as _i121;
-import 'db_rows/product_variant_row.dart' as _i122;
-import 'db_rows/refund_record_row.dart' as _i123;
-import 'db_rows/sub_category_row.dart' as _i124;
-import 'db_rows/support_issue_row.dart' as _i125;
-import 'db_rows/user_address_row.dart' as _i126;
-import 'db_rows/user_cart_item_row.dart' as _i127;
-import 'db_rows/user_fcm_token_row.dart' as _i128;
+import 'data_flow/payment_order_detail_hydrated.dart' as _i78;
+import 'data_flow/payment_order_result.dart' as _i79;
+import 'data_flow/payment_transaction.dart' as _i80;
+import 'data_flow/payment_verify_result.dart' as _i81;
+import 'data_flow/pricing_line_item.dart' as _i82;
+import 'data_flow/product.dart' as _i83;
+import 'data_flow/product_form_reference_data.dart' as _i84;
+import 'data_flow/product_page.dart' as _i85;
+import 'data_flow/product_ranking_item.dart' as _i86;
+import 'data_flow/product_variant.dart' as _i87;
+import 'data_flow/razorpay_payment_status.dart' as _i88;
+import 'data_flow/razorpay_refund_data.dart' as _i89;
+import 'data_flow/refund_record.dart' as _i90;
+import 'data_flow/register_fcm_token_request.dart' as _i91;
+import 'data_flow/sub_category.dart' as _i92;
+import 'data_flow/support_issue.dart' as _i93;
+import 'db_rows/admin_audit_log_row.dart' as _i94;
+import 'db_rows/admin_notification_preference_row.dart' as _i95;
+import 'db_rows/app_user_row.dart' as _i96;
+import 'db_rows/banner_row.dart' as _i97;
+import 'db_rows/bogo_offer_reward_row.dart' as _i98;
+import 'db_rows/bogo_offer_row.dart' as _i99;
+import 'db_rows/category_offer_row.dart' as _i100;
+import 'db_rows/category_row.dart' as _i101;
+import 'db_rows/combo_offer_item_row.dart' as _i102;
+import 'db_rows/combo_offer_row.dart' as _i103;
+import 'db_rows/complaint_row.dart' as _i104;
+import 'db_rows/coupon_row.dart' as _i105;
+import 'db_rows/customer_order_row.dart' as _i106;
+import 'db_rows/delivery_config_row.dart' as _i107;
+import 'db_rows/delivery_otp_row.dart' as _i108;
+import 'db_rows/delivery_rule_row.dart' as _i109;
+import 'db_rows/delivery_slab_row.dart' as _i110;
+import 'db_rows/free_delivery_rule_row.dart' as _i111;
+import 'db_rows/idempotency_record_row.dart' as _i112;
+import 'db_rows/notification_campaign_row.dart' as _i113;
+import 'db_rows/notification_outbox_row.dart' as _i114;
+import 'db_rows/notification_preference_row.dart' as _i115;
+import 'db_rows/notification_user_state_row.dart' as _i116;
+import 'db_rows/order_address_row.dart' as _i117;
+import 'db_rows/order_item_row.dart' as _i118;
+import 'db_rows/order_notification_outbox_row.dart' as _i119;
+import 'db_rows/order_tracking_row.dart' as _i120;
+import 'db_rows/payment_transaction_row.dart' as _i121;
+import 'db_rows/product_row.dart' as _i122;
+import 'db_rows/product_search_document_row.dart' as _i123;
+import 'db_rows/product_search_rebuild_job_row.dart' as _i124;
+import 'db_rows/product_variant_row.dart' as _i125;
+import 'db_rows/refund_record_row.dart' as _i126;
+import 'db_rows/sub_category_row.dart' as _i127;
+import 'db_rows/support_issue_row.dart' as _i128;
+import 'db_rows/user_address_row.dart' as _i129;
+import 'db_rows/user_cart_item_row.dart' as _i130;
+import 'db_rows/user_fcm_token_row.dart' as _i131;
 import 'package:freshpickkat_server/src/generated/data_flow/app_user.dart'
-    as _i129;
-import 'package:freshpickkat_server/src/generated/data_flow/admin_audit_log_entry.dart'
-    as _i130;
-import 'package:freshpickkat_server/src/generated/data_flow/active_user_statistics.dart'
-    as _i131;
-import 'package:freshpickkat_server/src/generated/data_flow/banner.dart'
     as _i132;
-import 'package:freshpickkat_server/src/generated/data_flow/bogo_offer.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/admin_audit_log_entry.dart'
     as _i133;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item_input.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/active_user_statistics.dart'
     as _i134;
-import 'package:freshpickkat_server/src/generated/data_flow/category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/banner.dart'
     as _i135;
-import 'package:freshpickkat_server/src/generated/data_flow/category_offer.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/bogo_offer.dart'
     as _i136;
-import 'package:freshpickkat_server/src/generated/data_flow/combo_offer.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item_input.dart'
     as _i137;
-import 'package:freshpickkat_server/src/generated/data_flow/coupon.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/category.dart'
     as _i138;
-import 'package:freshpickkat_server/src/generated/data_flow/coupon_display.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/category_offer.dart'
     as _i139;
-import 'package:freshpickkat_server/src/generated/data_flow/delivery_rule.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/combo_offer.dart'
     as _i140;
-import 'package:freshpickkat_server/src/generated/data_flow/admin_notification_preference.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/coupon.dart'
     as _i141;
-import 'package:freshpickkat_server/src/generated/data_flow/order.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/coupon_display.dart'
     as _i142;
-import 'package:freshpickkat_server/src/generated/data_flow/applied_offer_info.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/delivery_rule.dart'
     as _i143;
-import 'package:freshpickkat_server/src/generated/data_flow/product.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/admin_notification_preference.dart'
     as _i144;
-import 'package:freshpickkat_server/src/generated/data_flow/product_ranking_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/order.dart'
     as _i145;
-import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/applied_offer_info.dart'
     as _i146;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/product.dart'
     as _i147;
+import 'package:freshpickkat_server/src/generated/data_flow/product_ranking_item.dart'
+    as _i148;
+import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+    as _i149;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i150;
 export 'data_flow/active_user_statistics.dart';
 export 'data_flow/address.dart';
 export 'data_flow/admin_analytics.dart';
@@ -251,7 +254,9 @@ export 'data_flow/order_page.dart';
 export 'data_flow/order_realtime_event.dart';
 export 'data_flow/order_tracking_data.dart';
 export 'data_flow/payment_action_result.dart';
+export 'data_flow/payment_order_detail_hydrated.dart';
 export 'data_flow/payment_order_result.dart';
+export 'data_flow/payment_transaction.dart';
 export 'data_flow/payment_verify_result.dart';
 export 'data_flow/pricing_line_item.dart';
 export 'data_flow/product.dart';
@@ -260,6 +265,7 @@ export 'data_flow/product_page.dart';
 export 'data_flow/product_ranking_item.dart';
 export 'data_flow/product_variant.dart';
 export 'data_flow/razorpay_payment_status.dart';
+export 'data_flow/razorpay_refund_data.dart';
 export 'data_flow/refund_record.dart';
 export 'data_flow/register_fcm_token_request.dart';
 export 'data_flow/sub_category.dart';
@@ -6232,158 +6238,167 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i77.PaymentActionResult) {
       return _i77.PaymentActionResult.fromJson(data) as T;
     }
-    if (t == _i78.PaymentOrderResult) {
-      return _i78.PaymentOrderResult.fromJson(data) as T;
+    if (t == _i78.PaymentOrderDetailHydrated) {
+      return _i78.PaymentOrderDetailHydrated.fromJson(data) as T;
     }
-    if (t == _i79.PaymentVerifyResult) {
-      return _i79.PaymentVerifyResult.fromJson(data) as T;
+    if (t == _i79.PaymentOrderResult) {
+      return _i79.PaymentOrderResult.fromJson(data) as T;
     }
-    if (t == _i80.PricingLineItem) {
-      return _i80.PricingLineItem.fromJson(data) as T;
+    if (t == _i80.PaymentTransaction) {
+      return _i80.PaymentTransaction.fromJson(data) as T;
     }
-    if (t == _i81.Product) {
-      return _i81.Product.fromJson(data) as T;
+    if (t == _i81.PaymentVerifyResult) {
+      return _i81.PaymentVerifyResult.fromJson(data) as T;
     }
-    if (t == _i82.ProductFormReferenceData) {
-      return _i82.ProductFormReferenceData.fromJson(data) as T;
+    if (t == _i82.PricingLineItem) {
+      return _i82.PricingLineItem.fromJson(data) as T;
     }
-    if (t == _i83.ProductPage) {
-      return _i83.ProductPage.fromJson(data) as T;
+    if (t == _i83.Product) {
+      return _i83.Product.fromJson(data) as T;
     }
-    if (t == _i84.ProductRankingItem) {
-      return _i84.ProductRankingItem.fromJson(data) as T;
+    if (t == _i84.ProductFormReferenceData) {
+      return _i84.ProductFormReferenceData.fromJson(data) as T;
     }
-    if (t == _i85.ProductVariant) {
-      return _i85.ProductVariant.fromJson(data) as T;
+    if (t == _i85.ProductPage) {
+      return _i85.ProductPage.fromJson(data) as T;
     }
-    if (t == _i86.RazorpayPaymentStatus) {
-      return _i86.RazorpayPaymentStatus.fromJson(data) as T;
+    if (t == _i86.ProductRankingItem) {
+      return _i86.ProductRankingItem.fromJson(data) as T;
     }
-    if (t == _i87.RefundRecord) {
-      return _i87.RefundRecord.fromJson(data) as T;
+    if (t == _i87.ProductVariant) {
+      return _i87.ProductVariant.fromJson(data) as T;
     }
-    if (t == _i88.RegisterFcmTokenRequest) {
-      return _i88.RegisterFcmTokenRequest.fromJson(data) as T;
+    if (t == _i88.RazorpayPaymentStatus) {
+      return _i88.RazorpayPaymentStatus.fromJson(data) as T;
     }
-    if (t == _i89.SubCategory) {
-      return _i89.SubCategory.fromJson(data) as T;
+    if (t == _i89.RazorpayRefundData) {
+      return _i89.RazorpayRefundData.fromJson(data) as T;
     }
-    if (t == _i90.SupportIssue) {
-      return _i90.SupportIssue.fromJson(data) as T;
+    if (t == _i90.RefundRecord) {
+      return _i90.RefundRecord.fromJson(data) as T;
     }
-    if (t == _i91.AdminAuditLogRow) {
-      return _i91.AdminAuditLogRow.fromJson(data) as T;
+    if (t == _i91.RegisterFcmTokenRequest) {
+      return _i91.RegisterFcmTokenRequest.fromJson(data) as T;
     }
-    if (t == _i92.AdminNotificationPreferenceRow) {
-      return _i92.AdminNotificationPreferenceRow.fromJson(data) as T;
+    if (t == _i92.SubCategory) {
+      return _i92.SubCategory.fromJson(data) as T;
     }
-    if (t == _i93.AppUserRow) {
-      return _i93.AppUserRow.fromJson(data) as T;
+    if (t == _i93.SupportIssue) {
+      return _i93.SupportIssue.fromJson(data) as T;
     }
-    if (t == _i94.BannerRow) {
-      return _i94.BannerRow.fromJson(data) as T;
+    if (t == _i94.AdminAuditLogRow) {
+      return _i94.AdminAuditLogRow.fromJson(data) as T;
     }
-    if (t == _i95.BogoOfferRewardRow) {
-      return _i95.BogoOfferRewardRow.fromJson(data) as T;
+    if (t == _i95.AdminNotificationPreferenceRow) {
+      return _i95.AdminNotificationPreferenceRow.fromJson(data) as T;
     }
-    if (t == _i96.BogoOfferRow) {
-      return _i96.BogoOfferRow.fromJson(data) as T;
+    if (t == _i96.AppUserRow) {
+      return _i96.AppUserRow.fromJson(data) as T;
     }
-    if (t == _i97.CategoryOfferRow) {
-      return _i97.CategoryOfferRow.fromJson(data) as T;
+    if (t == _i97.BannerRow) {
+      return _i97.BannerRow.fromJson(data) as T;
     }
-    if (t == _i98.CategoryRow) {
-      return _i98.CategoryRow.fromJson(data) as T;
+    if (t == _i98.BogoOfferRewardRow) {
+      return _i98.BogoOfferRewardRow.fromJson(data) as T;
     }
-    if (t == _i99.ComboOfferItemRow) {
-      return _i99.ComboOfferItemRow.fromJson(data) as T;
+    if (t == _i99.BogoOfferRow) {
+      return _i99.BogoOfferRow.fromJson(data) as T;
     }
-    if (t == _i100.ComboOfferRow) {
-      return _i100.ComboOfferRow.fromJson(data) as T;
+    if (t == _i100.CategoryOfferRow) {
+      return _i100.CategoryOfferRow.fromJson(data) as T;
     }
-    if (t == _i101.ComplaintRow) {
-      return _i101.ComplaintRow.fromJson(data) as T;
+    if (t == _i101.CategoryRow) {
+      return _i101.CategoryRow.fromJson(data) as T;
     }
-    if (t == _i102.CouponRow) {
-      return _i102.CouponRow.fromJson(data) as T;
+    if (t == _i102.ComboOfferItemRow) {
+      return _i102.ComboOfferItemRow.fromJson(data) as T;
     }
-    if (t == _i103.CustomerOrderRow) {
-      return _i103.CustomerOrderRow.fromJson(data) as T;
+    if (t == _i103.ComboOfferRow) {
+      return _i103.ComboOfferRow.fromJson(data) as T;
     }
-    if (t == _i104.DeliveryConfigRow) {
-      return _i104.DeliveryConfigRow.fromJson(data) as T;
+    if (t == _i104.ComplaintRow) {
+      return _i104.ComplaintRow.fromJson(data) as T;
     }
-    if (t == _i105.DeliveryOtpRow) {
-      return _i105.DeliveryOtpRow.fromJson(data) as T;
+    if (t == _i105.CouponRow) {
+      return _i105.CouponRow.fromJson(data) as T;
     }
-    if (t == _i106.DeliveryRuleRow) {
-      return _i106.DeliveryRuleRow.fromJson(data) as T;
+    if (t == _i106.CustomerOrderRow) {
+      return _i106.CustomerOrderRow.fromJson(data) as T;
     }
-    if (t == _i107.DeliverySlabRow) {
-      return _i107.DeliverySlabRow.fromJson(data) as T;
+    if (t == _i107.DeliveryConfigRow) {
+      return _i107.DeliveryConfigRow.fromJson(data) as T;
     }
-    if (t == _i108.FreeDeliveryRuleRow) {
-      return _i108.FreeDeliveryRuleRow.fromJson(data) as T;
+    if (t == _i108.DeliveryOtpRow) {
+      return _i108.DeliveryOtpRow.fromJson(data) as T;
     }
-    if (t == _i109.IdempotencyRecordRow) {
-      return _i109.IdempotencyRecordRow.fromJson(data) as T;
+    if (t == _i109.DeliveryRuleRow) {
+      return _i109.DeliveryRuleRow.fromJson(data) as T;
     }
-    if (t == _i110.NotificationCampaignRow) {
-      return _i110.NotificationCampaignRow.fromJson(data) as T;
+    if (t == _i110.DeliverySlabRow) {
+      return _i110.DeliverySlabRow.fromJson(data) as T;
     }
-    if (t == _i111.NotificationOutboxRow) {
-      return _i111.NotificationOutboxRow.fromJson(data) as T;
+    if (t == _i111.FreeDeliveryRuleRow) {
+      return _i111.FreeDeliveryRuleRow.fromJson(data) as T;
     }
-    if (t == _i112.NotificationPreferenceRow) {
-      return _i112.NotificationPreferenceRow.fromJson(data) as T;
+    if (t == _i112.IdempotencyRecordRow) {
+      return _i112.IdempotencyRecordRow.fromJson(data) as T;
     }
-    if (t == _i113.NotificationUserStateRow) {
-      return _i113.NotificationUserStateRow.fromJson(data) as T;
+    if (t == _i113.NotificationCampaignRow) {
+      return _i113.NotificationCampaignRow.fromJson(data) as T;
     }
-    if (t == _i114.OrderAddressRow) {
-      return _i114.OrderAddressRow.fromJson(data) as T;
+    if (t == _i114.NotificationOutboxRow) {
+      return _i114.NotificationOutboxRow.fromJson(data) as T;
     }
-    if (t == _i115.OrderItemRow) {
-      return _i115.OrderItemRow.fromJson(data) as T;
+    if (t == _i115.NotificationPreferenceRow) {
+      return _i115.NotificationPreferenceRow.fromJson(data) as T;
     }
-    if (t == _i116.OrderNotificationOutboxRow) {
-      return _i116.OrderNotificationOutboxRow.fromJson(data) as T;
+    if (t == _i116.NotificationUserStateRow) {
+      return _i116.NotificationUserStateRow.fromJson(data) as T;
     }
-    if (t == _i117.OrderTrackingRow) {
-      return _i117.OrderTrackingRow.fromJson(data) as T;
+    if (t == _i117.OrderAddressRow) {
+      return _i117.OrderAddressRow.fromJson(data) as T;
     }
-    if (t == _i118.PaymentTransactionRow) {
-      return _i118.PaymentTransactionRow.fromJson(data) as T;
+    if (t == _i118.OrderItemRow) {
+      return _i118.OrderItemRow.fromJson(data) as T;
     }
-    if (t == _i119.ProductRow) {
-      return _i119.ProductRow.fromJson(data) as T;
+    if (t == _i119.OrderNotificationOutboxRow) {
+      return _i119.OrderNotificationOutboxRow.fromJson(data) as T;
     }
-    if (t == _i120.ProductSearchDocumentRow) {
-      return _i120.ProductSearchDocumentRow.fromJson(data) as T;
+    if (t == _i120.OrderTrackingRow) {
+      return _i120.OrderTrackingRow.fromJson(data) as T;
     }
-    if (t == _i121.ProductSearchRebuildJobRow) {
-      return _i121.ProductSearchRebuildJobRow.fromJson(data) as T;
+    if (t == _i121.PaymentTransactionRow) {
+      return _i121.PaymentTransactionRow.fromJson(data) as T;
     }
-    if (t == _i122.ProductVariantRow) {
-      return _i122.ProductVariantRow.fromJson(data) as T;
+    if (t == _i122.ProductRow) {
+      return _i122.ProductRow.fromJson(data) as T;
     }
-    if (t == _i123.RefundRecordRow) {
-      return _i123.RefundRecordRow.fromJson(data) as T;
+    if (t == _i123.ProductSearchDocumentRow) {
+      return _i123.ProductSearchDocumentRow.fromJson(data) as T;
     }
-    if (t == _i124.SubCategoryRow) {
-      return _i124.SubCategoryRow.fromJson(data) as T;
+    if (t == _i124.ProductSearchRebuildJobRow) {
+      return _i124.ProductSearchRebuildJobRow.fromJson(data) as T;
     }
-    if (t == _i125.SupportIssueRow) {
-      return _i125.SupportIssueRow.fromJson(data) as T;
+    if (t == _i125.ProductVariantRow) {
+      return _i125.ProductVariantRow.fromJson(data) as T;
     }
-    if (t == _i126.UserAddressRow) {
-      return _i126.UserAddressRow.fromJson(data) as T;
+    if (t == _i126.RefundRecordRow) {
+      return _i126.RefundRecordRow.fromJson(data) as T;
     }
-    if (t == _i127.UserCartItemRow) {
-      return _i127.UserCartItemRow.fromJson(data) as T;
+    if (t == _i127.SubCategoryRow) {
+      return _i127.SubCategoryRow.fromJson(data) as T;
     }
-    if (t == _i128.UserFcmTokenRow) {
-      return _i128.UserFcmTokenRow.fromJson(data) as T;
+    if (t == _i128.SupportIssueRow) {
+      return _i128.SupportIssueRow.fromJson(data) as T;
+    }
+    if (t == _i129.UserAddressRow) {
+      return _i129.UserAddressRow.fromJson(data) as T;
+    }
+    if (t == _i130.UserCartItemRow) {
+      return _i130.UserCartItemRow.fromJson(data) as T;
+    }
+    if (t == _i131.UserFcmTokenRow) {
+      return _i131.UserFcmTokenRow.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.ActiveUserStatistics?>()) {
       return (data != null ? _i5.ActiveUserStatistics.fromJson(data) : null)
@@ -6631,194 +6646,209 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i77.PaymentActionResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i78.PaymentOrderResult?>()) {
-      return (data != null ? _i78.PaymentOrderResult.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i79.PaymentVerifyResult?>()) {
-      return (data != null ? _i79.PaymentVerifyResult.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i80.PricingLineItem?>()) {
-      return (data != null ? _i80.PricingLineItem.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i81.Product?>()) {
-      return (data != null ? _i81.Product.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i82.ProductFormReferenceData?>()) {
+    if (t == _i1.getType<_i78.PaymentOrderDetailHydrated?>()) {
       return (data != null
-              ? _i82.ProductFormReferenceData.fromJson(data)
+              ? _i78.PaymentOrderDetailHydrated.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i83.ProductPage?>()) {
-      return (data != null ? _i83.ProductPage.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i84.ProductRankingItem?>()) {
-      return (data != null ? _i84.ProductRankingItem.fromJson(data) : null)
+    if (t == _i1.getType<_i79.PaymentOrderResult?>()) {
+      return (data != null ? _i79.PaymentOrderResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i85.ProductVariant?>()) {
-      return (data != null ? _i85.ProductVariant.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i86.RazorpayPaymentStatus?>()) {
-      return (data != null ? _i86.RazorpayPaymentStatus.fromJson(data) : null)
+    if (t == _i1.getType<_i80.PaymentTransaction?>()) {
+      return (data != null ? _i80.PaymentTransaction.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i87.RefundRecord?>()) {
-      return (data != null ? _i87.RefundRecord.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i88.RegisterFcmTokenRequest?>()) {
-      return (data != null ? _i88.RegisterFcmTokenRequest.fromJson(data) : null)
+    if (t == _i1.getType<_i81.PaymentVerifyResult?>()) {
+      return (data != null ? _i81.PaymentVerifyResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i89.SubCategory?>()) {
-      return (data != null ? _i89.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i82.PricingLineItem?>()) {
+      return (data != null ? _i82.PricingLineItem.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i90.SupportIssue?>()) {
-      return (data != null ? _i90.SupportIssue.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i83.Product?>()) {
+      return (data != null ? _i83.Product.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i91.AdminAuditLogRow?>()) {
-      return (data != null ? _i91.AdminAuditLogRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i92.AdminNotificationPreferenceRow?>()) {
+    if (t == _i1.getType<_i84.ProductFormReferenceData?>()) {
       return (data != null
-              ? _i92.AdminNotificationPreferenceRow.fromJson(data)
+              ? _i84.ProductFormReferenceData.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i93.AppUserRow?>()) {
-      return (data != null ? _i93.AppUserRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i85.ProductPage?>()) {
+      return (data != null ? _i85.ProductPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i94.BannerRow?>()) {
-      return (data != null ? _i94.BannerRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i95.BogoOfferRewardRow?>()) {
-      return (data != null ? _i95.BogoOfferRewardRow.fromJson(data) : null)
+    if (t == _i1.getType<_i86.ProductRankingItem?>()) {
+      return (data != null ? _i86.ProductRankingItem.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i96.BogoOfferRow?>()) {
-      return (data != null ? _i96.BogoOfferRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i87.ProductVariant?>()) {
+      return (data != null ? _i87.ProductVariant.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i97.CategoryOfferRow?>()) {
-      return (data != null ? _i97.CategoryOfferRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i98.CategoryRow?>()) {
-      return (data != null ? _i98.CategoryRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i99.ComboOfferItemRow?>()) {
-      return (data != null ? _i99.ComboOfferItemRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i100.ComboOfferRow?>()) {
-      return (data != null ? _i100.ComboOfferRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i101.ComplaintRow?>()) {
-      return (data != null ? _i101.ComplaintRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i102.CouponRow?>()) {
-      return (data != null ? _i102.CouponRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i103.CustomerOrderRow?>()) {
-      return (data != null ? _i103.CustomerOrderRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i104.DeliveryConfigRow?>()) {
-      return (data != null ? _i104.DeliveryConfigRow.fromJson(data) : null)
+    if (t == _i1.getType<_i88.RazorpayPaymentStatus?>()) {
+      return (data != null ? _i88.RazorpayPaymentStatus.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i105.DeliveryOtpRow?>()) {
-      return (data != null ? _i105.DeliveryOtpRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i106.DeliveryRuleRow?>()) {
-      return (data != null ? _i106.DeliveryRuleRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i107.DeliverySlabRow?>()) {
-      return (data != null ? _i107.DeliverySlabRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i108.FreeDeliveryRuleRow?>()) {
-      return (data != null ? _i108.FreeDeliveryRuleRow.fromJson(data) : null)
+    if (t == _i1.getType<_i89.RazorpayRefundData?>()) {
+      return (data != null ? _i89.RazorpayRefundData.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i109.IdempotencyRecordRow?>()) {
-      return (data != null ? _i109.IdempotencyRecordRow.fromJson(data) : null)
+    if (t == _i1.getType<_i90.RefundRecord?>()) {
+      return (data != null ? _i90.RefundRecord.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i91.RegisterFcmTokenRequest?>()) {
+      return (data != null ? _i91.RegisterFcmTokenRequest.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i110.NotificationCampaignRow?>()) {
+    if (t == _i1.getType<_i92.SubCategory?>()) {
+      return (data != null ? _i92.SubCategory.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i93.SupportIssue?>()) {
+      return (data != null ? _i93.SupportIssue.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i94.AdminAuditLogRow?>()) {
+      return (data != null ? _i94.AdminAuditLogRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i95.AdminNotificationPreferenceRow?>()) {
       return (data != null
-              ? _i110.NotificationCampaignRow.fromJson(data)
+              ? _i95.AdminNotificationPreferenceRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i111.NotificationOutboxRow?>()) {
-      return (data != null ? _i111.NotificationOutboxRow.fromJson(data) : null)
+    if (t == _i1.getType<_i96.AppUserRow?>()) {
+      return (data != null ? _i96.AppUserRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i97.BannerRow?>()) {
+      return (data != null ? _i97.BannerRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i98.BogoOfferRewardRow?>()) {
+      return (data != null ? _i98.BogoOfferRewardRow.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i112.NotificationPreferenceRow?>()) {
+    if (t == _i1.getType<_i99.BogoOfferRow?>()) {
+      return (data != null ? _i99.BogoOfferRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i100.CategoryOfferRow?>()) {
+      return (data != null ? _i100.CategoryOfferRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i101.CategoryRow?>()) {
+      return (data != null ? _i101.CategoryRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i102.ComboOfferItemRow?>()) {
+      return (data != null ? _i102.ComboOfferItemRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i103.ComboOfferRow?>()) {
+      return (data != null ? _i103.ComboOfferRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i104.ComplaintRow?>()) {
+      return (data != null ? _i104.ComplaintRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i105.CouponRow?>()) {
+      return (data != null ? _i105.CouponRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i106.CustomerOrderRow?>()) {
+      return (data != null ? _i106.CustomerOrderRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i107.DeliveryConfigRow?>()) {
+      return (data != null ? _i107.DeliveryConfigRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i108.DeliveryOtpRow?>()) {
+      return (data != null ? _i108.DeliveryOtpRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i109.DeliveryRuleRow?>()) {
+      return (data != null ? _i109.DeliveryRuleRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i110.DeliverySlabRow?>()) {
+      return (data != null ? _i110.DeliverySlabRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i111.FreeDeliveryRuleRow?>()) {
+      return (data != null ? _i111.FreeDeliveryRuleRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i112.IdempotencyRecordRow?>()) {
+      return (data != null ? _i112.IdempotencyRecordRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i113.NotificationCampaignRow?>()) {
       return (data != null
-              ? _i112.NotificationPreferenceRow.fromJson(data)
+              ? _i113.NotificationCampaignRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i113.NotificationUserStateRow?>()) {
+    if (t == _i1.getType<_i114.NotificationOutboxRow?>()) {
+      return (data != null ? _i114.NotificationOutboxRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i115.NotificationPreferenceRow?>()) {
       return (data != null
-              ? _i113.NotificationUserStateRow.fromJson(data)
+              ? _i115.NotificationPreferenceRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i114.OrderAddressRow?>()) {
-      return (data != null ? _i114.OrderAddressRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i115.OrderItemRow?>()) {
-      return (data != null ? _i115.OrderItemRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i116.OrderNotificationOutboxRow?>()) {
+    if (t == _i1.getType<_i116.NotificationUserStateRow?>()) {
       return (data != null
-              ? _i116.OrderNotificationOutboxRow.fromJson(data)
+              ? _i116.NotificationUserStateRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i117.OrderTrackingRow?>()) {
-      return (data != null ? _i117.OrderTrackingRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i117.OrderAddressRow?>()) {
+      return (data != null ? _i117.OrderAddressRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i118.PaymentTransactionRow?>()) {
-      return (data != null ? _i118.PaymentTransactionRow.fromJson(data) : null)
-          as T;
+    if (t == _i1.getType<_i118.OrderItemRow?>()) {
+      return (data != null ? _i118.OrderItemRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i119.ProductRow?>()) {
-      return (data != null ? _i119.ProductRow.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i120.ProductSearchDocumentRow?>()) {
+    if (t == _i1.getType<_i119.OrderNotificationOutboxRow?>()) {
       return (data != null
-              ? _i120.ProductSearchDocumentRow.fromJson(data)
+              ? _i119.OrderNotificationOutboxRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i121.ProductSearchRebuildJobRow?>()) {
+    if (t == _i1.getType<_i120.OrderTrackingRow?>()) {
+      return (data != null ? _i120.OrderTrackingRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i121.PaymentTransactionRow?>()) {
+      return (data != null ? _i121.PaymentTransactionRow.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i122.ProductRow?>()) {
+      return (data != null ? _i122.ProductRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i123.ProductSearchDocumentRow?>()) {
       return (data != null
-              ? _i121.ProductSearchRebuildJobRow.fromJson(data)
+              ? _i123.ProductSearchDocumentRow.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i122.ProductVariantRow?>()) {
-      return (data != null ? _i122.ProductVariantRow.fromJson(data) : null)
+    if (t == _i1.getType<_i124.ProductSearchRebuildJobRow?>()) {
+      return (data != null
+              ? _i124.ProductSearchRebuildJobRow.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i123.RefundRecordRow?>()) {
-      return (data != null ? _i123.RefundRecordRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i125.ProductVariantRow?>()) {
+      return (data != null ? _i125.ProductVariantRow.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i124.SubCategoryRow?>()) {
-      return (data != null ? _i124.SubCategoryRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i126.RefundRecordRow?>()) {
+      return (data != null ? _i126.RefundRecordRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i125.SupportIssueRow?>()) {
-      return (data != null ? _i125.SupportIssueRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i127.SubCategoryRow?>()) {
+      return (data != null ? _i127.SubCategoryRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i126.UserAddressRow?>()) {
-      return (data != null ? _i126.UserAddressRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i128.SupportIssueRow?>()) {
+      return (data != null ? _i128.SupportIssueRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i127.UserCartItemRow?>()) {
-      return (data != null ? _i127.UserCartItemRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i129.UserAddressRow?>()) {
+      return (data != null ? _i129.UserAddressRow.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i128.UserFcmTokenRow?>()) {
-      return (data != null ? _i128.UserFcmTokenRow.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i130.UserCartItemRow?>()) {
+      return (data != null ? _i130.UserCartItemRow.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i131.UserFcmTokenRow?>()) {
+      return (data != null ? _i131.UserFcmTokenRow.fromJson(data) : null) as T;
     }
     if (t == List<_i13.AdminTopProduct>) {
       return (data as List)
@@ -6936,9 +6966,9 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i80.PricingLineItem>) {
+    if (t == List<_i82.PricingLineItem>) {
       return (data as List)
-              .map((e) => deserialize<_i80.PricingLineItem>(e))
+              .map((e) => deserialize<_i82.PricingLineItem>(e))
               .toList()
           as T;
     }
@@ -6946,9 +6976,9 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i34.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i89.SubCategory>) {
+    if (t == List<_i92.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i89.SubCategory>(e))
+              .map((e) => deserialize<_i92.SubCategory>(e))
               .toList()
           as T;
     }
@@ -7002,8 +7032,8 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i81.Product>) {
-      return (data as List).map((e) => deserialize<_i81.Product>(e)).toList()
+    if (t == List<_i83.Product>) {
+      return (data as List).map((e) => deserialize<_i83.Product>(e)).toList()
           as T;
     }
     if (t == List<_i64.NotificationHistoryItem>) {
@@ -7012,9 +7042,9 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i81.Product>?>()) {
+    if (t == _i1.getType<List<_i83.Product>?>()) {
       return (data != null
-              ? (data as List).map((e) => deserialize<_i81.Product>(e)).toList()
+              ? (data as List).map((e) => deserialize<_i83.Product>(e)).toList()
               : null)
           as T;
     }
@@ -7032,101 +7062,115 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i71.Order>(e)).toList()
           as T;
     }
-    if (t == List<_i85.ProductVariant>) {
+    if (t == List<_i90.RefundRecord>) {
       return (data as List)
-              .map((e) => deserialize<_i85.ProductVariant>(e))
+              .map((e) => deserialize<_i90.RefundRecord>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i85.ProductVariant>?>()) {
+    if (t == _i1.getType<List<_i90.RefundRecord>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i85.ProductVariant>(e))
+                    .map((e) => deserialize<_i90.RefundRecord>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i129.AppUser>) {
-      return (data as List).map((e) => deserialize<_i129.AppUser>(e)).toList()
-          as T;
-    }
-    if (t == List<_i130.AdminAuditLogEntry>) {
+    if (t == List<_i87.ProductVariant>) {
       return (data as List)
-              .map((e) => deserialize<_i130.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i87.ProductVariant>(e))
               .toList()
           as T;
     }
-    if (t == List<_i131.ActiveUserStatistics>) {
+    if (t == _i1.getType<List<_i87.ProductVariant>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i87.ProductVariant>(e))
+                    .toList()
+              : null)
+          as T;
+    }
+    if (t == List<_i132.AppUser>) {
+      return (data as List).map((e) => deserialize<_i132.AppUser>(e)).toList()
+          as T;
+    }
+    if (t == List<_i133.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i131.ActiveUserStatistics>(e))
+              .map((e) => deserialize<_i133.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i132.Banner>) {
-      return (data as List).map((e) => deserialize<_i132.Banner>(e)).toList()
+    if (t == List<_i134.ActiveUserStatistics>) {
+      return (data as List)
+              .map((e) => deserialize<_i134.ActiveUserStatistics>(e))
+              .toList()
           as T;
     }
-    if (t == List<_i133.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i133.BogoOffer>(e)).toList()
+    if (t == List<_i135.Banner>) {
+      return (data as List).map((e) => deserialize<_i135.Banner>(e)).toList()
+          as T;
+    }
+    if (t == List<_i136.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i136.BogoOffer>(e)).toList()
           as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i134.CartItemInput>) {
+    if (t == List<_i137.CartItemInput>) {
       return (data as List)
-              .map((e) => deserialize<_i134.CartItemInput>(e))
+              .map((e) => deserialize<_i137.CartItemInput>(e))
               .toList()
           as T;
     }
-    if (t == List<_i135.Category>) {
-      return (data as List).map((e) => deserialize<_i135.Category>(e)).toList()
+    if (t == List<_i138.Category>) {
+      return (data as List).map((e) => deserialize<_i138.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i136.CategoryOffer>) {
+    if (t == List<_i139.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i136.CategoryOffer>(e))
+              .map((e) => deserialize<_i139.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i137.ComboOffer>) {
+    if (t == List<_i140.ComboOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i137.ComboOffer>(e))
+              .map((e) => deserialize<_i140.ComboOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i138.Coupon>) {
-      return (data as List).map((e) => deserialize<_i138.Coupon>(e)).toList()
+    if (t == List<_i141.Coupon>) {
+      return (data as List).map((e) => deserialize<_i141.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i139.CouponDisplay>) {
+    if (t == List<_i142.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i139.CouponDisplay>(e))
+              .map((e) => deserialize<_i142.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i140.DeliveryRule>) {
+    if (t == List<_i143.DeliveryRule>) {
       return (data as List)
-              .map((e) => deserialize<_i140.DeliveryRule>(e))
+              .map((e) => deserialize<_i143.DeliveryRule>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i134.CartItemInput>?>()) {
+    if (t == _i1.getType<List<_i137.CartItemInput>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i134.CartItemInput>(e))
+                    .map((e) => deserialize<_i137.CartItemInput>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i141.AdminNotificationPreference>) {
+    if (t == List<_i144.AdminNotificationPreference>) {
       return (data as List)
-              .map((e) => deserialize<_i141.AdminNotificationPreference>(e))
+              .map((e) => deserialize<_i144.AdminNotificationPreference>(e))
               .toList()
           as T;
     }
-    if (t == List<_i142.Order>) {
-      return (data as List).map((e) => deserialize<_i142.Order>(e)).toList()
+    if (t == List<_i145.Order>) {
+      return (data as List).map((e) => deserialize<_i145.Order>(e)).toList()
           as T;
     }
     if (t == Map<String, dynamic>) {
@@ -7151,14 +7195,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == List<double>) {
       return (data as List).map((e) => deserialize<double>(e)).toList() as T;
     }
-    if (t == List<_i143.AppliedOfferInfo>) {
+    if (t == List<_i146.AppliedOfferInfo>) {
       return (data as List)
-              .map((e) => deserialize<_i143.AppliedOfferInfo>(e))
+              .map((e) => deserialize<_i146.AppliedOfferInfo>(e))
               .toList()
           as T;
     }
-    if (t == List<_i144.Product>) {
-      return (data as List).map((e) => deserialize<_i144.Product>(e)).toList()
+    if (t == List<_i147.Product>) {
+      return (data as List).map((e) => deserialize<_i147.Product>(e)).toList()
           as T;
     }
     if (t == _i1.getType<List<String>?>()) {
@@ -7167,20 +7211,20 @@ class Protocol extends _i1.SerializationManagerServer {
               : null)
           as T;
     }
-    if (t == List<_i145.ProductRankingItem>) {
+    if (t == List<_i148.ProductRankingItem>) {
       return (data as List)
-              .map((e) => deserialize<_i145.ProductRankingItem>(e))
+              .map((e) => deserialize<_i148.ProductRankingItem>(e))
               .toList()
           as T;
     }
-    if (t == List<_i146.SubCategory>) {
+    if (t == List<_i149.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i146.SubCategory>(e))
+              .map((e) => deserialize<_i149.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i147.CartItem>) {
-      return (data as List).map((e) => deserialize<_i147.CartItem>(e)).toList()
+    if (t == List<_i150.CartItem>) {
+      return (data as List).map((e) => deserialize<_i150.CartItem>(e)).toList()
           as T;
     }
     try {
@@ -7270,57 +7314,60 @@ class Protocol extends _i1.SerializationManagerServer {
       _i75.OrderRealtimeEvent => 'OrderRealtimeEvent',
       _i76.OrderTrackingData => 'OrderTrackingData',
       _i77.PaymentActionResult => 'PaymentActionResult',
-      _i78.PaymentOrderResult => 'PaymentOrderResult',
-      _i79.PaymentVerifyResult => 'PaymentVerifyResult',
-      _i80.PricingLineItem => 'PricingLineItem',
-      _i81.Product => 'Product',
-      _i82.ProductFormReferenceData => 'ProductFormReferenceData',
-      _i83.ProductPage => 'ProductPage',
-      _i84.ProductRankingItem => 'ProductRankingItem',
-      _i85.ProductVariant => 'ProductVariant',
-      _i86.RazorpayPaymentStatus => 'RazorpayPaymentStatus',
-      _i87.RefundRecord => 'RefundRecord',
-      _i88.RegisterFcmTokenRequest => 'RegisterFcmTokenRequest',
-      _i89.SubCategory => 'SubCategory',
-      _i90.SupportIssue => 'SupportIssue',
-      _i91.AdminAuditLogRow => 'AdminAuditLogRow',
-      _i92.AdminNotificationPreferenceRow => 'AdminNotificationPreferenceRow',
-      _i93.AppUserRow => 'AppUserRow',
-      _i94.BannerRow => 'BannerRow',
-      _i95.BogoOfferRewardRow => 'BogoOfferRewardRow',
-      _i96.BogoOfferRow => 'BogoOfferRow',
-      _i97.CategoryOfferRow => 'CategoryOfferRow',
-      _i98.CategoryRow => 'CategoryRow',
-      _i99.ComboOfferItemRow => 'ComboOfferItemRow',
-      _i100.ComboOfferRow => 'ComboOfferRow',
-      _i101.ComplaintRow => 'ComplaintRow',
-      _i102.CouponRow => 'CouponRow',
-      _i103.CustomerOrderRow => 'CustomerOrderRow',
-      _i104.DeliveryConfigRow => 'DeliveryConfigRow',
-      _i105.DeliveryOtpRow => 'DeliveryOtpRow',
-      _i106.DeliveryRuleRow => 'DeliveryRuleRow',
-      _i107.DeliverySlabRow => 'DeliverySlabRow',
-      _i108.FreeDeliveryRuleRow => 'FreeDeliveryRuleRow',
-      _i109.IdempotencyRecordRow => 'IdempotencyRecordRow',
-      _i110.NotificationCampaignRow => 'NotificationCampaignRow',
-      _i111.NotificationOutboxRow => 'NotificationOutboxRow',
-      _i112.NotificationPreferenceRow => 'NotificationPreferenceRow',
-      _i113.NotificationUserStateRow => 'NotificationUserStateRow',
-      _i114.OrderAddressRow => 'OrderAddressRow',
-      _i115.OrderItemRow => 'OrderItemRow',
-      _i116.OrderNotificationOutboxRow => 'OrderNotificationOutboxRow',
-      _i117.OrderTrackingRow => 'OrderTrackingRow',
-      _i118.PaymentTransactionRow => 'PaymentTransactionRow',
-      _i119.ProductRow => 'ProductRow',
-      _i120.ProductSearchDocumentRow => 'ProductSearchDocumentRow',
-      _i121.ProductSearchRebuildJobRow => 'ProductSearchRebuildJobRow',
-      _i122.ProductVariantRow => 'ProductVariantRow',
-      _i123.RefundRecordRow => 'RefundRecordRow',
-      _i124.SubCategoryRow => 'SubCategoryRow',
-      _i125.SupportIssueRow => 'SupportIssueRow',
-      _i126.UserAddressRow => 'UserAddressRow',
-      _i127.UserCartItemRow => 'UserCartItemRow',
-      _i128.UserFcmTokenRow => 'UserFcmTokenRow',
+      _i78.PaymentOrderDetailHydrated => 'PaymentOrderDetailHydrated',
+      _i79.PaymentOrderResult => 'PaymentOrderResult',
+      _i80.PaymentTransaction => 'PaymentTransaction',
+      _i81.PaymentVerifyResult => 'PaymentVerifyResult',
+      _i82.PricingLineItem => 'PricingLineItem',
+      _i83.Product => 'Product',
+      _i84.ProductFormReferenceData => 'ProductFormReferenceData',
+      _i85.ProductPage => 'ProductPage',
+      _i86.ProductRankingItem => 'ProductRankingItem',
+      _i87.ProductVariant => 'ProductVariant',
+      _i88.RazorpayPaymentStatus => 'RazorpayPaymentStatus',
+      _i89.RazorpayRefundData => 'RazorpayRefundData',
+      _i90.RefundRecord => 'RefundRecord',
+      _i91.RegisterFcmTokenRequest => 'RegisterFcmTokenRequest',
+      _i92.SubCategory => 'SubCategory',
+      _i93.SupportIssue => 'SupportIssue',
+      _i94.AdminAuditLogRow => 'AdminAuditLogRow',
+      _i95.AdminNotificationPreferenceRow => 'AdminNotificationPreferenceRow',
+      _i96.AppUserRow => 'AppUserRow',
+      _i97.BannerRow => 'BannerRow',
+      _i98.BogoOfferRewardRow => 'BogoOfferRewardRow',
+      _i99.BogoOfferRow => 'BogoOfferRow',
+      _i100.CategoryOfferRow => 'CategoryOfferRow',
+      _i101.CategoryRow => 'CategoryRow',
+      _i102.ComboOfferItemRow => 'ComboOfferItemRow',
+      _i103.ComboOfferRow => 'ComboOfferRow',
+      _i104.ComplaintRow => 'ComplaintRow',
+      _i105.CouponRow => 'CouponRow',
+      _i106.CustomerOrderRow => 'CustomerOrderRow',
+      _i107.DeliveryConfigRow => 'DeliveryConfigRow',
+      _i108.DeliveryOtpRow => 'DeliveryOtpRow',
+      _i109.DeliveryRuleRow => 'DeliveryRuleRow',
+      _i110.DeliverySlabRow => 'DeliverySlabRow',
+      _i111.FreeDeliveryRuleRow => 'FreeDeliveryRuleRow',
+      _i112.IdempotencyRecordRow => 'IdempotencyRecordRow',
+      _i113.NotificationCampaignRow => 'NotificationCampaignRow',
+      _i114.NotificationOutboxRow => 'NotificationOutboxRow',
+      _i115.NotificationPreferenceRow => 'NotificationPreferenceRow',
+      _i116.NotificationUserStateRow => 'NotificationUserStateRow',
+      _i117.OrderAddressRow => 'OrderAddressRow',
+      _i118.OrderItemRow => 'OrderItemRow',
+      _i119.OrderNotificationOutboxRow => 'OrderNotificationOutboxRow',
+      _i120.OrderTrackingRow => 'OrderTrackingRow',
+      _i121.PaymentTransactionRow => 'PaymentTransactionRow',
+      _i122.ProductRow => 'ProductRow',
+      _i123.ProductSearchDocumentRow => 'ProductSearchDocumentRow',
+      _i124.ProductSearchRebuildJobRow => 'ProductSearchRebuildJobRow',
+      _i125.ProductVariantRow => 'ProductVariantRow',
+      _i126.RefundRecordRow => 'RefundRecordRow',
+      _i127.SubCategoryRow => 'SubCategoryRow',
+      _i128.SupportIssueRow => 'SupportIssueRow',
+      _i129.UserAddressRow => 'UserAddressRow',
+      _i130.UserCartItemRow => 'UserCartItemRow',
+      _i131.UserFcmTokenRow => 'UserFcmTokenRow',
       _ => null,
     };
   }
@@ -7484,107 +7531,113 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'OrderTrackingData';
       case _i77.PaymentActionResult():
         return 'PaymentActionResult';
-      case _i78.PaymentOrderResult():
+      case _i78.PaymentOrderDetailHydrated():
+        return 'PaymentOrderDetailHydrated';
+      case _i79.PaymentOrderResult():
         return 'PaymentOrderResult';
-      case _i79.PaymentVerifyResult():
+      case _i80.PaymentTransaction():
+        return 'PaymentTransaction';
+      case _i81.PaymentVerifyResult():
         return 'PaymentVerifyResult';
-      case _i80.PricingLineItem():
+      case _i82.PricingLineItem():
         return 'PricingLineItem';
-      case _i81.Product():
+      case _i83.Product():
         return 'Product';
-      case _i82.ProductFormReferenceData():
+      case _i84.ProductFormReferenceData():
         return 'ProductFormReferenceData';
-      case _i83.ProductPage():
+      case _i85.ProductPage():
         return 'ProductPage';
-      case _i84.ProductRankingItem():
+      case _i86.ProductRankingItem():
         return 'ProductRankingItem';
-      case _i85.ProductVariant():
+      case _i87.ProductVariant():
         return 'ProductVariant';
-      case _i86.RazorpayPaymentStatus():
+      case _i88.RazorpayPaymentStatus():
         return 'RazorpayPaymentStatus';
-      case _i87.RefundRecord():
+      case _i89.RazorpayRefundData():
+        return 'RazorpayRefundData';
+      case _i90.RefundRecord():
         return 'RefundRecord';
-      case _i88.RegisterFcmTokenRequest():
+      case _i91.RegisterFcmTokenRequest():
         return 'RegisterFcmTokenRequest';
-      case _i89.SubCategory():
+      case _i92.SubCategory():
         return 'SubCategory';
-      case _i90.SupportIssue():
+      case _i93.SupportIssue():
         return 'SupportIssue';
-      case _i91.AdminAuditLogRow():
+      case _i94.AdminAuditLogRow():
         return 'AdminAuditLogRow';
-      case _i92.AdminNotificationPreferenceRow():
+      case _i95.AdminNotificationPreferenceRow():
         return 'AdminNotificationPreferenceRow';
-      case _i93.AppUserRow():
+      case _i96.AppUserRow():
         return 'AppUserRow';
-      case _i94.BannerRow():
+      case _i97.BannerRow():
         return 'BannerRow';
-      case _i95.BogoOfferRewardRow():
+      case _i98.BogoOfferRewardRow():
         return 'BogoOfferRewardRow';
-      case _i96.BogoOfferRow():
+      case _i99.BogoOfferRow():
         return 'BogoOfferRow';
-      case _i97.CategoryOfferRow():
+      case _i100.CategoryOfferRow():
         return 'CategoryOfferRow';
-      case _i98.CategoryRow():
+      case _i101.CategoryRow():
         return 'CategoryRow';
-      case _i99.ComboOfferItemRow():
+      case _i102.ComboOfferItemRow():
         return 'ComboOfferItemRow';
-      case _i100.ComboOfferRow():
+      case _i103.ComboOfferRow():
         return 'ComboOfferRow';
-      case _i101.ComplaintRow():
+      case _i104.ComplaintRow():
         return 'ComplaintRow';
-      case _i102.CouponRow():
+      case _i105.CouponRow():
         return 'CouponRow';
-      case _i103.CustomerOrderRow():
+      case _i106.CustomerOrderRow():
         return 'CustomerOrderRow';
-      case _i104.DeliveryConfigRow():
+      case _i107.DeliveryConfigRow():
         return 'DeliveryConfigRow';
-      case _i105.DeliveryOtpRow():
+      case _i108.DeliveryOtpRow():
         return 'DeliveryOtpRow';
-      case _i106.DeliveryRuleRow():
+      case _i109.DeliveryRuleRow():
         return 'DeliveryRuleRow';
-      case _i107.DeliverySlabRow():
+      case _i110.DeliverySlabRow():
         return 'DeliverySlabRow';
-      case _i108.FreeDeliveryRuleRow():
+      case _i111.FreeDeliveryRuleRow():
         return 'FreeDeliveryRuleRow';
-      case _i109.IdempotencyRecordRow():
+      case _i112.IdempotencyRecordRow():
         return 'IdempotencyRecordRow';
-      case _i110.NotificationCampaignRow():
+      case _i113.NotificationCampaignRow():
         return 'NotificationCampaignRow';
-      case _i111.NotificationOutboxRow():
+      case _i114.NotificationOutboxRow():
         return 'NotificationOutboxRow';
-      case _i112.NotificationPreferenceRow():
+      case _i115.NotificationPreferenceRow():
         return 'NotificationPreferenceRow';
-      case _i113.NotificationUserStateRow():
+      case _i116.NotificationUserStateRow():
         return 'NotificationUserStateRow';
-      case _i114.OrderAddressRow():
+      case _i117.OrderAddressRow():
         return 'OrderAddressRow';
-      case _i115.OrderItemRow():
+      case _i118.OrderItemRow():
         return 'OrderItemRow';
-      case _i116.OrderNotificationOutboxRow():
+      case _i119.OrderNotificationOutboxRow():
         return 'OrderNotificationOutboxRow';
-      case _i117.OrderTrackingRow():
+      case _i120.OrderTrackingRow():
         return 'OrderTrackingRow';
-      case _i118.PaymentTransactionRow():
+      case _i121.PaymentTransactionRow():
         return 'PaymentTransactionRow';
-      case _i119.ProductRow():
+      case _i122.ProductRow():
         return 'ProductRow';
-      case _i120.ProductSearchDocumentRow():
+      case _i123.ProductSearchDocumentRow():
         return 'ProductSearchDocumentRow';
-      case _i121.ProductSearchRebuildJobRow():
+      case _i124.ProductSearchRebuildJobRow():
         return 'ProductSearchRebuildJobRow';
-      case _i122.ProductVariantRow():
+      case _i125.ProductVariantRow():
         return 'ProductVariantRow';
-      case _i123.RefundRecordRow():
+      case _i126.RefundRecordRow():
         return 'RefundRecordRow';
-      case _i124.SubCategoryRow():
+      case _i127.SubCategoryRow():
         return 'SubCategoryRow';
-      case _i125.SupportIssueRow():
+      case _i128.SupportIssueRow():
         return 'SupportIssueRow';
-      case _i126.UserAddressRow():
+      case _i129.UserAddressRow():
         return 'UserAddressRow';
-      case _i127.UserCartItemRow():
+      case _i130.UserCartItemRow():
         return 'UserCartItemRow';
-      case _i128.UserFcmTokenRow():
+      case _i131.UserFcmTokenRow():
         return 'UserFcmTokenRow';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -7827,158 +7880,167 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'PaymentActionResult') {
       return deserialize<_i77.PaymentActionResult>(data['data']);
     }
+    if (dataClassName == 'PaymentOrderDetailHydrated') {
+      return deserialize<_i78.PaymentOrderDetailHydrated>(data['data']);
+    }
     if (dataClassName == 'PaymentOrderResult') {
-      return deserialize<_i78.PaymentOrderResult>(data['data']);
+      return deserialize<_i79.PaymentOrderResult>(data['data']);
+    }
+    if (dataClassName == 'PaymentTransaction') {
+      return deserialize<_i80.PaymentTransaction>(data['data']);
     }
     if (dataClassName == 'PaymentVerifyResult') {
-      return deserialize<_i79.PaymentVerifyResult>(data['data']);
+      return deserialize<_i81.PaymentVerifyResult>(data['data']);
     }
     if (dataClassName == 'PricingLineItem') {
-      return deserialize<_i80.PricingLineItem>(data['data']);
+      return deserialize<_i82.PricingLineItem>(data['data']);
     }
     if (dataClassName == 'Product') {
-      return deserialize<_i81.Product>(data['data']);
+      return deserialize<_i83.Product>(data['data']);
     }
     if (dataClassName == 'ProductFormReferenceData') {
-      return deserialize<_i82.ProductFormReferenceData>(data['data']);
+      return deserialize<_i84.ProductFormReferenceData>(data['data']);
     }
     if (dataClassName == 'ProductPage') {
-      return deserialize<_i83.ProductPage>(data['data']);
+      return deserialize<_i85.ProductPage>(data['data']);
     }
     if (dataClassName == 'ProductRankingItem') {
-      return deserialize<_i84.ProductRankingItem>(data['data']);
+      return deserialize<_i86.ProductRankingItem>(data['data']);
     }
     if (dataClassName == 'ProductVariant') {
-      return deserialize<_i85.ProductVariant>(data['data']);
+      return deserialize<_i87.ProductVariant>(data['data']);
     }
     if (dataClassName == 'RazorpayPaymentStatus') {
-      return deserialize<_i86.RazorpayPaymentStatus>(data['data']);
+      return deserialize<_i88.RazorpayPaymentStatus>(data['data']);
+    }
+    if (dataClassName == 'RazorpayRefundData') {
+      return deserialize<_i89.RazorpayRefundData>(data['data']);
     }
     if (dataClassName == 'RefundRecord') {
-      return deserialize<_i87.RefundRecord>(data['data']);
+      return deserialize<_i90.RefundRecord>(data['data']);
     }
     if (dataClassName == 'RegisterFcmTokenRequest') {
-      return deserialize<_i88.RegisterFcmTokenRequest>(data['data']);
+      return deserialize<_i91.RegisterFcmTokenRequest>(data['data']);
     }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i89.SubCategory>(data['data']);
+      return deserialize<_i92.SubCategory>(data['data']);
     }
     if (dataClassName == 'SupportIssue') {
-      return deserialize<_i90.SupportIssue>(data['data']);
+      return deserialize<_i93.SupportIssue>(data['data']);
     }
     if (dataClassName == 'AdminAuditLogRow') {
-      return deserialize<_i91.AdminAuditLogRow>(data['data']);
+      return deserialize<_i94.AdminAuditLogRow>(data['data']);
     }
     if (dataClassName == 'AdminNotificationPreferenceRow') {
-      return deserialize<_i92.AdminNotificationPreferenceRow>(data['data']);
+      return deserialize<_i95.AdminNotificationPreferenceRow>(data['data']);
     }
     if (dataClassName == 'AppUserRow') {
-      return deserialize<_i93.AppUserRow>(data['data']);
+      return deserialize<_i96.AppUserRow>(data['data']);
     }
     if (dataClassName == 'BannerRow') {
-      return deserialize<_i94.BannerRow>(data['data']);
+      return deserialize<_i97.BannerRow>(data['data']);
     }
     if (dataClassName == 'BogoOfferRewardRow') {
-      return deserialize<_i95.BogoOfferRewardRow>(data['data']);
+      return deserialize<_i98.BogoOfferRewardRow>(data['data']);
     }
     if (dataClassName == 'BogoOfferRow') {
-      return deserialize<_i96.BogoOfferRow>(data['data']);
+      return deserialize<_i99.BogoOfferRow>(data['data']);
     }
     if (dataClassName == 'CategoryOfferRow') {
-      return deserialize<_i97.CategoryOfferRow>(data['data']);
+      return deserialize<_i100.CategoryOfferRow>(data['data']);
     }
     if (dataClassName == 'CategoryRow') {
-      return deserialize<_i98.CategoryRow>(data['data']);
+      return deserialize<_i101.CategoryRow>(data['data']);
     }
     if (dataClassName == 'ComboOfferItemRow') {
-      return deserialize<_i99.ComboOfferItemRow>(data['data']);
+      return deserialize<_i102.ComboOfferItemRow>(data['data']);
     }
     if (dataClassName == 'ComboOfferRow') {
-      return deserialize<_i100.ComboOfferRow>(data['data']);
+      return deserialize<_i103.ComboOfferRow>(data['data']);
     }
     if (dataClassName == 'ComplaintRow') {
-      return deserialize<_i101.ComplaintRow>(data['data']);
+      return deserialize<_i104.ComplaintRow>(data['data']);
     }
     if (dataClassName == 'CouponRow') {
-      return deserialize<_i102.CouponRow>(data['data']);
+      return deserialize<_i105.CouponRow>(data['data']);
     }
     if (dataClassName == 'CustomerOrderRow') {
-      return deserialize<_i103.CustomerOrderRow>(data['data']);
+      return deserialize<_i106.CustomerOrderRow>(data['data']);
     }
     if (dataClassName == 'DeliveryConfigRow') {
-      return deserialize<_i104.DeliveryConfigRow>(data['data']);
+      return deserialize<_i107.DeliveryConfigRow>(data['data']);
     }
     if (dataClassName == 'DeliveryOtpRow') {
-      return deserialize<_i105.DeliveryOtpRow>(data['data']);
+      return deserialize<_i108.DeliveryOtpRow>(data['data']);
     }
     if (dataClassName == 'DeliveryRuleRow') {
-      return deserialize<_i106.DeliveryRuleRow>(data['data']);
+      return deserialize<_i109.DeliveryRuleRow>(data['data']);
     }
     if (dataClassName == 'DeliverySlabRow') {
-      return deserialize<_i107.DeliverySlabRow>(data['data']);
+      return deserialize<_i110.DeliverySlabRow>(data['data']);
     }
     if (dataClassName == 'FreeDeliveryRuleRow') {
-      return deserialize<_i108.FreeDeliveryRuleRow>(data['data']);
+      return deserialize<_i111.FreeDeliveryRuleRow>(data['data']);
     }
     if (dataClassName == 'IdempotencyRecordRow') {
-      return deserialize<_i109.IdempotencyRecordRow>(data['data']);
+      return deserialize<_i112.IdempotencyRecordRow>(data['data']);
     }
     if (dataClassName == 'NotificationCampaignRow') {
-      return deserialize<_i110.NotificationCampaignRow>(data['data']);
+      return deserialize<_i113.NotificationCampaignRow>(data['data']);
     }
     if (dataClassName == 'NotificationOutboxRow') {
-      return deserialize<_i111.NotificationOutboxRow>(data['data']);
+      return deserialize<_i114.NotificationOutboxRow>(data['data']);
     }
     if (dataClassName == 'NotificationPreferenceRow') {
-      return deserialize<_i112.NotificationPreferenceRow>(data['data']);
+      return deserialize<_i115.NotificationPreferenceRow>(data['data']);
     }
     if (dataClassName == 'NotificationUserStateRow') {
-      return deserialize<_i113.NotificationUserStateRow>(data['data']);
+      return deserialize<_i116.NotificationUserStateRow>(data['data']);
     }
     if (dataClassName == 'OrderAddressRow') {
-      return deserialize<_i114.OrderAddressRow>(data['data']);
+      return deserialize<_i117.OrderAddressRow>(data['data']);
     }
     if (dataClassName == 'OrderItemRow') {
-      return deserialize<_i115.OrderItemRow>(data['data']);
+      return deserialize<_i118.OrderItemRow>(data['data']);
     }
     if (dataClassName == 'OrderNotificationOutboxRow') {
-      return deserialize<_i116.OrderNotificationOutboxRow>(data['data']);
+      return deserialize<_i119.OrderNotificationOutboxRow>(data['data']);
     }
     if (dataClassName == 'OrderTrackingRow') {
-      return deserialize<_i117.OrderTrackingRow>(data['data']);
+      return deserialize<_i120.OrderTrackingRow>(data['data']);
     }
     if (dataClassName == 'PaymentTransactionRow') {
-      return deserialize<_i118.PaymentTransactionRow>(data['data']);
+      return deserialize<_i121.PaymentTransactionRow>(data['data']);
     }
     if (dataClassName == 'ProductRow') {
-      return deserialize<_i119.ProductRow>(data['data']);
+      return deserialize<_i122.ProductRow>(data['data']);
     }
     if (dataClassName == 'ProductSearchDocumentRow') {
-      return deserialize<_i120.ProductSearchDocumentRow>(data['data']);
+      return deserialize<_i123.ProductSearchDocumentRow>(data['data']);
     }
     if (dataClassName == 'ProductSearchRebuildJobRow') {
-      return deserialize<_i121.ProductSearchRebuildJobRow>(data['data']);
+      return deserialize<_i124.ProductSearchRebuildJobRow>(data['data']);
     }
     if (dataClassName == 'ProductVariantRow') {
-      return deserialize<_i122.ProductVariantRow>(data['data']);
+      return deserialize<_i125.ProductVariantRow>(data['data']);
     }
     if (dataClassName == 'RefundRecordRow') {
-      return deserialize<_i123.RefundRecordRow>(data['data']);
+      return deserialize<_i126.RefundRecordRow>(data['data']);
     }
     if (dataClassName == 'SubCategoryRow') {
-      return deserialize<_i124.SubCategoryRow>(data['data']);
+      return deserialize<_i127.SubCategoryRow>(data['data']);
     }
     if (dataClassName == 'SupportIssueRow') {
-      return deserialize<_i125.SupportIssueRow>(data['data']);
+      return deserialize<_i128.SupportIssueRow>(data['data']);
     }
     if (dataClassName == 'UserAddressRow') {
-      return deserialize<_i126.UserAddressRow>(data['data']);
+      return deserialize<_i129.UserAddressRow>(data['data']);
     }
     if (dataClassName == 'UserCartItemRow') {
-      return deserialize<_i127.UserCartItemRow>(data['data']);
+      return deserialize<_i130.UserCartItemRow>(data['data']);
     }
     if (dataClassName == 'UserFcmTokenRow') {
-      return deserialize<_i128.UserFcmTokenRow>(data['data']);
+      return deserialize<_i131.UserFcmTokenRow>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -8016,82 +8078,82 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
     switch (t) {
-      case _i91.AdminAuditLogRow:
-        return _i91.AdminAuditLogRow.t;
-      case _i92.AdminNotificationPreferenceRow:
-        return _i92.AdminNotificationPreferenceRow.t;
-      case _i93.AppUserRow:
-        return _i93.AppUserRow.t;
-      case _i94.BannerRow:
-        return _i94.BannerRow.t;
-      case _i95.BogoOfferRewardRow:
-        return _i95.BogoOfferRewardRow.t;
-      case _i96.BogoOfferRow:
-        return _i96.BogoOfferRow.t;
-      case _i97.CategoryOfferRow:
-        return _i97.CategoryOfferRow.t;
-      case _i98.CategoryRow:
-        return _i98.CategoryRow.t;
-      case _i99.ComboOfferItemRow:
-        return _i99.ComboOfferItemRow.t;
-      case _i100.ComboOfferRow:
-        return _i100.ComboOfferRow.t;
-      case _i101.ComplaintRow:
-        return _i101.ComplaintRow.t;
-      case _i102.CouponRow:
-        return _i102.CouponRow.t;
-      case _i103.CustomerOrderRow:
-        return _i103.CustomerOrderRow.t;
-      case _i104.DeliveryConfigRow:
-        return _i104.DeliveryConfigRow.t;
-      case _i105.DeliveryOtpRow:
-        return _i105.DeliveryOtpRow.t;
-      case _i106.DeliveryRuleRow:
-        return _i106.DeliveryRuleRow.t;
-      case _i107.DeliverySlabRow:
-        return _i107.DeliverySlabRow.t;
-      case _i108.FreeDeliveryRuleRow:
-        return _i108.FreeDeliveryRuleRow.t;
-      case _i109.IdempotencyRecordRow:
-        return _i109.IdempotencyRecordRow.t;
-      case _i110.NotificationCampaignRow:
-        return _i110.NotificationCampaignRow.t;
-      case _i111.NotificationOutboxRow:
-        return _i111.NotificationOutboxRow.t;
-      case _i112.NotificationPreferenceRow:
-        return _i112.NotificationPreferenceRow.t;
-      case _i113.NotificationUserStateRow:
-        return _i113.NotificationUserStateRow.t;
-      case _i114.OrderAddressRow:
-        return _i114.OrderAddressRow.t;
-      case _i115.OrderItemRow:
-        return _i115.OrderItemRow.t;
-      case _i116.OrderNotificationOutboxRow:
-        return _i116.OrderNotificationOutboxRow.t;
-      case _i117.OrderTrackingRow:
-        return _i117.OrderTrackingRow.t;
-      case _i118.PaymentTransactionRow:
-        return _i118.PaymentTransactionRow.t;
-      case _i119.ProductRow:
-        return _i119.ProductRow.t;
-      case _i120.ProductSearchDocumentRow:
-        return _i120.ProductSearchDocumentRow.t;
-      case _i121.ProductSearchRebuildJobRow:
-        return _i121.ProductSearchRebuildJobRow.t;
-      case _i122.ProductVariantRow:
-        return _i122.ProductVariantRow.t;
-      case _i123.RefundRecordRow:
-        return _i123.RefundRecordRow.t;
-      case _i124.SubCategoryRow:
-        return _i124.SubCategoryRow.t;
-      case _i125.SupportIssueRow:
-        return _i125.SupportIssueRow.t;
-      case _i126.UserAddressRow:
-        return _i126.UserAddressRow.t;
-      case _i127.UserCartItemRow:
-        return _i127.UserCartItemRow.t;
-      case _i128.UserFcmTokenRow:
-        return _i128.UserFcmTokenRow.t;
+      case _i94.AdminAuditLogRow:
+        return _i94.AdminAuditLogRow.t;
+      case _i95.AdminNotificationPreferenceRow:
+        return _i95.AdminNotificationPreferenceRow.t;
+      case _i96.AppUserRow:
+        return _i96.AppUserRow.t;
+      case _i97.BannerRow:
+        return _i97.BannerRow.t;
+      case _i98.BogoOfferRewardRow:
+        return _i98.BogoOfferRewardRow.t;
+      case _i99.BogoOfferRow:
+        return _i99.BogoOfferRow.t;
+      case _i100.CategoryOfferRow:
+        return _i100.CategoryOfferRow.t;
+      case _i101.CategoryRow:
+        return _i101.CategoryRow.t;
+      case _i102.ComboOfferItemRow:
+        return _i102.ComboOfferItemRow.t;
+      case _i103.ComboOfferRow:
+        return _i103.ComboOfferRow.t;
+      case _i104.ComplaintRow:
+        return _i104.ComplaintRow.t;
+      case _i105.CouponRow:
+        return _i105.CouponRow.t;
+      case _i106.CustomerOrderRow:
+        return _i106.CustomerOrderRow.t;
+      case _i107.DeliveryConfigRow:
+        return _i107.DeliveryConfigRow.t;
+      case _i108.DeliveryOtpRow:
+        return _i108.DeliveryOtpRow.t;
+      case _i109.DeliveryRuleRow:
+        return _i109.DeliveryRuleRow.t;
+      case _i110.DeliverySlabRow:
+        return _i110.DeliverySlabRow.t;
+      case _i111.FreeDeliveryRuleRow:
+        return _i111.FreeDeliveryRuleRow.t;
+      case _i112.IdempotencyRecordRow:
+        return _i112.IdempotencyRecordRow.t;
+      case _i113.NotificationCampaignRow:
+        return _i113.NotificationCampaignRow.t;
+      case _i114.NotificationOutboxRow:
+        return _i114.NotificationOutboxRow.t;
+      case _i115.NotificationPreferenceRow:
+        return _i115.NotificationPreferenceRow.t;
+      case _i116.NotificationUserStateRow:
+        return _i116.NotificationUserStateRow.t;
+      case _i117.OrderAddressRow:
+        return _i117.OrderAddressRow.t;
+      case _i118.OrderItemRow:
+        return _i118.OrderItemRow.t;
+      case _i119.OrderNotificationOutboxRow:
+        return _i119.OrderNotificationOutboxRow.t;
+      case _i120.OrderTrackingRow:
+        return _i120.OrderTrackingRow.t;
+      case _i121.PaymentTransactionRow:
+        return _i121.PaymentTransactionRow.t;
+      case _i122.ProductRow:
+        return _i122.ProductRow.t;
+      case _i123.ProductSearchDocumentRow:
+        return _i123.ProductSearchDocumentRow.t;
+      case _i124.ProductSearchRebuildJobRow:
+        return _i124.ProductSearchRebuildJobRow.t;
+      case _i125.ProductVariantRow:
+        return _i125.ProductVariantRow.t;
+      case _i126.RefundRecordRow:
+        return _i126.RefundRecordRow.t;
+      case _i127.SubCategoryRow:
+        return _i127.SubCategoryRow.t;
+      case _i128.SupportIssueRow:
+        return _i128.SupportIssueRow.t;
+      case _i129.UserAddressRow:
+        return _i129.UserAddressRow.t;
+      case _i130.UserCartItemRow:
+        return _i130.UserCartItemRow.t;
+      case _i131.UserFcmTokenRow:
+        return _i131.UserFcmTokenRow.t;
     }
     return null;
   }
