@@ -144,10 +144,20 @@ class BasketSuggestionService {
     // ── 2. Build all individual scored suggestions ──────────────────────────
     final scored = <_Scored>[];
 
-    final deliveryScored = _scoreDelivery(
-      cartTotal: cartTotal ?? 0,
-      config: deliveryConfig,
+    // If cart already has a free-delivery product, delivery fee is already ₹0
+    // via DeliveryChargeCalculator — suppress all delivery slab suggestions
+    // and delivery actions inside combined cards.
+    final hasFreeDeliveryInCart = _hasCartFreeDeliveryProduct(
+      normalizedItems,
+      freeDeliveryProducts,
     );
+
+    final deliveryScored = hasFreeDeliveryInCart
+        ? null
+        : _scoreDelivery(
+            cartTotal: cartTotal ?? 0,
+            config: deliveryConfig,
+          );
     if (deliveryScored != null) scored.add(deliveryScored);
 
     final couponScored = _scoreCoupon(
@@ -2224,6 +2234,22 @@ class BasketSuggestionService {
   // ─────────────────────────────────────────────────────────────────────────
   // Shared Helpers
   // ─────────────────────────────────────────────────────────────────────────
+
+  /// Returns true if any cart item is a product with [isFreeDelivery] = true.
+  /// Uses the already-fetched [freeDeliveryProducts] list — no extra DB call.
+  static bool _hasCartFreeDeliveryProduct(
+    List<CartItemInput> cartItems,
+    List<Product> freeDeliveryProducts,
+  ) {
+    if (cartItems.isEmpty || freeDeliveryProducts.isEmpty) return false;
+    final freeDeliveryProductIds = freeDeliveryProducts
+        .where((p) => p.isFreeDelivery && p.productId != null)
+        .map((p) => p.productId!)
+        .toSet();
+    return cartItems.any(
+      (item) => freeDeliveryProductIds.contains(item.productId),
+    );
+  }
 
   static Future<DeliveryConfig> _getDeliveryConfig(Session session) async {
     if (_cachedDeliveryConfig != null &&
