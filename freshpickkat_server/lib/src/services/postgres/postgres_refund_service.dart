@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
@@ -17,14 +18,34 @@ class PostgresRefundService {
     Session session, {
     required String orderNumber,
   }) async {
-    final order = await _getOrder(session, orderNumber);
-    return refund(
-      session,
-      orderNumber: order.orderNumber,
-      amount: order.finalAmount,
-      source: 'order',
-      reason: 'Admin order refund',
-    );
+    try {
+      final order = await _getOrder(session, orderNumber);
+      return await refund(
+        session,
+        orderNumber: order.orderNumber,
+        amount: order.finalAmount,
+        source: 'order',
+        reason: 'Admin order refund',
+      );
+    } catch (e) {
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      session.log(
+        'initiateRefund failed for $orderNumber: $errorMsg',
+        level: LogLevel.error,
+      );
+      return RefundRecord(
+        refundId: 'error',
+        orderId: orderNumber,
+        paymentId: '-',
+        userId: '-',
+        amount: 0,
+        status: 'failed',
+        source: '',
+        reason: '',
+        failureReason: errorMsg,
+        createdAt: DateTime.now().toUtc(),
+      );
+    }
   }
 
   Future<RefundRecord> refund(
@@ -306,7 +327,16 @@ class PostgresRefundService {
     final refundStatus = _normalizeRefundStatus(
       data?['status']?.toString() ?? (success ? 'processed' : 'failed'),
     );
-    final failureReason = success ? null : response['body']?.toString();
+    String? failureReason;
+    if (!success && response['body'] != null) {
+      try {
+        final body = jsonDecode(response['body'] as String) as Map<String, dynamic>;
+        final error = body['error'] as Map<String, dynamic>?;
+        failureReason = error?['description'] as String? ?? response['body']!.toString();
+      } catch (_) {
+        failureReason = response['body']!.toString();
+      }
+    }
     final now = DateTime.now().toUtc();
 
     final refund = await session.db.transaction<RefundRecordRow>((

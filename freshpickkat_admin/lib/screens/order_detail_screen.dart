@@ -105,10 +105,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       final result = await _orderController.retryRefund(_order.orderId);
       if (mounted) {
-        setState(() {
-          _refund = result;
-          _order = _order.copyWith(refundStatus: result.status);
-        });
         if (result.status == 'failed') {
           debugPrint('Refund retry failed for order ${_order.orderId}: ${result.failureReason}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +117,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           );
         } else {
+          setState(() {
+            _refund = result;
+            _order = _order.copyWith(refundStatus: result.status);
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -137,7 +137,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Refund retry failed: $e'),
+            content: Text('Refund retry: $e'),
             backgroundColor: AdminAppTheme.getErrorColor(context),
             behavior: SnackBarBehavior.floating,
           ),

@@ -728,6 +728,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _refundInfoRow('Initiated Date', _formatDate(refund.createdAt), cs),
           SizedBox(height: 10.h),
           _refundInfoRow('Expected Time', '2–5 Business Days', cs),
+          if (refund.status == 'failed') ...[
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.r),
+              decoration: BoxDecoration(
+                color: cs.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, size: 16.sp, color: cs.error),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'We are processing your refund manually. '
+                      'It may take 2–3 business days for the refund '
+                      'to reflect in your account.',
+                      style: TextStyle(
+                        color: cs.error,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
