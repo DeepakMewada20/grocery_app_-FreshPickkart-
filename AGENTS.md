@@ -1,7 +1,7 @@
 ## Goal
-Eliminate multiple API calls per screen by implementing server-side hydration across admin and user apps, then add offer chips to admin product cards.
+Optimize basket suggestions with free delivery product suggestions; maintain banner resilience, coupon-filtering, and hydration fixes across the stack.
 
-## Current Task: (completed) Fix category screen scroll sync, verify variant-level offer badges
+## Current Task: (completed) Add free delivery product suggestions to basket suggestion engine
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -15,6 +15,24 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - All server hydration must be internal — client apps call one endpoint per screen
 
 ## Done
+### Basket Suggestion: Free Delivery Products
+- **`BasketSuggestionService._scoreFreeDeliveryProducts()`**: New method — fetches products with `isFreeDelivery = true`, suggests those not in cart, calculates savings as current delivery fee; integrated into Phase 2 (filled basket) and empty mode
+- **Phase 1 fetch**: `ProductEndpoint().getProducts(session, freeDelivery: true, limit: 6)` called after other data fetches at `basket_suggestion_service.dart:140`
+- **Phase 2 scoring**: Free delivery suggestions scored alongside variant, BOGO, combo, coupon suggestions after line 186
+- **Empty mode**: Free delivery products fetched in `Future.wait` (index 7), scored after delivery suggestion at line 356
+- Uses existing `BasketSuggestionAction(type: 'product', label: 'FREE DELIVERY')` — no frontend changes needed
+- Handler in `applyBasketSuggestion` already supports `action.type == 'product'` — adds product to cart
+
+### Banner Resilience & Fallback
+- **Server** (`postgres_home_service.dart`): Each query in `Future.wait` wrapped with `.catchError()` — single failure returns empty list/null instead of crashing the whole endpoint
+- **Client banner controller**: Added `ensureHomeBannersLoaded()` — sequentially calls `loadHomeTopImageBannersIfEmpty()`, `loadHomeBannersIfEmpty()`, `loadHomeMiddleBannersIfEmpty()`; each has `isNotEmpty` guard
+- **Home screen**: `_onRefresh()` calls `ensureHomeBannersLoaded()` after `fetchHomePageData()`; `InitialLoadingScreen.onRetry` loads both products AND banners
+- **`initial_loading_screen.dart`**: `onRetry` type changed from `VoidCallback` to `Future<void> Function()`
+- **`home_banner_with_horizontal_item.dart`**: `initState` calls `ensureHomeBannersLoaded()` when empty at widget creation
+
+### Coupon Active-Only Filter
+- **`postgres_coupon_service.dart`**: `getAvailableCoupons()` and `getBestCoupon()` now use `activeOnly: true` — only `status = 'active'` rows fetched from DB; admin endpoints unchanged
+
 ### Server-Side Hydration (12 new protocol models + 6 new endpoints)
 - **Product model**: Added `comboOfferIds`, `hasCategoryOffer` to `product.spy.yaml` + generated
 - **`PostgresCatalogService.hydrateProductsByIds()`**: Parallelized (10 queries → 2 batches); hydrates combo + category offer data
@@ -57,8 +75,16 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 1. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
 2. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
 3. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
+4. Restart server to test free delivery product suggestions in basket
 
 ## Recent Fixes
+### Free delivery product suggestions (`basket_suggestion_service.dart`)
+- `_scoreFreeDeliveryProducts()` fetches `isFreeDelivery = true` products via `ProductEndpoint.getProducts(freeDelivery: true, limit: 6)`
+- Phase 2: scores free delivery products not in cart using current delivery fee as savings
+- Empty mode: includes free delivery products in `Future.wait` (index 7)
+- Uses `BasketSuggestionAction(type: 'product', label: 'FREE DELIVERY')` — existing handler adds product to cart
+- Scoring: `conversionProbability: 32`, `userRelevance: 22`, `profitImpact: savings * 1.5`, `urgency: 18`
+
 ### Coupon active-only filter (`postgres_coupon_service.dart`)
 - `getAvailableCoupons()` and `getBestCoupon()` now fetch only `status = 'active'` rows from DB (`activeOnly: true`)
 - Fixes: user coupon screen no longer shows inactive coupons; basket screen only shows active ones; best-coupon auto-apply ignores inactive
@@ -104,3 +130,9 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - `freshpickkat_admin/lib/controller/admin_offer_controller/admin_free_delivery_controller.dart`: uses `getFreeDeliveryHydrated`
 - `freshpickkat_admin/lib/screens/product_dialogs/product_form_dialog.dart`: uses `getProductFormReferenceData()` — removed 3 controller dependencies
 - `freshpickkat_server/lib/src/services/postgres/postgres_coupon_service.dart`: `getAvailableCoupons()` and `getBestCoupon()` now use `activeOnly: true`
+- `freshpickkat_server/lib/src/services/basket_suggestions/basket_suggestion_service.dart`: free delivery product suggestions (`_scoreFreeDeliveryProducts`)
+- `freshpickkat_server/lib/src/services/postgres/postgres_home_service.dart`: resilient `Future.wait` with `.catchError()` per query
+- `freshpickkat_flutter/lib/controller/banner_controller.dart`: `ensureHomeBannersLoaded()`, `populateFromHydrated()` fixes
+- `freshpickkat_flutter/lib/screens/home_screen.dart`: `_onRefresh` + retry load banners
+- `freshpickkat_flutter/lib/widgets/home_banner_with_horizontal_item.dart`: `initState` fallback
+- `freshpickkat_flutter/lib/widgets/initial_loading_screen.dart`: `onRetry` type change

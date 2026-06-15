@@ -135,6 +135,11 @@ class BasketSuggestionService {
     final deliveryConfig = await _getDeliveryConfig(session);
     final coupons = await _getCoupons(session);
     final bogoOffers = await _getBogoOffers(session);
+    final freeDeliveryProducts = await ProductEndpoint().getProducts(
+      session,
+      freeDelivery: true,
+      limit: 6,
+    );
 
     // ── 2. Build all individual scored suggestions ──────────────────────────
     final scored = <_Scored>[];
@@ -171,6 +176,14 @@ class BasketSuggestionService {
       productMap: productMap,
     );
     scored.addAll(variantScored);
+
+    final freeDeliveryScored = _scoreFreeDeliveryProducts(
+      cartItems: normalizedItems,
+      freeDeliveryProducts: freeDeliveryProducts,
+      cartTotal: cartTotal ?? 0,
+      deliveryConfig: deliveryConfig,
+    );
+    scored.addAll(freeDeliveryScored);
 
     // ── 3. Build combination suggestions ────────────────────────────────────
     final upgradedBaseItems = <_Scored>{};
@@ -282,6 +295,7 @@ class BasketSuggestionService {
       _getComboOffers(session),
       _getDeliveryConfig(session),
       _getCoupons(session),
+      ProductEndpoint().getProducts(session, freeDelivery: true, limit: 6),
       normalizedUserId == null || normalizedUserId.isEmpty
           ? Future.value(const <Order>[])
           : _getRecentOrders(session, normalizedUserId),
@@ -294,7 +308,8 @@ class BasketSuggestionService {
     final comboOffers = futures[4] as List<ComboOffer>;
     final deliveryConfig = futures[5] as DeliveryConfig;
     final coupons = futures[6] as List<Coupon>;
-    final recentOrders = futures[7] as List<Order>;
+    final freeDeliveryProducts = futures[7] as List<Product>;
+    final recentOrders = futures[8] as List<Order>;
 
     final productPool = <Product>[
       ...bestSellers,
@@ -339,6 +354,14 @@ class BasketSuggestionService {
 
     final delivery = _scoreEmptyDeliverySuggestion(deliveryConfig);
     if (delivery != null) scored.add(delivery);
+
+    final emptyFreeDeliveryScored = _scoreFreeDeliveryProducts(
+      cartItems: const [],
+      freeDeliveryProducts: freeDeliveryProducts,
+      cartTotal: 0,
+      deliveryConfig: deliveryConfig,
+    );
+    scored.addAll(emptyFreeDeliveryScored);
 
     scored.addAll(
       _scoreEmptyOfferSuggestions(
@@ -2006,6 +2029,94 @@ class BasketSuggestionService {
               'vLabel': _formatVariantLabel(v),
               'vPrice': v.price.toStringAsFixed(0),
             },
+          ),
+        ),
+      );
+    }
+    return results;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Free delivery product suggestions
+  // ─────────────────────────────────────────────────────────────────────────
+  static List<_Scored> _scoreFreeDeliveryProducts({
+    required List<CartItemInput> cartItems,
+    required List<Product> freeDeliveryProducts,
+    required double cartTotal,
+    required DeliveryConfig deliveryConfig,
+  }) {
+    final results = <_Scored>[];
+    final cartProductIds = cartItems.map((item) => item.productId).toSet();
+
+    double currentFee = deliveryConfig.baseDeliveryFee;
+    for (final slab in deliveryConfig.slabs) {
+      if (cartTotal >= slab.minOrderAmount &&
+          cartTotal <= slab.maxOrderAmount) {
+        currentFee = slab.fee;
+        break;
+      }
+    }
+
+    if (currentFee <= 0) return results;
+
+    for (final product in freeDeliveryProducts) {
+      if (product.productId == null) continue;
+
+      final variant = (product.variants ?? [])
+          .where((v) => v.isAvailable)
+          .toList()
+          .firstOrNull;
+      final effectiveVariant = variant ??
+          ProductVariant(
+            variantId: product.productId!,
+            price: product.price,
+            realPrice: product.price,
+            quantityValue: 1,
+            quantityUnit: 'piece',
+            isAvailable: true,
+          );
+
+      if (cartProductIds.contains(effectiveVariant.variantId)) continue;
+
+      final savings = currentFee;
+      final action = BasketSuggestionAction(
+        type: 'product',
+        label: 'FREE DELIVERY',
+        ctaLabel: 'Add',
+        payload: {
+          'productId': product.productId ?? '',
+          'variantId': effectiveVariant.variantId,
+        },
+        productId: product.productId,
+        variantId: effectiveVariant.variantId,
+        benefit: savings,
+        extraSpend: effectiveVariant.price,
+      );
+
+      final score = _scoreFromComponents(
+        type: 'product',
+        conversionProbability: 32,
+        userRelevance: 22,
+        profitImpact: (savings * 1.5).clamp(8, 22).toDouble(),
+        urgency: 18,
+      );
+
+      results.add(
+        _Scored(
+          extraSpend: effectiveVariant.price,
+          totalBenefit: savings,
+          score: score,
+          suggestion: BasketSuggestion(
+            title: product.productName,
+            subtitle: 'Free delivery with this product',
+            message:
+                'Add ${product.productName} for free delivery',
+            type: 'single',
+            priority: 0,
+            actions: [action],
+            savingAmount: savings,
+            thumbnailUrl: product.imageUrl,
+            productId: product.productId,
           ),
         ),
       );
