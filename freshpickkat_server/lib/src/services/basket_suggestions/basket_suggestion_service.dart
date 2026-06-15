@@ -149,7 +149,7 @@ class BasketSuggestionService {
     // and delivery actions inside combined cards.
     final hasFreeDeliveryInCart = _hasCartFreeDeliveryProduct(
       normalizedItems,
-      freeDeliveryProducts,
+      productMap,
     );
 
     final deliveryScored = hasFreeDeliveryInCart
@@ -187,12 +187,14 @@ class BasketSuggestionService {
     );
     scored.addAll(variantScored);
 
-    final freeDeliveryScored = _scoreFreeDeliveryProducts(
-      cartItems: normalizedItems,
-      freeDeliveryProducts: freeDeliveryProducts,
-      cartTotal: cartTotal ?? 0,
-      deliveryConfig: deliveryConfig,
-    );
+    final freeDeliveryScored = hasFreeDeliveryInCart
+        ? const <_Scored>[]
+        : _scoreFreeDeliveryProducts(
+            cartItems: normalizedItems,
+            freeDeliveryProducts: freeDeliveryProducts,
+            cartTotal: cartTotal ?? 0,
+            deliveryConfig: deliveryConfig,
+          );
     scored.addAll(freeDeliveryScored);
 
     // ── 3. Build combination suggestions ────────────────────────────────────
@@ -2236,19 +2238,16 @@ class BasketSuggestionService {
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Returns true if any cart item is a product with [isFreeDelivery] = true.
-  /// Uses the already-fetched [freeDeliveryProducts] list — no extra DB call.
+  /// Uses [productMap] to find the product detail from the cart items.
   static bool _hasCartFreeDeliveryProduct(
     List<CartItemInput> cartItems,
-    List<Product> freeDeliveryProducts,
+    Map<String, Product> productMap,
   ) {
-    if (cartItems.isEmpty || freeDeliveryProducts.isEmpty) return false;
-    final freeDeliveryProductIds = freeDeliveryProducts
-        .where((p) => p.isFreeDelivery && p.productId != null)
-        .map((p) => p.productId!)
-        .toSet();
-    return cartItems.any(
-      (item) => freeDeliveryProductIds.contains(item.productId),
-    );
+    if (cartItems.isEmpty) return false;
+    return cartItems.any((item) {
+      final product = productMap[item.productId];
+      return product != null && product.isFreeDelivery;
+    });
   }
 
   static Future<DeliveryConfig> _getDeliveryConfig(Session session) async {

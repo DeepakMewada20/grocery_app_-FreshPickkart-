@@ -102,12 +102,17 @@ class _ProductCardState extends State<ProductCard> {
   }
 
   Future<void> _showBogoSelectionIfNeeded(Product product) async {
-    final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
     if (!isBogoProduct(product) || product.productId == null) return;
 
     final offer = await BogoController.instance.fetchOfferForProduct(
       product.productId!,
+      variantId: _variantId,
     );
+
+    final freeProductIds = (offer?.freeProductIds.isNotEmpty == true
+            ? offer!.freeProductIds
+            : product.bogoFreeProductIds) ??
+        const <String>[];
 
     final cartItem = _cartController.cartItems.firstWhereOrNull(
       (item) =>

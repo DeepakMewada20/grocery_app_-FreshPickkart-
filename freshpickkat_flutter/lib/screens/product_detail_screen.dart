@@ -114,11 +114,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _showBogoSelectionIfNeeded(Product product) async {
-    final freeProductIds = product.bogoFreeProductIds ?? const <String>[];
     if (!isBogoProduct(product) || product.productId == null) return;
     final offer = await BogoController.instance.fetchOfferForProduct(
       product.productId!,
+      variantId: _selectedVariantId,
     );
+
+    final freeProductIds = (offer?.freeProductIds.isNotEmpty == true
+            ? offer!.freeProductIds
+            : product.bogoFreeProductIds) ??
+        const <String>[];
 
     final cartItem = _cartItemForProduct(product);
     if (cartItem?.bogoFreeProductId != null) return;
@@ -156,12 +161,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Future<void> _openBogoSelectionSheet(Product product) async {
     if (!isBogoProduct(product) || product.productId == null) return;
-    await BogoController.instance.fetchOfferForProduct(product.productId!);
+    final offer = await BogoController.instance.fetchOfferForProduct(
+      product.productId!,
+      variantId: _selectedVariantId,
+    );
+    final freeProductIds = (offer?.freeProductIds.isNotEmpty == true
+            ? offer!.freeProductIds
+            : product.bogoFreeProductIds) ??
+        const <String>[];
     Get.bottomSheet(
       BogoSelectionBottomSheet(
         triggerProductId: product.productId!,
         triggerVariantId: _selectedVariantId,
-        freeProductIds: product.bogoFreeProductIds ?? const <String>[],
+        freeProductIds: freeProductIds,
       ),
       isScrollControlled: true,
     );

@@ -61,7 +61,15 @@ class BogoController extends GetxController {
     }
   }
 
-  BogoOffer? getOfferForProduct(String productId) {
+  BogoOffer? getOfferForProduct(String productId, {String? variantId}) {
+    if (variantId != null && variantId.isNotEmpty) {
+      final variantMatch = activeOffers.firstWhereOrNull(
+        (o) =>
+            o.triggerProductId == productId &&
+            o.triggerVariantId == variantId,
+      );
+      if (variantMatch != null) return variantMatch;
+    }
     return activeOffers.firstWhereOrNull(
       (o) => o.triggerProductId == productId,
     );
@@ -71,8 +79,8 @@ class BogoController extends GetxController {
     activeOffers.assignAll(data.activeBogoOffers);
   }
 
-  Future<BogoOffer?> fetchOfferForProduct(String productId) async {
-    final existing = getOfferForProduct(productId);
+  Future<BogoOffer?> fetchOfferForProduct(String productId, {String? variantId}) async {
+    final existing = getOfferForProduct(productId, variantId: variantId);
     if (existing != null) return existing;
 
     try {

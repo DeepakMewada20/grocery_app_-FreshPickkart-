@@ -72,7 +72,7 @@ class PostgresProductCompatService {
         : '';
 
     final freeDeliveryPredicate = freeDelivery == true
-        ? 'AND (p."isFreeDelivery" = TRUE OR c."isFreeDelivery" = TRUE)'
+        ? 'AND p."isFreeDelivery" = TRUE'
         : '';
 
     final result = await session.db.unsafeQuery(
