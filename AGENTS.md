@@ -59,6 +59,10 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 3. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
 
 ## Recent Fixes
+### Coupon active-only filter (`postgres_coupon_service.dart`)
+- `getAvailableCoupons()` and `getBestCoupon()` now fetch only `status = 'active'` rows from DB (`activeOnly: true`)
+- Fixes: user coupon screen no longer shows inactive coupons; basket screen only shows active ones; best-coupon auto-apply ignores inactive
+
 ### Category Screen Scroll Sync (`cetegoris_screen_with_stick_heder.dart`)
 - Simplified `_scrollToCategory`: removed complex `_estimateCategoryOffset` with nearest-built lookup
 - **Overshoot + correct strategy**: (1) `Scrollable.ensureVisible` if widget built (fast path); (2) otherwise `animateTo` to `_categoryOffsets[index] + 500px` buffer to force ListView to build the target widget; (3) retry `Scrollable.ensureVisible` for precise alignment; (4) progressive 200px nudges if widget still not built (up to 3 retries)
@@ -99,3 +103,4 @@ Eliminate multiple API calls per screen by implementing server-side hydration ac
 - `freshpickkat_admin/lib/controller/admin_category_controller.dart`: uses `getCategoryHierarchy`
 - `freshpickkat_admin/lib/controller/admin_offer_controller/admin_free_delivery_controller.dart`: uses `getFreeDeliveryHydrated`
 - `freshpickkat_admin/lib/screens/product_dialogs/product_form_dialog.dart`: uses `getProductFormReferenceData()` — removed 3 controller dependencies
+- `freshpickkat_server/lib/src/services/postgres/postgres_coupon_service.dart`: `getAvailableCoupons()` and `getBestCoupon()` now use `activeOnly: true`

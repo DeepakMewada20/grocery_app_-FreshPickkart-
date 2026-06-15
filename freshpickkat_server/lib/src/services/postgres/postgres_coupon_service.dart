@@ -283,7 +283,7 @@ class PostgresCouponService {
     required double cartSubtotal,
     required List<CartItemInput> cartItems,
   }) async {
-    final coupons = await fetchCoupons(session, activeOnly: false);
+    final coupons = await fetchCoupons(session, activeOnly: true);
     if (coupons.isEmpty) return const [];
 
     final evaluations = await _evaluateCoupons(
@@ -311,7 +311,7 @@ class PostgresCouponService {
     required double cartSubtotal,
     required List<CartItemInput> cartItems,
   }) async {
-    final coupons = await fetchCoupons(session, activeOnly: false);
+    final coupons = await fetchCoupons(session, activeOnly: true);
     if (coupons.isEmpty) {
       return BestCouponResult(bestCouponCode: null, discountAmount: 0);
     }
