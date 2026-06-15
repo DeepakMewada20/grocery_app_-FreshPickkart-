@@ -2076,7 +2076,7 @@ class BasketSuggestionService {
             isAvailable: true,
           );
 
-      if (cartProductIds.contains(effectiveVariant.variantId)) continue;
+      if (cartProductIds.contains(product.productId)) continue;
 
       final savings = currentFee;
       final action = BasketSuggestionAction(
@@ -2111,7 +2111,7 @@ class BasketSuggestionService {
             subtitle: 'Free delivery with this product',
             message:
                 'Add ${product.productName} for free delivery',
-            type: 'single',
+            type: 'product',
             priority: 0,
             actions: [action],
             savingAmount: savings,
