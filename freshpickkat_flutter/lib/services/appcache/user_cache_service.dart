@@ -15,7 +15,9 @@ class UserCacheService {
 
   Future<void> saveUser(AppUser user) async {
     try {
-      await _storage.write(_cachedUserKey, jsonEncode(user.toJson()));
+      final json = user.toJson();
+      json.remove('cart');
+      await _storage.write(_cachedUserKey, jsonEncode(json));
     } catch (_) {
       // Ignore cache errors
     }

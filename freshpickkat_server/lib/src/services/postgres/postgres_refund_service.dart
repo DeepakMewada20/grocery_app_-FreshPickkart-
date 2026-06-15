@@ -370,6 +370,16 @@ class PostgresRefundService {
       userId: order.userId.toString(),
       amount: cappedAmount,
     );
+
+    if (refund.refundStatus == 'failed') {
+      final errorMsg = refund.failureReason ?? 'Refund failed at payment gateway';
+      session.log(
+        'Refund failed for order ${order.orderNumber}: $errorMsg',
+        level: LogLevel.error,
+      );
+      throw Exception(errorMsg);
+    }
+
     return mapped;
   }
 

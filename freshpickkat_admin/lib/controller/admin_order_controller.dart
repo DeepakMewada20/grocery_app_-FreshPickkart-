@@ -247,6 +247,34 @@ class AdminOrderController extends GetxController {
     }
   }
 
+  Future<RefundRecord?> getRefundStatus(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.refund.adminGetRefundStatus(
+        orderId,
+        uid,
+        idToken,
+      );
+    });
+  }
+
+  Future<RefundRecord> retryRefund(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.refund.initiateRefund(
+        orderId,
+        uid,
+        idToken,
+      );
+    });
+  }
+
   Future<void> startDelivery(Order order) async {
     if (!Get.isRegistered<DeliveryTrackingController>()) {
       await updateOrderStatus(order, 'out_for_delivery');

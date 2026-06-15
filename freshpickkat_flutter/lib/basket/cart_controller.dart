@@ -16,7 +16,7 @@ import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
-import 'package:freshpickkat_flutter/services/appcache/user_cache_service.dart';
+
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/bogo_selection_bottomsheet.dart';
@@ -448,53 +448,6 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> fetchCartFromCache({bool isLoggedIn = false}) async {
-    final cachedUser = UserCacheService.instance.loadUser();
-    if (cachedUser != null && cachedUser.cart != null) {
-      try {
-        _isInitialLoading = true;
-        // We populate with "Slim" CartItems (minimal product info) just for the UI count
-        // until the full revalidation happens.
-        final items = cachedUser.cart!
-            .map(
-              (item) => CartItem(
-                product: Product(
-                  productId: item.productId,
-                  productName: '...',
-                  category: '',
-                  imageUrl: '',
-                  price: 0,
-                  realPrice: 0,
-                  discount: 0,
-                  isAvailable: true,
-                  addedAt: DateTime.now(),
-                  subcategory: [],
-                  quantity: '0',
-                  mostSearch: 0,
-                  mostPurchases: 0,
-                ),
-                variantId: item.variantId,
-                quantity: item.quantity,
-                comboId: item.comboId,
-                comboName: item.comboName,
-                comboDiscountType: item.comboDiscountType,
-                comboDiscountValue: item.comboDiscountValue,
-                comboItemQuantity: item.comboItemQuantity,
-              ),
-            )
-            .toList();
-        cartItems.assignAll(items);
-        _isInitialLoading = false;
-        // If not logged in, cache is our only source of truth for now
-        if (!isLoggedIn) {
-          _isInitialSyncComplete = true;
-        }
-      } catch (e) {
-        _isInitialLoading = false;
-        AppLogger.error('Cart', 'CacheLoad: $e');
-      }
-    }
-  }
 
   Future<void> fetchCartFromServer() async {
     final authController = AuthController.instance;
@@ -1701,11 +1654,6 @@ class CartController extends GetxController {
     basketSuggestions.clear();
     cartPricing.value = null;
     _lastSuggestedCartSnapshot = '';
-    final auth = AuthController.instance;
-    if (auth.appUser != null) {
-      final updatedUser = auth.appUser!.copyWith(cart: <protocol.CartItem>[]);
-      UserCacheService.instance.saveUser(updatedUser);
-    }
     _scheduleCartRefresh();
   }
 

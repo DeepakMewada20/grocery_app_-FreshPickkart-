@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
+import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({
@@ -38,12 +39,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   String? _otpError;
   bool _otpVerifying = false;
   bool _otpGenerating = false;
+  bool _refundLoading = false;
+  bool _refundRetrying = false;
+  RefundRecord? _refund;
   final AdminOrderController _orderController = AdminOrderController.instance;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+    _loadRefund();
   }
 
   @override
@@ -61,6 +66,75 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     super.dispose();
   }
 
+  Future<void> _loadRefund() async {
+    if (_order.refundStatus == 'none') return;
+    setState(() => _refundLoading = true);
+    try {
+      _refund = await _orderController.getRefundStatus(_order.orderId);
+    } catch (_) {}
+    if (mounted) setState(() => _refundLoading = false);
+  }
+
+  Future<void> _retryRefund() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Retry Refund'),
+        content: const Text(
+          'This will attempt to process the refund again. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AdminAppTheme.getErrorColor(context),
+              foregroundColor: AdminThemeTokens.white,
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    setState(() => _refundRetrying = true);
+    try {
+      final result = await _orderController.retryRefund(_order.orderId);
+      if (mounted) {
+        setState(() {
+          _refund = result;
+          _order = _order.copyWith(refundStatus: result.status);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Refund retried successfully. Amount: ₹${result.amount.toStringAsFixed(2)}',
+            ),
+            backgroundColor: AdminAppTheme.getSuccessColor(context),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Refund retry failed for order ${_order.orderId}: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Refund retry failed: $e'),
+            backgroundColor: AdminAppTheme.getErrorColor(context),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _refundRetrying = false);
+    }
+  }
+
   Future<void> _onRefresh() async {
     try {
       await _orderController.loadInitial(force: true);
@@ -70,6 +144,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (updated != null && mounted) {
         setState(() => _order = updated);
       }
+      await _loadRefund();
     } catch (_) {
     }
   }
@@ -384,21 +459,69 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
             if (order.refundStatus != 'none') ...[
               SizedBox(height: 12.h),
-              _DetailSection(
-                title: 'Refund Info',
-                icon: Icons.monetization_on_outlined,
-                children: [
-                  _DetailRow(
-                    icon: Icons.info_outline,
-                    label: 'Refund Status: ${order.refundStatus.toUpperCase()}',
-                  ),
-                  if (order.cancelledAt != null)
+              if (_refundLoading)
+                _DetailSection(
+                  title: 'Refund Info',
+                  icon: Icons.monetization_on_outlined,
+                  children: [
                     _DetailRow(
-                      icon: Icons.cancel_outlined,
-                      label: 'Cancelled: ${_formatDate(order.cancelledAt)}',
+                      icon: Icons.info_outline,
+                      label: 'Loading refund details...',
                     ),
-                ],
-              ),
+                  ],
+                )
+              else if (_refund != null)
+                RefundInfoCard(
+                  refund: _refund!,
+                  retryButton: _refund!.status == 'failed'
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _refundRetrying ? null : _retryRefund,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  AdminAppTheme.getErrorColor(context),
+                              foregroundColor: AdminThemeTokens.white,
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            icon: _refundRetrying
+                                ? SizedBox(
+                                    width: 18.sp,
+                                    height: 18.sp,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AdminThemeTokens.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh),
+                            label: Text(
+                              _refundRetrying
+                                  ? 'Retrying...'
+                                  : 'Retry Refund',
+                            ),
+                          ),
+                        )
+                      : null,
+                )
+              else
+                _DetailSection(
+                  title: 'Refund Info',
+                  icon: Icons.monetization_on_outlined,
+                  children: [
+                    _DetailRow(
+                      icon: Icons.info_outline,
+                      label: 'Refund Status: ${order.refundStatus.toUpperCase()}',
+                    ),
+                    if (order.cancelledAt != null)
+                      _DetailRow(
+                        icon: Icons.cancel_outlined,
+                        label: 'Cancelled: ${_formatDate(order.cancelledAt)}',
+                      ),
+                  ],
+                ),
             ],
             if (order.complaintId != null &&
                 order.complaintId!.isNotEmpty) ...[

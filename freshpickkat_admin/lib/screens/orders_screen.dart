@@ -863,19 +863,8 @@ class _OrderCardState extends State<_OrderCard> {
                         ],
                       ),
                     ),
-                    if (order.cancellationReason != null &&
-                        order.cancellationReason!.isNotEmpty)
-                      Expanded(
-                        child: Text(
-                          'Cancelled',
-                          style: TextStyle(
-                            color: AdminAppTheme.getErrorColor(context),
-                            fontSize: 12.sp.clamp(10.0, 13.0),
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
+                    if (order.refundStatus != 'none')
+                      _RefundStatusBadge(status: order.refundStatus),
                   ],
                 ),
 
@@ -1069,6 +1058,61 @@ class _OrderCardState extends State<_OrderCard> {
           color: color,
           fontWeight: FontWeight.w600,
           fontSize: 11.sp.clamp(9.0, 12.0),
+        ),
+      ),
+    );
+  }
+}
+
+class _RefundStatusBadge extends StatelessWidget {
+  const _RefundStatusBadge({required this.status});
+
+  final String status;
+
+  Color _color(BuildContext context) {
+    switch (status.toLowerCase()) {
+      case 'processed':
+        return AdminAppTheme.getSuccessColor(context);
+      case 'pending':
+      case 'refund_initiated':
+        return AdminAppTheme.getWarningColor(context);
+      case 'failed':
+        return AdminAppTheme.getErrorColor(context);
+      default:
+        return AdminAppTheme.getTextSecondaryColor(context);
+    }
+  }
+
+  String _label() {
+    switch (status.toLowerCase()) {
+      case 'processed':
+        return 'Refunded';
+      case 'pending':
+        return 'Refund Pending';
+      case 'refund_initiated':
+        return 'Refund Pending';
+      case 'failed':
+        return 'Refund Failed';
+      default:
+        return status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _color(context);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _label(),
+        style: TextStyle(
+          color: c,
+          fontSize: 10.sp.clamp(8.0, 11.0),
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

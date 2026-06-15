@@ -94,8 +94,6 @@ class AuthController extends GetxController {
     final cachedUser = _cacheService.loadUser();
     if (cachedUser != null) {
       appUserRx.value = cachedUser;
-      // Load cart count from cache immediately
-      CartController.instance.fetchCartFromCache(isLoggedIn: true);
     }
   }
 

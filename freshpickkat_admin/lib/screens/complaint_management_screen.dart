@@ -10,6 +10,7 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_state_view.dart';
 import 'package:freshpickkat_admin/widgets/order_details_card.dart';
+import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -228,7 +229,7 @@ class _ComplaintDetailAdminScreenState
                 ),
                 if (_complaintRefund != null) ...[
                   SizedBox(height: 12.h),
-                  _RefundInfoCard(refund: _complaintRefund!),
+                  RefundInfoCard(refund: _complaintRefund!),
                 ],
                 SizedBox(height: 12.h),
                 OrderDetailsCard(complaint: _complaint),
@@ -928,112 +929,4 @@ class _ImageGrid extends StatelessWidget {
   }
 }
 
-class _RefundInfoCard extends StatelessWidget {
-  const _RefundInfoCard({required this.refund});
 
-  final RefundRecord refund;
-
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'processed':
-      case 'refunded':
-        return Colors.green;
-      case 'pending':
-      case 'initiated':
-        return Colors.orange;
-      case 'failed':
-        return Colors.redAccent;
-      default:
-        return Colors.blueGrey;
-    }
-  }
-
-  String _statusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'processed':
-      case 'refunded':
-        return 'Completed';
-      case 'pending':
-      case 'initiated':
-        return 'Initiated';
-      case 'failed':
-        return 'Failed';
-      default:
-        return status;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final statusColor = _statusColor(refund.status);
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 8.r,
-                height: 8.r,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'Refund Information',
-                style: AdminTextStyles.sectionTitle(context),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          _refundRow('Status', _statusLabel(refund.status), statusColor, context),
-          SizedBox(height: 8.h),
-          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, context),
-          SizedBox(height: 8.h),
-          _refundRow('Refund ID', refund.refundId, null, context),
-          SizedBox(height: 8.h),
-          _refundRow('Initiated', _formatDate(refund.createdAt), null, context),
-          SizedBox(height: 8.h),
-          _refundRow('Expected', '2–5 Business Days', null, context),
-        ],
-      ),
-    );
-  }
-
-  Widget _refundRow(String label, String value, Color? valueColor, BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        SizedBox(
-          width: 130.w,
-          child: Text(label, style: AdminTextStyles.caption(context)),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? cs.onSurface,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime dt) {
-    final local = dt.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
-  }
-}
