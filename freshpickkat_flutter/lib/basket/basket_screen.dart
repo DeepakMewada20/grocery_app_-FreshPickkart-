@@ -58,7 +58,7 @@ class _BasketScreenState extends State<BasketScreen> {
         );
       }
     });
-    BannerController.instance.loadBannersForScreen('cart_page');
+    BannerController.instance.refreshBannersForScreen('cart_page');
 
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;
@@ -66,6 +66,7 @@ class _BasketScreenState extends State<BasketScreen> {
         final currentRoute = Get.currentRoute;
         if (currentRoute.contains('basket')) {
           CartController.instance.refreshCartCurrentData();
+          BannerController.instance.refreshBannersForScreen('cart_page');
         }
       }
     });
@@ -74,6 +75,7 @@ class _BasketScreenState extends State<BasketScreen> {
   Future<void> _onRefresh() async {
     final cartController = CartController.instance;
     cartController.triggerPricingRefresh();
+    BannerController.instance.refreshBannersForScreen('cart_page');
     // Small delay so the RefreshIndicator spinner is visible
     await Future.delayed(const Duration(milliseconds: 400));
   }

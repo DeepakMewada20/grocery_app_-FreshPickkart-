@@ -21,42 +21,80 @@ class PostgresHomeService {
     int productLimit = 20,
     int rankingLimit = 10,
   }) async {
+    // Each query wrapped with catchError so a single failure never crashes the whole response
+    final bannerTopImageFuture = _banner
+        .getBanners(session, screen: 'home_top_image', activeOnly: true)
+        .catchError((_, __) => <Banner>[]);
+    final bannerTopFuture = _banner
+        .getBanners(session, screen: 'home_top', activeOnly: true)
+        .catchError((_, __) => <Banner>[]);
+    final bannerMiddleFuture = _banner
+        .getBanners(session, screen: 'home_middle', activeOnly: true)
+        .catchError((_, __) => <Banner>[]);
+    final bogoFuture = _offer
+        .getActiveBogoOffers(session)
+        .catchError((_, __) => <BogoOffer>[]);
+    final comboFuture = _offer
+        .getActiveComboOffers(session)
+        .catchError((_, __) => <ComboOffer>[]);
+    final categoryFuture = _category
+        .getCategories(session)
+        .catchError((_, __) => <Category>[]);
+    final subCategoryFuture = _category
+        .getSubCategories(session)
+        .catchError((_, __) => <SubCategory>[]);
+    final deliveryFuture = _getDeliveryOffer(session, userId)
+        .catchError((_, __) => null);
+    final catalogIdsFuture = _catalog
+        .getActiveProductIds(session, limit: productLimit)
+        .catchError((_, __) => <String>[]);
+    final trendingFuture = _ranking
+        .getRankedProductIds(
+          session,
+          limit: rankingLimit,
+          metricType: 'trending',
+          metricColumn: 'trendingScore',
+        )
+        .catchError((_, __) => <RankingRow>[]);
+    final sellingFuture = _ranking
+        .getRankedProductIds(
+          session,
+          limit: rankingLimit,
+          metricType: 'most_selling',
+          metricColumn: 'mostPurchaseCount',
+        )
+        .catchError((_, __) => <RankingRow>[]);
+    final viewedFuture = _ranking
+        .getRankedProductIds(
+          session,
+          limit: rankingLimit,
+          metricType: 'most_viewed',
+          metricColumn: 'mostSearchCount',
+        )
+        .catchError((_, __) => <RankingRow>[]);
+    final reorderFuture = _ranking
+        .getRankedProductIds(
+          session,
+          limit: rankingLimit,
+          metricType: 'frequently_reordered',
+          metricColumn: 'reorderCount',
+        )
+        .catchError((_, __) => <RankingRow>[]);
+
     final phase1Results = await Future.wait([
-      // Non-product fetches
-      _banner.getBanners(session, screen: 'home_top_image', activeOnly: true),
-      _banner.getBanners(session, screen: 'home_top', activeOnly: true),
-      _banner.getBanners(session, screen: 'home_middle', activeOnly: true),
-      _offer.getActiveBogoOffers(session),
-      _offer.getActiveComboOffers(session),
-      _category.getCategories(session),
-      _category.getSubCategories(session),
-      _getDeliveryOffer(session, userId),
-      // Product ID fetches (lightweight, no hydration)
-      _catalog.getActiveProductIds(session, limit: productLimit),
-      _ranking.getRankedProductIds(
-        session,
-        limit: rankingLimit,
-        metricType: 'trending',
-        metricColumn: 'trendingScore',
-      ),
-      _ranking.getRankedProductIds(
-        session,
-        limit: rankingLimit,
-        metricType: 'most_selling',
-        metricColumn: 'mostPurchaseCount',
-      ),
-      _ranking.getRankedProductIds(
-        session,
-        limit: rankingLimit,
-        metricType: 'most_viewed',
-        metricColumn: 'mostSearchCount',
-      ),
-      _ranking.getRankedProductIds(
-        session,
-        limit: rankingLimit,
-        metricType: 'frequently_reordered',
-        metricColumn: 'reorderCount',
-      ),
+      bannerTopImageFuture,
+      bannerTopFuture,
+      bannerMiddleFuture,
+      bogoFuture,
+      comboFuture,
+      categoryFuture,
+      subCategoryFuture,
+      deliveryFuture,
+      catalogIdsFuture,
+      trendingFuture,
+      sellingFuture,
+      viewedFuture,
+      reorderFuture,
     ]);
 
     final topImageBanners = phase1Results[0] as List<Banner>;

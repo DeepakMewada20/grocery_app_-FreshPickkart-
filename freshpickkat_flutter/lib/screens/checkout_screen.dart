@@ -105,7 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             .assignAll(hydrated.checkoutBanners);
       } else {
         cartController.cartPricing.value = null;
-        await BannerController.instance.loadBannersForScreen('checkout_page');
+        await BannerController.instance.refreshBannersForScreen('checkout_page');
       }
 
       await orderRecoveryService.recoverPendingPayments(
@@ -114,7 +114,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       AppLogger.error('Checkout', 'HydratedInit: $e');
       await cartController.refreshCartCurrentData();
-      await BannerController.instance.loadBannersForScreen('checkout_page');
+      await BannerController.instance.refreshBannersForScreen('checkout_page');
       await orderRecoveryService.recoverPendingPayments(
         trigger: 'checkout_open',
       );

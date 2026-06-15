@@ -34,6 +34,8 @@ class _HomeBannerWithHorizontalItemState
 
     if (BannerController.instance.homeTopImageBanners.isNotEmpty) {
       _handleBannerChange();
+    } else {
+      BannerController.instance.ensureHomeBannersLoaded();
     }
   }
 

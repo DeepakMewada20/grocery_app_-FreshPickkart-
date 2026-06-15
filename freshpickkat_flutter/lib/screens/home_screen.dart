@@ -128,6 +128,7 @@ class _HomePageState extends State<HomePage>
     _savedScrollOffset = 0;
     _hasRestoredScrollOffset = false;
     await HomeDataService().fetchHomePageData();
+    BannerController.instance.ensureHomeBannersLoaded();
   }
 
   void _storeScrollOffset() {
@@ -214,8 +215,11 @@ class _HomePageState extends State<HomePage>
 
                     if (!hasData)
                       InitialLoadingScreen(
-                        onRetry: () {
-                          productController.fetchProducts();
+                        onRetry: () async {
+                          await Future.wait([
+                            productController.fetchProducts(),
+                            BannerController.instance.ensureHomeBannersLoaded(),
+                          ]);
                         },
                       )
                     else ...[

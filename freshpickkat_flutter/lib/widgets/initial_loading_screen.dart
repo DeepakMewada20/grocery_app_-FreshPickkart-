@@ -749,7 +749,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
 }
 
 class InitialLoadingScreen extends StatelessWidget {
-  final VoidCallback onRetry;
+  final Future<void> Function() onRetry;
   final bool useHomeScreenSkeleton;
 
   const InitialLoadingScreen({

@@ -111,7 +111,6 @@ class BannerController extends GetxController {
   }
 
   Future<void> loadBannersForScreen(String screen) async {
-    // Determine which list to update and if it already has data
     RxList<client.Banner>? targetList;
     switch (screen) {
       case 'category_page':
@@ -130,6 +129,40 @@ class BannerController extends GetxController {
 
     if (targetList == null || targetList.isNotEmpty) return;
 
+    try {
+      isLoading.value = true;
+      final banners = await _client.banner.getBanners(
+        screen: screen,
+        activeOnly: true,
+      );
+      targetList.assignAll(banners);
+    } catch (e) {
+      AppLogger.error('Banner', '$screen: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> refreshBannersForScreen(String screen) async {
+    RxList<client.Banner>? targetList;
+    switch (screen) {
+      case 'category_page':
+        targetList = categoryPageBanners;
+        break;
+      case 'cart_page':
+        targetList = cartPageBanners;
+        break;
+      case 'checkout_page':
+        targetList = checkoutPageBanners;
+        break;
+      case 'product_page':
+        targetList = productPageBanners;
+        break;
+      default:
+        return;
+    }
+
+    targetList.clear();
     try {
       isLoading.value = true;
       final banners = await _client.banner.getBanners(
@@ -203,6 +236,15 @@ class BannerController extends GetxController {
     homeTopImageBanners.assignAll(data.topImageBanners);
     homeTopBanners.assignAll(data.topBanners);
     homeMiddleBanners.assignAll(data.middleBanners);
+  }
+
+  /// Fallback: loads home banners individually if hydration didn't populate them.
+  /// Safe to call anytime — each internal method checks isNotEmpty before fetching.
+  /// Runs sequentially because all three share the same _isFetching mutex.
+  Future<void> ensureHomeBannersLoaded() async {
+    await loadHomeTopImageBannersIfEmpty();
+    await loadHomeBannersIfEmpty();
+    await loadHomeMiddleBannersIfEmpty();
   }
 
   /// Central tap handler — delegates to BannerNavigationHelper
