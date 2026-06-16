@@ -262,6 +262,90 @@ class PostgresPaymentService {
   /// Called by the Razorpay webhook or reconciliation cron to
   /// definitively mark a payment as successful.
   /// This is the single source of truth for order confirmation.
+  /// Verify payment from the shareable payment link page.
+  /// This is called by the browser-based Razorpay Checkout handler.
+  Future<Map<String, dynamic>> verifyPaymentFromLink(
+    Session session, {
+    required String orderNumber,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
+    String? paymentLinkToken,
+  }) async {
+    // First verify via HMAC signature (reuse existing logic)
+    final verifyResult = await verifyPayment(
+      session,
+      orderNumber: orderNumber,
+      razorpayOrderId: razorpayOrderId,
+      razorpayPaymentId: razorpayPaymentId,
+      razorpaySignature: razorpaySignature,
+    );
+
+    if (!verifyResult.success || !verifyResult.verified) {
+      return {
+        'success': false,
+        'verified': false,
+        'message': verifyResult.message ?? verifyResult.error ?? 'Verification failed',
+      };
+    }
+
+    // Store payer info
+    if (paidByName != null || paidByPhone != null || paidByEmail != null) {
+      try {
+        final orderRow = await CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(orderNumber),
+        );
+        if (orderRow != null) {
+          final now = DateTime.now().toUtc();
+          await CustomerOrderRow.db.updateRow(
+            session,
+            orderRow.copyWith(
+              paidByName: paidByName ?? orderRow.paidByName,
+              paidByPhone: paidByPhone ?? orderRow.paidByPhone,
+              paidByEmail: paidByEmail ?? orderRow.paidByEmail,
+              updatedAt: now,
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+
+    // Mark payment link as used
+    if (paymentLinkToken != null && paymentLinkToken.isNotEmpty) {
+      try {
+        await session.db.unsafeQuery(
+          '''
+          UPDATE "payment_link"
+          SET "isUsed" = true,
+              "usedAt" = @now,
+              "paidByName" = @paidByName,
+              "paidByPhone" = @paidByPhone,
+              "paidByEmail" = @paidByEmail,
+              "updatedAt" = @now
+          WHERE "token" = @token
+          ''',
+          parameters: QueryParameters.named({
+            'token': paymentLinkToken,
+            'now': DateTime.now().toUtc().toIso8601String(),
+            'paidByName': paidByName,
+            'paidByPhone': paidByPhone,
+            'paidByEmail': paidByEmail,
+          }),
+        );
+      } catch (_) {}
+    }
+
+    return {
+      'success': true,
+      'verified': true,
+      'message': 'Payment verified successfully.',
+    };
+  }
+
   Future<PaymentVerifyResult> completePaymentVerification(
     Session session, {
     required String orderNumber,

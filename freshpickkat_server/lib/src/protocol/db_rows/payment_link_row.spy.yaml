@@ -1,0 +1,21 @@
+class: PaymentLinkRow
+serverOnly: true
+table: payment_link
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue
+  token: String
+  expiresAt: DateTime
+  isUsed: bool, default=false
+  usedAt: DateTime?
+  paidByName: String?
+  paidByPhone: String?
+  paidByEmail: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  payment_link_token_idx:
+    fields: token
+    unique: true
+  payment_link_order_idx:
+    fields: orderId

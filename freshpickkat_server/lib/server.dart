@@ -12,6 +12,7 @@ import 'src/services/payment_reconciliation_cron_job.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
+import 'src/web/routes/payment_page_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -46,6 +47,9 @@ void run(List<String> args) async {
   // Razorpay webhook (POST)
   pod.webServer.addRoute(RazorpayWebhookRoute(), '/payment/webhook');
   pod.webServer.addRoute(RazorpayWebhookRoute(), '/webhook/razorpay');
+
+  // Payment page for shareable payment links
+  pod.webServer.addRoute(PaymentPageRoute(), '/pay/{token}');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

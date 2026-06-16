@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "steps": [
+    {
+      "type": "createTable",
+      "tableName": "payment_link",
+      "createTableSql": "CREATE TABLE \"payment_link\" (\"id\" uuid PRIMARY KEY DEFAULT gen_random_uuid(), \"orderId\" uuid NOT NULL, \"token\" text NOT NULL, \"expiresAt\" timestamp without time zone NOT NULL, \"isUsed\" boolean NOT NULL DEFAULT false, \"usedAt\" timestamp without time zone, \"paidByName\" text, \"paidByPhone\" text, \"paidByEmail\" text, \"createdAt\" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP, \"updatedAt\" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP)"
+    },
+    {
+      "type": "createIndex",
+      "tableName": "payment_link",
+      "indexName": "payment_link_token_idx",
+      "indexSql": "CREATE UNIQUE INDEX \"payment_link_token_idx\" ON \"payment_link\" USING btree (\"token\")"
+    },
+    {
+      "type": "createIndex",
+      "tableName": "payment_link",
+      "indexName": "payment_link_order_idx",
+      "indexSql": "CREATE INDEX \"payment_link_order_idx\" ON \"payment_link\" USING btree (\"orderId\")"
+    },
+    {
+      "type": "addColumn",
+      "tableName": "customer_order",
+      "columnName": "paymentMode",
+      "columnSql": "ALTER TABLE \"customer_order\" ADD COLUMN \"paymentMode\" text NOT NULL DEFAULT 'standard'"
+    },
+    {
+      "type": "addColumn",
+      "tableName": "customer_order",
+      "columnName": "paymentExpiresAt",
+      "columnSql": "ALTER TABLE \"customer_order\" ADD COLUMN \"paymentExpiresAt\" timestamp without time zone"
+    },
+    {
+      "type": "addColumn",
+      "tableName": "customer_order",
+      "columnName": "paidByName",
+      "columnSql": "ALTER TABLE \"customer_order\" ADD COLUMN \"paidByName\" text"
+    },
+    {
+      "type": "addColumn",
+      "tableName": "customer_order",
+      "columnName": "paidByPhone",
+      "columnSql": "ALTER TABLE \"customer_order\" ADD COLUMN \"paidByPhone\" text"
+    },
+    {
+      "type": "addColumn",
+      "tableName": "customer_order",
+      "columnName": "paidByEmail",
+      "columnSql": "ALTER TABLE \"customer_order\" ADD COLUMN \"paidByEmail\" text"
+    },
+    {
+      "type": "addForeignKey",
+      "table": "payment_link",
+      "constraintName": "payment_link_fk_0",
+      "foreignKeySql": "ALTER TABLE ONLY \"payment_link\" ADD CONSTRAINT \"payment_link_fk_0\" FOREIGN KEY (\"orderId\") REFERENCES \"customer_order\"(\"id\") ON DELETE CASCADE"
+    }
+  ]
+}

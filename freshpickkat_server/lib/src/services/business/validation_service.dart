@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart' as protocol;
 
 class ValidationService {
+  static const statusPaymentPending = 'payment_pending';
   static const statusPlaced = 'placed';
   static const statusPaymentVerification = 'payment_verification';
   static const statusConfirmed = 'confirmed';
@@ -170,6 +171,11 @@ class ValidationService {
     if (current == next) return;
 
     const allowed = <String, Set<String>>{
+      statusPaymentPending: {
+        statusConfirmed,
+        statusCancelled,
+        statusPaymentFailed,
+      },
       statusPlaced: {
         statusPaymentVerification,
         statusCancelled,
@@ -239,7 +245,7 @@ class ValidationService {
 
   static String _getStatusLabel(String status) {
     const labels = {
-      'placed': 'Payment Pending',
+      'payment_pending': 'Payment Pending',
       'pending': 'Payment Pending',
       'payment_verification': 'Payment Verification',
       'verifying': 'Payment Verification',

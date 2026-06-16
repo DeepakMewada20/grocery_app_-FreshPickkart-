@@ -43,3 +43,4 @@ fields:
   orderType: String
   sourceOrderNumber: String?
   complaintId: String?
+  paymentMode: String?

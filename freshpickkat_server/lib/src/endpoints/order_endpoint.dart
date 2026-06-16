@@ -13,6 +13,7 @@ import '../services/postgres/postgres_user_guard_service.dart';
 import '../services/realtime_service.dart';
 
 class OrderEndpoint extends Endpoint {
+  static const String statusPaymentPending = 'payment_pending';
   static const String statusPlaced = 'placed';
   static const String statusPaymentVerification = 'payment_verification';
   static const String statusConfirmed = 'confirmed';

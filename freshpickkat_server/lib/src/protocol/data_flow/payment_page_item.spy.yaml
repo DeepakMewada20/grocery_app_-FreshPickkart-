@@ -1,0 +1,8 @@
+class: PaymentPageItem
+fields:
+  productName: String
+  variantLabel: String?
+  quantity: int
+  unitPrice: double
+  totalPrice: double
+  productImage: String?

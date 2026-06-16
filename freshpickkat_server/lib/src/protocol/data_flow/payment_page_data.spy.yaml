@@ -1,0 +1,15 @@
+class: PaymentPageData
+fields:
+  valid: bool
+  errorMessage: String?
+  orderId: String?
+  orderNumber: String?
+  finalAmount: double?
+  itemCount: int?
+  deliveryAddress: String?
+  items: List<PaymentPageItem>?
+  razorpayOrderId: String?
+  amountPaise: int?
+  currency: String?
+  expiresAt: DateTime?
+  createdAt: DateTime?

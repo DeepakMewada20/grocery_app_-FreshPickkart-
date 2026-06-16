@@ -1,0 +1,10 @@
+class: PaymentLinkData
+fields:
+  success: bool
+  token: String?
+  paymentLink: String?
+  expiresAt: DateTime?
+  razorpayOrderId: String?
+  amount: int?
+  orderId: String?
+  error: String?

@@ -9,6 +9,11 @@ fields:
   paymentStatus: String
   refundStatus: String
   couponId: UuidValue?
+  paymentMode: String, default='standard'
+  paymentExpiresAt: DateTime?
+  paidByName: String?
+  paidByPhone: String?
+  paidByEmail: String?
   itemCount: int
   totalAmount: double
   discountAmount: double, default=0

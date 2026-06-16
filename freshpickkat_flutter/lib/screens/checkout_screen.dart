@@ -13,9 +13,9 @@ import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
+import 'package:freshpickkat_flutter/services/payment_link_service.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -35,6 +35,8 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -50,6 +52,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final orderController = OrderController.instance;
   final checkoutService = CheckoutService.instance;
   final paymentService = PaymentService.instance;
+  final paymentLinkService = PaymentLinkService.instance;
   final orderRecoveryService = OrderRecoveryService.instance;
   final networkController = NetworkController.instance;
   final client = ServerpodClient().client;
@@ -57,6 +60,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Razorpay? _razorpay;
   bool _isProcessing = false;
+  bool _isShareablePayment = false;
   String? _loadingStatus;
   String? _errorMessage;
   bool _isErrorBanner = true;
@@ -155,6 +159,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
+
+    if (_isShareablePayment) {
+      await _placeOrderWithShareableLink();
+      return;
+    }
 
     // 1. If an initial refresh is still running, wait for it first
     if (_refreshFuture != null) {
@@ -301,6 +310,216 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       AppLogger.error('Checkout', e);
       _showError(ErrorMessages.paymentFailed);
     }
+  }
+
+  Future<void> _placeOrderWithShareableLink() async {
+    if (_isProcessing) return;
+
+    try {
+      _setProcessing(true, clearError: true, status: 'Creating order...');
+
+      final deliveryAddress = orderController.getDeliveryAddress(
+        userController.shippingAddress.value,
+      );
+
+      if (deliveryAddress == null ||
+          deliveryAddress.latitude == null ||
+          deliveryAddress.longitude == null) {
+        _setProcessing(false);
+        _openLocationPicker(initialAddress: deliveryAddress);
+        if (!mounted) return;
+        AppSnackbar.show(
+          'Location Needed',
+          'Please pick your location on the map.',
+        );
+        return;
+      }
+
+      final customerPhone = _getCustomerPhone();
+      if (customerPhone.isEmpty) {
+        _showError(ErrorMessages.phoneRequired);
+        return;
+      }
+
+      final order = _buildOrderFromCart(deliveryAddress);
+      final idempotencyKey = checkoutService.generateIdempotencyKey(
+        authController.currentUser?.uid ?? '',
+      );
+
+      _setProcessing(true, status: 'Creating payment link...');
+
+      final result = await paymentLinkService.createShareablePaymentLink(
+        draftOrder: order,
+        idempotencyKey: idempotencyKey,
+        amount: cartController.totalAmount,
+        customerPhone: customerPhone,
+      );
+
+      if (result['success'] != true) {
+        _showError(result['error'] as String? ?? 'Failed to create payment link');
+        return;
+      }
+
+      final paymentLink = result['paymentLink'] as String? ?? '';
+      final orderId = result['orderId'] as String? ?? '';
+
+      _setProcessing(false);
+
+      if (!mounted) return;
+
+      _showSharePaymentLinkSheet(paymentLink, orderId);
+    } catch (e) {
+      AppLogger.error('ShareablePayment', e);
+      _showError(ErrorMessages.paymentFailed);
+    }
+  }
+
+  void _showSharePaymentLinkSheet(String paymentLink, String orderId) {
+    final amount = cartController.totalAmount;
+    final message =
+        'Hi,\n\nI have placed a grocery order worth ₹${amount.toStringAsFixed(2)}.'
+        '\n\nCan you please complete the payment using the link below?\n\n$paymentLink'
+        '\n\nThis link expires in 30 minutes.';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return ConstrainedBox(
+          constraints: AppResponsive.sheetConstraints(context),
+          child: Container(
+            padding: EdgeInsets.all(20.r),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 48.r,
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  'Order Created!',
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Share the payment link with someone to complete the payment.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    '#$orderId',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildShareButton(
+                        icon: Icons.copy,
+                        label: 'Copy Link',
+                        color: Colors.grey[700]!,
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: paymentLink));
+                          AppSnackbar.show(
+                            'Link Copied',
+                            'Payment link copied to clipboard.',
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: _buildShareButton(
+                        icon: Icons.share,
+                        label: 'Share',
+                        color: AppTheme.primaryGreen,
+                        onTap: () {
+                          Share.share(
+                            message,
+                            subject: 'Payment for Order #$orderId',
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShareButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12.r),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 28.r),
+            SizedBox(height: 4.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<bool> _startUpiPaymentFlow({
@@ -2003,18 +2222,102 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.payments_outlined, color: cs.onSurface),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Text(
-              'Pay Online (Razorpay) - INR',
-              style: TextStyle(color: cs.onSurface),
-            ),
+          Row(
+            children: [
+              Icon(Icons.payments_outlined, color: cs.onSurface),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'Payment Method',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          Icon(Icons.check_circle, color: Colors.green, size: 20.r),
+          SizedBox(height: 12.h),
+          _buildPaymentOptionTile(
+            cs: cs,
+            icon: Icons.person,
+            title: 'Pay Now',
+            subtitle: 'Pay using UPI, Cards, Net Banking',
+            isSelected: !_isShareablePayment,
+            onTap: () => setState(() => _isShareablePayment = false),
+          ),
+          SizedBox(height: 8.h),
+          _buildPaymentOptionTile(
+            cs: cs,
+            icon: Icons.share,
+            title: 'Ask Someone Else To Pay',
+            subtitle: 'Share a payment link via WhatsApp, SMS, etc.',
+            isSelected: _isShareablePayment,
+            onTap: () => setState(() => _isShareablePayment = true),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentOptionTile({
+    required ColorScheme cs,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.all(12.r),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryGreen : cs.outlineVariant,
+            width: isSelected ? 2 : 1,
+          ),
+          color: isSelected
+              ? AppTheme.primaryGreen.withValues(alpha: 0.06)
+              : Colors.transparent,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? AppTheme.primaryGreen : cs.onSurface),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? AppTheme.primaryGreen : cs.onSurface,
+              size: 20.r,
+            ),
+          ],
+        ),
       ),
     );
   }

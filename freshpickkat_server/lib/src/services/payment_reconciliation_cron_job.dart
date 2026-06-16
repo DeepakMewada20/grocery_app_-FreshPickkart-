@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:serverpod/serverpod.dart';
 
+import 'postgres/postgres_payment_link_service.dart';
 import 'postgres/postgres_payment_service.dart';
 
 class PaymentReconciliationCronJob {
@@ -9,9 +10,11 @@ class PaymentReconciliationCronJob {
 
   static const int _reconciliationLock = 4200301;
   static const int _autoCancelLock = 4200302;
+  static const int _paymentLinkExpiryLock = 4200303;
 
   final Serverpod _pod;
   final PostgresPaymentService _payments = PostgresPaymentService();
+  final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
 
   Timer? _reconciliationTimer;
   Timer? _autoCancelTimer;
@@ -28,8 +31,15 @@ class PaymentReconciliationCronJob {
       (_) => unawaited(runAutoCancellation()),
     );
 
+    // Run payment link expiry check every minute
+    _autoCancelTimer ??= Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(runPaymentLinkExpiry()),
+    );
+
     unawaited(runPaymentReconciliation());
     unawaited(runAutoCancellation());
+    unawaited(runPaymentLinkExpiry());
   }
 
   void stop() {
@@ -60,6 +70,18 @@ class PaymentReconciliationCronJob {
           session,
           timeout: const Duration(minutes: 10),
         );
+      });
+    } finally {
+      _autoCancelRunning = false;
+    }
+  }
+
+  Future<void> runPaymentLinkExpiry() async {
+    if (_autoCancelRunning) return;
+    _autoCancelRunning = true;
+    try {
+      await _runLocked(_paymentLinkExpiryLock, (session) async {
+        await _paymentLinks.expireExpiredLinks(session);
       });
     } finally {
       _autoCancelRunning = false;

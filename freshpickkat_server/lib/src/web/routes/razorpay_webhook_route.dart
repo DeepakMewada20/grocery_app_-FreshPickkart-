@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../../services/env_service.dart';
+import '../../services/postgres/postgres_payment_link_service.dart';
 import '../../services/postgres/postgres_payment_service.dart';
 import '../../services/postgres/postgres_refund_service.dart';
 
@@ -13,6 +14,7 @@ class RazorpayWebhookRoute extends Route {
 
   final PostgresPaymentService _payments = PostgresPaymentService();
   final PostgresRefundService _refunds = PostgresRefundService();
+  final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
@@ -150,6 +152,57 @@ class RazorpayWebhookRoute extends Route {
             body: Body.fromString(result.message ?? result.error ?? 'Failed'),
           );
         }
+
+        // Mark payment link as used (for shareable link orders)
+        try {
+          final paymentEntity =
+              payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
+          final notes = paymentEntity?['notes'] as Map<String, dynamic>?;
+          final paidByName = notes?['paidByName']?.toString();
+          final paidByPhone = notes?['paidByPhone']?.toString();
+          final paidByEmail = notes?['paidByEmail']?.toString();
+
+          if (order.orderId != null && order.orderId.isNotEmpty) {
+            final orderRow = await CustomerOrderRow.db.findFirstRow(
+              session,
+              where: (t) => t.orderNumber.equals(order.orderId),
+            );
+            if (orderRow?.id != null) {
+              final token = await _paymentLinks.getTokenForOrder(
+                session,
+                orderRow!.id!,
+              );
+              if (token != null) {
+                await _paymentLinks.markUsed(
+                  session,
+                  token,
+                  paidByName: paidByName,
+                  paidByPhone: paidByPhone,
+                  paidByEmail: paidByEmail,
+                );
+
+                // Also store payer info on the order
+                if (paidByName != null || paidByPhone != null || paidByEmail != null) {
+                  await CustomerOrderRow.db.updateRow(
+                    session,
+                    orderRow.copyWith(
+                      paidByName: paidByName ?? orderRow.paidByName,
+                      paidByPhone: paidByPhone ?? orderRow.paidByPhone,
+                      paidByEmail: paidByEmail ?? orderRow.paidByEmail,
+                      updatedAt: DateTime.now().toUtc(),
+                    ),
+                  );
+                }
+              }
+            }
+          }
+        } catch (e) {
+          session.log(
+            'Failed to mark payment link as used: $e',
+            level: LogLevel.warning,
+          );
+        }
+
         session.log(
           'Webhook: payment $paymentId successfully completed for order $orderNumber',
           level: LogLevel.info,
