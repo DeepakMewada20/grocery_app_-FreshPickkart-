@@ -57,7 +57,9 @@ class _MainScreenState extends State<MainScreen> {
         final currentIndex = tabController.currentTabIndex.value;
         return LazyIndexedStack(index: currentIndex, children: _screens);
       }),
-      bottomNavigationBar: Obx(() {
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Obx(() {
         // Rebuild on theme mode change
         ThemeController.instance.themeMode;
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -131,6 +133,7 @@ class _MainScreenState extends State<MainScreen> {
           ],
         );
       }),
-    );
+    ),
+  );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as protocol;
+import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
@@ -280,9 +281,11 @@ class _DeactivatedTab<T> extends StatelessWidget {
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: ListView.builder(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
+          padding: EdgeInsets.only(
+            left: 14,
+            right: 14,
+            top: 14,
+            bottom: AdminResponsive.bottomInset(context),
           ),
           itemCount: sourceList.length,
           itemBuilder: (context, index) {

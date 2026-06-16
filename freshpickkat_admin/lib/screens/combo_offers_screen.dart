@@ -198,6 +198,9 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
 
               return ListView.builder(
                 controller: _scrollController,
+                padding: EdgeInsets.only(
+                  bottom: AdminResponsive.bottomInset(context),
+                ),
                 itemCount:
                     offers.length + (_controller.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {

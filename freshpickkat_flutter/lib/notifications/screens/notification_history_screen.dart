@@ -37,7 +37,8 @@ class _NotificationHistoryScreenState extends State<NotificationHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Notification History')),
-      body: Obx(() {
+      body: SafeArea(
+        child: Obx(() {
         final items = _controller.history;
         if (_controller.isLoadingHistory.value && items.isEmpty) {
           return const Center(child: CircularProgressIndicator());
@@ -73,6 +74,7 @@ class _NotificationHistoryScreenState extends State<NotificationHistoryScreen> {
           ),
         );
       }),
+      ),
     );
   }
 }

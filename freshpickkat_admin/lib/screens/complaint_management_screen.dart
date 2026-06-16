@@ -89,7 +89,9 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
         return RefreshIndicator(
           onRefresh: () => _controller.load(status: _controller.statusFilter),
           child: ListView.separated(
-            padding: AdminResponsive.pagePadding(context),
+            padding: AdminResponsive.pagePadding(context).copyWith(
+              bottom: AdminResponsive.bottomInset(context),
+            ),
             itemCount: _controller.complaints.length +
                 (_controller.hasMore.value ? 1 : 0),
             separatorBuilder: (_, _) => SizedBox(height: 10.h),

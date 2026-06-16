@@ -1374,7 +1374,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
-              _buildPlaceOrderButton(cs),
+              SafeArea(
+                top: false,
+                child: _buildPlaceOrderButton(cs),
+              ),
             ],
           );
         }),

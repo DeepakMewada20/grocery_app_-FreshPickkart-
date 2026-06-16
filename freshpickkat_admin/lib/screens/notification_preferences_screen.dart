@@ -51,7 +51,9 @@ class _NotificationPreferencesScreenState
         return RefreshIndicator(
           onRefresh: _controller.load,
           child: ListView(
-            padding: AdminResponsive.pagePadding(context),
+            padding: AdminResponsive.pagePadding(context).copyWith(
+              bottom: AdminResponsive.bottomInset(context),
+            ),
             children: [
               AdminResponsive.constrainContent(
                 context: context,

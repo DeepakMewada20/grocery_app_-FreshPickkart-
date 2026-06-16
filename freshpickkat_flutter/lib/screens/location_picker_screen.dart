@@ -435,7 +435,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       20.w,
                       20.h,
                       20.w,
-                      20.h + viewInsets.bottom,
+                       20.h + viewInsets.bottom + MediaQuery.paddingOf(context).bottom,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

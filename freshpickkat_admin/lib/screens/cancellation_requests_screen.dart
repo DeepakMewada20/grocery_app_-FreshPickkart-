@@ -77,7 +77,9 @@ class _CancellationRequestsScreenState
           onRefresh: _controller.loadRequests,
           child: ListView.separated(
             controller: _scrollController,
-            padding: AdminResponsive.pagePadding(context),
+            padding: AdminResponsive.pagePadding(context).copyWith(
+              bottom: AdminResponsive.bottomInset(context),
+            ),
             itemCount: _controller.orders.length +
                 (_controller.hasMore.value ? 1 : 0),
             separatorBuilder: (_, _) => SizedBox(height: 8.h),

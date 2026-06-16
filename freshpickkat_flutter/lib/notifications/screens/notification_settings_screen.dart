@@ -26,7 +26,8 @@ class NotificationSettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(() {
+      body: SafeArea(
+        child: Obx(() {
         final prefs = controller.preferences.value;
         return ListView(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -96,6 +97,7 @@ class NotificationSettingsScreen extends StatelessWidget {
           ],
         );
       }),
+      ),
     );
   }
 }
