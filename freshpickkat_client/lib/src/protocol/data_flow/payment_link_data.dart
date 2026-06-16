@@ -10,10 +10,9 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-abstract class PaymentLinkData
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+abstract class PaymentLinkData implements _i1.SerializableModel {
   PaymentLinkData._({
     required this.success,
     this.token,
@@ -82,21 +81,6 @@ abstract class PaymentLinkData
   });
   @override
   Map<String, dynamic> toJson() {
-    return {
-      '__className__': 'PaymentLinkData',
-      'success': success,
-      if (token != null) 'token': token,
-      if (paymentLink != null) 'paymentLink': paymentLink,
-      if (expiresAt != null) 'expiresAt': expiresAt?.toJson(),
-      if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
-      if (amount != null) 'amount': amount,
-      if (orderId != null) 'orderId': orderId,
-      if (error != null) 'error': error,
-    };
-  }
-
-  @override
-  Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'PaymentLinkData',
       'success': success,

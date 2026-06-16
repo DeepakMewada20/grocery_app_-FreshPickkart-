@@ -13,83 +13,75 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 abstract class PaymentLinkRow
-    implements _i1.TableRow, _i1.ProtocolSerialization {
+    implements _i1.TableRow<_i1.UuidValue?>, _i1.ProtocolSerialization {
   PaymentLinkRow._({
     this.id,
     required this.orderId,
     required this.token,
     required this.expiresAt,
-    this.isUsed = false,
+    bool? isUsed,
     this.usedAt,
     this.paidByName,
     this.paidByPhone,
     this.paidByEmail,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : isUsed = isUsed ?? false,
+       createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   factory PaymentLinkRow({
-    UuidValue? id,
-    required UuidValue orderId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue orderId,
     required String token,
     required DateTime expiresAt,
-    bool isUsed = false,
+    bool? isUsed,
     DateTime? usedAt,
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _PaymentLinkRowImpl;
 
   factory PaymentLinkRow.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentLinkRow(
       id: jsonSerialization['id'] == null
           ? null
-          : _i1.UuidJsonExtension.fromJson(jsonSerialization['id']),
-      orderId: _i1.UuidJsonExtension.fromJson(jsonSerialization['orderId']),
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      orderId: _i1.UuidValueJsonExtension.fromJson(
+        jsonSerialization['orderId'],
+      ),
       token: jsonSerialization['token'] as String,
       expiresAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['expiresAt'],
       ),
-      isUsed: jsonSerialization['isUsed'] as bool? ?? false,
+      isUsed: jsonSerialization['isUsed'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isUsed']),
       usedAt: jsonSerialization['usedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['usedAt']),
       paidByName: jsonSerialization['paidByName'] as String?,
       paidByPhone: jsonSerialization['paidByPhone'] as String?,
       paidByEmail: jsonSerialization['paidByEmail'] as String?,
-      createdAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['createdAt'],
-      ),
-      updatedAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['updatedAt'],
-      ),
+      createdAt: jsonSerialization['createdAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      updatedAt: jsonSerialization['updatedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 
-  static const _i1.TableDefinition t = _i1.TableDefinition(
-    alias: 'PaymentLinkRow',
-    tableName: 'payment_link',
-    columns: [
-      'id',
-      'orderId',
-      'token',
-      'expiresAt',
-      'isUsed',
-      'usedAt',
-      'paidByName',
-      'paidByPhone',
-      'paidByEmail',
-      'createdAt',
-      'updatedAt',
-    ],
-    primaryKeyColumns: {'id'},
-  );
+  static final t = PaymentLinkRowTable();
 
-  UuidValue? id;
+  static const db = PaymentLinkRowRepository._();
 
-  UuidValue orderId;
+  @override
+  _i1.UuidValue? id;
+
+  _i1.UuidValue orderId;
 
   String token;
 
@@ -109,81 +101,93 @@ abstract class PaymentLinkRow
 
   DateTime updatedAt;
 
+  @override
+  _i1.Table<_i1.UuidValue?> get table => t;
+
   /// Returns a shallow copy of this [PaymentLinkRow]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   PaymentLinkRow copyWith({
-    UuidValue? id,
-    UuidValue? orderId,
+    _i1.UuidValue? id,
+    _i1.UuidValue? orderId,
     String? token,
     DateTime? expiresAt,
     bool? isUsed,
-    Object? usedAt = _Undefined,
-    Object? paidByName = _Undefined,
-    Object? paidByPhone = _Undefined,
-    Object? paidByEmail = _Undefined,
+    DateTime? usedAt,
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
-
   @override
   Map<String, dynamic> toJson() {
     return {
+      '__className__': 'PaymentLinkRow',
       if (id != null) 'id': id?.toJson(),
       'orderId': orderId.toJson(),
       'token': token,
-      'expiresAt': expiresAt.toUtc().toIso8601String(),
+      'expiresAt': expiresAt.toJson(),
       'isUsed': isUsed,
-      if (usedAt != null) 'usedAt': usedAt?.toUtc().toIso8601String(),
+      if (usedAt != null) 'usedAt': usedAt?.toJson(),
       if (paidByName != null) 'paidByName': paidByName,
       if (paidByPhone != null) 'paidByPhone': paidByPhone,
       if (paidByEmail != null) 'paidByEmail': paidByEmail,
-      'createdAt': createdAt.toUtc().toIso8601String(),
-      'updatedAt': updatedAt.toUtc().toIso8601String(),
+      'createdAt': createdAt.toJson(),
+      'updatedAt': updatedAt.toJson(),
     };
   }
 
   @override
   Map<String, dynamic> toJsonForProtocol() {
-    return {
-      if (id != null) 'id': id?.toJson(),
-      'orderId': orderId.toJson(),
-      'token': token,
-      'expiresAt': expiresAt.toUtc().toIso8601String(),
-      'isUsed': isUsed,
-      if (usedAt != null) 'usedAt': usedAt?.toUtc().toIso8601String(),
-      if (paidByName != null) 'paidByName': paidByName,
-      if (paidByPhone != null) 'paidByPhone': paidByPhone,
-      if (paidByEmail != null) 'paidByEmail': paidByEmail,
-      'createdAt': createdAt.toUtc().toIso8601String(),
-      'updatedAt': updatedAt.toUtc().toIso8601String(),
-    };
+    return {};
+  }
+
+  static PaymentLinkRowInclude include() {
+    return PaymentLinkRowInclude._();
+  }
+
+  static PaymentLinkRowIncludeList includeList({
+    _i1.WhereExpressionBuilder<PaymentLinkRowTable>? where,
+    int? limit,
+    int? offset,
+    _i1.OrderByBuilder<PaymentLinkRowTable>? orderBy,
+    bool orderDescending = false,
+    _i1.OrderByListBuilder<PaymentLinkRowTable>? orderByList,
+    PaymentLinkRowInclude? include,
+  }) {
+    return PaymentLinkRowIncludeList._(
+      where: where,
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy?.call(PaymentLinkRow.t),
+      orderDescending: orderDescending,
+      orderByList: orderByList?.call(PaymentLinkRow.t),
+      include: include,
+    );
   }
 
   @override
   String toString() {
     return _i1.SerializationManager.encode(this);
   }
-
-  @override
-  Map<String, dynamic> get columnValues => toJson();
 }
 
 class _Undefined {}
 
 class _PaymentLinkRowImpl extends PaymentLinkRow {
   _PaymentLinkRowImpl({
-    UuidValue? id,
-    required UuidValue orderId,
+    _i1.UuidValue? id,
+    required _i1.UuidValue orderId,
     required String token,
     required DateTime expiresAt,
-    bool isUsed = false,
+    bool? isUsed,
     DateTime? usedAt,
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) : super._(
          id: id,
          orderId: orderId,
@@ -198,11 +202,13 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
          updatedAt: updatedAt,
        );
 
+  /// Returns a shallow copy of this [PaymentLinkRow]
+  /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
   PaymentLinkRow copyWith({
     Object? id = _Undefined,
-    UuidValue? orderId,
+    _i1.UuidValue? orderId,
     String? token,
     DateTime? expiresAt,
     bool? isUsed,
@@ -214,7 +220,7 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
     DateTime? updatedAt,
   }) {
     return PaymentLinkRow(
-      id: id is UuidValue? ? id : this.id,
+      id: id is _i1.UuidValue? ? id : this.id,
       orderId: orderId ?? this.orderId,
       token: token ?? this.token,
       expiresAt: expiresAt ?? this.expiresAt,
@@ -225,6 +231,469 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
       paidByEmail: paidByEmail is String? ? paidByEmail : this.paidByEmail,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class PaymentLinkRowUpdateTable extends _i1.UpdateTable<PaymentLinkRowTable> {
+  PaymentLinkRowUpdateTable(super.table);
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> orderId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.orderId,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> token(String value) => _i1.ColumnValue(
+    table.token,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> expiresAt(DateTime value) =>
+      _i1.ColumnValue(
+        table.expiresAt,
+        value,
+      );
+
+  _i1.ColumnValue<bool, bool> isUsed(bool value) => _i1.ColumnValue(
+    table.isUsed,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> usedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.usedAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paidByName(String? value) => _i1.ColumnValue(
+    table.paidByName,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paidByPhone(String? value) => _i1.ColumnValue(
+    table.paidByPhone,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paidByEmail(String? value) => _i1.ColumnValue(
+    table.paidByEmail,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
+      _i1.ColumnValue(
+        table.createdAt,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> updatedAt(DateTime value) =>
+      _i1.ColumnValue(
+        table.updatedAt,
+        value,
+      );
+}
+
+class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
+  PaymentLinkRowTable({super.tableRelation})
+    : super(tableName: 'payment_link') {
+    updateTable = PaymentLinkRowUpdateTable(this);
+    orderId = _i1.ColumnUuid(
+      'orderId',
+      this,
+    );
+    token = _i1.ColumnString(
+      'token',
+      this,
+    );
+    expiresAt = _i1.ColumnDateTime(
+      'expiresAt',
+      this,
+    );
+    isUsed = _i1.ColumnBool(
+      'isUsed',
+      this,
+      hasDefault: true,
+    );
+    usedAt = _i1.ColumnDateTime(
+      'usedAt',
+      this,
+    );
+    paidByName = _i1.ColumnString(
+      'paidByName',
+      this,
+    );
+    paidByPhone = _i1.ColumnString(
+      'paidByPhone',
+      this,
+    );
+    paidByEmail = _i1.ColumnString(
+      'paidByEmail',
+      this,
+    );
+    createdAt = _i1.ColumnDateTime(
+      'createdAt',
+      this,
+      hasDefault: true,
+    );
+    updatedAt = _i1.ColumnDateTime(
+      'updatedAt',
+      this,
+      hasDefault: true,
+    );
+  }
+
+  late final PaymentLinkRowUpdateTable updateTable;
+
+  late final _i1.ColumnUuid orderId;
+
+  late final _i1.ColumnString token;
+
+  late final _i1.ColumnDateTime expiresAt;
+
+  late final _i1.ColumnBool isUsed;
+
+  late final _i1.ColumnDateTime usedAt;
+
+  late final _i1.ColumnString paidByName;
+
+  late final _i1.ColumnString paidByPhone;
+
+  late final _i1.ColumnString paidByEmail;
+
+  late final _i1.ColumnDateTime createdAt;
+
+  late final _i1.ColumnDateTime updatedAt;
+
+  @override
+  List<_i1.Column> get columns => [
+    id,
+    orderId,
+    token,
+    expiresAt,
+    isUsed,
+    usedAt,
+    paidByName,
+    paidByPhone,
+    paidByEmail,
+    createdAt,
+    updatedAt,
+  ];
+}
+
+class PaymentLinkRowInclude extends _i1.IncludeObject {
+  PaymentLinkRowInclude._();
+
+  @override
+  Map<String, _i1.Include?> get includes => {};
+
+  @override
+  _i1.Table<_i1.UuidValue?> get table => PaymentLinkRow.t;
+}
+
+class PaymentLinkRowIncludeList extends _i1.IncludeList {
+  PaymentLinkRowIncludeList._({
+    _i1.WhereExpressionBuilder<PaymentLinkRowTable>? where,
+    super.limit,
+    super.offset,
+    super.orderBy,
+    super.orderDescending,
+    super.orderByList,
+    super.include,
+  }) {
+    super.where = where?.call(PaymentLinkRow.t);
+  }
+
+  @override
+  Map<String, _i1.Include?> get includes => include?.includes ?? {};
+
+  @override
+  _i1.Table<_i1.UuidValue?> get table => PaymentLinkRow.t;
+}
+
+class PaymentLinkRowRepository {
+  const PaymentLinkRowRepository._();
+
+  /// Returns a list of [PaymentLinkRow]s matching the given query parameters.
+  ///
+  /// Use [where] to specify which items to include in the return value.
+  /// If none is specified, all items will be returned.
+  ///
+  /// To specify the order of the items use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// The maximum number of items can be set by [limit]. If no limit is set,
+  /// all items matching the query will be returned.
+  ///
+  /// [offset] defines how many items to skip, after which [limit] (or all)
+  /// items are read from the database.
+  ///
+  /// ```dart
+  /// var persons = await Persons.db.find(
+  ///   session,
+  ///   where: (t) => t.lastName.equals('Jones'),
+  ///   orderBy: (t) => t.firstName,
+  ///   limit: 100,
+  /// );
+  /// ```
+  Future<List<PaymentLinkRow>> find(
+    _i1.DatabaseSession session, {
+    _i1.WhereExpressionBuilder<PaymentLinkRowTable>? where,
+    int? limit,
+    int? offset,
+    _i1.OrderByBuilder<PaymentLinkRowTable>? orderBy,
+    bool orderDescending = false,
+    _i1.OrderByListBuilder<PaymentLinkRowTable>? orderByList,
+    _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
+  }) async {
+    return session.db.find<PaymentLinkRow>(
+      where: where?.call(PaymentLinkRow.t),
+      orderBy: orderBy?.call(PaymentLinkRow.t),
+      orderByList: orderByList?.call(PaymentLinkRow.t),
+      orderDescending: orderDescending,
+      limit: limit,
+      offset: offset,
+      transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
+    );
+  }
+
+  /// Returns the first matching [PaymentLinkRow] matching the given query parameters.
+  ///
+  /// Use [where] to specify which items to include in the return value.
+  /// If none is specified, all items will be returned.
+  ///
+  /// To specify the order use [orderBy] or [orderByList]
+  /// when sorting by multiple columns.
+  ///
+  /// [offset] defines how many items to skip, after which the next one will be picked.
+  ///
+  /// ```dart
+  /// var youngestPerson = await Persons.db.findFirstRow(
+  ///   session,
+  ///   where: (t) => t.lastName.equals('Jones'),
+  ///   orderBy: (t) => t.age,
+  /// );
+  /// ```
+  Future<PaymentLinkRow?> findFirstRow(
+    _i1.DatabaseSession session, {
+    _i1.WhereExpressionBuilder<PaymentLinkRowTable>? where,
+    int? offset,
+    _i1.OrderByBuilder<PaymentLinkRowTable>? orderBy,
+    bool orderDescending = false,
+    _i1.OrderByListBuilder<PaymentLinkRowTable>? orderByList,
+    _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
+  }) async {
+    return session.db.findFirstRow<PaymentLinkRow>(
+      where: where?.call(PaymentLinkRow.t),
+      orderBy: orderBy?.call(PaymentLinkRow.t),
+      orderByList: orderByList?.call(PaymentLinkRow.t),
+      orderDescending: orderDescending,
+      offset: offset,
+      transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
+    );
+  }
+
+  /// Finds a single [PaymentLinkRow] by its [id] or null if no such row exists.
+  Future<PaymentLinkRow?> findById(
+    _i1.DatabaseSession session,
+    _i1.UuidValue id, {
+    _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
+  }) async {
+    return session.db.findById<PaymentLinkRow>(
+      id,
+      transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
+    );
+  }
+
+  /// Inserts all [PaymentLinkRow]s in the list and returns the inserted rows.
+  ///
+  /// The returned [PaymentLinkRow]s will have their `id` fields set.
+  ///
+  /// This is an atomic operation, meaning that if one of the rows fails to
+  /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
+  Future<List<PaymentLinkRow>> insert(
+    _i1.DatabaseSession session,
+    List<PaymentLinkRow> rows, {
+    _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
+  }) async {
+    return session.db.insert<PaymentLinkRow>(
+      rows,
+      transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
+    );
+  }
+
+  /// Inserts a single [PaymentLinkRow] and returns the inserted row.
+  ///
+  /// The returned [PaymentLinkRow] will have its `id` field set.
+  Future<PaymentLinkRow> insertRow(
+    _i1.DatabaseSession session,
+    PaymentLinkRow row, {
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.insertRow<PaymentLinkRow>(
+      row,
+      transaction: transaction,
+    );
+  }
+
+  /// Updates all [PaymentLinkRow]s in the list and returns the updated rows. If
+  /// [columns] is provided, only those columns will be updated. Defaults to
+  /// all columns.
+  /// This is an atomic operation, meaning that if one of the rows fails to
+  /// update, none of the rows will be updated.
+  Future<List<PaymentLinkRow>> update(
+    _i1.DatabaseSession session,
+    List<PaymentLinkRow> rows, {
+    _i1.ColumnSelections<PaymentLinkRowTable>? columns,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.update<PaymentLinkRow>(
+      rows,
+      columns: columns?.call(PaymentLinkRow.t),
+      transaction: transaction,
+    );
+  }
+
+  /// Updates a single [PaymentLinkRow]. The row needs to have its id set.
+  /// Optionally, a list of [columns] can be provided to only update those
+  /// columns. Defaults to all columns.
+  Future<PaymentLinkRow> updateRow(
+    _i1.DatabaseSession session,
+    PaymentLinkRow row, {
+    _i1.ColumnSelections<PaymentLinkRowTable>? columns,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateRow<PaymentLinkRow>(
+      row,
+      columns: columns?.call(PaymentLinkRow.t),
+      transaction: transaction,
+    );
+  }
+
+  /// Updates a single [PaymentLinkRow] by its [id] with the specified [columnValues].
+  /// Returns the updated row or null if no row with the given id exists.
+  Future<PaymentLinkRow?> updateById(
+    _i1.DatabaseSession session,
+    _i1.UuidValue id, {
+    required _i1.ColumnValueListBuilder<PaymentLinkRowUpdateTable> columnValues,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateById<PaymentLinkRow>(
+      id,
+      columnValues: columnValues(PaymentLinkRow.t.updateTable),
+      transaction: transaction,
+    );
+  }
+
+  /// Updates all [PaymentLinkRow]s matching the [where] expression with the specified [columnValues].
+  /// Returns the list of updated rows.
+  Future<List<PaymentLinkRow>> updateWhere(
+    _i1.DatabaseSession session, {
+    required _i1.ColumnValueListBuilder<PaymentLinkRowUpdateTable> columnValues,
+    required _i1.WhereExpressionBuilder<PaymentLinkRowTable> where,
+    int? limit,
+    int? offset,
+    _i1.OrderByBuilder<PaymentLinkRowTable>? orderBy,
+    _i1.OrderByListBuilder<PaymentLinkRowTable>? orderByList,
+    bool orderDescending = false,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.updateWhere<PaymentLinkRow>(
+      columnValues: columnValues(PaymentLinkRow.t.updateTable),
+      where: where(PaymentLinkRow.t),
+      limit: limit,
+      offset: offset,
+      orderBy: orderBy?.call(PaymentLinkRow.t),
+      orderByList: orderByList?.call(PaymentLinkRow.t),
+      orderDescending: orderDescending,
+      transaction: transaction,
+    );
+  }
+
+  /// Deletes all [PaymentLinkRow]s in the list and returns the deleted rows.
+  /// This is an atomic operation, meaning that if one of the rows fail to
+  /// be deleted, none of the rows will be deleted.
+  Future<List<PaymentLinkRow>> delete(
+    _i1.DatabaseSession session,
+    List<PaymentLinkRow> rows, {
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.delete<PaymentLinkRow>(
+      rows,
+      transaction: transaction,
+    );
+  }
+
+  /// Deletes a single [PaymentLinkRow].
+  Future<PaymentLinkRow> deleteRow(
+    _i1.DatabaseSession session,
+    PaymentLinkRow row, {
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.deleteRow<PaymentLinkRow>(
+      row,
+      transaction: transaction,
+    );
+  }
+
+  /// Deletes all rows matching the [where] expression.
+  Future<List<PaymentLinkRow>> deleteWhere(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<PaymentLinkRowTable> where,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.deleteWhere<PaymentLinkRow>(
+      where: where(PaymentLinkRow.t),
+      transaction: transaction,
+    );
+  }
+
+  /// Counts the number of rows matching the [where] expression. If omitted,
+  /// will return the count of all rows in the table.
+  Future<int> count(
+    _i1.DatabaseSession session, {
+    _i1.WhereExpressionBuilder<PaymentLinkRowTable>? where,
+    int? limit,
+    _i1.Transaction? transaction,
+  }) async {
+    return session.db.count<PaymentLinkRow>(
+      where: where?.call(PaymentLinkRow.t),
+      limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [PaymentLinkRow] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.DatabaseSession session, {
+    required _i1.WhereExpressionBuilder<PaymentLinkRowTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<PaymentLinkRow>(
+      where: where(PaymentLinkRow.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
+      transaction: transaction,
     );
   }
 }

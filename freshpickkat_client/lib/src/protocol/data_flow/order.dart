@@ -60,6 +60,7 @@ abstract class Order implements _i1.SerializableModel {
     required this.orderType,
     this.sourceOrderNumber,
     this.complaintId,
+    this.paymentMode,
   }) : mrpTotal = mrpTotal ?? 0.0,
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
@@ -112,6 +113,7 @@ abstract class Order implements _i1.SerializableModel {
     required String orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    String? paymentMode,
   }) = _OrderImpl;
 
   factory Order.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -194,6 +196,7 @@ abstract class Order implements _i1.SerializableModel {
       orderType: jsonSerialization['orderType'] as String,
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
       complaintId: jsonSerialization['complaintId'] as String?,
+      paymentMode: jsonSerialization['paymentMode'] as String?,
     );
   }
 
@@ -283,6 +286,8 @@ abstract class Order implements _i1.SerializableModel {
 
   String? complaintId;
 
+  String? paymentMode;
+
   /// Returns a shallow copy of this [Order]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -330,6 +335,7 @@ abstract class Order implements _i1.SerializableModel {
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    String? paymentMode,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -381,6 +387,7 @@ abstract class Order implements _i1.SerializableModel {
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
       if (complaintId != null) 'complaintId': complaintId,
+      if (paymentMode != null) 'paymentMode': paymentMode,
     };
   }
 
@@ -437,6 +444,7 @@ class _OrderImpl extends Order {
     required String orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    String? paymentMode,
   }) : super._(
          orderId: orderId,
          userId: userId,
@@ -481,6 +489,7 @@ class _OrderImpl extends Order {
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
          complaintId: complaintId,
+         paymentMode: paymentMode,
        );
 
   /// Returns a shallow copy of this [Order]
@@ -531,6 +540,7 @@ class _OrderImpl extends Order {
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
     Object? complaintId = _Undefined,
+    Object? paymentMode = _Undefined,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -608,6 +618,7 @@ class _OrderImpl extends Order {
           ? sourceOrderNumber
           : this.sourceOrderNumber,
       complaintId: complaintId is String? ? complaintId : this.complaintId,
+      paymentMode: paymentMode is String? ? paymentMode : this.paymentMode,
     );
   }
 }

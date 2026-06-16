@@ -22,6 +22,11 @@ abstract class CustomerOrderRow
     required this.paymentStatus,
     required this.refundStatus,
     this.couponId,
+    String? paymentMode,
+    this.paymentExpiresAt,
+    this.paidByName,
+    this.paidByPhone,
+    this.paidByEmail,
     required this.itemCount,
     required this.totalAmount,
     double? discountAmount,
@@ -58,7 +63,8 @@ abstract class CustomerOrderRow
     DateTime? orderedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : discountAmount = discountAmount ?? 0.0,
+  }) : paymentMode = paymentMode ?? 'standard',
+       discountAmount = discountAmount ?? 0.0,
        mrpTotal = mrpTotal ?? 0.0,
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
@@ -80,6 +86,11 @@ abstract class CustomerOrderRow
     required String paymentStatus,
     required String refundStatus,
     _i1.UuidValue? couponId,
+    String? paymentMode,
+    DateTime? paymentExpiresAt,
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
@@ -131,6 +142,15 @@ abstract class CustomerOrderRow
       couponId: jsonSerialization['couponId'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['couponId']),
+      paymentMode: jsonSerialization['paymentMode'] as String?,
+      paymentExpiresAt: jsonSerialization['paymentExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['paymentExpiresAt'],
+            ),
+      paidByName: jsonSerialization['paidByName'] as String?,
+      paidByPhone: jsonSerialization['paidByPhone'] as String?,
+      paidByEmail: jsonSerialization['paidByEmail'] as String?,
       itemCount: jsonSerialization['itemCount'] as int,
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
       discountAmount: (jsonSerialization['discountAmount'] as num?)?.toDouble(),
@@ -232,6 +252,16 @@ abstract class CustomerOrderRow
 
   _i1.UuidValue? couponId;
 
+  String paymentMode;
+
+  DateTime? paymentExpiresAt;
+
+  String? paidByName;
+
+  String? paidByPhone;
+
+  String? paidByEmail;
+
   int itemCount;
 
   double totalAmount;
@@ -318,6 +348,11 @@ abstract class CustomerOrderRow
     String? paymentStatus,
     String? refundStatus,
     _i1.UuidValue? couponId,
+    String? paymentMode,
+    DateTime? paymentExpiresAt,
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
@@ -366,6 +401,12 @@ abstract class CustomerOrderRow
       'paymentStatus': paymentStatus,
       'refundStatus': refundStatus,
       if (couponId != null) 'couponId': couponId?.toJson(),
+      'paymentMode': paymentMode,
+      if (paymentExpiresAt != null)
+        'paymentExpiresAt': paymentExpiresAt?.toJson(),
+      if (paidByName != null) 'paidByName': paidByName,
+      if (paidByPhone != null) 'paidByPhone': paidByPhone,
+      if (paidByEmail != null) 'paidByEmail': paidByEmail,
       'itemCount': itemCount,
       'totalAmount': totalAmount,
       'discountAmount': discountAmount,
@@ -455,6 +496,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     required String paymentStatus,
     required String refundStatus,
     _i1.UuidValue? couponId,
+    String? paymentMode,
+    DateTime? paymentExpiresAt,
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
@@ -499,6 +545,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          paymentStatus: paymentStatus,
          refundStatus: refundStatus,
          couponId: couponId,
+         paymentMode: paymentMode,
+         paymentExpiresAt: paymentExpiresAt,
+         paidByName: paidByName,
+         paidByPhone: paidByPhone,
+         paidByEmail: paidByEmail,
          itemCount: itemCount,
          totalAmount: totalAmount,
          discountAmount: discountAmount,
@@ -549,6 +600,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? paymentStatus,
     String? refundStatus,
     Object? couponId = _Undefined,
+    String? paymentMode,
+    Object? paymentExpiresAt = _Undefined,
+    Object? paidByName = _Undefined,
+    Object? paidByPhone = _Undefined,
+    Object? paidByEmail = _Undefined,
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
@@ -594,6 +650,13 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       refundStatus: refundStatus ?? this.refundStatus,
       couponId: couponId is _i1.UuidValue? ? couponId : this.couponId,
+      paymentMode: paymentMode ?? this.paymentMode,
+      paymentExpiresAt: paymentExpiresAt is DateTime?
+          ? paymentExpiresAt
+          : this.paymentExpiresAt,
+      paidByName: paidByName is String? ? paidByName : this.paidByName,
+      paidByPhone: paidByPhone is String? ? paidByPhone : this.paidByPhone,
+      paidByEmail: paidByEmail is String? ? paidByEmail : this.paidByEmail,
       itemCount: itemCount ?? this.itemCount,
       totalAmount: totalAmount ?? this.totalAmount,
       discountAmount: discountAmount ?? this.discountAmount,
@@ -697,6 +760,32 @@ class CustomerOrderRowUpdateTable
     _i1.UuidValue? value,
   ) => _i1.ColumnValue(
     table.couponId,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paymentMode(String value) => _i1.ColumnValue(
+    table.paymentMode,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> paymentExpiresAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.paymentExpiresAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paidByName(String? value) => _i1.ColumnValue(
+    table.paidByName,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paidByPhone(String? value) => _i1.ColumnValue(
+    table.paidByPhone,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paidByEmail(String? value) => _i1.ColumnValue(
+    table.paidByEmail,
     value,
   );
 
@@ -937,6 +1026,27 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'couponId',
       this,
     );
+    paymentMode = _i1.ColumnString(
+      'paymentMode',
+      this,
+      hasDefault: true,
+    );
+    paymentExpiresAt = _i1.ColumnDateTime(
+      'paymentExpiresAt',
+      this,
+    );
+    paidByName = _i1.ColumnString(
+      'paidByName',
+      this,
+    );
+    paidByPhone = _i1.ColumnString(
+      'paidByPhone',
+      this,
+    );
+    paidByEmail = _i1.ColumnString(
+      'paidByEmail',
+      this,
+    );
     itemCount = _i1.ColumnInt(
       'itemCount',
       this,
@@ -1110,6 +1220,16 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnUuid couponId;
 
+  late final _i1.ColumnString paymentMode;
+
+  late final _i1.ColumnDateTime paymentExpiresAt;
+
+  late final _i1.ColumnString paidByName;
+
+  late final _i1.ColumnString paidByPhone;
+
+  late final _i1.ColumnString paidByEmail;
+
   late final _i1.ColumnInt itemCount;
 
   late final _i1.ColumnDouble totalAmount;
@@ -1191,6 +1311,11 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     paymentStatus,
     refundStatus,
     couponId,
+    paymentMode,
+    paymentExpiresAt,
+    paidByName,
+    paidByPhone,
+    paidByEmail,
     itemCount,
     totalAmount,
     discountAmount,

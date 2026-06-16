@@ -10,10 +10,9 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-abstract class PaymentPageItem
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+abstract class PaymentPageItem implements _i1.SerializableModel {
   PaymentPageItem._({
     required this.productName,
     this.variantLabel,
@@ -68,19 +67,6 @@ abstract class PaymentPageItem
   });
   @override
   Map<String, dynamic> toJson() {
-    return {
-      '__className__': 'PaymentPageItem',
-      'productName': productName,
-      if (variantLabel != null) 'variantLabel': variantLabel,
-      'quantity': quantity,
-      'unitPrice': unitPrice,
-      'totalPrice': totalPrice,
-      if (productImage != null) 'productImage': productImage,
-    };
-  }
-
-  @override
-  Map<String, dynamic> toJsonForProtocol() {
     return {
       '__className__': 'PaymentPageItem',
       'productName': productName,

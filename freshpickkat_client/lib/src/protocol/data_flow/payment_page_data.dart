@@ -10,12 +10,11 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _i1;
+import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import '../data_flow/payment_page_item.dart' as _i2;
-import 'package:freshpickkat_server/src/generated/protocol.dart' as _i3;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
-abstract class PaymentPageData
-    implements _i1.SerializableModel, _i1.ProtocolSerialization {
+abstract class PaymentPageData implements _i1.SerializableModel {
   PaymentPageData._({
     required this.valid,
     this.errorMessage,
@@ -130,27 +129,6 @@ abstract class PaymentPageData
       if (itemCount != null) 'itemCount': itemCount,
       if (deliveryAddress != null) 'deliveryAddress': deliveryAddress,
       if (items != null) 'items': items?.toJson(valueToJson: (v) => v.toJson()),
-      if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
-      if (amountPaise != null) 'amountPaise': amountPaise,
-      if (currency != null) 'currency': currency,
-      if (expiresAt != null) 'expiresAt': expiresAt?.toJson(),
-      if (createdAt != null) 'createdAt': createdAt?.toJson(),
-    };
-  }
-
-  @override
-  Map<String, dynamic> toJsonForProtocol() {
-    return {
-      '__className__': 'PaymentPageData',
-      'valid': valid,
-      if (errorMessage != null) 'errorMessage': errorMessage,
-      if (orderId != null) 'orderId': orderId,
-      if (orderNumber != null) 'orderNumber': orderNumber,
-      if (finalAmount != null) 'finalAmount': finalAmount,
-      if (itemCount != null) 'itemCount': itemCount,
-      if (deliveryAddress != null) 'deliveryAddress': deliveryAddress,
-      if (items != null)
-        'items': items?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
       if (amountPaise != null) 'amountPaise': amountPaise,
       if (currency != null) 'currency': currency,
