@@ -221,8 +221,8 @@ class BasketSuggestionService {
       return a.extraSpend.compareTo(b.extraSpend);
     });
 
-    // ── 5. Backfill if needed (Threshold: 3) ────────────────────────────────
-    if (scored.length < 3) {
+    // ── 5. Backfill if needed (Threshold: 6) ────────────────────────────────
+    if (scored.length < 6) {
       final backfillPool = await Future.wait([
         ProductEndpoint().getProducts(
           session,
@@ -415,23 +415,87 @@ class BasketSuggestionService {
     return _finalizeResults(scored);
   }
 
+  static String _getScoredCategory(_Scored item) {
+    final action = item.suggestion.action ??
+        (item.suggestion.actions?.isNotEmpty == true
+            ? item.suggestion.actions!.first
+            : null);
+
+    // 1. Free Delivery Product
+    if (action?.label == 'FREE DELIVERY' ||
+        item.suggestion.subtitle?.toLowerCase().contains('free delivery with this product') == true) {
+      return 'free_delivery_product';
+    }
+
+    // 2. BOGO
+    if (item.suggestion.type == 'bogo' || action?.type == 'bogo') {
+      return 'bogo';
+    }
+
+    // 3. Combo
+    if (item.suggestion.type == 'combo' || action?.type == 'combo') {
+      return 'combo';
+    }
+
+    // 4. Delivery Slab
+    if (item.suggestion.type == 'delivery' || action?.type == 'delivery') {
+      return 'delivery_slab';
+    }
+
+    // 5. Coupon
+    if (item.suggestion.type == 'coupon' || action?.type == 'coupon') {
+      return 'coupon';
+    }
+
+    // 6. Combined
+    if (item.suggestion.type == 'combined') {
+      return 'combined';
+    }
+
+    // 7. Variant
+    if (item.suggestion.type == 'variant' || action?.type == 'variant') {
+      return 'variant';
+    }
+
+    // 8. Reorder
+    if (item.suggestion.type == 'reorder' || action?.type == 'reorder') {
+      return 'reorder';
+    }
+
+    // 9. Category
+    if (item.suggestion.type == 'category' || action?.type == 'category') {
+      return 'category';
+    }
+
+    // 10. Product
+    if (item.suggestion.type == 'product' || action?.type == 'product') {
+      return 'product';
+    }
+
+    return item.suggestion.type;
+  }
+
   static BasketSuggestionResult _finalizeResults(List<_Scored> scored) {
-    final results = <BasketSuggestion>[];
-    final offerSuggestionCount = scored
-        .where(
-          (item) =>
-              item.suggestion.type == 'combo' ||
-              item.suggestion.type == 'bogo' ||
-              item.suggestion.type == 'combined',
-        )
-        .length;
-    final comboLimit = offerSuggestionCount >= 3 ? 1 : 2;
-    var comboCount = 0;
-    for (var i = 0; i < scored.length && results.length < 5; i++) {
-      final item = scored[i];
-      if (item.suggestion.type == 'combo' && comboCount >= comboLimit) {
-        continue;
+    final selectedScored = <_Scored>[];
+    final categoryCounts = <String, int>{};
+
+    for (var limit = 1; limit <= 6 && selectedScored.length < 6; limit++) {
+      for (final item in scored) {
+        if (selectedScored.contains(item)) continue;
+
+        final category = _getScoredCategory(item);
+        final currentCount = categoryCounts[category] ?? 0;
+        if (currentCount < limit) {
+          selectedScored.add(item);
+          categoryCounts[category] = currentCount + 1;
+          if (selectedScored.length >= 6) break;
+        }
       }
+    }
+
+    final results = <BasketSuggestion>[];
+    for (var i = 0; i < selectedScored.length && results.length < 6; i++) {
+      final item = selectedScored[i];
       final isBest = i == 0;
       final action =
           item.suggestion.action ??
@@ -456,17 +520,43 @@ class BasketSuggestionService {
       final meta = Map<String, String>.from(finalized.metadata ?? {});
       meta['isBest'] = isBest ? 'true' : 'false';
       meta['score'] = item.score.toStringAsFixed(2);
-      if (finalized.type == 'combo') comboCount++;
       results.add(finalized.copyWith(metadata: meta));
     }
 
     return BasketSuggestionResult(
       bestSuggestion: results.isNotEmpty ? results.first : null,
       otherSuggestions: results.length > 1
-          ? results.skip(1).take(4).toList(growable: false)
+          ? results.skip(1).take(5).toList(growable: false)
           : const [],
       suggestions: results.toList(growable: false),
     );
+  }
+
+  static BasketSuggestionResult testFinalizeResults({
+    required List<Map<String, dynamic>> items,
+  }) {
+    final scoredList = items.map((item) {
+      final suggestion = BasketSuggestion(
+        id: item['id'] as String?,
+        type: item['type'] as String,
+        title: item['title'] as String?,
+        subtitle: item['subtitle'] as String?,
+        message: item['message'] as String? ?? '',
+        priority: item['priority'] as int? ?? 0,
+        action: BasketSuggestionAction(
+          type: item['actionType'] as String? ?? item['type'] as String,
+          label: item['actionLabel'] as String? ?? '',
+          ctaLabel: '',
+        ),
+      );
+      return _Scored(
+        suggestion: suggestion,
+        extraSpend: (item['extraSpend'] as num? ?? 0).toDouble(),
+        totalBenefit: (item['totalBenefit'] as num? ?? 0).toDouble(),
+        score: (item['score'] as num? ?? 0).toDouble(),
+      );
+    }).toList();
+    return _finalizeResults(scoredList);
   }
 
   static String _buildSuggestionId(BasketSuggestion suggestion, int index) {
