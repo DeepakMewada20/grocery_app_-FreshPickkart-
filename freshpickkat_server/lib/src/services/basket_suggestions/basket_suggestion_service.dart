@@ -2161,7 +2161,17 @@ class BasketSuggestionService {
 
     if (currentFee <= 0) return results;
 
-    for (final product in freeDeliveryProducts) {
+    final seen = <String, Product>{};
+    for (final p in freeDeliveryProducts) {
+      if (p.productId == null) continue;
+      final existing = seen[p.productId!];
+      if (existing == null || p.price < existing.price) {
+        seen[p.productId!] = p;
+      }
+    }
+    final uniqueProducts = seen.values.toList();
+
+    for (final product in uniqueProducts) {
       if (product.productId == null) continue;
 
       final variant = (product.variants ?? [])
