@@ -46,7 +46,6 @@ class PaymentPageRoute extends Route {
       amountPaise: amountPaise,
       currency: currency,
       expiresAt: expiresAt,
-      baseUrl: _getBaseUrl(session),
     );
   }
 
@@ -62,7 +61,6 @@ class PaymentPageRoute extends Route {
     required int amountPaise,
     required String currency,
     required String expiresAt,
-    required String baseUrl,
   }) {
     final itemsHtml = StringBuffer();
     for (final item in items) {
@@ -348,7 +346,6 @@ class PaymentPageRoute extends Route {
     var razorpayOrderId = '${_escapeJs(razorpayOrderId)}';
     var amountPaise = $amountPaise;
     var currency = '${_escapeJs(currency)}';
-    var baseUrl = '${_escapeJs(baseUrl)}';
     var expiresAtStr = '${_escapeJs(expiresAt)}';
 
     // Countdown timer
@@ -397,7 +394,7 @@ class PaymentPageRoute extends Route {
         handler: function (response) {
           // Send payment confirmation to server
           var xhr = new XMLHttpRequest();
-          xhr.open('POST', baseUrl + '/api/v1/payment-link/confirm-payment', true);
+          xhr.open('POST', window.location.origin + '/pay/confirm', true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.onload = function () {
             if (xhr.status === 200) {
@@ -408,7 +405,7 @@ class PaymentPageRoute extends Route {
                 statusMsg.style.display = 'block';
                 payBtn.textContent = 'Payment Complete';
                 setTimeout(function () {
-                  window.location.href = baseUrl + '/pay/success/' + encodeURIComponent(token);
+                  window.location.href = window.location.origin + '/pay/success/' + encodeURIComponent(token);
                 }, 2000);
               } else {
                 statusMsg.className = 'status-msg error';
@@ -534,19 +531,4 @@ class PaymentPageRoute extends Route {
         .replaceAll('\r', '\\r');
   }
 
-  String _getBaseUrl(Session session) {
-    try {
-      final config = session.serverpod.config;
-      final publicHost = config.apiServer.publicHost;
-      final port = config.apiServer.port;
-      final isSecure = config.apiServer.publicPort == 443;
-      final scheme = isSecure ? 'https' : 'http';
-      if (port == 80 || port == 443) {
-        return '$scheme://$publicHost';
-      }
-      return '$scheme://$publicHost:$port';
-    } catch (_) {
-      return 'https://freshpickkat.com';
-    }
-  }
 }

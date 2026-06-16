@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart' hide Order;
@@ -51,7 +52,7 @@ class PostgresPaymentLinkService {
       final expiresAt =
           now.add(expiryDuration ?? defaultExpiry);
       final token = generateSecureToken();
-      final baseUrl = _getBaseUrl(session);
+      final baseUrl = await _getBaseUrl(session);
       final paymentLink = '$baseUrl/pay/$token';
 
       await session.db.unsafeQuery(
@@ -381,19 +382,42 @@ class PostgresPaymentLinkService {
     };
   }
 
-  String _getBaseUrl(Session session) {
+  Future<String> _getBaseUrl(Session session) async {
     try {
       final config = session.serverpod.config;
-      final publicHost = config.apiServer.publicHost;
-      final port = config.apiServer.port;
-      final isSecure = config.apiServer.publicPort == 443;
-      final scheme = isSecure ? 'https' : 'http';
-      if (port == 80 || port == 443) {
+      final webConfig = config.webServer ?? config.apiServer;
+      var publicHost = webConfig.publicHost;
+      final publicPort = webConfig.publicPort;
+      final scheme = webConfig.publicScheme;
+
+      if (publicHost == '0.0.0.0' ||
+          publicHost == 'localhost' ||
+          publicHost == '127.0.0.1') {
+        publicHost = await _resolveLocalIp();
+      }
+
+      if (publicPort == 80 || publicPort == 443) {
         return '$scheme://$publicHost';
       }
-      return '$scheme://$publicHost:$port';
+      return '$scheme://$publicHost:$publicPort';
     } catch (_) {
       return 'https://freshpickkat.com';
     }
+  }
+
+  Future<String> _resolveLocalIp() async {
+    try {
+      final interfaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+      );
+      for (final iface in interfaces) {
+        for (final addr in iface.addresses) {
+          if (!addr.isLoopback) {
+            return addr.address;
+          }
+        }
+      }
+    } catch (_) {}
+    return 'localhost';
   }
 }

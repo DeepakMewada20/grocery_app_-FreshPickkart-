@@ -12,22 +12,18 @@ class PaymentLinkService {
   final _client = ServerpodClient().client;
 
   /// Create an order with a shareable payment link.
-  /// Returns a map with payment link details.
-  Future<Map<String, dynamic>> createShareablePaymentLink({
+  /// Returns [PaymentLinkData] with payment link details.
+  Future<PaymentLinkData> createShareablePaymentLink({
     required Order draftOrder,
     required String idempotencyKey,
     required double amount,
     required String customerPhone,
   }) async {
-    try {
-      return await _client.paymentLink.createShareablePaymentLink(
-        draftOrder,
-        idempotencyKey,
-        amount,
-        customerPhone,
-      );
-    } catch (e) {
-      return {'success': false, 'error': e.toString()};
-    }
+    return _client.paymentLink.createShareablePaymentLink(
+      draftOrder,
+      idempotencyKey,
+      amount,
+      customerPhone,
+    );
   }
 }

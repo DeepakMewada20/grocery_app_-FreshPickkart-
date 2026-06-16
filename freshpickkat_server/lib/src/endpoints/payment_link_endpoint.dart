@@ -14,7 +14,7 @@ class PaymentLinkEndpoint extends Endpoint {
 
   /// Create an order with a shareable payment link.
   /// Returns order details + payment link data.
-  Future<Map<String, dynamic>> createShareablePaymentLink(
+  Future<protocol.PaymentLinkData> createShareablePaymentLink(
     Session session,
     protocol.Order order,
     String idempotencyKey,
@@ -44,11 +44,11 @@ class PaymentLinkEndpoint extends Endpoint {
       );
 
       if (paymentResult.success != true) {
-        return {
-          'success': false,
-          'error': paymentResult.error ?? 'Failed to create payment order',
-          'orderId': orderNumber,
-        };
+        return protocol.PaymentLinkData(
+          success: false,
+          error: paymentResult.error ?? 'Failed to create payment order',
+          orderId: orderNumber,
+        );
       }
 
       // 4. Update order status to PAYMENT_PENDING
@@ -61,27 +61,28 @@ class PaymentLinkEndpoint extends Endpoint {
       );
 
       if (linkResult['success'] != true) {
-        return {
-          'success': false,
-          'error': linkResult['error'] ?? 'Failed to create payment link',
-          'orderId': orderNumber,
-        };
+        return protocol.PaymentLinkData(
+          success: false,
+          error: linkResult['error'] as String? ?? 'Failed to create payment link',
+          orderId: orderNumber,
+        );
       }
 
-      return {
-        'success': true,
-        'orderId': orderNumber,
-        'token': linkResult['token'],
-        'paymentLink': linkResult['paymentLink'],
-        'expiresAt': linkResult['expiresAt'],
-        'razorpayOrderId': paymentResult.razorpayOrderId,
-        'amount': paymentResult.amount,
-      };
+      final expiresAtStr = linkResult['expiresAt'] as String?;
+      return protocol.PaymentLinkData(
+        success: true,
+        token: linkResult['token'] as String?,
+        paymentLink: linkResult['paymentLink'] as String?,
+        expiresAt: expiresAtStr != null ? DateTime.tryParse(expiresAtStr) : null,
+        razorpayOrderId: paymentResult.razorpayOrderId,
+        amount: paymentResult.amount,
+        orderId: orderNumber,
+      );
     } catch (e) {
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      return protocol.PaymentLinkData(
+        success: false,
+        error: e.toString(),
+      );
     }
   }
 

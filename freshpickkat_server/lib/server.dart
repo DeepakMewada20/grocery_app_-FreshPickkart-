@@ -14,6 +14,7 @@ import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
 import 'src/web/routes/payment_page_route.dart';
 import 'src/web/routes/confirm_payment_route.dart';
+import 'src/web/routes/pay_success_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -53,7 +54,10 @@ void run(List<String> args) async {
   pod.webServer.addRoute(PaymentPageRoute(), '/pay/{token}');
 
   // Confirm payment callback from the payment page (POST from Razorpay Checkout.js)
-  pod.webServer.addRoute(ConfirmPaymentRoute(), '/api/v1/payment-link/confirm-payment');
+  pod.webServer.addRoute(ConfirmPaymentRoute(), '/pay/confirm');
+
+  // Payment success page shown after Razorpay confirms payment
+  pod.webServer.addRoute(PaySuccessRoute(), '/pay/success/{token}');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

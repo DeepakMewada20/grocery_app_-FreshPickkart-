@@ -35,6 +35,7 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -355,13 +356,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerPhone: customerPhone,
       );
 
-      if (result['success'] != true) {
-        _showError(result['error'] as String? ?? 'Failed to create payment link');
+      if (result.success != true) {
+        _showError(result.error ?? 'Failed to create payment link');
         return;
       }
 
-      final paymentLink = result['paymentLink'] as String? ?? '';
-      final orderId = result['orderId'] as String? ?? '';
+      final paymentLink = result.paymentLink ?? '';
+      final orderId = result.orderId ?? '';
 
       _setProcessing(false);
 
