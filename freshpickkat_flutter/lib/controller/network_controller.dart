@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';

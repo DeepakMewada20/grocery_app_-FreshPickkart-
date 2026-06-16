@@ -10,7 +10,9 @@ import 'package:freshpickkat_flutter/routes/route_manager.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:play_install_referrer/play_install_referrer.dart';
+import 'package:play_install_referrer/play_install_referrer.dart'
+    if (dart.library.html)
+        'package:freshpickkat_flutter/services/deep_link_referrer_stub.dart';
 
 class DeepLinkService extends GetxService {
   static DeepLinkService get instance => Get.find<DeepLinkService>();

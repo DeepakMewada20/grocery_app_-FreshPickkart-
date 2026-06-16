@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
@@ -7,6 +6,7 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
+import 'package:universal_io/io.dart';
 
 class ShareService extends GetxService {
   static ShareService get instance => Get.find<ShareService>();
@@ -47,8 +47,17 @@ class ShareService extends GetxService {
   }
 
   Future<void> shareProduct(Product product, {BuildContext? context}) async {
-    final box = context?.findRenderObject() as RenderBox?;
     final text = productShareText(product);
+
+    if (kIsWeb) {
+      await Share.share(
+        text,
+        subject: 'FreshPickKat: ${product.productName}',
+      );
+      return;
+    }
+
+    final box = context?.findRenderObject() as RenderBox?;
     final sharePositionOrigin = box == null
         ? null
         : box.localToGlobal(Offset.zero) & box.size;

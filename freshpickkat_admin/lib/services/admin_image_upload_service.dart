@@ -1,11 +1,11 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:universal_io/io.dart';
 
 class AdminImageUploadService {
   AdminImageUploadService._();
@@ -74,7 +74,6 @@ class AdminImageUploadService {
     if (croppedFile == null) return null;
 
     final uid = AdminSessionService.requireUid();
-    final file = File(croppedFile.path);
     final now = DateTime.now().millisecondsSinceEpoch;
     final name = picked.name.replaceAll(' ', '_');
     final ref = FirebaseStorage.instance
@@ -83,7 +82,14 @@ class AdminImageUploadService {
         .child(uid)
         .child('${now}_$name');
 
-    await ref.putFile(file);
+    if (kIsWeb) {
+      final bytes = await croppedFile.readAsBytes();
+      await ref.putData(bytes);
+    } else {
+      final file = File(croppedFile.path);
+      await ref.putFile(file);
+    }
+
     return ref.getDownloadURL();
   }
 

@@ -8,7 +8,8 @@ import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
-import 'package:sms_autofill/sms_autofill.dart';
+import 'package:sms_autofill/sms_autofill.dart'
+    if (dart.library.html) 'sms_autofill_stub.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   const PhoneAuthScreen({super.key});

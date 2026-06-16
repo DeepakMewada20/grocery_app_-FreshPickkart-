@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 class PaymentConfig {
   static const String razorpayKeyId = String.fromEnvironment('RAZORPAY_KEY_ID');
@@ -55,21 +55,16 @@ class PaymentConfig {
   }
 
   static Future<String?> _fetchKeyId(String endpoint) async {
-    final client = HttpClient();
     try {
-      final request = await client.getUrl(Uri.parse(endpoint));
-      final response = await request.close();
+      final response = await http.get(Uri.parse(endpoint));
       if (response.statusCode != 200) return null;
-      final body = await response.transform(utf8.decoder).join();
-      final data = jsonDecode(body);
+      final data = jsonDecode(response.body);
       if (data is Map<String, dynamic> && data['keyId'] != null) {
         return data['keyId'].toString();
       }
       return null;
     } catch (_) {
       return null;
-    } finally {
-      client.close();
     }
   }
 }

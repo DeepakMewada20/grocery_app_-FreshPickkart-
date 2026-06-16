@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LegalWebViewScreen extends StatefulWidget {
@@ -77,6 +79,19 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await launchUrl(Uri.parse(widget.url),
+            mode: LaunchMode.externalApplication);
+        if (mounted) Navigator.pop(context);
+      });
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(title: Text(widget.title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final cs = Theme.of(context).colorScheme;
     final isLoading = _loadingProgress < 100 && _loadError == null;
 

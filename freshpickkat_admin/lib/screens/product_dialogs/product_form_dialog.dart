@@ -1,9 +1,9 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:universal_io/io.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
@@ -311,7 +311,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     if (croppedFile == null) return null;
 
     final uid = AdminSessionService.requireUid();
-    final file = File(croppedFile.path);
     final now = DateTime.now().millisecondsSinceEpoch;
     final name = picked.name.replaceAll(' ', '_');
     final ref = FirebaseStorage.instance
@@ -320,7 +319,14 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         .child(uid)
         .child('${now}_$name');
 
-    await ref.putFile(file);
+    if (kIsWeb) {
+      final bytes = await croppedFile.readAsBytes();
+      await ref.putData(bytes);
+    } else {
+      final file = File(croppedFile.path);
+      await ref.putFile(file);
+    }
+
     final url = await ref.getDownloadURL();
     _uploadedUrlsInSession.add(url);
     return url;

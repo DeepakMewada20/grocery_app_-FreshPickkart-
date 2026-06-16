@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:freshpickkat_flutter/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -42,6 +43,7 @@ import 'package:get_storage/get_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
 
   await GetStorage.init();
 
@@ -103,9 +105,11 @@ class MyApp extends StatelessWidget {
           navigatorObservers: [appRouteObserver],
           builder: (context, child) {
             if (child == null) return const SizedBox.shrink();
-            final mediaQuery = MediaQuery.of(context);
-            return MediaQuery(
-              data: mediaQuery.copyWith(
+            final mq = MediaQuery.of(context);
+            final width = mq.size.width;
+
+            Widget content = MediaQuery(
+              data: mq.copyWith(
                 textScaler: AppResponsive.clampedTextScaler(context),
               ),
               child: Stack(
@@ -113,6 +117,22 @@ class MyApp extends StatelessWidget {
                   child,
                   const NetworkStatusBanner(),
                 ],
+              ),
+            );
+
+            if (width <= 430) return content;
+
+            return Container(
+              color: const Color(0xFFEDEDED),
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: 430,
+                child: MediaQuery(
+                  data: mq.copyWith(
+                    size: Size(430, mq.size.height),
+                  ),
+                  child: content,
+                ),
               ),
             );
           },

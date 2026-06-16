@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import '../core/exceptions.dart';
 import 'admin_auth_failure_handler.dart';
 
