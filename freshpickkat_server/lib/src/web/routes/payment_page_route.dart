@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:serverpod/serverpod.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_payment_link_service.dart';
 import 'package:freshpickkat_server/src/services/env_service.dart';
@@ -11,7 +9,7 @@ class PaymentPageRoute extends Route {
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
-    final token = request.pathParameters['token'] ?? '';
+    final token = request.pathParameters.raw[#token] ?? '';
 
     if (token.isEmpty) {
       return _invalidLinkPage('Missing token.');

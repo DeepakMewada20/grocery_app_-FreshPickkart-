@@ -2917,6 +2917,65 @@ class EndpointPayment extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointPaymentLink extends _i1.EndpointRef {
+  EndpointPaymentLink(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'paymentLink';
+
+  /// Create an order with a shareable payment link.
+  /// Returns order details + payment link data.
+  _i2.Future<Map<String, dynamic>> createShareablePaymentLink(
+    _i26.Order order,
+    String idempotencyKey,
+    double amount,
+    String customerPhone,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'paymentLink',
+    'createShareablePaymentLink',
+    {
+      'order': order,
+      'idempotencyKey': idempotencyKey,
+      'amount': amount,
+      'customerPhone': customerPhone,
+    },
+  );
+
+  /// Validate a payment link token and return order page data.
+  /// This endpoint is unauthenticated — the token is the auth.
+  _i2.Future<Map<String, dynamic>> getPaymentPageData(String token) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'paymentLink',
+        'getPaymentPageData',
+        {'token': token},
+      );
+
+  /// Confirm payment from the payment page (called after Razorpay success).
+  /// This endpoint is unauthenticated — the token is the auth.
+  _i2.Future<Map<String, dynamic>> confirmPayment(
+    String token,
+    String razorpayPaymentId,
+    String razorpayOrderId,
+    String razorpaySignature, {
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'paymentLink',
+    'confirmPayment',
+    {
+      'token': token,
+      'razorpayPaymentId': razorpayPaymentId,
+      'razorpayOrderId': razorpayOrderId,
+      'razorpaySignature': razorpaySignature,
+      'paidByName': paidByName,
+      'paidByPhone': paidByPhone,
+      'paidByEmail': paidByEmail,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointPricing extends _i1.EndpointRef {
   EndpointPricing(_i1.EndpointCaller caller) : super(caller);
 
@@ -3700,6 +3759,7 @@ class Client extends _i1.ServerpodClientShared {
     orderRealtime = EndpointOrderRealtime(this);
     orderTracking = EndpointOrderTracking(this);
     payment = EndpointPayment(this);
+    paymentLink = EndpointPaymentLink(this);
     pricing = EndpointPricing(this);
     product = EndpointProduct(this);
     productForm = EndpointProductForm(this);
@@ -3752,6 +3812,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointPayment payment;
 
+  late final EndpointPaymentLink paymentLink;
+
   late final EndpointPricing pricing;
 
   late final EndpointProduct product;
@@ -3794,6 +3856,7 @@ class Client extends _i1.ServerpodClientShared {
     'orderRealtime': orderRealtime,
     'orderTracking': orderTracking,
     'payment': payment,
+    'paymentLink': paymentLink,
     'pricing': pricing,
     'product': product,
     'productForm': productForm,

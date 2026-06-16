@@ -201,6 +201,10 @@ payment:
   - adminGetPaymentOrderDetailHydrated:
   - adminGetRefundDetail:
   - recoverPendingPayments:
+paymentLink:
+  - createShareablePaymentLink:
+  - getPaymentPageData:
+  - confirmPayment:
 pricing:
   - calculateCartPricing:
   - getApplicableOffers:

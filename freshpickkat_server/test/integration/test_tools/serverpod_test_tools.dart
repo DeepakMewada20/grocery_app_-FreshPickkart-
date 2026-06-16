@@ -301,6 +301,8 @@ class TestEndpoints {
 
   late final _PaymentEndpoint payment;
 
+  late final _PaymentLinkEndpoint paymentLink;
+
   late final _PricingEndpoint pricing;
 
   late final _ProductEndpoint product;
@@ -404,6 +406,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     payment = _PaymentEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    paymentLink = _PaymentLinkEndpoint(
       endpoints,
       serializationManager,
     );
@@ -7463,6 +7469,132 @@ class _PaymentEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<_i53.PaymentActionResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _PaymentLinkEndpoint {
+  _PaymentLinkEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<Map<String, dynamic>> createShareablePaymentLink(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i27.Order order,
+    String idempotencyKey,
+    double amount,
+    String customerPhone,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'paymentLink',
+            method: 'createShareablePaymentLink',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'paymentLink',
+          methodName: 'createShareablePaymentLink',
+          parameters: _i1.testObjectToJson({
+            'order': order,
+            'idempotencyKey': idempotencyKey,
+            'amount': amount,
+            'customerPhone': customerPhone,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> getPaymentPageData(
+    _i1.TestSessionBuilder sessionBuilder,
+    String token,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'paymentLink',
+            method: 'getPaymentPageData',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'paymentLink',
+          methodName: 'getPaymentPageData',
+          parameters: _i1.testObjectToJson({'token': token}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> confirmPayment(
+    _i1.TestSessionBuilder sessionBuilder,
+    String token,
+    String razorpayPaymentId,
+    String razorpayOrderId,
+    String razorpaySignature, {
+    String? paidByName,
+    String? paidByPhone,
+    String? paidByEmail,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'paymentLink',
+            method: 'confirmPayment',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'paymentLink',
+          methodName: 'confirmPayment',
+          parameters: _i1.testObjectToJson({
+            'token': token,
+            'razorpayPaymentId': razorpayPaymentId,
+            'razorpayOrderId': razorpayOrderId,
+            'razorpaySignature': razorpaySignature,
+            'paidByName': paidByName,
+            'paidByPhone': paidByPhone,
+            'paidByEmail': paidByEmail,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

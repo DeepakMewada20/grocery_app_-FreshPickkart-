@@ -4,7 +4,6 @@ import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_payment_link_service.dart';
 import '../services/postgres/postgres_payment_service.dart';
 import '../services/postgres/postgres_support.dart';
-import 'order_endpoint.dart';
 import 'payment_endpoint.dart';
 
 class PaymentLinkEndpoint extends Endpoint {
@@ -12,7 +11,6 @@ class PaymentLinkEndpoint extends Endpoint {
   final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
   final PostgresPaymentService _payments = PostgresPaymentService();
   final PaymentEndpoint _paymentEndpoint = PaymentEndpoint();
-  final OrderEndpoint _orderEndpoint = OrderEndpoint();
 
   /// Create an order with a shareable payment link.
   /// Returns order details + payment link data.
@@ -89,9 +87,6 @@ class PaymentLinkEndpoint extends Endpoint {
 
   /// Validate a payment link token and return order page data.
   /// This endpoint is unauthenticated — the token is the auth.
-  @override
-  bool get requireAuth => false;
-
   Future<Map<String, dynamic>> getPaymentPageData(
     Session session,
     String token,
@@ -144,7 +139,7 @@ class PaymentLinkEndpoint extends Endpoint {
         return {'success': false, 'message': 'Invalid order reference.'};
       }
 
-      final orderRow = await CustomerOrderRow.db.findById(session, parsedOrderId);
+      final orderRow = await protocol.CustomerOrderRow.db.findById(session, parsedOrderId);
       if (orderRow == null) {
         return {'success': false, 'message': 'Order not found.'};
       }
@@ -181,13 +176,13 @@ class PaymentLinkEndpoint extends Endpoint {
     Session session,
     String orderNumber,
   ) async {
-    final row = await CustomerOrderRow.db.findFirstRow(
+    final row = await protocol.CustomerOrderRow.db.findFirstRow(
       session,
       where: (t) => t.orderNumber.equals(orderNumber),
     );
     if (row == null) return;
 
-    await CustomerOrderRow.db.updateRow(
+    await protocol.CustomerOrderRow.db.updateRow(
       session,
       row.copyWith(
         orderStatus: 'payment_pending',
