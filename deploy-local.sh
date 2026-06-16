@@ -23,11 +23,18 @@ flutter build web --release \
   --dart-define=ADMIN_API_BASE_URL=$ADMIN_API_BASE_URL
 cd ..
 
+# === Create target directories on server ===
+echo "=== Creating target directories on server ==="
+ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "
+  mkdir -p $SERVER_PROJECT_PATH/freshpickkat_flutter/build/web
+  mkdir -p $SERVER_PROJECT_PATH/freshpickkat_admin/build/web
+"
+
 # === SCP builds to server ===
 echo "=== Copying builds to server ==="
-scp -r -P $SSH_PORT freshpickkat_flutter/build/web/ \
+scp -r -P $SSH_PORT freshpickkat_flutter/build/web/* \
   $SSH_USER@$SSH_HOST:$SERVER_PROJECT_PATH/freshpickkat_flutter/build/web/
-scp -r -P $SSH_PORT freshpickkat_admin/build/web/ \
+scp -r -P $SSH_PORT freshpickkat_admin/build/web/* \
   $SSH_USER@$SSH_HOST:$SERVER_PROJECT_PATH/freshpickkat_admin/build/web/
 
 echo "=== Builds delivered to server! ==="
