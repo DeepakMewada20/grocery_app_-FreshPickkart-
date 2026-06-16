@@ -25,6 +25,9 @@ jobs:
         with:
           flutter-version: '3.41.x'
 
+      - name: Create .env for customer app
+        run: echo "RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}" > freshpickkat_flutter/.env
+
       - name: Build customer web
         run: cd freshpickkat_flutter && flutter build web --release
 
