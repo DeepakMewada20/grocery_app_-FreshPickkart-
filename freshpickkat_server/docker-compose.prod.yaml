@@ -59,3 +59,23 @@ services:
 
 volumes:
   freshpickkat_data:
+
+  # Flutter Customer Web App
+  flutter_web:
+    build:
+      context: ..
+      dockerfile: freshpickkat_flutter/Dockerfile
+    container_name: freshpickkart-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8092:80"
+
+  # Flutter Admin Web App
+  flutter_admin:
+    build:
+      context: ..
+      dockerfile: freshpickkat_admin/Dockerfile
+    container_name: freshpickkart-admin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8093:80"
