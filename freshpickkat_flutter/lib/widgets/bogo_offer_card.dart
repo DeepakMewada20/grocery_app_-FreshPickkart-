@@ -245,22 +245,25 @@ class BogoOfferCard extends StatelessWidget {
                                   ? null
                                   : () {
                                       cart.suspendPricingRefresh();
-                                      cart.addItem(
-                                        product,
-                                        variantId: triggerVariant?.variantId,
-                                        quantityDelta: requiredQty <= 0
-                                            ? 1
-                                            : requiredQty,
-                                      );
-                                      if (reward != null) {
-                                        cart.setBogoSelection(
-                                          product.productId!,
-                                          reward.productId,
-                                          triggerVariantId:
-                                              triggerVariant?.variantId,
+                                      try {
+                                        cart.addItem(
+                                          product,
+                                          variantId: triggerVariant?.variantId,
+                                          quantityDelta: requiredQty <= 0
+                                              ? 1
+                                              : requiredQty,
                                         );
+                                        if (reward != null) {
+                                          cart.setBogoSelection(
+                                            product.productId!,
+                                            reward.productId,
+                                            triggerVariantId:
+                                                triggerVariant?.variantId,
+                                          );
+                                        }
+                                      } finally {
+                                        cart.resumePricingRefresh();
                                       }
-                                      cart.resumePricingRefresh();
                                     },
                               icon: const Icon(
                                 Icons.add_shopping_cart,

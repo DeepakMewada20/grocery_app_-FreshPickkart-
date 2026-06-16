@@ -105,9 +105,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ProtectedNavigationHelper.executeProtectedAction(
       onLoggedIn: () async {
         _cartController.suspendPricingRefresh();
-        _incrementQuantity(product);
-        await _showBogoSelectionIfNeeded(product);
-        _cartController.resumePricingRefresh();
+        try {
+          _incrementQuantity(product);
+          await _showBogoSelectionIfNeeded(product);
+        } finally {
+          _cartController.resumePricingRefresh();
+        }
       },
       productToAdd: product,
     );
