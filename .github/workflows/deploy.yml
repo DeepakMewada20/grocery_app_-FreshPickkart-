@@ -6,15 +6,43 @@ on:
       - master
     paths:
       - 'freshpickkat_server/**'
+      - 'freshpickkat_flutter/**'
+      - 'freshpickkat_admin/**'
+      - 'docker/**'
+      - 'nginx_freshpickkart.conf'
       - '.github/workflows/deploy.yml'
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.x'
+
+      - name: Build customer web
+        run: cd freshpickkat_flutter && flutter build web --release
+
+      - name: Build admin web
+        run: cd freshpickkat_admin && flutter build web --release
+
+      - name: Copy builds to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: |
+            freshpickkat_flutter/build/web/
+            freshpickkat_admin/build/web/
+          target: ~/projects/grocery_app_-FreshPickkart-/
+          strip_components: 0
 
       - name: Deploy to Remote Server via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -29,30 +57,39 @@ jobs:
           debug: true
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
-            
+
             echo "--- 1. Fetching All Branches & Switching to Master ---"
             git fetch --all
             git checkout master || git checkout -b master origin/master
             git reset --hard origin/master
-            
+
             echo "--- 2. Verifying .env File Connection ---"
             if [ ! -f .env ] && [ -f ../.env ]; then
               echo "Linking .env from parent directory..."
               ln -s ../.env .env
             fi
-            
-            echo "--- 3. Building New Docker Images ---"
+
+            echo "--- 3. Building Flutter Docker Images ---"
+            docker compose -f docker-compose.prod.yaml build flutter_web flutter_admin
+
+            echo "--- 4. Starting Flutter Containers ---"
+            docker compose -f docker-compose.prod.yaml up -d flutter_web flutter_admin
+
+            echo "--- 5. Building Serverpod Docker Images ---"
             docker compose -f docker-compose.prod.yaml build
-            
-            echo "--- 4. Running Serverpod Migrations (Maintenance Mode) ---"
-            # --role maintenance lagane se ye server ko start nahi karega, sirf migration lagakar exit ho jayega
+
+            echo "--- 6. Running Serverpod Migrations (Maintenance Mode) ---"
             docker compose -f docker-compose.prod.yaml run --rm \
               --entrypoint /app/server \
               -e SERVERPOD_RUN_MODE=production \
               server --apply-migrations --role maintenance
-            
-            echo "--- 5. Starting Main Containers in Background ---"
+
+            echo "--- 7. Starting All Containers in Background ---"
             docker compose -f docker-compose.prod.yaml up -d --remove-orphans
-            
-            echo "--- 6. Final Container Status Check ---"
+
+            echo "--- 8. Updating Host Nginx Configuration ---"
+            sudo cp ../nginx_freshpickkart.conf /etc/nginx/sites-available/freshpickkat
+            sudo nginx -t && sudo systemctl reload nginx
+
+            echo "--- 9. Final Container Status Check ---"
             docker ps | grep freshpickkat
