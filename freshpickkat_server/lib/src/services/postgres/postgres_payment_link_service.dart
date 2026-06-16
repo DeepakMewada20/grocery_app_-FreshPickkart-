@@ -81,7 +81,7 @@ class PostgresPaymentLinkService {
       );
 
       session.log(
-        'Payment link created for order $orderId: $token',
+        'Payment link created for order $orderId: $paymentLink',
         level: LogLevel.info,
       );
 
@@ -122,8 +122,8 @@ class PostgresPaymentLinkService {
       }
 
       final linkMap = linkRows.first.toColumnMap();
-      final orderId = (linkMap['orderId'] as String?) ?? '';
-      final expiresAtStr = linkMap['expiresAt'] as String?;
+      final orderId = linkMap['orderId']?.toString() ?? '';
+      final expiresAtStr = linkMap['expiresAt']?.toString();
       final isUsed = linkMap['isUsed'] as bool? ?? false;
 
       // Check if used
@@ -299,8 +299,8 @@ class PostgresPaymentLinkService {
       var expiredCount = 0;
       for (final row in expiredRows) {
         final map = row.toColumnMap();
-        final orderIdStr = map['orderId'] as String?;
-        if (orderIdStr == null) continue;
+        final orderIdStr = map['orderId']?.toString();
+        if (orderIdStr == null || orderIdStr.isEmpty) continue;
 
         final parsedId = tryParseUuid(orderIdStr);
         if (parsedId == null) continue;
@@ -375,8 +375,12 @@ class PostgresPaymentLinkService {
     if (rows.isEmpty) return null;
 
     final map = rows.first.toColumnMap();
+    final token = map['token'] as String? ?? '';
+    final baseUrl = await _getBaseUrl(session);
+    final paymentLink = '$baseUrl/pay/$token';
     return {
-      'token': map['token'] as String?,
+      'token': token,
+      'paymentLink': paymentLink,
       'expiresAt': map['expiresAt']?.toString(),
       'isUsed': map['isUsed'] as bool? ?? false,
     };
@@ -390,17 +394,35 @@ class PostgresPaymentLinkService {
       final publicPort = webConfig.publicPort;
       final scheme = webConfig.publicScheme;
 
+      session.log(
+        '_getBaseUrl: raw publicHost=$publicHost, publicPort=$publicPort, scheme=$scheme',
+        level: LogLevel.info,
+      );
+
       if (publicHost == '0.0.0.0' ||
           publicHost == 'localhost' ||
           publicHost == '127.0.0.1') {
         publicHost = await _resolveLocalIp();
+        session.log(
+          '_getBaseUrl: resolved publicHost=$publicHost',
+          level: LogLevel.info,
+        );
       }
 
-      if (publicPort == 80 || publicPort == 443) {
-        return '$scheme://$publicHost';
-      }
-      return '$scheme://$publicHost:$publicPort';
-    } catch (_) {
+      final url = publicPort == 80 || publicPort == 443
+          ? '$scheme://$publicHost'
+          : '$scheme://$publicHost:$publicPort';
+
+      session.log(
+        '_getBaseUrl: final URL=$url',
+        level: LogLevel.info,
+      );
+      return url;
+    } catch (e) {
+      session.log(
+        '_getBaseUrl: error=$e, falling back to freshpickkat.com',
+        level: LogLevel.error,
+      );
       return 'https://freshpickkat.com';
     }
   }
@@ -410,13 +432,33 @@ class PostgresPaymentLinkService {
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
       );
+      // Prefer physical network interfaces (WiFi/Ethernet) over virtual/Docker
+      String? fallback;
       for (final iface in interfaces) {
+        final name = iface.name.toLowerCase();
+        for (final addr in iface.addresses) {
+          if (!addr.isLoopback) {
+            fallback ??= addr.address;
+          }
+        }
+        // Skip loopback, docker, virtual bridge, and veth interfaces
+        if (name == 'lo' ||
+            name.startsWith('docker') ||
+            name.startsWith('br-') ||
+            name.startsWith('veth') ||
+            name.startsWith('vboxnet') ||
+            name.startsWith('vmnet') ||
+            name.startsWith('virbr')) {
+          continue;
+        }
         for (final addr in iface.addresses) {
           if (!addr.isLoopback) {
             return addr.address;
           }
         }
       }
+      // If no physical interface found, use fallback (first non-loopback)
+      if (fallback != null) return fallback;
     } catch (_) {}
     return 'localhost';
   }

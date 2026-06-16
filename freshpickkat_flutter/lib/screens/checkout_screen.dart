@@ -378,16 +378,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _showSharePaymentLinkSheet(String paymentLink, String orderId) {
     final amount = cartController.totalAmount;
     final message =
-        'Hi,\n\nI have placed a grocery order worth ₹${amount.toStringAsFixed(2)}.'
-        '\n\nCan you please complete the payment using the link below?\n\n$paymentLink'
-        '\n\nThis link expires in 30 minutes.';
+        'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
+        '$paymentLink\n\n'
+        'Order amount: ₹${amount.toStringAsFixed(2)}\n'
+        'This link expires in 30 minutes.';
+    var copied = false;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return ConstrainedBox(
+        return SafeArea(
+          top: false,
+          child: ConstrainedBox(
           constraints: AppResponsive.sheetConstraints(context),
           child: Container(
             padding: EdgeInsets.all(20.r),
@@ -397,93 +401,102 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 top: Radius.circular(20),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                SizedBox(height: 20.h),
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 48.r,
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'Order Created!',
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  'Share the payment link with someone to complete the payment.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                Container(
-                  padding: EdgeInsets.all(12.r),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Text(
-                    '#$orderId',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryGreen,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20.h),
-                Row(
+            child: StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: _buildShareButton(
-                        icon: Icons.copy,
-                        label: 'Copy Link',
-                        color: Colors.grey[700]!,
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: paymentLink));
-                          AppSnackbar.show(
-                            'Link Copied',
-                            'Payment link copied to clipboard.',
-                          );
-                        },
+                    Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: _buildShareButton(
-                        icon: Icons.share,
-                        label: 'Share',
-                        color: AppTheme.primaryGreen,
-                        onTap: () {
-                          Share.share(
-                            message,
-                            subject: 'Payment for Order #$orderId',
-                          );
-                        },
+                    SizedBox(height: 20.h),
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 48.r,
+                    ),
+                    SizedBox(height: 12.h),
+                    Text(
+                      'Order Created!',
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Share the payment link with someone to complete the payment.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Container(
+                      padding: EdgeInsets.all(12.r),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '#$orderId',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildShareButton(
+                            icon: copied ? Icons.check : Icons.copy,
+                            label: copied ? 'Copied!' : 'Copy Link',
+                            color: copied ? AppTheme.primaryGreen : Colors.grey[700]!,
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: paymentLink));
+                              setSheetState(() {
+                                copied = true;
+                              });
+                              Future.delayed(const Duration(seconds: 2), () {
+                                setSheetState(() {
+                                  copied = false;
+                                });
+                              });
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: _buildShareButton(
+                            icon: Icons.share,
+                            label: 'Share',
+                            color: AppTheme.primaryGreen,
+                            onTap: () {
+                              Share.share(
+                                message,
+                                subject: 'Payment for Order #$orderId',
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
                   ],
-                ),
-                SizedBox(height: 16.h),
-              ],
+                );
+              },
             ),
           ),
+        ),
         );
       },
     );
@@ -684,7 +697,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Align(
+        return SafeArea(
+          top: false,
+          child: Align(
           alignment: Alignment.bottomCenter,
           child: ConstrainedBox(
             constraints: AppResponsive.sheetConstraints(context),
@@ -823,6 +838,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
           ),
+        ),
         );
       },
     );

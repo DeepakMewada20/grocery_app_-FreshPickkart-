@@ -51,13 +51,13 @@ void run(List<String> args) async {
   pod.webServer.addRoute(RazorpayWebhookRoute(), '/webhook/razorpay');
 
   // Payment page for shareable payment links
-  pod.webServer.addRoute(PaymentPageRoute(), '/pay/{token}');
+  pod.webServer.addRoute(PaymentPageRoute(), '/pay/:token');
 
   // Confirm payment callback from the payment page (POST from Razorpay Checkout.js)
   pod.webServer.addRoute(ConfirmPaymentRoute(), '/pay/confirm');
 
   // Payment success page shown after Razorpay confirms payment
-  pod.webServer.addRoute(PaySuccessRoute(), '/pay/success/{token}');
+  pod.webServer.addRoute(PaySuccessRoute(), '/pay/success/:token');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

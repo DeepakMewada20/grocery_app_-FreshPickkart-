@@ -44,7 +44,7 @@ class ConfirmPaymentRoute extends Route {
         return _jsonResponse({'success': false, 'message': 'This payment link has already been used.'});
       }
 
-      final expiresAtStr = linkMap['expiresAt'] as String?;
+      final expiresAtStr = linkMap['expiresAt']?.toString();
       if (expiresAtStr != null) {
         final expiresAt = DateTime.tryParse(expiresAtStr)?.toUtc();
         if (expiresAt != null && DateTime.now().toUtc().isAfter(expiresAt)) {
@@ -52,7 +52,7 @@ class ConfirmPaymentRoute extends Route {
         }
       }
 
-      final orderIdStr = linkMap['orderId'] as String? ?? '';
+      final orderIdStr = linkMap['orderId']?.toString() ?? '';
       final parsedOrderId = tryParseUuid(orderIdStr);
       if (parsedOrderId == null) {
         return _jsonResponse({'success': false, 'message': 'Invalid order reference.'});
