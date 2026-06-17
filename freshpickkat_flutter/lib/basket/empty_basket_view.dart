@@ -5,7 +5,8 @@ import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -407,15 +408,14 @@ class _CategoryTileState extends State<_CategoryTile>
     _controller.forward();
   }
 
-  void _handleTapUp(TapUpDetails details) {
+  Future<void> _handleTapUp(TapUpDetails details) async {
     _controller.reverse();
-    Get.to(
-      () => CategoryItemsScreen(
+    await navigateDeferred(
+      loadLibrary: categoryItemScreen.loadLibrary,
+      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
         categoryName: widget.category.categoryName,
         subCategoryGroupName: 'All',
       ),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 260),
     );
   }
 

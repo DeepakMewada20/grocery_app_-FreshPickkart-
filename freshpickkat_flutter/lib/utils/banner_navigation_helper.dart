@@ -1,11 +1,12 @@
 
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
-import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart';
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart' deferred as bannerOfferHostScreen;
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,16 +21,16 @@ class BannerNavigationHelper {
         await _navigateToProduct(banner.productId);
         break;
       case 'category':
-        _navigateToCategory(banner.categoryId);
+        await _navigateToCategory(banner.categoryId);
         break;
       case 'offer':
-        _navigateToOffers(banner.offerId);
+        await _navigateToOffers(banner.offerId);
         break;
       case 'combo':
-        _navigateToComboOffers(banner.comboId);
+        await _navigateToComboOffers(banner.comboId);
         break;
       case 'coupon':
-        _navigateToCoupons(banner.couponCode);
+        await _navigateToCoupons(banner.couponCode);
         break;
       case 'external_link':
         await _launchExternalUrl(banner.externalUrl);
@@ -59,65 +60,60 @@ class BannerNavigationHelper {
       return;
     }
 
-    Get.to(
-      () => ProductDetailScreen(product: product),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
+    await navigateDeferred(
+      loadLibrary: productDetailScreen.loadLibrary,
+      pageBuilder: () => productDetailScreen.ProductDetailScreen(product: product),
     );
   }
 
   // ──────────────────────────────────────────────
   // Category → CategoryItemsScreen
   // ──────────────────────────────────────────────
-  static void _navigateToCategory(String? categoryId) {
+  static Future<void> _navigateToCategory(String? categoryId) async {
     if (categoryId == null || categoryId.trim().isEmpty) {
       _showSnackbar('Category not found');
       return;
     }
 
-    Get.to(
-      () => CategoryItemsScreen(
+    await navigateDeferred(
+      loadLibrary: categoryItemScreen.loadLibrary,
+      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
         categoryName: categoryId.trim(),
         subCategoryGroupName: 'All',
       ),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
     );
   }
 
   // ──────────────────────────────────────────────
   // Offer/Combo → shared parent screen
   // ──────────────────────────────────────────────
-  static void _navigateToOffers(String? offerId) {
-    Get.to(
-      () => BannerOfferHostScreen(
+  static Future<void> _navigateToOffers(String? offerId) async {
+    await navigateDeferred(
+      loadLibrary: bannerOfferHostScreen.loadLibrary,
+      pageBuilder: () => bannerOfferHostScreen.BannerOfferHostScreen(
         bannerType: 'offer',
         offerId: offerId,
       ),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
     );
   }
 
-  static void _navigateToComboOffers(String? comboId) {
-    Get.to(
-      () => BannerOfferHostScreen(
+  static Future<void> _navigateToComboOffers(String? comboId) async {
+    await navigateDeferred(
+      loadLibrary: bannerOfferHostScreen.loadLibrary,
+      pageBuilder: () => bannerOfferHostScreen.BannerOfferHostScreen(
         bannerType: 'combo',
         comboId: comboId,
       ),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
     );
   }
 
   // ──────────────────────────────────────────────
   // Coupon → CouponsScreen
   // ──────────────────────────────────────────────
-  static void _navigateToCoupons(String? couponCode) {
-    Get.to(
-      () => CouponsScreen(autoApplyCouponCode: couponCode),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
+  static Future<void> _navigateToCoupons(String? couponCode) async {
+    await navigateDeferred(
+      loadLibrary: couponsScreen.loadLibrary,
+      pageBuilder: () => couponsScreen.CouponsScreen(autoApplyCouponCode: couponCode),
     );
   }
 

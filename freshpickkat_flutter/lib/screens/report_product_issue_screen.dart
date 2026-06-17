@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_complaint_controller.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
@@ -68,9 +69,12 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
           if (submitted != null) {
             return _SuccessState(
               complaint: submitted,
-              onView: () => Get.off(
-                () => ComplaintDetailScreen(complaintId: submitted.complaintId),
-              ),
+              onView: () async {
+                await navigateDeferred(
+                  loadLibrary: complaintDetailScreen.loadLibrary,
+                  pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaintId: submitted.complaintId),
+                );
+              },
               onDone: () => Get.back(result: submitted),
             );
           }
@@ -295,9 +299,12 @@ class _BlockedState extends StatelessWidget {
                 ),
                 SizedBox(height: 16.h),
                 ElevatedButton(
-                  onPressed: () => Get.off(
-                    () => ComplaintDetailScreen(complaint: complaint),
-                  ),
+                  onPressed: () async {
+                    await navigateDeferred(
+                      loadLibrary: complaintDetailScreen.loadLibrary,
+                      pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                    );
+                  },
                   child: const Text('View Complaint'),
                 ),
               ],

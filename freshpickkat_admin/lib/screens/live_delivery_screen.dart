@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as liveDeliveryMapPreviewScreen;
+import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -233,8 +234,12 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  Get.to(() => LiveDeliveryMapPreviewScreen(order: order)),
+              onPressed: () async {
+                await navigateDeferred(
+                  loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
+                  pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(order: order),
+                );
+              },
               icon: const Icon(Icons.map_outlined),
               label: const Text(
                 'Open Live Map',

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
-import 'package:freshpickkat_flutter/screens/orders_screen.dart';
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/orders_screen.dart' deferred as ordersScreen;
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -153,9 +154,12 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
           context: context,
           child: InkWell(
             borderRadius: BorderRadius.circular(16.r),
-            onTap: () => Get.to(
-              () => ComplaintDetailScreen(complaint: complaint),
-            ),
+            onTap: () async {
+              await navigateDeferred(
+                loadLibrary: complaintDetailScreen.loadLibrary,
+                pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+              );
+            },
             child: Container(
               padding: EdgeInsets.all(14.r),
               decoration: BoxDecoration(
@@ -241,7 +245,12 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
           OutlinedButton.icon(
             icon: const Icon(Icons.shopping_bag_outlined),
             label: const Text('Go to My Orders'),
-            onPressed: () => Get.to(() => const OrdersScreen()),
+            onPressed: () async {
+              await navigateDeferred(
+                loadLibrary: ordersScreen.loadLibrary,
+                pageBuilder: () => ordersScreen.OrdersScreen(),
+              );
+            },
           ),
         ],
       ),

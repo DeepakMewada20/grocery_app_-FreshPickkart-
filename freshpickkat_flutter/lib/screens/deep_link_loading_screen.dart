@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
-import 'package:freshpickkat_flutter/screens/deep_link_not_found_screen.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/deep_link_not_found_screen.dart' deferred as deepLinkNotFoundScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
 import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
 class DeepLinkLoadingScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
     if (!mounted) return;
 
     if (target == null) {
-      _openNotFound();
+      await _openNotFound();
       return;
     }
 
@@ -45,12 +46,13 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         );
         if (!mounted) return;
         if (product == null) {
-          Get.off(
-            () => DeepLinkNotFoundScreen.product(productId: target.value),
+          await navigateDeferred(
+            loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
+            pageBuilder: () => deepLinkNotFoundScreen.DeepLinkNotFoundScreen.product(productId: target.value),
             routeName: RouteManager.productNotFound,
           );
         } else {
-          Get.off(() => ProductDetailScreen(product: product));
+          await navigateDeferred(loadLibrary: () => productDetailScreen.loadLibrary(), pageBuilder: () => productDetailScreen.ProductDetailScreen(product: product));
         }
         break;
       case DeepLinkType.category:
@@ -59,13 +61,15 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         );
         if (!mounted) return;
         if (categoryName == null) {
-          Get.off(
-            () => DeepLinkNotFoundScreen.category(categoryId: target.value),
+          await navigateDeferred(
+            loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
+            pageBuilder: () => deepLinkNotFoundScreen.DeepLinkNotFoundScreen.category(categoryId: target.value),
             routeName: RouteManager.deepLinkNotFound,
           );
         } else {
-          Get.off(
-            () => CategoryItemsScreen(
+          await navigateDeferred(
+            loadLibrary: () => categoryItemScreen.loadLibrary(),
+            pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
               categoryName: categoryName,
               subCategoryGroupName: 'All',
             ),
@@ -75,17 +79,18 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
       case DeepLinkType.offer:
         final code = target.value.trim();
         if (code.isEmpty) {
-          _openNotFound();
+          await _openNotFound();
         } else {
-          Get.off(() => CouponsScreen(autoApplyCouponCode: code));
+          await navigateDeferred(loadLibrary: () => couponsScreen.loadLibrary(), pageBuilder: () => couponsScreen.CouponsScreen(autoApplyCouponCode: code));
         }
         break;
     }
   }
 
-  void _openNotFound() {
-    Get.off(
-      () => const DeepLinkNotFoundScreen(),
+  Future<void> _openNotFound() async {
+    await navigateDeferred(
+      loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
+      pageBuilder: () => const deepLinkNotFoundScreen.DeepLinkNotFoundScreen(),
       routeName: RouteManager.deepLinkNotFound,
     );
   }

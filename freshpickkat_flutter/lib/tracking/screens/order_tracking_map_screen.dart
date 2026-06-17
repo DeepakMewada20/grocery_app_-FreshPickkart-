@@ -8,7 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:freshpickkat_flutter/model/lat_lng.dart';
 
 import '../controllers/order_tracking_controller.dart';
 import '../models/order_tracking_snapshot.dart';
@@ -26,7 +26,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     with TickerProviderStateMixin {
   late final OrderTrackingController _controller;
   late final AnimationController _markerController;
-  StreamSubscription<LatLng?>? _riderSubscription;
+  StreamSubscription<AppLatLng?>? _riderSubscription;
   GoogleMapController? _mapController;
   LatLng? _animatedRiderPosition;
   LatLngTween? _riderTween;
@@ -48,17 +48,19 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
 
     Future.microtask(() async {
       await _controller.startListening(orderId: widget.orderId);
-      if (_controller.currentRiderMarker != null) {
-        _animatedRiderPosition = _controller.currentRiderMarker;
+      final rider = _controller.currentRiderMarker;
+      if (rider != null) {
+        _animatedRiderPosition = LatLng(rider.latitude, rider.longitude);
       }
     });
 
     _riderSubscription = _controller.riderPosition.listen((next) {
       if (!mounted || next == null) return;
-      final begin = _animatedRiderPosition ?? next;
-      _riderTween = LatLngTween(begin: begin, end: next);
+      final nextMaps = LatLng(next.latitude, next.longitude);
+      final begin = _animatedRiderPosition ?? nextMaps;
+      _riderTween = LatLngTween(begin: begin, end: nextMaps);
 
-      final newBearing = Geolocator.bearingBetween(
+      final newBearing = AppLatLng.bearingBetween(
         begin.latitude, begin.longitude,
         next.latitude, next.longitude,
       );
@@ -107,18 +109,23 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
 
   Future<void> _focusCamera() async {
     if (_mapController == null) return;
-    final rider = _animatedRiderPosition ?? _controller.currentRiderMarker;
-    final user = _controller.currentUserMarker;
-    if (rider == null && user == null) return;
+    final riderM =
+        _animatedRiderPosition ?? _toMapsOrNull(_controller.currentRiderMarker);
+    final userM = _toMapsOrNull(_controller.currentUserMarker);
+    if (riderM == null && userM == null) return;
 
-    if (rider != null && user != null) {
+    if (riderM != null && userM != null) {
       final southwest = LatLng(
-        rider.latitude < user.latitude ? rider.latitude : user.latitude,
-        rider.longitude < user.longitude ? rider.longitude : user.longitude,
+        riderM.latitude < userM.latitude ? riderM.latitude : userM.latitude,
+        riderM.longitude < userM.longitude
+            ? riderM.longitude
+            : userM.longitude,
       );
       final northeast = LatLng(
-        rider.latitude > user.latitude ? rider.latitude : user.latitude,
-        rider.longitude > user.longitude ? rider.longitude : user.longitude,
+        riderM.latitude > userM.latitude ? riderM.latitude : userM.latitude,
+        riderM.longitude > userM.longitude
+            ? riderM.longitude
+            : userM.longitude,
       );
 
       if (southwest.latitude != northeast.latitude ||
@@ -135,9 +142,12 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     }
 
     await _mapController!.animateCamera(
-      CameraUpdate.newLatLng(rider ?? user!),
+      CameraUpdate.newLatLng(riderM ?? userM!),
     );
   }
+
+  LatLng? _toMapsOrNull(AppLatLng? p) =>
+      p == null ? null : LatLng(p.latitude, p.longitude);
 
   @override
   void dispose() {
@@ -178,8 +188,8 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
             GoogleMap(
               initialCameraPosition: CameraPosition(
                 target:
-                    _controller.currentUserMarker ??
-                    _controller.currentRiderMarker ??
+                    _toMapsOrNull(_controller.currentUserMarker) ??
+                    _toMapsOrNull(_controller.currentRiderMarker) ??
                     const LatLng(20.5937, 78.9629),
                 zoom: 15,
               ),
@@ -212,8 +222,9 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
 
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
-    final rider = _animatedRiderPosition ?? _controller.currentRiderMarker;
-    final user = _controller.currentUserMarker;
+    final rider = _animatedRiderPosition ??
+        _toMapsOrNull(_controller.currentRiderMarker);
+    final user = _toMapsOrNull(_controller.currentUserMarker);
 
     if (user != null) {
       markers.add(
@@ -248,7 +259,9 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     return {
       Polyline(
         polylineId: const PolylineId('order_route'),
-        points: _controller.routePolyline.toList(),
+        points: _controller.routePolyline
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList(),
         color: Colors.green.shade600,
         width: 5,
       ),

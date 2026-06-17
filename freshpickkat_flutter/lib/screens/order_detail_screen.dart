@@ -7,11 +7,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
 import 'package:freshpickkat_flutter/screens/report_delivery_issue_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -21,7 +22,7 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
-import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart';
+import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart' deferred as orderTrackingMapScreen;
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -523,8 +524,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                Get.to(() => OrderTrackingMapScreen(orderId: order.orderId));
+              onPressed: () async {
+                await navigateDeferred(
+                  loadLibrary: orderTrackingMapScreen.loadLibrary,
+                  pageBuilder: () => orderTrackingMapScreen.OrderTrackingMapScreen(orderId: order.orderId),
+                );
               },
               icon: const Icon(Icons.map_outlined),
               label: const Text('Track Order'),
@@ -1029,7 +1033,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           OutlinedButton(
             onPressed: () async {
               if (complaint != null) {
-                await Get.to(() => ComplaintDetailScreen(complaint: complaint));
+                await navigateDeferred(
+                  loadLibrary: complaintDetailScreen.loadLibrary,
+                  pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                );
                 return;
               }
               if (isDelivered) {

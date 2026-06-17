@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
-import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart';
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart' deferred as comboOffersScreen;
 import 'package:freshpickkat_flutter/basket/suggestions/combined_detail_bottomsheet.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
 class SuggestionNavigationHelper {
-  static void handleTap(client.BasketSuggestion suggestion) {
+  static Future<void> handleTap(client.BasketSuggestion suggestion) async {
     if (suggestion.type == 'combined') {
       _openCombinedBottomSheet(suggestion);
       return;
@@ -21,16 +22,16 @@ class SuggestionNavigationHelper {
     final firstAction = actions.isNotEmpty ? actions.first : null;
 
     if (firstAction?.type == 'add_to_cart') {
-      _addToCart(suggestion, firstAction);
+      await _addToCart(suggestion, firstAction);
       return;
     }
 
     switch (type) {
       case 'reorder':
-        _addToCart(suggestion, firstAction);
+        await _addToCart(suggestion, firstAction);
         break;
       case 'category':
-        _navigateToCategory(
+        await _navigateToCategory(
           firstAction?.payload?['categoryId'] ??
               firstAction?.payload?['categoryName'],
         );
@@ -38,13 +39,19 @@ class SuggestionNavigationHelper {
       case 'combo':
         final comboId = suggestion.comboId ?? firstAction?.comboId;
         if (comboId != null) {
-          Get.to(() => ComboOffersScreen(highlightComboId: comboId));
+          await navigateDeferred(
+            loadLibrary: comboOffersScreen.loadLibrary,
+            pageBuilder: () => comboOffersScreen.ComboOffersScreen(highlightComboId: comboId),
+          );
         }
         break;
       case 'coupon':
         final code = firstAction?.couponCode;
         if (code != null) {
-          Get.to(() => CouponsScreen(autoApplyCouponCode: code));
+          await navigateDeferred(
+            loadLibrary: couponsScreen.loadLibrary,
+            pageBuilder: () => couponsScreen.CouponsScreen(autoApplyCouponCode: code),
+          );
         }
         break;
       case 'product':
@@ -52,7 +59,7 @@ class SuggestionNavigationHelper {
       case 'bogo':
         final productId = suggestion.productId ?? firstAction?.productId;
         final variantId = suggestion.variantId ?? firstAction?.variantId;
-        _navToProduct(productId, variantId);
+        await _navToProduct(productId, variantId);
         break;
       case 'delivery':
         // Stay on basket as per rules
@@ -70,7 +77,7 @@ class SuggestionNavigationHelper {
     );
   }
 
-  static void _navToProduct(String? productId, String? variantId) {
+  static Future<void> _navToProduct(String? productId, String? variantId) async {
     if (productId == null) return;
 
     final product = ProductProviderController.instance.allProducts
@@ -79,8 +86,9 @@ class SuggestionNavigationHelper {
         );
 
     if (product != null) {
-      Get.to(
-        () => ProductDetailScreen(
+      await navigateDeferred(
+        loadLibrary: productDetailScreen.loadLibrary,
+        pageBuilder: () => productDetailScreen.ProductDetailScreen(
           product: product,
           initialVariantId: variantId,
         ),
@@ -88,10 +96,10 @@ class SuggestionNavigationHelper {
     }
   }
 
-  static void _addToCart(
+  static Future<void> _addToCart(
     client.BasketSuggestion suggestion,
     client.BasketSuggestionAction? action,
-  ) {
+  ) async {
     final productId =
         suggestion.productId ??
         action?.productId ??
@@ -105,7 +113,7 @@ class SuggestionNavigationHelper {
           (p) => p.productId == productId,
         );
     if (product == null) {
-      _navToProduct(
+      await _navToProduct(
         productId,
         action?.variantId ?? action?.payload?['variantId'],
       );
@@ -118,15 +126,14 @@ class SuggestionNavigationHelper {
     );
   }
 
-  static void _navigateToCategory(String? categoryId) {
+  static Future<void> _navigateToCategory(String? categoryId) async {
     if (categoryId == null || categoryId.trim().isEmpty) return;
-    Get.to(
-      () => CategoryItemsScreen(
+    await navigateDeferred(
+      loadLibrary: categoryItemScreen.loadLibrary,
+      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
         categoryName: categoryId.trim(),
         subCategoryGroupName: 'All',
       ),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 300),
     );
   }
 }

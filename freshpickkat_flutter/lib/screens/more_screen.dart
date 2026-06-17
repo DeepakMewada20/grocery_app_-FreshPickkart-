@@ -5,17 +5,18 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
-import 'package:freshpickkat_flutter/screens/appearance_screen.dart';
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart';
-import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
-import 'package:freshpickkat_flutter/screens/help_support_screen.dart';
-import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/appearance_screen.dart' deferred as appearanceScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart' deferred as editProfileScreen;
+import 'package:freshpickkat_flutter/screens/help_support_screen.dart' deferred as helpSupportScreen;
+import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart' deferred as legalWebviewScreen;
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
-import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart';
+import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart' deferred as myComplaintsScreen;
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
-import 'package:freshpickkat_flutter/screens/orders_screen.dart';
-import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart';
+import 'package:freshpickkat_flutter/screens/orders_screen.dart' deferred as ordersScreen;
+import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart' deferred as notificationSettingsScreen;
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
 
@@ -75,19 +76,34 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildMenuItem(
                   icon: Icons.notifications_none_outlined,
                   title: 'Notifications',
-                  onTap: () => Get.to(() => const NotificationSettingsScreen()),
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: notificationSettingsScreen.loadLibrary,
+                      pageBuilder: () => notificationSettingsScreen.NotificationSettingsScreen(),
+                    );
+                  },
                   cs: cs,
                 ),
                 _buildMenuItem(
                   icon: Icons.headset_mic_outlined,
                   title: 'Help & Support',
-                  onTap: () => Get.to(() => const HelpSupportScreen()),
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: helpSupportScreen.loadLibrary,
+                      pageBuilder: () => helpSupportScreen.HelpSupportScreen(),
+                    );
+                  },
                   cs: cs,
                 ),
                 _buildMenuItem(
                   icon: Icons.report_problem_outlined,
                   title: 'My Complaints',
-                  onTap: () => Get.to(() => const MyComplaintsScreen()),
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: myComplaintsScreen.loadLibrary,
+                      pageBuilder: () => myComplaintsScreen.MyComplaintsScreen(),
+                    );
+                  },
                   cs: cs,
                 ),
                 _buildMenuItem(
@@ -120,7 +136,12 @@ class _MoreScreenState extends State<MoreScreen> {
                 _buildMenuItem(
                   icon: Icons.person_outline,
                   title: 'My Profile',
-                  onTap: () => Get.to(() => const EditProfileScreen()),
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: editProfileScreen.loadLibrary,
+                      pageBuilder: () => editProfileScreen.EditProfileScreen(),
+                    );
+                  },
                   cs: cs,
                 ),
                 _buildMenuItem(
@@ -148,14 +169,15 @@ class _MoreScreenState extends State<MoreScreen> {
     );
   }
 
-  void _openLegalPage({
+  Future<void> _openLegalPage({
     required String title,
     required String fileName,
-  }) {
-    Get.to(
-      () => LegalWebViewScreen(
+  }) async {
+    await navigateDeferred(
+      loadLibrary: legalWebviewScreen.loadLibrary,
+      pageBuilder: () => legalWebviewScreen.LegalWebViewScreen(
         title: title,
-        url: LegalWebViewScreen.docsUrl(fileName),
+        url: legalWebviewScreen.LegalWebViewScreen.docsUrl(fileName),
       ),
     );
   }
@@ -221,7 +243,12 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
           ),
           IconButton(
-            onPressed: () => Get.to(() => const EditProfileScreen()),
+            onPressed: () async {
+              await navigateDeferred(
+                loadLibrary: editProfileScreen.loadLibrary,
+                pageBuilder: () => editProfileScreen.EditProfileScreen(),
+              );
+            },
             icon: const Icon(
               Icons.edit,
               color: AppTheme.primaryGreen,
@@ -242,7 +269,12 @@ class _MoreScreenState extends State<MoreScreen> {
             child: _buildActionCard(
               icon: Icons.receipt_long,
               label: 'My Orders',
-              onTap: () => Get.to(() => const OrdersScreen()),
+              onTap: () async {
+                await navigateDeferred(
+                  loadLibrary: ordersScreen.loadLibrary,
+                  pageBuilder: () => ordersScreen.OrdersScreen(),
+                );
+              },
               cs: cs,
             ),
           ),
@@ -251,7 +283,12 @@ class _MoreScreenState extends State<MoreScreen> {
             child: _buildActionCard(
               icon: Icons.local_offer_outlined,
               label: 'Coupons',
-              onTap: () => Get.to(() => const CouponsScreen()),
+              onTap: () async {
+                await navigateDeferred(
+                  loadLibrary: couponsScreen.loadLibrary,
+                  pageBuilder: () => couponsScreen.CouponsScreen(),
+                );
+              },
               cs: cs,
             ),
           ),
@@ -376,13 +413,17 @@ class _MoreScreenState extends State<MoreScreen> {
                 }),
               ),
               IconButton(
-                onPressed: () => Get.to(
-                  () => LocationPickerScreen(
-                    isCheckoutMode: false,
-                    initialAddress: userController.shippingAddress.value,
-                    addressLabel: 'Home',
-                  ),
-                ),
+                onPressed: () async {
+                  final addr = userController.shippingAddress.value;
+                  await navigateDeferred(
+                    loadLibrary: locationPickerScreen.loadLibrary,
+                    pageBuilder: () => locationPickerScreen.LocationPickerScreen(
+                      isCheckoutMode: false,
+                      initialAddress: addr,
+                      addressLabel: 'Home',
+                    ),
+                  );
+                },
                 icon: const Icon(
                   Icons.edit,
                   color: AppTheme.primaryGreen,
@@ -457,7 +498,12 @@ class _MoreScreenState extends State<MoreScreen> {
             );
           }),
           IconButton(
-            onPressed: () => Get.to(() => const AppearanceScreen()),
+            onPressed: () async {
+              await navigateDeferred(
+                loadLibrary: appearanceScreen.loadLibrary,
+                pageBuilder: () => appearanceScreen.AppearanceScreen(),
+              );
+            },
             icon: const Icon(
               Icons.edit,
               color: AppTheme.primaryGreen,

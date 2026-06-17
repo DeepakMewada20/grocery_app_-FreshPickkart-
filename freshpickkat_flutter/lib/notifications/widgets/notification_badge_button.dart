@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/notifications/controllers/notification_controller.dart';
-import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart';
+import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart' deferred as notificationHistoryScreen;
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
 class NotificationBadgeButton extends StatelessWidget {
@@ -17,7 +18,12 @@ class NotificationBadgeButton extends StatelessWidget {
           label: Text('${controller.unreadCount.value}'),
           child: const Icon(Icons.notifications_outlined),
         ),
-        onPressed: () => Get.to(() => const NotificationHistoryScreen()),
+        onPressed: () async {
+          await navigateDeferred(
+            loadLibrary: notificationHistoryScreen.loadLibrary,
+            pageBuilder: () => notificationHistoryScreen.NotificationHistoryScreen(),
+          );
+        },
       ),
     );
   }

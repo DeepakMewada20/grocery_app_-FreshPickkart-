@@ -55,14 +55,14 @@ jobs:
         run: |
           cd freshpickkat_flutter
           flutter pub get
-          flutter build web --release --web-renderer html --dart-define=API_BASE_URL=https://freshpickkart.com/api/
+          flutter build web --release --web-renderer html --dart2js-optimization=O4 --tree-shake-icons --dart-define=API_BASE_URL=https://freshpickkart.com/api/
 
       - name: Build admin web
         if: steps.filter.outputs.flutter_admin == 'true'
         run: |
           cd freshpickkat_admin
           flutter pub get
-          flutter build web --release --web-renderer html --dart-define=ADMIN_API_BASE_URL=https://freshpickkart.com/api/
+          flutter build web --release --web-renderer html --dart2js-optimization=O4 --tree-shake-icons --dart-define=ADMIN_API_BASE_URL=https://freshpickkart.com/api/
 
       # --- Git update on server (always) ---
       - name: Update Code Repository on Server

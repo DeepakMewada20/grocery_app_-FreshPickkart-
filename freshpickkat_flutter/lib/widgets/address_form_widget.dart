@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:get/get.dart';
 
@@ -310,8 +311,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     final hasAddress = address != null;
     return InkWell(
       onTap: () async {
-        final result = await Get.to(
-          () => LocationPickerScreen(
+        final result = await navigateDeferred(
+          loadLibrary: locationPickerScreen.loadLibrary,
+          pageBuilder: () => locationPickerScreen.LocationPickerScreen(
             isCheckoutMode: false,
           ),
         );

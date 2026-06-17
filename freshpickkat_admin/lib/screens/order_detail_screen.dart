@@ -11,7 +11,8 @@ import 'package:freshpickkat_admin/utils/order_item_grouping.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as liveDeliveryMapPreviewScreen;
+import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -684,8 +685,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           color: primaryColor,
           icon: Icons.map_outlined,
           isLoading: false,
-          onPressed: () {
-            Get.to(() => LiveDeliveryMapPreviewScreen(order: order));
+          onPressed: () async {
+            await navigateDeferred(
+              loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
+              pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(order: order),
+            );
           },
         ),
       );

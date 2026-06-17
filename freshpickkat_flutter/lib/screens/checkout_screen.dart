@@ -12,7 +12,7 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
-import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart';
+import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart' deferred as orderConfirmationScreen;
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/payment_link_service.dart';
@@ -35,7 +35,8 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -1128,7 +1129,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // Clear temporary delivery address after order is placed
     orderController.clearTempDeliveryAddress();
 
-    await Get.offAll(() => OrderConfirmationScreen(orderId: orderId));
+    try {
+      Get.dialog(const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))), barrierDismissible: false);
+      await orderConfirmationScreen.loadLibrary();
+      Get.back();
+      Get.offAll(() => orderConfirmationScreen.OrderConfirmationScreen(orderId: orderId));
+    } catch (e) {
+      Get.back();
+      Get.snackbar('Error', 'Unable to load this feature. Please try again.', snackPosition: SnackPosition.BOTTOM);
+    }
 
     cartController.removeCoupon();
     cartController.clearCart();
@@ -1661,8 +1670,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _openLocationPicker({required Address? initialAddress}) async {
-    await Get.to(
-      () => LocationPickerScreen(
+    await navigateDeferred(
+      loadLibrary: () => locationPickerScreen.loadLibrary(),
+      pageBuilder: () => locationPickerScreen.LocationPickerScreen(
         isCheckoutMode: true,
         initialAddress: initialAddress,
       ),

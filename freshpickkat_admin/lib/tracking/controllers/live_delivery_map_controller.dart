@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
 
+import 'package:freshpickkat_admin/model/lat_lng.dart';
 import '../models/delivery_location.dart';
 import '../models/order_tracking_snapshot.dart';
 import '../repositories/server_order_tracking_repository.dart';
@@ -15,9 +14,9 @@ class LiveDeliveryMapController extends GetxController {
   final ServerOrderTrackingRepository _repository;
 
   final Rxn<OrderTrackingSnapshot> tracking = Rxn<OrderTrackingSnapshot>();
-  final Rxn<LatLng> riderPosition = Rxn<LatLng>();
-  final Rxn<LatLng> userPosition = Rxn<LatLng>();
-  final RxList<LatLng> routePolyline = <LatLng>[].obs;
+  final Rxn<AppLatLng> riderPosition = Rxn<AppLatLng>();
+  final Rxn<AppLatLng> userPosition = Rxn<AppLatLng>();
+  final RxList<AppLatLng> routePolyline = <AppLatLng>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isListening = false.obs;
   final RxString error = ''.obs;
@@ -36,7 +35,7 @@ class LiveDeliveryMapController extends GetxController {
   bool _routeIsFallback = false;
   int _routeRetryAttempts = 0;
   DeliveryLocation? _latestRouteUser;
-  LatLng? _latestRouteRider;
+  AppLatLng? _latestRouteRider;
   static const List<Duration> _routeRetryDelays = [
     Duration(seconds: 3),
     Duration(seconds: 8),
@@ -159,7 +158,7 @@ class LiveDeliveryMapController extends GetxController {
       final next = rider.toLatLng();
       final previous = riderPosition.value;
       if (previous == null ||
-          Geolocator.distanceBetween(
+          AppLatLng.distanceBetween(
                 previous.latitude,
                 previous.longitude,
                 next.latitude,
@@ -182,13 +181,13 @@ class LiveDeliveryMapController extends GetxController {
   }
 
   void _updateDistanceAndEta(
-    LatLng? previous,
-    LatLng next,
+    AppLatLng? previous,
+    AppLatLng next,
     DeliveryLocation? user,
   ) {
     if (user == null) return;
 
-    final currentDistanceMeters = Geolocator.distanceBetween(
+    final currentDistanceMeters = AppLatLng.distanceBetween(
       next.latitude,
       next.longitude,
       user.lat,
@@ -202,7 +201,7 @@ class LiveDeliveryMapController extends GetxController {
           .difference(_lastRiderUpdateAt!)
           .inSeconds;
       if (elapsedSeconds > 0) {
-        final moved = Geolocator.distanceBetween(
+        final moved = AppLatLng.distanceBetween(
           previous.latitude,
           previous.longitude,
           next.latitude,
@@ -237,7 +236,7 @@ class LiveDeliveryMapController extends GetxController {
 
   Future<void> _maybeBuildRoute(
     DeliveryLocation? user,
-    LatLng rider, {
+    AppLatLng rider, {
     bool force = false,
   }) async {
     if (user == null || _activeOrderId == null) {
@@ -276,7 +275,7 @@ class LiveDeliveryMapController extends GetxController {
       }
 
       final polylinePoints = routePoints
-          .map((point) => LatLng(point[0], point[1]))
+          .map((point) => AppLatLng(point[0], point[1]))
           .toList();
 
       routePolyline.assignAll(polylinePoints);
@@ -296,13 +295,14 @@ class LiveDeliveryMapController extends GetxController {
     }
   }
 
-  List<LatLng> _buildStraightLineRoute(DeliveryLocation user, LatLng rider) {
+  List<AppLatLng> _buildStraightLineRoute(
+      DeliveryLocation user, AppLatLng rider) {
     const segments = 24;
-    final points = <LatLng>[];
+    final points = <AppLatLng>[];
     for (var i = 0; i <= segments; i++) {
       final t = i / segments;
       points.add(
-        LatLng(
+        AppLatLng(
           rider.latitude + ((user.lat - rider.latitude) * t),
           rider.longitude + ((user.lng - rider.longitude) * t),
         ),
@@ -354,9 +354,9 @@ class LiveDeliveryMapController extends GetxController {
 
   OrderTrackingSnapshot? get currentTracking => tracking.value;
 
-  LatLng? get currentUserMarker => userPosition.value;
+  AppLatLng? get currentUserMarker => userPosition.value;
 
-  LatLng? get currentRiderMarker => riderPosition.value;
+  AppLatLng? get currentRiderMarker => riderPosition.value;
 
   bool get canTrack => tracking.value?.canTrack ?? false;
 

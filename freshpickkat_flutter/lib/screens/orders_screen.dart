@@ -4,9 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/screens/order_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/order_detail_screen.dart' deferred as orderDetailScreen;
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
@@ -83,8 +84,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
               return AppResponsive.constrainContent(
                 context: context,
                 child: InkWell(
-                  onTap: () {
-                    Get.to(() => OrderDetailScreen(orderId: order.orderId));
+                  onTap: () async {
+                    await navigateDeferred(loadLibrary: () => orderDetailScreen.loadLibrary(), pageBuilder: () => orderDetailScreen.OrderDetailScreen(orderId: order.orderId));
                   },
                   borderRadius: BorderRadius.circular(16.r),
                   child: Container(

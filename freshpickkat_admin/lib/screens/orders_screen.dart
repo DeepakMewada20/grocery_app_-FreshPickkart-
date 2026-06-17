@@ -12,12 +12,13 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart';
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as liveDeliveryMapPreviewScreen;
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 import '../tracking/services/delivery_location_sender_service.dart';
-import 'order_detail_screen.dart';
+import 'order_detail_screen.dart' deferred as orderDetailScreen;
+import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -186,8 +187,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ),
       );
 
-      await Get.to(
-        () => LiveDeliveryMapPreviewScreen(
+      await navigateDeferred(
+        loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
+        pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(
           order: order.copyWith(status: 'out_for_delivery'),
         ),
       );
@@ -537,14 +539,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               order: order,
                               isHighlighted:
                                   order.orderId == _highlightedOrderId,
-                              onTap: () => Get.to(
-                                () => OrderDetailScreen(
-                                  order: order,
-                                  onStatusChanged: (status) =>
-                                      _updateStatus(order, status),
-                                  onStartDelivery: _startDelivery,
-                                ),
-                              ),
+              onTap: () async {
+                await navigateDeferred(
+                  loadLibrary: orderDetailScreen.loadLibrary,
+                  pageBuilder: () => orderDetailScreen.OrderDetailScreen(
+                    order: order,
+                    onStatusChanged: (status) =>
+                        _updateStatus(order, status),
+                    onStartDelivery: _startDelivery,
+                  ),
+                );
+              },
                               onStatusChanged: (status) =>
                                   _updateStatus(order, status),
                               onStartDelivery: _startDelivery,
@@ -973,8 +978,11 @@ class _OrderCardState extends State<_OrderCard> {
           color: primaryColor,
           icon: Icons.map_outlined,
           isLoading: false,
-          onPressed: () {
-            Get.to(() => LiveDeliveryMapPreviewScreen(order: order));
+          onPressed: () async {
+            await navigateDeferred(
+              loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
+              pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(order: order),
+            );
           },
         ),
       );

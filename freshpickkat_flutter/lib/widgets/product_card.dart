@@ -6,8 +6,9 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart';
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
@@ -170,11 +171,14 @@ class _ProductCardState extends State<ProductCard> {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeInOut,
         child: InkWell(
-          onTap: () {
+          onTap: () async {
             if (widget.onTap != null) {
               widget.onTap!();
             } else {
-              Get.to(() => ProductDetailScreen(product: displayProduct));
+              await navigateDeferred(
+                loadLibrary: productDetailScreen.loadLibrary,
+                pageBuilder: () => productDetailScreen.ProductDetailScreen(product: displayProduct),
+              );
             }
           },
           borderRadius: BorderRadius.circular(16.r),

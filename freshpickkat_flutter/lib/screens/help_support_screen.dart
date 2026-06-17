@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart';
-import 'package:freshpickkat_flutter/screens/report_issue_screen.dart';
+import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart' deferred as legalWebviewScreen;
+import 'package:freshpickkat_flutter/screens/report_issue_screen.dart' deferred as reportIssueScreen;
 import 'package:freshpickkat_flutter/services/support_issue_service.dart';
+import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
@@ -92,7 +93,12 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   icon: Icons.edit_note_rounded,
                   title: 'Report App Issue',
                   subtitle: 'Login, payment, crash, notification or UI bug',
-                  onTap: () => Get.to(() => const ReportIssueScreen()),
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: reportIssueScreen.loadLibrary,
+                      pageBuilder: () => reportIssueScreen.ReportIssueScreen(),
+                    );
+                  },
                   cs: cs,
                   showBorder: false,
                 ),
@@ -102,14 +108,17 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   icon: Icons.help_outline_rounded,
                   title: 'Frequently Asked Questions',
                   subtitle: 'Orders, payments, refunds and delivery help',
-                  onTap: () => Get.to(
-                    () => LegalWebViewScreen(
-                      title: 'FAQ',
-                      url: LegalWebViewScreen.docsUrl(
-                        'frequently-asked-questions.html',
+                  onTap: () async {
+                    await navigateDeferred(
+                      loadLibrary: legalWebviewScreen.loadLibrary,
+                      pageBuilder: () => legalWebviewScreen.LegalWebViewScreen(
+                        title: 'FAQ',
+                        url: legalWebviewScreen.LegalWebViewScreen.docsUrl(
+                          'frequently-asked-questions.html',
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                   cs: cs,
                   showBorder: false,
                 ),

@@ -1,4 +1,4 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:freshpickkat_admin/model/lat_lng.dart';
 
 class DeliveryLocation {
   const DeliveryLocation({
@@ -13,7 +13,7 @@ class DeliveryLocation {
   final String address;
   final String type;
 
-  LatLng toLatLng() => LatLng(lat, lng);
+  AppLatLng toLatLng() => AppLatLng(lat, lng);
 }
 
 class TrackingCoordinate {
@@ -22,5 +22,5 @@ class TrackingCoordinate {
   final double lat;
   final double lng;
 
-  LatLng toLatLng() => LatLng(lat, lng);
+  AppLatLng toLatLng() => AppLatLng(lat, lng);
 }

@@ -65,7 +65,7 @@ class FreshPickKatAdmin extends StatelessWidget {
             const double baseWidth = 430;
             const double baseHeight = 932;
             final scale = mq.size.height / baseHeight;
-            final containerWidth = (baseWidth * scale).clamp(360, 600);
+            final containerWidth = (baseWidth * scale).clamp(360, 600).toDouble();
 
             return Container(
               color: const Color(0xFFEDEDED),

@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/live_delivery_map_controller.dart';
+import 'package:freshpickkat_admin/model/lat_lng.dart';
 import 'package:freshpickkat_admin/tracking/models/order_tracking_snapshot.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -32,7 +32,7 @@ class _LiveDeliveryMapPreviewScreenState
     with TickerProviderStateMixin {
   late final LiveDeliveryMapController _controller;
   late final AnimationController _markerController;
-  StreamSubscription<LatLng?>? _riderSubscription;
+  StreamSubscription<AppLatLng?>? _riderSubscription;
   GoogleMapController? _mapController;
   LatLng? _animatedRiderPosition;
   _LatLngTween? _riderTween;
@@ -67,17 +67,19 @@ class _LiveDeliveryMapPreviewScreenState
 
     Future.microtask(() async {
       await _controller.startListening(orderId: widget.order.orderId);
-      if (_controller.currentRiderMarker != null) {
-        _animatedRiderPosition = _controller.currentRiderMarker;
+      final rider = _controller.currentRiderMarker;
+      if (rider != null) {
+        _animatedRiderPosition = LatLng(rider.latitude, rider.longitude);
       }
     });
 
     _riderSubscription = _controller.riderPosition.listen((next) {
       if (!mounted || next == null) return;
-      final begin = _animatedRiderPosition ?? next;
-      _riderTween = _LatLngTween(begin: begin, end: next);
+      final nextMaps = LatLng(next.latitude, next.longitude);
+      final begin = _animatedRiderPosition ?? nextMaps;
+      _riderTween = _LatLngTween(begin: begin, end: nextMaps);
 
-      final newBearing = Geolocator.bearingBetween(
+      final newBearing = AppLatLng.bearingBetween(
         begin.latitude,
         begin.longitude,
         next.latitude,
@@ -112,6 +114,9 @@ class _LiveDeliveryMapPreviewScreenState
     _scooterIcon = BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
   }
 
+  LatLng? _toMapsOrNull(AppLatLng? p) =>
+      p == null ? null : LatLng(p.latitude, p.longitude);
+
   void _tickMarkerAnimation() {
     final posTween = _riderTween;
     final bearTween = _bearingTween;
@@ -136,8 +141,10 @@ class _LiveDeliveryMapPreviewScreenState
 
   Future<void> _focusLiveView() async {
     if (_mapController == null) return;
-    final rider = _animatedRiderPosition ?? _controller.currentRiderMarker;
-    final user = _controller.currentUserMarker ?? _destinationMarker;
+    final rider = _animatedRiderPosition ??
+        _toMapsOrNull(_controller.currentRiderMarker);
+    final user =
+        _toMapsOrNull(_controller.currentUserMarker) ?? _destinationMarker;
     if (rider == null && user == null) return;
 
     if (rider != null && user != null) {
@@ -165,7 +172,8 @@ class _LiveDeliveryMapPreviewScreenState
 
   Future<void> _focusCustomerView() async {
     if (_mapController == null) return;
-    final destination = _destinationMarker ?? _controller.currentUserMarker;
+    final destination =
+        _destinationMarker ?? _toMapsOrNull(_controller.currentUserMarker);
     if (destination == null) return;
     await _mapController!.animateCamera(
       CameraUpdate.newLatLngZoom(destination, 16.5),
@@ -212,7 +220,7 @@ class _LiveDeliveryMapPreviewScreenState
         }
 
         final initialTarget =
-            _controller.currentRiderMarker ??
+            _toMapsOrNull(_controller.currentRiderMarker) ??
             destination ??
             const LatLng(20.5937, 78.9629);
 
@@ -269,7 +277,8 @@ class _LiveDeliveryMapPreviewScreenState
 
   Set<Marker> _buildMarkers(LatLng? destination) {
     final markers = <Marker>{};
-    final rider = _animatedRiderPosition ?? _controller.currentRiderMarker;
+    final rider = _animatedRiderPosition ??
+        _toMapsOrNull(_controller.currentRiderMarker);
 
     if (destination != null) {
       markers.add(
@@ -303,7 +312,9 @@ class _LiveDeliveryMapPreviewScreenState
     return {
       Polyline(
         polylineId: const PolylineId('admin_live_route'),
-        points: _controller.routePolyline.toList(),
+        points: _controller.routePolyline
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList(),
         color: AdminAppTheme.getSuccessColor(context),
         width: 5,
       ),
