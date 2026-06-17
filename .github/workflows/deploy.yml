@@ -67,6 +67,13 @@ jobs:
             mkdir -p freshpickkat_flutter/build/web
             mkdir -p freshpickkat_admin/build/web
 
+      # --- UPDATE: STEP 1.5 (VERIFY BUILDS EXIST BEFORE SCP) ---
+      - name: Verify build outputs
+        run: |
+          ls -la freshpickkat_flutter/build/web/ || { echo "customer build/web missing"; exit 1; }
+          ls -la freshpickkat_admin/build/web/ || { echo "admin build/web missing"; exit 1; }
+          ls -la nginx_freshpickkart.conf || { echo "nginx config missing"; exit 1; }
+
       # --- UPDATE: STEP 2 (AB GITHUB ACTIONS SE BUILD FILES COPY KAREIN) ---
       - name: Copy builds to server
         uses: appleboy/scp-action@v0.1.7
@@ -76,8 +83,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           source: |
-            freshpickkat_flutter/build/web/
-            freshpickkat_admin/build/web/
+            freshpickkat_flutter/build/web
+            freshpickkat_admin/build/web
             nginx_freshpickkart.conf
           target: ~/projects/grocery_app_-FreshPickkart-/
           strip_components: 0
