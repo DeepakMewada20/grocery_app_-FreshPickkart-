@@ -90,7 +90,7 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
   Future<void> _openNotFound() async {
     await navigateDeferred(
       loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
-      pageBuilder: () => const deepLinkNotFoundScreen.DeepLinkNotFoundScreen(),
+      pageBuilder: () => deepLinkNotFoundScreen.DeepLinkNotFoundScreen(),
       routeName: RouteManager.deepLinkNotFound,
     );
   }
