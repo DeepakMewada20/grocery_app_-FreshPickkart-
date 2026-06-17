@@ -140,17 +140,17 @@ jobs:
             fi
 
             echo "--- Building Flutter Customer Web (if changed) ---"
-            if [ "$FLUTTER_CUSTOMER" == "true" ]; then
+            if [ "$FLUTTER_CUSTOMER" = "true" ]; then
               docker compose -f docker-compose.prod.yaml build flutter_web
             fi
 
             echo "--- Building Flutter Admin Web (if changed) ---"
-            if [ "$FLUTTER_ADMIN" == "true" ]; then
+            if [ "$FLUTTER_ADMIN" = "true" ]; then
               docker compose -f docker-compose.prod.yaml build flutter_admin
             fi
 
             echo "--- Building Server + DB Images (if changed) ---"
-            if [ "$SERVER" == "true" ] || [ "$DOCKER" == "true" ]; then
+            if [ "$SERVER" = "true" ] || [ "$DOCKER" = "true" ]; then
               docker compose -f docker-compose.prod.yaml build server postgres redis
               docker compose -f docker-compose.prod.yaml run --rm \
                 --entrypoint /app/server \
@@ -159,7 +159,7 @@ jobs:
             fi
 
             echo "--- Updating Nginx (if changed) ---"
-            if [ "$NGINX" == "true" ]; then
+            if [ "$NGINX" = "true" ]; then
               sudo cp ../nginx_freshpickkart.conf /etc/nginx/sites-available/freshpickkat
               sudo nginx -t && sudo systemctl reload nginx
             fi
