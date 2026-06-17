@@ -20,29 +20,51 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'freshpickkat_server/**'
+            flutter_customer:
+              - 'freshpickkat_flutter/**'
+            flutter_admin:
+              - 'freshpickkat_admin/**'
+            nginx:
+              - 'nginx_freshpickkart.conf'
+            docker:
+              - 'docker/**'
+              - 'freshpickkat_server/docker-compose.prod.yaml'
+
+      # --- Flutter Builds (conditional) ---
       - name: Setup Flutter
+        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.flutter_admin == 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.x'
           channel: 'stable'
-          cache: true # Baar-baar download na karna pade isliye cache on kiya
+          cache: true
 
       - name: Create .env for customer app
+        if: steps.filter.outputs.flutter_customer == 'true'
         run: echo "RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}" > freshpickkat_flutter/.env
 
       - name: Build customer web
+        if: steps.filter.outputs.flutter_customer == 'true'
         run: |
           cd freshpickkat_flutter
           flutter pub get
           flutter build web --release --dart-define=API_BASE_URL=https://freshpickkart.com/api/
 
       - name: Build admin web
+        if: steps.filter.outputs.flutter_admin == 'true'
         run: |
           cd freshpickkat_admin
           flutter pub get
           flutter build web --release --dart-define=ADMIN_API_BASE_URL=https://freshpickkart.com/api/
 
-      # --- UPDATE: STEP 1 - PEHLE GIT REPO UPDATE (TAKI SCP OVERWRITE NA KARE) ---
+      # --- Git update on server (always) ---
       - name: Update Code Repository on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,8 +75,6 @@ jobs:
           timeout: 30s
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/
-            
-            # Agar git repo initialized hai toh fetch aur reset karein
             if [ -d .git ]; then
               echo "--- Fetching All Branches & Resetting to Master ---"
               git fetch --all
@@ -62,31 +82,44 @@ jobs:
               git reset --hard origin/master
             fi
 
-            # Target directories bana rahe hain taaki SCP fail na ho
-            mkdir -p freshpickkat_flutter/build/web
-            mkdir -p freshpickkat_admin/build/web
-
-      # --- VERIFY BUILDS EXIST BEFORE SCP ---
-      - name: Verify build outputs
-        run: |
-          ls -la freshpickkat_flutter/build/web/ || { echo "customer build/web missing"; exit 1; }
-          ls -la freshpickkat_admin/build/web/ || { echo "admin build/web missing"; exit 1; }
-          ls -la nginx_freshpickkart.conf || { echo "nginx config missing"; exit 1; }
-
-      # --- STEP 2 - SCP BUILDS TO SERVER ---
-      - name: Copy builds to server
+      # --- SCP builds to server (conditional) ---
+      - name: SCP customer web build
+        if: steps.filter.outputs.flutter_customer == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: "freshpickkat_flutter/build/web,freshpickkat_admin/build/web,nginx_freshpickkart.conf"
+          source: "freshpickkat_flutter/build/web"
           target: ~/projects/grocery_app_-FreshPickkart-/
           strip_components: 0
 
-      # --- STEP 3 - DOCKER BUILD + NGINX RELOAD ---
-      - name: Deploy to Remote Server via SSH (Docker & Nginx)
+      - name: SCP admin web build
+        if: steps.filter.outputs.flutter_admin == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: "freshpickkat_admin/build/web"
+          target: ~/projects/grocery_app_-FreshPickkart-/
+          strip_components: 0
+
+      - name: SCP nginx config
+        if: steps.filter.outputs.nginx == 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: "nginx_freshpickkart.conf"
+          target: ~/projects/grocery_app_-FreshPickkart-/
+
+      # --- SSH deploy (conditional docker commands) ---
+      - name: Deploy via SSH (Docker & Nginx)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -96,37 +129,49 @@ jobs:
           timeout: 40s
           command_timeout: 20m
           debug: true
+          envs: 'FLUTTER_CUSTOMER,FLUTTER_ADMIN,SERVER,DOCKER,NGINX'
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/freshpickkat_server
 
-            echo "--- 1. Verifying .env File Connection ---"
+            echo "--- Verifying .env File Connection ---"
             if [ ! -f .env ] && [ -f ../.env ]; then
               echo "Linking .env from parent directory..."
               ln -s ../.env .env
             fi
 
-            echo "--- 2. Building Flutter Docker Images ---"
-            docker compose -f docker-compose.prod.yaml build flutter_web flutter_admin
+            echo "--- Building Flutter Customer Web (if changed) ---"
+            if [ "$FLUTTER_CUSTOMER" == "true" ]; then
+              docker compose -f docker-compose.prod.yaml build flutter_web
+            fi
 
-            echo "--- 3. Starting Flutter Containers ---"
-            docker compose -f docker-compose.prod.yaml up -d flutter_web flutter_admin
+            echo "--- Building Flutter Admin Web (if changed) ---"
+            if [ "$FLUTTER_ADMIN" == "true" ]; then
+              docker compose -f docker-compose.prod.yaml build flutter_admin
+            fi
 
-            echo "--- 4. Building Serverpod Docker Images ---"
-            docker compose -f docker-compose.prod.yaml build server postgres redis
+            echo "--- Building Server + DB Images (if changed) ---"
+            if [ "$SERVER" == "true" ] || [ "$DOCKER" == "true" ]; then
+              docker compose -f docker-compose.prod.yaml build server postgres redis
+              docker compose -f docker-compose.prod.yaml run --rm \
+                --entrypoint /app/server \
+                -e SERVERPOD_RUN_MODE=production \
+                server --apply-migrations --role maintenance
+            fi
 
-            echo "--- 5. Running Serverpod Migrations (Maintenance Mode) ---"
-            docker compose -f docker-compose.prod.yaml run --rm \
-              --entrypoint /app/server \
-              -e SERVERPOD_RUN_MODE=production \
-              server --apply-migrations --role maintenance
+            echo "--- Updating Nginx (if changed) ---"
+            if [ "$NGINX" == "true" ]; then
+              sudo cp ../nginx_freshpickkart.conf /etc/nginx/sites-available/freshpickkat
+              sudo nginx -t && sudo systemctl reload nginx
+            fi
 
-            echo "--- 6. Starting All Containers ---"
+            echo "--- Ensuring all containers are running ---"
             docker compose -f docker-compose.prod.yaml up -d --remove-orphans
 
-            echo "--- 7. Updating Host Nginx Configuration ---"
-            # Humne nginx file ko root pe copy kiya tha isliye ../nginx_freshpickkart.conf sahi hai
-            sudo cp ../nginx_freshpickkart.conf /etc/nginx/sites-available/freshpickkat
-            sudo nginx -t && sudo systemctl reload nginx
-
-            echo "--- 8. Final Container Status Check ---"
+            echo "--- Final Container Status Check ---"
             docker ps | grep freshpickkat
+        env:
+          FLUTTER_CUSTOMER: ${{ steps.filter.outputs.flutter_customer }}
+          FLUTTER_ADMIN: ${{ steps.filter.outputs.flutter_admin }}
+          SERVER: ${{ steps.filter.outputs.server }}
+          DOCKER: ${{ steps.filter.outputs.docker }}
+          NGINX: ${{ steps.filter.outputs.nginx }}

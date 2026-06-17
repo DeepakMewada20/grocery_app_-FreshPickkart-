@@ -57,9 +57,6 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
 
-volumes:
-  freshpickkat_data:
-
   # Flutter Customer Web App
   flutter_web:
     build:
@@ -79,3 +76,6 @@ volumes:
     restart: unless-stopped
     ports:
       - "127.0.0.1:8093:80"
+
+volumes:
+  freshpickkat_data:
