@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_io/io.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
@@ -126,29 +127,37 @@ class NetworkController extends GetxController {
       connectionQuality.value = ConnectionQuality.unknown;
       _showBannerImmediately();
     } else {
-      try {
-        final stopwatch = Stopwatch()..start();
-        final result = await InternetAddress.lookup('google.com').timeout(
-          const Duration(seconds: 5),
-        );
-        stopwatch.stop();
-
-        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          isConnected.value = true;
-          connectionQuality.value = _measureQuality(
-            stopwatch.elapsedMilliseconds,
+      // On web, InternetAddress.lookup is not available (blocked by browser).
+      // Trust connectivity_plus result directly.
+      if (kIsWeb) {
+        isConnected.value = true;
+        connectionQuality.value = ConnectionQuality.good;
+        _hideBanner();
+      } else {
+        try {
+          final stopwatch = Stopwatch()..start();
+          final result = await InternetAddress.lookup('google.com').timeout(
+            const Duration(seconds: 5),
           );
-          _hideBanner();
-        } else {
+          stopwatch.stop();
+
+          if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+            isConnected.value = true;
+            connectionQuality.value = _measureQuality(
+              stopwatch.elapsedMilliseconds,
+            );
+            _hideBanner();
+          } else {
+            isConnected.value = false;
+            connectionQuality.value = ConnectionQuality.unknown;
+            _showBannerWithDelay();
+          }
+        } catch (e) {
           isConnected.value = false;
           connectionQuality.value = ConnectionQuality.unknown;
           _showBannerWithDelay();
+          AppLogger.warning('Network', 'LatencyCheck: $e');
         }
-      } catch (e) {
-        isConnected.value = false;
-        connectionQuality.value = ConnectionQuality.unknown;
-        _showBannerWithDelay();
-        AppLogger.warning('Network', 'LatencyCheck: $e');
       }
     }
 
@@ -226,6 +235,15 @@ class NetworkController extends GetxController {
           _onConnectionLost();
         }
         return false;
+      }
+
+      // On web, skip DNS lookup (not supported by browsers).
+      if (kIsWeb) {
+        isConnected.value = true;
+        connectionQuality.value = ConnectionQuality.good;
+        _hideBanner();
+        if (!previousConnection) _onConnectionRestored();
+        return true;
       }
 
       final stopwatch = Stopwatch()..start();

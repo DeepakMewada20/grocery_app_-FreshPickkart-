@@ -34,6 +34,7 @@ import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/services/share_service.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -78,7 +79,7 @@ void main() async {
   Get.lazyPut(() => OrderRecoveryService(), fenix: true);
   Get.lazyPut(() => OrderTrackingController(), fenix: true);
   Get.put(ShareService(), permanent: true);
-  await Get.putAsync(() => DeepLinkService().init(), permanent: true);
+  Get.putAsync(() => DeepLinkService().init(), permanent: true);
 
   runApp(const MyApp());
 }
@@ -108,30 +109,41 @@ class MyApp extends StatelessWidget {
             final mq = MediaQuery.of(context);
             final width = mq.size.width;
 
-            Widget content = MediaQuery(
-              data: mq.copyWith(
-                textScaler: AppResponsive.clampedTextScaler(context),
-              ),
-              child: Stack(
-                children: [
-                  child,
-                  const NetworkStatusBanner(),
-                ],
-              ),
-            );
+            // On narrow screens (≤430px) or native mobile: render full-width.
+            if (!kIsWeb || width <= 430) {
+              return MediaQuery(
+                data: mq.copyWith(
+                  textScaler: AppResponsive.clampedTextScaler(context),
+                ),
+                child: Stack(
+                  children: [
+                    child,
+                    const NetworkStatusBanner(),
+                  ],
+                ),
+              );
+            }
 
-            if (width <= 430) return content;
+            // Web on wider screens: pin to a 390px container matching
+            // ScreenUtilInit designSize so .w/.h/.sp values are correct.
+            const double containerWidth = 390;
 
             return Container(
               color: const Color(0xFFEDEDED),
               alignment: Alignment.topCenter,
               child: SizedBox(
-                width: 430,
+                width: containerWidth,
                 child: MediaQuery(
                   data: mq.copyWith(
-                    size: Size(430, mq.size.height),
+                    size: Size(containerWidth, mq.size.height),
+                    textScaler: AppResponsive.clampedTextScaler(context),
                   ),
-                  child: content,
+                  child: Stack(
+                    children: [
+                      child,
+                      const NetworkStatusBanner(),
+                    ],
+                  ),
                 ),
               ),
             );

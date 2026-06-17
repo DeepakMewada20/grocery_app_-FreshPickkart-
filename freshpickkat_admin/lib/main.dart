@@ -62,14 +62,19 @@ class FreshPickKatAdmin extends StatelessWidget {
 
             if (width <= 430) return content;
 
+            const double baseWidth = 430;
+            const double baseHeight = 932;
+            final scale = mq.size.height / baseHeight;
+            final containerWidth = (baseWidth * scale).clamp(360, 600);
+
             return Container(
               color: const Color(0xFFEDEDED),
               alignment: Alignment.topCenter,
               child: SizedBox(
-                width: 430,
+                width: containerWidth,
                 child: MediaQuery(
                   data: mq.copyWith(
-                    size: Size(430, mq.size.height),
+                    size: Size(containerWidth, mq.size.height),
                   ),
                   child: content,
                 ),

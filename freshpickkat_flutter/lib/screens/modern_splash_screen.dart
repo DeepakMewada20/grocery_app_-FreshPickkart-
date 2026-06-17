@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'dart:math' as math;
@@ -105,18 +106,28 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
   }
 
   void _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    _logoController.forward();
+    if (kIsWeb) {
+      // Fast-track on web to avoid extra waiting time
+      _logoController.forward();
+      _textController.forward();
+      _vehicleController.forward();
+      
+      await Future.delayed(const Duration(milliseconds: 1000));
+    } else {
+      await Future.delayed(const Duration(milliseconds: 200));
+      _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 600));
-    _textController.forward();
+      await Future.delayed(const Duration(milliseconds: 600));
+      _textController.forward();
 
-    // Start vehicle animation almost immediately after text for smoother feel
-    await Future.delayed(const Duration(milliseconds: 100));
-    _vehicleController.forward();
+      // Start vehicle animation almost immediately after text for smoother feel
+      await Future.delayed(const Duration(milliseconds: 100));
+      _vehicleController.forward();
 
-    // Navigate after splash - adjusted to maintain ~3.0s total experience
-    await Future.delayed(const Duration(milliseconds: 2100));
+      // Navigate after splash - adjusted to maintain ~3.0s total experience
+      await Future.delayed(const Duration(milliseconds: 2100));
+    }
+    
     if (mounted) {
       Navigator.pushReplacement(
         context,
