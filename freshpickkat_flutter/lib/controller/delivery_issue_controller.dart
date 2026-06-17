@@ -1,7 +1,7 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -54,8 +54,9 @@ class DeliveryIssueController extends GetxController {
   }
 
   Future<void> pickAddress() async {
+    await locationPickerScreen.loadLibrary();
     final result = await Get.to<Address>(
-      () => LocationPickerScreen(
+      () => locationPickerScreen.LocationPickerScreen(
         isCheckoutMode: false,
         initialAddress: selectedAddress.value ?? currentAddress,
       ),
