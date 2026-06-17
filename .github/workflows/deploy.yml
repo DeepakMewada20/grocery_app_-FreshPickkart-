@@ -42,7 +42,7 @@ jobs:
           flutter pub get
           flutter build web --release --dart-define=ADMIN_API_BASE_URL=https://freshpickkart.com/api/
 
-      # --- UPDATE: STEP 1 (PEHLE GIT REPO UPDATE KAREIN TAAKI SCP FILES OVERWRITE NA HO) ---
+      # --- UPDATE: STEP 1 - PEHLE GIT REPO UPDATE (TAKI SCP OVERWRITE NA KARE) ---
       - name: Update Code Repository on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -52,7 +52,6 @@ jobs:
           port: 22
           timeout: 30s
           script: |
-            mkdir -p ~/projects/grocery_app_-FreshPickkart-/
             cd ~/projects/grocery_app_-FreshPickkart-/
             
             # Agar git repo initialized hai toh fetch aur reset karein
@@ -67,14 +66,14 @@ jobs:
             mkdir -p freshpickkat_flutter/build/web
             mkdir -p freshpickkat_admin/build/web
 
-      # --- UPDATE: STEP 1.5 (VERIFY BUILDS EXIST BEFORE SCP) ---
+      # --- VERIFY BUILDS EXIST BEFORE SCP ---
       - name: Verify build outputs
         run: |
           ls -la freshpickkat_flutter/build/web/ || { echo "customer build/web missing"; exit 1; }
           ls -la freshpickkat_admin/build/web/ || { echo "admin build/web missing"; exit 1; }
           ls -la nginx_freshpickkart.conf || { echo "nginx config missing"; exit 1; }
 
-      # --- UPDATE: STEP 2 (AB GITHUB ACTIONS SE BUILD FILES COPY KAREIN) ---
+      # --- STEP 2 - SCP BUILDS TO SERVER ---
       - name: Copy builds to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -82,14 +81,11 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          source: |
-            freshpickkat_flutter/build/web
-            freshpickkat_admin/build/web
-            nginx_freshpickkart.conf
+          source: "freshpickkat_flutter/build/web,freshpickkat_admin/build/web,nginx_freshpickkart.conf"
           target: ~/projects/grocery_app_-FreshPickkart-/
           strip_components: 0
 
-      # --- UPDATE: STEP 3 (AB DOCKER AUR NGINX RESTART KAREIN) ---
+      # --- STEP 3 - DOCKER BUILD + NGINX RELOAD ---
       - name: Deploy to Remote Server via SSH (Docker & Nginx)
         uses: appleboy/ssh-action@v1.0.3
         with:
