@@ -36,10 +36,12 @@ jobs:
             docker:
               - 'docker/**'
               - 'freshpickkat_server/docker-compose.prod.yaml'
+            deploy_yml:
+              - '.github/workflows/deploy.yml'
 
       # --- Flutter Builds (conditional) ---
       - name: Setup Flutter
-        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.flutter_admin == 'true'
+        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.flutter_admin == 'true' || steps.filter.outputs.deploy_yml == 'true'
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.x'
@@ -47,18 +49,18 @@ jobs:
           cache: true
 
       - name: Create .env for customer app
-        if: steps.filter.outputs.flutter_customer == 'true'
+        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.deploy_yml == 'true'
         run: echo "RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}" > freshpickkat_flutter/.env
 
       - name: Build customer web
-        if: steps.filter.outputs.flutter_customer == 'true'
+        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.deploy_yml == 'true'
         run: |
           cd freshpickkat_flutter
           flutter pub get
           flutter build web --release --web-renderer html --dart2js-optimization=O3 --tree-shake-icons --dart-define=API_BASE_URL=https://freshpickkart.com/api/
 
       - name: Build admin web
-        if: steps.filter.outputs.flutter_admin == 'true'
+        if: steps.filter.outputs.flutter_admin == 'true' || steps.filter.outputs.deploy_yml == 'true'
         run: |
           cd freshpickkat_admin
           flutter pub get
@@ -84,7 +86,7 @@ jobs:
 
       # --- SCP builds to server (conditional) ---
       - name: SCP customer web build
-        if: steps.filter.outputs.flutter_customer == 'true'
+        if: steps.filter.outputs.flutter_customer == 'true' || steps.filter.outputs.deploy_yml == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -96,7 +98,7 @@ jobs:
           strip_components: 0
 
       - name: SCP admin web build
-        if: steps.filter.outputs.flutter_admin == 'true'
+        if: steps.filter.outputs.flutter_admin == 'true' || steps.filter.outputs.deploy_yml == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
