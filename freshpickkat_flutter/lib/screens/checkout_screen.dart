@@ -380,9 +380,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
 
       _showSharePaymentLinkSheet(paymentLink, orderId);
+      _pollLinkPaymentStatus(orderId);
     } catch (e) {
       AppLogger.error('ShareablePayment', e);
       _showError(ErrorMessages.paymentFailed);
+    }
+  }
+
+  Future<void> _pollLinkPaymentStatus(String orderId) async {
+    final user = authController.currentUser;
+    if (user == null) return;
+
+    const maxAttempts = 100;
+    const retryDelay = Duration(seconds: 3);
+
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      await Future.delayed(retryDelay);
+      if (!mounted) return;
+
+      try {
+        final idToken = await authController.requireIdToken();
+        final order = await client.order.getOrderById(
+          orderId,
+          user.uid,
+          idToken,
+        );
+        if (order == null) continue;
+        if (order.paymentStatus == 'paid') {
+          // Dismiss the bottom sheet if still open
+          Navigator.of(context, rootNavigator: true).pop();
+          await _completeSuccessfulPayment(orderId);
+          return;
+        }
+      } catch (_) {
+        // Retry on error
+      }
     }
   }
 
@@ -392,7 +424,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
         '$paymentLink\n\n'
         'Order amount: ₹${amount.toStringAsFixed(2)}\n'
-        'This link expires in 10 minutes.';
+        'This link expires in 20 minutes.';
     var copied = false;
 
     showModalBottomSheet(

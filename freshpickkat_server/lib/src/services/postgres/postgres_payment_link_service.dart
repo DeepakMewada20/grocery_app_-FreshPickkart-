@@ -169,7 +169,7 @@ class PostgresPaymentLinkService {
 
       final gateway = PaymentGatewayService();
       final now = DateTime.now().toUtc();
-      final expiresAt = now.add(const Duration(minutes: 10));
+      final expiresAt = now.add(const Duration(minutes: 20));
       final token = generateSecureToken();
 
       // Call Razorpay Payment Links API
@@ -185,7 +185,7 @@ class PostgresPaymentLinkService {
           'order_id': orderNumber,
           'token': token,
         },
-        expiryMinutes: 10,
+        expiryMinutes: 20,
       );
 
       if (response['statusCode'] != 200) {

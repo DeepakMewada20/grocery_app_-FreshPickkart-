@@ -115,7 +115,7 @@ class PaymentGatewayService {
     required String description,
     required Map<String, String> customer,
     required Map<String, String> notes,
-    int expiryMinutes = 10,
+    int expiryMinutes = 20,
     String? callbackUrl,
   }) async {
     final now = DateTime.now().toUtc();

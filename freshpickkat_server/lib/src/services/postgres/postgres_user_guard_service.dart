@@ -16,11 +16,16 @@ class PostgresUserGuardService {
 
     final verifiedToken = await FirebaseAuthService.verifyIdToken(idToken);
     if (verifiedToken == null) {
-      final verifyError = FirebaseAuthService.getLastVerifyError();
+      final verifyError = FirebaseAuthService.getLastVerifyError() ?? '';
+      final isNetworkError = verifyError.contains('HandshakeException') ||
+          verifyError.contains('SocketException') ||
+          verifyError.contains('ClientException') ||
+          verifyError.contains('Connection closed') ||
+          verifyError.contains('Connection terminated');
       throw Exception(
-        verifyError == null || verifyError.trim().isEmpty
-            ? 'Invalid or expired Firebase token.'
-            : 'Invalid or expired Firebase token. $verifyError',
+        isNetworkError
+            ? 'Firebase token verification failed (network error). $verifyError'
+            : 'Invalid or expired Firebase token.',
       );
     }
     if (verifiedToken.uid != expectedUid) {

@@ -97,7 +97,9 @@ class FirebaseAuthService {
         if (errorStr.contains('HandshakeException') ||
             errorStr.contains('Connection terminated') ||
             errorStr.contains('SocketException') ||
-            errorStr.contains('HttpException')) {
+            errorStr.contains('HttpException') ||
+            errorStr.contains('ClientException') ||
+            errorStr.contains('Connection closed')) {
           if (attempts < maxAttempts) {
             // Wait before retrying (exponential backoff)
             await Future.delayed(Duration(milliseconds: attempts * 200));

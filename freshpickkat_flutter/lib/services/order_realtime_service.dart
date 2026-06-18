@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
@@ -54,5 +55,6 @@ class OrderRealtimeService extends GetxService {
 
   void _handleEvent(OrderRealtimeEvent event) {
     unawaited(Get.find<OrderController>().refreshFromRealtime());
+    unawaited(Get.find<CartController>().fetchCartPricing());
   }
 }
