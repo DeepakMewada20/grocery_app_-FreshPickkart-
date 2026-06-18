@@ -145,6 +145,7 @@ class PostgresPaymentService {
       }
       final resolvedOrderRow = orderRow!;
 
+      // Quick pre-check for gateway order ID mismatch (no lock needed)
       if (paymentRow.gatewayOrderId != null &&
           paymentRow.gatewayOrderId!.isNotEmpty &&
           paymentRow.gatewayOrderId != razorpayOrderId) {
@@ -152,42 +153,6 @@ class PostgresPaymentService {
           success: false,
           verified: false,
           message: 'Razorpay order mismatch',
-        );
-      }
-
-      if (paymentRow.paymentStatus == 'paid' &&
-          resolvedOrderRow.paymentStatus == 'paid') {
-        // Check if this is a different payment (duplicate) vs webhook retry (same)
-        if (paymentRow.gatewayPaymentId != null &&
-            paymentRow.gatewayPaymentId!.isNotEmpty &&
-            paymentRow.gatewayPaymentId != razorpayPaymentId) {
-          // Duplicate payment detected — create auto refund job
-          await _createAutoRefundJob(
-            session,
-            resolvedOrderRow,
-            paymentRow,
-            razorpayPaymentId,
-            razorpayOrderId,
-          );
-          return PaymentVerifyResult(
-            success: true,
-            verified: true,
-            message: 'Order already paid. Duplicate payment will be refunded automatically.',
-          );
-        }
-
-        await OrderOutboxService.instance.enqueueOrderPaid(
-          session: session,
-          orderId: resolvedOrderRow.orderNumber,
-          userId: resolvedOrderRow.userId.toString(),
-          status: 'confirmed',
-          amount: resolvedOrderRow.finalAmount,
-          itemCount: resolvedOrderRow.itemCount,
-        );
-        return PaymentVerifyResult(
-          success: true,
-          verified: true,
-          message: 'Payment already verified',
         );
       }
 
@@ -199,6 +164,7 @@ class PostgresPaymentService {
         );
       }
 
+      // HMAC validation (stays outside lock)
       final enforceHmac = EnvService.get('ENFORCE_PAYMENT_HMAC') == 'true';
       final sig = razorpaySignature.trim();
       if (sig.isEmpty) {
@@ -238,8 +204,9 @@ class PostgresPaymentService {
 
       final now = DateTime.now().toUtc();
 
+      PaymentVerifyResult? result;
       await session.db.transaction((transaction) async {
-        // Lock the order row to prevent concurrent payment processing
+        // 1. Lock BOTH rows to prevent race conditions
         await session.db.unsafeQuery(
           'SELECT "id" FROM "customer_order" WHERE "id" = @id FOR UPDATE',
           parameters: QueryParameters.named({
@@ -247,10 +214,74 @@ class PostgresPaymentService {
           }),
           transaction: transaction,
         );
+        await session.db.unsafeQuery(
+          'SELECT "id" FROM "payment_transaction" WHERE "orderId" = @orderId FOR UPDATE',
+          parameters: QueryParameters.named({
+            'orderId': resolvedOrderRow.id!.toJson(),
+          }),
+          transaction: transaction,
+        );
 
+        // 2. Re-read both rows under lock
+        final freshOrder = await CustomerOrderRow.db.findById(
+          session, resolvedOrderRow.id!, transaction: transaction);
+        final freshPayment = await PaymentTransactionRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderId.equals(resolvedOrderRow.id!),
+          transaction: transaction,
+        );
+        if (freshOrder == null || freshPayment == null) {
+          result = PaymentVerifyResult(
+            success: false, verified: false, message: 'Order or payment not found');
+          return;
+        }
+
+        // 3. Re-validate status under lock
+        // Reject closed orders
+        if (freshOrder.orderStatus == 'cancelled' ||
+            freshOrder.orderStatus == 'payment_expired') {
+          if (razorpayPaymentId.isNotEmpty) {
+            await _createAutoRefundJob(
+              session, freshOrder, freshPayment,
+              razorpayPaymentId, razorpayOrderId);
+          }
+          result = PaymentVerifyResult(
+            success: false, verified: false,
+            message: 'Order no longer accepts payments.');
+          return;
+        }
+
+        // Already paid — check for duplicate vs retry
+        if (freshPayment.paymentStatus == 'paid' &&
+            freshOrder.paymentStatus == 'paid') {
+          if (freshPayment.gatewayPaymentId != null &&
+              freshPayment.gatewayPaymentId!.isNotEmpty &&
+              freshPayment.gatewayPaymentId != razorpayPaymentId) {
+            await _createAutoRefundJob(
+              session, freshOrder, freshPayment,
+              razorpayPaymentId, razorpayOrderId);
+          }
+          result = PaymentVerifyResult(
+            success: true, verified: true,
+            message: 'Payment already verified');
+          return;
+        }
+
+        // Reject closed/payment-expired or already-paid orders
+        if (freshOrder.orderStatus == 'cancelled' ||
+            freshOrder.orderStatus == 'payment_expired' ||
+            freshOrder.paymentStatus == 'paid' ||
+            freshPayment.paymentStatus == 'paid') {
+          result = PaymentVerifyResult(
+            success: false, verified: false,
+            message: 'Order is closed or already paid');
+          return;
+        }
+
+        // 4. Update using FRESH rows
         await PaymentTransactionRow.db.updateRow(
           session,
-          paymentRow.copyWith(
+          freshPayment.copyWith(
             gatewayOrderId: razorpayOrderId,
             gatewayPaymentId: razorpayPaymentId,
             paymentStatus: 'paid',
@@ -266,13 +297,13 @@ class PostgresPaymentService {
           gatewayOrderId: razorpayOrderId,
           gatewayPaymentId: razorpayPaymentId,
           paymentStatus: 'paid',
-          amount: resolvedOrderRow.finalAmount,
+          amount: freshOrder.finalAmount,
           paidAt: now,
         );
 
         await CustomerOrderRow.db.updateRow(
           session,
-          resolvedOrderRow.copyWith(
+          freshOrder.copyWith(
             paymentStatus: 'paid',
             orderStatus: 'confirmed',
             confirmedAt: now,
@@ -285,17 +316,32 @@ class PostgresPaymentService {
 
         await _finalizeSuccessfulPaymentSideEffects(
           session,
-          order: resolvedOrderRow,
+          order: freshOrder,
           transaction: transaction,
         );
 
         // Disable any active payment link
         await PostgresPaymentLinkService().disablePaymentLink(
           session,
-          resolvedOrderRow.orderNumber,
+          freshOrder.orderNumber,
           transaction: transaction,
         );
       });
+
+      if (result != null) {
+        if (result!.verified && result!.success) {
+          await OrderOutboxService.instance.enqueueOrderPaid(
+            session: session,
+            orderId: resolvedOrderRow.orderNumber,
+            userId: resolvedOrderRow.userId.toString(),
+            status: 'confirmed',
+            amount: resolvedOrderRow.finalAmount,
+            itemCount: resolvedOrderRow.itemCount,
+          );
+        }
+        return result!;
+      }
+
 
       await _processPaidOrderAnalytics(
         session,
@@ -451,39 +497,11 @@ class PostgresPaymentService {
       }
       final resolvedOrderRow = orderRow!;
 
-      if (paymentRow.paymentStatus == 'paid' &&
-          resolvedOrderRow.paymentStatus == 'paid') {
-        // Check if this is a different payment (duplicate) vs webhook retry (same)
-        if (razorpayPaymentId.isNotEmpty &&
-            paymentRow.gatewayPaymentId != null &&
-            paymentRow.gatewayPaymentId!.isNotEmpty &&
-            paymentRow.gatewayPaymentId != razorpayPaymentId) {
-          // Duplicate payment detected — create auto refund job
-          await _createAutoRefundJob(
-            session,
-            resolvedOrderRow,
-            paymentRow,
-            razorpayPaymentId,
-            razorpayOrderId,
-          );
-          return PaymentVerifyResult(
-            success: true,
-            verified: true,
-            message: 'Order already paid. Duplicate payment will be refunded automatically.',
-          );
-        }
-
-        return PaymentVerifyResult(
-          success: true,
-          verified: true,
-          message: 'Payment already verified',
-        );
-      }
-
       final now = DateTime.now().toUtc();
 
+      PaymentVerifyResult? result;
       await session.db.transaction((transaction) async {
-        // Lock order row to prevent race conditions (FOR UPDATE)
+        // 1. Lock BOTH rows to prevent race conditions
         await session.db.unsafeQuery(
           'SELECT "id" FROM "customer_order" WHERE "id" = @id FOR UPDATE',
           parameters: QueryParameters.named({
@@ -491,16 +509,81 @@ class PostgresPaymentService {
           }),
           transaction: transaction,
         );
+        await session.db.unsafeQuery(
+          'SELECT "id" FROM "payment_transaction" WHERE "orderId" = @orderId FOR UPDATE',
+          parameters: QueryParameters.named({
+            'orderId': resolvedOrderRow.id!.toJson(),
+          }),
+          transaction: transaction,
+        );
 
+        // 2. Re-read both rows under lock
+        final freshOrder = await CustomerOrderRow.db.findById(
+          session, resolvedOrderRow.id!, transaction: transaction);
+        final freshPayment = await PaymentTransactionRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderId.equals(resolvedOrderRow.id!),
+          transaction: transaction,
+        );
+        if (freshOrder == null || freshPayment == null) {
+          result = PaymentVerifyResult(
+            success: false, verified: false, message: 'Order or payment not found');
+          return;
+        }
+
+        // 3. Re-validate status under lock
+        // Reject closed orders (cancelled / payment_expired) — Fix 2
+        if (freshOrder.orderStatus == 'cancelled' ||
+            freshOrder.orderStatus == 'payment_expired') {
+          if (razorpayPaymentId.isNotEmpty) {
+            await _createAutoRefundJob(
+              session, freshOrder, freshPayment,
+              razorpayPaymentId, razorpayOrderId);
+          }
+          result = PaymentVerifyResult(
+            success: false, verified: false,
+            message: 'Order no longer accepts payments.');
+          return;
+        }
+
+        // Already paid — check for duplicate vs retry
+        if (freshPayment.paymentStatus == 'paid' &&
+            freshOrder.paymentStatus == 'paid') {
+          if (razorpayPaymentId.isNotEmpty &&
+              freshPayment.gatewayPaymentId != null &&
+              freshPayment.gatewayPaymentId!.isNotEmpty &&
+              freshPayment.gatewayPaymentId != razorpayPaymentId) {
+            await _createAutoRefundJob(
+              session, freshOrder, freshPayment,
+              razorpayPaymentId, razorpayOrderId);
+          }
+          result = PaymentVerifyResult(
+            success: true, verified: true,
+            message: 'Payment already verified');
+          return;
+        }
+
+        // Reject closed/payment-expired or already-paid orders
+        if (freshOrder.orderStatus == 'cancelled' ||
+            freshOrder.orderStatus == 'payment_expired' ||
+            freshOrder.paymentStatus == 'paid' ||
+            freshPayment.paymentStatus == 'paid') {
+          result = PaymentVerifyResult(
+            success: false, verified: false,
+            message: 'Order is closed or already paid');
+          return;
+        }
+
+        // 4. Update using FRESH rows (not stale pre-lock objects)
         await PaymentTransactionRow.db.updateRow(
           session,
-          paymentRow.copyWith(
+          freshPayment.copyWith(
             gatewayOrderId: razorpayOrderId.isNotEmpty
                 ? razorpayOrderId
-                : paymentRow.gatewayOrderId,
+                : freshPayment.gatewayOrderId,
             gatewayPaymentId: razorpayPaymentId.isNotEmpty
                 ? razorpayPaymentId
-                : paymentRow.gatewayPaymentId,
+                : freshPayment.gatewayPaymentId,
             paymentStatus: 'paid',
             gatewayStatus: 'captured',
             paidAt: now,
@@ -513,18 +596,18 @@ class PostgresPaymentService {
           gatewayName: 'razorpay',
           gatewayOrderId: razorpayOrderId.isNotEmpty
               ? razorpayOrderId
-              : paymentRow.gatewayOrderId,
+              : freshPayment.gatewayOrderId,
           gatewayPaymentId: razorpayPaymentId.isNotEmpty
               ? razorpayPaymentId
-              : paymentRow.gatewayPaymentId,
+              : freshPayment.gatewayPaymentId,
           paymentStatus: 'paid',
-          amount: resolvedOrderRow.finalAmount,
+          amount: freshOrder.finalAmount,
           paidAt: now,
         );
 
         await CustomerOrderRow.db.updateRow(
           session,
-          resolvedOrderRow.copyWith(
+          freshOrder.copyWith(
             paymentStatus: 'paid',
             orderStatus: 'confirmed',
             confirmedAt: now,
@@ -537,17 +620,19 @@ class PostgresPaymentService {
 
         await _finalizeSuccessfulPaymentSideEffects(
           session,
-          order: resolvedOrderRow,
+          order: freshOrder,
           transaction: transaction,
         );
 
         // Disable any active payment link
         await PostgresPaymentLinkService().disablePaymentLink(
           session,
-          resolvedOrderRow.orderNumber,
+          freshOrder.orderNumber,
           transaction: transaction,
         );
       });
+
+      if (result != null) return result!;
 
       await _processPaidOrderAnalytics(
         session,
@@ -1532,7 +1617,7 @@ class PostgresPaymentService {
       session,
       where: (t) =>
           t.paymentStatus.equals('pending') &
-          t.paymentLinkExpiresAt.lessThan(now) &
+          (t.paymentLinkExpiresAt < now) &
           t.orderStatus.equals('placed'),
     );
 

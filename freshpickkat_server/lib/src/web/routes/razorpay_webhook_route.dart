@@ -186,6 +186,34 @@ class RazorpayWebhookRoute extends Route {
         );
         return _jsonOk({'success': true, 'message': 'Already paid'});
       }
+      // Fresh state check for closed orders (cancelled / payment_expired)
+      if (order != null) {
+        final freshOrderRow = await CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(order.orderId),
+        );
+        if (freshOrderRow != null &&
+            (freshOrderRow.orderStatus == 'cancelled' ||
+             freshOrderRow.orderStatus == 'payment_expired')) {
+          if (paymentId != null && paymentId.isNotEmpty) {
+            final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+              session,
+              where: (t) => t.orderId.equals(freshOrderRow.id!),
+            );
+            if (paymentRow != null) {
+              await _createAutoRefundJob(
+                session, freshOrderRow, paymentRow,
+                paymentId, razorpayOrderId ?? '');
+            }
+          }
+          session.log(
+            'PAYMENT_RECEIVED_FOR_CLOSED_ORDER: order=$orderNumber, payment=$paymentId',
+            level: LogLevel.warning,
+          );
+          return _jsonOk({'success': true, 'message': 'Order closed, auto-refund created'});
+        }
+      }
+
       if (paymentId != null && paymentId.isNotEmpty) {
         session.log(
           'Webhook completing payment verification: payment $paymentId, '
@@ -613,6 +641,26 @@ class RazorpayWebhookRoute extends Route {
           );
           return;
         }
+      }
+
+      // Fresh state check for closed orders
+      if (orderRow.orderStatus == 'cancelled' || orderRow.orderStatus == 'payment_expired') {
+        if (paymentId != null && paymentId.isNotEmpty) {
+          final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderId.equals(orderRow.id!),
+          );
+          if (paymentRow != null) {
+            await _createAutoRefundJob(
+              session, orderRow, paymentRow,
+              paymentId, razorpayOrderId ?? '');
+          }
+        }
+        session.log(
+          'PAYMENT_RECEIVED_FOR_CLOSED_ORDER: order=$orderNumber, payment=$paymentId',
+          level: LogLevel.warning,
+        );
+        return;
       }
 
       if (paymentId != null && razorpayOrderId != null) {

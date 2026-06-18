@@ -175,6 +175,14 @@ class AdminEndpoint extends Endpoint {
       if (jobRow == null) {
         return jsonEncode({'success': false, 'error': 'Job not found'});
       }
+      const allowedStates = ['FAILED', 'MANUAL_REVIEW'];
+      if (!allowedStates.contains(jobRow.jobStatus)) {
+        return jsonEncode({
+          'success': false,
+          'error': 'Job is in \'${jobRow.jobStatus}\' state and cannot be retried. '
+                   'Allowed states: FAILED, MANUAL_REVIEW.',
+        });
+      }
       await _autoRefund.updateJobStatus(
         session,
         jobRow,
@@ -274,6 +282,35 @@ class AdminEndpoint extends Endpoint {
         where: (t) => t.createdAt >= todayStart,
       );
 
+      // Orphan payments — paid transactions with no matching paid order
+      final orphanResult = await session.db.unsafeQuery(
+        'SELECT COUNT(*) AS cnt FROM "payment_transaction" pt '
+        'LEFT JOIN "customer_order" co ON co.id = pt."orderId" '
+        'WHERE pt."paymentStatus" = \'paid\' '
+        'AND (co.id IS NULL OR co."paymentStatus" != \'paid\')',
+      );
+      final orphanCount = (orphanResult.first.toColumnMap()['cnt'] as int?) ?? 0;
+
+      // Refund failures in last 24 hours
+      final refundFailResult = await session.db.unsafeQuery(
+        'SELECT COUNT(*) AS cnt FROM "refund_record" '
+        'WHERE "refundStatus" = \'failed\' '
+        'AND "createdAt" >= @yesterday',
+        parameters: QueryParameters.named({
+          'yesterday': now.subtract(const Duration(hours: 24)).toIso8601String(),
+        }),
+      );
+      final recentRefundFailuresCount = (refundFailResult.first.toColumnMap()['cnt'] as int?) ?? 0;
+
+      // Backlog — total incomplete jobs
+      final backlogJobs = await protocol.AutoRefundJobRow.db.find(
+        session,
+        where: (t) =>
+            t.jobStatus.equals('PENDING') |
+            t.jobStatus.equals('FAILED') |
+            t.jobStatus.equals('PROCESSING'),
+      );
+
       return jsonEncode({
         'pendingPaymentCount': pendingPayments.length,
         'expiredSessionCount': pendingPayments
@@ -283,8 +320,13 @@ class AdminEndpoint extends Endpoint {
             .length,
         'autoRefundPendingCount': pendingJobs.length,
         'autoRefundFailedCount': failedJobs.length,
+        'autoRefundBacklogCount': backlogJobs.length,
+        'autoRefundMaxPerCycle': 25,
+        'autoRefundRetryLimit': 5,
         'duplicatePaymentCount': duplicatesToday.length,
         'manualReviewCount': manualReviewJobs.length,
+        'orphanPaymentCount': orphanCount,
+        'refundFailures24h': recentRefundFailuresCount,
       });
     } catch (e) {
       return jsonEncode({'error': e.toString()});

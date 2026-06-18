@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:serverpod/serverpod.dart';
 
 import 'postgres/postgres_auto_refund_service.dart';
+import '../generated/protocol.dart' as protocol;
 import 'postgres/postgres_audit_log_service.dart';
 import 'postgres/postgres_payment_link_service.dart';
 import 'postgres/postgres_payment_service.dart';
@@ -37,8 +38,14 @@ class PaymentReconciliationCronJob {
   bool _autoRefundRunning = false;
   bool _sessionExpiryRunning = false;
   bool _orphanDetectionRunning = false;
+  final Set<String> _reportedOrphanIds = {};
 
   void start() {
+    // Startup recovery: reset stale PROCESSING auto-refund jobs
+    unawaited(_runLocked(_autoRefundLock, (session) async {
+      await _recoverStaleProcessingJobs(session);
+    }));
+
     _reconciliationTimer ??= Timer.periodic(
       const Duration(minutes: 2),
       (_) => unawaited(runPaymentReconciliation()),
@@ -133,6 +140,9 @@ class PaymentReconciliationCronJob {
     _autoRefundRunning = true;
     try {
       await _runLocked(_autoRefundLock, (session) async {
+        // Recover stale PROCESSING jobs before loading new ones
+        await _recoverStaleProcessingJobs(session);
+
         final pendingJobs = await _autoRefund.loadPendingJobs(session, limit: 25);
         for (final job in pendingJobs) {
           try {
@@ -150,81 +160,114 @@ class PaymentReconciliationCronJob {
     }
   }
 
-  Future<void> _processAutoRefundJob(Session session, AutoRefundJobRow job) async {
-    // Acquire row-level lock on the job
-    final locked = await session.db.unsafeQuery(
-      'SELECT id FROM "auto_refund_job" WHERE "id" = @id FOR UPDATE',
-      parameters: QueryParameters.named({'id': job.id!.toJson()}),
-    );
-    if (locked.isEmpty) return;
+  Future<void> _processAutoRefundJob(Session session, protocol.AutoRefundJobRow job) async {
+    // Transaction 1: Lock job row and transition to PROCESSING
+    protocol.AutoRefundJobRow? processingJob;
+    await session.db.transaction((transaction) async {
+      final locked = await session.db.unsafeQuery(
+        'SELECT id FROM "auto_refund_job" WHERE "id" = @id FOR UPDATE',
+        parameters: QueryParameters.named({'id': job.id!.toJson()}),
+        transaction: transaction,
+      );
+      if (locked.isEmpty) return;
 
-    // Re-check status under lock
-    final currentJob = await AutoRefundJobRow.db.findById(session, job.id!);
-    if (currentJob == null || currentJob.jobStatus != 'PENDING') return;
+      final currentJob = await protocol.AutoRefundJobRow.db.findById(
+        session, job.id!, transaction: transaction);
+      if (currentJob == null || currentJob.jobStatus != 'PENDING') return;
 
-    // Transition to PROCESSING
-    await _autoRefund.updateJobStatus(session, currentJob, status: 'PROCESSING');
+      // Set PROCESSING without incrementing attemptCount (not a failure)
+      await protocol.AutoRefundJobRow.db.updateRow(
+        session,
+        currentJob.copyWith(
+          jobStatus: 'PROCESSING',
+          updatedAt: DateTime.now().toUtc(),
+        ),
+        transaction: transaction,
+      );
+      processingJob = currentJob.copyWith(jobStatus: 'PROCESSING');
+    });
+
+    if (processingJob == null) return;
 
     await _auditLog.write(
       session,
       action: 'AUTO_REFUND_PROCESSING',
       entityType: 'payment',
-      entityId: currentJob.orderNumber,
-      metadata: {'gatewayPaymentId': currentJob.gatewayPaymentId, 'amount': currentJob.amount.toString()},
+      entityId: processingJob.orderNumber,
+      metadata: {'gatewayPaymentId': processingJob.gatewayPaymentId, 'amount': processingJob.amount.toString()},
     );
 
     try {
-      // Execute refund using existing refund module
+      // Check if refund already exists for this gatewayPaymentId (idempotency guard)
+      final existingRefunds = await protocol.RefundRecordRow.db.find(
+        session,
+        where: (t) =>
+            t.gatewayRefundId.equals(processingJob.gatewayPaymentId) &
+            (t.refundStatus.equals('processed') | t.refundStatus.equals('pending')),
+        limit: 1,
+      );
+      if (existingRefunds.isNotEmpty) {
+        // Refund already processed — mark job COMPLETED
+        session.log(
+          'Auto-refund already processed for ${processingJob.gatewayPaymentId}, marking COMPLETED',
+          level: LogLevel.info,
+        );
+        await _autoRefund.updateJobStatus(session, processingJob, status: 'COMPLETED', error: null);
+        return;
+      }
+
+      // Execute refund using existing refund module (outside transaction — gateway call)
       final refundResult = await _refunds.refund(
         session,
-        orderNumber: currentJob.orderNumber,
-        amount: currentJob.amount,
+        orderNumber: processingJob.orderNumber,
+        amount: processingJob.amount,
         source: 'auto_refund',
         reason: 'Auto-refund for duplicate payment',
       );
 
       if (refundResult.refundId != 'error') {
-        // COMPLETED
         final now = DateTime.now().toUtc();
-        await AutoRefundJobRow.db.updateRow(
+        await protocol.AutoRefundJobRow.db.updateRow(
           session,
-          currentJob.copyWith(
+          processingJob!.copyWith(
             jobStatus: 'COMPLETED',
             lastError: null,
             processedAt: now,
             updatedAt: now,
           ),
         );
+      } else {
+        await _handleRefundFailure(
+          session, processingJob!, refundResult.failureReason ?? 'Refund failed');
+      }
 
+      if (refundResult.refundId != 'error') {
         await _auditLog.write(
           session,
           action: 'AUTO_REFUND_COMPLETED',
           entityType: 'payment',
-          entityId: currentJob.orderNumber,
+          entityId: processingJob.orderNumber,
           metadata: {
-            'gatewayPaymentId': currentJob.gatewayPaymentId,
+            'gatewayPaymentId': processingJob.gatewayPaymentId,
             'gatewayRefundId': refundResult.gatewayRefundId ?? '',
-            'amount': currentJob.amount.toString(),
+            'amount': processingJob.amount.toString(),
           },
         );
 
         session.log(
-          'Auto-refund completed for job ${currentJob.id}: order=${currentJob.orderNumber}, '
+          'Auto-refund completed for job ${processingJob.id}: order=${processingJob.orderNumber}, '
           'refundId=${refundResult.gatewayRefundId}',
           level: LogLevel.info,
         );
-      } else {
-        // FAILED — apply retry strategy
-        await _handleRefundFailure(session, currentJob, refundResult.failureReason ?? 'Refund failed');
       }
     } catch (e) {
-      await _handleRefundFailure(session, currentJob, e.toString());
+      await _handleRefundFailure(session, processingJob!, e.toString());
     }
   }
 
   Future<void> _handleRefundFailure(
     Session session,
-    AutoRefundJobRow job,
+    protocol.AutoRefundJobRow job,
     String error,
   ) async {
     final attempt = job.attemptCount + 1;
@@ -259,7 +302,7 @@ class PaymentReconciliationCronJob {
         nextStatus = 'MANUAL_REVIEW';
     }
 
-    await AutoRefundJobRow.db.updateRow(
+    await protocol.AutoRefundJobRow.db.updateRow(
       session,
       job.copyWith(
         jobStatus: nextStatus,
@@ -292,6 +335,33 @@ class PaymentReconciliationCronJob {
     );
   }
 
+  /// Recover auto-refund jobs stuck in PROCESSING state (e.g., after a crash).
+  Future<void> _recoverStaleProcessingJobs(Session session) async {
+    final staleThreshold = DateTime.now().toUtc().subtract(const Duration(minutes: 5));
+    final result = await session.db.unsafeQuery(
+      'UPDATE "auto_refund_job" SET "jobStatus" = \'PENDING\', '
+      '"updatedAt" = @now WHERE "jobStatus" = \'PROCESSING\' '
+      'AND "updatedAt" < @staleThreshold',
+      parameters: QueryParameters.named({
+        'now': DateTime.now().toUtc().toIso8601String(),
+        'staleThreshold': staleThreshold.toIso8601String(),
+      }),
+    );
+    if (result.isNotEmpty && result.first.affectedRows != null && result.first.affectedRows! > 0) {
+      session.log(
+        'Recovered ${result.first.affectedRows} stale PROCESSING auto-refund job(s)',
+        level: LogLevel.warning,
+      );
+      await _auditLog.write(
+        session,
+        action: 'AUTO_REFUND_RECOVERED_AFTER_CRASH',
+        entityType: 'payment',
+        entityId: 'cron',
+        metadata: {'count': result.first.affectedRows.toString()},
+      );
+    }
+  }
+
   /// Expire stale payment sessions where the payment link has expired.
   Future<void> runSessionExpiry() async {
     if (_sessionExpiryRunning) return;
@@ -315,16 +385,21 @@ class PaymentReconciliationCronJob {
     try {
       await _runLocked(_orphanDetectionLock, (session) async {
         final orphans = await _payments.detectOrphanPayments(session);
-        if (orphans.isNotEmpty) {
-          for (final orphan in orphans) {
+        var newCount = 0;
+        for (final orphan in orphans) {
+          final key = orphan['gatewayPaymentId'] ?? orphan['orderNumber'] ?? '';
+          if (key.isEmpty || _reportedOrphanIds.add(key)) {
             await _auditLog.write(
               session,
               action: 'ORPHAN_PAYMENT_DETECTED',
               entityType: 'payment',
-              metadata: orphan,
+              metadata: orphan.cast<String, String>(),
             );
+            newCount++;
           }
-          session.log('Detected ${orphans.length} orphan payment(s)', level: LogLevel.warning);
+        }
+        if (newCount > 0) {
+          session.log('Detected $newCount new orphan payment(s)', level: LogLevel.warning);
         }
       });
     } finally {

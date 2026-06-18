@@ -63,6 +63,14 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - **Admin offers screen**: 8 controllers, lower impact; already parallel via `Future.wait`; composite endpoint would not significantly reduce latency
 - **Admin offers screen controllers**: BOGO, combo, category offer, coupon, banner controllers still use paginated loads internally
 
+## Test Status — 9/9 passing
+- **`payment_link_flow_test.dart`** (4 tests): `getPaymentSessionStatus`, `disablePaymentLink`, `expireStaleSessions`, `completePaymentVerification` — all pass with seeded user + order (FK constraints satisfied)
+- **`auto_refund_job_test.dart`** (5 tests): duplicate creates job, identical gatewayPaymentId dedup, createJob dedup, updateJobStatus, loadPendingJobs — all pass using `_seedCompletedOrder` helper
+- Tests use `withServerpod` pattern (real DB, auto-rollback), seed via `AppUserRow` + `CustomerOrderRow` + `PaymentTransactionRow` protocol inserts
+- `createJob()` signature uses `{required AutoRefundJobRow job}` — tests pass `AutoRefundJobRow` directly
+- `expireStaleSessions` sets `paymentStatus = 'cancelled'` (not `'failed'`) — test expects `'cancelled'`
+- Admin endpoint tests still blocked (require Firebase auth)
+
 ## Key Decisions
 - Composite DTO approach for high-impact screens (home page, dashboard, order detail, cart)
 - Parallelized `hydrateProductsByIds` reduces per-call latency for every screen using products
@@ -80,7 +88,7 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 6. Run DB migration for `auto_refund_job_row` table (already in `definition.sql`)
 7. Test auto-refund: create duplicate payment → verify job created → verify auto-refund processes → check admin health metrics
 8. Test payment link flow: create order → get payment link → click link → pay → verify order completes
-9. Verify expired payment link sessions are auto-cancelled by cron
+9. Verify expired payment link sessions are auto-cancelled by cron (sets `paymentStatus = 'cancelled'`)
 10. Verify admin can retry/mark-reviewed auto-refund jobs from payment monitoring screen
 
 ## Recent Fixes
@@ -130,7 +138,7 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 ### Module 4 — Admin + Cron
 - **Cron job rewrite** (`payment_reconciliation_cron_job.dart`): Separate timer for payment link expiry recovery (every 30s), auto-refund processing (60s), session expiry (60s), orphan detection (5min) — all non-blocking isolated timers
 - **`PostgresAutoRefundService.loadPendingJobs()`**: Loads `PENDING` + `FAILED` (past retry window) jobs; `updateJobStatus()` writes audit log
-- **`PostgresPaymentService.expireStaleSessions()`**: Sets `paymentStatus = 'failed'` for expired payment link sessions
+- **`PostgresPaymentService.expireStaleSessions()`**: Sets `paymentStatus = 'cancelled'`, `orderStatus = 'payment_expired'`, `linkStatus = 'EXPIRED'` for expired payment link sessions
 - **`PostgresPaymentService.detectOrphanPayments()`**: Finds `paid` orders with no `paymentTransactionId` or `razorpayPaymentId` (webhook recovery gap)
 - **`AdminEndpoint`**: `retryAutoRefund()`, `markAutoRefundReviewed()`, `getPaymentHealthMetrics()` — JSON-based responses
 - **`AdminPaymentMonitoringController`**: 3 new methods (`getAutoRefundJobStatus()`, `retryAutoRefund()`, `markAutoRefundReviewed()`, `getPaymentHealthMetrics()`)

@@ -563,125 +563,150 @@ class PostgresPaymentLinkService {
   /// Get or create a payment link for a pending order.
   /// Returns the existing ACTIVE link if one exists, otherwise creates a new one.
   /// Rejects if linkStatus is DISABLED or EXPIRED.
+  /// Uses FOR UPDATE to prevent concurrent double-link creation.
   Future<Map<String, dynamic>> getOrCreatePaymentLink(
     Session session, {
     required String orderNumber,
     String? generatedBy,
   }) async {
-    final orderRow = await CustomerOrderRow.db.findFirstRow(
-      session,
-      where: (t) => t.orderNumber.equals(orderNumber),
-    );
-    if (orderRow?.id == null) {
-      return {'success': false, 'error': 'Order not found'};
-    }
-
-    if (orderRow!.paymentStatus == 'paid') {
-      return {'success': false, 'error': 'This order has already been paid.'};
-    }
-    if (orderRow.linkStatus == 'DISABLED') {
-      return {'success': false, 'error': 'This payment link has been disabled.'};
-    }
-    if (orderRow.linkStatus == 'EXPIRED') {
-      return {'success': false, 'error': 'This payment link has expired.'};
-    }
-
-    // Check if an existing active link exists on this order
-    final existing = await _getExistingLink(session, orderRow.id!);
-    if (existing != null) {
-      final isExpired = existing['expiresAt'] != null &&
-          DateTime.now().toUtc().isAfter(
-            DateTime.parse(existing['expiresAt'] as String).toUtc(),
-          );
-      final isUsed = existing['isUsed'] == true;
-      if (!isExpired && !isUsed) {
-        // Reuse the existing link — update customer_order fields if not set
-        if (orderRow.paymentLinkUrl == null) {
-          await CustomerOrderRow.db.updateRow(
-            session,
-            orderRow.copyWith(
-              paymentLinkId: tryParseUuid(existing['paymentLinkId'] as String? ?? ''),
-              paymentLinkUrl: existing['paymentLink'] as String?,
-              paymentLinkExpiresAt: existing['expiresAt'] != null
-                  ? DateTime.parse(existing['expiresAt'] as String).toUtc()
-                  : null,
-              linkStatus: 'ACTIVE',
-              updatedAt: DateTime.now().toUtc(),
-            ),
-          );
-        }
-        return {
-          'success': true,
-          'token': existing['token'],
-          'paymentLink': existing['paymentLink'],
-          'expiresAt': existing['expiresAt'],
-          'orderId': orderNumber,
-        };
-      }
-    }
-
-    // No active link exists — create a new one
+    // Pre-compute async data outside transaction to avoid holding DB lock
     final now = DateTime.now().toUtc();
     final expiresAt = now.add(defaultExpiry);
     final token = generateSecureToken();
     final baseUrl = await _getBaseUrl(session);
     final paymentLink = '$baseUrl/pay/$token';
 
-    await session.db.unsafeQuery(
-      '''
-      INSERT INTO "payment_link"
-        ("orderId", "token", "expiresAt", "linkStatus", "isUsed", "createdAt", "updatedAt")
-      VALUES
-        (@orderId, @token, @expiresAt, 'ACTIVE', false, @now, @now)
-      ''',
-      parameters: QueryParameters.named({
-        'orderId': orderRow.id!.toJson(),
+    return session.db.transaction((transaction) async {
+      // 1. Lock the order row to serialize concurrent link creation
+      final orderRow = await CustomerOrderRow.db.findFirstRow(
+        session,
+        where: (t) => t.orderNumber.equals(orderNumber),
+        transaction: transaction,
+      );
+      if (orderRow?.id == null) {
+        return {'success': false, 'error': 'Order not found'};
+      }
+
+      await session.db.unsafeQuery(
+        'SELECT "id" FROM "customer_order" WHERE "id" = @id FOR UPDATE',
+        parameters: QueryParameters.named({'id': orderRow!.id!.toJson()}),
+        transaction: transaction,
+      );
+
+      // 2. Re-read under lock
+      final lockedOrder = await CustomerOrderRow.db.findById(
+        session, orderRow.id!, transaction: transaction);
+      if (lockedOrder == null) {
+        return {'success': false, 'error': 'Order not found'};
+      }
+
+      if (lockedOrder.paymentStatus == 'paid') {
+        return {'success': false, 'error': 'This order has already been paid.'};
+      }
+      if (lockedOrder.linkStatus == 'DISABLED') {
+        return {'success': false, 'error': 'This payment link has been disabled.'};
+      }
+      if (lockedOrder.linkStatus == 'EXPIRED') {
+        return {'success': false, 'error': 'This payment link has expired.'};
+      }
+
+      // 3. Check existing link (safe now — serialized by FOR UPDATE)
+      final existing = await _getExistingLink(session, lockedOrder.id!);
+      if (existing != null) {
+        final isExpired = existing['expiresAt'] != null &&
+            now.isAfter(
+              DateTime.parse(existing['expiresAt'] as String).toUtc(),
+            );
+        final isUsed = existing['isUsed'] == true;
+        if (!isExpired && !isUsed) {
+          if (lockedOrder.paymentLinkUrl == null) {
+            await CustomerOrderRow.db.updateRow(
+              session,
+              lockedOrder.copyWith(
+                paymentLinkId: tryParseUuid(existing['paymentLinkId'] as String? ?? ''),
+                paymentLinkUrl: existing['paymentLink'] as String?,
+                paymentLinkExpiresAt: existing['expiresAt'] != null
+                    ? DateTime.parse(existing['expiresAt'] as String).toUtc()
+                    : null,
+                linkStatus: 'ACTIVE',
+                updatedAt: now,
+              ),
+              transaction: transaction,
+            );
+          }
+          return {
+            'success': true,
+            'token': existing['token'],
+            'paymentLink': existing['paymentLink'],
+            'expiresAt': existing['expiresAt'],
+            'orderId': orderNumber,
+          };
+        }
+      }
+
+      // 4. No active link exists — create a new one inside the transaction
+      await session.db.unsafeQuery(
+        '''
+        INSERT INTO "payment_link"
+          ("orderId", "token", "expiresAt", "linkStatus", "isUsed", "createdAt", "updatedAt")
+        VALUES
+          (@orderId, @token, @expiresAt, 'ACTIVE', false, @now, @now)
+        ''',
+        parameters: QueryParameters.named({
+          'orderId': lockedOrder.id!.toJson(),
+          'token': token,
+          'expiresAt': expiresAt.toIso8601String(),
+          'now': now.toIso8601String(),
+        }),
+        transaction: transaction,
+      );
+
+      // Retrieve the new link row to get its id
+      final linkRows = await session.db.unsafeQuery(
+        'SELECT id FROM "payment_link" WHERE "token" = @token LIMIT 1',
+        parameters: QueryParameters.named({'token': token}),
+        transaction: transaction,
+      );
+      final linkId = linkRows.isNotEmpty
+          ? (linkRows.first.toColumnMap()['id'] as String?)
+          : null;
+
+      await CustomerOrderRow.db.updateRow(
+        session,
+        lockedOrder.copyWith(
+          paymentMode: 'shareable_link',
+          paymentSessionId: lockedOrder.paymentSessionId ??
+              UuidValue.fromString(
+                (await session.db.unsafeQuery(
+                  'SELECT gen_random_uuid()::text AS id',
+                  transaction: transaction,
+                ))
+                    .first
+                    .toColumnMap()['id'] as String,
+              ),
+          paymentLinkId: linkId != null ? tryParseUuid(linkId) : null,
+          paymentLinkUrl: paymentLink,
+          paymentLinkExpiresAt: expiresAt,
+          linkStatus: 'ACTIVE',
+          paymentExpiresAt: expiresAt,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+
+      session.log(
+        'Payment link created for order $orderNumber: $paymentLink',
+        level: LogLevel.info,
+      );
+
+      return {
+        'success': true,
         'token': token,
+        'paymentLink': paymentLink,
         'expiresAt': expiresAt.toIso8601String(),
-        'now': now.toIso8601String(),
-      }),
-    );
-
-    // Retrieve the new link row to get its id
-    final linkRows = await session.db.unsafeQuery(
-      'SELECT id FROM "payment_link" WHERE "token" = @token LIMIT 1',
-      parameters: QueryParameters.named({'token': token}),
-    );
-    final linkId = linkRows.isNotEmpty
-        ? (linkRows.first.toColumnMap()['id'] as String?)
-        : null;
-
-    await CustomerOrderRow.db.updateRow(
-      session,
-      orderRow.copyWith(
-        paymentMode: 'shareable_link',
-        paymentSessionId: orderRow.paymentSessionId ??
-            UuidValue.fromString(
-              (await session.db.unsafeQuery('SELECT gen_random_uuid()::text AS id'))
-                  .first
-                  .toColumnMap()['id'] as String,
-            ),
-        paymentLinkId: linkId != null ? tryParseUuid(linkId) : null,
-        paymentLinkUrl: paymentLink,
-        paymentLinkExpiresAt: expiresAt,
-        linkStatus: 'ACTIVE',
-        paymentExpiresAt: expiresAt,
-        updatedAt: now,
-      ),
-    );
-
-    session.log(
-      'Payment link created for order $orderNumber: $paymentLink',
-      level: LogLevel.info,
-    );
-
-    return {
-      'success': true,
-      'token': token,
-      'paymentLink': paymentLink,
-      'expiresAt': expiresAt.toIso8601String(),
-      'orderId': orderNumber,
-    };
+        'orderId': orderNumber,
+      };
+    });
   }
 
   /// Get the current payment session status for an order.

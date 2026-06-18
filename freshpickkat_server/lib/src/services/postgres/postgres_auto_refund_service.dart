@@ -97,7 +97,7 @@ class PostgresAutoRefundService {
       session,
       where: (t) =>
           t.jobStatus.equals('PENDING') &
-          (t.nextRetryAt.equals(null) | t.nextRetryAt.lessOrEqual(now)),
+          (t.nextRetryAt.equals(null) | (t.nextRetryAt <= now)),
       orderBy: (t) => t.createdAt,
       limit: limit,
     );

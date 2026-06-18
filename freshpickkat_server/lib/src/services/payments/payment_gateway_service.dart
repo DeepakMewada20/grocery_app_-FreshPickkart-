@@ -57,24 +57,8 @@ class PaymentGatewayService {
           'phone': customerPhone,
         },
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
-    return {
-      'statusCode': response.statusCode,
-      'body': response.body,
-      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
-    };
-  }
-
-  Future<Map<String, dynamic>> fetchPaymentStatus(String paymentId) async {
-    final response = await http.get(
-      Uri.parse('$razorpayBaseUrl/payments/$paymentId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-    );
     return {
       'statusCode': response.statusCode,
       'body': response.body,
@@ -102,7 +86,23 @@ class PaymentGatewayService {
         'receipt': receipt,
         'notes': notes,
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
+  Future<Map<String, dynamic>> fetchPaymentStatus(String paymentId) async {
+    final response = await http.get(
+      Uri.parse('$razorpayBaseUrl/payments/$paymentId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+      },
+    ).timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,
@@ -154,7 +154,7 @@ class PaymentGatewayService {
             'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
       },
       body: jsonEncode(body),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     return {
       'statusCode': response.statusCode,
@@ -174,7 +174,7 @@ class PaymentGatewayService {
         'Authorization':
             'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
       },
-    );
+    ).timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,
