@@ -6371,6 +6371,56 @@ class Endpoints extends _i1.EndpointDispatch {
                     paidByEmail: params['paidByEmail'],
                   ),
         ),
+        'getPaymentSessionStatus': _i1.MethodConnector(
+          name: 'getPaymentSessionStatus',
+          params: {
+            'orderNumber': _i1.ParameterDescription(
+              name: 'orderNumber',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['paymentLink'] as _i22.PaymentLinkEndpoint)
+                  .getPaymentSessionStatus(
+                    session,
+                    params['orderNumber'],
+                  ),
+        ),
+        'getOrCreatePaymentLink': _i1.MethodConnector(
+          name: 'getOrCreatePaymentLink',
+          params: {
+            'orderNumber': _i1.ParameterDescription(
+              name: 'orderNumber',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['paymentLink'] as _i22.PaymentLinkEndpoint)
+                  .getOrCreatePaymentLink(
+                    session,
+                    params['orderNumber'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['pricing'] = _i1.EndpointConnector(

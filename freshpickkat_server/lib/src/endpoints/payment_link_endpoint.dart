@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
 import '../services/env_service.dart';
@@ -243,6 +245,46 @@ class PaymentLinkEndpoint extends Endpoint {
       };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  /// Get the current payment session status for a pending order.
+  Future<Map<String, dynamic>> getPaymentSessionStatus(
+    Session session,
+    String orderNumber,
+  ) async {
+    try {
+      return await _paymentLinks.getPaymentSessionStatus(
+        session,
+        orderNumber,
+      );
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+
+  /// Get or create a payment link for a pending order (lazy creation).
+  Future<String> getOrCreatePaymentLink(
+    Session session,
+    String orderNumber,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    try {
+      await _userGuard.ensureUser(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+
+      final result = await _paymentLinks.getOrCreatePaymentLink(
+        session,
+        orderNumber: orderNumber,
+      );
+
+      return jsonEncode(result);
+    } catch (e) {
+      return jsonEncode({'success': false, 'error': e.toString()});
     }
   }
 

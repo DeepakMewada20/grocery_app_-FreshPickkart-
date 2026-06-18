@@ -25,6 +25,7 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/tracking/models/delivery_location.dart';
 import 'package:freshpickkat_flutter/tracking/repositories/server_order_tracking_repository.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
+import 'package:freshpickkat_flutter/widgets/payment_session_sheet.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -301,21 +302,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ? userController.userEmail.value
           : '$customerPhone@freshpickkart.com';
 
-      _setProcessing(true, status: 'Opening payment gateway...');
+      _setProcessing(false);
 
-      final didSelectUpiOption = await _startUpiPaymentFlow(
-        isTestMode: isTestMode,
-        keyId: keyId,
-        amountPaise: amountPaise,
-        currency: 'INR',
-        razorpayOrderId: razorpayOrderId,
-        customerPhone: customerPhone,
-        customerEmail: customerEmail,
-        orderId: orderId,
-      );
+      if (mounted) {
+        final shouldPay = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => PaymentSessionSheet(
+            orderId: orderId,
+            amount: cartController.totalAmount,
+          ),
+        );
 
-      if (!didSelectUpiOption && mounted) {
-        _setProcessing(false);
+        if (shouldPay == true) {
+          _setProcessing(true, status: 'Opening payment gateway...');
+          final didSelectUpiOption = await _startUpiPaymentFlow(
+            isTestMode: isTestMode,
+            keyId: keyId,
+            amountPaise: amountPaise,
+            currency: 'INR',
+            razorpayOrderId: razorpayOrderId,
+            customerPhone: customerPhone,
+            customerEmail: customerEmail,
+            orderId: orderId,
+          );
+          if (!didSelectUpiOption && mounted) {
+            _setProcessing(false);
+          }
+        }
       }
     } catch (e) {
       if (_currentOrderId != null) {
@@ -509,21 +524,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       final isTestMode = keyId.startsWith('rzp_test_');
 
-      _setProcessing(true, status: 'Opening payment gateway...');
+      _setProcessing(false);
 
-      final didSelectUpiOption = await _startUpiPaymentFlow(
-        isTestMode: isTestMode,
-        keyId: keyId,
-        amountPaise: amountPaise,
-        currency: paymentOrder.currency ?? 'INR',
-        razorpayOrderId: razorpayOrderId,
-        customerPhone: customerPhone,
-        customerEmail: customerEmail,
-        orderId: orderId,
-      );
+      if (mounted) {
+        final shouldPay = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => PaymentSessionSheet(
+            orderId: orderId,
+            amount: cartController.totalAmount,
+          ),
+        );
 
-      if (!didSelectUpiOption && mounted) {
-        _setProcessing(false);
+        if (shouldPay == true) {
+          _setProcessing(true, status: 'Opening payment gateway...');
+          final didSelectUpiOption = await _startUpiPaymentFlow(
+            isTestMode: isTestMode,
+            keyId: keyId,
+            amountPaise: amountPaise,
+            currency: paymentOrder.currency ?? 'INR',
+            razorpayOrderId: razorpayOrderId,
+            customerPhone: customerPhone,
+            customerEmail: customerEmail,
+            orderId: orderId,
+          );
+          if (!didSelectUpiOption && mounted) {
+            _setProcessing(false);
+          }
+        }
       }
     } catch (e) {
       if (_currentOrderId != null) {

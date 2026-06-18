@@ -6,6 +6,7 @@ import '../env_service.dart';
 import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import '../snapshot_builder.dart';
+import 'postgres_payment_link_service.dart';
 import 'postgres_support.dart';
 
 class PostgresPaymentService {
@@ -256,6 +257,7 @@ class PostgresPaymentService {
             orderStatus: 'confirmed',
             confirmedAt: now,
             paymentSnapshot: paymentSnapshotJson,
+            linkStatus: 'DISABLED',
             updatedAt: now,
           ),
           transaction: transaction,
@@ -264,6 +266,13 @@ class PostgresPaymentService {
         await _finalizeSuccessfulPaymentSideEffects(
           session,
           order: resolvedOrderRow,
+          transaction: transaction,
+        );
+
+        // Disable any active payment link
+        await PostgresPaymentLinkService().disablePaymentLink(
+          session,
+          resolvedOrderRow.orderNumber,
           transaction: transaction,
         );
       });
@@ -480,6 +489,7 @@ class PostgresPaymentService {
             orderStatus: 'confirmed',
             confirmedAt: now,
             paymentSnapshot: paymentSnapshotJson,
+            linkStatus: 'DISABLED',
             updatedAt: now,
           ),
           transaction: transaction,
@@ -488,6 +498,13 @@ class PostgresPaymentService {
         await _finalizeSuccessfulPaymentSideEffects(
           session,
           order: resolvedOrderRow,
+          transaction: transaction,
+        );
+
+        // Disable any active payment link
+        await PostgresPaymentLinkService().disablePaymentLink(
+          session,
+          resolvedOrderRow.orderNumber,
           transaction: transaction,
         );
       });

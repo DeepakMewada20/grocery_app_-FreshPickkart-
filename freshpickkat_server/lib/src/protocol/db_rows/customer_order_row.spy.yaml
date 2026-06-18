@@ -14,6 +14,11 @@ fields:
   paidByName: String?
   paidByPhone: String?
   paidByEmail: String?
+  paymentSessionId: UuidValue?
+  paymentLinkId: UuidValue?
+  paymentLinkUrl: String?
+  paymentLinkExpiresAt: DateTime?
+  linkStatus: String?
   itemCount: int
   totalAmount: double
   discountAmount: double, default=0

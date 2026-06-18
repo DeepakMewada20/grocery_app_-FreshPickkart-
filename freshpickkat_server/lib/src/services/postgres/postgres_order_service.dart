@@ -7,6 +7,7 @@ import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
 import '../order_outbox_service.dart';
 import '../pricing_engine.dart';
+import 'postgres_payment_link_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
 import '../snapshot_builder.dart';
@@ -1772,6 +1773,7 @@ class PostgresOrderService {
           orderRow.copyWith(
             orderStatus: 'cancelled_by_user',
             paymentStatus: 'cancelled',
+            linkStatus: 'DISABLED',
             cancelledAt: now,
             cancellationReason: reason,
             updatedAt: now,
@@ -1796,6 +1798,13 @@ class PostgresOrderService {
             transaction: transaction,
           );
         }
+
+        // Disable any active payment link
+        await PostgresPaymentLinkService().disablePaymentLink(
+          session,
+          orderRow.orderNumber,
+          transaction: transaction,
+        );
 
         return true;
       });

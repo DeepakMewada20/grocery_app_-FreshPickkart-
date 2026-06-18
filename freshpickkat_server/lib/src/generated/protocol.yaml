@@ -205,6 +205,8 @@ paymentLink:
   - createShareablePaymentLink:
   - getPaymentPageData:
   - confirmPayment:
+  - getPaymentSessionStatus:
+  - getOrCreatePaymentLink:
 pricing:
   - calculateCartPricing:
   - getApplicableOffers:

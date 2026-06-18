@@ -7609,6 +7609,74 @@ class _PaymentLinkEndpoint {
       }
     });
   }
+
+  _i3.Future<Map<String, dynamic>> getPaymentSessionStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderNumber,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'paymentLink',
+            method: 'getPaymentSessionStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'paymentLink',
+          methodName: 'getPaymentSessionStatus',
+          parameters: _i1.testObjectToJson({'orderNumber': orderNumber}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> getOrCreatePaymentLink(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderNumber,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'paymentLink',
+            method: 'getOrCreatePaymentLink',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'paymentLink',
+          methodName: 'getOrCreatePaymentLink',
+          parameters: _i1.testObjectToJson({
+            'orderNumber': orderNumber,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _PricingEndpoint {

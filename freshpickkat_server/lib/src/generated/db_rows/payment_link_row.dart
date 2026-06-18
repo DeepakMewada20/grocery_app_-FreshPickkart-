@@ -27,11 +27,13 @@ abstract class PaymentLinkRow
     this.razorpayPaymentLinkId,
     this.razorpayPaymentLinkUrl,
     String? linkType,
+    String? linkStatus,
     this.generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : isUsed = isUsed ?? false,
        linkType = linkType ?? 'browser',
+       linkStatus = linkStatus ?? 'ACTIVE',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -48,6 +50,7 @@ abstract class PaymentLinkRow
     String? razorpayPaymentLinkId,
     String? razorpayPaymentLinkUrl,
     String? linkType,
+    String? linkStatus,
     String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -79,6 +82,7 @@ abstract class PaymentLinkRow
       razorpayPaymentLinkUrl:
           jsonSerialization['razorpayPaymentLinkUrl'] as String?,
       linkType: jsonSerialization['linkType'] as String?,
+      linkStatus: jsonSerialization['linkStatus'] as String?,
       generatedBy: jsonSerialization['generatedBy'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -118,6 +122,8 @@ abstract class PaymentLinkRow
 
   String linkType;
 
+  String linkStatus;
+
   String? generatedBy;
 
   DateTime createdAt;
@@ -143,6 +149,7 @@ abstract class PaymentLinkRow
     String? razorpayPaymentLinkId,
     String? razorpayPaymentLinkUrl,
     String? linkType,
+    String? linkStatus,
     String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -165,6 +172,7 @@ abstract class PaymentLinkRow
       if (razorpayPaymentLinkUrl != null)
         'razorpayPaymentLinkUrl': razorpayPaymentLinkUrl,
       'linkType': linkType,
+      'linkStatus': linkStatus,
       if (generatedBy != null) 'generatedBy': generatedBy,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -222,6 +230,7 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
     String? razorpayPaymentLinkId,
     String? razorpayPaymentLinkUrl,
     String? linkType,
+    String? linkStatus,
     String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -238,6 +247,7 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
          razorpayPaymentLinkId: razorpayPaymentLinkId,
          razorpayPaymentLinkUrl: razorpayPaymentLinkUrl,
          linkType: linkType,
+         linkStatus: linkStatus,
          generatedBy: generatedBy,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -260,6 +270,7 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
     Object? razorpayPaymentLinkId = _Undefined,
     Object? razorpayPaymentLinkUrl = _Undefined,
     String? linkType,
+    String? linkStatus,
     Object? generatedBy = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -281,6 +292,7 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
           ? razorpayPaymentLinkUrl
           : this.razorpayPaymentLinkUrl,
       linkType: linkType ?? this.linkType,
+      linkStatus: linkStatus ?? this.linkStatus,
       generatedBy: generatedBy is String? ? generatedBy : this.generatedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -348,6 +360,11 @@ class PaymentLinkRowUpdateTable extends _i1.UpdateTable<PaymentLinkRowTable> {
 
   _i1.ColumnValue<String, String> linkType(String value) => _i1.ColumnValue(
     table.linkType,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> linkStatus(String value) => _i1.ColumnValue(
+    table.linkStatus,
     value,
   );
 
@@ -419,6 +436,11 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    linkStatus = _i1.ColumnString(
+      'linkStatus',
+      this,
+      hasDefault: true,
+    );
     generatedBy = _i1.ColumnString(
       'generatedBy',
       this,
@@ -459,6 +481,8 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString linkType;
 
+  late final _i1.ColumnString linkStatus;
+
   late final _i1.ColumnString generatedBy;
 
   late final _i1.ColumnDateTime createdAt;
@@ -479,6 +503,7 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
     razorpayPaymentLinkId,
     razorpayPaymentLinkUrl,
     linkType,
+    linkStatus,
     generatedBy,
     createdAt,
     updatedAt,

@@ -2981,6 +2981,30 @@ class EndpointPaymentLink extends _i1.EndpointRef {
       'paidByEmail': paidByEmail,
     },
   );
+
+  /// Get the current payment session status for a pending order.
+  _i2.Future<Map<String, dynamic>> getPaymentSessionStatus(
+    String orderNumber,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'paymentLink',
+    'getPaymentSessionStatus',
+    {'orderNumber': orderNumber},
+  );
+
+  /// Get or create a payment link for a pending order (lazy creation).
+  _i2.Future<String> getOrCreatePaymentLink(
+    String orderNumber,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<String>(
+    'paymentLink',
+    'getOrCreatePaymentLink',
+    {
+      'orderNumber': orderNumber,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

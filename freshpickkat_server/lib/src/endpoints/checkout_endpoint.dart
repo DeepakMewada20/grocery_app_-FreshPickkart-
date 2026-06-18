@@ -5,6 +5,7 @@ import '../services/delivery/delivery_engine.dart';
 import '../services/postgres/postgres_banner_service.dart';
 import '../services/postgres/postgres_coupon_service.dart';
 import '../services/postgres/postgres_order_service.dart';
+import '../services/postgres/postgres_payment_link_service.dart';
 import '../services/pricing_engine.dart';
 import 'order_endpoint.dart';
 import 'payment_endpoint.dart';
@@ -15,6 +16,7 @@ class CheckoutEndpoint extends Endpoint {
   final PostgresOrderService _orders = PostgresOrderService();
   final PostgresBannerService _banners = PostgresBannerService();
   final PostgresCouponService _coupons = PostgresCouponService();
+  final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
 
   Future<protocol.CheckoutInitHydrated> getCheckoutInitHydrated(
     Session session,
@@ -142,6 +144,9 @@ class CheckoutEndpoint extends Endpoint {
         );
       }
 
+      // Initialize payment session for this order
+      await _paymentLinks.initializePaymentSession(session, orderId);
+
       return protocol.CheckoutResult(
         success: true,
         orderId: orderId,
@@ -185,6 +190,9 @@ class CheckoutEndpoint extends Endpoint {
         orderId: existing.orderNumber,
       );
     }
+
+    // Initialize payment session for existing pending order
+    await _paymentLinks.initializePaymentSession(session, existing.orderNumber);
 
     return protocol.CheckoutResult(
       success: true,

@@ -27,6 +27,11 @@ abstract class CustomerOrderRow
     this.paidByName,
     this.paidByPhone,
     this.paidByEmail,
+    this.paymentSessionId,
+    this.paymentLinkId,
+    this.paymentLinkUrl,
+    this.paymentLinkExpiresAt,
+    this.linkStatus,
     required this.itemCount,
     required this.totalAmount,
     double? discountAmount,
@@ -91,6 +96,11 @@ abstract class CustomerOrderRow
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    _i1.UuidValue? paymentSessionId,
+    _i1.UuidValue? paymentLinkId,
+    String? paymentLinkUrl,
+    DateTime? paymentLinkExpiresAt,
+    String? linkStatus,
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
@@ -151,6 +161,23 @@ abstract class CustomerOrderRow
       paidByName: jsonSerialization['paidByName'] as String?,
       paidByPhone: jsonSerialization['paidByPhone'] as String?,
       paidByEmail: jsonSerialization['paidByEmail'] as String?,
+      paymentSessionId: jsonSerialization['paymentSessionId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['paymentSessionId'],
+            ),
+      paymentLinkId: jsonSerialization['paymentLinkId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['paymentLinkId'],
+            ),
+      paymentLinkUrl: jsonSerialization['paymentLinkUrl'] as String?,
+      paymentLinkExpiresAt: jsonSerialization['paymentLinkExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['paymentLinkExpiresAt'],
+            ),
+      linkStatus: jsonSerialization['linkStatus'] as String?,
       itemCount: jsonSerialization['itemCount'] as int,
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
       discountAmount: (jsonSerialization['discountAmount'] as num?)?.toDouble(),
@@ -262,6 +289,16 @@ abstract class CustomerOrderRow
 
   String? paidByEmail;
 
+  _i1.UuidValue? paymentSessionId;
+
+  _i1.UuidValue? paymentLinkId;
+
+  String? paymentLinkUrl;
+
+  DateTime? paymentLinkExpiresAt;
+
+  String? linkStatus;
+
   int itemCount;
 
   double totalAmount;
@@ -353,6 +390,11 @@ abstract class CustomerOrderRow
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    _i1.UuidValue? paymentSessionId,
+    _i1.UuidValue? paymentLinkId,
+    String? paymentLinkUrl,
+    DateTime? paymentLinkExpiresAt,
+    String? linkStatus,
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
@@ -407,6 +449,13 @@ abstract class CustomerOrderRow
       if (paidByName != null) 'paidByName': paidByName,
       if (paidByPhone != null) 'paidByPhone': paidByPhone,
       if (paidByEmail != null) 'paidByEmail': paidByEmail,
+      if (paymentSessionId != null)
+        'paymentSessionId': paymentSessionId?.toJson(),
+      if (paymentLinkId != null) 'paymentLinkId': paymentLinkId?.toJson(),
+      if (paymentLinkUrl != null) 'paymentLinkUrl': paymentLinkUrl,
+      if (paymentLinkExpiresAt != null)
+        'paymentLinkExpiresAt': paymentLinkExpiresAt?.toJson(),
+      if (linkStatus != null) 'linkStatus': linkStatus,
       'itemCount': itemCount,
       'totalAmount': totalAmount,
       'discountAmount': discountAmount,
@@ -501,6 +550,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    _i1.UuidValue? paymentSessionId,
+    _i1.UuidValue? paymentLinkId,
+    String? paymentLinkUrl,
+    DateTime? paymentLinkExpiresAt,
+    String? linkStatus,
     required int itemCount,
     required double totalAmount,
     double? discountAmount,
@@ -550,6 +604,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          paidByName: paidByName,
          paidByPhone: paidByPhone,
          paidByEmail: paidByEmail,
+         paymentSessionId: paymentSessionId,
+         paymentLinkId: paymentLinkId,
+         paymentLinkUrl: paymentLinkUrl,
+         paymentLinkExpiresAt: paymentLinkExpiresAt,
+         linkStatus: linkStatus,
          itemCount: itemCount,
          totalAmount: totalAmount,
          discountAmount: discountAmount,
@@ -605,6 +664,11 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? paidByName = _Undefined,
     Object? paidByPhone = _Undefined,
     Object? paidByEmail = _Undefined,
+    Object? paymentSessionId = _Undefined,
+    Object? paymentLinkId = _Undefined,
+    Object? paymentLinkUrl = _Undefined,
+    Object? paymentLinkExpiresAt = _Undefined,
+    Object? linkStatus = _Undefined,
     int? itemCount,
     double? totalAmount,
     double? discountAmount,
@@ -657,6 +721,19 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       paidByName: paidByName is String? ? paidByName : this.paidByName,
       paidByPhone: paidByPhone is String? ? paidByPhone : this.paidByPhone,
       paidByEmail: paidByEmail is String? ? paidByEmail : this.paidByEmail,
+      paymentSessionId: paymentSessionId is _i1.UuidValue?
+          ? paymentSessionId
+          : this.paymentSessionId,
+      paymentLinkId: paymentLinkId is _i1.UuidValue?
+          ? paymentLinkId
+          : this.paymentLinkId,
+      paymentLinkUrl: paymentLinkUrl is String?
+          ? paymentLinkUrl
+          : this.paymentLinkUrl,
+      paymentLinkExpiresAt: paymentLinkExpiresAt is DateTime?
+          ? paymentLinkExpiresAt
+          : this.paymentLinkExpiresAt,
+      linkStatus: linkStatus is String? ? linkStatus : this.linkStatus,
       itemCount: itemCount ?? this.itemCount,
       totalAmount: totalAmount ?? this.totalAmount,
       discountAmount: discountAmount ?? this.discountAmount,
@@ -786,6 +863,37 @@ class CustomerOrderRowUpdateTable
 
   _i1.ColumnValue<String, String> paidByEmail(String? value) => _i1.ColumnValue(
     table.paidByEmail,
+    value,
+  );
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> paymentSessionId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.paymentSessionId,
+    value,
+  );
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> paymentLinkId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.paymentLinkId,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> paymentLinkUrl(String? value) =>
+      _i1.ColumnValue(
+        table.paymentLinkUrl,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> paymentLinkExpiresAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.paymentLinkExpiresAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> linkStatus(String? value) => _i1.ColumnValue(
+    table.linkStatus,
     value,
   );
 
@@ -1047,6 +1155,26 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'paidByEmail',
       this,
     );
+    paymentSessionId = _i1.ColumnUuid(
+      'paymentSessionId',
+      this,
+    );
+    paymentLinkId = _i1.ColumnUuid(
+      'paymentLinkId',
+      this,
+    );
+    paymentLinkUrl = _i1.ColumnString(
+      'paymentLinkUrl',
+      this,
+    );
+    paymentLinkExpiresAt = _i1.ColumnDateTime(
+      'paymentLinkExpiresAt',
+      this,
+    );
+    linkStatus = _i1.ColumnString(
+      'linkStatus',
+      this,
+    );
     itemCount = _i1.ColumnInt(
       'itemCount',
       this,
@@ -1230,6 +1358,16 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString paidByEmail;
 
+  late final _i1.ColumnUuid paymentSessionId;
+
+  late final _i1.ColumnUuid paymentLinkId;
+
+  late final _i1.ColumnString paymentLinkUrl;
+
+  late final _i1.ColumnDateTime paymentLinkExpiresAt;
+
+  late final _i1.ColumnString linkStatus;
+
   late final _i1.ColumnInt itemCount;
 
   late final _i1.ColumnDouble totalAmount;
@@ -1316,6 +1454,11 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     paidByName,
     paidByPhone,
     paidByEmail,
+    paymentSessionId,
+    paymentLinkId,
+    paymentLinkUrl,
+    paymentLinkExpiresAt,
+    linkStatus,
     itemCount,
     totalAmount,
     discountAmount,

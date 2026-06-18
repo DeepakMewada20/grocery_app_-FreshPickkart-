@@ -1,0 +1,10 @@
+class: PaymentSessionData
+fields:
+  orderNumber: String
+  finalAmount: double
+  paymentStatus: String
+  orderStatus: String
+  paymentLinkUrl: String?
+  paymentLinkExpiresAt: DateTime?
+  linkStatus: String?
+  expiresInSeconds: int

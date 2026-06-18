@@ -14,6 +14,7 @@ fields:
   razorpayPaymentLinkId: String?
   razorpayPaymentLinkUrl: String?
   linkType: String, default='browser'
+  linkStatus: String, default='ACTIVE'
   generatedBy: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

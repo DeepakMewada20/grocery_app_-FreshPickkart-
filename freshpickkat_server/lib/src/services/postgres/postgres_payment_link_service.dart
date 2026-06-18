@@ -534,6 +534,232 @@ class PostgresPaymentLinkService {
     }
   }
 
+  /// Initialize a payment session for a newly created pending order.
+  /// Generates and stores a [paymentSessionId] UUID on the order row.
+  Future<void> initializePaymentSession(
+    Session session,
+    String orderNumber,
+  ) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null || row.id == null) return;
+
+    final uuidResult = await session.db.unsafeQuery(
+      'SELECT gen_random_uuid()::text AS id',
+    );
+    final uuidStr = uuidResult.first.toColumnMap()['id'] as String? ?? '';
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        paymentSessionId: UuidValue.fromString(uuidStr),
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  /// Get or create a payment link for a pending order.
+  /// Returns the existing ACTIVE link if one exists, otherwise creates a new one.
+  /// Rejects if linkStatus is DISABLED or EXPIRED.
+  Future<Map<String, dynamic>> getOrCreatePaymentLink(
+    Session session, {
+    required String orderNumber,
+    String? generatedBy,
+  }) async {
+    final orderRow = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (orderRow?.id == null) {
+      return {'success': false, 'error': 'Order not found'};
+    }
+
+    if (orderRow!.paymentStatus == 'paid') {
+      return {'success': false, 'error': 'This order has already been paid.'};
+    }
+    if (orderRow.linkStatus == 'DISABLED') {
+      return {'success': false, 'error': 'This payment link has been disabled.'};
+    }
+    if (orderRow.linkStatus == 'EXPIRED') {
+      return {'success': false, 'error': 'This payment link has expired.'};
+    }
+
+    // Check if an existing active link exists on this order
+    final existing = await _getExistingLink(session, orderRow.id!);
+    if (existing != null) {
+      final isExpired = existing['expiresAt'] != null &&
+          DateTime.now().toUtc().isAfter(
+            DateTime.parse(existing['expiresAt'] as String).toUtc(),
+          );
+      final isUsed = existing['isUsed'] == true;
+      if (!isExpired && !isUsed) {
+        // Reuse the existing link — update customer_order fields if not set
+        if (orderRow.paymentLinkUrl == null) {
+          await CustomerOrderRow.db.updateRow(
+            session,
+            orderRow.copyWith(
+              paymentLinkId: tryParseUuid(existing['paymentLinkId'] as String? ?? ''),
+              paymentLinkUrl: existing['paymentLink'] as String?,
+              paymentLinkExpiresAt: existing['expiresAt'] != null
+                  ? DateTime.parse(existing['expiresAt'] as String).toUtc()
+                  : null,
+              linkStatus: 'ACTIVE',
+              updatedAt: DateTime.now().toUtc(),
+            ),
+          );
+        }
+        return {
+          'success': true,
+          'token': existing['token'],
+          'paymentLink': existing['paymentLink'],
+          'expiresAt': existing['expiresAt'],
+          'orderId': orderNumber,
+        };
+      }
+    }
+
+    // No active link exists — create a new one
+    final now = DateTime.now().toUtc();
+    final expiresAt = now.add(defaultExpiry);
+    final token = generateSecureToken();
+    final baseUrl = await _getBaseUrl(session);
+    final paymentLink = '$baseUrl/pay/$token';
+
+    await session.db.unsafeQuery(
+      '''
+      INSERT INTO "payment_link"
+        ("orderId", "token", "expiresAt", "linkStatus", "isUsed", "createdAt", "updatedAt")
+      VALUES
+        (@orderId, @token, @expiresAt, 'ACTIVE', false, @now, @now)
+      ''',
+      parameters: QueryParameters.named({
+        'orderId': orderRow.id!.toJson(),
+        'token': token,
+        'expiresAt': expiresAt.toIso8601String(),
+        'now': now.toIso8601String(),
+      }),
+    );
+
+    // Retrieve the new link row to get its id
+    final linkRows = await session.db.unsafeQuery(
+      'SELECT id FROM "payment_link" WHERE "token" = @token LIMIT 1',
+      parameters: QueryParameters.named({'token': token}),
+    );
+    final linkId = linkRows.isNotEmpty
+        ? (linkRows.first.toColumnMap()['id'] as String?)
+        : null;
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      orderRow.copyWith(
+        paymentMode: 'shareable_link',
+        paymentSessionId: orderRow.paymentSessionId ??
+            UuidValue.fromString(
+              (await session.db.unsafeQuery('SELECT gen_random_uuid()::text AS id'))
+                  .first
+                  .toColumnMap()['id'] as String,
+            ),
+        paymentLinkId: linkId != null ? tryParseUuid(linkId) : null,
+        paymentLinkUrl: paymentLink,
+        paymentLinkExpiresAt: expiresAt,
+        linkStatus: 'ACTIVE',
+        paymentExpiresAt: expiresAt,
+        updatedAt: now,
+      ),
+    );
+
+    session.log(
+      'Payment link created for order $orderNumber: $paymentLink',
+      level: LogLevel.info,
+    );
+
+    return {
+      'success': true,
+      'token': token,
+      'paymentLink': paymentLink,
+      'expiresAt': expiresAt.toIso8601String(),
+      'orderId': orderNumber,
+    };
+  }
+
+  /// Get the current payment session status for an order.
+  Future<Map<String, dynamic>> getPaymentSessionStatus(
+    Session session,
+    String orderNumber,
+  ) async {
+    final orderRow = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (orderRow == null) {
+      return {'error': 'Order not found'};
+    }
+
+    final expiresAt = orderRow.paymentLinkExpiresAt;
+    int expiresInSeconds = 0;
+    if (expiresAt != null) {
+      expiresInSeconds = expiresAt.difference(DateTime.now().toUtc()).inSeconds.clamp(0, 999999);
+    }
+
+    return {
+      'orderNumber': orderRow.orderNumber,
+      'finalAmount': orderRow.finalAmount,
+      'paymentStatus': orderRow.paymentStatus,
+      'orderStatus': orderRow.orderStatus,
+      'paymentLinkUrl': orderRow.paymentLinkUrl,
+      'paymentLinkExpiresAt': expiresAt?.toIso8601String(),
+      'linkStatus': orderRow.linkStatus,
+      'expiresInSeconds': expiresInSeconds,
+    };
+  }
+
+  /// Disable the payment link for an order (sets linkStatus to DISABLED).
+  Future<void> disablePaymentLink(
+    Session session,
+    String orderNumber, {
+    Transaction? transaction,
+  }) async {
+    final orderRow = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+      transaction: transaction,
+    );
+    if (orderRow == null || orderRow.id == null) return;
+
+    await CustomerOrderRow.db.updateRow(
+      session,
+      orderRow.copyWith(
+        linkStatus: 'DISABLED',
+        updatedAt: DateTime.now().toUtc(),
+      ),
+      transaction: transaction,
+    );
+
+    // Also update the payment_link row if one exists
+    final linkRows = await session.db.unsafeQuery(
+      'SELECT id FROM "payment_link" WHERE "orderId" = @orderId AND "isUsed" = false ORDER BY "createdAt" DESC LIMIT 1',
+      parameters: QueryParameters.named({
+        'orderId': orderRow.id!.toJson(),
+      }),
+      transaction: transaction,
+    );
+    if (linkRows.isNotEmpty) {
+      final linkId = linkRows.first.toColumnMap()['id'] as String?;
+      if (linkId != null) {
+        await session.db.unsafeQuery(
+          'UPDATE "payment_link" SET "linkStatus" = \'DISABLED\', "updatedAt" = @now WHERE "id" = @id',
+          parameters: QueryParameters.named({
+            'id': linkId,
+            'now': DateTime.now().toUtc().toIso8601String(),
+          }),
+          transaction: transaction,
+        );
+      }
+    }
+  }
+
   Future<Map<String, dynamic>?> _getExistingLink(
     Session session,
     UuidValue orderId,
@@ -564,6 +790,7 @@ class PostgresPaymentLinkService {
     }
 
     return {
+      'paymentLinkId': map['id']?.toString(),
       'token': token,
       'paymentLink': paymentLink,
       'expiresAt': map['expiresAt']?.toString(),
