@@ -6,7 +6,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
-    deferred as categoryItemScreen;
+    deferred as category_item_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
@@ -412,8 +412,8 @@ class _CategoryTileState extends State<_CategoryTile>
   Future<void> _handleTapUp(TapUpDetails details) async {
     _controller.reverse();
     await navigateDeferred(
-      loadLibrary: categoryItemScreen.loadLibrary,
-      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
+      loadLibrary: category_item_screen.loadLibrary,
+      pageBuilder: () => category_item_screen.CategoryItemsScreen(
         categoryName: widget.category.categoryName,
         subCategoryGroupName: 'All',
       ),

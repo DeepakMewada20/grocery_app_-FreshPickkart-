@@ -694,6 +694,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         );
                       }),
+                      SizedBox(height: MediaQuery.paddingOf(context).bottom),
                     ],
                   ),
                 ),

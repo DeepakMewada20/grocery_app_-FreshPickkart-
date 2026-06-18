@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
-    deferred as categoryItemScreen;
+    deferred as category_item_screen;
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
-    deferred as couponsScreen;
+    deferred as coupons_screen;
 import 'package:freshpickkat_flutter/screens/deep_link_not_found_screen.dart'
-    deferred as deepLinkNotFoundScreen;
+    deferred as deep_link_not_found_screen;
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
-    deferred as productDetailScreen;
+    deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
@@ -50,18 +50,18 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         if (!mounted) return;
         if (product == null) {
           await navigateDeferred(
-            loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
+            loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
             pageBuilder: () =>
-                deepLinkNotFoundScreen.DeepLinkNotFoundScreen.product(
+                deep_link_not_found_screen.DeepLinkNotFoundScreen.product(
                   productId: target.value,
                 ),
             routeName: RouteManager.productNotFound,
           );
         } else {
           await navigateDeferred(
-            loadLibrary: () => productDetailScreen.loadLibrary(),
+            loadLibrary: () => product_detail_screen.loadLibrary(),
             pageBuilder: () =>
-                productDetailScreen.ProductDetailScreen(product: product),
+                product_detail_screen.ProductDetailScreen(product: product),
           );
         }
         break;
@@ -72,17 +72,17 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         if (!mounted) return;
         if (categoryName == null) {
           await navigateDeferred(
-            loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
+            loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
             pageBuilder: () =>
-                deepLinkNotFoundScreen.DeepLinkNotFoundScreen.category(
+                deep_link_not_found_screen.DeepLinkNotFoundScreen.category(
                   categoryId: target.value,
                 ),
             routeName: RouteManager.deepLinkNotFound,
           );
         } else {
           await navigateDeferred(
-            loadLibrary: () => categoryItemScreen.loadLibrary(),
-            pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
+            loadLibrary: () => category_item_screen.loadLibrary(),
+            pageBuilder: () => category_item_screen.CategoryItemsScreen(
               categoryName: categoryName,
               subCategoryGroupName: 'All',
             ),
@@ -95,9 +95,9 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
           await _openNotFound();
         } else {
           await navigateDeferred(
-            loadLibrary: () => couponsScreen.loadLibrary(),
+            loadLibrary: () => coupons_screen.loadLibrary(),
             pageBuilder: () =>
-                couponsScreen.CouponsScreen(autoApplyCouponCode: code),
+                coupons_screen.CouponsScreen(autoApplyCouponCode: code),
           );
         }
         break;
@@ -106,8 +106,8 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
 
   Future<void> _openNotFound() async {
     await navigateDeferred(
-      loadLibrary: () => deepLinkNotFoundScreen.loadLibrary(),
-      pageBuilder: () => deepLinkNotFoundScreen.DeepLinkNotFoundScreen(),
+      loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
+      pageBuilder: () => deep_link_not_found_screen.DeepLinkNotFoundScreen(),
       routeName: RouteManager.deepLinkNotFound,
     );
   }

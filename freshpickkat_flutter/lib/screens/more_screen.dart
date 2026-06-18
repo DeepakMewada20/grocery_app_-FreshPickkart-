@@ -6,25 +6,25 @@ import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/screens/appearance_screen.dart'
-    deferred as appearanceScreen;
+    deferred as appearance_screen;
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
-    deferred as couponsScreen;
+    deferred as coupons_screen;
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart'
-    deferred as editProfileScreen;
+    deferred as edit_profile_screen;
 import 'package:freshpickkat_flutter/screens/help_support_screen.dart'
-    deferred as helpSupportScreen;
+    deferred as help_support_screen;
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
-    deferred as legalWebviewScreen;
+    deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
-    deferred as locationPickerScreen;
+    deferred as location_picker_screen;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart'
-    deferred as myComplaintsScreen;
+    deferred as my_complaints_screen;
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
 import 'package:freshpickkat_flutter/screens/orders_screen.dart'
-    deferred as ordersScreen;
+    deferred as orders_screen;
 import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart'
-    deferred as notificationSettingsScreen;
+    deferred as notification_settings_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
@@ -87,9 +87,9 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'Notifications',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: notificationSettingsScreen.loadLibrary,
+                      loadLibrary: notification_settings_screen.loadLibrary,
                       pageBuilder: () =>
-                          notificationSettingsScreen.NotificationSettingsScreen(),
+                          notification_settings_screen.NotificationSettingsScreen(),
                     );
                   },
                   cs: cs,
@@ -99,8 +99,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'Help & Support',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: helpSupportScreen.loadLibrary,
-                      pageBuilder: () => helpSupportScreen.HelpSupportScreen(),
+                      loadLibrary: help_support_screen.loadLibrary,
+                      pageBuilder: () => help_support_screen.HelpSupportScreen(),
                     );
                   },
                   cs: cs,
@@ -110,9 +110,9 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'My Complaints',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: myComplaintsScreen.loadLibrary,
+                      loadLibrary: my_complaints_screen.loadLibrary,
                       pageBuilder: () =>
-                          myComplaintsScreen.MyComplaintsScreen(),
+                          my_complaints_screen.MyComplaintsScreen(),
                     );
                   },
                   cs: cs,
@@ -149,8 +149,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   title: 'My Profile',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: editProfileScreen.loadLibrary,
-                      pageBuilder: () => editProfileScreen.EditProfileScreen(),
+                      loadLibrary: edit_profile_screen.loadLibrary,
+                      pageBuilder: () => edit_profile_screen.EditProfileScreen(),
                     );
                   },
                   cs: cs,
@@ -185,10 +185,10 @@ class _MoreScreenState extends State<MoreScreen> {
     required String fileName,
   }) async {
     await navigateDeferred(
-      loadLibrary: legalWebviewScreen.loadLibrary,
-      pageBuilder: () => legalWebviewScreen.LegalWebViewScreen(
+      loadLibrary: legal_webview_screen.loadLibrary,
+      pageBuilder: () => legal_webview_screen.LegalWebViewScreen(
         title: title,
-        url: legalWebviewScreen.LegalWebViewScreen.docsUrl(fileName),
+        url: legal_webview_screen.LegalWebViewScreen.docsUrl(fileName),
       ),
     );
   }
@@ -256,8 +256,8 @@ class _MoreScreenState extends State<MoreScreen> {
           IconButton(
             onPressed: () async {
               await navigateDeferred(
-                loadLibrary: editProfileScreen.loadLibrary,
-                pageBuilder: () => editProfileScreen.EditProfileScreen(),
+                loadLibrary: edit_profile_screen.loadLibrary,
+                pageBuilder: () => edit_profile_screen.EditProfileScreen(),
               );
             },
             icon: const Icon(
@@ -282,8 +282,8 @@ class _MoreScreenState extends State<MoreScreen> {
               label: 'My Orders',
               onTap: () async {
                 await navigateDeferred(
-                  loadLibrary: ordersScreen.loadLibrary,
-                  pageBuilder: () => ordersScreen.OrdersScreen(),
+                  loadLibrary: orders_screen.loadLibrary,
+                  pageBuilder: () => orders_screen.OrdersScreen(),
                 );
               },
               cs: cs,
@@ -296,8 +296,8 @@ class _MoreScreenState extends State<MoreScreen> {
               label: 'Coupons',
               onTap: () async {
                 await navigateDeferred(
-                  loadLibrary: couponsScreen.loadLibrary,
-                  pageBuilder: () => couponsScreen.CouponsScreen(),
+                  loadLibrary: coupons_screen.loadLibrary,
+                  pageBuilder: () => coupons_screen.CouponsScreen(),
                 );
               },
               cs: cs,
@@ -427,9 +427,9 @@ class _MoreScreenState extends State<MoreScreen> {
                 onPressed: () async {
                   final addr = userController.shippingAddress.value;
                   await navigateDeferred(
-                    loadLibrary: locationPickerScreen.loadLibrary,
+                    loadLibrary: location_picker_screen.loadLibrary,
                     pageBuilder: () =>
-                        locationPickerScreen.LocationPickerScreen(
+                        location_picker_screen.LocationPickerScreen(
                           isCheckoutMode: false,
                           initialAddress: addr,
                           addressLabel: 'Home',
@@ -512,8 +512,8 @@ class _MoreScreenState extends State<MoreScreen> {
           IconButton(
             onPressed: () async {
               await navigateDeferred(
-                loadLibrary: appearanceScreen.loadLibrary,
-                pageBuilder: () => appearanceScreen.AppearanceScreen(),
+                loadLibrary: appearance_screen.loadLibrary,
+                pageBuilder: () => appearance_screen.AppearanceScreen(),
               );
             },
             icon: const Icon(

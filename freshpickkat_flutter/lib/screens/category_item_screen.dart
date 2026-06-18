@@ -430,7 +430,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         builder: (context, constraints) {
           return GridView.builder(
             controller: _itemsScrollController,
-            padding: EdgeInsets.all(12.w),
+            padding: EdgeInsets.fromLTRB(12.w, 12.w, 12.w, 12.w + MediaQuery.of(context).padding.bottom),
             gridDelegate: AppResponsive.productGridDelegate(
               context,
               constraints.maxWidth,

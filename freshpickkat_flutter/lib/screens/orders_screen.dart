@@ -5,7 +5,7 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
-    deferred as orderDetailScreen;
+    deferred as order_detail_screen;
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
@@ -87,8 +87,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 child: InkWell(
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: () => orderDetailScreen.loadLibrary(),
-                      pageBuilder: () => orderDetailScreen.OrderDetailScreen(
+                      loadLibrary: () => order_detail_screen.loadLibrary(),
+                      pageBuilder: () => order_detail_screen.OrderDetailScreen(
                         orderId: order.orderId,
                       ),
                     );

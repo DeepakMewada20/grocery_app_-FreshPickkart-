@@ -10,7 +10,7 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/utils/order_item_grouping.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as liveDeliveryMapPreviewScreen;
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as live_delivery_map_preview_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 
@@ -686,8 +686,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           isLoading: false,
           onPressed: () async {
             await navigateDeferred(
-              loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
-              pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(order: order),
+              loadLibrary: live_delivery_map_preview_screen.loadLibrary,
+              pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(order: order),
             );
           },
         ),

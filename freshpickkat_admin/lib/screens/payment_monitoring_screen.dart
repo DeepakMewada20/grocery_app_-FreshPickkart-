@@ -196,7 +196,9 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
         onRefresh: _controller.load,
         child: ListView.separated(
           controller: _scrollController,
-          padding: AdminResponsive.pagePadding(context),
+          padding: AdminResponsive.pagePadding(context).copyWith(
+            bottom: AdminResponsive.bottomInset(context),
+          ),
           itemCount:
               _controller.orders.length + (_controller.hasMore.value ? 1 : 0),
           separatorBuilder: (_, _) => SizedBox(height: 8.h),
@@ -718,7 +720,9 @@ class _PaymentOrderDetailScreenState
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding:
-                  AdminResponsive.pagePadding(context).copyWith(bottom: 28.h),
+                  AdminResponsive.pagePadding(context).copyWith(
+                    bottom: AdminResponsive.bottomInset(context),
+                  ),
               children: [
                 AdminResponsive.constrainContent(
                   context: context,

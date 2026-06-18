@@ -3,7 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
-    deferred as locationPickerScreen;
+    deferred as location_picker_screen;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
@@ -313,8 +313,8 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     return InkWell(
       onTap: () async {
         final result = await navigateDeferred(
-          loadLibrary: locationPickerScreen.loadLibrary,
-          pageBuilder: () => locationPickerScreen.LocationPickerScreen(
+          loadLibrary: location_picker_screen.loadLibrary,
+          pageBuilder: () => location_picker_screen.LocationPickerScreen(
             isCheckoutMode: false,
           ),
         );

@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_complaint_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
-    deferred as complaintDetailScreen;
+    deferred as complaint_detail_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
@@ -72,9 +72,9 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
               complaint: submitted,
               onView: () async {
                 await navigateDeferred(
-                  loadLibrary: complaintDetailScreen.loadLibrary,
+                  loadLibrary: complaint_detail_screen.loadLibrary,
                   pageBuilder: () =>
-                      complaintDetailScreen.ComplaintDetailScreen(
+                      complaint_detail_screen.ComplaintDetailScreen(
                         complaintId: submitted.complaintId,
                       ),
                 );
@@ -305,9 +305,9 @@ class _BlockedState extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async {
                     await navigateDeferred(
-                      loadLibrary: complaintDetailScreen.loadLibrary,
+                      loadLibrary: complaint_detail_screen.loadLibrary,
                       pageBuilder: () =>
-                          complaintDetailScreen.ComplaintDetailScreen(
+                          complaint_detail_screen.ComplaintDetailScreen(
                             complaint: complaint,
                           ),
                     );

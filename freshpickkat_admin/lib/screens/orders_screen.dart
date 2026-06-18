@@ -12,12 +12,12 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as liveDeliveryMapPreviewScreen;
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as live_delivery_map_preview_screen;
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
 import '../tracking/services/delivery_location_sender_service.dart';
-import 'order_detail_screen.dart' deferred as orderDetailScreen;
+import 'order_detail_screen.dart' deferred as order_detail_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -188,8 +188,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       );
 
       await navigateDeferred(
-        loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
-        pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(
+        loadLibrary: live_delivery_map_preview_screen.loadLibrary,
+        pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
           order: order.copyWith(status: 'out_for_delivery'),
         ),
       );
@@ -541,8 +541,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   order.orderId == _highlightedOrderId,
               onTap: () async {
                 await navigateDeferred(
-                  loadLibrary: orderDetailScreen.loadLibrary,
-                  pageBuilder: () => orderDetailScreen.OrderDetailScreen(
+                  loadLibrary: order_detail_screen.loadLibrary,
+                  pageBuilder: () => order_detail_screen.OrderDetailScreen(
                     order: order,
                     onStatusChanged: (status) =>
                         _updateStatus(order, status),
@@ -980,8 +980,8 @@ class _OrderCardState extends State<_OrderCard> {
           isLoading: false,
           onPressed: () async {
             await navigateDeferred(
-              loadLibrary: liveDeliveryMapPreviewScreen.loadLibrary,
-              pageBuilder: () => liveDeliveryMapPreviewScreen.LiveDeliveryMapPreviewScreen(order: order),
+              loadLibrary: live_delivery_map_preview_screen.loadLibrary,
+              pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(order: order),
             );
           },
         ),

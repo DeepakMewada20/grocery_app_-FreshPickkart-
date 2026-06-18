@@ -228,7 +228,11 @@ class _CouponsScreenState extends State<CouponsScreen> {
                       ),
                     ),
                   ),
-                  SliverToBoxAdapter(child: SizedBox(height: 32.h)),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 32.h + MediaQuery.paddingOf(context).bottom,
+                    ),
+                  ),
                 ],
               ),
       ),

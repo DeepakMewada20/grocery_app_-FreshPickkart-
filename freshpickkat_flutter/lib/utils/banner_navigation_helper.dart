@@ -1,13 +1,13 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
-    deferred as productDetailScreen;
+    deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart'
-    deferred as bannerOfferHostScreen;
+    deferred as banner_offer_host_screen;
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
-    deferred as categoryItemScreen;
+    deferred as category_item_screen;
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
-    deferred as couponsScreen;
+    deferred as coupons_screen;
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
@@ -64,9 +64,9 @@ class BannerNavigationHelper {
     }
 
     await navigateDeferred(
-      loadLibrary: productDetailScreen.loadLibrary,
+      loadLibrary: product_detail_screen.loadLibrary,
       pageBuilder: () =>
-          productDetailScreen.ProductDetailScreen(product: product),
+          product_detail_screen.ProductDetailScreen(product: product),
     );
   }
 
@@ -80,8 +80,8 @@ class BannerNavigationHelper {
     }
 
     await navigateDeferred(
-      loadLibrary: categoryItemScreen.loadLibrary,
-      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
+      loadLibrary: category_item_screen.loadLibrary,
+      pageBuilder: () => category_item_screen.CategoryItemsScreen(
         categoryName: categoryId.trim(),
         subCategoryGroupName: 'All',
       ),
@@ -93,8 +93,8 @@ class BannerNavigationHelper {
   // ──────────────────────────────────────────────
   static Future<void> _navigateToOffers(String? offerId) async {
     await navigateDeferred(
-      loadLibrary: bannerOfferHostScreen.loadLibrary,
-      pageBuilder: () => bannerOfferHostScreen.BannerOfferHostScreen(
+      loadLibrary: banner_offer_host_screen.loadLibrary,
+      pageBuilder: () => banner_offer_host_screen.BannerOfferHostScreen(
         bannerType: 'offer',
         offerId: offerId,
       ),
@@ -103,8 +103,8 @@ class BannerNavigationHelper {
 
   static Future<void> _navigateToComboOffers(String? comboId) async {
     await navigateDeferred(
-      loadLibrary: bannerOfferHostScreen.loadLibrary,
-      pageBuilder: () => bannerOfferHostScreen.BannerOfferHostScreen(
+      loadLibrary: banner_offer_host_screen.loadLibrary,
+      pageBuilder: () => banner_offer_host_screen.BannerOfferHostScreen(
         bannerType: 'combo',
         comboId: comboId,
       ),
@@ -116,9 +116,9 @@ class BannerNavigationHelper {
   // ──────────────────────────────────────────────
   static Future<void> _navigateToCoupons(String? couponCode) async {
     await navigateDeferred(
-      loadLibrary: couponsScreen.loadLibrary,
+      loadLibrary: coupons_screen.loadLibrary,
       pageBuilder: () =>
-          couponsScreen.CouponsScreen(autoApplyCouponCode: couponCode),
+          coupons_screen.CouponsScreen(autoApplyCouponCode: couponCode),
     );
   }
 

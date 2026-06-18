@@ -110,8 +110,9 @@ class _BasketScreenState extends State<BasketScreen> {
                               Obx(() {
                                 final banners =
                                     BannerController.instance.cartPageBanners;
-                                if (banners.isEmpty)
+                                if (banners.isEmpty) {
                                   return const SizedBox.shrink();
+                                }
                                 return Padding(
                                   padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
                                   child: NetworkBannerWidget(

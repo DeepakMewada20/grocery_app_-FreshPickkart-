@@ -192,8 +192,9 @@ class CartController extends GetxController {
   }
 
   void _scheduleCartRefresh() {
-    if (_pricingRefreshSuspended || _isInitialLoading || !_isInitialized)
+    if (_pricingRefreshSuspended || _isInitialLoading || !_isInitialized) {
       return;
+    }
     isPricingStale.value = true;
     unawaited(fetchCartPricing());
     _cartRefreshDebounce?.cancel();

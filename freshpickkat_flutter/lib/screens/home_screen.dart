@@ -340,6 +340,11 @@ class _HomePageState extends State<HomePage>
                             ),
                           ),
                         ),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: MediaQuery.of(context).padding.bottom,
+                        ),
+                      ),
                     ],
                   ],
                 ),

@@ -8,7 +8,7 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
-    deferred as productDetailScreen;
+    deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
@@ -178,8 +178,8 @@ class _ProductCardState extends State<ProductCard> {
               widget.onTap!();
             } else {
               await navigateDeferred(
-                loadLibrary: productDetailScreen.loadLibrary,
-                pageBuilder: () => productDetailScreen.ProductDetailScreen(
+                loadLibrary: product_detail_screen.loadLibrary,
+                pageBuilder: () => product_detail_screen.ProductDetailScreen(
                   product: displayProduct,
                 ),
               );

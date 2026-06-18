@@ -70,7 +70,10 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
 
   Widget _buildEmptySuggestions(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.symmetric(vertical: 8.h),
+      padding: EdgeInsets.only(
+        top: 8.h,
+        bottom: 8.h + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         _buildOfferChips(context),
         _buildRecentSearches(context),
@@ -132,13 +135,19 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   }
 
   Widget _buildProductGrid({
+    required BuildContext context,
     required int itemCount,
     required bool hasMore,
     required Widget Function(int index) itemBuilder,
     required VoidCallback loadMore,
   }) {
     return GridView.builder(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.fromLTRB(
+        16.w,
+        16.w,
+        16.w,
+        16.w + MediaQuery.of(context).padding.bottom,
+      ),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.56,
@@ -168,6 +177,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       }
 
       return _buildProductGrid(
+        context: context,
         itemCount: searchController.searchResults.length,
         hasMore: searchController.hasMoreResults.value,
         loadMore: searchController.loadMoreResults,
@@ -195,6 +205,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       }
 
       return _buildProductGrid(
+        context: context,
         itemCount: searchController.suggestions.length,
         hasMore: searchController.hasMoreSuggestions.value,
         loadMore: searchController.loadMoreSuggestions,
@@ -230,6 +241,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
             _buildOfferChips(context),
             Expanded(
               child: _buildProductGrid(
+                context: context,
                 itemCount: searchController.offerResults.length,
                 hasMore: searchController.hasMoreOfferResults.value,
                 loadMore: searchController.loadMoreOfferResults,
@@ -245,6 +257,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                 },
               ),
             ),
+            SizedBox(height: MediaQuery.paddingOf(context).bottom),
           ],
         );
       }
@@ -253,7 +266,12 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
         slivers: [
           SliverToBoxAdapter(child: _buildOfferChips(context)),
           SliverPadding(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.fromLTRB(
+              16.w,
+              0,
+              16.w,
+              16.w + MediaQuery.paddingOf(context).bottom,
+            ),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -298,6 +316,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
             'No results found',
             style: TextStyle(fontSize: 16.sp, color: Colors.grey),
           ),
+          SizedBox(height: MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );

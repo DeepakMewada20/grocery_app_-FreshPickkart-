@@ -171,7 +171,6 @@ void main() {
       final session = sessionBuilder.build();
       try {
         // Create a second subcategory to verify only the deleted one is removed
-        final now = DateTime.now().toUtc();
         const otherSubCatIdStr = '770e8400-e29b-41d4-a716-446655440002';
         final productRow = await protocol.ProductRow.db.findById(
           session,

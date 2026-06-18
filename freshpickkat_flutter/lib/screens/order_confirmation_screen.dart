@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
-    deferred as orderDetailScreen;
+    deferred as order_detail_screen;
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -82,9 +82,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Future<void> _navigateToOrderDetails() async {
     await navigateDeferred(
-      loadLibrary: () => orderDetailScreen.loadLibrary(),
+      loadLibrary: () => order_detail_screen.loadLibrary(),
       pageBuilder: () =>
-          orderDetailScreen.OrderDetailScreen(orderId: widget.orderId),
+          order_detail_screen.OrderDetailScreen(orderId: widget.orderId),
     );
   }
 

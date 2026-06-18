@@ -6,7 +6,7 @@ import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
-    deferred as productDetailScreen;
+    deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
@@ -57,9 +57,9 @@ class BogoOfferCard extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         await navigateDeferred(
-          loadLibrary: productDetailScreen.loadLibrary,
+          loadLibrary: product_detail_screen.loadLibrary,
           pageBuilder: () =>
-              productDetailScreen.ProductDetailScreen(product: product),
+              product_detail_screen.ProductDetailScreen(product: product),
         );
       },
       child: Container(

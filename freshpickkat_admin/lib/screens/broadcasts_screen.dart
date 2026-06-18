@@ -170,7 +170,9 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       () => RefreshIndicator(
         onRefresh: widget.controller.refreshAll,
         child: ListView(
-          padding: AdminResponsive.pagePadding(context),
+          padding: AdminResponsive.pagePadding(context).copyWith(
+            bottom: AdminResponsive.bottomInset(context),
+          ),
           children: [
             AdminResponsive.constrainContent(
               context: context,
@@ -576,7 +578,10 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
 
             // Footer with buttons
             Padding(
-              padding: AdminResponsive.pagePadding(ctx).copyWith(top: 8, bottom: 16),
+              padding: AdminResponsive.pagePadding(ctx).copyWith(
+                top: 8,
+                bottom: 16 + AdminResponsive.bottomInset(ctx),
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -725,7 +730,9 @@ class _BroadcastListTab extends StatelessWidget {
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: ListView(
-          padding: AdminResponsive.pagePadding(context),
+          padding: AdminResponsive.pagePadding(context).copyWith(
+            bottom: AdminResponsive.bottomInset(context),
+          ),
           children: [
             AdminResponsive.constrainContent(
               context: context,

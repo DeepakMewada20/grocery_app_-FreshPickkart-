@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
-    deferred as legalWebviewScreen;
+    deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/report_issue_screen.dart'
-    deferred as reportIssueScreen;
+    deferred as report_issue_screen;
 import 'package:freshpickkat_flutter/services/support_issue_service.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -96,8 +96,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   subtitle: 'Login, payment, crash, notification or UI bug',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: reportIssueScreen.loadLibrary,
-                      pageBuilder: () => reportIssueScreen.ReportIssueScreen(),
+                      loadLibrary: report_issue_screen.loadLibrary,
+                      pageBuilder: () => report_issue_screen.ReportIssueScreen(),
                     );
                   },
                   cs: cs,
@@ -111,10 +111,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   subtitle: 'Orders, payments, refunds and delivery help',
                   onTap: () async {
                     await navigateDeferred(
-                      loadLibrary: legalWebviewScreen.loadLibrary,
-                      pageBuilder: () => legalWebviewScreen.LegalWebViewScreen(
+                      loadLibrary: legal_webview_screen.loadLibrary,
+                      pageBuilder: () => legal_webview_screen.LegalWebViewScreen(
                         title: 'FAQ',
-                        url: legalWebviewScreen.LegalWebViewScreen.docsUrl(
+                        url: legal_webview_screen.LegalWebViewScreen.docsUrl(
                           'frequently-asked-questions.html',
                         ),
                       ),

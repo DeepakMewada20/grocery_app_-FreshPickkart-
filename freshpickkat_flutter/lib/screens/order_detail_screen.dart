@@ -8,7 +8,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
-    deferred as complaintDetailScreen;
+    deferred as complaint_detail_screen;
 import 'package:freshpickkat_flutter/screens/report_delivery_issue_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
@@ -24,7 +24,7 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart'
-    deferred as orderTrackingMapScreen;
+    deferred as order_tracking_map_screen;
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -538,9 +538,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: () async {
                 await navigateDeferred(
-                  loadLibrary: orderTrackingMapScreen.loadLibrary,
+                  loadLibrary: order_tracking_map_screen.loadLibrary,
                   pageBuilder: () =>
-                      orderTrackingMapScreen.OrderTrackingMapScreen(
+                      order_tracking_map_screen.OrderTrackingMapScreen(
                         orderId: order.orderId,
                       ),
                 );
@@ -1065,9 +1065,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             onPressed: () async {
               if (complaint != null) {
                 await navigateDeferred(
-                  loadLibrary: complaintDetailScreen.loadLibrary,
+                  loadLibrary: complaint_detail_screen.loadLibrary,
                   pageBuilder: () =>
-                      complaintDetailScreen.ComplaintDetailScreen(
+                      complaint_detail_screen.ComplaintDetailScreen(
                         complaint: complaint,
                       ),
                 );

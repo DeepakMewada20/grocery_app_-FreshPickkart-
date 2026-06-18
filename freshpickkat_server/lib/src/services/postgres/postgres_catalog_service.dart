@@ -51,8 +51,6 @@ class PostgresCatalogService {
       defaultLimit: _defaultLimit,
       maxLimit: _maxLimit,
     );
-    final parsedCategoryId = tryParseUuid(categoryId);
-    final parsedSubCategoryId = tryParseUuid(subCategoryId);
     final cursor = _decodeBrowseCursor(pageToken);
 
     final totalCount = await _countBrowseProducts(
@@ -169,8 +167,6 @@ class PostgresCatalogService {
       defaultLimit: _defaultLimit,
       maxLimit: _maxLimit,
     );
-    final parsedCategoryId = tryParseUuid(categoryId);
-    final parsedSubCategoryId = tryParseUuid(subCategoryId);
     final cursor = _decodeSearchCursor(pageToken, normalizedQuery);
     final threshold = similarityThreshold.clamp(0.0, 1.0);
 

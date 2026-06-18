@@ -3,13 +3,13 @@ import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
-    deferred as categoryItemScreen;
+    deferred as category_item_screen;
 import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
-    deferred as productDetailScreen;
+    deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
-    deferred as couponsScreen;
+    deferred as coupons_screen;
 import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart'
-    deferred as comboOffersScreen;
+    deferred as combo_offers_screen;
 import 'package:freshpickkat_flutter/basket/suggestions/combined_detail_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
@@ -44,9 +44,9 @@ class SuggestionNavigationHelper {
         final comboId = suggestion.comboId ?? firstAction?.comboId;
         if (comboId != null) {
           await navigateDeferred(
-            loadLibrary: comboOffersScreen.loadLibrary,
+            loadLibrary: combo_offers_screen.loadLibrary,
             pageBuilder: () =>
-                comboOffersScreen.ComboOffersScreen(highlightComboId: comboId),
+                combo_offers_screen.ComboOffersScreen(highlightComboId: comboId),
           );
         }
         break;
@@ -54,9 +54,9 @@ class SuggestionNavigationHelper {
         final code = firstAction?.couponCode;
         if (code != null) {
           await navigateDeferred(
-            loadLibrary: couponsScreen.loadLibrary,
+            loadLibrary: coupons_screen.loadLibrary,
             pageBuilder: () =>
-                couponsScreen.CouponsScreen(autoApplyCouponCode: code),
+                coupons_screen.CouponsScreen(autoApplyCouponCode: code),
           );
         }
         break;
@@ -96,8 +96,8 @@ class SuggestionNavigationHelper {
 
     if (product != null) {
       await navigateDeferred(
-        loadLibrary: productDetailScreen.loadLibrary,
-        pageBuilder: () => productDetailScreen.ProductDetailScreen(
+        loadLibrary: product_detail_screen.loadLibrary,
+        pageBuilder: () => product_detail_screen.ProductDetailScreen(
           product: product,
           initialVariantId: variantId,
         ),
@@ -138,8 +138,8 @@ class SuggestionNavigationHelper {
   static Future<void> _navigateToCategory(String? categoryId) async {
     if (categoryId == null || categoryId.trim().isEmpty) return;
     await navigateDeferred(
-      loadLibrary: categoryItemScreen.loadLibrary,
-      pageBuilder: () => categoryItemScreen.CategoryItemsScreen(
+      loadLibrary: category_item_screen.loadLibrary,
+      pageBuilder: () => category_item_screen.CategoryItemsScreen(
         categoryName: categoryId.trim(),
         subCategoryGroupName: 'All',
       ),

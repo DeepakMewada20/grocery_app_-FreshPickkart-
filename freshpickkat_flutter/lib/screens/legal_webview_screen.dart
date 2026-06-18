@@ -81,11 +81,12 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final nav = Navigator.of(context);
         await launchUrl(
           Uri.parse(widget.url),
           mode: LaunchMode.externalApplication,
         );
-        if (mounted) Navigator.pop(context);
+        if (mounted) nav.pop();
       });
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,

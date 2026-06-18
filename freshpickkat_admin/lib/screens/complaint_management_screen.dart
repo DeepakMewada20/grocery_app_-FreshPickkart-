@@ -211,7 +211,9 @@ class _ComplaintDetailAdminScreenState
         title: Text('Complaint #${_shortId(_complaint.complaintId)}'),
       ),
       body: ListView(
-        padding: AdminResponsive.pagePadding(context).copyWith(bottom: 28.h),
+        padding: AdminResponsive.pagePadding(context).copyWith(
+          bottom: AdminResponsive.bottomInset(context),
+        ),
         children: [
           AdminResponsive.constrainContent(
             context: context,

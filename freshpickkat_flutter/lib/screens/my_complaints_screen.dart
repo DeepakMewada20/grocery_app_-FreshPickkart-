@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
-    deferred as complaintDetailScreen;
+    deferred as complaint_detail_screen;
 import 'package:freshpickkat_flutter/screens/orders_screen.dart'
-    deferred as ordersScreen;
+    deferred as orders_screen;
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
@@ -157,8 +157,8 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
             borderRadius: BorderRadius.circular(16.r),
             onTap: () async {
               await navigateDeferred(
-                loadLibrary: complaintDetailScreen.loadLibrary,
-                pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(
+                loadLibrary: complaint_detail_screen.loadLibrary,
+                pageBuilder: () => complaint_detail_screen.ComplaintDetailScreen(
                   complaint: complaint,
                 ),
               );
@@ -250,8 +250,8 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
             label: const Text('Go to My Orders'),
             onPressed: () async {
               await navigateDeferred(
-                loadLibrary: ordersScreen.loadLibrary,
-                pageBuilder: () => ordersScreen.OrdersScreen(),
+                loadLibrary: orders_screen.loadLibrary,
+                pageBuilder: () => orders_screen.OrdersScreen(),
               );
             },
           ),
