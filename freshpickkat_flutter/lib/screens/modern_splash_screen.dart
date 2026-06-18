@@ -33,6 +33,26 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
   void initState() {
     super.initState();
 
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const MainScreen(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 500),
+            ),
+          );
+        }
+      });
+      return;
+    }
+
     // Logo controller
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -106,27 +126,16 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
   }
 
   void _startAnimations() async {
-    if (kIsWeb) {
-      // Fast-track on web to avoid extra waiting time
-      _logoController.forward();
-      _textController.forward();
-      _vehicleController.forward();
-      
-      await Future.delayed(const Duration(milliseconds: 1000));
-    } else {
-      await Future.delayed(const Duration(milliseconds: 200));
-      _logoController.forward();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _logoController.forward();
 
-      await Future.delayed(const Duration(milliseconds: 600));
-      _textController.forward();
+    await Future.delayed(const Duration(milliseconds: 600));
+    _textController.forward();
 
-      // Start vehicle animation almost immediately after text for smoother feel
-      await Future.delayed(const Duration(milliseconds: 100));
-      _vehicleController.forward();
+    await Future.delayed(const Duration(milliseconds: 100));
+    _vehicleController.forward();
 
-      // Navigate after splash - adjusted to maintain ~3.0s total experience
-      await Future.delayed(const Duration(milliseconds: 2100));
-    }
+    await Future.delayed(const Duration(milliseconds: 2100));
     
     if (mounted) {
       Navigator.pushReplacement(
@@ -145,6 +154,10 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
 
   @override
   void dispose() {
+    if (kIsWeb) {
+      super.dispose();
+      return;
+    }
     _logoController.dispose();
     _pulseController.dispose();
     _textController.dispose();
@@ -155,6 +168,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
+
     final size = MediaQuery.of(context).size;
     final isLandscape = AppResponsive.isLandscape(context);
     final logoSize = (isLandscape ? 92.0 : 140.0).r;

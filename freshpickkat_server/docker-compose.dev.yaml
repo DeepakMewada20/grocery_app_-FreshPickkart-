@@ -43,10 +43,6 @@ services:
     environment:
       - REDIS_REPLICATION_MODE=master
 
-volumes:
-  freshpickkat_data:
-  freshpickkat_test_data:
-
   # Flutter Customer Web App (local testing)
   flutter_web_dev:
     build:
@@ -64,3 +60,7 @@ volumes:
     container_name: freshpickkart-admin-dev
     ports:
       - "8093:80"
+
+volumes:
+  freshpickkat_data:
+  freshpickkat_test_data:

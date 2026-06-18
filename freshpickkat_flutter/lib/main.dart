@@ -91,103 +91,102 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = ThemeController.instance;
 
-    return ScreenUtilInit(
-      designSize: AppResponsive.designSize,
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, _) => Obx(
-        () => GetMaterialApp(
-          title: 'FreshPickKart',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme(themeController.lightPreset),
-          darkTheme: AppTheme.darkTheme(),
-          themeMode: themeController.themeMode,
-          home: const ModernSplashScreen(),
-          navigatorObservers: [appRouteObserver],
-          builder: (context, child) {
-            if (child == null) return const SizedBox.shrink();
-            final mq = MediaQuery.of(context);
-            final width = mq.size.width;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mq = MediaQuery.of(context);
+        const double containerWidth = 645;
+        const double screenUtilWidth = 430;
+        final isWideWeb = kIsWeb && constraints.maxWidth > containerWidth;
+        final effectiveWidth = isWideWeb ? screenUtilWidth : constraints.maxWidth;
 
-            // On narrow screens (≤430px) or native mobile: render full-width.
-            if (!kIsWeb || width <= 430) {
-              return MediaQuery(
-                data: mq.copyWith(
-                  textScaler: AppResponsive.clampedTextScaler(context),
-                ),
-                child: Stack(
-                  children: [
-                    child,
-                    const NetworkStatusBanner(),
-                  ],
-                ),
-              );
-            }
+        return MediaQuery(
+          data: mq.copyWith(
+            size: Size(effectiveWidth, mq.size.height),
+            textScaler: AppResponsive.clampedTextScaler(context),
+          ),
+          child: ScreenUtilInit(
+            designSize: AppResponsive.designSize,
+            minTextAdapt: true,
+            splitScreenMode: true,
+            builder: (context, _) => Obx(
+              () => GetMaterialApp(
+                title: 'FreshPickKart',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme(themeController.lightPreset),
+                darkTheme: AppTheme.darkTheme(),
+                themeMode: themeController.themeMode,
+                home: const ModernSplashScreen(),
+                navigatorObservers: [appRouteObserver],
+                builder: (context, child) {
+                  if (child == null) return const SizedBox.shrink();
+                  final width = constraints.maxWidth;
 
-            // Web on wider screens: pin to a 390px container matching
-            // ScreenUtilInit designSize so .w/.h/.sp values are correct.
-            const double containerWidth = 390;
+                  if (!kIsWeb || width <= containerWidth) {
+                    return Stack(
+                      children: [
+                        child,
+                        const NetworkStatusBanner(),
+                      ],
+                    );
+                  }
 
-            return Container(
-              color: const Color(0xFFEDEDED),
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: containerWidth,
-                child: MediaQuery(
-                  data: mq.copyWith(
-                    size: Size(containerWidth, mq.size.height),
-                    textScaler: AppResponsive.clampedTextScaler(context),
+                  return Container(
+                    color: const Color(0xFFEDEDED),
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: containerWidth,
+                      child: Stack(
+                        children: [
+                          child,
+                          const NetworkStatusBanner(),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                getPages: [
+                  GetPage(name: '/checkout', page: () => const CheckoutScreen()),
+                  GetPage(name: RouteManager.home, page: () => const MainScreen()),
+                  GetPage(name: '/login', page: () => const PhoneAuthScreen()),
+                  GetPage(name: '/phone-auth', page: () => const PhoneAuthScreen()),
+                  GetPage(name: '/offers', page: () => const OffersScreen()),
+                  GetPage(
+                    name: '/combo-offers',
+                    page: () => const ComboOffersScreen(),
                   ),
-                  child: Stack(
-                    children: [
-                      child,
-                      const NetworkStatusBanner(),
-                    ],
+                  GetPage(name: '/coupons', page: () => const CouponsScreen()),
+                  GetPage(
+                    name: RouteManager.productPattern,
+                    page: () => const DeepLinkLoadingScreen(
+                      type: DeepLinkType.product,
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
-          getPages: [
-            GetPage(name: '/checkout', page: () => const CheckoutScreen()),
-            GetPage(name: RouteManager.home, page: () => const MainScreen()),
-            GetPage(name: '/login', page: () => const PhoneAuthScreen()),
-            GetPage(name: '/phone-auth', page: () => const PhoneAuthScreen()),
-            GetPage(name: '/offers', page: () => const OffersScreen()),
-            GetPage(
-              name: '/combo-offers',
-              page: () => const ComboOffersScreen(),
-            ),
-            GetPage(name: '/coupons', page: () => const CouponsScreen()),
-            GetPage(
-              name: RouteManager.productPattern,
-              page: () => const DeepLinkLoadingScreen(
-                type: DeepLinkType.product,
-              ),
-            ),
-            GetPage(
-              name: RouteManager.categoryPattern,
-              page: () => const DeepLinkLoadingScreen(
-                type: DeepLinkType.category,
+                  GetPage(
+                    name: RouteManager.categoryPattern,
+                    page: () => const DeepLinkLoadingScreen(
+                      type: DeepLinkType.category,
+                    ),
+                  ),
+                  GetPage(
+                    name: RouteManager.offerPattern,
+                    page: () => const DeepLinkLoadingScreen(
+                      type: DeepLinkType.offer,
+                    ),
+                  ),
+                  GetPage(
+                    name: RouteManager.productNotFound,
+                    page: () => DeepLinkNotFoundScreen.product(productId: ''),
+                  ),
+                  GetPage(
+                    name: RouteManager.deepLinkNotFound,
+                    page: () => const DeepLinkNotFoundScreen(),
+                  ),
+                ],
               ),
             ),
-            GetPage(
-              name: RouteManager.offerPattern,
-              page: () => const DeepLinkLoadingScreen(
-                type: DeepLinkType.offer,
-              ),
-            ),
-            GetPage(
-              name: RouteManager.productNotFound,
-              page: () => DeepLinkNotFoundScreen.product(productId: ''),
-            ),
-            GetPage(
-              name: RouteManager.deepLinkNotFound,
-              page: () => const DeepLinkNotFoundScreen(),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -12,7 +12,7 @@ class FreshPickKartHeader extends StatelessWidget {
   const FreshPickKartHeader({
     super.key,
     required this.scrollOffset,
-    this.expandedHeight = 170.0,
+    this.expandedHeight = 170,
     this.collapsedHeight = kToolbarHeight + 60,
   });
 

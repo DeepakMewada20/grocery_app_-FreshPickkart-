@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:freshpickkat_admin/firebase_options.dart';
@@ -37,58 +38,59 @@ class FreshPickKatAdmin extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = Get.find<AdminThemeController>();
 
-    return ScreenUtilInit(
-      designSize: AdminResponsive.designSize,
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, _) => Obx(
-        () => GetMaterialApp(
-          title: 'FreshPickKart Admin',
-          debugShowCheckedModeBanner: false,
-          theme: AdminAppTheme.light(),
-          darkTheme: AdminAppTheme.dark(),
-          themeMode: themeController.themeMode.value,
-          builder: (context, child) {
-            if (child == null) return const SizedBox.shrink();
-            final mq = MediaQuery.of(context);
-            final width = mq.size.width;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mq = MediaQuery.of(context);
+        final rawWidth = constraints.maxWidth;
+        final rawHeight = constraints.maxHeight;
 
-            Widget content = MediaQuery(
-              data: mq.copyWith(
-                textScaler: AdminResponsive.clampedTextScaler(context),
+        const double baseWidth = 645;
+        const double baseHeight = 932;
+        const double screenUtilWidth = 430;
+        final isWideWeb = kIsWeb && rawWidth > baseWidth;
+        final scale = rawHeight / baseHeight;
+        final containerWidth = (baseWidth * scale).clamp(430.0, 800.0).toDouble();
+        final effectiveWidth = isWideWeb ? screenUtilWidth : rawWidth;
+
+        return MediaQuery(
+          data: mq.copyWith(
+            size: Size(effectiveWidth, mq.size.height),
+            textScaler: AdminResponsive.clampedTextScaler(context),
+          ),
+          child: ScreenUtilInit(
+            designSize: AdminResponsive.designSize,
+            minTextAdapt: true,
+            splitScreenMode: true,
+            builder: (context, _) => Obx(
+              () => GetMaterialApp(
+                title: 'FreshPickKart Admin',
+                debugShowCheckedModeBanner: false,
+                theme: AdminAppTheme.light(),
+                darkTheme: AdminAppTheme.dark(),
+                themeMode: themeController.themeMode.value,
+                builder: (context, child) {
+                  if (child == null) return const SizedBox.shrink();
+                  if (!isWideWeb) return child;
+                  return Container(
+                    color: const Color(0xFFEDEDED),
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: containerWidth,
+                      child: child,
+                    ),
+                  );
+                },
+                initialRoute: '/',
+                routes: {
+                  '/': (context) => const AuthWrapper(),
+                  '/login': (context) => const LoginScreen(),
+                  '/main': (context) => const MainScreen(),
+                },
               ),
-              child: child,
-            );
-
-            if (width <= 430) return content;
-
-            const double baseWidth = 430;
-            const double baseHeight = 932;
-            final scale = mq.size.height / baseHeight;
-            final containerWidth = (baseWidth * scale).clamp(360, 600).toDouble();
-
-            return Container(
-              color: const Color(0xFFEDEDED),
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: containerWidth,
-                child: MediaQuery(
-                  data: mq.copyWith(
-                    size: Size(containerWidth, mq.size.height),
-                  ),
-                  child: content,
-                ),
-              ),
-            );
-          },
-          initialRoute: '/',
-          routes: {
-            '/': (context) => const AuthWrapper(),
-            '/login': (context) => const LoginScreen(),
-            '/main': (context) => const MainScreen(),
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
