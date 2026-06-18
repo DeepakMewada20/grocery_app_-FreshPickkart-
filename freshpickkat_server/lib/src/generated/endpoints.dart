@@ -1826,6 +1826,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'pendingOrderAction': _i1.ParameterDescription(
+              name: 'pendingOrderAction',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -1838,6 +1843,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idempotencyKey'],
                     params['amount'],
                     params['customerPhone'],
+                    pendingOrderAction: params['pendingOrderAction'],
                   ),
         ),
       },

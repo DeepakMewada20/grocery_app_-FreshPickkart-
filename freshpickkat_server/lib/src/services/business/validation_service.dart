@@ -12,6 +12,8 @@ class ValidationService {
   static const statusDeliveryOtpPending = 'delivery_otp_pending';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
+  static const statusCancelledByUser = 'cancelled_by_user';
+  static const statusPaymentExpired = 'payment_expired';
   static const statusPaymentFailed = 'payment_failed';
   static const statusRefunded = 'refunded';
 
@@ -174,6 +176,8 @@ class ValidationService {
       statusPaymentPending: {
         statusConfirmed,
         statusCancelled,
+        statusCancelledByUser,
+        statusPaymentExpired,
         statusPaymentFailed,
       },
       statusPlaced: {
@@ -211,6 +215,8 @@ class ValidationService {
       },
       statusDelivered: {},
       statusCancelled: {},
+      statusCancelledByUser: {},
+      statusPaymentExpired: {},
       statusPaymentFailed: {statusCancelled},
       statusRefunded: {},
       statusCancellationRequested: {

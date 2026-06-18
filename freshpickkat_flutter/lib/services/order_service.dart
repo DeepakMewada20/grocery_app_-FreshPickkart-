@@ -18,12 +18,14 @@ class OrderService {
     required String idempotencyKey,
     required double amount,
     required String customerPhone,
+    String? pendingOrderAction,
   }) {
     return _client.checkout.createOrderAndPayment(
       order,
       idempotencyKey,
       amount,
       customerPhone,
+      pendingOrderAction: pendingOrderAction,
     );
   }
 

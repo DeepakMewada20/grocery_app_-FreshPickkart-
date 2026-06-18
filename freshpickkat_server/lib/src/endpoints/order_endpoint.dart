@@ -22,6 +22,8 @@ class OrderEndpoint extends Endpoint {
   static const String statusDeliveryOtpPending = 'delivery_otp_pending';
   static const String statusDelivered = 'delivered';
   static const String statusCancelled = 'cancelled';
+  static const String statusCancelledByUser = 'cancelled_by_user';
+  static const String statusPaymentExpired = 'payment_expired';
   static const String statusPaymentFailed = 'payment_failed';
   static const String statusRefunded = 'refunded';
   static const String paymentPending = 'pending';

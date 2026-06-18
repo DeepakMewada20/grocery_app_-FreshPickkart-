@@ -1,0 +1,6 @@
+class: PendingOrderInfo
+fields:
+  orderNumber: String
+  finalAmount: double
+  orderedAt: DateTime
+  expiresInMinutes: int

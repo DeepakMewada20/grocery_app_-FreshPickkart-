@@ -2,3 +2,4 @@ class: CheckoutInitHydrated
 fields:
   cartData: CartHydratedData
   checkoutBanners: List<Banner>
+  activePendingOrder: PendingOrderInfo?

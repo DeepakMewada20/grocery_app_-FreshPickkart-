@@ -1697,6 +1697,117 @@ class PostgresOrderService {
     return row.finalAmount;
   }
 
+  /// Find an active pending order for this user.
+  /// Returns the order if:
+  ///   paymentStatus == 'pending'
+  ///   AND orderStatus NOT IN terminal/finished states.
+  /// Otherwise returns null.
+  Future<CustomerOrderRow?> findActivePendingOrder(
+    Session session,
+    String userReference,
+  ) async {
+    final appUser = await _resolveOrCreateUser(
+      session,
+      userReference: userReference,
+      createIfMissing: false,
+    );
+    if (appUser == null || appUser.id == null) return null;
+
+    return CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.userId.equals(appUser.id!) &
+          t.paymentStatus.equals('pending') &
+          t.orderStatus.notEquals('cancelled') &
+          t.orderStatus.notEquals('cancelled_by_user') &
+          t.orderStatus.notEquals('payment_expired') &
+          t.orderStatus.notEquals('delivered') &
+          t.orderStatus.notEquals('refunded'),
+    );
+  }
+
+  /// Cancel a pending order with FOR UPDATE row lock.
+  /// Race-safe: acquires lock then re-verifies paymentStatus is still 'pending'.
+  /// Returns false if the order is already paid / already cancelled.
+  Future<bool> cancelPendingOrder(
+    Session session,
+    String orderNumber,
+    String userReference, {
+    String reason = 'Cancelled by user during checkout',
+  }) async {
+    final appUser = await _resolveOrCreateUser(
+      session,
+      userReference: userReference,
+      createIfMissing: false,
+    );
+    if (appUser == null || appUser.id == null) return false;
+
+    try {
+      return await session.db.transaction<bool>((transaction) async {
+        // Acquire FOR UPDATE lock on the order row
+        final orderRow = await CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(orderNumber),
+          transaction: transaction,
+          lockMode: LockMode.forUpdate,
+        );
+
+        if (orderRow == null) return false;
+
+        // Verify the order belongs to this user
+        if (orderRow.userId != appUser.id!) return false;
+
+        // Re-check status after acquiring lock
+        if (orderRow.paymentStatus == 'paid') return false;
+        if (orderRow.orderStatus == 'cancelled' ||
+            orderRow.orderStatus == 'cancelled_by_user' ||
+            orderRow.orderStatus == 'payment_expired') {
+          return false;
+        }
+
+        final now = DateTime.now().toUtc();
+
+        await CustomerOrderRow.db.updateRow(
+          session,
+          orderRow.copyWith(
+            orderStatus: 'cancelled_by_user',
+            paymentStatus: 'cancelled',
+            cancelledAt: now,
+            cancellationReason: reason,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        // Also cancel the payment transaction
+        final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderId.equals(orderRow.id!),
+          transaction: transaction,
+        );
+        if (paymentRow != null) {
+          await PaymentTransactionRow.db.updateRow(
+            session,
+            paymentRow.copyWith(
+              paymentStatus: 'cancelled',
+              gatewayStatus: 'cancelled',
+              updatedAt: now,
+            ),
+            transaction: transaction,
+          );
+        }
+
+        return true;
+      });
+    } catch (e) {
+      session.log(
+        'cancelPendingOrder failed for $orderNumber: $e',
+        level: LogLevel.error,
+      );
+      return false;
+    }
+  }
+
   // --- END PHASE 5 helpers ---
 }
 

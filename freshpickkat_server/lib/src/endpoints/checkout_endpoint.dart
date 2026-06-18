@@ -56,6 +56,15 @@ class CheckoutEndpoint extends Endpoint {
       ));
     }
 
+    // Check for existing active pending order
+    Future<protocol.PendingOrderInfo?> pendingOrderFuture;
+    if (userId != null && userId.isNotEmpty) {
+      pendingOrderFuture = _buildPendingOrderInfo(session, userId);
+    } else {
+      pendingOrderFuture = Future.value(null);
+    }
+    futures.add(pendingOrderFuture);
+
     final results = await Future.wait(futures);
 
     return protocol.CheckoutInitHydrated(
@@ -68,6 +77,7 @@ class CheckoutEndpoint extends Endpoint {
             : const <protocol.CouponDisplay>[],
       ),
       checkoutBanners: results[2] as List<protocol.Banner>,
+      activePendingOrder: results[4] as protocol.PendingOrderInfo?,
     );
   }
 
@@ -76,9 +86,33 @@ class CheckoutEndpoint extends Endpoint {
     protocol.Order order,
     String idempotencyKey,
     double amount,
-    String customerPhone,
-  ) async {
+    String customerPhone, {
+    String? pendingOrderAction,
+  }) async {
     try {
+      if (pendingOrderAction == 'continue') {
+        return await _handleContinuePayment(
+          session, order, customerPhone,
+        );
+      }
+
+      final userId = order.userId;
+
+      // If cancel requested, cancel existing pending order first
+      if (pendingOrderAction == 'cancel' && userId.isNotEmpty) {
+        await _handleCancelThenCreate(session, userId);
+      } else if (userId.isNotEmpty) {
+        // Normal flow: check for existing pending order
+        final existing = await _orders.findActivePendingOrder(session, userId);
+        if (existing != null) {
+          return protocol.CheckoutResult(
+            success: false,
+            error: 'ACTIVE_PENDING_ORDER:${existing.orderNumber}',
+            orderId: existing.orderNumber,
+          );
+        }
+      }
+
       // 1. Create order (server calculates all pricing internally)
       final orderId = await _orderEndpoint.createPendingOrder(
         session,
@@ -86,7 +120,7 @@ class CheckoutEndpoint extends Endpoint {
         idempotencyKey,
       );
 
-      // 2. Get server-calculated final amount (ignore client-provided amount)
+      // 2. Get server-calculated final amount
       final serverFinalAmount = await _orders.getOrderFinalAmount(
         session,
         orderId,
@@ -119,5 +153,78 @@ class CheckoutEndpoint extends Endpoint {
         error: e.toString(),
       );
     }
+  }
+
+  Future<protocol.CheckoutResult> _handleContinuePayment(
+    Session session,
+    protocol.Order order,
+    String customerPhone,
+  ) async {
+    final userId = order.userId;
+    final existing = await _orders.findActivePendingOrder(session, userId);
+    if (existing == null) {
+      return protocol.CheckoutResult(
+        success: false,
+        error: 'No active pending order found. Please create a new order.',
+      );
+    }
+
+    // Create a fresh payment session for the existing pending order
+    final serverFinalAmount = existing.finalAmount;
+    final paymentResult = await _paymentEndpoint.createPaymentOrder(
+      session,
+      existing.orderNumber,
+      serverFinalAmount,
+      customerPhone,
+    );
+
+    if (paymentResult.success != true) {
+      return protocol.CheckoutResult(
+        success: false,
+        error: paymentResult.error ?? 'Failed to create payment order',
+        orderId: existing.orderNumber,
+      );
+    }
+
+    return protocol.CheckoutResult(
+      success: true,
+      orderId: existing.orderNumber,
+      paymentOrder: paymentResult,
+    );
+  }
+
+  Future<void> _handleCancelThenCreate(
+    Session session,
+    String userId,
+  ) async {
+    final existing = await _orders.findActivePendingOrder(session, userId);
+    if (existing != null) {
+      await _orders.cancelPendingOrder(
+        session,
+        existing.orderNumber,
+        userId,
+        reason: 'Cancelled by user — starting fresh checkout',
+      );
+    }
+  }
+
+  Future<protocol.PendingOrderInfo?> _buildPendingOrderInfo(
+    Session session,
+    String userId,
+  ) async {
+    final order = await _orders.findActivePendingOrder(session, userId);
+    if (order == null) return null;
+
+    final orderedAt = order.orderedAt;
+    final elapsed = DateTime.now().toUtc().difference(orderedAt);
+    final remaining = const Duration(minutes: 30) - elapsed;
+    final expiresInMinutes = remaining.inMinutes.clamp(0, 30);
+
+    return protocol.PendingOrderInfo(
+      orderNumber: order.orderNumber,
+      finalAmount: order.finalAmount,
+      orderedAt: orderedAt,
+      expiresInMinutes: expiresInMinutes,
+    );
   }
 }

@@ -897,8 +897,9 @@ class EndpointCheckout extends _i1.EndpointRef {
     _i26.Order order,
     String idempotencyKey,
     double amount,
-    String customerPhone,
-  ) => caller.callServerEndpoint<_i25.CheckoutResult>(
+    String customerPhone, {
+    String? pendingOrderAction,
+  }) => caller.callServerEndpoint<_i25.CheckoutResult>(
     'checkout',
     'createOrderAndPayment',
     {
@@ -906,6 +907,7 @@ class EndpointCheckout extends _i1.EndpointRef {
       'idempotencyKey': idempotencyKey,
       'amount': amount,
       'customerPhone': customerPhone,
+      'pendingOrderAction': pendingOrderAction,
     },
   );
 }

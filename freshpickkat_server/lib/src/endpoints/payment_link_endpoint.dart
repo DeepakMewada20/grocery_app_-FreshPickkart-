@@ -35,6 +35,19 @@ class PaymentLinkEndpoint extends Endpoint {
       );
       final generatedBy = user.id.toString();
 
+      // Check for existing active pending order — prevent duplicate pending orders
+      final existingPending = await _orders.findActivePendingOrder(
+        session,
+        firebaseUid,
+      );
+      if (existingPending != null) {
+        return protocol.PaymentLinkData(
+          success: false,
+          error: 'ACTIVE_PENDING_ORDER:${existingPending.orderNumber}',
+          orderId: existingPending.orderNumber,
+        );
+      }
+
       // 1. Create the order in PAYMENT_PENDING status
       final orderNumber = await _orders.createPendingOrder(
         session,

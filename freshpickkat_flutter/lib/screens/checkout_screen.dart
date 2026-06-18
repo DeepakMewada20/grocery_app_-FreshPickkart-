@@ -68,6 +68,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? _loadingStatus;
   String? _errorMessage;
   bool _isErrorBanner = true;
+  PendingOrderInfo? _pendingOrderInfo;
   String? _currentOrderId;
   String? _currentRazorpayOrderId;
   Order? _currentOrderSnapshot;
@@ -112,6 +113,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         BannerController.instance.checkoutPageBanners.assignAll(
           hydrated.checkoutBanners,
         );
+
+        if (hydrated.activePendingOrder != null && mounted) {
+          setState(() {
+            _pendingOrderInfo = hydrated.activePendingOrder;
+          });
+          _showPendingOrderPopup(hydrated.activePendingOrder!);
+        }
       } else {
         cartController.cartPricing.value = null;
         await BannerController.instance.refreshBannersForScreen(
@@ -131,6 +139,191 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
     }
     _lastRefreshTime = DateTime.now();
+  }
+
+  void _showPendingOrderPopup(PendingOrderInfo info) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Unpaid Order Found'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You already have an unpaid order.',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Order Number: #${info.orderNumber}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryGreen,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text('Amount: ₹${info.finalAmount.toStringAsFixed(2)}'),
+            SizedBox(height: 4.h),
+            Text('Expires In: ${info.expiresInMinutes} minutes'),
+            SizedBox(height: 16.h),
+            Text(
+              'What would you like to do?',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _handleContinuePayment();
+            },
+            child: const Text('Continue Payment'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _handleCancelPendingOrder();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+            ),
+            child: const Text('Cancel Existing Order & Checkout Updated Cart'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleContinuePayment() async {
+    await _placeOrderWithPendingAction('continue');
+  }
+
+  Future<void> _handleCancelPendingOrder() async {
+    await _placeOrderWithPendingAction('cancel');
+  }
+
+  Future<void> _placeOrderWithPendingAction(String action) async {
+    if (_isProcessing) return;
+
+    try {
+      final deliveryAddress = orderController.getDeliveryAddress(
+        userController.shippingAddress.value,
+      );
+
+      if (deliveryAddress == null ||
+          deliveryAddress.latitude == null ||
+          deliveryAddress.longitude == null) {
+        _setProcessing(false);
+        _openLocationPicker(initialAddress: deliveryAddress);
+        if (!mounted) return;
+        AppSnackbar.show(
+          'Location Needed',
+          'Please pick your location on the map.',
+        );
+        return;
+      }
+
+      final customerPhone = _getCustomerPhone();
+      if (customerPhone.isEmpty) {
+        _showError(ErrorMessages.phoneRequired);
+        return;
+      }
+
+      final keyId = await PaymentConfig.getRazorpayKeyId();
+      if (keyId == null || keyId.isEmpty) {
+        _showError(ErrorMessages.paymentConfigError);
+        return;
+      }
+
+      final order = _buildOrderFromCart(deliveryAddress);
+
+      _setProcessing(true, status: action == 'continue'
+          ? 'Resuming payment...'
+          : 'Cancelling & creating new order...');
+
+      final checkoutResult = await checkoutService.createOrderAndPayment(
+        draftOrder: order,
+        amount: cartController.totalAmount,
+        customerPhone: customerPhone,
+        pendingOrderAction: action,
+      );
+
+      if (checkoutResult.success != true || checkoutResult.orderId == null) {
+        _showError(checkoutResult.error ?? ErrorMessages.paymentFailed);
+        return;
+      }
+
+      final orderId = checkoutResult.orderId!;
+      final paymentOrder = checkoutResult.paymentOrder;
+
+      _currentOrderId = orderId;
+      _currentOrderSnapshot = order.copyWith(orderId: orderId);
+      if (mounted) {
+        setState(() {
+          _pendingOrderInfo = null;
+        });
+      }
+
+      _seedTrackingMetadata(orderId, order);
+
+      if (paymentOrder == null || paymentOrder.success != true) {
+        await _markPaymentFailedBestEffort(orderId);
+        _showError(paymentOrder?.error ?? ErrorMessages.paymentOrderFailed);
+        return;
+      }
+
+      final razorpayOrderId = paymentOrder.razorpayOrderId;
+      if (razorpayOrderId == null || razorpayOrderId.isEmpty) {
+        await _markPaymentFailedBestEffort(orderId);
+        _showError(ErrorMessages.paymentResponseIncomplete);
+        return;
+      }
+      _currentRazorpayOrderId = razorpayOrderId;
+
+      final amountPaise = paymentOrder.amount ?? (cartController.totalAmount * 100).round();
+      if (amountPaise <= 0) {
+        await _markPaymentFailedBestEffort(orderId);
+        _showError(ErrorMessages.invalidAmount);
+        return;
+      }
+
+      final isTestMode = keyId.startsWith('rzp_test_');
+      final customerEmail = userController.userEmail.value.isNotEmpty
+          ? userController.userEmail.value
+          : '$customerPhone@freshpickkart.com';
+
+      _setProcessing(true, status: 'Opening payment gateway...');
+
+      final didSelectUpiOption = await _startUpiPaymentFlow(
+        isTestMode: isTestMode,
+        keyId: keyId,
+        amountPaise: amountPaise,
+        currency: 'INR',
+        razorpayOrderId: razorpayOrderId,
+        customerPhone: customerPhone,
+        customerEmail: customerEmail,
+        orderId: orderId,
+      );
+
+      if (!didSelectUpiOption && mounted) {
+        _setProcessing(false);
+      }
+    } catch (e) {
+      if (_currentOrderId != null) {
+        await _markPaymentFailedBestEffort(_currentOrderId!);
+      }
+      AppLogger.error('Checkout', e);
+      _showError(ErrorMessages.paymentFailed);
+    }
   }
 
   @override
@@ -166,6 +359,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
+
+    // If a pending order exists, show the popup instead
+    if (_pendingOrderInfo != null) {
+      _showPendingOrderPopup(_pendingOrderInfo!);
+      return;
+    }
 
     if (_isShareablePayment) {
       await _placeOrderWithShareableLink();
@@ -257,7 +456,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       if (checkoutResult.success != true || checkoutResult.orderId == null) {
-        _showError(checkoutResult.error ?? ErrorMessages.paymentFailed);
+        final error = checkoutResult.error ?? '';
+        if (error.startsWith('ACTIVE_PENDING_ORDER:')) {
+          _setProcessing(false);
+          if (mounted) {
+            final orderNumber = error.substring('ACTIVE_PENDING_ORDER:'.length);
+            _showPendingOrderPopup(
+              PendingOrderInfo(
+                orderNumber: orderNumber,
+                finalAmount: 0,
+                orderedAt: DateTime.now(),
+                expiresInMinutes: 30,
+              ),
+            );
+          }
+          return;
+        }
+        _showError(error.isNotEmpty ? error : ErrorMessages.paymentFailed);
         return;
       }
 
@@ -321,6 +536,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrderWithShareableLink() async {
     if (_isProcessing) return;
+
+    // If a pending order exists, show the popup instead
+    if (_pendingOrderInfo != null) {
+      _showPendingOrderPopup(_pendingOrderInfo!);
+      return;
+    }
 
     try {
       _setProcessing(true, clearError: true, status: 'Creating order...');

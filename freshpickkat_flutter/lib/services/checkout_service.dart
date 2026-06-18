@@ -27,6 +27,7 @@ class CheckoutService {
     required double amount,
     required String customerPhone,
     String? idempotencyKey,
+    String? pendingOrderAction,
   }) async {
     final key = idempotencyKey ?? generateIdempotencyKey(draftOrder.userId);
     return _orderService.createOrderAndPayment(
@@ -34,6 +35,7 @@ class CheckoutService {
       idempotencyKey: key,
       amount: amount,
       customerPhone: customerPhone,
+      pendingOrderAction: pendingOrderAction,
     );
   }
 }

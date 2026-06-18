@@ -2499,8 +2499,9 @@ class _CheckoutEndpoint {
     _i27.Order order,
     String idempotencyKey,
     double amount,
-    String customerPhone,
-  ) async {
+    String customerPhone, {
+    String? pendingOrderAction,
+  }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
@@ -2517,6 +2518,7 @@ class _CheckoutEndpoint {
             'idempotencyKey': idempotencyKey,
             'amount': amount,
             'customerPhone': customerPhone,
+            'pendingOrderAction': pendingOrderAction,
           }),
           serializationManager: _serializationManager,
         );
