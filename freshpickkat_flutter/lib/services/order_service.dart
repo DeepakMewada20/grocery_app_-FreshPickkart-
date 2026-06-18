@@ -72,5 +72,4 @@ class OrderService {
       deliveryNote: deliveryNote,
     );
   }
-
 }

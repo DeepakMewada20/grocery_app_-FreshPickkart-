@@ -47,14 +47,17 @@ class _RewardBannerOverlayState extends State<RewardBannerOverlay>
       reverseDuration: const Duration(milliseconds: 280),
     );
 
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, -1.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutBack,
-      reverseCurve: Curves.easeIn,
-    ));
+    _slideAnim =
+        Tween<Offset>(
+          begin: const Offset(0, -1.5),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: _animController,
+            curve: Curves.easeOutBack,
+            reverseCurve: Curves.easeIn,
+          ),
+        );
 
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOut),
@@ -243,7 +246,7 @@ class _RewardBanner extends StatelessWidget {
                   GestureDetector(
                     onTap: onDismiss,
                     child: Padding(
-                      padding: EdgeInsets.all(4.r),
+                      padding: EdgeInsets.all(4.w),
                       child: Icon(
                         Icons.close_rounded,
                         color: Colors.white.withValues(alpha: 0.7),

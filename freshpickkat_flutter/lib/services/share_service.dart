@@ -18,8 +18,9 @@ class ShareService extends GetxService {
         : RouteManager.productUri(productId).toString();
 
     final discount = product.realPrice - product.price;
-    final discountText =
-        discount > 0 ? '\nYou save: ₹${discount.formatPrice}' : '';
+    final discountText = discount > 0
+        ? '\nYou save: ₹${discount.formatPrice}'
+        : '';
 
     return '${product.productName}\n\n'
         'MRP: ₹${product.realPrice.formatPrice}\n'

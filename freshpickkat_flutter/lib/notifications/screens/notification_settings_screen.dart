@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/notifications/controllers/notification_controller.dart';
-import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart' deferred as notificationHistoryScreen;
+import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart'
+    deferred as notificationHistoryScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
@@ -25,7 +26,8 @@ class NotificationSettingsScreen extends StatelessWidget {
               onPressed: () async {
                 await navigateDeferred(
                   loadLibrary: notificationHistoryScreen.loadLibrary,
-                  pageBuilder: () => notificationHistoryScreen.NotificationHistoryScreen(),
+                  pageBuilder: () =>
+                      notificationHistoryScreen.NotificationHistoryScreen(),
                 );
               },
             ),
@@ -34,75 +36,75 @@ class NotificationSettingsScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Obx(() {
-        final prefs = controller.preferences.value;
-        return ListView(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          children: [
-            _Section(
-              title: 'ORDER TRACKING',
-              children: [
-                SwitchListTile(
-                  title: const Text('Track Your Order Updates'),
-                  value: prefs.trackOrderNotifications,
-                  onChanged: (value) => controller.updatePreference(
-                    trackOrderNotifications: value,
+          final prefs = controller.preferences.value;
+          return ListView(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            children: [
+              _Section(
+                title: 'ORDER TRACKING',
+                children: [
+                  SwitchListTile(
+                    title: const Text('Track Your Order Updates'),
+                    value: prefs.trackOrderNotifications,
+                    onChanged: (value) => controller.updatePreference(
+                      trackOrderNotifications: value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            _Section(
-              title: 'OFFERS & DEALS',
-              children: [
-                SwitchListTile(
-                  title: const Text('Coupons & Discounts'),
-                  value: prefs.couponNotifications,
-                  onChanged: (value) => controller.updatePreference(
-                    couponNotifications: value,
+                ],
+              ),
+              _Section(
+                title: 'OFFERS & DEALS',
+                children: [
+                  SwitchListTile(
+                    title: const Text('Coupons & Discounts'),
+                    value: prefs.couponNotifications,
+                    onChanged: (value) => controller.updatePreference(
+                      couponNotifications: value,
+                    ),
                   ),
-                ),
-                SwitchListTile(
-                  title: const Text('BOGO Offers'),
-                  value: prefs.offerNotifications,
-                  onChanged: (value) => controller.updatePreference(
-                    offerNotifications: value,
+                  SwitchListTile(
+                    title: const Text('BOGO Offers'),
+                    value: prefs.offerNotifications,
+                    onChanged: (value) => controller.updatePreference(
+                      offerNotifications: value,
+                    ),
                   ),
-                ),
-                SwitchListTile(
-                  title: const Text('Combo Deals'),
-                  value: prefs.offerNotifications,
-                  onChanged: (value) => controller.updatePreference(
-                    offerNotifications: value,
+                  SwitchListTile(
+                    title: const Text('Combo Deals'),
+                    value: prefs.offerNotifications,
+                    onChanged: (value) => controller.updatePreference(
+                      offerNotifications: value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            _Section(
-              title: 'ANNOUNCEMENTS',
-              children: [
-                SwitchListTile(
-                  title: const Text('Delivery Updates'),
-                  value: prefs.announcementNotifications,
-                  onChanged: (value) => controller.updatePreference(
-                    announcementNotifications: value,
+                ],
+              ),
+              _Section(
+                title: 'ANNOUNCEMENTS',
+                children: [
+                  SwitchListTile(
+                    title: const Text('Delivery Updates'),
+                    value: prefs.announcementNotifications,
+                    onChanged: (value) => controller.updatePreference(
+                      announcementNotifications: value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            _Section(
-              title: 'APP',
-              children: [
-                SwitchListTile(
-                  title: const Text('Important Alerts'),
-                  value: prefs.importantAlerts,
-                  onChanged: (value) => controller.updatePreference(
-                    importantAlerts: value,
+                ],
+              ),
+              _Section(
+                title: 'APP',
+                children: [
+                  SwitchListTile(
+                    title: const Text('Important Alerts'),
+                    value: prefs.importantAlerts,
+                    onChanged: (value) => controller.updatePreference(
+                      importantAlerts: value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        );
-      }),
+                ],
+              ),
+            ],
+          );
+        }),
       ),
     );
   }

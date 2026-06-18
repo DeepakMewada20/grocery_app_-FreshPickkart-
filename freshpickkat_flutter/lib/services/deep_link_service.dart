@@ -11,8 +11,7 @@ import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:play_install_referrer/play_install_referrer.dart'
-    if (dart.library.html)
-        'package:freshpickkat_flutter/services/deep_link_referrer_stub.dart';
+    if (dart.library.html) 'package:freshpickkat_flutter/services/deep_link_referrer_stub.dart';
 
 class DeepLinkService extends GetxService {
   static DeepLinkService get instance => Get.find<DeepLinkService>();
@@ -110,7 +109,10 @@ class DeepLinkService extends GetxService {
       final details = await PlayInstallReferrer.installReferrer;
       final uri = _deepLinkFromReferrer(details.installReferrer);
       if (uri == null) return;
-      AppLogger.info('DeepLink', 'Restored deferred deep link from Play referrer: $uri');
+      AppLogger.info(
+        'DeepLink',
+        'Restored deferred deep link from Play referrer: $uri',
+      );
       await handleUri(uri);
     } catch (error) {
       AppLogger.error('DeepLink', 'Install referrer unavailable: $error');

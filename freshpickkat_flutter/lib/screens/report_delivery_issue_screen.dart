@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/delivery_issue_controller.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
+    deferred as complaintDetailScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
@@ -100,25 +101,30 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                             child: DropdownButtonFormField<String>(
                               initialValue: _controller.selectedIssueType.value,
                               isExpanded: true,
-                              items: DeliveryIssueController.issueTypes.map(
-                                (type) => DropdownMenuItem<String>(
-                                  value: type,
-                                  child: Text(type),
-                                ),
-                              ).toList(),
+                              items: DeliveryIssueController.issueTypes
+                                  .map(
+                                    (type) => DropdownMenuItem<String>(
+                                      value: type,
+                                      child: Text(type),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (value) {
                                 if (value != null) {
                                   _controller.selectIssueType(value);
                                   setState(() {});
                                 }
                               },
-                              icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                              ),
                               decoration: _inputDecoration(
                                 context,
                                 hintText: 'Select issue type',
                               ),
-                              dropdownColor:
-                                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                              dropdownColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
                                   return 'Please select an issue type.';
@@ -144,10 +150,12 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                           _buildFieldChip(
                                             context,
                                             label: 'Change address',
-                                            isSelected: _controller.isAddressChange,
+                                            isSelected:
+                                                _controller.isAddressChange,
                                             onTap: () {
                                               _controller.selectField(
-                                                DeliveryIssueController.addressChangeField,
+                                                DeliveryIssueController
+                                                    .addressChangeField,
                                               );
                                               setState(() {});
                                             },
@@ -155,10 +163,12 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                           _buildFieldChip(
                                             context,
                                             label: 'Delivery note',
-                                            isSelected: !_controller.isAddressChange,
+                                            isSelected:
+                                                !_controller.isAddressChange,
                                             onTap: () {
                                               _controller.selectField(
-                                                DeliveryIssueController.deliveryNoteField,
+                                                DeliveryIssueController
+                                                    .deliveryNoteField,
                                               );
                                               setState(() {});
                                             },
@@ -171,7 +181,9 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                         child: _controller.isAddressChange
                                             ? _AddressPreviewCard(
                                                 address:
-                                                    _controller.selectedAddress.value ??
+                                                    _controller
+                                                        .selectedAddress
+                                                        .value ??
                                                     widget.currentAddress,
                                                 onEdit: _controller.pickAddress,
                                               )
@@ -179,10 +191,12 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                                 controller: _noteController,
                                                 expands: true,
                                                 maxLines: null,
-                                                textInputAction: TextInputAction.newline,
+                                                textInputAction:
+                                                    TextInputAction.newline,
                                                 decoration: _inputDecoration(
                                                   context,
-                                                  hintText: 'Add a note for the rider or the delivery team',
+                                                  hintText:
+                                                      'Add a note for the rider or the delivery team',
                                                 ),
                                               ),
                                       ),
@@ -201,7 +215,8 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               textInputAction: TextInputAction.newline,
                               decoration: _inputDecoration(
                                 context,
-                                hintText: 'Please describe the delivery issue in detail...',
+                                hintText:
+                                    'Please describe the delivery issue in detail...',
                               ),
                               validator: (value) {
                                 final text = value?.trim() ?? '';
@@ -271,10 +286,14 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         decoration: BoxDecoration(
-          color: isSelected ? cs.onSurface.withValues(alpha: 0.06) : Colors.transparent,
+          color: isSelected
+              ? cs.onSurface.withValues(alpha: 0.06)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected ? cs.onSurface.withValues(alpha: 0.5) : cs.outlineVariant,
+            color: isSelected
+                ? cs.onSurface.withValues(alpha: 0.5)
+                : cs.outlineVariant,
             width: isSelected ? 1.4 : 1,
           ),
         ),
@@ -378,7 +397,7 @@ class _IntroCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: cs.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14.r),
@@ -434,7 +453,7 @@ class _SectionCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -474,7 +493,7 @@ class _AddressPreviewCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14.r),
@@ -490,7 +509,10 @@ class _AddressPreviewCard extends StatelessWidget {
               children: [
                 Text(
                   'Current address',
-                  style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
@@ -532,7 +554,7 @@ class _BlockedState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.r),
+        padding: EdgeInsets.all(24.w),
         child: AppResponsive.constrainContent(
           context: context,
           child: _SectionCard(
@@ -556,7 +578,10 @@ class _BlockedState extends StatelessWidget {
                   onPressed: () async {
                     await navigateDeferred(
                       loadLibrary: complaintDetailScreen.loadLibrary,
-                      pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                      pageBuilder: () =>
+                          complaintDetailScreen.ComplaintDetailScreen(
+                            complaint: complaint,
+                          ),
                     );
                   },
                   child: const Text('View complaint'),

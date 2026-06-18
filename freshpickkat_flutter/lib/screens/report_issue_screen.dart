@@ -153,8 +153,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               : _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: cs.primary,
-                            disabledBackgroundColor: cs.primary
-                                .withValues(alpha: 0.45),
+                            disabledBackgroundColor: cs.primary.withValues(
+                              alpha: 0.45,
+                            ),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16.r),
@@ -218,7 +219,7 @@ class _IntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(18.r),
+      padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(22.r),
@@ -281,7 +282,7 @@ class _FormCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(22.r),
@@ -413,7 +414,7 @@ class _ScreenshotPicker extends StatelessWidget {
                 onTap: isPicking ? null : controller.pickScreenshot,
                 borderRadius: BorderRadius.circular(16.r),
                 child: Padding(
-                  padding: EdgeInsets.all(14.r),
+                  padding: EdgeInsets.all(14.w),
                   child: Row(
                     children: [
                       Icon(
@@ -439,7 +440,7 @@ class _ScreenshotPicker extends StatelessWidget {
                 ),
               )
             : Padding(
-                padding: EdgeInsets.all(14.r),
+                padding: EdgeInsets.all(14.w),
                 child: Row(
                   children: [
                     Icon(
@@ -494,12 +495,12 @@ class _SuccessState extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(24.r),
+        padding: EdgeInsets.all(24.w),
         child: AppResponsive.constrainContent(
           context: context,
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.all(22.r),
+            padding: EdgeInsets.all(22.w),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(24.r),

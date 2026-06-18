@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_complaint_controller.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
+    deferred as complaintDetailScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
@@ -72,7 +73,10 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
               onView: () async {
                 await navigateDeferred(
                   loadLibrary: complaintDetailScreen.loadLibrary,
-                  pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaintId: submitted.complaintId),
+                  pageBuilder: () =>
+                      complaintDetailScreen.ComplaintDetailScreen(
+                        complaintId: submitted.complaintId,
+                      ),
                 );
               },
               onDone: () => Get.back(result: submitted),
@@ -279,7 +283,7 @@ class _BlockedState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.r),
+        padding: EdgeInsets.all(24.w),
         child: AppResponsive.constrainContent(
           context: context,
           child: _FormCard(
@@ -302,7 +306,10 @@ class _BlockedState extends StatelessWidget {
                   onPressed: () async {
                     await navigateDeferred(
                       loadLibrary: complaintDetailScreen.loadLibrary,
-                      pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                      pageBuilder: () =>
+                          complaintDetailScreen.ComplaintDetailScreen(
+                            complaint: complaint,
+                          ),
                     );
                   },
                   child: const Text('View Complaint'),
@@ -330,7 +337,7 @@ class _ImagePicker extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(12.r),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: BorderRadius.circular(16.r),
@@ -352,9 +359,7 @@ class _ImagePicker extends StatelessWidget {
                             : controller.pickGalleryImages,
                         icon: const Icon(Icons.photo_library_outlined),
                         label: Text(
-                          controller.isPicking.value
-                              ? 'Opening...'
-                              : 'Gallery',
+                          controller.isPicking.value ? 'Opening...' : 'Gallery',
                         ),
                       ),
                     ),
@@ -427,7 +432,7 @@ class _SuccessState extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.r),
+        padding: EdgeInsets.all(24.w),
         child: AppResponsive.constrainContent(
           context: context,
           child: _FormCard(
@@ -487,7 +492,7 @@ class _FormCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(18.r),

@@ -28,7 +28,7 @@ class CombinedCardBody extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(14.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -189,7 +189,6 @@ class CombinedCardBody extends StatelessWidget {
     }
   }
 }
-
 
 class _Thumb extends StatelessWidget {
   final String url;

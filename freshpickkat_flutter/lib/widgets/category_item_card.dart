@@ -48,7 +48,7 @@ class CategoryItemCard extends StatelessWidget {
                         ),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(6.r),
+                  padding: EdgeInsets.all(6.w),
                   child: _buildImage(imagePath),
                 ),
               ),

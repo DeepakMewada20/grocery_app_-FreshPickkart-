@@ -91,5 +91,3 @@ String comboDiscountBadgeText(String discountType, double discountValue) {
   }
   return 'More ₹${discountValue.formatPrice} off';
 }
-
-

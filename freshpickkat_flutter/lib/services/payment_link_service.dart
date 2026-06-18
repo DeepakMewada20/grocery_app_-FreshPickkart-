@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 class PaymentLinkService {
   PaymentLinkService._();
 
-  static PaymentLinkService get instance => Get.isRegistered<PaymentLinkService>()
+  static PaymentLinkService get instance =>
+      Get.isRegistered<PaymentLinkService>()
       ? Get.find<PaymentLinkService>()
       : Get.put(PaymentLinkService._(), permanent: true);
 

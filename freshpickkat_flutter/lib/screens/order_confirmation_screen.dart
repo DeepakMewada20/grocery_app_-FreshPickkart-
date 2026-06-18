@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
-import 'package:freshpickkat_flutter/screens/order_detail_screen.dart' deferred as orderDetailScreen;
+import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
+    deferred as orderDetailScreen;
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
@@ -80,7 +81,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   }
 
   Future<void> _navigateToOrderDetails() async {
-    await navigateDeferred(loadLibrary: () => orderDetailScreen.loadLibrary(), pageBuilder: () => orderDetailScreen.OrderDetailScreen(orderId: widget.orderId));
+    await navigateDeferred(
+      loadLibrary: () => orderDetailScreen.loadLibrary(),
+      pageBuilder: () =>
+          orderDetailScreen.OrderDetailScreen(orderId: widget.orderId),
+    );
   }
 
   void _continueShopping() {
@@ -233,7 +238,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final estimatedDelivery = order.orderedAt.add(const Duration(days: 1));
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(16.r),
@@ -335,7 +340,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final grouped = groupOrderItems(order.items);
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(16.r),
@@ -499,7 +504,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12.r),
@@ -615,7 +620,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final address = order.deliveryAddress;
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(16.r),
@@ -713,7 +718,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final order = _order!;
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [

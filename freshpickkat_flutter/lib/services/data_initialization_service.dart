@@ -44,8 +44,6 @@ class DataInitializationService extends GetxService {
     }
   }
 
-  
-
   Future<void> _initNotifications() async {
     try {
       await NotificationService.init();

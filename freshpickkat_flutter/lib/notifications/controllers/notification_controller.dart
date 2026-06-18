@@ -10,12 +10,18 @@ import 'package:freshpickkat_flutter/notifications/services/fcm_token_service.da
 import 'package:freshpickkat_flutter/notifications/services/notification_history_service.dart';
 import 'package:freshpickkat_flutter/notifications/services/notification_preference_service.dart';
 import 'package:freshpickkat_flutter/notifications/services/notification_topic_service.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
-import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart' deferred as comboOffersScreen;
-import 'package:freshpickkat_flutter/screens/order_detail_screen.dart' deferred as orderDetailScreen;
-import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart' deferred as offersScreen;
-import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart' deferred as orderTrackingMapScreen;
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
+    deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
+    deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart'
+    deferred as comboOffersScreen;
+import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
+    deferred as orderDetailScreen;
+import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart'
+    deferred as offersScreen;
+import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart'
+    deferred as orderTrackingMapScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
@@ -260,14 +266,16 @@ class NotificationController extends GetxController {
       case 'combo':
         await navigateDeferred(
           loadLibrary: comboOffersScreen.loadLibrary,
-          pageBuilder: () => comboOffersScreen.ComboOffersScreen(highlightComboId: entityId),
+          pageBuilder: () =>
+              comboOffersScreen.ComboOffersScreen(highlightComboId: entityId),
         );
         return;
       case 'offer':
       case 'bogo':
         await navigateDeferred(
           loadLibrary: offersScreen.loadLibrary,
-          pageBuilder: () => offersScreen.OffersScreen(highlightOfferId: entityId),
+          pageBuilder: () =>
+              offersScreen.OffersScreen(highlightOfferId: entityId),
         );
         return;
       case 'order_paid':
@@ -277,7 +285,8 @@ class NotificationController extends GetxController {
         if (orderId != null && orderId.isNotEmpty) {
           await navigateDeferred(
             loadLibrary: orderDetailScreen.loadLibrary,
-            pageBuilder: () => orderDetailScreen.OrderDetailScreen(orderId: orderId),
+            pageBuilder: () =>
+                orderDetailScreen.OrderDetailScreen(orderId: orderId),
           );
         }
         return;
@@ -292,7 +301,8 @@ class NotificationController extends GetxController {
         if (orderId != null && orderId.isNotEmpty) {
           await navigateDeferred(
             loadLibrary: orderDetailScreen.loadLibrary,
-            pageBuilder: () => orderDetailScreen.OrderDetailScreen(orderId: orderId),
+            pageBuilder: () =>
+                orderDetailScreen.OrderDetailScreen(orderId: orderId),
           );
         }
         return;
@@ -303,7 +313,9 @@ class NotificationController extends GetxController {
         if (complaintId != null && complaintId.isNotEmpty) {
           await navigateDeferred(
             loadLibrary: complaintDetailScreen.loadLibrary,
-            pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaintId: complaintId),
+            pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(
+              complaintId: complaintId,
+            ),
           );
         }
         return;
@@ -325,7 +337,8 @@ class NotificationController extends GetxController {
     }
     await navigateDeferred(
       loadLibrary: orderTrackingMapScreen.loadLibrary,
-      pageBuilder: () => orderTrackingMapScreen.OrderTrackingMapScreen(orderId: orderId),
+      pageBuilder: () =>
+          orderTrackingMapScreen.OrderTrackingMapScreen(orderId: orderId),
     );
   }
 

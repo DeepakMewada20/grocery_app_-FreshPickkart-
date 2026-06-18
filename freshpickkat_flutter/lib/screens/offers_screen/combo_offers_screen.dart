@@ -112,7 +112,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(28.r),
+                    padding: EdgeInsets.all(28.w),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,

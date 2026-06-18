@@ -5,17 +5,26 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
-import 'package:freshpickkat_flutter/screens/appearance_screen.dart' deferred as appearanceScreen;
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
-import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart' deferred as editProfileScreen;
-import 'package:freshpickkat_flutter/screens/help_support_screen.dart' deferred as helpSupportScreen;
-import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart' deferred as legalWebviewScreen;
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
+import 'package:freshpickkat_flutter/screens/appearance_screen.dart'
+    deferred as appearanceScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
+    deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart'
+    deferred as editProfileScreen;
+import 'package:freshpickkat_flutter/screens/help_support_screen.dart'
+    deferred as helpSupportScreen;
+import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
+    deferred as legalWebviewScreen;
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
+    deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
-import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart' deferred as myComplaintsScreen;
+import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart'
+    deferred as myComplaintsScreen;
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
-import 'package:freshpickkat_flutter/screens/orders_screen.dart' deferred as ordersScreen;
-import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart' deferred as notificationSettingsScreen;
+import 'package:freshpickkat_flutter/screens/orders_screen.dart'
+    deferred as ordersScreen;
+import 'package:freshpickkat_flutter/notifications/screens/notification_settings_screen.dart'
+    deferred as notificationSettingsScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
@@ -79,7 +88,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: notificationSettingsScreen.loadLibrary,
-                      pageBuilder: () => notificationSettingsScreen.NotificationSettingsScreen(),
+                      pageBuilder: () =>
+                          notificationSettingsScreen.NotificationSettingsScreen(),
                     );
                   },
                   cs: cs,
@@ -101,7 +111,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: myComplaintsScreen.loadLibrary,
-                      pageBuilder: () => myComplaintsScreen.MyComplaintsScreen(),
+                      pageBuilder: () =>
+                          myComplaintsScreen.MyComplaintsScreen(),
                     );
                   },
                   cs: cs,
@@ -184,7 +195,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _buildProfileHeader(UserController userController, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.all(20.r),
+      padding: EdgeInsets.all(20.w),
       child: Row(
         children: [
           Obx(() {
@@ -315,7 +326,7 @@ class _MoreScreenState extends State<MoreScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(10.r),
+              padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(12.r),
@@ -356,7 +367,7 @@ class _MoreScreenState extends State<MoreScreen> {
   Widget _buildAddressSection(UserController userController, ColorScheme cs) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -367,7 +378,7 @@ class _MoreScreenState extends State<MoreScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.r),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: cs.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(8.r),
@@ -417,11 +428,12 @@ class _MoreScreenState extends State<MoreScreen> {
                   final addr = userController.shippingAddress.value;
                   await navigateDeferred(
                     loadLibrary: locationPickerScreen.loadLibrary,
-                    pageBuilder: () => locationPickerScreen.LocationPickerScreen(
-                      isCheckoutMode: false,
-                      initialAddress: addr,
-                      addressLabel: 'Home',
-                    ),
+                    pageBuilder: () =>
+                        locationPickerScreen.LocationPickerScreen(
+                          isCheckoutMode: false,
+                          initialAddress: addr,
+                          addressLabel: 'Home',
+                        ),
                   );
                 },
                 icon: const Icon(
@@ -442,7 +454,7 @@ class _MoreScreenState extends State<MoreScreen> {
     final themeController = ThemeController.instance;
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -450,7 +462,7 @@ class _MoreScreenState extends State<MoreScreen> {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(8.r),
@@ -533,7 +545,7 @@ class _MoreScreenState extends State<MoreScreen> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8.r),

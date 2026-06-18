@@ -77,7 +77,7 @@ class ComboOfferCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
             child: Padding(
-              padding: EdgeInsets.all(16.r),
+              padding: EdgeInsets.all(16.w),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -194,7 +194,7 @@ class ComboOfferCard extends StatelessWidget {
               height: productStripHeight,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.all(12.r),
+                padding: EdgeInsets.all(12.w),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   return Padding(
@@ -241,7 +241,7 @@ class ComboOfferCard extends StatelessWidget {
           if (isExpanded && products.isEmpty) ...[
             Divider(color: cs.outlineVariant, height: 1),
             Padding(
-              padding: EdgeInsets.all(16.r),
+              padding: EdgeInsets.all(16.w),
               child: Text(
                 'Products loading...',
                 style: TextStyle(

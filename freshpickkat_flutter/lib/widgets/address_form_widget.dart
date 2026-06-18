@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
+    deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
@@ -335,7 +336,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: widget.isDarkTheme
               ? Colors.white.withValues(alpha: 0.05)

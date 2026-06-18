@@ -162,7 +162,7 @@ class RazorpayWebhookRoute extends Route {
           final paidByPhone = notes?['paidByPhone']?.toString();
           final paidByEmail = notes?['paidByEmail']?.toString();
 
-          if (order.orderId != null && order.orderId.isNotEmpty) {
+          if (order.orderId.isNotEmpty) {
             final orderRow = await CustomerOrderRow.db.findFirstRow(
               session,
               where: (t) => t.orderNumber.equals(order.orderId),

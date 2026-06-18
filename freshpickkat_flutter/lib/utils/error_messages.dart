@@ -21,8 +21,7 @@ class ErrorMessages {
       'Invalid OTP code. Please check and try again.';
   static const String networkError =
       'Network error. Please check your internet connection.';
-  static const String sessionExpired =
-      'Session expired. Please login again.';
+  static const String sessionExpired = 'Session expired. Please login again.';
   static const String invalidSession = 'Invalid login session.';
   static const String signInNotEnabled =
       'Phone sign-in is not enabled. Please contact support.';
@@ -32,21 +31,20 @@ class ErrorMessages {
   static const String paymentCancelled = 'Payment was cancelled.';
   static const String paymentVerifying = 'Verifying your payment...';
   static const String emptyCart = 'Your basket is empty.';
-  static const String phoneRequired =
-      'Phone number is required for payment.';
+  static const String phoneRequired = 'Phone number is required for payment.';
   static const String paymentConfigError =
       'Payment configuration error. Please contact support.';
   static const String paymentOrderFailed =
       'Payment order failed. Please try again.';
-  static const String invalidAmount = 'Invalid payment amount. Please try again.';
+  static const String invalidAmount =
+      'Invalid payment amount. Please try again.';
   static const String paymentResponseIncomplete =
       'Payment response incomplete. Please check your orders.';
   static const String paymentRecoveryFailed =
       'Payment recovery failed. Please contact support.';
 
   // ── Location ──
-  static const String locationOff =
-      'Please turn on GPS to find your location.';
+  static const String locationOff = 'Please turn on GPS to find your location.';
   static const String permissionBlocked =
       'Location permission is blocked. Please enable it from App Settings.';
   static const String locationFailed =
@@ -60,8 +58,7 @@ class ErrorMessages {
   // ── Coupon ──
   static const String couponLoadFailed =
       'Unable to load coupons. Pull to refresh.';
-  static const String couponInvalid =
-      'This coupon is not valid for your cart.';
+  static const String couponInvalid = 'This coupon is not valid for your cart.';
   static const String couponApplyError =
       'Error applying coupon. Please try again.';
   static const String couponRemoved = 'Coupon has been removed.';
@@ -104,32 +101,27 @@ class ErrorMessages {
   // ── Profile ──
   static const String profileSaveFailed =
       'Failed to save profile. Please try again.';
-  static const String profileUpdateSuccess =
-      'Profile updated successfully!';
+  static const String profileUpdateSuccess = 'Profile updated successfully!';
   static const String profileSavedSuccess = 'Profile saved successfully!';
 
   // ── Report / Support ──
-  static const String unableToSubmit =
-      'Unable to submit. Please try again.';
+  static const String unableToSubmit = 'Unable to submit. Please try again.';
   static const String unableToOpen = 'Unable to open. Please try again.';
   static const String deliveryAddressUpdated =
       'Delivery address updated successfully.';
-  static const String deliveryNoteSaved =
-      'Delivery note saved successfully.';
+  static const String deliveryNoteSaved = 'Delivery note saved successfully.';
   static const String supportContact =
       'Please contact us at support@freshpickkat.com';
 
   // ── Validation ──
-  static const String submissionInProgress =
-      'Already processing. Please wait.';
+  static const String submissionInProgress = 'Already processing. Please wait.';
   static const String descriptionTooShort =
       'Description must be at least 20 characters.';
   static const String descriptionTooLong =
       'Description must be 2000 characters or less.';
   static const String selectDeliveryAddress =
       'Please select a delivery address.';
-  static const String selectProduct =
-      'Select at least one affected product.';
+  static const String selectProduct = 'Select at least one affected product.';
   static const String attachImage = 'Please attach at least one image.';
   static const String maxImages = 'You can attach up to 3 images.';
   static const String enterPhoneNumber = 'Please enter your phone number';

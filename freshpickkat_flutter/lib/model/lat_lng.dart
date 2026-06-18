@@ -16,11 +16,16 @@ class AppLatLng {
   int get hashCode => Object.hash(latitude, longitude);
 
   static double distanceBetween(
-      double lat1, double lon1, double lat2, double lon2) {
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const R = 6371000;
     final dLat = _toRadians(lat2 - lat1);
     final dLon = _toRadians(lon2 - lon1);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(_toRadians(lat1)) *
             math.cos(_toRadians(lat2)) *
             math.sin(dLon / 2) *
@@ -30,10 +35,15 @@ class AppLatLng {
   }
 
   static double bearingBetween(
-      double lat1, double lon1, double lat2, double lon2) {
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     final dLon = _toRadians(lon2 - lon1);
     final y = math.sin(dLon) * math.cos(_toRadians(lat2));
-    final x = math.cos(_toRadians(lat1)) * math.sin(_toRadians(lat2)) -
+    final x =
+        math.cos(_toRadians(lat1)) * math.sin(_toRadians(lat2)) -
         math.sin(_toRadians(lat1)) *
             math.cos(_toRadians(lat2)) *
             math.cos(dLon);

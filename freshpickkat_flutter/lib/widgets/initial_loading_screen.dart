@@ -288,9 +288,7 @@ class NetworkStatusBanner extends StatelessWidget {
           ),
           // On web there is no device status bar, so SafeArea is unnecessary
           // and would add unwanted top padding.
-          child: kIsWeb
-              ? row
-              : SafeArea(bottom: false, child: row),
+          child: kIsWeb ? row : SafeArea(bottom: false, child: row),
         ),
       ),
     );
@@ -731,7 +729,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(6.r),
+                      padding: EdgeInsets.all(6.w),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

@@ -138,7 +138,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     required VoidCallback loadMore,
   }) {
     return GridView.builder(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.56,
@@ -253,7 +253,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
         slivers: [
           SliverToBoxAdapter(child: _buildOfferChips(context)),
           SliverPadding(
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(16.w),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

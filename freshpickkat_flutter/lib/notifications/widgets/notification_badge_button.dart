@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/notifications/controllers/notification_controller.dart';
-import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart' deferred as notificationHistoryScreen;
+import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart'
+    deferred as notificationHistoryScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
 
@@ -21,7 +22,8 @@ class NotificationBadgeButton extends StatelessWidget {
         onPressed: () async {
           await navigateDeferred(
             loadLibrary: notificationHistoryScreen.loadLibrary,
-            pageBuilder: () => notificationHistoryScreen.NotificationHistoryScreen(),
+            pageBuilder: () =>
+                notificationHistoryScreen.NotificationHistoryScreen(),
           );
         },
       ),

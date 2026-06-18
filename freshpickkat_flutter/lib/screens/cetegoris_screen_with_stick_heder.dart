@@ -89,12 +89,13 @@ class _CategoriesScreenWithStickyHeaderState
 
   void _computeCategoryOffsets() {
     if (!mounted || !context.mounted) return;
-    final width = MediaQuery.of(context).size.width;
+    final width = AppResponsive.layoutWidth(context);
     final sidebarWidth = AppResponsive.railWidth(context);
     final availableWidth = width - sidebarWidth - 9.w - 20.w;
     final columns = AppResponsive.categoryGridColumnsForWidth(availableWidth);
     final cellWidth = availableWidth / columns;
-    final aspectRatio = MediaQuery.of(context).orientation == Orientation.landscape
+    final aspectRatio =
+        MediaQuery.of(context).orientation == Orientation.landscape
         ? 0.86
         : 0.78;
     final cellHeight = cellWidth / aspectRatio;
@@ -117,7 +118,9 @@ class _CategoriesScreenWithStickyHeaderState
       final gridHeight = subCount > 0
           ? rows * cellHeight + (rows - 1) * spacing
           : 50.0;
-      _categoryOffsets.add(prevOffset + categoryNameHeight + gridHeight + dividerHeight);
+      _categoryOffsets.add(
+        prevOffset + categoryNameHeight + gridHeight + dividerHeight,
+      );
     }
   }
 
@@ -132,7 +135,10 @@ class _CategoriesScreenWithStickyHeaderState
             ? _itemsScrollController.offset
             : 0.0;
         final viewportTop =
-            (context.findRenderObject() as RenderBox?)?.localToGlobal(Offset.zero).dy ?? 0;
+            (context.findRenderObject() as RenderBox?)
+                ?.localToGlobal(Offset.zero)
+                .dy ??
+            0;
         final docOffset = scrollCurrent + offset.dy - viewportTop;
         _categoryOffsets[i] = docOffset;
       }
@@ -291,7 +297,7 @@ class _CategoriesScreenWithStickyHeaderState
                 child: ListView.builder(
                   itemCount: 8,
                   itemBuilder: (context, index) => Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(8.w),
                     child: Column(
                       children: [
                         Container(
@@ -318,7 +324,7 @@ class _CategoriesScreenWithStickyHeaderState
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(10.r),
+                  padding: EdgeInsets.all(10.w),
                   child: const CategoryItemGridShimmer(itemCount: 9),
                 ),
               ),
@@ -422,7 +428,7 @@ class _CategoriesScreenWithStickyHeaderState
                     children: isAllItems
                         ? [
                             Padding(
-                              padding: EdgeInsets.all(8.r),
+                              padding: EdgeInsets.all(8.w),
                               child: AnimatedScale(
                                 scale: isTapped ? 1.3 : 1.0,
                                 duration: const Duration(milliseconds: 250),
@@ -455,7 +461,7 @@ class _CategoriesScreenWithStickyHeaderState
                             AspectRatio(
                               aspectRatio: 1,
                               child: Padding(
-                                padding: EdgeInsets.all(8.r),
+                                padding: EdgeInsets.all(8.w),
                                 child: AnimatedScale(
                                   scale: isTapped ? 1.3 : 1.0,
                                   duration: const Duration(milliseconds: 250),
@@ -635,7 +641,7 @@ class _CategoriesScreenWithStickyHeaderState
             if (!productController.isMoreDataAvailable.value &&
                 productController.hasData)
               Padding(
-                padding: EdgeInsets.all(20.r),
+                padding: EdgeInsets.all(20.w),
                 child: Center(
                   child: Text(
                     'All products loaded',

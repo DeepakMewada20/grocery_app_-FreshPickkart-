@@ -65,7 +65,8 @@ class _SavingsCardState extends State<SavingsCard>
       final couponSavings = cart.couponDiscount;
       final deliverySavings = cart.deliveryDiscountAmount;
 
-      final totalSavings = productSavings +
+      final totalSavings =
+          productSavings +
           comboSavings +
           bogoSavings +
           couponSavings +
@@ -80,49 +81,59 @@ class _SavingsCardState extends State<SavingsCard>
 
       final rows = <_SavingsRow>[];
       if (productSavings > 0) {
-        rows.add(_SavingsRow(
-          icon: Icons.sell_rounded,
-          label: 'Product Savings',
-          amount: productSavings,
-          accentColor: accentColor,
-          cs: cs,
-        ));
+        rows.add(
+          _SavingsRow(
+            icon: Icons.sell_rounded,
+            label: 'Product Savings',
+            amount: productSavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
       }
       if (comboSavings > 0) {
-        rows.add(_SavingsRow(
-          icon: Icons.discount_rounded,
-          label: 'Combo Savings',
-          amount: comboSavings,
-          accentColor: accentColor,
-          cs: cs,
-        ));
+        rows.add(
+          _SavingsRow(
+            icon: Icons.discount_rounded,
+            label: 'Combo Savings',
+            amount: comboSavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
       }
       if (bogoSavings > 0) {
-        rows.add(_SavingsRow(
-          icon: Icons.card_giftcard_rounded,
-          label: 'BOGO Savings',
-          amount: bogoSavings,
-          accentColor: accentColor,
-          cs: cs,
-        ));
+        rows.add(
+          _SavingsRow(
+            icon: Icons.card_giftcard_rounded,
+            label: 'BOGO Savings',
+            amount: bogoSavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
       }
       if (couponSavings > 0) {
-        rows.add(_SavingsRow(
-          icon: Icons.local_offer_rounded,
-          label: 'Coupon Savings',
-          amount: couponSavings,
-          accentColor: accentColor,
-          cs: cs,
-        ));
+        rows.add(
+          _SavingsRow(
+            icon: Icons.local_offer_rounded,
+            label: 'Coupon Savings',
+            amount: couponSavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
       }
       if (deliverySavings > 0) {
-        rows.add(_SavingsRow(
-          icon: Icons.local_shipping_rounded,
-          label: 'Delivery Savings',
-          amount: deliverySavings,
-          accentColor: accentColor,
-          cs: cs,
-        ));
+        rows.add(
+          _SavingsRow(
+            icon: Icons.local_shipping_rounded,
+            label: 'Delivery Savings',
+            amount: deliverySavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
       }
 
       return Container(
@@ -143,7 +154,7 @@ class _SavingsCardState extends State<SavingsCard>
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10.r),

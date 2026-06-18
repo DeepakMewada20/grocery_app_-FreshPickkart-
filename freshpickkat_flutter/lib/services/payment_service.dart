@@ -144,5 +144,4 @@ class PaymentService {
       message: 'Payment confirmation timed out. Please check later.',
     );
   }
-
 }

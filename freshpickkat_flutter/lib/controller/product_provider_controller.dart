@@ -45,8 +45,9 @@ class ProductProviderController extends GetxController {
       filteredProducts.assignAll(allProducts);
       return;
     }
-    final selected =
-        currentSubcategories.map((s) => s.trim().toLowerCase()).toSet();
+    final selected = currentSubcategories
+        .map((s) => s.trim().toLowerCase())
+        .toSet();
     filteredProducts.assignAll(
       allProducts.where((p) {
         return p.subcategory.any((subName) {
@@ -319,7 +320,10 @@ class ProductProviderController extends GetxController {
 
       final merged = [...allProducts];
       final existingKeys = merged
-          .map((product) => '${product.productId}_${product.variantId ?? "default"}')
+          .map(
+            (product) =>
+                '${product.productId}_${product.variantId ?? "default"}',
+          )
           .toSet();
 
       for (final product in fetched) {

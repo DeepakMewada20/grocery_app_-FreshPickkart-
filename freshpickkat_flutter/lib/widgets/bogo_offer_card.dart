@@ -5,7 +5,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
+    deferred as productDetailScreen;
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
@@ -57,7 +58,8 @@ class BogoOfferCard extends StatelessWidget {
       onTap: () async {
         await navigateDeferred(
           loadLibrary: productDetailScreen.loadLibrary,
-          pageBuilder: () => productDetailScreen.ProductDetailScreen(product: product),
+          pageBuilder: () =>
+              productDetailScreen.ProductDetailScreen(product: product),
         );
       },
       child: Container(
@@ -196,7 +198,7 @@ class BogoOfferCard extends StatelessWidget {
             Divider(height: 1, color: cs.outlineVariant),
             // Offer Text & Free Products Section
             Padding(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(12.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

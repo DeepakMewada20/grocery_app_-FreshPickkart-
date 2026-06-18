@@ -60,80 +60,80 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: Obx(() {
-        // Rebuild on theme mode change
-        ThemeController.instance.themeMode;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final navTheme = Theme.of(context).bottomNavigationBarTheme;
+          // Rebuild on theme mode change
+          ThemeController.instance.themeMode;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final navTheme = Theme.of(context).bottomNavigationBarTheme;
 
-        // Icon colors: light mode → near-black, dark mode → white
-        final unselectedIconColor = isDark
-            ? Colors.white54
-            : const Color(0xFF444444);
-        final selectedIconColor = isDark ? Colors.white : Colors.black87;
+          // Icon colors: light mode → near-black, dark mode → white
+          final unselectedIconColor = isDark
+              ? Colors.white54
+              : const Color(0xFF444444);
+          final selectedIconColor = isDark ? Colors.white : Colors.black87;
 
-        final currentIndex = tabController.currentTabIndex.value;
-        return BottomNavigationBar(
-          backgroundColor: navTheme.backgroundColor,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: currentIndex,
-          onTap: _onItemTapped,
-          showUnselectedLabels: true,
+          final currentIndex = tabController.currentTabIndex.value;
+          return BottomNavigationBar(
+            backgroundColor: navTheme.backgroundColor,
+            type: BottomNavigationBarType.fixed,
+            currentIndex: currentIndex,
+            onTap: _onItemTapped,
+            showUnselectedLabels: true,
 
-          // No selectedItemColor — let selectedIconTheme + selectedLabelStyle work independently
-          selectedItemColor: null,
+            // No selectedItemColor — let selectedIconTheme + selectedLabelStyle work independently
+            selectedItemColor: null,
 
-          // Icon: slightly larger & brighter on selection, but NOT green
-          selectedIconTheme: IconThemeData(
-            color: selectedIconColor,
-            size: 26.r,
-          ),
-          unselectedIconTheme: IconThemeData(
-            color: unselectedIconColor,
-            size: 23.r,
-          ),
-
-          // Label: only label turns green when selected
-          selectedLabelStyle: TextStyle(
-            color: AppTheme.primaryGreen,
-            fontWeight: FontWeight.w600,
-            fontSize: 11.sp,
-          ),
-          unselectedLabelStyle: TextStyle(
-            color: unselectedIconColor,
-            fontWeight: FontWeight.normal,
-            fontSize: 11.sp,
-          ),
-
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
+            // Icon: slightly larger & brighter on selection, but NOT green
+            selectedIconTheme: IconThemeData(
+              color: selectedIconColor,
+              size: 26.r,
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.category),
-              label: 'Categories',
+            unselectedIconTheme: IconThemeData(
+              color: unselectedIconColor,
+              size: 23.r,
             ),
-            BottomNavigationBarItem(
-              icon: Obx(() {
-                final count = CartController.instance.itemCount;
-                return Badge(
-                  label: Text('$count'),
-                  isLabelVisible: count > 0,
-                  backgroundColor: AppTheme.primaryGreen,
-                  textColor: Colors.white,
-                  child: const Icon(Icons.shopping_basket),
-                );
-              }),
-              label: 'Basket',
+
+            // Label: only label turns green when selected
+            selectedLabelStyle: TextStyle(
+              color: AppTheme.primaryGreen,
+              fontWeight: FontWeight.w600,
+              fontSize: 11.sp,
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz),
-              label: 'More',
+            unselectedLabelStyle: TextStyle(
+              color: unselectedIconColor,
+              fontWeight: FontWeight.normal,
+              fontSize: 11.sp,
             ),
-          ],
-        );
-      }),
-    ),
-  );
+
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.category),
+                label: 'Categories',
+              ),
+              BottomNavigationBarItem(
+                icon: Obx(() {
+                  final count = CartController.instance.itemCount;
+                  return Badge(
+                    label: Text('$count'),
+                    isLabelVisible: count > 0,
+                    backgroundColor: AppTheme.primaryGreen,
+                    textColor: Colors.white,
+                    child: const Icon(Icons.shopping_basket),
+                  );
+                }),
+                label: 'Basket',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.more_horiz),
+                label: 'More',
+              ),
+            ],
+          );
+        }),
+      ),
+    );
   }
 }

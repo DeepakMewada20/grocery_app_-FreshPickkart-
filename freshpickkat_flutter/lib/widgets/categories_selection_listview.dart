@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -72,7 +73,8 @@ class _CategoriesSelectionListviewState
     final reveal = viewport.getOffsetToReveal(renderObject, 0.0);
     const lookahead = 500.0;
 
-    if (reveal.offset <= position.pixels + position.viewportDimension + lookahead) {
+    if (reveal.offset <=
+        position.pixels + position.viewportDimension + lookahead) {
       _hasTriggered = true;
       _scrollPosition?.removeListener(_onScroll);
       _triggerFetch();
@@ -199,17 +201,28 @@ class _CategoriesSelectionListviewState
 
                 final p = products[index];
                 final uniqueKey = '${p.productId}_trending_$index';
+                final cardWidth = AppResponsive.horizontalCardWidth(context);
+                final cardHeight = AppResponsive.horizontalProductListHeight(
+                  context,
+                );
+                final productCard = ProductCard(
+                  product: p,
+                  enableHero: false,
+                  heroTagSuffix: '_trending',
+                  onAddPressed: () {},
+                );
                 return Container(
-                  width: AppResponsive.horizontalCardWidth(context),
+                  width: cardWidth,
                   margin: EdgeInsets.only(right: 12.w),
                   child: KeyedSubtree(
                     key: ValueKey(uniqueKey),
-                    child: ProductCard(
-                      product: p,
-                      enableHero: false,
-                      heroTagSuffix: '_trending',
-                      onAddPressed: () {},
-                    ),
+                    child: kIsWeb
+                        ? SizedBox(
+                            width: cardWidth,
+                            height: cardHeight,
+                            child: productCard,
+                          )
+                        : productCard,
                   ),
                 );
               },

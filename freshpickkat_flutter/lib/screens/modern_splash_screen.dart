@@ -43,8 +43,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   const MainScreen(),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
+                    return FadeTransition(opacity: animation, child: child);
+                  },
               transitionDuration: const Duration(milliseconds: 500),
             ),
           );
@@ -136,7 +136,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     _vehicleController.forward();
 
     await Future.delayed(const Duration(milliseconds: 2100));
-    
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -239,7 +239,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               ),
                             ],
                           ),
-                          padding: EdgeInsets.all(12.r),
+                          padding: EdgeInsets.all(12.w),
                           child: Image.asset(
                             'lib/assets/images/name_logo.png',
                             fit: BoxFit.contain,
@@ -487,7 +487,9 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   6,
                   (index) => Container(
                     decoration: BoxDecoration(
-                      color: Colors.yellow.withValues(alpha: 0.3 + (index % 3) * 0.2),
+                      color: Colors.yellow.withValues(
+                        alpha: 0.3 + (index % 3) * 0.2,
+                      ),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -510,7 +512,10 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           topLeft: Radius.circular(4),
           topRight: Radius.circular(4),
         ),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -553,7 +558,10 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           topLeft: Radius.circular(6),
           topRight: Radius.circular(6),
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
       ),
       child: Column(
         children: [

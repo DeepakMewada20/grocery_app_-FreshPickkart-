@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -123,7 +124,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       variantId: _selectedVariantId,
     );
 
-    final freeProductIds = (offer?.freeProductIds.isNotEmpty == true
+    final freeProductIds =
+        (offer?.freeProductIds.isNotEmpty == true
             ? offer!.freeProductIds
             : product.bogoFreeProductIds) ??
         const <String>[];
@@ -168,7 +170,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       product.productId!,
       variantId: _selectedVariantId,
     );
-    final freeProductIds = (offer?.freeProductIds.isNotEmpty == true
+    final freeProductIds =
+        (offer?.freeProductIds.isNotEmpty == true
             ? offer!.freeProductIds
             : product.bogoFreeProductIds) ??
         const <String>[];
@@ -221,8 +224,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _onScroll() {
     const collapseThreshold = 200.0;
-    final opacity =
-        (_scrollController.offset / collapseThreshold).clamp(0.0, 1.0);
+    final opacity = (_scrollController.offset / collapseThreshold).clamp(
+      0.0,
+      1.0,
+    );
     if (opacity != _appBarOpacity) {
       setState(() => _appBarOpacity = opacity);
     }
@@ -333,7 +338,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
 
                 Padding(
-                  padding: EdgeInsets.all(16.r),
+                  padding: EdgeInsets.all(16.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -497,7 +502,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       if (isBogoProduct(displayProduct))
                         Container(
                           margin: EdgeInsets.only(top: 12.h),
-                          padding: EdgeInsets.all(14.r),
+                          padding: EdgeInsets.all(14.w),
                           decoration: BoxDecoration(
                             color: offerTheme.badgeSoft,
                             borderRadius: BorderRadius.circular(18.r),
@@ -806,7 +811,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               onTap: () => _decrementQuantity(product),
               borderRadius: BorderRadius.circular(4.r),
               child: Padding(
-                padding: EdgeInsets.all(10.r),
+                padding: EdgeInsets.all(10.w),
                 child: Icon(Icons.remove, color: Colors.white, size: 18.r),
               ),
             ),
@@ -824,7 +829,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               onTap: () => _incrementQuantity(product),
               borderRadius: BorderRadius.circular(4.r),
               child: Padding(
-                padding: EdgeInsets.all(10.r),
+                padding: EdgeInsets.all(10.w),
                 child: Icon(Icons.add, color: Colors.white, size: 18.r),
               ),
             ),
@@ -835,7 +840,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildDescriptionSection(Product product) {
-    final hasShort = product.shortDescription != null &&
+    final hasShort =
+        product.shortDescription != null &&
         product.shortDescription!.trim().isNotEmpty;
     final hasLong =
         product.description != null && product.description!.trim().isNotEmpty;
@@ -966,21 +972,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         itemCount: relatedProducts.length,
         itemBuilder: (context, index) {
           final p = relatedProducts[index];
+          final cardWidth = AppResponsive.horizontalCardWidth(context);
+          final cardHeight = AppResponsive.horizontalProductListHeight(context);
+          final productCard = ProductCard(
+            key: ValueKey(p.productId),
+            product: p,
+            enableHero: false,
+            onTap: () {
+              _controller.updateProduct(p);
+              setState(() {
+                _selectedVariantId = inferProductVariantId(p);
+              });
+            },
+            onAddPressed: () {},
+          );
           return Container(
-            width: AppResponsive.horizontalCardWidth(context),
+            width: cardWidth,
             margin: EdgeInsets.only(right: 12.w),
-            child: ProductCard(
-              key: ValueKey(p.productId),
-              product: p,
-              enableHero: false,
-              onTap: () {
-                _controller.updateProduct(p);
-                setState(() {
-                  _selectedVariantId = inferProductVariantId(p);
-                });
-              },
-              onAddPressed: () {},
-            ),
+            child: kIsWeb
+                ? SizedBox(
+                    width: cardWidth,
+                    height: cardHeight,
+                    child: productCard,
+                  )
+                : productCard,
           );
         },
       ),

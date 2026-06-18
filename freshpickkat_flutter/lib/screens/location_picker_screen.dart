@@ -374,7 +374,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             left: 16.w,
             right: 16.w,
             child: Container(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(8),
@@ -435,7 +435,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       20.w,
                       20.h,
                       20.w,
-                       20.h + viewInsets.bottom + MediaQuery.paddingOf(context).bottom,
+                      20.h +
+                          viewInsets.bottom +
+                          MediaQuery.paddingOf(context).bottom,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,12 +598,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       ],
                     ),
                   ),
-                ));
-              },
-            ),
-
-          ],
-        ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

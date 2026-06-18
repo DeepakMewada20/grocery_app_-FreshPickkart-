@@ -12,7 +12,8 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
-import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart' deferred as orderConfirmationScreen;
+import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart'
+    deferred as orderConfirmationScreen;
 import 'package:freshpickkat_flutter/services/checkout_service.dart';
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/payment_link_service.dart';
@@ -35,7 +36,8 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
+    deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -107,11 +109,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           basketMode: 'cart',
         );
         cartController.applyCartHydratedData(hydrated.cartData);
-        BannerController.instance.checkoutPageBanners
-            .assignAll(hydrated.checkoutBanners);
+        BannerController.instance.checkoutPageBanners.assignAll(
+          hydrated.checkoutBanners,
+        );
       } else {
         cartController.cartPricing.value = null;
-        await BannerController.instance.refreshBannersForScreen('checkout_page');
+        await BannerController.instance.refreshBannersForScreen(
+          'checkout_page',
+        );
       }
 
       await orderRecoveryService.recoverPendingPayments(
@@ -393,111 +398,115 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return SafeArea(
           top: false,
           child: ConstrainedBox(
-          constraints: AppResponsive.sheetConstraints(context),
-          child: Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+            constraints: AppResponsive.sheetConstraints(context),
+            child: Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
-            ),
-            child: StatefulBuilder(
-              builder: (context, setSheetState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 40.w,
-                      height: 4.h,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+              child: StatefulBuilder(
+                builder: (context, setSheetState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40.w,
+                        height: 4.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20.h),
-                    Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 48.r,
-                    ),
-                    SizedBox(height: 12.h),
-                    Text(
-                      'Order Created!',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(height: 20.h),
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 48.r,
                       ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'Share the payment link with someone to complete the payment.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.grey[600],
+                      SizedBox(height: 12.h),
+                      Text(
+                        'Order Created!',
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 12.h),
-                    Container(
-                      padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        '#$orderId',
+                      SizedBox(height: 8.h),
+                      Text(
+                        'Share the payment link with someone to complete the payment.',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryGreen,
+                          color: Colors.grey[600],
                         ),
                       ),
-                    ),
-                    SizedBox(height: 20.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildShareButton(
-                            icon: copied ? Icons.check : Icons.copy,
-                            label: copied ? 'Copied!' : 'Copy Link',
-                            color: copied ? AppTheme.primaryGreen : Colors.grey[700]!,
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: paymentLink));
-                              setSheetState(() {
-                                copied = true;
-                              });
-                              Future.delayed(const Duration(seconds: 2), () {
-                                setSheetState(() {
-                                  copied = false;
-                                });
-                              });
-                            },
-                          ),
+                      SizedBox(height: 12.h),
+                      Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: _buildShareButton(
-                            icon: Icons.share,
-                            label: 'Share',
+                        child: Text(
+                          '#$orderId',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
                             color: AppTheme.primaryGreen,
-                            onTap: () {
-                              Share.share(
-                                message,
-                                subject: 'Payment for Order #$orderId',
-                              );
-                            },
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 16.h),
-                  ],
-                );
-              },
+                      ),
+                      SizedBox(height: 20.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildShareButton(
+                              icon: copied ? Icons.check : Icons.copy,
+                              label: copied ? 'Copied!' : 'Copy Link',
+                              color: copied
+                                  ? AppTheme.primaryGreen
+                                  : Colors.grey[700]!,
+                              onTap: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: paymentLink),
+                                );
+                                setSheetState(() {
+                                  copied = true;
+                                });
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  setSheetState(() {
+                                    copied = false;
+                                  });
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: _buildShareButton(
+                              icon: Icons.share,
+                              label: 'Share',
+                              color: AppTheme.primaryGreen,
+                              onTap: () {
+                                Share.share(
+                                  message,
+                                  subject: 'Payment for Order #$orderId',
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -513,7 +522,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.r),
+        padding: EdgeInsets.symmetric(vertical: 12.h),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12.r),
@@ -701,41 +710,92 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return SafeArea(
           top: false,
           child: Align(
-          alignment: Alignment.bottomCenter,
-          child: ConstrainedBox(
-            constraints: AppResponsive.sheetConstraints(context),
-            child: SingleChildScrollView(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: AppResponsive.sheetConstraints(context),
+              child: SingleChildScrollView(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
-                ),
-                padding: EdgeInsets.all(20.r),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 40.w,
-                      height: 4.h,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40.w,
+                        height: 4.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Select UPI App',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
+                      SizedBox(height: 16.h),
+                      Text(
+                        'Select UPI App',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20.h),
-                    ...upiApps.map((app) {
-                      return ListTile(
+                      SizedBox(height: 20.h),
+                      ...upiApps.map((app) {
+                        return ListTile(
+                          leading: Container(
+                            width: 48.r,
+                            height: 48.r,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryGreen.withValues(
+                                alpha: 0.14,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppTheme.primaryGreen.withValues(
+                                  alpha: 0.18,
+                                ),
+                              ),
+                            ),
+                            child: Icon(
+                              app['icon'] as IconData,
+                              color: AppTheme.primaryGreen,
+                              size: 26.r,
+                            ),
+                          ),
+                          title: Text(
+                            app['name'] as String,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16.r,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.4),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context, true);
+                            _submitUpiPayment(
+                              keyId: keyId,
+                              amountPaise: amountPaise,
+                              currency: currency,
+                              razorpayOrderId: razorpayOrderId,
+                              customerPhone: customerPhone,
+                              customerEmail: customerEmail,
+                              orderId: orderId,
+                              upiAppPackageName: app['packageName'] as String,
+                            );
+                          },
+                        );
+                      }),
+                      SizedBox(height: 8.h),
+                      ListTile(
                         leading: Container(
                           width: 48.r,
                           height: 48.r,
@@ -751,13 +811,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           ),
                           child: Icon(
-                            app['icon'] as IconData,
+                            Icons.account_balance_wallet_outlined,
                             color: AppTheme.primaryGreen,
                             size: 26.r,
                           ),
                         ),
                         title: Text(
-                          app['name'] as String,
+                          'Enter VPA',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -780,66 +840,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             customerPhone: customerPhone,
                             customerEmail: customerEmail,
                             orderId: orderId,
-                            upiAppPackageName: app['packageName'] as String,
+                            upiAppPackageName: null,
                           );
                         },
-                      );
-                    }),
-                    SizedBox(height: 8.h),
-                    ListTile(
-                      leading: Container(
-                        width: 48.r,
-                        height: 48.r,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.primaryGreen.withValues(
-                              alpha: 0.18,
-                            ),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.account_balance_wallet_outlined,
-                          color: AppTheme.primaryGreen,
-                          size: 26.r,
-                        ),
                       ),
-                      title: Text(
-                        'Enter VPA',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16.r,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context, true);
-                        _submitUpiPayment(
-                          keyId: keyId,
-                          amountPaise: amountPaise,
-                          currency: currency,
-                          razorpayOrderId: razorpayOrderId,
-                          customerPhone: customerPhone,
-                          customerEmail: customerEmail,
-                          orderId: orderId,
-                          upiAppPackageName: null,
-                        );
-                      },
-                    ),
-                    SizedBox(height: 16.h),
-                  ],
+                      SizedBox(height: 16.h),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         );
       },
     );
@@ -1130,13 +1141,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     orderController.clearTempDeliveryAddress();
 
     try {
-      Get.dialog(const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))), barrierDismissible: false);
+      Get.dialog(
+        const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
       await orderConfirmationScreen.loadLibrary();
       Get.back();
-      Get.offAll(() => orderConfirmationScreen.OrderConfirmationScreen(orderId: orderId));
+      Get.offAll(
+        () => orderConfirmationScreen.OrderConfirmationScreen(orderId: orderId),
+      );
     } catch (e) {
       Get.back();
-      Get.snackbar('Error', 'Unable to load this feature. Please try again.', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Error',
+        'Unable to load this feature. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
 
     cartController.removeCoupon();
@@ -1372,7 +1399,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         );
                       }),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.r),
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: AppResponsive.constrainContent(
                           context: context,
                           maxWidth: AppResponsive.maxCheckoutWidth,
@@ -1455,7 +1482,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final displayAddress = tempAddress ?? address;
 
       return Container(
-        padding: EdgeInsets.all(20.r),
+        padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16.r),
@@ -1730,7 +1757,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -1836,7 +1863,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(12.r),
@@ -1991,7 +2018,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(12.r),
@@ -2104,7 +2131,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildBillDetails(ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -2246,7 +2273,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPaymentSection(ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -2305,7 +2332,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
@@ -2318,7 +2345,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppTheme.primaryGreen : cs.onSurface),
+            Icon(
+              icon,
+              color: isSelected ? AppTheme.primaryGreen : cs.onSurface,
+            ),
             SizedBox(width: 12.w),
             Expanded(
               child: Column(
@@ -2354,7 +2384,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPlaceOrderButton(ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: cs.outlineVariant)),
@@ -2416,7 +2446,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final textColor = _isErrorBanner ? cs.onErrorContainer : cs.onSurface;
     final icon = _isErrorBanner ? Icons.error_outline : Icons.info_outline;
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12.r),

@@ -11,9 +11,9 @@ enum RewardType {
   freeDelivery,
   couponApplied,
   betterCoupon,
-  cashback,      // future
+  cashback, // future
   loyaltyPoints, // future
-  membership,    // future
+  membership, // future
 }
 
 // ─────────────────────────────────────────────
@@ -107,23 +107,23 @@ class RewardCelebrationService extends GetxService {
 
     final isCouponPresent =
         currentCouponCode != null && currentCouponCode.isNotEmpty;
-    final hadCoupon =
-        _prevCouponCode != null && _prevCouponCode!.isNotEmpty;
+    final hadCoupon = _prevCouponCode != null && _prevCouponCode!.isNotEmpty;
 
     // ── 1. FREE DELIVERY UNLOCK ────────────────────────────────────────────
     final wasDeliveryPaid = _prevDeliveryFee > 0.01;
     final isNowFree = currentDeliveryFee <= 0.01 && originalDeliveryFee > 0.01;
     if (wasDeliveryPaid && isNowFree && !_freeDeliveryCelebrated) {
-      final savings =
-          originalDeliveryFee > 0 ? originalDeliveryFee : 0.0;
-      _emit(RewardEvent(
-        type: RewardType.freeDelivery,
-        title: '🎉 Free Delivery Unlocked!',
-        subtitle: savings > 0
-            ? 'You saved ₹${savings.formatPrice} on delivery'
-            : 'Free delivery applied to your order',
-        savedAmount: savings,
-      ));
+      final savings = originalDeliveryFee > 0 ? originalDeliveryFee : 0.0;
+      _emit(
+        RewardEvent(
+          type: RewardType.freeDelivery,
+          title: '🎉 Free Delivery Unlocked!',
+          subtitle: savings > 0
+              ? 'You saved ₹${savings.formatPrice} on delivery'
+              : 'Free delivery applied to your order',
+          savedAmount: savings,
+        ),
+      );
       _freeDeliveryCelebrated = true;
     }
     // Reset if delivery becomes paid again
@@ -135,32 +135,34 @@ class RewardCelebrationService extends GetxService {
         isCouponPresent &&
         currentCouponDiscount > 0 &&
         !_couponCelebrated) {
-      _emit(RewardEvent(
-        type: RewardType.couponApplied,
-        title: '🎉 Best Offer Applied!',
-        subtitle:
-            '₹${currentCouponDiscount.formatPrice} discount added automatically',
-        savedAmount: currentCouponDiscount,
-      ));
+      _emit(
+        RewardEvent(
+          type: RewardType.couponApplied,
+          title: '🎉 Best Offer Applied!',
+          subtitle:
+              '₹${currentCouponDiscount.formatPrice} discount added automatically',
+          savedAmount: currentCouponDiscount,
+        ),
+      );
       _couponCelebrated = true;
       _betterCouponCelebrated = true; // Suppress "better" on the same event
     }
 
     // ── 3. BETTER COUPON (Discount increased significantly) ───────────────
-    final discountIncreased =
-        currentCouponDiscount > _prevCouponDiscount + 0.5;
+    final discountIncreased = currentCouponDiscount > _prevCouponDiscount + 0.5;
     if (hadCoupon &&
         isCouponPresent &&
         discountIncreased &&
         !_betterCouponCelebrated) {
       final additional = currentCouponDiscount - _prevCouponDiscount;
-      _emit(RewardEvent(
-        type: RewardType.betterCoupon,
-        title: '🎉 Bigger Savings Unlocked!',
-        subtitle:
-            'Additional ₹${additional.formatPrice} saved automatically',
-        savedAmount: additional,
-      ));
+      _emit(
+        RewardEvent(
+          type: RewardType.betterCoupon,
+          title: '🎉 Bigger Savings Unlocked!',
+          subtitle: 'Additional ₹${additional.formatPrice} saved automatically',
+          savedAmount: additional,
+        ),
+      );
       _betterCouponCelebrated = true;
     }
 

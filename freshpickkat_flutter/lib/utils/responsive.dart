@@ -9,6 +9,11 @@ class AppResponsive {
   static const double maxReadableWidth = 720;
   static const double maxCheckoutWidth = 680;
   static const double maxDetailWidth = 920;
+  static const double webFrameWidth = 2000; // Allow full browser width
+
+  static double layoutWidth(BuildContext context) {
+    return MediaQuery.sizeOf(context).width;
+  }
 
   static bool isLandscape(BuildContext context) {
     return MediaQuery.orientationOf(context) == Orientation.landscape;
@@ -177,7 +182,7 @@ class AppSpacing {
   static double get xl => 20.w;
   static double get xxl => 24.w;
 
-  static EdgeInsets all(double value) => EdgeInsets.all(value.r);
+  static EdgeInsets all(double value) => EdgeInsets.all(value);
 
   static EdgeInsets symmetric({
     double horizontal = 0,

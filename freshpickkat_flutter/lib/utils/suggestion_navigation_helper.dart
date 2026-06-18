@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
-import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart' deferred as comboOffersScreen;
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
+    deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
+    deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
+    deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart'
+    deferred as comboOffersScreen;
 import 'package:freshpickkat_flutter/basket/suggestions/combined_detail_bottomsheet.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
@@ -41,7 +45,8 @@ class SuggestionNavigationHelper {
         if (comboId != null) {
           await navigateDeferred(
             loadLibrary: comboOffersScreen.loadLibrary,
-            pageBuilder: () => comboOffersScreen.ComboOffersScreen(highlightComboId: comboId),
+            pageBuilder: () =>
+                comboOffersScreen.ComboOffersScreen(highlightComboId: comboId),
           );
         }
         break;
@@ -50,7 +55,8 @@ class SuggestionNavigationHelper {
         if (code != null) {
           await navigateDeferred(
             loadLibrary: couponsScreen.loadLibrary,
-            pageBuilder: () => couponsScreen.CouponsScreen(autoApplyCouponCode: code),
+            pageBuilder: () =>
+                couponsScreen.CouponsScreen(autoApplyCouponCode: code),
           );
         }
         break;
@@ -77,7 +83,10 @@ class SuggestionNavigationHelper {
     );
   }
 
-  static Future<void> _navToProduct(String? productId, String? variantId) async {
+  static Future<void> _navToProduct(
+    String? productId,
+    String? variantId,
+  ) async {
     if (productId == null) return;
 
     final product = ProductProviderController.instance.allProducts

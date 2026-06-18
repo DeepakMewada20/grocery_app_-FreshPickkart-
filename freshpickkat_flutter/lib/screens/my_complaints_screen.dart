@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
-import 'package:freshpickkat_flutter/screens/orders_screen.dart' deferred as ordersScreen;
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
+    deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/orders_screen.dart'
+    deferred as ordersScreen;
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:get/get.dart';
 
 class MyComplaintsScreen extends StatefulWidget {
   const MyComplaintsScreen({super.key});
@@ -82,7 +83,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
           : _error != null
           ? Center(
               child: Padding(
-                padding: EdgeInsets.all(24.r),
+                padding: EdgeInsets.all(24.w),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -157,11 +158,13 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
             onTap: () async {
               await navigateDeferred(
                 loadLibrary: complaintDetailScreen.loadLibrary,
-                pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(
+                  complaint: complaint,
+                ),
               );
             },
             child: Container(
-              padding: EdgeInsets.all(14.r),
+              padding: EdgeInsets.all(14.w),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16.r),

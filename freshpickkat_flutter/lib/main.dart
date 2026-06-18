@@ -94,10 +94,9 @@ class MyApp extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final mq = MediaQuery.of(context);
-        const double containerWidth = 645;
-        const double screenUtilWidth = 430;
-        final isWideWeb = kIsWeb && constraints.maxWidth > containerWidth;
-        final effectiveWidth = isWideWeb ? screenUtilWidth : constraints.maxWidth;
+        final webFrameWidth = AppResponsive.webFrameWidth;
+        final isWideWeb = kIsWeb && constraints.maxWidth > webFrameWidth;
+        final effectiveWidth = isWideWeb ? webFrameWidth : constraints.maxWidth;
 
         return MediaQuery(
           data: mq.copyWith(
@@ -121,7 +120,7 @@ class MyApp extends StatelessWidget {
                   if (child == null) return const SizedBox.shrink();
                   final width = constraints.maxWidth;
 
-                  if (!kIsWeb || width <= containerWidth) {
+                  if (!kIsWeb || width <= webFrameWidth) {
                     return Stack(
                       children: [
                         child,
@@ -134,7 +133,7 @@ class MyApp extends StatelessWidget {
                     color: const Color(0xFFEDEDED),
                     alignment: Alignment.topCenter,
                     child: SizedBox(
-                      width: containerWidth,
+                      width: webFrameWidth,
                       child: Stack(
                         children: [
                           child,
@@ -145,10 +144,19 @@ class MyApp extends StatelessWidget {
                   );
                 },
                 getPages: [
-                  GetPage(name: '/checkout', page: () => const CheckoutScreen()),
-                  GetPage(name: RouteManager.home, page: () => const MainScreen()),
+                  GetPage(
+                    name: '/checkout',
+                    page: () => const CheckoutScreen(),
+                  ),
+                  GetPage(
+                    name: RouteManager.home,
+                    page: () => const MainScreen(),
+                  ),
                   GetPage(name: '/login', page: () => const PhoneAuthScreen()),
-                  GetPage(name: '/phone-auth', page: () => const PhoneAuthScreen()),
+                  GetPage(
+                    name: '/phone-auth',
+                    page: () => const PhoneAuthScreen(),
+                  ),
                   GetPage(name: '/offers', page: () => const OffersScreen()),
                   GetPage(
                     name: '/combo-offers',

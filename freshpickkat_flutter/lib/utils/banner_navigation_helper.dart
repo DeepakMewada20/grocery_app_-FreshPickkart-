@@ -1,10 +1,13 @@
-
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
-import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart' deferred as bannerOfferHostScreen;
-import 'package:freshpickkat_flutter/screens/category_item_screen.dart' deferred as categoryItemScreen;
-import 'package:freshpickkat_flutter/screens/coupons_screen.dart' deferred as couponsScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
+    deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/banner_offer_host_screen.dart'
+    deferred as bannerOfferHostScreen;
+import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
+    deferred as categoryItemScreen;
+import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
+    deferred as couponsScreen;
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:get/get.dart';
@@ -62,7 +65,8 @@ class BannerNavigationHelper {
 
     await navigateDeferred(
       loadLibrary: productDetailScreen.loadLibrary,
-      pageBuilder: () => productDetailScreen.ProductDetailScreen(product: product),
+      pageBuilder: () =>
+          productDetailScreen.ProductDetailScreen(product: product),
     );
   }
 
@@ -113,7 +117,8 @@ class BannerNavigationHelper {
   static Future<void> _navigateToCoupons(String? couponCode) async {
     await navigateDeferred(
       loadLibrary: couponsScreen.loadLibrary,
-      pageBuilder: () => couponsScreen.CouponsScreen(autoApplyCouponCode: couponCode),
+      pageBuilder: () =>
+          couponsScreen.CouponsScreen(autoApplyCouponCode: couponCode),
     );
   }
 

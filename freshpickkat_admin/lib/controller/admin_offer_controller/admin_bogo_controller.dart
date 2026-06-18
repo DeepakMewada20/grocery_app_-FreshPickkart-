@@ -6,7 +6,6 @@ import '../../services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
 import '../../widgets/delete_impact_dialog.dart';
-import '../../widgets/shared_dialogs.dart';
 import '../network_controller.dart';
 
 class AdminBogoController extends GetxController {

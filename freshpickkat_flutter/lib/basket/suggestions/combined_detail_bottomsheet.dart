@@ -52,7 +52,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(10.r),
+                      padding: EdgeInsets.all(10.w),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
@@ -115,10 +115,14 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                 Positioned(
                                   top: 28.r,
                                   bottom: 0,
-                                  left: 14.r - 1.r, // Centered relative to 28.r circle
+                                  left:
+                                      14.r -
+                                      1.r, // Centered relative to 28.r circle
                                   width: 2.r,
                                   child: Container(
-                                    color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                    color: AppTheme.primaryGreen.withValues(
+                                      alpha: 0.1,
+                                    ),
                                   ),
                                 ),
                               Row(
@@ -149,7 +153,8 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                     child: Padding(
                                       padding: EdgeInsets.only(bottom: 24.h),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             action.label,
@@ -176,7 +181,8 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                               spacing: 8.w,
                                               runSpacing: 8.h,
                                               children: [
-                                                if ((action.extraSpend ?? 0) > 0)
+                                                if ((action.extraSpend ?? 0) >
+                                                    0)
                                                   _InfoPill(
                                                     label:
                                                         'Spend ₹${action.extraSpend!.formatPrice}',
@@ -205,7 +211,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                         }),
                         SizedBox(height: 8.h),
                         Container(
-                          padding: EdgeInsets.all(16.r),
+                          padding: EdgeInsets.all(16.w),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.white.withValues(alpha: 0.05)
@@ -503,7 +509,7 @@ class _FallbackComboCard extends StatelessWidget {
         onTap: onToggle,
         borderRadius: BorderRadius.circular(20.r),
         child: Padding(
-          padding: EdgeInsets.all(16.r),
+          padding: EdgeInsets.all(16.w),
           child: Row(
             children: [
               Expanded(

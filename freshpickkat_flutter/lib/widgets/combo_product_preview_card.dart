@@ -43,7 +43,7 @@ class ComboProductPreviewCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(10.r),
+            padding: EdgeInsets.all(10.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

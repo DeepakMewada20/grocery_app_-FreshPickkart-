@@ -1,7 +1,8 @@
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart' deferred as locationPickerScreen;
+import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
+    deferred as locationPickerScreen;
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -110,16 +111,14 @@ class DeliveryIssueController extends GetxController {
             title: selectedIssueType.value,
             description: cleanDescription,
             selectedField: isDeliveryLocationIssue ? selectedField.value : null,
-            requestedAddress:
-                isDeliveryLocationIssue && isAddressChange
-                    ? selectedAddress.value
-                    : null,
-            requestedNote:
-                isDeliveryLocationIssue && !isAddressChange
-                    ? note.trim().isEmpty
-                        ? null
-                        : note.trim()
-                    : null,
+            requestedAddress: isDeliveryLocationIssue && isAddressChange
+                ? selectedAddress.value
+                : null,
+            requestedNote: isDeliveryLocationIssue && !isAddressChange
+                ? note.trim().isEmpty
+                      ? null
+                      : note.trim()
+                : null,
           );
       submittedComplaint.value = complaint;
       return complaint;

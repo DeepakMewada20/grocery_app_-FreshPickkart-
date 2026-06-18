@@ -89,61 +89,66 @@ class _BasketScreenState extends State<BasketScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Obx(() {
-        if (cartController.itemCount == 0) {
-          return _buildEmptyState(context);
-        }
+          if (cartController.itemCount == 0) {
+            return _buildEmptyState(context);
+          }
 
-        return ConfettiBurstWidget(
-          child: RewardBannerOverlay(
-            child: Builder(
-              builder: (context) => Column(
-              children: [
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _onRefresh,
-                    displacement: 40.h,
-                    child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        // 🎯 Cart Page Banner
-                        Obx(() {
-                          final banners = BannerController.instance.cartPageBanners;
-                          if (banners.isEmpty) return const SizedBox.shrink();
-                          return Padding(
-                            padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
-                            child: NetworkBannerWidget(
-                              height: AppResponsive.bannerHeight(
-                                context,
-                                ratio: 0.42,
-                                min: 110,
-                                max: 160,
-                              ),
-                              banners: banners,
-                              autoScrollInterval: const Duration(seconds: 4),
-                              autoScrollDuration:
-                                  const Duration(milliseconds: 500),
-                            ),
-                          );
-                        }),
-                        _buildCartItemsList(context, cartController, cs),
-                        const BasketSuggestionsSection(),
-                        const CouponSection(),
-                        _buildBillDetails(cartController, cs),
-                        const SavingsCard(),
-                      ],
+          return ConfettiBurstWidget(
+            child: RewardBannerOverlay(
+              child: Builder(
+                builder: (context) => Column(
+                  children: [
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _onRefresh,
+                        displacement: 40.h,
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              // 🎯 Cart Page Banner
+                              Obx(() {
+                                final banners =
+                                    BannerController.instance.cartPageBanners;
+                                if (banners.isEmpty)
+                                  return const SizedBox.shrink();
+                                return Padding(
+                                  padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
+                                  child: NetworkBannerWidget(
+                                    height: AppResponsive.bannerHeight(
+                                      context,
+                                      ratio: 0.42,
+                                      min: 110,
+                                      max: 160,
+                                    ),
+                                    banners: banners,
+                                    autoScrollInterval: const Duration(
+                                      seconds: 4,
+                                    ),
+                                    autoScrollDuration: const Duration(
+                                      milliseconds: 500,
+                                    ),
+                                  ),
+                                );
+                              }),
+                              _buildCartItemsList(context, cartController, cs),
+                              const BasketSuggestionsSection(),
+                              const CouponSection(),
+                              _buildBillDetails(cartController, cs),
+                              const SavingsCard(),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    _buildProceedButton(context, cartController, cs),
+                  ],
                 ),
-                  ),
-                _buildProceedButton(context, cartController, cs),
-              ],
+              ),
             ),
-          ),
-          ),
-        );
-      }),
-    ),
+          );
+        }),
+      ),
     );
   }
 
@@ -205,7 +210,7 @@ class _BasketScreenState extends State<BasketScreen> {
       child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(12.r),
+            padding: EdgeInsets.all(12.w),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -228,7 +233,7 @@ class _BasketScreenState extends State<BasketScreen> {
                         top: 0,
                         left: 0,
                         child: Container(
-                          padding: EdgeInsets.all(4.r),
+                          padding: EdgeInsets.all(4.w),
                           decoration: BoxDecoration(
                             color: offerTheme.badge,
                             borderRadius: BorderRadius.only(
@@ -343,7 +348,7 @@ class _BasketScreenState extends State<BasketScreen> {
             Divider(height: 1, color: cs.outlineVariant),
             if (freeProduct != null)
               Padding(
-                padding: EdgeInsets.all(12.r),
+                padding: EdgeInsets.all(12.w),
                 child: Row(
                   children: [
                     ClipRRect(
@@ -429,7 +434,7 @@ class _BasketScreenState extends State<BasketScreen> {
               )
             else
               Padding(
-                padding: EdgeInsets.all(12.r),
+                padding: EdgeInsets.all(12.w),
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -647,7 +652,7 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
             borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: EdgeInsets.all(9.r),
+              padding: EdgeInsets.all(9.w),
               child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
             ),
           ),
@@ -669,7 +674,7 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
             borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: EdgeInsets.all(9.r),
+              padding: EdgeInsets.all(9.w),
               child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
             ),
           ),
@@ -695,7 +700,7 @@ class _BasketScreenState extends State<BasketScreen> {
             onTap: () => cartController.decrementComboGroup(group.comboId),
             borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: EdgeInsets.all(9.r),
+              padding: EdgeInsets.all(9.w),
               child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
             ),
           ),
@@ -714,7 +719,7 @@ class _BasketScreenState extends State<BasketScreen> {
             onTap: () => cartController.incrementComboGroup(group.comboId),
             borderRadius: BorderRadius.circular(4.r),
             child: Padding(
-              padding: EdgeInsets.all(9.r),
+              padding: EdgeInsets.all(9.w),
               child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
             ),
           ),
@@ -725,8 +730,8 @@ class _BasketScreenState extends State<BasketScreen> {
 
   Widget _buildBillDetails(CartController cartController, ColorScheme cs) {
     return Container(
-      margin: EdgeInsets.all(16.r),
-      padding: EdgeInsets.all(20.r),
+      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20.r),
@@ -808,12 +813,14 @@ class _BasketScreenState extends State<BasketScreen> {
                 ],
                 SizedBox(height: 12.h),
                 _buildBillRow(
-                  showEstimatedDelivery ? 'Delivery Fee (Est.)' : 'Delivery Fee',
+                  showEstimatedDelivery
+                      ? 'Delivery Fee (Est.)'
+                      : 'Delivery Fee',
                   cartController.deliveryFee == 0
                       ? (cartController.freeDeliveryApplied &&
-                              cartController.originalDeliveryFee > 0
-                          ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
-                          : 'FREE')
+                                cartController.originalDeliveryFee > 0
+                            ? '₹${cartController.originalDeliveryFee.formatPrice} -> FREE'
+                            : 'FREE')
                       : '₹${cartController.deliveryFee.formatPrice}',
                   valueColor: cartController.deliveryFee == 0
                       ? Colors.green
@@ -883,7 +890,7 @@ class _BasketScreenState extends State<BasketScreen> {
     ColorScheme cs,
   ) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: cs.outlineVariant)),
@@ -916,15 +923,17 @@ class _BasketScreenState extends State<BasketScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Obx(() => AutoSizeText(
-                    '₹${cartController.totalAmount.formatPrice}',
-                    maxLines: 1,
-                    minFontSize: 12,
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
+                  Obx(
+                    () => AutoSizeText(
+                      '₹${cartController.totalAmount.formatPrice}',
+                      maxLines: 1,
+                      minFontSize: 12,
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  )),
+                  ),
                   AutoSizeText(
                     'TOTAL AMOUNT',
                     maxLines: 1,

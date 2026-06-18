@@ -412,7 +412,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       if (!hasData) {
         return ProductGridShimmer(
           itemCount: 6,
-          padding: EdgeInsets.all(12.r),
+          padding: EdgeInsets.all(12.w),
         );
       }
 
@@ -430,7 +430,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         builder: (context, constraints) {
           return GridView.builder(
             controller: _itemsScrollController,
-            padding: EdgeInsets.all(12.r),
+            padding: EdgeInsets.all(12.w),
             gridDelegate: AppResponsive.productGridDelegate(
               context,
               constraints.maxWidth,
@@ -442,7 +442,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               if (index == productController.filteredProducts.length) {
                 return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(16.r),
+                    padding: EdgeInsets.all(16.w),
                     child: SizedBox(
                       height: 180.h,
                       child: const ProductGridShimmer(itemCount: 2),

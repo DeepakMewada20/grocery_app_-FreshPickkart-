@@ -24,30 +24,30 @@ class PostgresHomeService {
     // Each query wrapped with catchError so a single failure never crashes the whole response
     final bannerTopImageFuture = _banner
         .getBanners(session, screen: 'home_top_image', activeOnly: true)
-        .catchError((_, __) => <Banner>[]);
+        .catchError((_, _) => <Banner>[]);
     final bannerTopFuture = _banner
         .getBanners(session, screen: 'home_top', activeOnly: true)
-        .catchError((_, __) => <Banner>[]);
+        .catchError((_, _) => <Banner>[]);
     final bannerMiddleFuture = _banner
         .getBanners(session, screen: 'home_middle', activeOnly: true)
-        .catchError((_, __) => <Banner>[]);
+        .catchError((_, _) => <Banner>[]);
     final bogoFuture = _offer
         .getActiveBogoOffers(session)
-        .catchError((_, __) => <BogoOffer>[]);
+        .catchError((_, _) => <BogoOffer>[]);
     final comboFuture = _offer
         .getActiveComboOffers(session)
-        .catchError((_, __) => <ComboOffer>[]);
+        .catchError((_, _) => <ComboOffer>[]);
     final categoryFuture = _category
         .getCategories(session)
-        .catchError((_, __) => <Category>[]);
+        .catchError((_, _) => <Category>[]);
     final subCategoryFuture = _category
         .getSubCategories(session)
-        .catchError((_, __) => <SubCategory>[]);
+        .catchError((_, _) => <SubCategory>[]);
     final deliveryFuture = _getDeliveryOffer(session, userId)
-        .catchError((_, __) => null);
+        .catchError((_, _) => null);
     final catalogIdsFuture = _catalog
         .getActiveProductIds(session, limit: productLimit)
-        .catchError((_, __) => <String>[]);
+        .catchError((_, _) => <String>[]);
     final trendingFuture = _ranking
         .getRankedProductIds(
           session,
@@ -55,7 +55,7 @@ class PostgresHomeService {
           metricType: 'trending',
           metricColumn: 'trendingScore',
         )
-        .catchError((_, __) => <RankingRow>[]);
+        .catchError((_, _) => <RankingRow>[]);
     final sellingFuture = _ranking
         .getRankedProductIds(
           session,
@@ -63,7 +63,7 @@ class PostgresHomeService {
           metricType: 'most_selling',
           metricColumn: 'mostPurchaseCount',
         )
-        .catchError((_, __) => <RankingRow>[]);
+        .catchError((_, _) => <RankingRow>[]);
     final viewedFuture = _ranking
         .getRankedProductIds(
           session,
@@ -71,7 +71,7 @@ class PostgresHomeService {
           metricType: 'most_viewed',
           metricColumn: 'mostSearchCount',
         )
-        .catchError((_, __) => <RankingRow>[]);
+        .catchError((_, _) => <RankingRow>[]);
     final reorderFuture = _ranking
         .getRankedProductIds(
           session,
@@ -79,7 +79,7 @@ class PostgresHomeService {
           metricType: 'frequently_reordered',
           metricColumn: 'reorderCount',
         )
-        .catchError((_, __) => <RankingRow>[]);
+        .catchError((_, _) => <RankingRow>[]);
 
     final phase1Results = await Future.wait([
       bannerTopImageFuture,

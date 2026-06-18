@@ -25,10 +25,12 @@ class _ConfettiBurstWidgetState extends State<ConfettiBurstWidget> {
   @override
   void initState() {
     super.initState();
-    _leftController =
-        ConfettiController(duration: const Duration(milliseconds: 1200));
-    _rightController =
-        ConfettiController(duration: const Duration(milliseconds: 1200));
+    _leftController = ConfettiController(
+      duration: const Duration(milliseconds: 1200),
+    );
+    _rightController = ConfettiController(
+      duration: const Duration(milliseconds: 1200),
+    );
 
     _sub = RewardCelebrationService.instance.rewardEvents.listen((_) {
       _play();

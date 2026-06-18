@@ -39,41 +39,42 @@ class _NotificationHistoryScreenState extends State<NotificationHistoryScreen> {
       appBar: AppBar(title: const Text('Notification History')),
       body: SafeArea(
         child: Obx(() {
-        final items = _controller.history;
-        if (_controller.isLoadingHistory.value && items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (items.isEmpty) {
-          return const Center(child: Text('No notifications yet'));
-        }
-        final today = <NotificationHistoryItem>[];
-        final earlier = <NotificationHistoryItem>[];
-        final now = DateTime.now();
-        for (final item in items) {
-          final local = item.createdAt.toLocal();
-          final sameDay =
-              local.year == now.year &&
-              local.month == now.month &&
-              local.day == now.day;
-          (sameDay ? today : earlier).add(item);
-        }
-        return RefreshIndicator(
-          onRefresh: _controller.refreshHistory,
-          child: ListView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              if (today.isNotEmpty) _Group(title: 'Today', items: today),
-              if (earlier.isNotEmpty) _Group(title: 'Earlier', items: earlier),
-              if (_controller.isLoadingHistory.value)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          ),
-        );
-      }),
+          final items = _controller.history;
+          if (_controller.isLoadingHistory.value && items.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (items.isEmpty) {
+            return const Center(child: Text('No notifications yet'));
+          }
+          final today = <NotificationHistoryItem>[];
+          final earlier = <NotificationHistoryItem>[];
+          final now = DateTime.now();
+          for (final item in items) {
+            final local = item.createdAt.toLocal();
+            final sameDay =
+                local.year == now.year &&
+                local.month == now.month &&
+                local.day == now.day;
+            (sameDay ? today : earlier).add(item);
+          }
+          return RefreshIndicator(
+            onRefresh: _controller.refreshHistory,
+            child: ListView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                if (today.isNotEmpty) _Group(title: 'Today', items: today),
+                if (earlier.isNotEmpty)
+                  _Group(title: 'Earlier', items: earlier),
+                if (_controller.isLoadingHistory.value)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

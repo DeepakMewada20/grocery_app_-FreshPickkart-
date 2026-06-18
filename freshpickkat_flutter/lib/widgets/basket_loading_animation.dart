@@ -96,7 +96,7 @@ class SuggestionSkeletonCard extends StatelessWidget {
           .clamp(280.0, 340.0)
           .toDouble(),
       margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
-      padding: EdgeInsets.all(14.r),
+      padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         color: suggestionTheme?.cardBackground ?? cs.surface,
         borderRadius: BorderRadius.circular(16.r),

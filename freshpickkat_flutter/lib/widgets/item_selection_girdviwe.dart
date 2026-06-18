@@ -68,7 +68,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
         builder: (context, constraints) {
           final availableWidth = constraints.maxWidth.isFinite
               ? constraints.maxWidth
-              : MediaQuery.sizeOf(context).width - 24.w;
+              : AppResponsive.layoutWidth(context) - 24.w;
           final effectiveColumns = adaptiveLayout
               ? AppResponsive.productGridColumnsForWidth(availableWidth)
               : crossAxisCount;
@@ -98,7 +98,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                 final products = productController.allProducts;
                 final sortedInsertions = insertions != null
                     ? (List<GridInsertion>.from(insertions!)
-                      ..sort((a, b) => a.afterCount.compareTo(b.afterCount)))
+                        ..sort((a, b) => a.afterCount.compareTo(b.afterCount)))
                     : <GridInsertion>[];
 
                 if (sortedInsertions.isEmpty) {
@@ -122,20 +122,24 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                   final splitAt = normalized.clamp(startIndex, products.length);
 
                   if (splitAt > startIndex) {
-                    segments.add(_buildGridSection(
-                      context,
-                      products.sublist(startIndex, splitAt),
-                      effectiveColumns,
-                      effectiveAspectRatio,
-                    ));
+                    segments.add(
+                      _buildGridSection(
+                        context,
+                        products.sublist(startIndex, splitAt),
+                        effectiveColumns,
+                        effectiveAspectRatio,
+                      ),
+                    );
                   }
 
                   if (splitAt < products.length) {
                     for (final w in insertion.widgets) {
-                      segments.add(Padding(
-                        padding: EdgeInsets.only(bottom: 12.h),
-                        child: w,
-                      ));
+                      segments.add(
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: w,
+                        ),
+                      );
                     }
                   }
 
@@ -143,12 +147,14 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                 }
 
                 if (startIndex < products.length) {
-                  segments.add(_buildGridSection(
-                    context,
-                    products.sublist(startIndex),
-                    effectiveColumns,
-                    effectiveAspectRatio,
-                  ));
+                  segments.add(
+                    _buildGridSection(
+                      context,
+                      products.sublist(startIndex),
+                      effectiveColumns,
+                      effectiveAspectRatio,
+                    ),
+                  );
                 }
 
                 return Column(children: segments);

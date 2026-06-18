@@ -747,7 +747,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                             if (_errorMessage != null) ...[
                               SizedBox(height: 16.h),
                               Container(
-                                padding: EdgeInsets.all(12.r),
+                                padding: EdgeInsets.all(12.w),
                                 decoration: BoxDecoration(
                                   color: Colors.red.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),

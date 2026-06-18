@@ -39,7 +39,8 @@ class ThemeController extends GetxController {
   }
 
   void _loadTheme() {
-    final themeModeIndex = _storage.read<int>('themeMode') ?? ThemeMode.dark.index;
+    final themeModeIndex =
+        _storage.read<int>('themeMode') ?? ThemeMode.dark.index;
     _themeMode.value = ThemeMode.values[themeModeIndex];
 
     final presetIndex = _storage.read<int>('lightPreset') ?? 0;

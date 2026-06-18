@@ -201,7 +201,7 @@ class _OffersScreenState extends State<OffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(28.r),
+                    padding: EdgeInsets.all(28.w),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,
@@ -255,7 +255,7 @@ class _OffersScreenState extends State<OffersScreen> {
                         child: Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(6.r),
+                              padding: EdgeInsets.all(6.w),
                               decoration: BoxDecoration(
                                 color: AppTheme.primaryGreen.withValues(
                                   alpha: 0.1,

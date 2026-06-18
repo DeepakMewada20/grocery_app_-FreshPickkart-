@@ -58,7 +58,8 @@ class _LazyMiddleBannerState extends State<_LazyMiddleBanner> {
     final reveal = viewport.getOffsetToReveal(renderObject, 0.0);
     const lookahead = 500.0;
 
-    if (reveal.offset <= position.pixels + position.viewportDimension + lookahead) {
+    if (reveal.offset <=
+        position.pixels + position.viewportDimension + lookahead) {
       _hasTriggered = true;
       _scrollPosition?.removeListener(_onScroll);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -320,7 +321,7 @@ class _HomePageState extends State<HomePage>
                       if (!productController.isMoreDataAvailable.value)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: EdgeInsets.all(20.r),
+                            padding: EdgeInsets.all(20.w),
                             child: Center(
                               child: Builder(
                                 builder: (context) => Text(

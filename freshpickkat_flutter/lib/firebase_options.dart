@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'freshpickkart-a6824.firebasestorage.app',
     measurementId: 'G-VWTJDSQNXD',
   );
-
 }

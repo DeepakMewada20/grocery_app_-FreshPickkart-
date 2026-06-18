@@ -2,7 +2,6 @@ import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
 import 'package:freshpickkat_admin/widgets/delete_impact_dialog.dart';
-import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';

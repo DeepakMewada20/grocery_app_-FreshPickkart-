@@ -145,11 +145,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                           SizedBox(height: 12.h),
                         ],
                         if (_complaint!.selectedField != null ||
-                            (_complaint!.extraData?.isNotEmpty ?? false))
-                          ...[
-                            _AddressChangeSection(complaint: _complaint!),
-                            SizedBox(height: 12.h),
-                          ],
+                            (_complaint!.extraData?.isNotEmpty ?? false)) ...[
+                          _AddressChangeSection(complaint: _complaint!),
+                          SizedBox(height: 12.h),
+                        ],
                         _ImageSection(urls: _complaint!.imageUrls),
                         SizedBox(height: 12.h),
                         _Section(
@@ -157,9 +156,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                           child: Text(
                             _complaint!.adminReply?.trim().isNotEmpty == true
                                 ? _complaint!.adminReply!
-                                : _complaint!.adminNote?.trim().isNotEmpty == true
-                                    ? _complaint!.adminNote!
-                                    : 'No reply yet.',
+                                : _complaint!.adminNote?.trim().isNotEmpty ==
+                                      true
+                                ? _complaint!.adminNote!
+                                : 'No reply yet.',
                           ),
                         ),
                         SizedBox(height: 12.h),
@@ -239,7 +239,10 @@ class _AddressChangeSection extends StatelessWidget {
           ],
           if (requestedAddress != null) ...[
             SizedBox(height: 8.h),
-            _AddressBlock(title: 'Requested address', address: requestedAddress),
+            _AddressBlock(
+              title: 'Requested address',
+              address: requestedAddress,
+            ),
           ],
           if (requestedNote != null && requestedNote.isNotEmpty) ...[
             SizedBox(height: 8.h),
@@ -281,7 +284,7 @@ class _AddressBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12.r),
@@ -440,7 +443,7 @@ class _RefundInfoCard extends StatelessWidget {
     final statusColor = _statusColor(refund.status);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -467,9 +470,19 @@ class _RefundInfoCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          _refundRow('Status', _statusLabel(refund.status), statusColor, context),
+          _refundRow(
+            'Status',
+            _statusLabel(refund.status),
+            statusColor,
+            context,
+          ),
           SizedBox(height: 8.h),
-          _refundRow('Amount', '₹${refund.amount.toStringAsFixed(2)}', null, context),
+          _refundRow(
+            'Amount',
+            '₹${refund.amount.toStringAsFixed(2)}',
+            null,
+            context,
+          ),
           SizedBox(height: 8.h),
           _refundRow('Refund ID', refund.refundId, null, context),
           SizedBox(height: 8.h),
@@ -481,7 +494,12 @@ class _RefundInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _refundRow(String label, String value, Color? valueColor, BuildContext context) {
+  Widget _refundRow(
+    String label,
+    String value,
+    Color? valueColor,
+    BuildContext context,
+  ) {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
@@ -526,7 +544,7 @@ class _Section extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),

@@ -61,8 +61,10 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
       _riderTween = LatLngTween(begin: begin, end: nextMaps);
 
       final newBearing = AppLatLng.bearingBetween(
-        begin.latitude, begin.longitude,
-        next.latitude, next.longitude,
+        begin.latitude,
+        begin.longitude,
+        next.latitude,
+        next.longitude,
       );
       _bearingTween = Tween<double>(begin: _animatedBearing, end: newBearing);
 
@@ -74,14 +76,18 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
   }
 
   Future<void> _loadScooterIcon() async {
-    final data = await rootBundle.load('lib/assets/images/delivery_scooter_traking.png');
+    final data = await rootBundle.load(
+      'lib/assets/images/delivery_scooter_traking.png',
+    );
     final codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
       targetWidth: 95,
       targetHeight: 95,
     );
     final frame = await codec.getNextFrame();
-    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await frame.image.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
     _scooterIcon = BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
   }
 
@@ -117,15 +123,11 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     if (riderM != null && userM != null) {
       final southwest = LatLng(
         riderM.latitude < userM.latitude ? riderM.latitude : userM.latitude,
-        riderM.longitude < userM.longitude
-            ? riderM.longitude
-            : userM.longitude,
+        riderM.longitude < userM.longitude ? riderM.longitude : userM.longitude,
       );
       final northeast = LatLng(
         riderM.latitude > userM.latitude ? riderM.latitude : userM.latitude,
-        riderM.longitude > userM.longitude
-            ? riderM.longitude
-            : userM.longitude,
+        riderM.longitude > userM.longitude ? riderM.longitude : userM.longitude,
       );
 
       if (southwest.latitude != northeast.latitude ||
@@ -222,8 +224,8 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
 
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
-    final rider = _animatedRiderPosition ??
-        _toMapsOrNull(_controller.currentRiderMarker);
+    final rider =
+        _animatedRiderPosition ?? _toMapsOrNull(_controller.currentRiderMarker);
     final user = _toMapsOrNull(_controller.currentUserMarker);
 
     if (user != null) {
@@ -232,7 +234,6 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
           markerId: const MarkerId('destination'),
           position: user,
           infoWindow: const InfoWindow(title: 'Delivery Address'),
-
         ),
       );
     }
@@ -291,7 +292,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
       borderRadius: BorderRadius.circular(24.r),
       shadowColor: Colors.black.withValues(alpha: 0.18),
       child: Padding(
-        padding: EdgeInsets.all(16.r),
+        padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -435,7 +436,7 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18.r),

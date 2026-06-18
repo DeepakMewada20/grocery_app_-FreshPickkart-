@@ -7,7 +7,6 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 
-
 enum PaymentStatus {
   verified,
   verifying,
@@ -123,8 +122,8 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
           _detailMessage = message.isNotEmpty
               ? message
               : 'If money was debited from your account, it will either be '
-                  'automatically reversed by your bank or reflected after '
-                  'payment verification.';
+                    'automatically reversed by your bank or reflected after '
+                    'payment verification.';
         });
         _autoCheckTimer?.cancel();
         widget.onFailed?.call();
@@ -146,7 +145,8 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
         setState(() {
           _status = PaymentStatus.verifying;
           _statusMessage = 'Payment Verification In Progress';
-          _detailMessage = 'We are confirming your payment. '
+          _detailMessage =
+              'We are confirming your payment. '
               'This should complete shortly.';
         });
         return;
@@ -233,7 +233,7 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
         borderRadius: BorderRadius.circular(16.r),
@@ -485,5 +485,3 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
     }
   }
 }
-
-

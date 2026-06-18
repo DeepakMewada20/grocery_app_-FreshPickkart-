@@ -65,7 +65,7 @@ class OfferWidgetState extends State<OfferWidget> {
     final offer = _offer!;
     return SliverToBoxAdapter(
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: const BoxDecoration(color: Color(0xFF0C5A2A)),
         child: Row(
           children: [

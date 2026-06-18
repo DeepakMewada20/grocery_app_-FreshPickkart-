@@ -45,7 +45,7 @@ class _CouponSectionState extends State<CouponSection> {
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -61,7 +61,7 @@ class _CouponSectionState extends State<CouponSection> {
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(6.r),
+                      padding: EdgeInsets.all(6.w),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8.r),
@@ -147,8 +147,7 @@ class _CouponSectionState extends State<CouponSection> {
             }
 
             // ── Best coupon available (not yet applied — rare state) ──────
-            final bestCode =
-                _cartController.bestCoupon.value?.bestCouponCode;
+            final bestCode = _cartController.bestCoupon.value?.bestCouponCode;
             if (bestCode != null && bestCode.isNotEmpty) {
               final bestCoupon = _cartController.availableCoupons
                   .firstWhereOrNull((c) => c.code == bestCode);
@@ -174,7 +173,7 @@ class _CouponSectionState extends State<CouponSection> {
               if (_cartController.isLoadingCoupons.value) {
                 return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20.r),
+                    padding: EdgeInsets.all(20.w),
                     child: const CircularProgressIndicator(),
                   ),
                 );
@@ -182,7 +181,7 @@ class _CouponSectionState extends State<CouponSection> {
 
               if (_cartController.availableCoupons.isEmpty) {
                 return Padding(
-                  padding: EdgeInsets.all(20.r),
+                  padding: EdgeInsets.all(20.w),
                   child: Center(
                     child: Text(
                       'No offers available for your order',
@@ -208,7 +207,8 @@ class _CouponSectionState extends State<CouponSection> {
                   if (applicable.isNotEmpty) ...[
                     _SectionLabel(
                       label: 'Available Offers',
-                      subtitle: 'Best offer is auto-applied • You can switch anytime',
+                      subtitle:
+                          'Best offer is auto-applied • You can switch anytime',
                       cs: cs,
                     ),
                     SizedBox(height: 8.h),
@@ -274,7 +274,7 @@ class _AppliedCouponCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDelivery = coupon.isDeliveryDiscount;
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: Colors.green.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12.r),
@@ -286,8 +286,11 @@ class _AppliedCouponCard extends StatelessWidget {
           // Auto-applied badge row
           Row(
             children: [
-              Icon(Icons.check_circle_rounded,
-                  color: Colors.green.shade600, size: 16.r),
+              Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green.shade600,
+                size: 16.r,
+              ),
               SizedBox(width: 6.w),
               Expanded(
                 child: AutoSizeText(
@@ -305,14 +308,16 @@ class _AppliedCouponCard extends StatelessWidget {
               GestureDetector(
                 onTap: onRemove,
                 child: Container(
-                  padding: EdgeInsets.all(4.r),
+                  padding: EdgeInsets.all(4.w),
                   decoration: BoxDecoration(
                     color: cs.outlineVariant.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(6.r),
                   ),
-                  child: Icon(Icons.close_rounded,
-                      size: 14.r,
-                      color: cs.onSurface.withValues(alpha: 0.5)),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 14.r,
+                    color: cs.onSurface.withValues(alpha: 0.5),
+                  ),
                 ),
               ),
             ],
@@ -322,19 +327,22 @@ class _AppliedCouponCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6.r),
                   border: Border.all(
-                      color: Colors.green.withValues(alpha: 0.35)),
+                    color: Colors.green.withValues(alpha: 0.35),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.local_offer_rounded,
-                        color: Colors.green.shade600, size: 12.r),
+                    Icon(
+                      Icons.local_offer_rounded,
+                      color: Colors.green.shade600,
+                      size: 12.r,
+                    ),
                     SizedBox(width: 4.w),
                     Text(
                       coupon.code,
@@ -354,8 +362,8 @@ class _AppliedCouponCard extends StatelessWidget {
                   isDelivery
                       ? 'Free delivery applied!'
                       : discount > 0
-                          ? '₹${discount.formatPrice} saved on this order'
-                          : coupon.displayDiscount,
+                      ? '₹${discount.formatPrice} saved on this order'
+                      : coupon.displayDiscount,
                   style: TextStyle(
                     color: Colors.green.shade700,
                     fontSize: 13.sp,
@@ -394,23 +402,25 @@ class _BestOfferAvailableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-            color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
               color: AppTheme.primaryGreen.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(Icons.auto_awesome_rounded,
-                color: AppTheme.primaryGreen, size: 18.r),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: AppTheme.primaryGreen,
+              size: 18.r,
+            ),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -421,7 +431,9 @@ class _BestOfferAvailableCard extends StatelessWidget {
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 6.w, vertical: 2.h),
+                        horizontal: 6.w,
+                        vertical: 2.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen,
                         borderRadius: BorderRadius.circular(4.r),
@@ -496,8 +508,11 @@ class _NoApplicableOfferHint extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded,
-              color: cs.onSurface.withValues(alpha: 0.4), size: 16.r),
+          Icon(
+            Icons.info_outline_rounded,
+            color: cs.onSurface.withValues(alpha: 0.4),
+            size: 16.r,
+          ),
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
@@ -558,6 +573,7 @@ class _SectionLabel extends StatelessWidget {
 class _OfferListCard extends StatelessWidget {
   final CouponDisplay coupon;
   final ColorScheme cs;
+
   /// null = no apply button (locked coupon)
   final Future<void> Function()? onApply;
 
@@ -570,20 +586,18 @@ class _OfferListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartController = CartController.instance;
-    final appliedCode =
-        cartController.appliedCoupon.value?.code.trim().toUpperCase();
+    final appliedCode = cartController.appliedCoupon.value?.code
+        .trim()
+        .toUpperCase();
     final isApplied =
-        appliedCode != null &&
-        appliedCode == coupon.code.trim().toUpperCase();
+        appliedCode != null && appliedCode == coupon.code.trim().toUpperCase();
     final isApplicable = coupon.isApplicable;
     final normalizedCode = coupon.code.trim().toUpperCase();
 
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: isApplied
-            ? Colors.green.withValues(alpha: 0.06)
-            : cs.surface,
+        color: isApplied ? Colors.green.withValues(alpha: 0.06) : cs.surface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: isApplied
@@ -595,27 +609,28 @@ class _OfferListCard extends StatelessWidget {
         children: [
           // Icon
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: (isApplied
-                      ? Colors.green
-                      : isApplicable
+              color:
+                  (isApplied
+                          ? Colors.green
+                          : isApplicable
                           ? AppTheme.primaryGreen
                           : cs.onSurface)
-                  .withValues(alpha: 0.1),
+                      .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
               isApplied
                   ? Icons.check_circle_rounded
                   : isApplicable
-                      ? Icons.discount_rounded
-                      : Icons.lock_outline_rounded,
+                  ? Icons.discount_rounded
+                  : Icons.lock_outline_rounded,
               color: isApplied
                   ? Colors.green.shade600
                   : isApplicable
-                      ? AppTheme.primaryGreen
-                      : cs.onSurface.withValues(alpha: 0.35),
+                  ? AppTheme.primaryGreen
+                  : cs.onSurface.withValues(alpha: 0.35),
               size: 18.r,
             ),
           ),
@@ -647,7 +662,9 @@ class _OfferListCard extends StatelessWidget {
                       SizedBox(width: 6.w),
                       Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 5.w, vertical: 1.h),
+                          horizontal: 5.w,
+                          vertical: 1.h,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryGreen,
                           borderRadius: BorderRadius.circular(3.r),

@@ -81,8 +81,10 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await launchUrl(Uri.parse(widget.url),
-            mode: LaunchMode.externalApplication);
+        await launchUrl(
+          Uri.parse(widget.url),
+          mode: LaunchMode.externalApplication,
+        );
         if (mounted) Navigator.pop(context);
       });
       return Scaffold(
@@ -156,7 +158,7 @@ class _LegalPageError extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.r),
+        padding: EdgeInsets.all(24.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

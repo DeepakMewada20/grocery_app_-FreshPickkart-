@@ -192,7 +192,8 @@ class CartController extends GetxController {
   }
 
   void _scheduleCartRefresh() {
-    if (_pricingRefreshSuspended || _isInitialLoading || !_isInitialized) return;
+    if (_pricingRefreshSuspended || _isInitialLoading || !_isInitialized)
+      return;
     isPricingStale.value = true;
     unawaited(fetchCartPricing());
     _cartRefreshDebounce?.cancel();
@@ -260,8 +261,7 @@ class CartController extends GetxController {
           (coupon) => coupon.isBest,
         ) ??
         hydrated.availableCoupons.firstWhereOrNull(
-          (coupon) =>
-              coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
+          (coupon) => coupon.isApplicable && (coupon.discountAmount ?? 0) > 0,
         );
     bestCoupon.value = bestDisplay == null
         ? null
@@ -317,7 +317,9 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> _fallbackToIndividualMetaFetches(List<CartItemInput> items) async {
+  Future<void> _fallbackToIndividualMetaFetches(
+    List<CartItemInput> items,
+  ) async {
     await Future.wait([
       _ensureDeliveryConfigLoaded(),
       fetchAvailableCoupons(),
@@ -350,7 +352,8 @@ class CartController extends GetxController {
           0,
           double.infinity,
         );
-        message = 'Add ₹${remaining.toDouble().formatPrice} more for free delivery';
+        message =
+            'Add ₹${remaining.toDouble().formatPrice} more for free delivery';
       }
     } else if (currentSubtotal >= 300) {
       fee = 0.0;
@@ -447,7 +450,6 @@ class CartController extends GetxController {
       }
     }
   }
-
 
   Future<void> fetchCartFromServer() async {
     final authController = AuthController.instance;
@@ -1926,7 +1928,11 @@ class CartController extends GetxController {
     }
 
     // Remove the applied suggestion from the list (keep delivery/coupon suggestions visible)
-    final keep = suggestion.actions?.any((a) => a.type == 'delivery' || a.type == 'coupon') ?? false;
+    final keep =
+        suggestion.actions?.any(
+          (a) => a.type == 'delivery' || a.type == 'coupon',
+        ) ??
+        false;
     if (!keep) {
       basketSuggestions.remove(suggestion);
     }

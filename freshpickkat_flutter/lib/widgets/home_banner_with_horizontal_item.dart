@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/product_detail_screen.dart' deferred as productDetailScreen;
+import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
+    deferred as productDetailScreen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
@@ -243,7 +244,8 @@ class _ProductBannerCard extends StatelessWidget {
       onTap: () async {
         await navigateDeferred(
           loadLibrary: productDetailScreen.loadLibrary,
-          pageBuilder: () => productDetailScreen.ProductDetailScreen(product: product),
+          pageBuilder: () =>
+              productDetailScreen.ProductDetailScreen(product: product),
         );
       },
       child: Container(

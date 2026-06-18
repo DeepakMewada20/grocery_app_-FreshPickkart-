@@ -7,7 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
-import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart' deferred as complaintDetailScreen;
+import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
+    deferred as complaintDetailScreen;
 import 'package:freshpickkat_flutter/screens/report_delivery_issue_screen.dart';
 import 'package:freshpickkat_flutter/screens/report_product_issue_screen.dart';
 import 'package:freshpickkat_flutter/services/order_service.dart';
@@ -22,7 +23,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
-import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart' deferred as orderTrackingMapScreen;
+import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart'
+    deferred as orderTrackingMapScreen;
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -77,9 +79,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return;
       }
       final idToken = await auth.requireIdToken();
-      final hydrated = await ServerpodClient()
-          .client
-          .orderDetail
+      final hydrated = await ServerpodClient().client.orderDetail
           .getOrderDetailHydrated(widget.orderId, user.uid, idToken);
       if (mounted) {
         setState(() {
@@ -156,8 +156,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (currentStatus == 'cancelled') {
       return ['placed', 'cancelled'];
     }
-    if (currentStatus == 'delivery_otp_pending' || currentStatus == 'delivered') {
-      return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivery_otp_pending', 'delivered'];
+    if (currentStatus == 'delivery_otp_pending' ||
+        currentStatus == 'delivered') {
+      return [
+        'placed',
+        'confirmed',
+        'packed',
+        'out_for_delivery',
+        'delivery_otp_pending',
+        'delivered',
+      ];
     }
     return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivered'];
   }
@@ -198,45 +206,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           bottom: 24.h + MediaQuery.paddingOf(context).bottom,
         ),
         child: AppResponsive.constrainContent(
-        context: context,
-        maxWidth: AppResponsive.maxDetailWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(order, cs),
-            SizedBox(height: 20.h),
-            _buildStatusTimeline(order, cs),
-            if (order.status == 'out_for_delivery')
-              Padding(
-                padding: EdgeInsets.only(top: 16.h),
-                child: _buildTrackingCard(order, cs),
-              ),
-            if (order.status == 'delivery_otp_pending')
-              Padding(
-                padding: EdgeInsets.only(top: 16.h),
-                child: _buildDeliveryOtpCard(order, cs),
-              ),
-            if (_showActionsCard(order))
-              Padding(
-                padding: EdgeInsets.only(top: 16.h),
-                child: _buildActionsCard(order, cs),
-              ),
-            if (_refund != null)
-              Padding(
-                padding: EdgeInsets.only(top: 16.h),
-                child: _buildRefundInfoCard(order, cs),
-              ),
-            SizedBox(height: 16.h),
-            _buildComplaintCta(order, cs),
-            SizedBox(height: 16.h),
-            _buildAddress(order, cs),
-            SizedBox(height: 16.h),
-            _buildItems(order, cs),
-            SizedBox(height: 16.h),
-            _buildTotals(order, cs),
-          ],
+          context: context,
+          maxWidth: AppResponsive.maxDetailWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(order, cs),
+              SizedBox(height: 20.h),
+              _buildStatusTimeline(order, cs),
+              if (order.status == 'out_for_delivery')
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildTrackingCard(order, cs),
+                ),
+              if (order.status == 'delivery_otp_pending')
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildDeliveryOtpCard(order, cs),
+                ),
+              if (_showActionsCard(order))
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildActionsCard(order, cs),
+                ),
+              if (_refund != null)
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildRefundInfoCard(order, cs),
+                ),
+              SizedBox(height: 16.h),
+              _buildComplaintCta(order, cs),
+              SizedBox(height: 16.h),
+              _buildAddress(order, cs),
+              SizedBox(height: 16.h),
+              _buildItems(order, cs),
+              SizedBox(height: 16.h),
+              _buildTotals(order, cs),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -246,7 +254,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final currentIndex = _getStatusIndex(order.status);
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -292,7 +300,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                           child: Center(
                             child: Icon(
-                              isCompleted || (isCurrent && status == 'delivered')
+                              isCompleted ||
+                                      (isCurrent && status == 'delivered')
                                   ? Icons.check
                                   : (isCurrent
                                         ? Icons.circle
@@ -358,7 +367,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildHeader(Order order, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -425,7 +434,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -444,8 +453,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               maxLines: 2,
               minFontSize: 11,
             ),
-          if (showRefund && canCancel)
-            SizedBox(height: 12.h),
+          if (showRefund && canCancel) SizedBox(height: 12.h),
           if (paymentBlocked) ...[
             SizedBox(height: paymentBlocked && showRefund ? 12.h : 0),
             SizedBox(
@@ -484,13 +492,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                 ),
-                child: Text(_isCancelling
-                    ? (order.status == 'packed' || order.status == 'out_for_delivery'
-                        ? 'Requesting...'
-                        : 'Cancelling...')
-                    : (order.status == 'packed' || order.status == 'out_for_delivery'
-                        ? 'Request Cancellation'
-                        : 'Cancel Order')),
+                child: Text(
+                  _isCancelling
+                      ? (order.status == 'packed' ||
+                                order.status == 'out_for_delivery'
+                            ? 'Requesting...'
+                            : 'Cancelling...')
+                      : (order.status == 'packed' ||
+                                order.status == 'out_for_delivery'
+                            ? 'Request Cancellation'
+                            : 'Cancel Order'),
+                ),
               ),
             ),
         ],
@@ -500,7 +512,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildTrackingCard(Order order, ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -527,7 +539,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               onPressed: () async {
                 await navigateDeferred(
                   loadLibrary: orderTrackingMapScreen.loadLibrary,
-                  pageBuilder: () => orderTrackingMapScreen.OrderTrackingMapScreen(orderId: order.orderId),
+                  pageBuilder: () =>
+                      orderTrackingMapScreen.OrderTrackingMapScreen(
+                        orderId: order.orderId,
+                      ),
                 );
               },
               icon: const Icon(Icons.map_outlined),
@@ -544,12 +559,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (order.deliveryOtpExpiresAt != null) {
       expiresAt = order.deliveryOtpExpiresAt;
     }
-    final isExpired =
-        expiresAt != null && expiresAt.isBefore(DateTime.now());
+    final isExpired = expiresAt != null && expiresAt.isBefore(DateTime.now());
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -560,13 +574,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.verified_user_outlined,
-                  size: 20.sp, color: cs.primary),
+              Icon(
+                Icons.verified_user_outlined,
+                size: 20.sp,
+                color: cs.primary,
+              ),
               SizedBox(width: 8.w),
               Text(
                 'Delivery Verification',
-                style: AppTextStyles.sectionTitle(context)
-                    .copyWith(fontSize: 16.sp),
+                style: AppTextStyles.sectionTitle(
+                  context,
+                ).copyWith(fontSize: 16.sp),
               ),
             ],
           ),
@@ -594,8 +612,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             SizedBox(height: 16.h),
             Row(
               children: [
-                Icon(Icons.receipt_outlined,
-                    size: 16.sp, color: cs.onSurface.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.receipt_outlined,
+                  size: 16.sp,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
                 SizedBox(width: 6.w),
                 Text(
                   'Order Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
@@ -610,8 +631,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             SizedBox(height: 12.h),
             Row(
               children: [
-                Icon(Icons.timer_outlined,
-                    size: 16.sp, color: cs.onSurface.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.timer_outlined,
+                  size: 16.sp,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
                 SizedBox(width: 6.w),
                 Text(
                   'Expires in: ',
@@ -634,8 +658,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline,
-                    size: 14.sp, color: cs.onSurface.withValues(alpha: 0.4)),
+                Icon(
+                  Icons.info_outline,
+                  size: 14.sp,
+                  color: cs.onSurface.withValues(alpha: 0.4),
+                ),
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
@@ -652,8 +679,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ] else ...[
             Row(
               children: [
-                Icon(Icons.timer_off_outlined,
-                    size: 20.sp, color: cs.onSurface.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.timer_off_outlined,
+                  size: 20.sp,
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                ),
                 SizedBox(width: 8.w),
                 Text(
                   'OTP Expired',
@@ -702,7 +732,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -717,8 +747,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Refund Information',
-                style: AppTextStyles.sectionTitle(context)
-                    .copyWith(fontSize: 16.sp),
+                style: AppTextStyles.sectionTitle(
+                  context,
+                ).copyWith(fontSize: 16.sp),
               ),
             ],
           ),
@@ -735,7 +766,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           if (refund.status == 'failed') ...[
             SizedBox(height: 12.h),
             Container(
-              padding: EdgeInsets.all(12.r),
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
                 color: cs.error.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8.r),
@@ -817,7 +848,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final address = order.deliveryAddress;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -846,7 +877,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final grouped = groupOrderItems(order.items);
 
     return Container(
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -997,7 +1028,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -1035,7 +1066,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               if (complaint != null) {
                 await navigateDeferred(
                   loadLibrary: complaintDetailScreen.loadLibrary,
-                  pageBuilder: () => complaintDetailScreen.ComplaintDetailScreen(complaint: complaint),
+                  pageBuilder: () =>
+                      complaintDetailScreen.ComplaintDetailScreen(
+                        complaint: complaint,
+                      ),
                 );
                 return;
               }
@@ -1043,11 +1077,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 final deliveredAt = order.deliveredAt;
                 if (deliveredAt != null) {
                   final deadline = deliveredAt.add(const Duration(days: 1));
-                    if (DateTime.now().isAfter(deadline)) {
-                      AppSnackbar.show(
-                        'Complaint period expired',
-                        'You can only report product issues within 1 day of delivery.',
-                      );
+                  if (DateTime.now().isAfter(deadline)) {
+                    AppSnackbar.show(
+                      'Complaint period expired',
+                      'You can only report product issues within 1 day of delivery.',
+                    );
                     return;
                   }
                 }
@@ -1092,7 +1126,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Container(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(12.r),
@@ -1214,7 +1248,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildTotals(Order order, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.r),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16.r),
@@ -1229,8 +1263,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Bill Summary',
-                style: AppTextStyles.sectionTitle(context)
-                    .copyWith(fontSize: 16.sp),
+                style: AppTextStyles.sectionTitle(
+                  context,
+                ).copyWith(fontSize: 16.sp),
               ),
             ],
           ),
@@ -1396,7 +1431,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   bool _showActionsCard(Order order) {
-    return _canCancelOrder(order) || _showRefundStatus(order) || _isPaymentBlocked(order);
+    return _canCancelOrder(order) ||
+        _showRefundStatus(order) ||
+        _isPaymentBlocked(order);
   }
 
   bool _showRefundStatus(Order order) {
@@ -1495,9 +1532,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               if (status == 'out_for_delivery') ...[
                 SizedBox(height: 12.h),
                 Container(
-                  padding: EdgeInsets.all(12.r),
+                  padding: EdgeInsets.all(12.w),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.error.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
