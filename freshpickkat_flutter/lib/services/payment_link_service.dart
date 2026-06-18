@@ -19,12 +19,16 @@ class PaymentLinkService {
     required String idempotencyKey,
     required double amount,
     required String customerPhone,
+    required String firebaseUid,
+    required String idToken,
   }) async {
     return _client.paymentLink.createShareablePaymentLink(
       draftOrder,
       idempotencyKey,
       amount,
       customerPhone,
+      firebaseUid,
+      idToken,
     );
   }
 }

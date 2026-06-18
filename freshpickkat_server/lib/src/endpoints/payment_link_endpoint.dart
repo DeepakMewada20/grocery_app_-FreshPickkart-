@@ -1,15 +1,18 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
+import '../services/env_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_payment_link_service.dart';
 import '../services/postgres/postgres_payment_service.dart';
 import '../services/postgres/postgres_support.dart';
+import '../services/postgres/postgres_user_guard_service.dart';
 import 'payment_endpoint.dart';
 
 class PaymentLinkEndpoint extends Endpoint {
   final PostgresOrderService _orders = PostgresOrderService();
   final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
   final PostgresPaymentService _payments = PostgresPaymentService();
+  final PostgresUserGuardService _userGuard = PostgresUserGuardService();
   final PaymentEndpoint _paymentEndpoint = PaymentEndpoint();
 
   /// Create an order with a shareable payment link.
@@ -20,8 +23,18 @@ class PaymentLinkEndpoint extends Endpoint {
     String idempotencyKey,
     double amount,
     String customerPhone,
+    String firebaseUid,
+    String idToken,
   ) async {
     try {
+      // Security: verify customer is logged in and owns this request
+      final user = await _userGuard.ensureUser(
+        session,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      final generatedBy = user.id.toString();
+
       // 1. Create the order in PAYMENT_PENDING status
       final orderNumber = await _orders.createPendingOrder(
         session,
@@ -35,49 +48,96 @@ class PaymentLinkEndpoint extends Endpoint {
         orderNumber,
       );
 
-      // 3. Create Razorpay order (locks the amount)
-      final paymentResult = await _paymentEndpoint.createPaymentOrder(
-        session,
-        orderNumber,
-        serverFinalAmount,
-        customerPhone,
-      );
+      final amountInPaise = (serverFinalAmount * 100).round();
+      final enableWebCheckout =
+          EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
 
-      if (paymentResult.success != true) {
+      if (enableWebCheckout) {
+        // === BROWSER CHECKOUT FLOW (existing) ===
+        // 3a. Create Razorpay order (locks the amount)
+        final paymentResult = await _paymentEndpoint.createPaymentOrder(
+          session,
+          orderNumber,
+          serverFinalAmount,
+          customerPhone,
+        );
+
+        if (paymentResult.success != true) {
+          return protocol.PaymentLinkData(
+            success: false,
+            error: paymentResult.error ?? 'Failed to create payment order',
+            orderId: orderNumber,
+          );
+        }
+
+        // 4a. Update order status to PAYMENT_PENDING
+        await _updateOrderToPaymentPending(session, orderNumber);
+
+        // 5a. Create browser payment link
+        final linkResult = await _paymentLinks.createPaymentLink(
+          session,
+          orderId: orderNumber,
+          generatedBy: generatedBy,
+        );
+
+        if (linkResult['success'] != true) {
+          return protocol.PaymentLinkData(
+            success: false,
+            error: linkResult['error'] as String? ??
+                'Failed to create payment link',
+            orderId: orderNumber,
+          );
+        }
+
+        final expiresAtStr = linkResult['expiresAt'] as String?;
         return protocol.PaymentLinkData(
-          success: false,
-          error: paymentResult.error ?? 'Failed to create payment order',
+          success: true,
+          token: linkResult['token'] as String?,
+          paymentLink: linkResult['paymentLink'] as String?,
+          expiresAt: expiresAtStr != null
+              ? DateTime.tryParse(expiresAtStr)
+              : null,
+          razorpayOrderId: paymentResult.razorpayOrderId,
+          amount: paymentResult.amount,
+          orderId: orderNumber,
+        );
+      } else {
+        // === RAZORPAY PAYMENT LINKS API FLOW ===
+        // 3b. Update order status to PAYMENT_PENDING
+        await _updateOrderToPaymentPending(session, orderNumber);
+
+        // 4b. Create Razorpay Payment Link (creates internal order + hosted page)
+        final linkResult = await _paymentLinks.createRazorpayPaymentLink(
+          session,
+          orderNumber: orderNumber,
+          amountInPaise: amountInPaise,
+          customerPhone: customerPhone,
+          customerName: order.userName ?? '',
+          generatedBy: generatedBy,
+        );
+
+        if (linkResult['success'] != true) {
+          return protocol.PaymentLinkData(
+            success: false,
+            error: linkResult['error'] as String? ??
+                'Failed to create payment link',
+            orderId: orderNumber,
+          );
+        }
+
+        final expiresAtStr = linkResult['expiresAt'] as String?;
+        return protocol.PaymentLinkData(
+          success: true,
+          token: linkResult['token'] as String?,
+          paymentLink: linkResult['paymentLink'] as String?,
+          expiresAt: expiresAtStr != null
+              ? DateTime.tryParse(expiresAtStr)
+              : null,
+          razorpayOrderId: linkResult['razorpayOrderId'] as String?,
+          amount: amountInPaise,
           orderId: orderNumber,
         );
       }
-
-      // 4. Update order status to PAYMENT_PENDING
-      await _updateOrderToPaymentPending(session, orderNumber);
-
-      // 5. Create payment link
-      final linkResult = await _paymentLinks.createPaymentLink(
-        session,
-        orderId: orderNumber,
-      );
-
-      if (linkResult['success'] != true) {
-        return protocol.PaymentLinkData(
-          success: false,
-          error: linkResult['error'] as String? ?? 'Failed to create payment link',
-          orderId: orderNumber,
-        );
-      }
-
-      final expiresAtStr = linkResult['expiresAt'] as String?;
-      return protocol.PaymentLinkData(
-        success: true,
-        token: linkResult['token'] as String?,
-        paymentLink: linkResult['paymentLink'] as String?,
-        expiresAt: expiresAtStr != null ? DateTime.tryParse(expiresAtStr) : null,
-        razorpayOrderId: paymentResult.razorpayOrderId,
-        amount: paymentResult.amount,
-        orderId: orderNumber,
-      );
     } catch (e) {
       return protocol.PaymentLinkData(
         success: false,

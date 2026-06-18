@@ -11,6 +11,10 @@ fields:
   paidByName: String?
   paidByPhone: String?
   paidByEmail: String?
+  razorpayPaymentLinkId: String?
+  razorpayPaymentLinkUrl: String?
+  linkType: String, default='browser'
+  generatedBy: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

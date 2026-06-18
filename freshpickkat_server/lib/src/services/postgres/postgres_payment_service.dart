@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
+import '../env_service.dart';
 import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import '../snapshot_builder.dart';
@@ -29,9 +30,24 @@ class PostgresPaymentService {
         return PaymentOrderResult(success: false, error: 'Order not found');
       }
 
+      final resolvedOrderRow = orderRow!;
+
+      if (resolvedOrderRow.paymentStatus == 'paid') {
+        return PaymentOrderResult(
+          success: false,
+          error: 'Order is already paid',
+        );
+      }
+      if (resolvedOrderRow.orderStatus == 'cancelled') {
+        return PaymentOrderResult(
+          success: false,
+          error: 'Order is cancelled',
+        );
+      }
+
       final paymentRow = await PaymentTransactionRow.db.findFirstRow(
         session,
-        where: (t) => t.orderId.equals(orderRow!.id!),
+        where: (t) => t.orderId.equals(resolvedOrderRow.id!),
       );
       if (paymentRow == null) {
         return PaymentOrderResult(
@@ -39,7 +55,6 @@ class PostgresPaymentService {
           error: 'Payment transaction not found',
         );
       }
-      final resolvedOrderRow = orderRow!;
 
       final amountInPaise = (amount * 100).round();
       final response = await _gateway.createOrder(
@@ -163,15 +178,28 @@ class PostgresPaymentService {
         );
       }
 
-      final shouldValidate =
-          !_gateway.isTestMode && razorpaySignature.trim().isNotEmpty;
-      if (shouldValidate) {
+      final enforceHmac = EnvService.get('ENFORCE_PAYMENT_HMAC') == 'true';
+      final sig = razorpaySignature.trim();
+      if (sig.isEmpty) {
+        if (enforceHmac) {
+          await markPaymentFailed(session, orderNumber);
+          return PaymentVerifyResult(
+            success: false,
+            verified: false,
+            message: 'Invalid payment signature',
+          );
+        }
+        session.log(
+          'HMAC skipped for order $orderNumber (empty signature)',
+          level: LogLevel.warning,
+        );
+      } else {
         final expected = _gateway.generateSignature(
           razorpayOrderId,
           razorpayPaymentId,
           _gateway.razorpayKeySecret,
         );
-        if (expected != razorpaySignature) {
+        if (expected != sig) {
           await markPaymentFailed(session, orderNumber);
           return PaymentVerifyResult(
             success: false,
@@ -180,10 +208,25 @@ class PostgresPaymentService {
           );
         }
       }
+      if (!enforceHmac && _gateway.isTestMode) {
+        session.log(
+          'HMAC validation skipped for order $orderNumber (test mode)',
+          level: LogLevel.warning,
+        );
+      }
 
       final now = DateTime.now().toUtc();
 
       await session.db.transaction((transaction) async {
+        // Lock the order row to prevent concurrent payment processing
+        await session.db.unsafeQuery(
+          'SELECT "id" FROM "customer_order" WHERE "id" = @id FOR UPDATE',
+          parameters: QueryParameters.named({
+            'id': resolvedOrderRow.id!.toJson(),
+          }),
+          transaction: transaction,
+        );
+
         await PaymentTransactionRow.db.updateRow(
           session,
           paymentRow.copyWith(
@@ -391,6 +434,15 @@ class PostgresPaymentService {
       final now = DateTime.now().toUtc();
 
       await session.db.transaction((transaction) async {
+        // Lock order row to prevent race conditions (FOR UPDATE)
+        await session.db.unsafeQuery(
+          'SELECT "id" FROM "customer_order" WHERE "id" = @id FOR UPDATE',
+          parameters: QueryParameters.named({
+            'id': resolvedOrderRow.id!.toJson(),
+          }),
+          transaction: transaction,
+        );
+
         await PaymentTransactionRow.db.updateRow(
           session,
           paymentRow.copyWith(

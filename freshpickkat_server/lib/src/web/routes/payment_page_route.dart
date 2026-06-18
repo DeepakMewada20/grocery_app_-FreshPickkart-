@@ -9,6 +9,15 @@ class PaymentPageRoute extends Route {
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
+    final enableWebCheckout =
+        EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
+    if (!enableWebCheckout) {
+      return _invalidLinkPage(
+        'Online payments through this link are currently unavailable. '
+        'Please request a new payment link from the customer.',
+      );
+    }
+
     final token = request.pathParameters.raw[#token] ?? '';
 
     if (token.isEmpty) {

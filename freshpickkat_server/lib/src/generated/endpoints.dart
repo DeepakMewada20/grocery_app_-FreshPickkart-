@@ -6265,6 +6265,16 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -6277,6 +6287,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['idempotencyKey'],
                     params['amount'],
                     params['customerPhone'],
+                    params['firebaseUid'],
+                    params['idToken'],
                   ),
         ),
         'getPaymentPageData': _i1.MethodConnector(

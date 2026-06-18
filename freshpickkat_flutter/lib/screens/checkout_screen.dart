@@ -355,11 +355,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       _setProcessing(true, status: 'Creating payment link...');
 
+      final firebaseUid = authController.currentUser?.uid ?? '';
+      final idToken = await authController.requireIdToken();
+
       final result = await paymentLinkService.createShareablePaymentLink(
         draftOrder: order,
         idempotencyKey: idempotencyKey,
         amount: cartController.totalAmount,
         customerPhone: customerPhone,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
       );
 
       if (result.success != true) {
@@ -387,7 +392,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
         '$paymentLink\n\n'
         'Order amount: ₹${amount.toStringAsFixed(2)}\n'
-        'This link expires in 30 minutes.';
+        'This link expires in 10 minutes.';
     var copied = false;
 
     showModalBottomSheet(

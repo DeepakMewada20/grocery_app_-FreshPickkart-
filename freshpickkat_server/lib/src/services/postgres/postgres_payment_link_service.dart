@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
+import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 
 class PostgresPaymentLinkService {
@@ -26,6 +27,7 @@ class PostgresPaymentLinkService {
     Session session, {
     required String orderId,
     Duration? expiryDuration,
+    String? generatedBy,
   }) async {
     try {
       final orderRow = await CustomerOrderRow.db.findFirstRow(
@@ -36,16 +38,32 @@ class PostgresPaymentLinkService {
         return {'success': false, 'error': 'Order not found'};
       }
 
-      // Check if a payment link already exists for this order
-      final existing = await _getExistingLink(session, orderRow!.id!);
+      // Security: reject if order is already paid or cancelled
+      if (orderRow!.paymentStatus == 'paid') {
+        return {'success': false, 'error': 'Order is already paid'};
+      }
+      if (orderRow.orderStatus == 'cancelled') {
+        return {'success': false, 'error': 'Order has been cancelled'};
+      }
+
+      // Check if a valid active link already exists (one active link per order)
+      final existing = await _getExistingLink(session, orderRow.id!);
       if (existing != null) {
-        return {
-          'success': true,
-          'token': existing['token'],
-          'paymentLink': existing['paymentLink'],
-          'expiresAt': existing['expiresAt'],
-          'orderId': orderId,
-        };
+        final isExpired = existing['expiresAt'] != null &&
+            DateTime.now().toUtc().isAfter(
+              DateTime.parse(existing['expiresAt'] as String).toUtc(),
+            );
+        final isUsed = existing['isUsed'] == true;
+        if (!isExpired && !isUsed) {
+          return {
+            'success': true,
+            'token': existing['token'],
+            'paymentLink': existing['paymentLink'],
+            'expiresAt': existing['expiresAt'],
+            'orderId': orderId,
+          };
+        }
+        // Existing link is expired/used — allow creating a new one
       }
 
       final now = DateTime.now().toUtc();
@@ -95,6 +113,165 @@ class PostgresPaymentLinkService {
     } catch (error) {
       session.log(
         'Failed to create payment link: $error',
+        level: LogLevel.error,
+      );
+      return {'success': false, 'error': error.toString()};
+    }
+  }
+
+  /// Create a Razorpay Payment Link (hosted rzp.io page).
+  /// Used when ENABLE_WEB_CHECKOUT=false.
+  Future<Map<String, dynamic>> createRazorpayPaymentLink(
+    Session session, {
+    required String orderNumber,
+    required int amountInPaise,
+    required String customerPhone,
+    String customerName = '',
+    String customerEmail = '',
+    String? generatedBy,
+  }) async {
+    try {
+      final orderRow = await CustomerOrderRow.db.findFirstRow(
+        session,
+        where: (t) => t.orderNumber.equals(orderNumber),
+      );
+      if (orderRow?.id == null) {
+        return {'success': false, 'error': 'Order not found'};
+      }
+
+      // Security: reject if order is already paid or cancelled
+      if (orderRow!.paymentStatus == 'paid') {
+        return {'success': false, 'error': 'Order is already paid'};
+      }
+      if (orderRow.orderStatus == 'cancelled') {
+        return {'success': false, 'error': 'Order has been cancelled'};
+      }
+
+      // Check if a valid active link already exists (one active link per order)
+      final existing = await _getExistingLink(session, orderRow.id!);
+      if (existing != null) {
+        final isExpired = existing['expiresAt'] != null &&
+            DateTime.now().toUtc().isAfter(
+              DateTime.parse(existing['expiresAt'] as String).toUtc(),
+            );
+        final isUsed = existing['isUsed'] == true;
+        if (!isExpired && !isUsed) {
+          return {
+            'success': true,
+            'token': existing['token'],
+            'paymentLink': existing['paymentLink'],
+            'expiresAt': existing['expiresAt'],
+            'orderId': orderNumber,
+          };
+        }
+        // Existing link is expired/used — allow creating a new one
+      }
+
+      final gateway = PaymentGatewayService();
+      final now = DateTime.now().toUtc();
+      final expiresAt = now.add(const Duration(minutes: 10));
+      final token = generateSecureToken();
+
+      // Call Razorpay Payment Links API
+      final response = await gateway.createPaymentLink(
+        amountInPaise: amountInPaise,
+        description: 'Order #$orderNumber',
+        customer: {
+          'name': customerName,
+          'contact': customerPhone,
+          'email': customerEmail,
+        },
+        notes: {
+          'order_id': orderNumber,
+          'token': token,
+        },
+        expiryMinutes: 10,
+      );
+
+      if (response['statusCode'] != 200) {
+        session.log(
+          'Failed to create Razorpay payment link: ${response['body']}',
+          level: LogLevel.error,
+        );
+        return {
+          'success': false,
+          'error': 'Failed to create payment link',
+          'details': response['body']?.toString(),
+        };
+      }
+
+      final data = response['data'] as Map<String, dynamic>;
+      final razorpayPaymentLinkId = data['id']?.toString() ?? '';
+      final razorpayPaymentLinkUrl = data['short_url']?.toString() ?? '';
+      final razorpayOrderId = data['order_id']?.toString() ?? '';
+
+      // Insert payment_link row
+      await session.db.unsafeQuery(
+        '''
+        INSERT INTO "payment_link"
+          ("orderId", "token", "expiresAt", "isUsed", "linkType",
+           "razorpayPaymentLinkId", "razorpayPaymentLinkUrl",
+           "generatedBy", "createdAt", "updatedAt")
+        VALUES
+          (@orderId, @token, @expiresAt, false, 'razorpay',
+           @razorpayPaymentLinkId, @razorpayPaymentLinkUrl,
+           @generatedBy, @now, @now)
+        ''',
+        parameters: QueryParameters.named({
+          'orderId': orderRow.id!.toJson(),
+          'token': token,
+          'expiresAt': expiresAt.toIso8601String(),
+          'razorpayPaymentLinkId': razorpayPaymentLinkId,
+          'razorpayPaymentLinkUrl': razorpayPaymentLinkUrl,
+          'generatedBy': generatedBy,
+          'now': now.toIso8601String(),
+        }),
+      );
+
+      // Update PaymentTransactionRow with the Razorpay order ID
+      final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+        session,
+        where: (t) => t.orderId.equals(orderRow.id!),
+      );
+      if (paymentRow != null) {
+        await PaymentTransactionRow.db.updateRow(
+          session,
+          paymentRow.copyWith(
+            gatewayOrderId: razorpayOrderId,
+            paymentStatus: 'pending',
+            gatewayStatus: 'created',
+            updatedAt: now,
+          ),
+        );
+      }
+
+      // Update order with payment mode and expiry
+      await CustomerOrderRow.db.updateRow(
+        session,
+        orderRow.copyWith(
+          paymentMode: 'THIRD_PARTY_LINK',
+          paymentExpiresAt: expiresAt,
+          updatedAt: now,
+        ),
+      );
+
+      session.log(
+        'Razorpay payment link created for order $orderNumber: $razorpayPaymentLinkUrl',
+        level: LogLevel.info,
+      );
+
+      return {
+        'success': true,
+        'token': token,
+        'paymentLink': razorpayPaymentLinkUrl,
+        'razorpayPaymentLinkId': razorpayPaymentLinkId,
+        'razorpayOrderId': razorpayOrderId,
+        'expiresAt': expiresAt.toIso8601String(),
+        'orderId': orderNumber,
+      };
+    } catch (error) {
+      session.log(
+        'Failed to create Razorpay payment link: $error',
         level: LogLevel.error,
       );
       return {'success': false, 'error': error.toString()};
@@ -376,13 +553,24 @@ class PostgresPaymentLinkService {
 
     final map = rows.first.toColumnMap();
     final token = map['token'] as String? ?? '';
-    final baseUrl = await _getBaseUrl(session);
-    final paymentLink = '$baseUrl/pay/$token';
+    final linkType = map['linkType'] as String? ?? 'browser';
+
+    String paymentLink;
+    if (linkType == 'razorpay') {
+      paymentLink = map['razorpayPaymentLinkUrl'] as String? ?? '';
+    } else {
+      final baseUrl = await _getBaseUrl(session);
+      paymentLink = '$baseUrl/pay/$token';
+    }
+
     return {
       'token': token,
       'paymentLink': paymentLink,
       'expiresAt': map['expiresAt']?.toString(),
       'isUsed': map['isUsed'] as bool? ?? false,
+      'linkType': linkType,
+      'razorpayPaymentLinkId': map['razorpayPaymentLinkId']?.toString(),
+      'razorpayPaymentLinkUrl': map['razorpayPaymentLinkUrl']?.toString(),
     };
   }
 

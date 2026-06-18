@@ -7495,6 +7495,8 @@ class _PaymentLinkEndpoint {
     String idempotencyKey,
     double amount,
     String customerPhone,
+    String firebaseUid,
+    String idToken,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -7512,6 +7514,8 @@ class _PaymentLinkEndpoint {
             'idempotencyKey': idempotencyKey,
             'amount': amount,
             'customerPhone': customerPhone,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
           }),
           serializationManager: _serializationManager,
         );

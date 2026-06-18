@@ -110,6 +110,59 @@ class PaymentGatewayService {
     };
   }
 
+  Future<Map<String, dynamic>> createPaymentLink({
+    required int amountInPaise,
+    required String description,
+    required Map<String, String> customer,
+    required Map<String, String> notes,
+    int expiryMinutes = 10,
+    String? callbackUrl,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final expiresAt = now.add(Duration(minutes: expiryMinutes));
+    final expiresAtUnix = (expiresAt.millisecondsSinceEpoch / 1000).round();
+
+    final body = <String, dynamic>{
+      'amount': amountInPaise,
+      'currency': 'INR',
+      'accept_partial': false,
+      'description': description,
+      'customer': {
+        'name': customer['name'] ?? '',
+        'contact': customer['contact'] ?? '',
+        'email': customer['email'] ?? '',
+      },
+      'notify': {
+        'sms': false,
+        'email': false,
+      },
+      'reminder_enable': false,
+      'notes': notes,
+      'expire_by': expiresAtUnix,
+    };
+
+    if (callbackUrl != null && callbackUrl.isNotEmpty) {
+      body['callback_url'] = callbackUrl;
+      body['callback_method'] = 'get';
+    }
+
+    final response = await http.post(
+      Uri.parse('$razorpayBaseUrl/payment_links'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+      },
+      body: jsonEncode(body),
+    );
+
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
   Future<Map<String, dynamic>> fetchRefund({
     required String paymentId,
     required String refundId,

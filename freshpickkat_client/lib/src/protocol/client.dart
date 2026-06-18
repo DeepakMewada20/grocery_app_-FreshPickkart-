@@ -2932,6 +2932,8 @@ class EndpointPaymentLink extends _i1.EndpointRef {
     String idempotencyKey,
     double amount,
     String customerPhone,
+    String firebaseUid,
+    String idToken,
   ) => caller.callServerEndpoint<_i59.PaymentLinkData>(
     'paymentLink',
     'createShareablePaymentLink',
@@ -2940,6 +2942,8 @@ class EndpointPaymentLink extends _i1.EndpointRef {
       'idempotencyKey': idempotencyKey,
       'amount': amount,
       'customerPhone': customerPhone,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
     },
   );
 

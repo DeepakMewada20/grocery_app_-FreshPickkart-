@@ -89,7 +89,11 @@ class RazorpayWebhookRoute extends Route {
       }
     }
 
-    if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
+    if (_isPaymentLinkPaidEvent(event)) {
+      await _handlePaymentLinkPaid(session, payload, event);
+    } else if (_isPaymentLinkLifecycleEvent(event)) {
+      await _handlePaymentLinkLifecycle(session, payload, event);
+    } else if (_isRefundProcessedEvent(event) || _isRefundFailedEvent(event)) {
       if (paymentId != null && paymentId.isNotEmpty) {
         session.log(
           'Webhook processing refund event: $event for payment $paymentId',
@@ -407,5 +411,238 @@ class RazorpayWebhookRoute extends Route {
     final iterator = values.iterator;
     if (!iterator.moveNext()) return null;
     return iterator.current;
+  }
+
+  // --- Payment Link Webhook Handlers ---
+
+  bool _isPaymentLinkPaidEvent(String event) => event == 'payment_link.paid';
+
+  bool _isPaymentLinkLifecycleEvent(String event) =>
+      event == 'payment_link.cancelled' || event == 'payment_link.expired';
+
+  Future<void> _handlePaymentLinkPaid(
+    Session session,
+    Map<String, dynamic> payload,
+    String event,
+  ) async {
+    try {
+      final paymentLinkEntity =
+          payload['payload']?['payment_link']?['entity'] as Map<String, dynamic>?;
+      final paymentEntity =
+          payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
+
+      if (paymentLinkEntity == null) {
+        session.log('payment_link.paid: missing payment_link entity', level: LogLevel.warning);
+        return;
+      }
+
+      final razorpayPaymentLinkId = paymentLinkEntity['id']?.toString();
+      final notes = paymentLinkEntity['notes'] as Map<String, dynamic>?;
+      final orderNumber = notes?['order_id']?.toString();
+      final token = notes?['token']?.toString();
+
+      if (razorpayPaymentLinkId == null || orderNumber == null) {
+        session.log(
+          'payment_link.paid: missing linkId or orderNumber',
+          level: LogLevel.warning,
+        );
+        return;
+      }
+
+      final paymentId = paymentEntity?['id']?.toString();
+      final razorpayOrderId = paymentEntity?['order_id']?.toString();
+      final amountPaise = paymentEntity?['amount'];
+
+      // Use a database transaction with row lock for safe update
+      await session.db.transaction((txn) async {
+        // Lock the order row to prevent race conditions
+        final orderRows = await session.db.unsafeQuery(
+          'SELECT * FROM "customer_order" WHERE "orderNumber" = @orderNumber FOR UPDATE',
+          parameters: QueryParameters.named({'orderNumber': orderNumber}),
+          transaction: txn,
+        );
+        if (orderRows.isEmpty) {
+          session.log(
+            'payment_link.paid: order $orderNumber not found',
+            level: LogLevel.warning,
+          );
+          return;
+        }
+
+        final orderMap = orderRows.first.toColumnMap();
+        final orderNumberStr = orderMap['orderNumber'] as String;
+        final dbPaymentStatus = orderMap['paymentStatus'] as String?;
+        final dbFinalAmount = (orderMap['finalAmount'] as num?)?.toDouble() ?? 0;
+
+        // Security: prevent duplicate webhook processing
+        if (paymentId != null && paymentId.isNotEmpty) {
+          final existingTxns = await session.db.unsafeQuery(
+            '''
+            SELECT "id" FROM "payment_transaction"
+            WHERE "gatewayPaymentId" = @paymentId
+            LIMIT 1
+            ''',
+            parameters: QueryParameters.named({'paymentId': paymentId}),
+            transaction: txn,
+          );
+          if (existingTxns.isNotEmpty) {
+            session.log(
+              'payment_link.paid: payment $paymentId already processed for $orderNumber',
+              level: LogLevel.info,
+            );
+            return;
+          }
+        }
+
+        // Security: verify payment_link_id matches stored record
+        if (token != null && token.isNotEmpty) {
+          final linkRows = await session.db.unsafeQuery(
+            '''
+            SELECT "razorpayPaymentLinkId" FROM "payment_link"
+            WHERE "token" = @token
+            LIMIT 1
+            ''',
+            parameters: QueryParameters.named({'token': token}),
+            transaction: txn,
+          );
+          if (linkRows.isNotEmpty) {
+            final storedLinkId = linkRows.first.toColumnMap()['razorpayPaymentLinkId'] as String?;
+            if (storedLinkId != null && storedLinkId != razorpayPaymentLinkId) {
+              session.log(
+                'payment_link.paid: link ID mismatch for $orderNumber (stored: $storedLinkId, webhook: $razorpayPaymentLinkId)',
+                level: LogLevel.error,
+              );
+              return;
+            }
+          }
+        }
+
+        // Already paid check
+        if (dbPaymentStatus == 'paid') {
+          session.log(
+            'payment_link.paid: order $orderNumber already paid',
+            level: LogLevel.info,
+          );
+          return;
+        }
+
+        // Validate amount
+        if (amountPaise is int) {
+          final expected = (dbFinalAmount * 100).round();
+          if ((expected - amountPaise).abs() > 1) {
+            session.log(
+              'payment_link.paid: amount mismatch for $orderNumber',
+              level: LogLevel.warning,
+            );
+            return;
+          }
+        }
+
+        if (paymentId != null && razorpayOrderId != null) {
+          final result = await _payments.completePaymentVerification(
+            session,
+            orderNumber: orderNumberStr,
+            razorpayOrderId: razorpayOrderId,
+            razorpayPaymentId: paymentId,
+          );
+
+          if (!result.success || !result.verified) {
+            session.log(
+              'payment_link.paid: verification failed for $orderNumber: ${result.message}',
+              level: LogLevel.error,
+            );
+            return;
+          }
+
+          // Mark payment link as used
+          if (token != null && token.isNotEmpty) {
+            final now = DateTime.now().toUtc();
+            final customer = paymentLinkEntity['customer'] as Map<String, dynamic>?;
+            await session.db.unsafeQuery(
+              '''
+              UPDATE "payment_link"
+              SET "isUsed" = true,
+                  "usedAt" = @now,
+                  "paidByName" = @paidByName,
+                  "paidByPhone" = @paidByPhone,
+                  "paidByEmail" = @paidByEmail,
+                  "updatedAt" = @now
+              WHERE "token" = @token
+              ''',
+              parameters: QueryParameters.named({
+                'token': token,
+                'now': now.toIso8601String(),
+                'paidByName': customer?['name']?.toString(),
+                'paidByPhone': customer?['contact']?.toString(),
+                'paidByEmail': customer?['email']?.toString(),
+              }),
+              transaction: txn,
+            );
+          }
+
+          session.log(
+            'payment_link.paid: order $orderNumber completed successfully',
+            level: LogLevel.info,
+          );
+        }
+      });
+    } catch (e) {
+      session.log(
+        'payment_link.paid handler error: $e',
+        level: LogLevel.error,
+      );
+    }
+  }
+
+  Future<void> _handlePaymentLinkLifecycle(
+    Session session,
+    Map<String, dynamic> payload,
+    String event,
+  ) async {
+    try {
+      final paymentLinkEntity =
+          payload['payload']?['payment_link']?['entity'] as Map<String, dynamic>?;
+      if (paymentLinkEntity == null) return;
+
+      final notes = paymentLinkEntity['notes'] as Map<String, dynamic>?;
+      final orderNumber = notes?['order_id']?.toString();
+      if (orderNumber == null || orderNumber.isEmpty) return;
+
+      if (event == 'payment_link.cancelled') {
+        session.log(
+          'payment_link.cancelled for order $orderNumber',
+          level: LogLevel.info,
+        );
+
+        final orderRow = await CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(orderNumber),
+        );
+        if (orderRow == null || orderRow.orderStatus == 'cancelled') return;
+
+        final now = DateTime.now().toUtc();
+        await CustomerOrderRow.db.updateRow(
+          session,
+          orderRow.copyWith(
+            orderStatus: 'cancelled',
+            paymentStatus: 'cancelled',
+            cancelledAt: now,
+            cancellationReason: 'PAYMENT_LINK_CANCELLED',
+            updatedAt: now,
+          ),
+        );
+      } else if (event == 'payment_link.expired') {
+        session.log(
+          'payment_link.expired for order $orderNumber',
+          level: LogLevel.info,
+        );
+        // expireExpiredLinks cron will handle this as fallback
+      }
+    } catch (e) {
+      session.log(
+        'payment_link lifecycle handler error: $e',
+        level: LogLevel.error,
+      );
+    }
   }
 }

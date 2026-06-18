@@ -24,9 +24,14 @@ abstract class PaymentLinkRow
     this.paidByName,
     this.paidByPhone,
     this.paidByEmail,
+    this.razorpayPaymentLinkId,
+    this.razorpayPaymentLinkUrl,
+    String? linkType,
+    this.generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : isUsed = isUsed ?? false,
+       linkType = linkType ?? 'browser',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -40,6 +45,10 @@ abstract class PaymentLinkRow
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    String? razorpayPaymentLinkId,
+    String? razorpayPaymentLinkUrl,
+    String? linkType,
+    String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _PaymentLinkRowImpl;
@@ -65,6 +74,12 @@ abstract class PaymentLinkRow
       paidByName: jsonSerialization['paidByName'] as String?,
       paidByPhone: jsonSerialization['paidByPhone'] as String?,
       paidByEmail: jsonSerialization['paidByEmail'] as String?,
+      razorpayPaymentLinkId:
+          jsonSerialization['razorpayPaymentLinkId'] as String?,
+      razorpayPaymentLinkUrl:
+          jsonSerialization['razorpayPaymentLinkUrl'] as String?,
+      linkType: jsonSerialization['linkType'] as String?,
+      generatedBy: jsonSerialization['generatedBy'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -97,6 +112,14 @@ abstract class PaymentLinkRow
 
   String? paidByEmail;
 
+  String? razorpayPaymentLinkId;
+
+  String? razorpayPaymentLinkUrl;
+
+  String linkType;
+
+  String? generatedBy;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -117,6 +140,10 @@ abstract class PaymentLinkRow
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    String? razorpayPaymentLinkId,
+    String? razorpayPaymentLinkUrl,
+    String? linkType,
+    String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -133,6 +160,12 @@ abstract class PaymentLinkRow
       if (paidByName != null) 'paidByName': paidByName,
       if (paidByPhone != null) 'paidByPhone': paidByPhone,
       if (paidByEmail != null) 'paidByEmail': paidByEmail,
+      if (razorpayPaymentLinkId != null)
+        'razorpayPaymentLinkId': razorpayPaymentLinkId,
+      if (razorpayPaymentLinkUrl != null)
+        'razorpayPaymentLinkUrl': razorpayPaymentLinkUrl,
+      'linkType': linkType,
+      if (generatedBy != null) 'generatedBy': generatedBy,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -186,6 +219,10 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
     String? paidByName,
     String? paidByPhone,
     String? paidByEmail,
+    String? razorpayPaymentLinkId,
+    String? razorpayPaymentLinkUrl,
+    String? linkType,
+    String? generatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -198,6 +235,10 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
          paidByName: paidByName,
          paidByPhone: paidByPhone,
          paidByEmail: paidByEmail,
+         razorpayPaymentLinkId: razorpayPaymentLinkId,
+         razorpayPaymentLinkUrl: razorpayPaymentLinkUrl,
+         linkType: linkType,
+         generatedBy: generatedBy,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -216,6 +257,10 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
     Object? paidByName = _Undefined,
     Object? paidByPhone = _Undefined,
     Object? paidByEmail = _Undefined,
+    Object? razorpayPaymentLinkId = _Undefined,
+    Object? razorpayPaymentLinkUrl = _Undefined,
+    String? linkType,
+    Object? generatedBy = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -229,6 +274,14 @@ class _PaymentLinkRowImpl extends PaymentLinkRow {
       paidByName: paidByName is String? ? paidByName : this.paidByName,
       paidByPhone: paidByPhone is String? ? paidByPhone : this.paidByPhone,
       paidByEmail: paidByEmail is String? ? paidByEmail : this.paidByEmail,
+      razorpayPaymentLinkId: razorpayPaymentLinkId is String?
+          ? razorpayPaymentLinkId
+          : this.razorpayPaymentLinkId,
+      razorpayPaymentLinkUrl: razorpayPaymentLinkUrl is String?
+          ? razorpayPaymentLinkUrl
+          : this.razorpayPaymentLinkUrl,
+      linkType: linkType ?? this.linkType,
+      generatedBy: generatedBy is String? ? generatedBy : this.generatedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -278,6 +331,28 @@ class PaymentLinkRowUpdateTable extends _i1.UpdateTable<PaymentLinkRowTable> {
 
   _i1.ColumnValue<String, String> paidByEmail(String? value) => _i1.ColumnValue(
     table.paidByEmail,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> razorpayPaymentLinkId(String? value) =>
+      _i1.ColumnValue(
+        table.razorpayPaymentLinkId,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> razorpayPaymentLinkUrl(String? value) =>
+      _i1.ColumnValue(
+        table.razorpayPaymentLinkUrl,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> linkType(String value) => _i1.ColumnValue(
+    table.linkType,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> generatedBy(String? value) => _i1.ColumnValue(
+    table.generatedBy,
     value,
   );
 
@@ -331,6 +406,23 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
       'paidByEmail',
       this,
     );
+    razorpayPaymentLinkId = _i1.ColumnString(
+      'razorpayPaymentLinkId',
+      this,
+    );
+    razorpayPaymentLinkUrl = _i1.ColumnString(
+      'razorpayPaymentLinkUrl',
+      this,
+    );
+    linkType = _i1.ColumnString(
+      'linkType',
+      this,
+      hasDefault: true,
+    );
+    generatedBy = _i1.ColumnString(
+      'generatedBy',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -361,6 +453,14 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString paidByEmail;
 
+  late final _i1.ColumnString razorpayPaymentLinkId;
+
+  late final _i1.ColumnString razorpayPaymentLinkUrl;
+
+  late final _i1.ColumnString linkType;
+
+  late final _i1.ColumnString generatedBy;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -376,6 +476,10 @@ class PaymentLinkRowTable extends _i1.Table<_i1.UuidValue?> {
     paidByName,
     paidByPhone,
     paidByEmail,
+    razorpayPaymentLinkId,
+    razorpayPaymentLinkUrl,
+    linkType,
+    generatedBy,
     createdAt,
     updatedAt,
   ];
