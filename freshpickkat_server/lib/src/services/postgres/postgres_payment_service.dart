@@ -785,11 +785,16 @@ class PostgresPaymentService {
     var skipped = 0;
 
     try {
+      final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 2));
+
       final rows = await PaymentTransactionRow.db.find(
         session,
         where: (t) =>
             t.paymentStatus.equals('pending') |
-            t.paymentStatus.equals('verifying'),
+            t.paymentStatus.equals('verifying') |
+            (t.paymentStatus.equals('failed') &
+                t.gatewayPaymentId.notEquals(null) &
+                (t.updatedAt >= cutoff)),
         limit: limit,
         orderBy: (t) => t.createdAt,
       );

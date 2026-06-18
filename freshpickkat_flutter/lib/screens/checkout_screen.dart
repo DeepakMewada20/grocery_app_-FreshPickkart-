@@ -1286,7 +1286,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final resolved = await _tryResolvePendingUpiPayment(
           orderId: orderId,
           paymentId: paymentId,
-          attempts: isPaymentCancelled ? 1 : 6,
+          attempts: isPaymentCancelled ? 1 : 20,
         );
         if (resolved) {
           return;
@@ -2312,8 +2312,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             icon: Icons.share,
             title: 'Ask Someone Else To Pay',
             subtitle: 'Share a payment link via WhatsApp, SMS, etc.',
-            isSelected: _isShareablePayment,
-            onTap: () => setState(() => _isShareablePayment = true),
+            isSelected: false,
+            isDisabled: true,
+            onTap: null,
+          ),
+          SizedBox(height: 4.h),
+          Padding(
+            padding: EdgeInsets.only(left: 36.w),
+            child: Text(
+              'This feature is not available now',
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.4),
+                fontSize: 12.sp,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ),
         ],
       ),
@@ -2326,28 +2339,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String title,
     required String subtitle,
     required bool isSelected,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
+    bool isDisabled = false,
   }) {
+    final effectiveOnTap = isDisabled ? null : onTap;
+    final textColor = isDisabled
+        ? cs.onSurface.withValues(alpha: 0.35)
+        : cs.onSurface;
+    final accentColor = isDisabled
+        ? cs.onSurface.withValues(alpha: 0.35)
+        : AppTheme.primaryGreen;
     return InkWell(
-      onTap: onTap,
+      onTap: effectiveOnTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryGreen : cs.outlineVariant,
+            color: isSelected ? accentColor : cs.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
           color: isSelected
-              ? AppTheme.primaryGreen.withValues(alpha: 0.06)
+              ? accentColor.withValues(alpha: 0.06)
               : Colors.transparent,
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.primaryGreen : cs.onSurface,
+              color: isSelected ? accentColor : textColor,
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -2358,14 +2379,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: cs.onSurface,
+                      color: textColor,
                     ),
                   ),
                   Text(
                     subtitle,
                     style: TextStyle(
                       fontSize: 12.sp,
-                      color: cs.onSurface.withValues(alpha: 0.6),
+                      color: isDisabled
+                          ? cs.onSurface.withValues(alpha: 0.3)
+                          : cs.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -2373,7 +2396,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? AppTheme.primaryGreen : cs.onSurface,
+              color: isSelected ? accentColor : textColor,
               size: 20.r,
             ),
           ],

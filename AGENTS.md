@@ -72,10 +72,11 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 - Admin product form dialog uses local lists instead of GetX controllers (simpler, no reactive overhead)
 
 ## Next Steps
-1. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
-2. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
-3. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
-4. Restart server to test free delivery product suggestions in basket
+1. User to fill `RAZORPAY_WEBHOOK_SECRET` in `freshpickkat_server/.env` from Razorpay Dashboard
+2. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
+3. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
+4. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
+5. Restart server to test free delivery product suggestions in basket
 
 ## Recent Fixes
 ### Free delivery product suggestions (`basket_suggestion_service.dart`)
@@ -88,6 +89,12 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 ### Coupon active-only filter (`postgres_coupon_service.dart`)
 - `getAvailableCoupons()` and `getBestCoupon()` now fetch only `status = 'active'` rows from DB (`activeOnly: true`)
 - Fixes: user coupon screen no longer shows inactive coupons; basket screen only shows active ones; best-coupon auto-apply ignores inactive
+
+### Paytm Payment Reconciliation — Retry & Recover Timed-Out UPI (`postgres_payment_service.dart`)
+- **Client retry**: Increased `_handlePaymentError` retries 6 → 20 (18s → 60s) in `checkout_screen.dart:1286` to give Paytm more time
+- **Webhook recovery path**: `razorpay_webhook_route.dart` already validates HMAC via `RAZORPAY_WEBHOOK_SECRET` and processes `payment.captured` events — Paytm timed-out payments recover via webhook when Paytm eventually confirms
+- **Reconciliation cron fix**: `reconcileAllPendingPayments` at `postgres_payment_service.dart:792` now also queries `failed` payments with a non-null `gatewayPaymentId` that were updated within the last 2 hours; previously only `pending`/`verifying` were rechecked, so orders marked `failed` by the client were never revisited
+- **Prerequisite**: User must fill `RAZORPAY_WEBHOOK_SECRET` value in `freshpickkat_server/.env` from Razorpay Dashboard
 
 ### Category Screen Scroll Sync (`cetegoris_screen_with_stick_heder.dart`)
 - Simplified `_scrollToCategory`: removed complex `_estimateCategoryOffset` with nearest-built lookup
@@ -136,3 +143,6 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 - `freshpickkat_flutter/lib/screens/home_screen.dart`: `_onRefresh` + retry load banners
 - `freshpickkat_flutter/lib/widgets/home_banner_with_horizontal_item.dart`: `initState` fallback
 - `freshpickkat_flutter/lib/widgets/initial_loading_screen.dart`: `onRetry` type change
+- `freshpickkat_flutter/lib/screens/checkout_screen.dart`: client-side UPI retry loop (line 1286), `_tryResolvePendingUpiPayment` (line 1173)
+- `freshpickkat_server/lib/src/web/routes/razorpay_webhook_route.dart`: webhook endpoint – validates HMAC, processes `payment.captured`/`payment.failed`; works once secret is set
+- `freshpickkat_server/lib/src/services/payment_reconciliation_cron_job.dart`: cron runs every 2 minutes
