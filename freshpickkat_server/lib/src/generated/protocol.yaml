@@ -9,6 +9,10 @@ admin:
   - getDashboardHydrated:
   - getAuditLogs:
   - getActiveUsersWithStats:
+  - getAutoRefundJobStatus:
+  - retryAutoRefund:
+  - markAutoRefundReviewed:
+  - getPaymentHealthMetrics:
 auth:
   - signOut:
 banner:

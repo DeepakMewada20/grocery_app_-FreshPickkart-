@@ -1,0 +1,28 @@
+class: AutoRefundJobRow
+serverOnly: true
+table: auto_refund_job
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Restrict)
+  orderNumber: String
+  customerId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  gatewayPaymentId: String
+  paymentTransactionId: UuidValue, relation(parent=payment_transaction, onDelete=Restrict)
+  gatewayOrderId: String?
+  amount: double
+  currency: String, default='INR'
+  jobStatus: String, default='PENDING'
+  attemptCount: int, default=0
+  nextRetryAt: DateTime?
+  lastError: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+  processedAt: DateTime?
+indexes:
+  auto_refund_job_gateway_payment_idx:
+    fields: gatewayPaymentId
+    unique: true
+  auto_refund_job_status_idx:
+    fields: jobStatus
+  auto_refund_job_order_idx:
+    fields: orderId

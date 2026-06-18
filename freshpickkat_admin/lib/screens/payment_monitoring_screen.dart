@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_payment_monitoring_controller.dart';
@@ -21,6 +23,37 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
   late final AdminPaymentMonitoringController _controller;
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  Map<String, dynamic>? _healthMetrics;
+  bool _healthLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.isRegistered<AdminPaymentMonitoringController>(
+      tag: 'payment_monitoring',
+    )
+        ? Get.find<AdminPaymentMonitoringController>(tag: 'payment_monitoring')
+        : Get.put(
+            AdminPaymentMonitoringController(),
+            tag: 'payment_monitoring',
+          );
+    _controller.load();
+    _scrollController.addListener(_onScroll);
+    _loadHealthMetrics();
+  }
+
+  Future<void> _loadHealthMetrics() async {
+    setState(() => _healthLoading = true);
+    try {
+      final json = await _controller.getPaymentHealthMetrics();
+      final decoded = jsonDecode(json) as Map<String, dynamic>;
+      if (mounted) setState(() => _healthMetrics = decoded);
+    } catch (_) {
+      // Silently fail - health metrics are non-critical
+    } finally {
+      if (mounted) setState(() => _healthLoading = false);
+    }
+  }
 
   static const _orderStatuses = [
     '',
@@ -38,21 +71,6 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
     'cancelled',
     'refunded',
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.isRegistered<AdminPaymentMonitoringController>(
-      tag: 'payment_monitoring',
-    )
-        ? Get.find<AdminPaymentMonitoringController>(tag: 'payment_monitoring')
-        : Get.put(
-            AdminPaymentMonitoringController(),
-            tag: 'payment_monitoring',
-          );
-    _controller.load();
-    _scrollController.addListener(_onScroll);
-  }
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
@@ -76,10 +94,106 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
       appBar: AdminAppBar(title: const Text('Payment Monitoring')),
       body: Column(
         children: [
+          if (_healthMetrics != null) _buildHealthBanner(context),
           _buildSearchBar(context),
           _buildFilterChips(context),
           Expanded(child: _buildOrderList(context)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHealthBanner(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final pending =
+        (_healthMetrics!['pendingPaymentCount'] as int?) ?? 0;
+    final expired =
+        (_healthMetrics!['expiredSessionCount'] as int?) ?? 0;
+    final autoRefundPending =
+        (_healthMetrics!['autoRefundPendingCount'] as int?) ?? 0;
+    final autoRefundFailed =
+        (_healthMetrics!['autoRefundFailedCount'] as int?) ?? 0;
+    final duplicatesToday =
+        (_healthMetrics!['duplicatePaymentCount'] as int?) ?? 0;
+    final manualReview =
+        (_healthMetrics!['manualReviewCount'] as int?) ?? 0;
+    final needsAttention = expired + autoRefundFailed + manualReview;
+
+    return Container(
+      width: double.infinity,
+      margin: AdminResponsive.pagePadding(context).copyWith(bottom: 0),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: needsAttention > 0
+            ? cs.error.withValues(alpha: 0.08)
+            : cs.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                needsAttention > 0
+                    ? Icons.warning_amber_rounded
+                    : Icons.check_circle_outline,
+                size: 18.r,
+                color: needsAttention > 0 ? cs.error : cs.primary,
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                'Payment Health',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.sp,
+                ),
+              ),
+              const Spacer(),
+              if (_healthLoading)
+                SizedBox(
+                  width: 14.r,
+                  height: 14.r,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              InkWell(
+                onTap: _loadHealthMetrics,
+                child: Icon(Icons.refresh, size: 18.r),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Wrap(
+            spacing: 16.w,
+            runSpacing: 4.h,
+            children: [
+              _metricChip('Pending', pending, Colors.orange),
+              _metricChip('Expired', expired, cs.error),
+              _metricChip('Duplicates (today)', duplicatesToday, Colors.purple),
+              _metricChip('Manual Review', manualReview, Colors.red),
+              _metricChip('Auto-Refund Pending', autoRefundPending, Colors.orange),
+              _metricChip('Auto-Refund Failed', autoRefundFailed, cs.error),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _metricChip(String label, int count, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Text(
+        '$label: $count',
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -650,6 +764,9 @@ class _PaymentOrderDetailScreenState
   PaymentOrderDetailHydrated? _hydrated;
   bool _loading = true;
   bool _reconciling = false;
+  List<Map<String, dynamic>>? _autoRefundJobs;
+  bool _autoRefundLoading = false;
+  String? _autoRefundError;
 
   @override
   void initState() {
@@ -667,7 +784,32 @@ class _PaymentOrderDetailScreenState
     } catch (e) {
       debugPrint('PaymentOrderDetailHydrated error: $e');
     }
-    if (mounted) setState(() => _loading = false);
+    if (mounted) {
+      setState(() => _loading = false);
+      _loadAutoRefundJobs();
+    }
+  }
+
+  Future<void> _loadAutoRefundJobs() async {
+    setState(() {
+      _autoRefundLoading = true;
+      _autoRefundError = null;
+    });
+    try {
+      final json = await widget.controller.getAutoRefundJobStatus(
+        widget.order.orderId,
+      );
+      final List<dynamic> decoded = jsonDecode(json) as List<dynamic>;
+      if (mounted) {
+        setState(() {
+          _autoRefundJobs = decoded.cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _autoRefundError = e.toString());
+    } finally {
+      if (mounted) setState(() => _autoRefundLoading = false);
+    }
   }
 
   Future<void> _reconcile() async {
@@ -690,6 +832,52 @@ class _PaymentOrderDetailScreenState
       }
     } finally {
       if (mounted) setState(() => _reconciling = false);
+    }
+  }
+
+  Future<void> _retryAutoRefund() async {
+    try {
+      final result = await widget.controller.retryAutoRefund(
+        widget.order.orderId,
+      );
+      final decoded = jsonDecode(result) as Map<String, dynamic>;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] as String? ?? 'Retry initiated'),
+          ),
+        );
+        _loadAutoRefundJobs();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Retry failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _markAutoRefundReviewed() async {
+    try {
+      final result = await widget.controller.markAutoRefundReviewed(
+        widget.order.orderId,
+      );
+      final decoded = jsonDecode(result) as Map<String, dynamic>;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message'] as String? ?? 'Marked as reviewed'),
+          ),
+        );
+        _loadAutoRefundJobs();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mark reviewed failed: $e')),
+        );
+      }
     }
   }
 
@@ -758,6 +946,15 @@ class _PaymentOrderDetailScreenState
                       SizedBox(height: 12.h),
                       _OrderTimelinePanel(order: widget.order),
                       SizedBox(height: 12.h),
+                      _AutoRefundPanel(
+                        jobs: _autoRefundJobs,
+                        loading: _autoRefundLoading,
+                        error: _autoRefundError,
+                        onRetry: _retryAutoRefund,
+                        onMarkReviewed: _markAutoRefundReviewed,
+                        onRefresh: _loadAutoRefundJobs,
+                      ),
+                      SizedBox(height: 12.h),
                       _QuickActionsPanel(
                         order: widget.order,
                         onReconcile: _reconcile,
@@ -768,7 +965,7 @@ class _PaymentOrderDetailScreenState
                 ),
               ],
             ),
-    );
+     );
   }
 }
 
@@ -1237,6 +1434,187 @@ class _QuickActionsPanel extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _AutoRefundPanel extends StatelessWidget {
+  const _AutoRefundPanel({
+    required this.jobs,
+    required this.loading,
+    required this.error,
+    required this.onRetry,
+    required this.onMarkReviewed,
+    required this.onRefresh,
+  });
+
+  final List<Map<String, dynamic>>? jobs;
+  final bool loading;
+  final String? error;
+  final VoidCallback onRetry;
+  final VoidCallback onMarkReviewed;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return _InfoPanel(
+      title: 'Auto-Refund (Duplicate Payment)',
+      children: [
+        if (loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: LinearProgressIndicator(),
+          )
+        else if (error != null)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.error_outline, color: cs.error, size: 16.r),
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: Text(
+                      'Failed to load: $error',
+                      style: TextStyle(color: cs.error, fontSize: 13.sp),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              OutlinedButton(
+                onPressed: onRefresh,
+                child: const Text('Retry'),
+              ),
+            ],
+          )
+        else if (jobs == null || jobs!.isEmpty)
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'No auto-refund jobs found for this order',
+                  style: AdminTextStyles.caption(context),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: onRefresh,
+              ),
+            ],
+          )
+        else ...[
+          for (final job in jobs!) ...[
+            _AutoRefundJobCard(
+              job: job,
+              onRetry: onRetry,
+              onMarkReviewed: onMarkReviewed,
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ],
+      ],
+    );
+  }
+}
+
+class _AutoRefundJobCard extends StatelessWidget {
+  const _AutoRefundJobCard({
+    required this.job,
+    required this.onRetry,
+    required this.onMarkReviewed,
+  });
+
+  final Map<String, dynamic> job;
+  final VoidCallback onRetry;
+  final VoidCallback onMarkReviewed;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final status = job['jobStatus'] as String? ?? 'UNKNOWN';
+    final amount = job['amount'] as num?;
+    final lastError = job['lastError'] as String?;
+    final attemptCount = job['attemptCount'] as int?;
+
+    Color statusColor;
+    switch (status) {
+      case 'PENDING':
+        statusColor = Colors.orange;
+      case 'COMPLETED':
+        statusColor = cs.primary;
+      case 'FAILED':
+        statusColor = cs.error;
+      case 'MANUAL_REVIEW':
+        statusColor = Colors.red;
+      default:
+        statusColor = cs.onSurface;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11.sp,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              if (attemptCount != null)
+                Text(
+                  'Attempt $attemptCount',
+                  style: AdminTextStyles.caption(context),
+                ),
+            ],
+          ),
+          SizedBox(height: 6.h),
+          if (amount != null)
+            _InfoRow('Gateway Amount', 'INR ${amount.toStringAsFixed(2)}'),
+          if (lastError != null && lastError.isNotEmpty)
+            _InfoRow('Last Error', lastError),
+          SizedBox(height: 8.h),
+          if (status == 'FAILED')
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.replay, size: 16),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.error.withValues(alpha: 0.1),
+                foregroundColor: cs.error,
+              ),
+            ),
+          if (status == 'MANUAL_REVIEW')
+            ElevatedButton.icon(
+              onPressed: onMarkReviewed,
+              icon: const Icon(Icons.check_circle_outline, size: 16),
+              label: const Text('Mark Reviewed'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary.withValues(alpha: 0.1),
+                foregroundColor: cs.primary,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

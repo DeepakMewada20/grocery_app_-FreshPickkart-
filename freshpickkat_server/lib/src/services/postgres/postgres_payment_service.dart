@@ -6,6 +6,7 @@ import '../env_service.dart';
 import '../order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import '../snapshot_builder.dart';
+import 'postgres_auto_refund_service.dart';
 import 'postgres_payment_link_service.dart';
 import 'postgres_support.dart';
 
@@ -156,6 +157,25 @@ class PostgresPaymentService {
 
       if (paymentRow.paymentStatus == 'paid' &&
           resolvedOrderRow.paymentStatus == 'paid') {
+        // Check if this is a different payment (duplicate) vs webhook retry (same)
+        if (paymentRow.gatewayPaymentId != null &&
+            paymentRow.gatewayPaymentId!.isNotEmpty &&
+            paymentRow.gatewayPaymentId != razorpayPaymentId) {
+          // Duplicate payment detected — create auto refund job
+          await _createAutoRefundJob(
+            session,
+            resolvedOrderRow,
+            paymentRow,
+            razorpayPaymentId,
+            razorpayOrderId,
+          );
+          return PaymentVerifyResult(
+            success: true,
+            verified: true,
+            message: 'Order already paid. Duplicate payment will be refunded automatically.',
+          );
+        }
+
         await OrderOutboxService.instance.enqueueOrderPaid(
           session: session,
           orderId: resolvedOrderRow.orderNumber,
@@ -433,6 +453,26 @@ class PostgresPaymentService {
 
       if (paymentRow.paymentStatus == 'paid' &&
           resolvedOrderRow.paymentStatus == 'paid') {
+        // Check if this is a different payment (duplicate) vs webhook retry (same)
+        if (razorpayPaymentId.isNotEmpty &&
+            paymentRow.gatewayPaymentId != null &&
+            paymentRow.gatewayPaymentId!.isNotEmpty &&
+            paymentRow.gatewayPaymentId != razorpayPaymentId) {
+          // Duplicate payment detected — create auto refund job
+          await _createAutoRefundJob(
+            session,
+            resolvedOrderRow,
+            paymentRow,
+            razorpayPaymentId,
+            razorpayOrderId,
+          );
+          return PaymentVerifyResult(
+            success: true,
+            verified: true,
+            message: 'Order already paid. Duplicate payment will be refunded automatically.',
+          );
+        }
+
         return PaymentVerifyResult(
           success: true,
           verified: true,
@@ -1447,5 +1487,126 @@ class PostgresPaymentService {
         level: LogLevel.error,
       );
     }
+  }
+
+  Future<void> _createAutoRefundJob(
+    Session session,
+    CustomerOrderRow order,
+    PaymentTransactionRow payment,
+    String incomingPaymentId,
+    String incomingOrderId,
+  ) async {
+    try {
+      final job = AutoRefundJobRow(
+        orderId: order.id!,
+        orderNumber: order.orderNumber,
+        customerId: order.userId,
+        gatewayPaymentId: incomingPaymentId,
+        paymentTransactionId: payment.id!,
+        gatewayOrderId: incomingOrderId.isNotEmpty ? incomingOrderId : payment.gatewayOrderId,
+        amount: order.finalAmount,
+        currency: 'INR',
+      );
+
+      await PostgresAutoRefundService().createJob(session, job: job);
+
+      session.log(
+        'Duplicate payment detected: order=${order.orderNumber}, '
+        'stored=${payment.gatewayPaymentId}, incoming=$incomingPaymentId. '
+        'Auto-refund job created.',
+        level: LogLevel.warning,
+      );
+    } catch (e) {
+      session.log(
+        'Failed to create auto-refund job for duplicate payment: $e',
+        level: LogLevel.error,
+      );
+    }
+  }
+
+  /// Expire stale payment sessions where paymentLinkExpiresAt has passed.
+  /// Returns the number of orders expired.
+  Future<int> expireStaleSessions(Session session) async {
+    final now = DateTime.now().toUtc();
+    final expiredRows = await CustomerOrderRow.db.find(
+      session,
+      where: (t) =>
+          t.paymentStatus.equals('pending') &
+          t.paymentLinkExpiresAt.lessThan(now) &
+          t.orderStatus.equals('placed'),
+    );
+
+    int count = 0;
+    for (final order in expiredRows) {
+      try {
+        // FOR UPDATE lock to prevent races
+        final locked = await session.db.unsafeQuery(
+          'SELECT id FROM "customer_order" WHERE "id" = @id FOR UPDATE',
+          parameters: QueryParameters.named({'id': order.id!.toJson()}),
+        );
+        if (locked.isEmpty) continue;
+
+        // Re-check under lock
+        final current = await CustomerOrderRow.db.findById(session, order.id!);
+        if (current == null ||
+            current.paymentStatus != 'pending' ||
+            current.orderStatus != 'placed') {
+          continue;
+        }
+
+        final updated = current.copyWith(
+          orderStatus: 'payment_expired',
+          paymentStatus: 'cancelled',
+          linkStatus: 'EXPIRED',
+          updatedAt: now,
+        );
+        await CustomerOrderRow.db.updateRow(session, updated);
+        count++;
+
+        session.log(
+          'Expired payment session for order ${current.orderNumber}',
+          level: LogLevel.info,
+        );
+      } catch (e) {
+        session.log(
+          'Failed to expire session for order ${order.orderNumber}: $e',
+          level: LogLevel.error,
+        );
+      }
+    }
+    return count;
+  }
+
+  /// Detect orphan payments: payment_transaction rows marked 'paid' but
+  /// the corresponding customer_order is not 'paid'.
+  Future<List<Map<String, dynamic>>> detectOrphanPayments(Session session) async {
+    final orphans = await session.db.unsafeQuery('''
+      SELECT pt.id AS txnId,
+             pt."gatewayPaymentId",
+             pt."gatewayOrderId",
+             co."orderNumber",
+             co."paymentStatus" AS orderPaymentStatus,
+             pt."paymentStatus" AS txnPaymentStatus,
+             pt."createdAt"
+      FROM "payment_transaction" pt
+      LEFT JOIN "customer_order" co ON co.id = pt."orderId"
+      WHERE pt."paymentStatus" = 'paid'
+        AND (co.id IS NULL OR co."paymentStatus" != 'paid')
+      ORDER BY pt."createdAt" DESC
+      LIMIT 50
+    ''');
+
+    return orphans.map((row) {
+      final map = row.toColumnMap();
+      return {
+        'txnId': map['txnId']?.toString(),
+        'gatewayPaymentId': map['gatewayPaymentId']?.toString(),
+        'gatewayOrderId': map['gatewayOrderId']?.toString(),
+        'orderNumber': map['orderNumber']?.toString(),
+        'orderPaymentStatus': map['orderPaymentStatus']?.toString(),
+        'txnPaymentStatus': map['txnPaymentStatus']?.toString(),
+        'createdAt': map['createdAt']?.toString(),
+      };
+    }).toList();
   }
 }

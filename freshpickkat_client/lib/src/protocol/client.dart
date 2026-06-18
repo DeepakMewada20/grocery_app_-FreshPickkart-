@@ -265,6 +265,68 @@ class EndpointAdmin extends _i1.EndpointRef {
       'limit': limit,
     },
   );
+
+  /// Get auto-refund job status for duplicate payment tracking.
+  /// Returns a JSON-serialized list of auto-refund jobs for the given order.
+  _i2.Future<String> getAutoRefundJobStatus(
+    String firebaseUid,
+    String idToken,
+    String orderNumber,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'getAutoRefundJobStatus',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+    },
+  );
+
+  /// Retry an auto-refund job for a given order.
+  /// Resets the latest job back to PENDING with attemptCount=0.
+  _i2.Future<String> retryAutoRefund(
+    String firebaseUid,
+    String idToken,
+    String orderNumber,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'retryAutoRefund',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+    },
+  );
+
+  /// Mark an auto-refund job as reviewed (moves from MANUAL_REVIEW back to PENDING).
+  _i2.Future<String> markAutoRefundReviewed(
+    String firebaseUid,
+    String idToken,
+    String orderNumber,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'markAutoRefundReviewed',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'orderNumber': orderNumber,
+    },
+  );
+
+  /// Get payment health metrics for the admin dashboard.
+  /// Returns JSON with counts for pending payments, expired sessions,
+  /// auto-refund jobs, duplicate payments, and manual reviews.
+  _i2.Future<String> getPaymentHealthMetrics(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'getPaymentHealthMetrics',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

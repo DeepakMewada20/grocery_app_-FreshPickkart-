@@ -502,6 +502,124 @@ class Endpoints extends _i1.EndpointDispatch {
                     limit: params['limit'],
                   ),
         ),
+        'getAutoRefundJobStatus': _i1.MethodConnector(
+          name: 'getAutoRefundJobStatus',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderNumber': _i1.ParameterDescription(
+              name: 'orderNumber',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getAutoRefundJobStatus(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    params['orderNumber'],
+                  ),
+        ),
+        'retryAutoRefund': _i1.MethodConnector(
+          name: 'retryAutoRefund',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderNumber': _i1.ParameterDescription(
+              name: 'orderNumber',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['admin'] as _i2.AdminEndpoint).retryAutoRefund(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    params['orderNumber'],
+                  ),
+        ),
+        'markAutoRefundReviewed': _i1.MethodConnector(
+          name: 'markAutoRefundReviewed',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'orderNumber': _i1.ParameterDescription(
+              name: 'orderNumber',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .markAutoRefundReviewed(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    params['orderNumber'],
+                  ),
+        ),
+        'getPaymentHealthMetrics': _i1.MethodConnector(
+          name: 'getPaymentHealthMetrics',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['admin'] as _i2.AdminEndpoint)
+                  .getPaymentHealthMetrics(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['auth'] = _i1.EndpointConnector(

@@ -139,4 +139,36 @@ class AdminPaymentMonitoringController extends GetxController {
       );
     });
   }
+
+  Future<String> getAutoRefundJobStatus(String orderNumber) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.admin.getAutoRefundJobStatus(uid, token, orderNumber);
+    });
+  }
+
+  Future<String> retryAutoRefund(String orderNumber) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.admin.retryAutoRefund(uid, token, orderNumber);
+    });
+  }
+
+  Future<String> markAutoRefundReviewed(String orderNumber) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.admin.markAutoRefundReviewed(uid, token, orderNumber);
+    });
+  }
+
+  Future<String> getPaymentHealthMetrics() async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.admin.getPaymentHealthMetrics(uid, token);
+    });
+  }
 }

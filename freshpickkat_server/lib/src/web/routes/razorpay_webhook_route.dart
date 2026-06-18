@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../../services/env_service.dart';
+import '../../services/postgres/postgres_auto_refund_service.dart';
 import '../../services/postgres/postgres_payment_link_service.dart';
 import '../../services/postgres/postgres_payment_service.dart';
 import '../../services/postgres/postgres_refund_service.dart';
@@ -128,6 +129,57 @@ class RazorpayWebhookRoute extends Route {
         return _jsonOk({'success': true, 'message': 'Order not found'});
       }
       if (order.paymentStatus == 'paid') {
+        // Check if this is a duplicate payment (different payment ID) vs webhook retry (same)
+        if (paymentId != null && paymentId.isNotEmpty) {
+          // Find the stored payment transaction to check the gateway payment ID
+          final existingTxns = await session.db.unsafeQuery(
+            '''SELECT "gatewayPaymentId" FROM "payment_transaction"
+               WHERE "orderId" = @orderId AND "paymentStatus" = 'paid'
+               LIMIT 1''',
+            parameters: QueryParameters.named({
+              'orderId': (await CustomerOrderRow.db.findFirstRow(
+                session,
+                where: (t) => t.orderNumber.equals(order.orderId),
+              ))?.id?.toJson() ?? '',
+            }),
+          );
+          if (existingTxns.isNotEmpty) {
+            final storedPaymentId =
+                existingTxns.first.toColumnMap()['gatewayPaymentId'] as String?;
+            if (storedPaymentId != null &&
+                storedPaymentId.isNotEmpty &&
+                storedPaymentId != paymentId) {
+              // Different payment — duplicate payment detected
+              try {
+                final orderRow = await CustomerOrderRow.db.findFirstRow(
+                  session,
+                  where: (t) => t.orderNumber.equals(order.orderId),
+                );
+                if (orderRow?.id != null) {
+                  final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+                    session,
+                    where: (t) => t.orderId.equals(orderRow!.id!),
+                  );
+                  if (paymentRow != null) {
+                    await _createAutoRefundJob(
+                      session,
+                      orderRow!,
+                      paymentRow,
+                      paymentId,
+                      razorpayOrderId ?? '',
+                    );
+                  }
+                }
+              } catch (e) {
+                session.log(
+                  'Webhook: failed to create auto-refund job: $e',
+                  level: LogLevel.error,
+                );
+              }
+            }
+          }
+        }
+
         session.log(
           'Webhook: payment $paymentId already marked as paid for order $orderNumber',
           level: LogLevel.info,
@@ -509,8 +561,41 @@ class RazorpayWebhookRoute extends Route {
         }
       }
 
-      // Already paid check
+      // Already paid check — with duplicate detection
       if (dbPaymentStatus == 'paid') {
+        // Check if this is a different payment ID (duplicate) vs webhook retry
+        if (paymentId != null && paymentId.isNotEmpty) {
+          final existingTxns = await session.db.unsafeQuery(
+            '''SELECT "gatewayPaymentId" FROM "payment_transaction"
+               WHERE "orderId" = @orderId AND "paymentStatus" = 'paid'
+               LIMIT 1''',
+            parameters: QueryParameters.named({
+              'orderId': orderRow.id!.toJson(),
+            }),
+          );
+          if (existingTxns.isNotEmpty) {
+            final storedPaymentId =
+                existingTxns.first.toColumnMap()['gatewayPaymentId'] as String?;
+            if (storedPaymentId != null &&
+                storedPaymentId.isNotEmpty &&
+                storedPaymentId != paymentId) {
+              // Different payment — duplicate detected, create refund job
+              final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+                session,
+                where: (t) => t.orderId.equals(orderRow.id!),
+              );
+              if (paymentRow != null) {
+                await _createAutoRefundJob(
+                  session,
+                  orderRow,
+                  paymentRow,
+                  paymentId,
+                  razorpayOrderId ?? '',
+                );
+              }
+            }
+          }
+        }
         session.log(
           'payment_link.paid: order $orderNumber already paid',
           level: LogLevel.info,
@@ -579,6 +664,41 @@ class RazorpayWebhookRoute extends Route {
     } catch (e) {
       session.log(
         'payment_link.paid handler error: $e',
+        level: LogLevel.error,
+      );
+    }
+  }
+
+  Future<void> _createAutoRefundJob(
+    Session session,
+    CustomerOrderRow order,
+    PaymentTransactionRow payment,
+    String incomingPaymentId,
+    String incomingOrderId,
+  ) async {
+    try {
+      final job = AutoRefundJobRow(
+        orderId: order.id!,
+        orderNumber: order.orderNumber,
+        customerId: order.userId,
+        gatewayPaymentId: incomingPaymentId,
+        paymentTransactionId: payment.id!,
+        gatewayOrderId: incomingOrderId.isNotEmpty ? incomingOrderId : payment.gatewayOrderId,
+        amount: order.finalAmount,
+        currency: 'INR',
+      );
+
+      await PostgresAutoRefundService().createJob(session, job: job);
+
+      session.log(
+        'Duplicate payment detected via webhook: order=${order.orderNumber}, '
+        'stored=${payment.gatewayPaymentId}, incoming=$incomingPaymentId. '
+        'Auto-refund job created.',
+        level: LogLevel.warning,
+      );
+    } catch (e) {
+      session.log(
+        'Failed to create auto-refund job from webhook: $e',
         level: LogLevel.error,
       );
     }

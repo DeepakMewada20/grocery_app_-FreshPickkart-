@@ -1,7 +1,7 @@
 ## Goal
-Optimize basket suggestions with free delivery product suggestions; maintain banner resilience, coupon-filtering, and hydration fixes across the stack.
+Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module 4 (Admin + Cron) — complete.
 
-## Current Task: (completed) Add free delivery product suggestions to basket suggestion engine
+## Current Task: (completed) Full payment infrastructure — Modules 2/3/4
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -77,6 +77,11 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 3. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
 4. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
 5. Restart server to test free delivery product suggestions in basket
+6. Run DB migration for `auto_refund_job_row` table (already in `definition.sql`)
+7. Test auto-refund: create duplicate payment → verify job created → verify auto-refund processes → check admin health metrics
+8. Test payment link flow: create order → get payment link → click link → pay → verify order completes
+9. Verify expired payment link sessions are auto-cancelled by cron
+10. Verify admin can retry/mark-reviewed auto-refund jobs from payment monitoring screen
 
 ## Recent Fixes
 ### Free delivery product suggestions (`basket_suggestion_service.dart`)
@@ -105,6 +110,32 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 - "All Items" separated into its own scroll-to-bottom path
 - **`cacheExtent: 10000` on items ListView**: forces all category widgets to stay alive, so `Scrollable.ensureVisible` always has a valid context — no more two-phase overshoot retry, just a single smooth animation
 - **`_onCategoryTap` no longer calls `_syncScrollState`**: header and sidebar are set by `setState` before the scroll, and `_syncScrollState` only runs on manual scroll — prevents inaccurate offsets from overwriting the header after a tap
+
+### Module 2 — Payment Links
+- **`PostgresPaymentLinkService`**: `initializePaymentSession()`, `getOrCreatePaymentLink()`, `getPaymentSessionStatus()`, `disablePaymentLink()` — generates Razorpay payment links with expiry
+- **`PostgresPaymentService.verifyPayment()`** and `completePaymentVerification()`: Disable payment link on successful payment to prevent reuse
+- **`PostgresOrderService.cancelPendingOrder()`**: Disable payment link on cancellation
+- **`PaymentLinkEndpoint`**: `getPaymentSessionStatus()`, `getOrCreatePaymentLink()` — returns `PaymentLinkData`
+- **`CheckoutEndpoint`**: `initializePaymentSession()` called after order creation
+- **Flutter**: `PaymentSessionSheet` widget (countdown timer, copy link, retry), `payment_link_service.dart` updated, `checkout_screen.dart` — retry via `PaymentSessionSheet`, auto-navigate on payment success
+- **`PaymentLinkData` protocol**: `shortUrl`, `expiresAt`, `status`, `paymentSessionId`
+
+### Module 3 — Auto-Refund (Duplicate Detection)
+- **`auto_refund_job_row` table**: `definition.sql` + `auto_refund_job.spy.yaml` protocol — unique constraint on `gatewayPaymentId`, FK to `customer_order`/`app_user`/`payment_transaction`
+- **`PostgresAutoRefundService`**: `createJob()` with dedup (INSERT ON CONFLICT DO NOTHING), suspicious amount validation (>1.5x → `MANUAL_REVIEW`), capture validation via Razorpay API
+- **Duplicate detection at 3 hooks**: `verifyPayment()`, `completePaymentVerification()`, razorpay webhook (`payment.captured` + `payment_link.paid`)
+- **`AdminEndpoint.getAutoRefundJobStatus()`**: Returns JSON list of auto-refund jobs for a given order
+- **Refund source `'auto_refund'`** already supported (free-text `String` in `refund_record.source`)
+
+### Module 4 — Admin + Cron
+- **Cron job rewrite** (`payment_reconciliation_cron_job.dart`): Separate timer for payment link expiry recovery (every 30s), auto-refund processing (60s), session expiry (60s), orphan detection (5min) — all non-blocking isolated timers
+- **`PostgresAutoRefundService.loadPendingJobs()`**: Loads `PENDING` + `FAILED` (past retry window) jobs; `updateJobStatus()` writes audit log
+- **`PostgresPaymentService.expireStaleSessions()`**: Sets `paymentStatus = 'failed'` for expired payment link sessions
+- **`PostgresPaymentService.detectOrphanPayments()`**: Finds `paid` orders with no `paymentTransactionId` or `razorpayPaymentId` (webhook recovery gap)
+- **`AdminEndpoint`**: `retryAutoRefund()`, `markAutoRefundReviewed()`, `getPaymentHealthMetrics()` — JSON-based responses
+- **`AdminPaymentMonitoringController`**: 3 new methods (`getAutoRefundJobStatus()`, `retryAutoRefund()`, `markAutoRefundReviewed()`, `getPaymentHealthMetrics()`)
+- **Admin `payment_monitoring_screen.dart`**: Health metrics banner (pending/expired/duplicate/auto-refund counts), `_AutoRefundPanel` + `_AutoRefundJobCard` widgets with retry/mark-reviewed actions
+- **Audit log events**: `DUPLICATE_PAYMENT_DETECTED`, `AUTO_REFUND_PROCESSING`, `AUTO_REFUND_COMPLETED`, `AUTO_REFUND_FAILED`, `AUTO_REFUND_RETRY`, `PAYMENT_SESSION_EXPIRED`, `ORPHAN_PAYMENT_DETECTED`
 
 ## Key Optimizations
 - **Home page DB queries reduced**: ~63 → ~23 per load. Fetch IDs first (5 simple SQL queries), merge + deduplicate, hydrate once (10 queries), distribute results.
@@ -145,4 +176,14 @@ Optimize basket suggestions with free delivery product suggestions; maintain ban
 - `freshpickkat_flutter/lib/widgets/initial_loading_screen.dart`: `onRetry` type change
 - `freshpickkat_flutter/lib/screens/checkout_screen.dart`: client-side UPI retry loop (line 1286), `_tryResolvePendingUpiPayment` (line 1173)
 - `freshpickkat_server/lib/src/web/routes/razorpay_webhook_route.dart`: webhook endpoint – validates HMAC, processes `payment.captured`/`payment.failed`; works once secret is set
-- `freshpickkat_server/lib/src/services/payment_reconciliation_cron_job.dart`: cron runs every 2 minutes
+- `freshpickkat_server/lib/src/services/payment_reconciliation_cron_job.dart`: multi-timer cron (30s link expiry, 60s auto-refund, 60s session expiry, 5min orphan detection)
+- `freshpickkat_server/lib/src/protocol/auto_refund_job.spy.yaml`: auto-refund job protocol
+- `freshpickkat_server/lib/src/protocol/payment_link_data.spy.yaml`: payment link data protocol
+- `freshpickkat_server/lib/src/services/postgres/postgres_payment_link_service.dart`: payment link creation/management
+- `freshpickkat_server/lib/src/services/postgres/postgres_auto_refund_service.dart`: auto-refund job creation/processing
+- `freshpickkat_server/lib/src/endpoints/payment_link_endpoint.dart`: `getPaymentSessionStatus()`, `getOrCreatePaymentLink()`
+- `freshpickkat_server/lib/src/endpoints/admin_endpoint.dart`: `getAutoRefundJobStatus()`, `retryAutoRefund()`, `markAutoRefundReviewed()`, `getPaymentHealthMetrics()`
+- `freshpickkat_admin/lib/controller/admin_payment_monitoring_controller.dart`: auto-refund + health metrics methods
+- `freshpickkat_admin/lib/screens/payment_monitoring_screen.dart`: `_AutoRefundPanel`, `_AutoRefundJobCard`, health metrics banner
+- `freshpickkat_flutter/lib/widgets/payment_session_sheet.dart`: payment link countdown/retry sheet
+- `freshpickkat_flutter/lib/services/payment_link_service.dart`: payment link HTTP calls
