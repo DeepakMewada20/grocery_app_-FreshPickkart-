@@ -2312,21 +2312,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             icon: Icons.share,
             title: 'Ask Someone Else To Pay',
             subtitle: 'Share a payment link via WhatsApp, SMS, etc.',
-            isSelected: false,
-            isDisabled: true,
-            onTap: null,
-          ),
-          SizedBox(height: 4.h),
-          Padding(
-            padding: EdgeInsets.only(left: 36.w),
-            child: Text(
-              'This feature is not available now',
-              style: TextStyle(
-                color: cs.onSurface.withValues(alpha: 0.4),
-                fontSize: 12.sp,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
+            isSelected: _isShareablePayment,
+            onTap: () => setState(() => _isShareablePayment = true),
           ),
         ],
       ),

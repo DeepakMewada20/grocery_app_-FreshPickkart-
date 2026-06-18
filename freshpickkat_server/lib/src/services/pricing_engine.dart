@@ -150,16 +150,24 @@ class PricingEngine {
         unvalidatedBogoSelections.remove(
           '${triggerItem.productId}:${triggerItem.variantId ?? ''}:${triggerItem.bogoFreeProductId}',
         );
-        final selectedFreeProductId = triggerItem.bogoFreeProductId;
-        if (selectedFreeProductId == null) continue;
+        final selectedFreeProductId = triggerItem.bogoFreeProductId?.trim();
+        if (selectedFreeProductId == null || selectedFreeProductId.isEmpty) {
+          continue;
+        }
         final reward = findBogoReward(
           offer,
           freeProductId: selectedFreeProductId,
         );
         if (reward == null) {
-          throw ArgumentError(
-            'Selected free product is not part of this offer.',
+          session.log(
+            'BOGO reward not found for freeProductId=$selectedFreeProductId '
+            'in offer ${offer.offerId}, trigger=${offer.triggerProductId}',
+            level: LogLevel.warning,
           );
+          unvalidatedBogoSelections.remove(
+            '${triggerItem.productId}:${triggerItem.variantId ?? ''}:$selectedFreeProductId',
+          );
+          continue;
         }
         if (!isBogoTriggerEligible(
           triggerProduct: product,
