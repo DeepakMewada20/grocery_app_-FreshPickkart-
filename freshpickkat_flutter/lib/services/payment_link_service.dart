@@ -22,6 +22,7 @@ class PaymentLinkService {
     required String customerPhone,
     required String firebaseUid,
     required String idToken,
+    String? pendingOrderAction,
   }) async {
     return _client.paymentLink.createShareablePaymentLink(
       draftOrder,
@@ -30,6 +31,7 @@ class PaymentLinkService {
       customerPhone,
       firebaseUid,
       idToken,
+      pendingOrderAction: pendingOrderAction,
     );
   }
 

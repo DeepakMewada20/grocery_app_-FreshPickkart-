@@ -26,8 +26,9 @@ class PaymentLinkEndpoint extends Endpoint {
     double amount,
     String customerPhone,
     String firebaseUid,
-    String idToken,
-  ) async {
+    String idToken, {
+    String? pendingOrderAction,
+  }) async {
     try {
       // Security: verify customer is logged in and owns this request
       final user = await _userGuard.ensureUser(
@@ -37,17 +38,33 @@ class PaymentLinkEndpoint extends Endpoint {
       );
       final generatedBy = user.id.toString();
 
-      // Check for existing active pending order — prevent duplicate pending orders
-      final existingPending = await _orders.findActivePendingOrder(
-        session,
-        firebaseUid,
-      );
-      if (existingPending != null) {
-        return protocol.PaymentLinkData(
-          success: false,
-          error: 'ACTIVE_PENDING_ORDER:${existingPending.orderNumber}',
-          orderId: existingPending.orderNumber,
+      // Handle pending order actions
+      if (pendingOrderAction == 'cancel' && firebaseUid.isNotEmpty) {
+        final existing = await _orders.findActivePendingOrder(
+          session,
+          firebaseUid,
         );
+        if (existing != null) {
+          await _orders.cancelPendingOrder(
+            session,
+            existing.orderNumber,
+            firebaseUid,
+            reason: 'Cancelled by user — switching to payment link',
+          );
+        }
+      } else if (firebaseUid.isNotEmpty) {
+        // Check for existing active pending order — prevent duplicate pending orders
+        final existingPending = await _orders.findActivePendingOrder(
+          session,
+          firebaseUid,
+        );
+        if (existingPending != null) {
+          return protocol.PaymentLinkData(
+            success: false,
+            error: 'ACTIVE_PENDING_ORDER:${existingPending.orderNumber}',
+            orderId: existingPending.orderNumber,
+          );
+        }
       }
 
       // 1. Create the order in PAYMENT_PENDING status

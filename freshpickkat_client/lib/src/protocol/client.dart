@@ -2997,19 +2997,22 @@ class EndpointPaymentLink extends _i1.EndpointRef {
     double amount,
     String customerPhone,
     String firebaseUid,
-    String idToken,
-  ) => caller.callServerEndpoint<_i59.PaymentLinkData>(
-    'paymentLink',
-    'createShareablePaymentLink',
-    {
-      'order': order,
-      'idempotencyKey': idempotencyKey,
-      'amount': amount,
-      'customerPhone': customerPhone,
-      'firebaseUid': firebaseUid,
-      'idToken': idToken,
-    },
-  );
+    String idToken, {
+    String? pendingOrderAction,
+  }) =>
+      caller.callServerEndpoint<_i59.PaymentLinkData>(
+        'paymentLink',
+        'createShareablePaymentLink',
+        {
+          'order': order,
+          'idempotencyKey': idempotencyKey,
+          'amount': amount,
+          'customerPhone': customerPhone,
+          'firebaseUid': firebaseUid,
+          'idToken': idToken,
+          if (pendingOrderAction != null) 'pendingOrderAction': pendingOrderAction,
+        },
+      );
 
   /// Validate a payment link token and return order page data.
   /// This endpoint is unauthenticated — the token is the auth.

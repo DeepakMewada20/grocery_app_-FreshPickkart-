@@ -228,9 +228,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final pStatus = info.paymentStatus;
     final oStatus = info.orderStatus;
 
-    // FAILED → always cancel + create new
+    // FAILED → clear stale info, create fresh
     if (pStatus == 'failed') {
-      await _placeOrderCore(pendingOrderAction: 'cancel');
+      _pendingOrderInfo = null;
+      if (_isShareablePayment) {
+        await _placeOrderWithShareableLink();
+      } else {
+        await _placeOrderCore();
+      }
       return;
     }
 
@@ -254,21 +259,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final isWithinTime = DateTime.now().difference(info.orderedAt).inMinutes <= 10;
 
     if (isSameCart && isWithinTime) {
-      await _placeOrderCore(pendingOrderAction: 'continue');
+      if (_isShareablePayment) {
+        await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
+      } else {
+        await _placeOrderCore(pendingOrderAction: 'continue');
+      }
       return;
     }
 
     // Different cart or too old
     if (info.linkStatus == 'ACTIVE') {
-      final proceed = await _showActiveLinkConfirmation();
-      if (proceed) {
-        await _placeOrderCore(pendingOrderAction: 'cancel');
+      if (_isShareablePayment) {
+        await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
+      } else {
+        final proceed = await _showActiveLinkConfirmation();
+        if (proceed) {
+          await _placeOrderCore(pendingOrderAction: 'cancel');
+        }
       }
       return;
     }
 
     // No active link — cancel silently + create new
-    await _placeOrderCore(pendingOrderAction: 'cancel');
+    if (_isShareablePayment) {
+      await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
+    } else {
+      await _placeOrderCore(pendingOrderAction: 'cancel');
+    }
   }
 
   /// Core order creation + payment flow.
@@ -639,7 +656,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _placeOrderWithShareableLink() async {
+  Future<void> _placeOrderWithShareableLink({String? pendingOrderAction}) async {
     if (_isProcessing) return;
 
     try {
@@ -685,6 +702,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerPhone: customerPhone,
         firebaseUid: firebaseUid,
         idToken: idToken,
+        pendingOrderAction: pendingOrderAction,
       );
 
       if (result.success != true) {
