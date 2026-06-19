@@ -893,19 +893,23 @@ class PostgresPaymentService {
     Duration timeout = const Duration(minutes: 10),
   }) async {
     try {
-      final cutoff = DateTime.now().toUtc().subtract(timeout);
+      final now = DateTime.now().toUtc();
+      final cutoff = now.subtract(timeout);
+      final ageCutoff = now.subtract(const Duration(days: 2));
       final result = await session.db.unsafeQuery(
         '''
         SELECT id FROM customer_order
         WHERE "paymentStatus" = @paymentStatus
           AND "orderStatus" = @orderStatus
           AND "createdAt" < @cutoff
+          AND "createdAt" >= @ageCutoff
         LIMIT 200
         ''',
         parameters: QueryParameters.named({
           'paymentStatus': 'pending',
           'orderStatus': 'placed',
           'cutoff': cutoff,
+          'ageCutoff': ageCutoff,
         }),
       );
 
@@ -979,13 +983,15 @@ class PostgresPaymentService {
     var skipped = 0;
 
     try {
-      final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 2));
+      final now = DateTime.now().toUtc();
+      final cutoff = now.subtract(const Duration(hours: 2));
+      final ageCutoff = now.subtract(const Duration(hours: 24));
 
       final rows = await PaymentTransactionRow.db.find(
         session,
         where: (t) =>
-            t.paymentStatus.equals('pending') |
-            t.paymentStatus.equals('verifying') |
+            ((t.paymentStatus.equals('pending') | t.paymentStatus.equals('verifying')) &
+                (t.createdAt >= ageCutoff)) |
             (t.paymentStatus.equals('failed') &
                 t.gatewayPaymentId.notEquals(null) &
                 (t.updatedAt >= cutoff)),
@@ -1613,11 +1619,13 @@ class PostgresPaymentService {
   /// Returns the number of orders expired.
   Future<int> expireStaleSessions(Session session) async {
     final now = DateTime.now().toUtc();
+    final ageCutoff = now.subtract(const Duration(days: 2));
     final expiredRows = await CustomerOrderRow.db.find(
       session,
       where: (t) =>
           t.paymentStatus.equals('pending') &
           (t.paymentLinkExpiresAt < now) &
+          (t.paymentLinkExpiresAt >= ageCutoff) &
           t.orderStatus.equals('placed'),
     );
 
@@ -1665,6 +1673,8 @@ class PostgresPaymentService {
   /// Detect orphan payments: payment_transaction rows marked 'paid' but
   /// the corresponding customer_order is not 'paid'.
   Future<List<Map<String, dynamic>>> detectOrphanPayments(Session session) async {
+    final now = DateTime.now().toUtc();
+    final ageCutoff = now.subtract(const Duration(days: 7));
     final orphans = await session.db.unsafeQuery('''
       SELECT pt.id AS txnId,
              pt."gatewayPaymentId",
@@ -1677,9 +1687,12 @@ class PostgresPaymentService {
       LEFT JOIN "customer_order" co ON co.id = pt."orderId"
       WHERE pt."paymentStatus" = 'paid'
         AND (co.id IS NULL OR co."paymentStatus" != 'paid')
+        AND pt."createdAt" >= @ageCutoff
       ORDER BY pt."createdAt" DESC
       LIMIT 50
-    ''');
+    ''', parameters: QueryParameters.named({
+      'ageCutoff': ageCutoff.toIso8601String(),
+    }));
 
     return orphans.map((row) {
       final map = row.toColumnMap();
@@ -1693,5 +1706,105 @@ class PostgresPaymentService {
         'createdAt': map['createdAt']?.toString(),
       };
     }).toList();
+  }
+
+  Future<Map<String, int>> reconcilePaymentLinkOrders(
+    Session session, {
+    int limit = 50,
+    String? singleOrderNumber,
+  }) async {
+    var recovered = 0;
+    var failed = 0;
+    var skipped = 0;
+
+    try {
+      final now = DateTime.now().toUtc();
+      final cutoff = now.subtract(const Duration(minutes: 2));
+      final ageCutoff = now.subtract(const Duration(days: 3));
+
+      final rows = await session.db.unsafeQuery(
+        '''SELECT co.*, pl."razorpayPaymentLinkId", pl."token"
+           FROM customer_order co
+           JOIN payment_link pl ON pl."orderId" = co."id"
+           WHERE co."paymentStatus" = 'pending'
+             AND co."linkStatus" = 'ACTIVE'
+             AND co."updatedAt" < @cutoff
+             AND co."updatedAt" >= @ageCutoff
+           ${singleOrderNumber != null ? 'AND co."orderNumber" = @orderNumber' : ''}
+           ORDER BY co."updatedAt" ASC
+           LIMIT @limit''',
+        parameters: QueryParameters.named({
+          'cutoff': cutoff.toIso8601String(),
+          'ageCutoff': ageCutoff.toIso8601String(),
+          'limit': limit,
+          if (singleOrderNumber != null) 'orderNumber': singleOrderNumber,
+        }),
+      );
+
+      for (final row in rows) {
+        try {
+          final map = row.toColumnMap();
+          final linkId = map['razorpayPaymentLinkId'] as String?;
+          final orderNumber = map['orderNumber'] as String?;
+          if (linkId == null || linkId.isEmpty || orderNumber == null || orderNumber.isEmpty) {
+            skipped++;
+            continue;
+          }
+
+          final statusResult = await _gateway.fetchPaymentLinkStatus(linkId);
+          final data = statusResult['data'] as Map<String, dynamic>?;
+          if (data == null) {
+            skipped++;
+            continue;
+          }
+
+          final linkStatus = data['status']?.toString().toLowerCase();
+          if (linkStatus == 'paid') {
+            final payments = data['payments'] as List?;
+            if (payments != null && payments.isNotEmpty) {
+              final paymentId = payments[0]['payment_id']?.toString();
+              final razorpayOrderId = payments[0]['order_id']?.toString();
+              if (paymentId != null && razorpayOrderId != null) {
+                final result = await completePaymentVerification(
+                  session,
+                  orderNumber: orderNumber,
+                  razorpayOrderId: razorpayOrderId,
+                  razorpayPaymentId: paymentId,
+                );
+                if (result.success && result.verified) {
+                  recovered++;
+                } else {
+                  skipped++;
+                }
+              } else {
+                skipped++;
+              }
+            } else {
+              skipped++;
+            }
+          } else {
+            skipped++;
+          }
+        } catch (e) {
+          session.log(
+            'Payment link reconciliation row error: $e',
+            level: LogLevel.warning,
+          );
+          skipped++;
+        }
+      }
+
+      session.log(
+        'Payment link reconciliation: $recovered recovered, $failed failed, $skipped skipped',
+        level: LogLevel.info,
+      );
+    } catch (error) {
+      session.log(
+        'Payment link reconciliation failed: $error',
+        level: LogLevel.error,
+      );
+    }
+
+    return {'recovered': recovered, 'failed': failed, 'skipped': skipped};
   }
 }

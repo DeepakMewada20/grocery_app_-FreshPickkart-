@@ -1,0 +1,6 @@
+class: PaymentEvent
+fields:
+  eventType: String
+  orderId: String
+  paymentStatus: String
+  createdAt: DateTime, defaultModel=now, defaultPersist=now

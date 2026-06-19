@@ -18,6 +18,7 @@ class PaymentReconciliationCronJob {
   static const int _autoRefundLock = 4200304;
   static const int _sessionExpiryLock = 4200305;
   static const int _orphanDetectionLock = 4200306;
+  static const int _paymentLinkReconciliationLock = 4200307;
 
   final Serverpod _pod;
   final PostgresPaymentService _payments = PostgresPaymentService();
@@ -32,12 +33,14 @@ class PaymentReconciliationCronJob {
   Timer? _autoRefundTimer;
   Timer? _sessionExpiryTimer;
   Timer? _orphanDetectionTimer;
+  Timer? _paymentLinkReconciliationTimer;
   bool _reconciliationRunning = false;
   bool _autoCancelRunning = false;
   bool _paymentLinkExpiryRunning = false;
   bool _autoRefundRunning = false;
   bool _sessionExpiryRunning = false;
   bool _orphanDetectionRunning = false;
+  bool _paymentLinkReconciliationRunning = false;
   final Set<String> _reportedOrphanIds = {};
 
   void start() {
@@ -70,6 +73,10 @@ class PaymentReconciliationCronJob {
       const Duration(minutes: 5),
       (_) => unawaited(runOrphanDetection()),
     );
+    _paymentLinkReconciliationTimer ??= Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => unawaited(runPaymentLinkReconciliation()),
+    );
 
     unawaited(runPaymentReconciliation());
     unawaited(runAutoCancellation());
@@ -77,6 +84,7 @@ class PaymentReconciliationCronJob {
     unawaited(runAutoRefundProcessing());
     unawaited(runSessionExpiry());
     unawaited(runOrphanDetection());
+    unawaited(runPaymentLinkReconciliation());
   }
 
   void stop() {
@@ -86,12 +94,14 @@ class PaymentReconciliationCronJob {
     _autoRefundTimer?.cancel();
     _sessionExpiryTimer?.cancel();
     _orphanDetectionTimer?.cancel();
+    _paymentLinkReconciliationTimer?.cancel();
     _reconciliationTimer = null;
     _autoCancelTimer = null;
     _paymentLinkExpiryTimer = null;
     _autoRefundTimer = null;
     _sessionExpiryTimer = null;
     _orphanDetectionTimer = null;
+    _paymentLinkReconciliationTimer = null;
   }
 
   Future<void> runPaymentReconciliation() async {
@@ -103,6 +113,18 @@ class PaymentReconciliationCronJob {
       });
     } finally {
       _reconciliationRunning = false;
+    }
+  }
+
+  Future<void> runPaymentLinkReconciliation() async {
+    if (_paymentLinkReconciliationRunning) return;
+    _paymentLinkReconciliationRunning = true;
+    try {
+      await _runLocked(_paymentLinkReconciliationLock, (session) async {
+        await _payments.reconcilePaymentLinkOrders(session, limit: 50);
+      });
+    } finally {
+      _paymentLinkReconciliationRunning = false;
     }
   }
 
@@ -391,7 +413,7 @@ class PaymentReconciliationCronJob {
               session,
               action: 'ORPHAN_PAYMENT_DETECTED',
               entityType: 'payment',
-              metadata: orphan.cast<String, String>(),
+              metadata: orphan.map((k, v) => MapEntry(k, v?.toString() ?? '')),
             );
             newCount++;
           }

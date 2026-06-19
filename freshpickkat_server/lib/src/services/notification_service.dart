@@ -89,6 +89,26 @@ class NotificationService {
     data: data,
   );
 
+  static Future<void> notifyPaymentLinkPaid({
+    required Session session,
+    required String userId,
+    required String orderId,
+    required double amount,
+    required int? itemCount,
+    required String userName,
+    required String orderStatus,
+    required String paymentStatus,
+  }) => _service.sendPaymentLinkPaidNotification(
+    session: session,
+    userId: userId,
+    orderId: orderId,
+    amount: amount,
+    itemCount: itemCount,
+    userName: userName,
+    orderStatus: orderStatus,
+    paymentStatus: paymentStatus,
+  );
+
   static Future<void> notifyForEvent(
     Session session,
     OrderRealtimeEvent event, {

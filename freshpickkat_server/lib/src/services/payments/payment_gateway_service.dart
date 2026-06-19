@@ -163,6 +163,22 @@ class PaymentGatewayService {
     };
   }
 
+  Future<Map<String, dynamic>> fetchPaymentLinkStatus(String razorpayPaymentLinkId) async {
+    final response = await http.get(
+      Uri.parse('$razorpayBaseUrl/payment_links/$razorpayPaymentLinkId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+      },
+    ).timeout(const Duration(seconds: 30));
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
   Future<Map<String, dynamic>> fetchRefund({
     required String paymentId,
     required String refundId,

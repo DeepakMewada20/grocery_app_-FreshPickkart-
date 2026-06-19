@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -16,6 +17,8 @@ import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
     deferred as coupons_screen;
 import 'package:freshpickkat_flutter/screens/offers_screen/combo_offers_screen.dart'
     deferred as combo_offers_screen;
+import 'package:freshpickkat_flutter/screens/order_confirmation_screen.dart'
+    deferred as order_confirmation_screen;
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
     deferred as order_detail_screen;
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart'
@@ -28,7 +31,49 @@ import 'package:get/get.dart';
 @pragma('vm:entry-point')
 Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
   RemoteMessage message,
-) async {}
+) async {
+  try {
+    await Firebase.initializeApp();
+    final title = message.notification?.title ?? message.data['title'] ?? 'Payment received!';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+    if (title.isEmpty || body.isEmpty) return;
+
+    final localNotifications = FlutterLocalNotificationsPlugin();
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const darwin = DarwinInitializationSettings();
+    await localNotifications.initialize(
+      const InitializationSettings(android: android, iOS: darwin),
+    );
+
+    const channel = AndroidNotificationChannel(
+      'freshpickkat_foreground',
+      'FreshPickKat notifications',
+      description: 'Foreground notifications shown while the app is open.',
+      importance: Importance.high,
+    );
+    await localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    const androidDetails = AndroidNotificationDetails(
+      'freshpickkat_foreground',
+      'FreshPickKat notifications',
+      channelDescription:
+          'Foreground notifications shown while the app is open.',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const darwinDetails = DarwinNotificationDetails();
+    await localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      const NotificationDetails(android: androidDetails, iOS: darwinDetails),
+      payload: jsonEncode(message.data),
+    );
+  } catch (_) {}
+}
 
 @pragma('vm:entry-point')
 void freshpickkatNotificationTapBackground(NotificationResponse response) {}
@@ -277,6 +322,17 @@ class NotificationController extends GetxController {
           pageBuilder: () =>
               offers_screen.OffersScreen(highlightOfferId: entityId),
         );
+        return;
+      case 'payment_link_paid':
+        final orderId = data['orderId'];
+        if (orderId != null && orderId.isNotEmpty) {
+          await navigateDeferred(
+            loadLibrary: order_confirmation_screen.loadLibrary,
+            pageBuilder: () => order_confirmation_screen.OrderConfirmationScreen(
+              orderId: orderId,
+            ),
+          );
+        }
         return;
       case 'order_paid':
       case 'order_status':

@@ -9,6 +9,7 @@ import '../../services/postgres/postgres_auto_refund_service.dart';
 import '../../services/postgres/postgres_payment_link_service.dart';
 import '../../services/postgres/postgres_payment_service.dart';
 import '../../services/postgres/postgres_refund_service.dart';
+import '../../services/notification_service.dart';
 
 class RazorpayWebhookRoute extends Route {
   RazorpayWebhookRoute() : super(methods: {Method.post});
@@ -187,19 +188,18 @@ class RazorpayWebhookRoute extends Route {
         return _jsonOk({'success': true, 'message': 'Already paid'});
       }
       // Fresh state check for closed orders (cancelled / payment_expired)
-      if (order != null) {
-        final freshOrderRow = await CustomerOrderRow.db.findFirstRow(
-          session,
-          where: (t) => t.orderNumber.equals(order.orderId),
-        );
-        if (freshOrderRow != null &&
-            (freshOrderRow.orderStatus == 'cancelled' ||
-             freshOrderRow.orderStatus == 'payment_expired')) {
-          if (paymentId != null && paymentId.isNotEmpty) {
-            final paymentRow = await PaymentTransactionRow.db.findFirstRow(
-              session,
-              where: (t) => t.orderId.equals(freshOrderRow.id!),
-            );
+      final freshOrderRow = await CustomerOrderRow.db.findFirstRow(
+        session,
+        where: (t) => t.orderNumber.equals(order.orderId),
+      );
+      if (freshOrderRow != null &&
+          (freshOrderRow.orderStatus == 'cancelled' ||
+           freshOrderRow.orderStatus == 'payment_expired')) {
+        if (paymentId != null && paymentId.isNotEmpty) {
+          final paymentRow = await PaymentTransactionRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderId.equals(freshOrderRow.id!),
+          );
             if (paymentRow != null) {
               await _createAutoRefundJob(
                 session, freshOrderRow, paymentRow,
@@ -212,7 +212,6 @@ class RazorpayWebhookRoute extends Route {
           );
           return _jsonOk({'success': true, 'message': 'Order closed, auto-refund created'});
         }
-      }
 
       if (paymentId != null && paymentId.isNotEmpty) {
         session.log(
@@ -291,6 +290,17 @@ class RazorpayWebhookRoute extends Route {
           'Webhook: payment $paymentId successfully completed for order $orderNumber',
           level: LogLevel.info,
         );
+        try {
+          final safeOrderId = orderNumber ?? '';
+          await session.messages.postMessage(
+            'payment_$safeOrderId',
+            PaymentEvent(
+              eventType: 'payment_completed',
+              orderId: safeOrderId,
+              paymentStatus: 'paid',
+            ),
+          );
+        } catch (_) {}
       }
     } else if (_isFailedEvent(event) && order != null) {
       session.log(
@@ -708,6 +718,32 @@ class RazorpayWebhookRoute extends Route {
           'payment_link.paid: order $orderNumber completed successfully',
           level: LogLevel.info,
         );
+        try {
+          final safeOrderId = orderNumber;
+          await session.messages.postMessage(
+            'payment_$safeOrderId',
+            PaymentEvent(
+              eventType: 'payment_completed',
+              orderId: safeOrderId,
+              paymentStatus: 'paid',
+            ),
+          );
+        } catch (_) {}
+
+        // Send FCM push notification to the user
+        try {
+          final userRow = await AppUserRow.db.findById(session, orderRow.userId);
+          await NotificationService.notifyPaymentLinkPaid(
+            session: session,
+            userId: orderRow.userId.toString(),
+            orderId: orderRow.orderNumber,
+            amount: orderRow.finalAmount,
+            itemCount: orderRow.itemCount,
+            userName: userRow?.name ?? 'Customer',
+            orderStatus: 'confirmed',
+            paymentStatus: 'paid',
+          );
+        } catch (_) {}
       }
     } catch (e) {
       session.log(

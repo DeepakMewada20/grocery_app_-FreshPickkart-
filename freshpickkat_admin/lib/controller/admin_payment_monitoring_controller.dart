@@ -171,4 +171,12 @@ class AdminPaymentMonitoringController extends GetxController {
       return _client.admin.getPaymentHealthMetrics(uid, token);
     });
   }
+
+  Future<String> reconcilePaymentLink(String orderNumber) async {
+    return ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.admin.adminReconcilePaymentLink(uid, token, orderNumber);
+    });
+  }
 }

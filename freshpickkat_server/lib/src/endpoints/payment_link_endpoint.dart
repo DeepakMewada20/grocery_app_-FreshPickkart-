@@ -95,6 +95,12 @@ class PaymentLinkEndpoint extends Endpoint {
         );
 
         if (paymentResult.success != true) {
+          await _orders.cancelPendingOrder(
+            session,
+            orderNumber,
+            firebaseUid,
+            reason: 'Failed to create payment order',
+          );
           return protocol.PaymentLinkData(
             success: false,
             error: paymentResult.error ?? 'Failed to create payment order',
@@ -113,6 +119,12 @@ class PaymentLinkEndpoint extends Endpoint {
         );
 
         if (linkResult['success'] != true) {
+          await _orders.cancelPendingOrder(
+            session,
+            orderNumber,
+            firebaseUid,
+            reason: 'Failed to create web checkout payment link',
+          );
           return protocol.PaymentLinkData(
             success: false,
             error: linkResult['error'] as String? ??
@@ -149,6 +161,12 @@ class PaymentLinkEndpoint extends Endpoint {
         );
 
         if (linkResult['success'] != true) {
+          await _orders.cancelPendingOrder(
+            session,
+            orderNumber,
+            firebaseUid,
+            reason: 'Failed to create Razorpay payment link',
+          );
           return protocol.PaymentLinkData(
             success: false,
             error: linkResult['error'] as String? ??

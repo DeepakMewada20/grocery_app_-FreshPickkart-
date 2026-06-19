@@ -72,6 +72,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   PendingOrderInfo? _pendingOrderInfo;
   String? _currentOrderId;
   String? _currentRazorpayOrderId;
+  String? _activePaymentLink;
+  bool _linkPaymentReceived = false;
+  bool _isShareSheetOpen = false;
+  Timer? _linkCardTimer;
+  StreamSubscription<PaymentEvent>? _paymentStreamSub;
   Order? _currentOrderSnapshot;
   DateTime? _lastRefreshTime;
   Future<void>? _refreshFuture;
@@ -143,6 +148,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // ── Decision Matrix for Pending Order on Place Order ──
 
+  void _startLinkCardTimer() {
+    _linkCardTimer?.cancel();
+    _linkCardTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  Future<void> _handleRefresh() async {
+    await _refreshCheckoutHydrated();
+    if (_pendingOrderInfo == null) return;
+    if (_activePaymentLink != null) {
+      _startPaymentStream(_pendingOrderInfo!.orderNumber);
+    }
+    try {
+      final user = authController.currentUser;
+      if (user == null) return;
+      final idToken = await authController.requireIdToken();
+      final order = await client.order.getOrderById(
+        _pendingOrderInfo!.orderNumber,
+        user.uid,
+        idToken,
+      );
+      if (order != null && order.paymentStatus == 'paid' && mounted) {
+        _linkCardTimer?.cancel();
+        await _completeSuccessfulPayment(_pendingOrderInfo!.orderNumber);
+      }
+    } catch (_) {}
+  }
+
+  bool get _isLinkActive {
+    if (_activePaymentLink == null || _linkPaymentReceived) return false;
+    if (_pendingOrderInfo == null) return false;
+    final expiresAt = _pendingOrderInfo!.orderedAt.add(
+      Duration(minutes: _pendingOrderInfo!.expiresInMinutes),
+    );
+    return !expiresAt.isBefore(DateTime.now());
+  }
+
+  bool get _isLinkValidForCurrentCart {
+    if (!_isLinkActive) return false;
+    if (_pendingOrderInfo?.cartData == null) return false;
+    final currentCart = _computeCurrentCartData();
+    return _isCartSame(currentCart, _pendingOrderInfo!.cartData!);
+  }
+
   CartComparisonData _computeCurrentCartData() {
     final items = <CartItemSnapshot>[];
 
@@ -196,27 +246,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<bool> _showActiveLinkConfirmation() async {
+    final cs = Theme.of(context).colorScheme;
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Active Payment Link Found'),
-        content: const Text(
-          'You have a pending payment link for a previous order. '
-          'If you continue, the previous payment link will expire and '
-          'a new order will be created.\n\nDo you want to continue?',
+        title: Row(
+          children: [
+            Icon(Icons.link_off, color: cs.error, size: 24.r),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                'Active Payment Link',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'You have an active payment link. If you proceed with Pay Now, '
+          'the existing link will expire and a new payment session will be created.\n\n'
+          'Do you want to continue?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('NO'),
+            child: Text(
+              'CANCEL',
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.primaryGreen,
             ),
-            child: const Text('YES'),
+            child: const Text('EXPIRE & CONTINUE'),
           ),
         ],
       ),
@@ -246,7 +314,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         oStatus == 'payment_expired') {
       _pendingOrderInfo = null;
       if (_isShareablePayment) {
-        await _placeOrderWithShareableLink();
+        await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
       } else {
         await _placeOrderCore();
       }
@@ -257,7 +325,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final currentCart = _computeCurrentCartData();
     final pendingCart = info.cartData;
     final isSameCart = pendingCart != null && _isCartSame(currentCart, pendingCart);
-    final isWithinTime = DateTime.now().difference(info.orderedAt).inMinutes <= 10;
+    final isWithinTime = DateTime.now().difference(info.orderedAt).inMinutes <= (info.expiresInMinutes);
 
     if (isSameCart && isWithinTime) {
       if (_isShareablePayment) {
@@ -267,7 +335,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
         }
       } else {
-        await _placeOrderCore(pendingOrderAction: 'continue');
+        if (info.linkStatus == 'ACTIVE') {
+          final proceed = await _showActiveLinkConfirmation();
+          if (proceed) {
+            await _placeOrderCore(pendingOrderAction: 'cancel');
+          }
+        } else {
+          await _placeOrderCore(pendingOrderAction: 'continue');
+        }
       }
       return;
     }
@@ -441,6 +516,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  void _startPaymentStream(String orderId) {
+    _stopPaymentStream();
+    unawaited(_subscribePaymentStream(orderId));
+  }
+
+  Future<void> _subscribePaymentStream(String orderId) async {
+    try {
+      final user = authController.currentUser;
+      if (user == null) return;
+      final idToken = await authController.requireIdToken();
+      _paymentStreamSub = client.paymentStream
+          .watchPaymentStatus(orderId, user.uid, idToken)
+          .listen(
+        (event) {
+          if (event.paymentStatus == 'paid') {
+            _linkCardTimer?.cancel();
+            if (mounted) setState(() => _linkPaymentReceived = true);
+            if (_isShareSheetOpen) {
+              Navigator.of(context, rootNavigator: true).pop();
+            }
+            _completeSuccessfulPayment(orderId);
+          }
+        },
+        onError: (_) {
+          // Stream disconnected — will auto-reconnect
+        },
+        cancelOnError: false,
+      );
+    } catch (_) {}
+  }
+
+  void _stopPaymentStream() {
+    _paymentStreamSub?.cancel();
+    _paymentStreamSub = null;
+  }
+
   /// Generate a payment link for an existing order and show the share sheet.
   Future<void> _generateLinkAndShowSheet(String orderId) async {
     try {
@@ -454,7 +565,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       final paymentLink = result['paymentLink'] as String? ?? '';
       _showSharePaymentLinkSheet(paymentLink, orderId);
-      _pollLinkPaymentStatus(orderId);
+      _startPaymentStream(orderId);
     } catch (e) {
       AppLogger.error('ShareablePayment', e);
       _showError(ErrorMessages.paymentFailed);
@@ -464,6 +575,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void dispose() {
     _razorpay?.clear();
+    _linkCardTimer?.cancel();
+    _stopPaymentStream();
     super.dispose();
   }
 
@@ -502,7 +615,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (_isShareablePayment) {
-      await _placeOrderWithShareableLink();
+      await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
       return;
     }
 
@@ -676,10 +789,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       if (result['success'] == true) {
         final paymentLink = result['paymentLink'] as String? ?? '';
-        final expiresAtStr = result['expiresAt'] as String?;
-        final expiresAt = expiresAtStr != null ? DateTime.tryParse(expiresAtStr) : null;
-        _showSharePaymentLinkSheet(paymentLink, orderNumber, expiresAt: expiresAt);
-        _pollLinkPaymentStatus(orderNumber);
+        if (mounted) {
+          setState(() {
+            _activePaymentLink = paymentLink;
+            _linkPaymentReceived = false;
+          });
+        }
+        _startLinkCardTimer();
+        _showSharePaymentLinkSheet(paymentLink, orderNumber);
+        _startPaymentStream(orderNumber);
       } else {
         _showError(result['error'] as String? ?? 'Failed to get payment link');
       }
@@ -757,67 +875,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             orderNumber: orderId,
             finalAmount: cartController.totalAmount,
             orderedAt: DateTime.now(),
-            expiresInMinutes: 10,
+            expiresInMinutes: 20,
             paymentStatus: 'pending',
             orderStatus: 'placed',
+            linkStatus: 'ACTIVE',
             cartData: _computeCurrentCartData(),
           );
+          _activePaymentLink = paymentLink;
+          _linkPaymentReceived = false;
         });
       }
+      _startLinkCardTimer();
 
-      _showSharePaymentLinkSheet(paymentLink, orderId, expiresAt: result.expiresAt);
-      _pollLinkPaymentStatus(orderId);
+      _showSharePaymentLinkSheet(paymentLink, orderId);
+      _startPaymentStream(orderId);
     } catch (e) {
       AppLogger.error('ShareablePayment', e);
       _showError(ErrorMessages.paymentFailed);
     }
   }
 
-  Future<void> _pollLinkPaymentStatus(String orderId) async {
-    final user = authController.currentUser;
-    if (user == null) return;
-
-    const maxAttempts = 100;
-    const retryDelay = Duration(seconds: 3);
-
-    for (var attempt = 0; attempt < maxAttempts; attempt++) {
-      await Future.delayed(retryDelay);
-      if (!mounted) return;
-
-      try {
-        final idToken = await authController.requireIdToken();
-        final order = await client.order.getOrderById(
-          orderId,
-          user.uid,
-          idToken,
-        );
-        if (order == null) continue;
-        if (order.paymentStatus == 'paid') {
-          // Dismiss the bottom sheet if still open
-          Navigator.of(context, rootNavigator: true).pop();
-          await _completeSuccessfulPayment(orderId);
-          return;
-        }
-      } catch (_) {
-        // Retry on error
-      }
-    }
-  }
-
-  void _showSharePaymentLinkSheet(String paymentLink, String orderId, {DateTime? expiresAt}) {
+  void _showSharePaymentLinkSheet(String paymentLink, String orderId) {
     final amount = cartController.totalAmount;
     final message =
         'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
         '$paymentLink\n\n'
         'Order amount: ₹${amount.toStringAsFixed(2)}\n'
-        'This link expires in 15 minutes.';
+        'This link expires in 20 minutes.';
+
+    final localExpiresAt = _pendingOrderInfo != null
+        ? _pendingOrderInfo!.orderedAt
+            .add(Duration(minutes: _pendingOrderInfo!.expiresInMinutes))
+        : DateTime.now().add(const Duration(minutes: 20));
+
+    final remainingNotifier = ValueNotifier<Duration>(
+      () {
+        final diff = localExpiresAt.difference(DateTime.now());
+        return diff.isNegative ? Duration.zero : diff;
+      }(),
+    );
+
+    Timer? timer;
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final diff = localExpiresAt.difference(DateTime.now());
+      if (diff.isNegative) {
+        remainingNotifier.value = Duration.zero;
+        timer?.cancel();
+      } else {
+        remainingNotifier.value = diff;
+      }
+    });
+
     var copied = false;
+    _isShareSheetOpen = true;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (ctx) {
+        var listenerAttached = false;
         return SafeArea(
           top: false,
           child: ConstrainedBox(
@@ -832,27 +949,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               child: StatefulBuilder(
                 builder: (context, setSheetState) {
-                  Timer? countdownTimer;
-                  Duration remaining = expiresAt != null
-                      ? expiresAt.difference(DateTime.now())
-                      : const Duration(minutes: 15);
-                  if (remaining.isNegative) remaining = Duration.zero;
-
-                  if (expiresAt != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      countdownTimer?.cancel();
-                      countdownTimer = Timer.periodic(
-                        const Duration(seconds: 1),
-                        (_) {
-                          final diff = expiresAt.difference(DateTime.now());
-                          if (diff.isNegative) {
-                            countdownTimer?.cancel();
-                          }
-                          setSheetState(() {});
-                        },
-                      );
+                  if (!listenerAttached) {
+                    listenerAttached = true;
+                    remainingNotifier.addListener(() {
+                      if (context.mounted) setSheetState(() {});
                     });
                   }
+
+                  final remaining = remainingNotifier.value;
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
@@ -966,7 +1070,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      _isShareSheetOpen = false;
+      timer?.cancel();
+      remainingNotifier.dispose();
+    });
   }
 
   Widget _buildShareButton({
@@ -1765,6 +1873,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               linkStatus: existing.linkStatus,
               cartData: existing.cartData,
             );
+            _activePaymentLink = null;
+            _linkCardTimer?.cancel();
           });
         }
       }
@@ -1845,9 +1955,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           return Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(top: 16.r),
-                  child: Column(
+                child: RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(top: 16.r),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
                     children: [
                       // 🎯 Checkout Page Banner - full width
                       Obx(() {
@@ -1899,7 +2012,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
-              SafeArea(
+            ),
+            SafeArea(
                 top: false,
                 child: _buildPlaceOrderButton(cs),
               ),
@@ -2745,6 +2859,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPaymentSection(ColorScheme cs) {
+    final linkValid = _isLinkValidForCurrentCart;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -2785,9 +2900,168 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             icon: Icons.share,
             title: 'Ask Someone Else To Pay',
             subtitle: 'Share a payment link via WhatsApp, SMS, etc.',
-            isSelected: _isShareablePayment,
-            onTap: () => setState(() => _isShareablePayment = true),
+            isSelected: linkValid ? true : _isShareablePayment,
+            onTap: linkValid ? null : () => setState(() => _isShareablePayment = true),
+            isDisabled: linkValid,
           ),
+          if (_activePaymentLink != null) ...[
+            SizedBox(height: 12.h),
+            _buildLinkStatusCard(cs),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkStatusCard(ColorScheme cs) {
+    final expiresAt = _pendingOrderInfo != null
+        ? _pendingOrderInfo!.orderedAt
+            .add(Duration(minutes: _pendingOrderInfo!.expiresInMinutes))
+        : DateTime.now().add(const Duration(minutes: 20));
+    final remaining = expiresAt.difference(DateTime.now());
+    final expired = remaining.isNegative;
+    final statusColor = _linkPaymentReceived
+        ? cs.primary
+        : expired
+            ? cs.error
+            : cs.primary;
+    final bgColor = statusColor.withValues(alpha: 0.1);
+    final borderColor = statusColor.withValues(alpha: 0.3);
+    final textColor = statusColor.withValues(alpha: 0.85);
+    final message = _pendingOrderInfo != null
+        ? 'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
+            '$_activePaymentLink\n\n'
+            'Order amount: ₹${_pendingOrderInfo!.finalAmount.toStringAsFixed(2)}\n'
+            'This link expires in 20 minutes.'
+        : '';
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _linkPaymentReceived
+                    ? Icons.check_circle
+                    : expired
+                        ? Icons.timer_off
+                        : Icons.timer_outlined,
+                color: statusColor,
+                size: 24.r,
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _linkPaymentReceived
+                          ? 'Payment Received!'
+                          : expired
+                              ? 'Link Expired'
+                              : 'Payment Link Active',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    if (!_linkPaymentReceived && !expired)
+                      Text(
+                        'Expires in ${remaining.inMinutes} min ${remaining.inSeconds.remainder(60)} sec',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (!expired && !_linkPaymentReceived && message.isNotEmpty) ...[
+            SizedBox(height: 10.h),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Clipboard.setData(
+                        ClipboardData(text: _activePaymentLink ?? ''),
+                      );
+                      AppSnackbar.show('Link Copied', 'Payment link copied to clipboard');
+                    },
+                    borderRadius: BorderRadius.circular(8.r),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.copy, color: statusColor, size: 16.r),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Copy Link',
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      final orderId = _pendingOrderInfo?.orderNumber ?? '';
+                      Share.share(
+                        message,
+                        subject: 'Payment for Order #$orderId',
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8.r),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.share, color: statusColor, size: 16.r),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Share',
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -2866,6 +3140,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPlaceOrderButton(ColorScheme cs) {
+    final disablePlaceOrder = _isLinkValidForCurrentCart && _isShareablePayment;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -2876,9 +3151,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         width: double.infinity,
         height: 54.h.clamp(50.0, 62.0),
         child: ElevatedButton(
-          onPressed: _isProcessing ? null : _placeOrder,
+          onPressed: (_isProcessing || disablePlaceOrder) ? null : _placeOrder,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryGreen,
+            backgroundColor: disablePlaceOrder
+                ? cs.onSurface.withValues(alpha: 0.12)
+                : AppTheme.primaryGreen,
             foregroundColor: cs.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14.r),
@@ -2912,8 +3189,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ],
                 )
-              : const Text(
-                  'PLACE ORDER',
+              : Text(
+                  disablePlaceOrder
+                      ? 'LINK ACTIVE'
+                      : 'PLACE ORDER',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
         ),

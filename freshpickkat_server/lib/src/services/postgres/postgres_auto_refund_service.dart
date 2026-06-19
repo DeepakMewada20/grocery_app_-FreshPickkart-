@@ -93,11 +93,13 @@ class PostgresAutoRefundService {
     int limit = 25,
   }) async {
     final now = DateTime.now().toUtc();
+    final ageCutoff = now.subtract(const Duration(days: 15));
     return AutoRefundJobRow.db.find(
       session,
       where: (t) =>
           t.jobStatus.equals('PENDING') &
-          (t.nextRetryAt.equals(null) | (t.nextRetryAt <= now)),
+          (t.nextRetryAt.equals(null) | (t.nextRetryAt <= now)) &
+          (t.createdAt >= ageCutoff),
       orderBy: (t) => t.createdAt,
       limit: limit,
     );

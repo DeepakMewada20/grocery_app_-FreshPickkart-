@@ -764,6 +764,7 @@ class _PaymentOrderDetailScreenState
   PaymentOrderDetailHydrated? _hydrated;
   bool _loading = true;
   bool _reconciling = false;
+  bool _reconcilingPaymentLink = false;
   List<Map<String, dynamic>>? _autoRefundJobs;
   bool _autoRefundLoading = false;
   String? _autoRefundError;
@@ -832,6 +833,32 @@ class _PaymentOrderDetailScreenState
       }
     } finally {
       if (mounted) setState(() => _reconciling = false);
+    }
+  }
+
+  Future<void> _reconcilePaymentLink() async {
+    setState(() => _reconcilingPaymentLink = true);
+    try {
+      final json = await widget.controller.reconcilePaymentLink(
+        widget.order.orderId,
+      );
+      final decoded = jsonDecode(json) as Map<String, dynamic>;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded['message']?.toString() ?? 'Done'),
+          ),
+        );
+        _load();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment link reconcile failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _reconcilingPaymentLink = false);
     }
   }
 
@@ -959,6 +986,8 @@ class _PaymentOrderDetailScreenState
                         order: widget.order,
                         onReconcile: _reconcile,
                         reconciling: _reconciling,
+                        onReconcilePaymentLink: _reconcilePaymentLink,
+                        reconcilingPaymentLink: _reconcilingPaymentLink,
                       ),
                     ],
                   ),
@@ -1385,11 +1414,15 @@ class _QuickActionsPanel extends StatelessWidget {
     required this.order,
     required this.onReconcile,
     required this.reconciling,
+    required this.onReconcilePaymentLink,
+    required this.reconcilingPaymentLink,
   });
 
   final Order order;
   final VoidCallback onReconcile;
   final bool reconciling;
+  final VoidCallback onReconcilePaymentLink;
+  final bool reconcilingPaymentLink;
 
   @override
   Widget build(BuildContext context) {
@@ -1410,6 +1443,17 @@ class _QuickActionsPanel extends StatelessWidget {
                     )
                   : const Icon(Icons.sync),
               label: const Text('Reconcile All Pending'),
+            ),
+            ElevatedButton.icon(
+              onPressed: reconcilingPaymentLink ? null : onReconcilePaymentLink,
+              icon: reconcilingPaymentLink
+                  ? SizedBox(
+                      width: 16.r,
+                      height: 16.r,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.link),
+              label: const Text('Check Payment Link Status'),
             ),
             OutlinedButton.icon(
               onPressed: () {

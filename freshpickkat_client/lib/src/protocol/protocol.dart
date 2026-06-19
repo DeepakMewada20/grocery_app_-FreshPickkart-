@@ -86,68 +86,69 @@ import 'data_flow/order_page.dart' as _i73;
 import 'data_flow/order_realtime_event.dart' as _i74;
 import 'data_flow/order_tracking_data.dart' as _i75;
 import 'data_flow/payment_action_result.dart' as _i76;
-import 'data_flow/payment_link_data.dart' as _i77;
-import 'data_flow/payment_order_detail_hydrated.dart' as _i78;
-import 'data_flow/payment_order_result.dart' as _i79;
-import 'data_flow/payment_page_data.dart' as _i80;
-import 'data_flow/payment_page_item.dart' as _i81;
-import 'data_flow/payment_session_data.dart' as _i82;
-import 'data_flow/payment_transaction.dart' as _i83;
-import 'data_flow/payment_verify_result.dart' as _i84;
-import 'data_flow/pending_order_info.dart' as _i85;
-import 'data_flow/pricing_line_item.dart' as _i86;
-import 'data_flow/product.dart' as _i87;
-import 'data_flow/product_form_reference_data.dart' as _i88;
-import 'data_flow/product_page.dart' as _i89;
-import 'data_flow/product_ranking_item.dart' as _i90;
-import 'data_flow/product_variant.dart' as _i91;
-import 'data_flow/razorpay_payment_status.dart' as _i92;
-import 'data_flow/razorpay_refund_data.dart' as _i93;
-import 'data_flow/refund_record.dart' as _i94;
-import 'data_flow/register_fcm_token_request.dart' as _i95;
-import 'data_flow/sub_category.dart' as _i96;
-import 'data_flow/support_issue.dart' as _i97;
+import 'data_flow/payment_event.dart' as _i77;
+import 'data_flow/payment_link_data.dart' as _i78;
+import 'data_flow/payment_order_detail_hydrated.dart' as _i79;
+import 'data_flow/payment_order_result.dart' as _i80;
+import 'data_flow/payment_page_data.dart' as _i81;
+import 'data_flow/payment_page_item.dart' as _i82;
+import 'data_flow/payment_session_data.dart' as _i83;
+import 'data_flow/payment_transaction.dart' as _i84;
+import 'data_flow/payment_verify_result.dart' as _i85;
+import 'data_flow/pending_order_info.dart' as _i86;
+import 'data_flow/pricing_line_item.dart' as _i87;
+import 'data_flow/product.dart' as _i88;
+import 'data_flow/product_form_reference_data.dart' as _i89;
+import 'data_flow/product_page.dart' as _i90;
+import 'data_flow/product_ranking_item.dart' as _i91;
+import 'data_flow/product_variant.dart' as _i92;
+import 'data_flow/razorpay_payment_status.dart' as _i93;
+import 'data_flow/razorpay_refund_data.dart' as _i94;
+import 'data_flow/refund_record.dart' as _i95;
+import 'data_flow/register_fcm_token_request.dart' as _i96;
+import 'data_flow/sub_category.dart' as _i97;
+import 'data_flow/support_issue.dart' as _i98;
 import 'package:freshpickkat_client/src/protocol/data_flow/app_user.dart'
-    as _i98;
-import 'package:freshpickkat_client/src/protocol/data_flow/admin_audit_log_entry.dart'
     as _i99;
-import 'package:freshpickkat_client/src/protocol/data_flow/active_user_statistics.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_audit_log_entry.dart'
     as _i100;
-import 'package:freshpickkat_client/src/protocol/data_flow/banner.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/active_user_statistics.dart'
     as _i101;
-import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/banner.dart'
     as _i102;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item_input.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer.dart'
     as _i103;
-import 'package:freshpickkat_client/src/protocol/data_flow/category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item_input.dart'
     as _i104;
-import 'package:freshpickkat_client/src/protocol/data_flow/category_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/category.dart'
     as _i105;
-import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/category_offer.dart'
     as _i106;
-import 'package:freshpickkat_client/src/protocol/data_flow/coupon.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer.dart'
     as _i107;
-import 'package:freshpickkat_client/src/protocol/data_flow/coupon_display.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon.dart'
     as _i108;
-import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon_display.dart'
     as _i109;
-import 'package:freshpickkat_client/src/protocol/data_flow/admin_notification_preference.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule.dart'
     as _i110;
-import 'package:freshpickkat_client/src/protocol/data_flow/order.dart' as _i111;
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_notification_preference.dart'
+    as _i111;
+import 'package:freshpickkat_client/src/protocol/data_flow/order.dart' as _i112;
 import 'package:freshpickkat_client/src/protocol/data_flow/applied_offer_info.dart'
-    as _i112;
-import 'package:freshpickkat_client/src/protocol/data_flow/product.dart'
     as _i113;
-import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product.dart'
     as _i114;
-import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
     as _i115;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
     as _i116;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
     as _i117;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i118;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i119;
 export 'data_flow/active_user_statistics.dart';
 export 'data_flow/address.dart';
 export 'data_flow/admin_analytics.dart';
@@ -223,6 +224,7 @@ export 'data_flow/order_page.dart';
 export 'data_flow/order_realtime_event.dart';
 export 'data_flow/order_tracking_data.dart';
 export 'data_flow/payment_action_result.dart';
+export 'data_flow/payment_event.dart';
 export 'data_flow/payment_link_data.dart';
 export 'data_flow/payment_order_detail_hydrated.dart';
 export 'data_flow/payment_order_result.dart';
@@ -505,68 +507,71 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i76.PaymentActionResult) {
       return _i76.PaymentActionResult.fromJson(data) as T;
     }
-    if (t == _i77.PaymentLinkData) {
-      return _i77.PaymentLinkData.fromJson(data) as T;
+    if (t == _i77.PaymentEvent) {
+      return _i77.PaymentEvent.fromJson(data) as T;
     }
-    if (t == _i78.PaymentOrderDetailHydrated) {
-      return _i78.PaymentOrderDetailHydrated.fromJson(data) as T;
+    if (t == _i78.PaymentLinkData) {
+      return _i78.PaymentLinkData.fromJson(data) as T;
     }
-    if (t == _i79.PaymentOrderResult) {
-      return _i79.PaymentOrderResult.fromJson(data) as T;
+    if (t == _i79.PaymentOrderDetailHydrated) {
+      return _i79.PaymentOrderDetailHydrated.fromJson(data) as T;
     }
-    if (t == _i80.PaymentPageData) {
-      return _i80.PaymentPageData.fromJson(data) as T;
+    if (t == _i80.PaymentOrderResult) {
+      return _i80.PaymentOrderResult.fromJson(data) as T;
     }
-    if (t == _i81.PaymentPageItem) {
-      return _i81.PaymentPageItem.fromJson(data) as T;
+    if (t == _i81.PaymentPageData) {
+      return _i81.PaymentPageData.fromJson(data) as T;
     }
-    if (t == _i82.PaymentSessionData) {
-      return _i82.PaymentSessionData.fromJson(data) as T;
+    if (t == _i82.PaymentPageItem) {
+      return _i82.PaymentPageItem.fromJson(data) as T;
     }
-    if (t == _i83.PaymentTransaction) {
-      return _i83.PaymentTransaction.fromJson(data) as T;
+    if (t == _i83.PaymentSessionData) {
+      return _i83.PaymentSessionData.fromJson(data) as T;
     }
-    if (t == _i84.PaymentVerifyResult) {
-      return _i84.PaymentVerifyResult.fromJson(data) as T;
+    if (t == _i84.PaymentTransaction) {
+      return _i84.PaymentTransaction.fromJson(data) as T;
     }
-    if (t == _i85.PendingOrderInfo) {
-      return _i85.PendingOrderInfo.fromJson(data) as T;
+    if (t == _i85.PaymentVerifyResult) {
+      return _i85.PaymentVerifyResult.fromJson(data) as T;
     }
-    if (t == _i86.PricingLineItem) {
-      return _i86.PricingLineItem.fromJson(data) as T;
+    if (t == _i86.PendingOrderInfo) {
+      return _i86.PendingOrderInfo.fromJson(data) as T;
     }
-    if (t == _i87.Product) {
-      return _i87.Product.fromJson(data) as T;
+    if (t == _i87.PricingLineItem) {
+      return _i87.PricingLineItem.fromJson(data) as T;
     }
-    if (t == _i88.ProductFormReferenceData) {
-      return _i88.ProductFormReferenceData.fromJson(data) as T;
+    if (t == _i88.Product) {
+      return _i88.Product.fromJson(data) as T;
     }
-    if (t == _i89.ProductPage) {
-      return _i89.ProductPage.fromJson(data) as T;
+    if (t == _i89.ProductFormReferenceData) {
+      return _i89.ProductFormReferenceData.fromJson(data) as T;
     }
-    if (t == _i90.ProductRankingItem) {
-      return _i90.ProductRankingItem.fromJson(data) as T;
+    if (t == _i90.ProductPage) {
+      return _i90.ProductPage.fromJson(data) as T;
     }
-    if (t == _i91.ProductVariant) {
-      return _i91.ProductVariant.fromJson(data) as T;
+    if (t == _i91.ProductRankingItem) {
+      return _i91.ProductRankingItem.fromJson(data) as T;
     }
-    if (t == _i92.RazorpayPaymentStatus) {
-      return _i92.RazorpayPaymentStatus.fromJson(data) as T;
+    if (t == _i92.ProductVariant) {
+      return _i92.ProductVariant.fromJson(data) as T;
     }
-    if (t == _i93.RazorpayRefundData) {
-      return _i93.RazorpayRefundData.fromJson(data) as T;
+    if (t == _i93.RazorpayPaymentStatus) {
+      return _i93.RazorpayPaymentStatus.fromJson(data) as T;
     }
-    if (t == _i94.RefundRecord) {
-      return _i94.RefundRecord.fromJson(data) as T;
+    if (t == _i94.RazorpayRefundData) {
+      return _i94.RazorpayRefundData.fromJson(data) as T;
     }
-    if (t == _i95.RegisterFcmTokenRequest) {
-      return _i95.RegisterFcmTokenRequest.fromJson(data) as T;
+    if (t == _i95.RefundRecord) {
+      return _i95.RefundRecord.fromJson(data) as T;
     }
-    if (t == _i96.SubCategory) {
-      return _i96.SubCategory.fromJson(data) as T;
+    if (t == _i96.RegisterFcmTokenRequest) {
+      return _i96.RegisterFcmTokenRequest.fromJson(data) as T;
     }
-    if (t == _i97.SupportIssue) {
-      return _i97.SupportIssue.fromJson(data) as T;
+    if (t == _i97.SubCategory) {
+      return _i97.SubCategory.fromJson(data) as T;
+    }
+    if (t == _i98.SupportIssue) {
+      return _i98.SupportIssue.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.ActiveUserStatistics?>()) {
       return (data != null ? _i2.ActiveUserStatistics.fromJson(data) : null)
@@ -821,82 +826,85 @@ class Protocol extends _i1.SerializationManager {
       return (data != null ? _i76.PaymentActionResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i77.PaymentLinkData?>()) {
-      return (data != null ? _i77.PaymentLinkData.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i77.PaymentEvent?>()) {
+      return (data != null ? _i77.PaymentEvent.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i78.PaymentOrderDetailHydrated?>()) {
+    if (t == _i1.getType<_i78.PaymentLinkData?>()) {
+      return (data != null ? _i78.PaymentLinkData.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i79.PaymentOrderDetailHydrated?>()) {
       return (data != null
-              ? _i78.PaymentOrderDetailHydrated.fromJson(data)
+              ? _i79.PaymentOrderDetailHydrated.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i79.PaymentOrderResult?>()) {
-      return (data != null ? _i79.PaymentOrderResult.fromJson(data) : null)
+    if (t == _i1.getType<_i80.PaymentOrderResult?>()) {
+      return (data != null ? _i80.PaymentOrderResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i80.PaymentPageData?>()) {
-      return (data != null ? _i80.PaymentPageData.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i81.PaymentPageData?>()) {
+      return (data != null ? _i81.PaymentPageData.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i81.PaymentPageItem?>()) {
-      return (data != null ? _i81.PaymentPageItem.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i82.PaymentPageItem?>()) {
+      return (data != null ? _i82.PaymentPageItem.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i82.PaymentSessionData?>()) {
-      return (data != null ? _i82.PaymentSessionData.fromJson(data) : null)
+    if (t == _i1.getType<_i83.PaymentSessionData?>()) {
+      return (data != null ? _i83.PaymentSessionData.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i83.PaymentTransaction?>()) {
-      return (data != null ? _i83.PaymentTransaction.fromJson(data) : null)
+    if (t == _i1.getType<_i84.PaymentTransaction?>()) {
+      return (data != null ? _i84.PaymentTransaction.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i84.PaymentVerifyResult?>()) {
-      return (data != null ? _i84.PaymentVerifyResult.fromJson(data) : null)
+    if (t == _i1.getType<_i85.PaymentVerifyResult?>()) {
+      return (data != null ? _i85.PaymentVerifyResult.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i85.PendingOrderInfo?>()) {
-      return (data != null ? _i85.PendingOrderInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i86.PendingOrderInfo?>()) {
+      return (data != null ? _i86.PendingOrderInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i86.PricingLineItem?>()) {
-      return (data != null ? _i86.PricingLineItem.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i87.PricingLineItem?>()) {
+      return (data != null ? _i87.PricingLineItem.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i87.Product?>()) {
-      return (data != null ? _i87.Product.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i88.Product?>()) {
+      return (data != null ? _i88.Product.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i88.ProductFormReferenceData?>()) {
+    if (t == _i1.getType<_i89.ProductFormReferenceData?>()) {
       return (data != null
-              ? _i88.ProductFormReferenceData.fromJson(data)
+              ? _i89.ProductFormReferenceData.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i89.ProductPage?>()) {
-      return (data != null ? _i89.ProductPage.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i90.ProductPage?>()) {
+      return (data != null ? _i90.ProductPage.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i90.ProductRankingItem?>()) {
-      return (data != null ? _i90.ProductRankingItem.fromJson(data) : null)
+    if (t == _i1.getType<_i91.ProductRankingItem?>()) {
+      return (data != null ? _i91.ProductRankingItem.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i91.ProductVariant?>()) {
-      return (data != null ? _i91.ProductVariant.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i92.ProductVariant?>()) {
+      return (data != null ? _i92.ProductVariant.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i92.RazorpayPaymentStatus?>()) {
-      return (data != null ? _i92.RazorpayPaymentStatus.fromJson(data) : null)
+    if (t == _i1.getType<_i93.RazorpayPaymentStatus?>()) {
+      return (data != null ? _i93.RazorpayPaymentStatus.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i93.RazorpayRefundData?>()) {
-      return (data != null ? _i93.RazorpayRefundData.fromJson(data) : null)
+    if (t == _i1.getType<_i94.RazorpayRefundData?>()) {
+      return (data != null ? _i94.RazorpayRefundData.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i94.RefundRecord?>()) {
-      return (data != null ? _i94.RefundRecord.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i95.RefundRecord?>()) {
+      return (data != null ? _i95.RefundRecord.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i95.RegisterFcmTokenRequest?>()) {
-      return (data != null ? _i95.RegisterFcmTokenRequest.fromJson(data) : null)
+    if (t == _i1.getType<_i96.RegisterFcmTokenRequest?>()) {
+      return (data != null ? _i96.RegisterFcmTokenRequest.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i96.SubCategory?>()) {
-      return (data != null ? _i96.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i97.SubCategory?>()) {
+      return (data != null ? _i97.SubCategory.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i97.SupportIssue?>()) {
-      return (data != null ? _i97.SupportIssue.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i98.SupportIssue?>()) {
+      return (data != null ? _i98.SupportIssue.fromJson(data) : null) as T;
     }
     if (t == List<_i10.AdminTopProduct>) {
       return (data as List)
@@ -1020,9 +1028,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i86.PricingLineItem>) {
+    if (t == List<_i87.PricingLineItem>) {
       return (data as List)
-              .map((e) => deserialize<_i86.PricingLineItem>(e))
+              .map((e) => deserialize<_i87.PricingLineItem>(e))
               .toList()
           as T;
     }
@@ -1030,9 +1038,9 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i33.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i96.SubCategory>) {
+    if (t == List<_i97.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i96.SubCategory>(e))
+              .map((e) => deserialize<_i97.SubCategory>(e))
               .toList()
           as T;
     }
@@ -1086,8 +1094,8 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i87.Product>) {
-      return (data as List).map((e) => deserialize<_i87.Product>(e)).toList()
+    if (t == List<_i88.Product>) {
+      return (data as List).map((e) => deserialize<_i88.Product>(e)).toList()
           as T;
     }
     if (t == List<_i63.NotificationHistoryItem>) {
@@ -1096,9 +1104,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i87.Product>?>()) {
+    if (t == _i1.getType<List<_i88.Product>?>()) {
       return (data != null
-              ? (data as List).map((e) => deserialize<_i87.Product>(e)).toList()
+              ? (data as List).map((e) => deserialize<_i88.Product>(e)).toList()
               : null)
           as T;
     }
@@ -1116,129 +1124,129 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i70.Order>(e)).toList()
           as T;
     }
-    if (t == List<_i94.RefundRecord>) {
+    if (t == List<_i95.RefundRecord>) {
       return (data as List)
-              .map((e) => deserialize<_i94.RefundRecord>(e))
+              .map((e) => deserialize<_i95.RefundRecord>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i94.RefundRecord>?>()) {
+    if (t == _i1.getType<List<_i95.RefundRecord>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i94.RefundRecord>(e))
+                    .map((e) => deserialize<_i95.RefundRecord>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i81.PaymentPageItem>) {
+    if (t == List<_i82.PaymentPageItem>) {
       return (data as List)
-              .map((e) => deserialize<_i81.PaymentPageItem>(e))
+              .map((e) => deserialize<_i82.PaymentPageItem>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i81.PaymentPageItem>?>()) {
+    if (t == _i1.getType<List<_i82.PaymentPageItem>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i81.PaymentPageItem>(e))
+                    .map((e) => deserialize<_i82.PaymentPageItem>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i91.ProductVariant>) {
+    if (t == List<_i92.ProductVariant>) {
       return (data as List)
-              .map((e) => deserialize<_i91.ProductVariant>(e))
+              .map((e) => deserialize<_i92.ProductVariant>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i91.ProductVariant>?>()) {
+    if (t == _i1.getType<List<_i92.ProductVariant>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i91.ProductVariant>(e))
+                    .map((e) => deserialize<_i92.ProductVariant>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i98.AppUser>) {
-      return (data as List).map((e) => deserialize<_i98.AppUser>(e)).toList()
+    if (t == List<_i99.AppUser>) {
+      return (data as List).map((e) => deserialize<_i99.AppUser>(e)).toList()
           as T;
     }
-    if (t == List<_i99.AdminAuditLogEntry>) {
+    if (t == List<_i100.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i99.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i100.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i100.ActiveUserStatistics>) {
+    if (t == List<_i101.ActiveUserStatistics>) {
       return (data as List)
-              .map((e) => deserialize<_i100.ActiveUserStatistics>(e))
+              .map((e) => deserialize<_i101.ActiveUserStatistics>(e))
               .toList()
           as T;
     }
-    if (t == List<_i101.Banner>) {
-      return (data as List).map((e) => deserialize<_i101.Banner>(e)).toList()
+    if (t == List<_i102.Banner>) {
+      return (data as List).map((e) => deserialize<_i102.Banner>(e)).toList()
           as T;
     }
-    if (t == List<_i102.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i102.BogoOffer>(e)).toList()
+    if (t == List<_i103.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i103.BogoOffer>(e)).toList()
           as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i103.CartItemInput>) {
+    if (t == List<_i104.CartItemInput>) {
       return (data as List)
-              .map((e) => deserialize<_i103.CartItemInput>(e))
+              .map((e) => deserialize<_i104.CartItemInput>(e))
               .toList()
           as T;
     }
-    if (t == List<_i104.Category>) {
-      return (data as List).map((e) => deserialize<_i104.Category>(e)).toList()
+    if (t == List<_i105.Category>) {
+      return (data as List).map((e) => deserialize<_i105.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i105.CategoryOffer>) {
+    if (t == List<_i106.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i105.CategoryOffer>(e))
+              .map((e) => deserialize<_i106.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i106.ComboOffer>) {
+    if (t == List<_i107.ComboOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i106.ComboOffer>(e))
+              .map((e) => deserialize<_i107.ComboOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i107.Coupon>) {
-      return (data as List).map((e) => deserialize<_i107.Coupon>(e)).toList()
+    if (t == List<_i108.Coupon>) {
+      return (data as List).map((e) => deserialize<_i108.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i108.CouponDisplay>) {
+    if (t == List<_i109.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i108.CouponDisplay>(e))
+              .map((e) => deserialize<_i109.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i109.DeliveryRule>) {
+    if (t == List<_i110.DeliveryRule>) {
       return (data as List)
-              .map((e) => deserialize<_i109.DeliveryRule>(e))
+              .map((e) => deserialize<_i110.DeliveryRule>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i103.CartItemInput>?>()) {
+    if (t == _i1.getType<List<_i104.CartItemInput>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i103.CartItemInput>(e))
+                    .map((e) => deserialize<_i104.CartItemInput>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i110.AdminNotificationPreference>) {
+    if (t == List<_i111.AdminNotificationPreference>) {
       return (data as List)
-              .map((e) => deserialize<_i110.AdminNotificationPreference>(e))
+              .map((e) => deserialize<_i111.AdminNotificationPreference>(e))
               .toList()
           as T;
     }
-    if (t == List<_i111.Order>) {
-      return (data as List).map((e) => deserialize<_i111.Order>(e)).toList()
+    if (t == List<_i112.Order>) {
+      return (data as List).map((e) => deserialize<_i112.Order>(e)).toList()
           as T;
     }
     if (t == Map<String, dynamic>) {
@@ -1263,14 +1271,14 @@ class Protocol extends _i1.SerializationManager {
     if (t == List<double>) {
       return (data as List).map((e) => deserialize<double>(e)).toList() as T;
     }
-    if (t == List<_i112.AppliedOfferInfo>) {
+    if (t == List<_i113.AppliedOfferInfo>) {
       return (data as List)
-              .map((e) => deserialize<_i112.AppliedOfferInfo>(e))
+              .map((e) => deserialize<_i113.AppliedOfferInfo>(e))
               .toList()
           as T;
     }
-    if (t == List<_i113.Product>) {
-      return (data as List).map((e) => deserialize<_i113.Product>(e)).toList()
+    if (t == List<_i114.Product>) {
+      return (data as List).map((e) => deserialize<_i114.Product>(e)).toList()
           as T;
     }
     if (t == _i1.getType<List<String>?>()) {
@@ -1279,27 +1287,27 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i114.ProductRankingItem>) {
+    if (t == List<_i115.ProductRankingItem>) {
       return (data as List)
-              .map((e) => deserialize<_i114.ProductRankingItem>(e))
+              .map((e) => deserialize<_i115.ProductRankingItem>(e))
               .toList()
           as T;
     }
-    if (t == List<_i115.SubCategory>) {
+    if (t == List<_i116.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i115.SubCategory>(e))
+              .map((e) => deserialize<_i116.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i116.CartItem>) {
-      return (data as List).map((e) => deserialize<_i116.CartItem>(e)).toList()
+    if (t == List<_i117.CartItem>) {
+      return (data as List).map((e) => deserialize<_i117.CartItem>(e)).toList()
           as T;
     }
-    try {
-      return _i117.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i118.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i119.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -1381,27 +1389,28 @@ class Protocol extends _i1.SerializationManager {
       _i74.OrderRealtimeEvent => 'OrderRealtimeEvent',
       _i75.OrderTrackingData => 'OrderTrackingData',
       _i76.PaymentActionResult => 'PaymentActionResult',
-      _i77.PaymentLinkData => 'PaymentLinkData',
-      _i78.PaymentOrderDetailHydrated => 'PaymentOrderDetailHydrated',
-      _i79.PaymentOrderResult => 'PaymentOrderResult',
-      _i80.PaymentPageData => 'PaymentPageData',
-      _i81.PaymentPageItem => 'PaymentPageItem',
-      _i82.PaymentSessionData => 'PaymentSessionData',
-      _i83.PaymentTransaction => 'PaymentTransaction',
-      _i84.PaymentVerifyResult => 'PaymentVerifyResult',
-      _i85.PendingOrderInfo => 'PendingOrderInfo',
-      _i86.PricingLineItem => 'PricingLineItem',
-      _i87.Product => 'Product',
-      _i88.ProductFormReferenceData => 'ProductFormReferenceData',
-      _i89.ProductPage => 'ProductPage',
-      _i90.ProductRankingItem => 'ProductRankingItem',
-      _i91.ProductVariant => 'ProductVariant',
-      _i92.RazorpayPaymentStatus => 'RazorpayPaymentStatus',
-      _i93.RazorpayRefundData => 'RazorpayRefundData',
-      _i94.RefundRecord => 'RefundRecord',
-      _i95.RegisterFcmTokenRequest => 'RegisterFcmTokenRequest',
-      _i96.SubCategory => 'SubCategory',
-      _i97.SupportIssue => 'SupportIssue',
+      _i77.PaymentEvent => 'PaymentEvent',
+      _i78.PaymentLinkData => 'PaymentLinkData',
+      _i79.PaymentOrderDetailHydrated => 'PaymentOrderDetailHydrated',
+      _i80.PaymentOrderResult => 'PaymentOrderResult',
+      _i81.PaymentPageData => 'PaymentPageData',
+      _i82.PaymentPageItem => 'PaymentPageItem',
+      _i83.PaymentSessionData => 'PaymentSessionData',
+      _i84.PaymentTransaction => 'PaymentTransaction',
+      _i85.PaymentVerifyResult => 'PaymentVerifyResult',
+      _i86.PendingOrderInfo => 'PendingOrderInfo',
+      _i87.PricingLineItem => 'PricingLineItem',
+      _i88.Product => 'Product',
+      _i89.ProductFormReferenceData => 'ProductFormReferenceData',
+      _i90.ProductPage => 'ProductPage',
+      _i91.ProductRankingItem => 'ProductRankingItem',
+      _i92.ProductVariant => 'ProductVariant',
+      _i93.RazorpayPaymentStatus => 'RazorpayPaymentStatus',
+      _i94.RazorpayRefundData => 'RazorpayRefundData',
+      _i95.RefundRecord => 'RefundRecord',
+      _i96.RegisterFcmTokenRequest => 'RegisterFcmTokenRequest',
+      _i97.SubCategory => 'SubCategory',
+      _i98.SupportIssue => 'SupportIssue',
       _ => null,
     };
   }
@@ -1569,54 +1578,56 @@ class Protocol extends _i1.SerializationManager {
         return 'OrderTrackingData';
       case _i76.PaymentActionResult():
         return 'PaymentActionResult';
-      case _i77.PaymentLinkData():
+      case _i77.PaymentEvent():
+        return 'PaymentEvent';
+      case _i78.PaymentLinkData():
         return 'PaymentLinkData';
-      case _i78.PaymentOrderDetailHydrated():
+      case _i79.PaymentOrderDetailHydrated():
         return 'PaymentOrderDetailHydrated';
-      case _i79.PaymentOrderResult():
+      case _i80.PaymentOrderResult():
         return 'PaymentOrderResult';
-      case _i80.PaymentPageData():
+      case _i81.PaymentPageData():
         return 'PaymentPageData';
-      case _i81.PaymentPageItem():
+      case _i82.PaymentPageItem():
         return 'PaymentPageItem';
-      case _i82.PaymentSessionData():
+      case _i83.PaymentSessionData():
         return 'PaymentSessionData';
-      case _i83.PaymentTransaction():
+      case _i84.PaymentTransaction():
         return 'PaymentTransaction';
-      case _i84.PaymentVerifyResult():
+      case _i85.PaymentVerifyResult():
         return 'PaymentVerifyResult';
-      case _i85.PendingOrderInfo():
+      case _i86.PendingOrderInfo():
         return 'PendingOrderInfo';
-      case _i86.PricingLineItem():
+      case _i87.PricingLineItem():
         return 'PricingLineItem';
-      case _i87.Product():
+      case _i88.Product():
         return 'Product';
-      case _i88.ProductFormReferenceData():
+      case _i89.ProductFormReferenceData():
         return 'ProductFormReferenceData';
-      case _i89.ProductPage():
+      case _i90.ProductPage():
         return 'ProductPage';
-      case _i90.ProductRankingItem():
+      case _i91.ProductRankingItem():
         return 'ProductRankingItem';
-      case _i91.ProductVariant():
+      case _i92.ProductVariant():
         return 'ProductVariant';
-      case _i92.RazorpayPaymentStatus():
+      case _i93.RazorpayPaymentStatus():
         return 'RazorpayPaymentStatus';
-      case _i93.RazorpayRefundData():
+      case _i94.RazorpayRefundData():
         return 'RazorpayRefundData';
-      case _i94.RefundRecord():
+      case _i95.RefundRecord():
         return 'RefundRecord';
-      case _i95.RegisterFcmTokenRequest():
+      case _i96.RegisterFcmTokenRequest():
         return 'RegisterFcmTokenRequest';
-      case _i96.SubCategory():
+      case _i97.SubCategory():
         return 'SubCategory';
-      case _i97.SupportIssue():
+      case _i98.SupportIssue():
         return 'SupportIssue';
     }
-    className = _i117.Protocol().getClassNameForObject(data);
+    className = _i118.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i118.Protocol().getClassNameForObject(data);
+    className = _i119.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -1854,76 +1865,79 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'PaymentActionResult') {
       return deserialize<_i76.PaymentActionResult>(data['data']);
     }
+    if (dataClassName == 'PaymentEvent') {
+      return deserialize<_i77.PaymentEvent>(data['data']);
+    }
     if (dataClassName == 'PaymentLinkData') {
-      return deserialize<_i77.PaymentLinkData>(data['data']);
+      return deserialize<_i78.PaymentLinkData>(data['data']);
     }
     if (dataClassName == 'PaymentOrderDetailHydrated') {
-      return deserialize<_i78.PaymentOrderDetailHydrated>(data['data']);
+      return deserialize<_i79.PaymentOrderDetailHydrated>(data['data']);
     }
     if (dataClassName == 'PaymentOrderResult') {
-      return deserialize<_i79.PaymentOrderResult>(data['data']);
+      return deserialize<_i80.PaymentOrderResult>(data['data']);
     }
     if (dataClassName == 'PaymentPageData') {
-      return deserialize<_i80.PaymentPageData>(data['data']);
+      return deserialize<_i81.PaymentPageData>(data['data']);
     }
     if (dataClassName == 'PaymentPageItem') {
-      return deserialize<_i81.PaymentPageItem>(data['data']);
+      return deserialize<_i82.PaymentPageItem>(data['data']);
     }
     if (dataClassName == 'PaymentSessionData') {
-      return deserialize<_i82.PaymentSessionData>(data['data']);
+      return deserialize<_i83.PaymentSessionData>(data['data']);
     }
     if (dataClassName == 'PaymentTransaction') {
-      return deserialize<_i83.PaymentTransaction>(data['data']);
+      return deserialize<_i84.PaymentTransaction>(data['data']);
     }
     if (dataClassName == 'PaymentVerifyResult') {
-      return deserialize<_i84.PaymentVerifyResult>(data['data']);
+      return deserialize<_i85.PaymentVerifyResult>(data['data']);
     }
     if (dataClassName == 'PendingOrderInfo') {
-      return deserialize<_i85.PendingOrderInfo>(data['data']);
+      return deserialize<_i86.PendingOrderInfo>(data['data']);
     }
     if (dataClassName == 'PricingLineItem') {
-      return deserialize<_i86.PricingLineItem>(data['data']);
+      return deserialize<_i87.PricingLineItem>(data['data']);
     }
     if (dataClassName == 'Product') {
-      return deserialize<_i87.Product>(data['data']);
+      return deserialize<_i88.Product>(data['data']);
     }
     if (dataClassName == 'ProductFormReferenceData') {
-      return deserialize<_i88.ProductFormReferenceData>(data['data']);
+      return deserialize<_i89.ProductFormReferenceData>(data['data']);
     }
     if (dataClassName == 'ProductPage') {
-      return deserialize<_i89.ProductPage>(data['data']);
+      return deserialize<_i90.ProductPage>(data['data']);
     }
     if (dataClassName == 'ProductRankingItem') {
-      return deserialize<_i90.ProductRankingItem>(data['data']);
+      return deserialize<_i91.ProductRankingItem>(data['data']);
     }
     if (dataClassName == 'ProductVariant') {
-      return deserialize<_i91.ProductVariant>(data['data']);
+      return deserialize<_i92.ProductVariant>(data['data']);
     }
     if (dataClassName == 'RazorpayPaymentStatus') {
-      return deserialize<_i92.RazorpayPaymentStatus>(data['data']);
+      return deserialize<_i93.RazorpayPaymentStatus>(data['data']);
     }
     if (dataClassName == 'RazorpayRefundData') {
-      return deserialize<_i93.RazorpayRefundData>(data['data']);
+      return deserialize<_i94.RazorpayRefundData>(data['data']);
     }
     if (dataClassName == 'RefundRecord') {
-      return deserialize<_i94.RefundRecord>(data['data']);
+      return deserialize<_i95.RefundRecord>(data['data']);
     }
     if (dataClassName == 'RegisterFcmTokenRequest') {
-      return deserialize<_i95.RegisterFcmTokenRequest>(data['data']);
+      return deserialize<_i96.RegisterFcmTokenRequest>(data['data']);
     }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i96.SubCategory>(data['data']);
+      return deserialize<_i97.SubCategory>(data['data']);
     }
     if (dataClassName == 'SupportIssue') {
-      return deserialize<_i97.SupportIssue>(data['data']);
+      return deserialize<_i98.SupportIssue>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i117.Protocol().deserializeByClassName(data);
+      return _i118.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i118.Protocol().deserializeByClassName(data);
+      return _i119.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -1938,10 +1952,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i117.Protocol().mapRecordToJson(record);
+      return _i118.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i118.Protocol().mapRecordToJson(record);
+      return _i119.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

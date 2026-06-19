@@ -6,12 +6,14 @@ import '../generated/protocol.dart' as protocol;
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_admin_service.dart';
 import '../services/postgres/postgres_auto_refund_service.dart';
+import '../services/postgres/postgres_payment_service.dart';
 import '../services/postgres/postgres_support.dart';
 
 class AdminEndpoint extends Endpoint {
   final PostgresAdminService _adminService = PostgresAdminService();
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
   final PostgresAutoRefundService _autoRefund = PostgresAutoRefundService();
+  final PostgresPaymentService _payments = PostgresPaymentService();
 
   Future<bool> isAdminSetupCompleted(Session session) {
     return _adminService.isAdminSetupCompleted(session);
@@ -330,6 +332,38 @@ class AdminEndpoint extends Endpoint {
       });
     } catch (e) {
       return jsonEncode({'error': e.toString()});
+    }
+  }
+
+  /// Manually reconcile a payment link order by checking Razorpay's Payment Links API.
+  /// If the link shows as paid, processes the payment and updates the order status.
+  Future<String> adminReconcilePaymentLink(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String orderNumber,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    try {
+      final result = await _payments.reconcilePaymentLinkOrders(
+        session,
+        limit: 1,
+        singleOrderNumber: orderNumber,
+      );
+      final recovered = result['recovered'] ?? 0;
+      return jsonEncode({
+        'success': true,
+        'recovered': recovered,
+        'message': recovered > 0
+            ? 'Payment recovered successfully'
+            : 'No payment link found or already processed',
+      });
+    } catch (e) {
+      return jsonEncode({'success': false, 'error': e.toString()});
     }
   }
 }

@@ -8,7 +8,7 @@ import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 
 class PostgresPaymentLinkService {
-  static const Duration defaultExpiry = Duration(minutes: 15);
+  static const Duration defaultExpiry = Duration(minutes: 20);
   static const int _tokenByteLength = 32;
   static final Random _secureRandom = Random.secure();
 
@@ -169,7 +169,7 @@ class PostgresPaymentLinkService {
 
       final gateway = PaymentGatewayService();
       final now = DateTime.now().toUtc();
-      final expiresAt = now.add(const Duration(minutes: 15));
+      final expiresAt = now.add(const Duration(minutes: 20));
       final token = generateSecureToken();
 
       // Call Razorpay Payment Links API
@@ -185,7 +185,7 @@ class PostgresPaymentLinkService {
           'order_id': orderNumber,
           'token': token,
         },
-        expiryMinutes: 15,
+        expiryMinutes: 20,
       );
 
       if (response['statusCode'] != 200) {
@@ -237,7 +237,7 @@ class PostgresPaymentLinkService {
         await PaymentTransactionRow.db.updateRow(
           session,
           paymentRow.copyWith(
-            gatewayOrderId: razorpayOrderId,
+            gatewayOrderId: razorpayOrderId.isNotEmpty ? razorpayOrderId : null,
             paymentStatus: 'pending',
             gatewayStatus: 'created',
             updatedAt: now,
@@ -458,18 +458,21 @@ class PostgresPaymentLinkService {
   Future<int> expireExpiredLinks(Session session) async {
     try {
       final now = DateTime.now().toUtc();
+      final ageCutoff = now.subtract(const Duration(days: 2));
       final expiredRows = await session.db.unsafeQuery(
         '''
         SELECT pl."orderId" FROM "payment_link" pl
         JOIN "customer_order" co ON co."id" = pl."orderId"
         WHERE pl."isUsed" = false
           AND pl."expiresAt" < @now
+          AND pl."expiresAt" >= @ageCutoff
           AND co."orderStatus" = 'payment_pending'
           AND co."paymentStatus" = 'pending'
         LIMIT 100
         ''',
         parameters: QueryParameters.named({
           'now': now.toIso8601String(),
+          'ageCutoff': ageCutoff.toIso8601String(),
         }),
       );
 

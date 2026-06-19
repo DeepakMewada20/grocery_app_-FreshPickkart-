@@ -145,6 +145,41 @@ class FirebaseNotificationService {
     );
   }
 
+  Future<void> sendPaymentLinkPaidNotification({
+    required Session session,
+    required String userId,
+    required String orderId,
+    required double amount,
+    required int? itemCount,
+    required String userName,
+    required String orderStatus,
+    required String paymentStatus,
+  }) async {
+    final tokens = await _getUserFcmTokens(userId, session: session);
+    if (tokens.isEmpty) return;
+
+    final itemStr = itemCount != null ? ' ($itemCount items)' : '';
+    final title = 'Payment received!';
+    final body = '₹${amount.toStringAsFixed(0)} paid for Order #$orderId$itemStr. '
+        'Status: ${orderStatus.toUpperCase()}, Payment: ${paymentStatus.toUpperCase()}';
+
+    await _sendToTokens(
+      tokens: tokens,
+      title: title,
+      body: body,
+      data: {
+        'orderId': orderId,
+        'type': 'payment_link_paid',
+        'userName': userName,
+        'amount': amount.toStringAsFixed(0),
+        'itemCount': itemCount?.toString() ?? '',
+        'orderStatus': orderStatus,
+        'paymentStatus': paymentStatus,
+      },
+      session: session,
+    );
+  }
+
   Future<void> sendUserStatusUpdate({
     Session? session,
     required String userId,
