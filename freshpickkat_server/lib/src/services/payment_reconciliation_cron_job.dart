@@ -161,21 +161,18 @@ class PaymentReconciliationCronJob {
   }
 
   Future<void> _processAutoRefundJob(Session session, protocol.AutoRefundJobRow job) async {
-    // Transaction 1: Lock job row and transition to PROCESSING
-    protocol.AutoRefundJobRow? processingJob;
-    await session.db.transaction((transaction) async {
+    final pj = await session.db.transaction<protocol.AutoRefundJobRow?>((transaction) async {
       final locked = await session.db.unsafeQuery(
         'SELECT id FROM "auto_refund_job" WHERE "id" = @id FOR UPDATE',
         parameters: QueryParameters.named({'id': job.id!.toJson()}),
         transaction: transaction,
       );
-      if (locked.isEmpty) return;
+      if (locked.isEmpty) return null;
 
       final currentJob = await protocol.AutoRefundJobRow.db.findById(
         session, job.id!, transaction: transaction);
-      if (currentJob == null || currentJob.jobStatus != 'PENDING') return;
+      if (currentJob == null || currentJob.jobStatus != 'PENDING') return null;
 
-      // Set PROCESSING without incrementing attemptCount (not a failure)
       await protocol.AutoRefundJobRow.db.updateRow(
         session,
         currentJob.copyWith(
@@ -184,43 +181,40 @@ class PaymentReconciliationCronJob {
         ),
         transaction: transaction,
       );
-      processingJob = currentJob.copyWith(jobStatus: 'PROCESSING');
+      return currentJob.copyWith(jobStatus: 'PROCESSING');
     });
 
-    if (processingJob == null) return;
+    if (pj == null) return;
 
     await _auditLog.write(
       session,
       action: 'AUTO_REFUND_PROCESSING',
       entityType: 'payment',
-      entityId: processingJob.orderNumber,
-      metadata: {'gatewayPaymentId': processingJob.gatewayPaymentId, 'amount': processingJob.amount.toString()},
+      entityId: pj.orderNumber,
+      metadata: {'gatewayPaymentId': pj.gatewayPaymentId, 'amount': pj.amount.toString()},
     );
 
     try {
-      // Check if refund already exists for this gatewayPaymentId (idempotency guard)
       final existingRefunds = await protocol.RefundRecordRow.db.find(
         session,
         where: (t) =>
-            t.gatewayRefundId.equals(processingJob.gatewayPaymentId) &
+            t.gatewayRefundId.equals(pj.gatewayPaymentId) &
             (t.refundStatus.equals('processed') | t.refundStatus.equals('pending')),
         limit: 1,
       );
       if (existingRefunds.isNotEmpty) {
-        // Refund already processed — mark job COMPLETED
         session.log(
-          'Auto-refund already processed for ${processingJob.gatewayPaymentId}, marking COMPLETED',
+          'Auto-refund already processed for ${pj.gatewayPaymentId}, marking COMPLETED',
           level: LogLevel.info,
         );
-        await _autoRefund.updateJobStatus(session, processingJob, status: 'COMPLETED', error: null);
+        await _autoRefund.updateJobStatus(session, pj, status: 'COMPLETED', error: null);
         return;
       }
 
-      // Execute refund using existing refund module (outside transaction — gateway call)
       final refundResult = await _refunds.refund(
         session,
-        orderNumber: processingJob.orderNumber,
-        amount: processingJob.amount,
+        orderNumber: pj.orderNumber,
+        amount: pj.amount,
         source: 'auto_refund',
         reason: 'Auto-refund for duplicate payment',
       );
@@ -229,7 +223,7 @@ class PaymentReconciliationCronJob {
         final now = DateTime.now().toUtc();
         await protocol.AutoRefundJobRow.db.updateRow(
           session,
-          processingJob!.copyWith(
+          pj.copyWith(
             jobStatus: 'COMPLETED',
             lastError: null,
             processedAt: now,
@@ -238,7 +232,7 @@ class PaymentReconciliationCronJob {
         );
       } else {
         await _handleRefundFailure(
-          session, processingJob!, refundResult.failureReason ?? 'Refund failed');
+          session, pj, refundResult.failureReason ?? 'Refund failed');
       }
 
       if (refundResult.refundId != 'error') {
@@ -246,22 +240,22 @@ class PaymentReconciliationCronJob {
           session,
           action: 'AUTO_REFUND_COMPLETED',
           entityType: 'payment',
-          entityId: processingJob.orderNumber,
+          entityId: pj.orderNumber,
           metadata: {
-            'gatewayPaymentId': processingJob.gatewayPaymentId,
+            'gatewayPaymentId': pj.gatewayPaymentId,
             'gatewayRefundId': refundResult.gatewayRefundId ?? '',
-            'amount': processingJob.amount.toString(),
+            'amount': pj.amount.toString(),
           },
         );
 
         session.log(
-          'Auto-refund completed for job ${processingJob.id}: order=${processingJob.orderNumber}, '
+          'Auto-refund completed for job ${pj.id}: order=${pj.orderNumber}, '
           'refundId=${refundResult.gatewayRefundId}',
           level: LogLevel.info,
         );
       }
     } catch (e) {
-      await _handleRefundFailure(session, processingJob!, e.toString());
+      await _handleRefundFailure(session, pj, e.toString());
     }
   }
 
@@ -337,19 +331,23 @@ class PaymentReconciliationCronJob {
 
   /// Recover auto-refund jobs stuck in PROCESSING state (e.g., after a crash).
   Future<void> _recoverStaleProcessingJobs(Session session) async {
-    final staleThreshold = DateTime.now().toUtc().subtract(const Duration(minutes: 5));
+    final now = DateTime.now().toUtc();
+    final staleThreshold = now.subtract(const Duration(minutes: 5));
     final result = await session.db.unsafeQuery(
+      'WITH updated AS ('
       'UPDATE "auto_refund_job" SET "jobStatus" = \'PENDING\', '
       '"updatedAt" = @now WHERE "jobStatus" = \'PROCESSING\' '
-      'AND "updatedAt" < @staleThreshold',
+      'AND "updatedAt" < @staleThreshold RETURNING 1'
+      ') SELECT count(*)::int AS cnt FROM updated',
       parameters: QueryParameters.named({
-        'now': DateTime.now().toUtc().toIso8601String(),
+        'now': now.toIso8601String(),
         'staleThreshold': staleThreshold.toIso8601String(),
       }),
     );
-    if (result.isNotEmpty && result.first.affectedRows != null && result.first.affectedRows! > 0) {
+    final count = (result.first.toColumnMap()['cnt'] as int?) ?? 0;
+    if (count > 0) {
       session.log(
-        'Recovered ${result.first.affectedRows} stale PROCESSING auto-refund job(s)',
+        'Recovered $count stale PROCESSING auto-refund job(s)',
         level: LogLevel.warning,
       );
       await _auditLog.write(
@@ -357,7 +355,7 @@ class PaymentReconciliationCronJob {
         action: 'AUTO_REFUND_RECOVERED_AFTER_CRASH',
         entityType: 'payment',
         entityId: 'cron',
-        metadata: {'count': result.first.affectedRows.toString()},
+        metadata: {'count': count.toString()},
       );
     }
   }
