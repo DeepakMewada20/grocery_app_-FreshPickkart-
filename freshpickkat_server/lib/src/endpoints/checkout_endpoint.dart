@@ -174,6 +174,11 @@ class CheckoutEndpoint extends Endpoint {
       );
     }
 
+    // Disable any existing payment link — prevents stale link payment
+    if (existing.linkStatus == 'ACTIVE') {
+      await _paymentLinks.disablePaymentLink(session, existing.orderNumber);
+    }
+
     // Create a fresh payment session for the existing pending order
     final serverFinalAmount = existing.finalAmount;
     final paymentResult = await _paymentEndpoint.createPaymentOrder(
@@ -221,18 +226,46 @@ class CheckoutEndpoint extends Endpoint {
     String userId,
   ) async {
     final order = await _orders.findActivePendingOrder(session, userId);
-    if (order == null) return null;
+    if (order == null || order.id == null) return null;
 
     final orderedAt = order.orderedAt;
     final elapsed = DateTime.now().toUtc().difference(orderedAt);
-    final remaining = const Duration(minutes: 30) - elapsed;
-    final expiresInMinutes = remaining.inMinutes.clamp(0, 30);
+    final remaining = const Duration(minutes: 10) - elapsed;
+    final expiresInMinutes = remaining.inMinutes.clamp(0, 10);
+
+    // Fetch order items for cart comparison
+    final itemRows = await protocol.OrderItemRow.db.find(
+      session,
+      where: (t) => t.orderId.equals(order.id!),
+    );
+
+    final cartItems = itemRows
+        .where((i) => !i.isFreeItem)
+        .map((i) => protocol.CartItemSnapshot(
+              productId: i.productId.toString(),
+              variantId: i.productVariantId?.toString() ?? '',
+              quantity: i.quantity,
+            ))
+        .toList();
+
+    cartItems.sort((a, b) =>
+        '${a.productId}_${a.variantId}'.compareTo('${b.productId}_${b.variantId}'));
 
     return protocol.PendingOrderInfo(
       orderNumber: order.orderNumber,
       finalAmount: order.finalAmount,
       orderedAt: orderedAt,
       expiresInMinutes: expiresInMinutes,
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus,
+      linkStatus: order.linkStatus,
+      cartData: protocol.CartComparisonData(
+        items: cartItems,
+        couponId: order.couponId?.toString(),
+        discountAmount: order.discountAmount,
+        deliveryCharge: order.deliveryFee,
+        totalAmount: order.finalAmount,
+      ),
     );
   }
 }

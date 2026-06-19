@@ -25,7 +25,6 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/tracking/models/delivery_location.dart';
 import 'package:freshpickkat_flutter/tracking/repositories/server_order_tracking_repository.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
-import 'package:freshpickkat_flutter/widgets/payment_session_sheet.dart';
 import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -119,7 +118,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           setState(() {
             _pendingOrderInfo = hydrated.activePendingOrder;
           });
-          _showPendingOrderPopup(hydrated.activePendingOrder!);
         }
       } else {
         cartController.cartPricing.value = null;
@@ -142,77 +140,142 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _lastRefreshTime = DateTime.now();
   }
 
-  void _showPendingOrderPopup(PendingOrderInfo info) {
-    showDialog(
+  // ── Decision Matrix for Pending Order on Place Order ──
+
+  CartComparisonData _computeCurrentCartData() {
+    final items = <CartItemSnapshot>[];
+
+    for (final item in cartController.regularCartItems) {
+      items.add(CartItemSnapshot(
+        productId: item.product.productId ?? '',
+        variantId: item.variantId ?? '',
+        quantity: item.quantity,
+      ));
+    }
+
+    for (final group in cartController.comboGroups) {
+      for (final item in group.items) {
+        items.add(CartItemSnapshot(
+          productId: item.product.productId ?? '',
+          variantId: item.variantId ?? '',
+          quantity: item.quantity,
+        ));
+      }
+    }
+
+    items.sort((a, b) =>
+        '${a.productId}_${a.variantId}'.compareTo('${b.productId}_${b.variantId}'));
+
+    double totalDiscount = cartController.couponDiscount +
+        cartController.productDiscountTotal +
+        cartController.comboDiscountTotal +
+        cartController.bogoDiscountTotal;
+
+    return CartComparisonData(
+      items: items,
+      couponId: cartController.appliedCoupon.value?.code,
+      discountAmount: totalDiscount,
+      deliveryCharge: cartController.deliveryFee,
+      totalAmount: cartController.totalAmount,
+    );
+  }
+
+  bool _isCartSame(CartComparisonData a, CartComparisonData b) {
+    if (a.items.length != b.items.length) return false;
+    for (var i = 0; i < a.items.length; i++) {
+      if (a.items[i].productId != b.items[i].productId) return false;
+      if (a.items[i].variantId != b.items[i].variantId) return false;
+      if (a.items[i].quantity != b.items[i].quantity) return false;
+    }
+    if (a.couponId != b.couponId) return false;
+    if (a.discountAmount != b.discountAmount) return false;
+    if (a.deliveryCharge != b.deliveryCharge) return false;
+    if (a.totalAmount != b.totalAmount) return false;
+    return true;
+  }
+
+  Future<bool> _showActiveLinkConfirmation() async {
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Unpaid Order Found'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'You already have an unpaid order.',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              'Order Number: #${info.orderNumber}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryGreen,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text('Amount: ₹${info.finalAmount.toStringAsFixed(2)}'),
-            SizedBox(height: 4.h),
-            Text('Expires In: ${info.expiresInMinutes} minutes'),
-            SizedBox(height: 16.h),
-            Text(
-              'What would you like to do?',
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
+        title: const Text('Active Payment Link Found'),
+        content: const Text(
+          'You have a pending payment link for a previous order. '
+          'If you continue, the previous payment link will expire and '
+          'a new order will be created.\n\nDo you want to continue?',
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _handleContinuePayment();
-            },
-            child: const Text('Continue Payment'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('NO'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _handleCancelPendingOrder();
-            },
+            onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.primaryGreen,
             ),
-            child: const Text('Cancel Existing Order & Checkout Updated Cart'),
+            child: const Text('YES'),
           ),
         ],
       ),
     );
+    return result ?? false;
   }
 
-  Future<void> _handleContinuePayment() async {
-    await _placeOrderWithPendingAction('continue');
+  Future<void> _handlePendingOrderOnPlaceOrder() async {
+    final info = _pendingOrderInfo!;
+    final pStatus = info.paymentStatus;
+    final oStatus = info.orderStatus;
+
+    // FAILED → always cancel + create new
+    if (pStatus == 'failed') {
+      await _placeOrderCore(pendingOrderAction: 'cancel');
+      return;
+    }
+
+    // EXPIRED / CANCELLED → create fresh (dead order)
+    if (pStatus == 'expired' || pStatus == 'cancelled' ||
+        oStatus == 'cancelled' || oStatus == 'cancelled_by_user' ||
+        oStatus == 'payment_expired') {
+      _pendingOrderInfo = null;
+      if (_isShareablePayment) {
+        await _placeOrderWithShareableLink();
+      } else {
+        await _placeOrderCore();
+      }
+      return;
+    }
+
+    // PENDING — compare cart + age
+    final currentCart = _computeCurrentCartData();
+    final pendingCart = info.cartData;
+    final isSameCart = pendingCart != null && _isCartSame(currentCart, pendingCart);
+    final isWithinTime = DateTime.now().difference(info.orderedAt).inMinutes <= 10;
+
+    if (isSameCart && isWithinTime) {
+      await _placeOrderCore(pendingOrderAction: 'continue');
+      return;
+    }
+
+    // Different cart or too old
+    if (info.linkStatus == 'ACTIVE') {
+      final proceed = await _showActiveLinkConfirmation();
+      if (proceed) {
+        await _placeOrderCore(pendingOrderAction: 'cancel');
+      }
+      return;
+    }
+
+    // No active link — cancel silently + create new
+    await _placeOrderCore(pendingOrderAction: 'cancel');
   }
 
-  Future<void> _handleCancelPendingOrder() async {
-    await _placeOrderWithPendingAction('cancel');
-  }
-
-  Future<void> _placeOrderWithPendingAction(String action) async {
+  /// Core order creation + payment flow.
+  /// Skips PaymentSessionSheet entirely.
+  /// For Pay Now: goes directly to UPI.
+  /// For Pay Someone Else: generates payment link + shows share sheet.
+  Future<void> _placeOrderCore({String? pendingOrderAction}) async {
     if (_isProcessing) return;
 
     try {
@@ -245,21 +308,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
+      final customerEmail = userController.userEmail.value.isNotEmpty
+          ? userController.userEmail.value
+          : '$customerPhone@freshpickkart.com';
+
       final order = _buildOrderFromCart(deliveryAddress);
 
-      _setProcessing(true, status: action == 'continue'
-          ? 'Resuming payment...'
-          : 'Cancelling & creating new order...');
+      _setProcessing(
+        true,
+        status: pendingOrderAction == 'continue'
+            ? 'Resuming payment...'
+            : pendingOrderAction == 'cancel'
+                ? 'Cancelling & creating new order...'
+                : 'Creating order & fetching payment ID...',
+      );
 
       final checkoutResult = await checkoutService.createOrderAndPayment(
         draftOrder: order,
         amount: cartController.totalAmount,
         customerPhone: customerPhone,
-        pendingOrderAction: action,
+        pendingOrderAction: pendingOrderAction,
       );
 
       if (checkoutResult.success != true || checkoutResult.orderId == null) {
-        _showError(checkoutResult.error ?? ErrorMessages.paymentFailed);
+        final error = checkoutResult.error ?? '';
+        if (error.startsWith('ACTIVE_PENDING_ORDER:')) {
+          _setProcessing(false);
+          _showError('An unpaid order already exists. Please try again.');
+          return;
+        }
+        _showError(error.isNotEmpty ? error : ErrorMessages.paymentFailed);
         return;
       }
 
@@ -290,7 +368,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       _currentRazorpayOrderId = razorpayOrderId;
 
-      final amountPaise = paymentOrder.amount ?? (cartController.totalAmount * 100).round();
+      final amountPaise =
+          paymentOrder.amount ?? (cartController.totalAmount * 100).round();
       if (amountPaise <= 0) {
         await _markPaymentFailedBestEffort(orderId);
         _showError(ErrorMessages.invalidAmount);
@@ -298,38 +377,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       final isTestMode = keyId.startsWith('rzp_test_');
-      final customerEmail = userController.userEmail.value.isNotEmpty
-          ? userController.userEmail.value
-          : '$customerPhone@freshpickkart.com';
 
       _setProcessing(false);
 
-      if (mounted) {
-        final shouldPay = await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => PaymentSessionSheet(
-            orderId: orderId,
-            amount: cartController.totalAmount,
-          ),
-        );
+      if (!mounted) return;
 
-        if (shouldPay == true) {
-          _setProcessing(true, status: 'Opening payment gateway...');
-          final didSelectUpiOption = await _startUpiPaymentFlow(
-            isTestMode: isTestMode,
-            keyId: keyId,
-            amountPaise: amountPaise,
-            currency: 'INR',
-            razorpayOrderId: razorpayOrderId,
-            customerPhone: customerPhone,
-            customerEmail: customerEmail,
-            orderId: orderId,
-          );
-          if (!didSelectUpiOption && mounted) {
-            _setProcessing(false);
-          }
+      if (_isShareablePayment) {
+        await _generateLinkAndShowSheet(orderId);
+      } else {
+        _setProcessing(true, status: 'Opening payment gateway...');
+        final didSelectUpiOption = await _startUpiPaymentFlow(
+          isTestMode: isTestMode,
+          keyId: keyId,
+          amountPaise: amountPaise,
+          currency: 'INR',
+          razorpayOrderId: razorpayOrderId,
+          customerPhone: customerPhone,
+          customerEmail: customerEmail,
+          orderId: orderId,
+        );
+        if (!didSelectUpiOption && mounted) {
+          _setProcessing(false);
         }
       }
     } catch (e) {
@@ -337,6 +405,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         await _markPaymentFailedBestEffort(_currentOrderId!);
       }
       AppLogger.error('Checkout', e);
+      _showError(ErrorMessages.paymentFailed);
+    }
+  }
+
+  /// Generate a payment link for an existing order and show the share sheet.
+  Future<void> _generateLinkAndShowSheet(String orderId) async {
+    try {
+      final firebaseUid = authController.currentUser?.uid ?? '';
+      final idToken = await authController.requireIdToken();
+      final result = await paymentLinkService.getOrCreatePaymentLink(
+        orderId,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      if (!mounted) return;
+      final paymentLink = result['paymentLink'] as String? ?? '';
+      _showSharePaymentLinkSheet(paymentLink, orderId);
+      _pollLinkPaymentStatus(orderId);
+    } catch (e) {
+      AppLogger.error('ShareablePayment', e);
       _showError(ErrorMessages.paymentFailed);
     }
   }
@@ -375,9 +463,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _placeOrder() async {
     if (_isProcessing) return;
 
-    // If a pending order exists, show the popup instead
+    // Decision matrix for pending order
     if (_pendingOrderInfo != null) {
-      _showPendingOrderPopup(_pendingOrderInfo!);
+      await _handlePendingOrderOnPlaceOrder();
       return;
     }
 
@@ -474,17 +562,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final error = checkoutResult.error ?? '';
         if (error.startsWith('ACTIVE_PENDING_ORDER:')) {
           _setProcessing(false);
-          if (mounted) {
-            final orderNumber = error.substring('ACTIVE_PENDING_ORDER:'.length);
-            _showPendingOrderPopup(
-              PendingOrderInfo(
-                orderNumber: orderNumber,
-                finalAmount: 0,
-                orderedAt: DateTime.now(),
-                expiresInMinutes: 30,
-              ),
-            );
-          }
+          _showError('An unpaid order already exists. Please try again.');
           return;
         }
         _showError(error.isNotEmpty ? error : ErrorMessages.paymentFailed);
@@ -527,31 +605,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _setProcessing(false);
 
       if (mounted) {
-        final shouldPay = await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => PaymentSessionSheet(
-            orderId: orderId,
-            amount: cartController.totalAmount,
-          ),
+        _setProcessing(true, status: 'Opening payment gateway...');
+        final didSelectUpiOption = await _startUpiPaymentFlow(
+          isTestMode: isTestMode,
+          keyId: keyId,
+          amountPaise: amountPaise,
+          currency: paymentOrder.currency ?? 'INR',
+          razorpayOrderId: razorpayOrderId,
+          customerPhone: customerPhone,
+          customerEmail: customerEmail,
+          orderId: orderId,
         );
-
-        if (shouldPay == true) {
-          _setProcessing(true, status: 'Opening payment gateway...');
-          final didSelectUpiOption = await _startUpiPaymentFlow(
-            isTestMode: isTestMode,
-            keyId: keyId,
-            amountPaise: amountPaise,
-            currency: paymentOrder.currency ?? 'INR',
-            razorpayOrderId: razorpayOrderId,
-            customerPhone: customerPhone,
-            customerEmail: customerEmail,
-            orderId: orderId,
-          );
-          if (!didSelectUpiOption && mounted) {
-            _setProcessing(false);
-          }
+        if (!didSelectUpiOption && mounted) {
+          _setProcessing(false);
         }
       }
     } catch (e) {
@@ -565,12 +631,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _placeOrderWithShareableLink() async {
     if (_isProcessing) return;
-
-    // If a pending order exists, show the popup instead
-    if (_pendingOrderInfo != null) {
-      _showPendingOrderPopup(_pendingOrderInfo!);
-      return;
-    }
 
     try {
       _setProcessing(true, clearError: true, status: 'Creating order...');
@@ -674,7 +734,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
         '$paymentLink\n\n'
         'Order amount: ₹${amount.toStringAsFixed(2)}\n'
-        'This link expires in 20 minutes.';
+        'This link expires in 10 minutes.';
     var copied = false;
 
     showModalBottomSheet(

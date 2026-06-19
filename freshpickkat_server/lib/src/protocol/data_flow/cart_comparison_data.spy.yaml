@@ -1,0 +1,7 @@
+class: CartComparisonData
+fields:
+  items: List<CartItemSnapshot>
+  couponId: String?
+  discountAmount: double
+  deliveryCharge: double
+  totalAmount: double

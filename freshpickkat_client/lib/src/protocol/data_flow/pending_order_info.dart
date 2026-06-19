@@ -11,6 +11,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import '../data_flow/cart_comparison_data.dart' as _i2;
+import 'package:freshpickkat_client/src/protocol/protocol.dart' as _i3;
 
 abstract class PendingOrderInfo implements _i1.SerializableModel {
   PendingOrderInfo._({
@@ -18,6 +20,10 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
     required this.finalAmount,
     required this.orderedAt,
     required this.expiresInMinutes,
+    required this.paymentStatus,
+    required this.orderStatus,
+    this.linkStatus,
+    this.cartData,
   });
 
   factory PendingOrderInfo({
@@ -25,6 +31,10 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
     required double finalAmount,
     required DateTime orderedAt,
     required int expiresInMinutes,
+    required String paymentStatus,
+    required String orderStatus,
+    String? linkStatus,
+    _i2.CartComparisonData? cartData,
   }) = _PendingOrderInfoImpl;
 
   factory PendingOrderInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -35,6 +45,14 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
         jsonSerialization['orderedAt'],
       ),
       expiresInMinutes: jsonSerialization['expiresInMinutes'] as int,
+      paymentStatus: jsonSerialization['paymentStatus'] as String,
+      orderStatus: jsonSerialization['orderStatus'] as String,
+      linkStatus: jsonSerialization['linkStatus'] as String?,
+      cartData: jsonSerialization['cartData'] == null
+          ? null
+          : _i3.Protocol().deserialize<_i2.CartComparisonData>(
+              jsonSerialization['cartData'],
+            ),
     );
   }
 
@@ -46,6 +64,14 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
 
   int expiresInMinutes;
 
+  String paymentStatus;
+
+  String orderStatus;
+
+  String? linkStatus;
+
+  _i2.CartComparisonData? cartData;
+
   /// Returns a shallow copy of this [PendingOrderInfo]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -54,6 +80,10 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
     double? finalAmount,
     DateTime? orderedAt,
     int? expiresInMinutes,
+    String? paymentStatus,
+    String? orderStatus,
+    String? linkStatus,
+    _i2.CartComparisonData? cartData,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -63,6 +93,10 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
       'finalAmount': finalAmount,
       'orderedAt': orderedAt.toJson(),
       'expiresInMinutes': expiresInMinutes,
+      'paymentStatus': paymentStatus,
+      'orderStatus': orderStatus,
+      if (linkStatus != null) 'linkStatus': linkStatus,
+      if (cartData != null) 'cartData': cartData?.toJson(),
     };
   }
 
@@ -72,17 +106,27 @@ abstract class PendingOrderInfo implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _PendingOrderInfoImpl extends PendingOrderInfo {
   _PendingOrderInfoImpl({
     required String orderNumber,
     required double finalAmount,
     required DateTime orderedAt,
     required int expiresInMinutes,
+    required String paymentStatus,
+    required String orderStatus,
+    String? linkStatus,
+    _i2.CartComparisonData? cartData,
   }) : super._(
          orderNumber: orderNumber,
          finalAmount: finalAmount,
          orderedAt: orderedAt,
          expiresInMinutes: expiresInMinutes,
+         paymentStatus: paymentStatus,
+         orderStatus: orderStatus,
+         linkStatus: linkStatus,
+         cartData: cartData,
        );
 
   /// Returns a shallow copy of this [PendingOrderInfo]
@@ -94,12 +138,22 @@ class _PendingOrderInfoImpl extends PendingOrderInfo {
     double? finalAmount,
     DateTime? orderedAt,
     int? expiresInMinutes,
+    String? paymentStatus,
+    String? orderStatus,
+    Object? linkStatus = _Undefined,
+    Object? cartData = _Undefined,
   }) {
     return PendingOrderInfo(
       orderNumber: orderNumber ?? this.orderNumber,
       finalAmount: finalAmount ?? this.finalAmount,
       orderedAt: orderedAt ?? this.orderedAt,
       expiresInMinutes: expiresInMinutes ?? this.expiresInMinutes,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      orderStatus: orderStatus ?? this.orderStatus,
+      linkStatus: linkStatus is String? ? linkStatus : this.linkStatus,
+      cartData: cartData is _i2.CartComparisonData?
+          ? cartData
+          : this.cartData?.copyWith(),
     );
   }
 }

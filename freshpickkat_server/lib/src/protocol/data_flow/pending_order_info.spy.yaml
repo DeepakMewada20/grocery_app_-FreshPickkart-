@@ -4,3 +4,7 @@ fields:
   finalAmount: double
   orderedAt: DateTime
   expiresInMinutes: int
+  paymentStatus: String
+  orderStatus: String
+  linkStatus: String?
+  cartData: CartComparisonData?

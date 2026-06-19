@@ -1,0 +1,5 @@
+class: CartItemSnapshot
+fields:
+  productId: String
+  variantId: String
+  quantity: int
