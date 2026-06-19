@@ -528,7 +528,8 @@ class _RefundInfoCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) {
-    final local = dt.toLocal();
+    final utc = DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+    final local = utc.toLocal();
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
 }

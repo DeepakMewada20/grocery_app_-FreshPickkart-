@@ -346,9 +346,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       _currentOrderId = orderId;
       _currentOrderSnapshot = order.copyWith(orderId: orderId);
-      if (mounted) {
+      if (pendingOrderAction == 'continue') {
+        // Keep existing _pendingOrderInfo — same order still active
+      } else if (mounted) {
         setState(() {
-          _pendingOrderInfo = null;
+          _pendingOrderInfo = PendingOrderInfo(
+            orderNumber: orderId,
+            finalAmount: cartController.totalAmount,
+            orderedAt: DateTime.now(),
+            expiresInMinutes: 10,
+            paymentStatus: 'pending',
+            orderStatus: 'placed',
+            cartData: _computeCurrentCartData(),
+          );
         });
       }
 
@@ -688,6 +698,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _setProcessing(false);
 
       if (!mounted) return;
+
+      if (mounted) {
+        setState(() {
+          _pendingOrderInfo = PendingOrderInfo(
+            orderNumber: orderId,
+            finalAmount: cartController.totalAmount,
+            orderedAt: DateTime.now(),
+            expiresInMinutes: 10,
+            paymentStatus: 'pending',
+            orderStatus: 'placed',
+            cartData: _computeCurrentCartData(),
+          );
+        });
+      }
 
       _showSharePaymentLinkSheet(paymentLink, orderId);
       _pollLinkPaymentStatus(orderId);
@@ -1642,6 +1666,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (orderId != null) {
         await _markPaymentFailedBestEffort(orderId);
+        if (mounted && _pendingOrderInfo?.orderNumber == orderId) {
+          setState(() {
+            _pendingOrderInfo = null;
+          });
+        }
       }
 
       if (isPaymentCancelled) {

@@ -145,6 +145,16 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - **Admin `payment_monitoring_screen.dart`**: Health metrics banner (pending/expired/duplicate/auto-refund counts), `_AutoRefundPanel` + `_AutoRefundJobCard` widgets with retry/mark-reviewed actions
 - **Audit log events**: `DUPLICATE_PAYMENT_DETECTED`, `AUTO_REFUND_PROCESSING`, `AUTO_REFUND_COMPLETED`, `AUTO_REFUND_FAILED`, `AUTO_REFUND_RETRY`, `PAYMENT_SESSION_EXPIRED`, `ORPHAN_PAYMENT_DETECTED`
 
+### Stale `_pendingOrderInfo` After Failed Payment (`checkout_screen.dart`)
+- **Problem**: When UPI payment fails/cancelled, `_handlePaymentError` marks order as `failed` on server via `_markPaymentFailedBestEffort`, but `_pendingOrderInfo` still shows `paymentStatus: 'pending'` on client. Next Pay Now click → decision matrix sees 'pending' → tries `pendingOrderAction: 'continue'` → server's `findActivePendingOrder` doesn't find the now-failed order → returns "No active pending order found".
+- **Fix**: In `_handlePaymentError` at line 1668, after `_markPaymentFailedBestEffort`, clear `_pendingOrderInfo` via `setState` if matches current order.
+- **File**: `freshpickkat_flutter/lib/screens/checkout_screen.dart:1668`
+
+### Timezone Fix — All DateTime Display (`_formatDate` in 5 screens)
+- **Root cause**: Server stores `orderedAt` etc. as UTC (`DateTime.now().toUtc()`), but PostgreSQL `TIMESTAMP` column loses the UTC flag. Client receives DateTime not marked as UTC, so `dt.toLocal()` is a no-op — UTC time displayed as-is (e.g. 8:26 AM UTC instead of 1:56 PM IST).
+- **Fix**: In all `_formatDate` methods, `DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, ...)` forces raw values to be treated as UTC, then `.toLocal()` correctly converts to IST.
+- **Files**: `order_detail_screen.dart:1362`, `orders_screen.dart:240`, `order_confirmation_screen.dart:872`, `complaint_detail_screen.dart:530`, `my_complaints_screen.dart:144`
+
 ## Key Optimizations
 - **Home page DB queries reduced**: ~63 → ~23 per load. Fetch IDs first (5 simple SQL queries), merge + deduplicate, hydrate once (10 queries), distribute results.
 - **`ProductRankingService` refactored**: `_RankingRow` → public `RankingRow`; new `getRankedProductIds()` returns unhydrated rows; static `buildRankingItems()` constructs `ProductRankingItem` from rows + product map.

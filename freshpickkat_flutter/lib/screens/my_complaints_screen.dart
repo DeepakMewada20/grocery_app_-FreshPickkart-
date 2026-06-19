@@ -142,7 +142,8 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final local = date.toLocal();
+    final utc = DateTime.utc(date.year, date.month, date.day, date.hour, date.minute, date.second, date.millisecond, date.microsecond);
+    final local = utc.toLocal();
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
 
