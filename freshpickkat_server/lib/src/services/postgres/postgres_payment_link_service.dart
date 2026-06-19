@@ -8,7 +8,7 @@ import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 
 class PostgresPaymentLinkService {
-  static const Duration defaultExpiry = Duration(minutes: 10);
+  static const Duration defaultExpiry = Duration(minutes: 15);
   static const int _tokenByteLength = 32;
   static final Random _secureRandom = Random.secure();
 
@@ -169,7 +169,7 @@ class PostgresPaymentLinkService {
 
       final gateway = PaymentGatewayService();
       final now = DateTime.now().toUtc();
-      final expiresAt = now.add(const Duration(minutes: 10));
+      final expiresAt = now.add(const Duration(minutes: 15));
       final token = generateSecureToken();
 
       // Call Razorpay Payment Links API
@@ -185,7 +185,7 @@ class PostgresPaymentLinkService {
           'order_id': orderNumber,
           'token': token,
         },
-        expiryMinutes: 10,
+        expiryMinutes: 15,
       );
 
       if (response['statusCode'] != 200) {

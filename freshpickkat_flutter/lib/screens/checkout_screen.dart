@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -232,7 +233,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (pStatus == 'failed') {
       _pendingOrderInfo = null;
       if (_isShareablePayment) {
-        await _placeOrderWithShareableLink();
+        await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
       } else {
         await _placeOrderCore();
       }
@@ -260,7 +261,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (isSameCart && isWithinTime) {
       if (_isShareablePayment) {
-        await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
+        if (info.linkStatus == 'ACTIVE') {
+          await _reuseExistingPaymentLink(info.orderNumber);
+        } else {
+          await _placeOrderWithShareableLink(pendingOrderAction: 'cancel');
+        }
       } else {
         await _placeOrderCore(pendingOrderAction: 'continue');
       }
@@ -656,6 +661,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  Future<void> _reuseExistingPaymentLink(String orderNumber) async {
+    if (_isProcessing) return;
+    _setProcessing(true, status: 'Fetching existing payment link...');
+    try {
+      final firebaseUid = authController.currentUser?.uid ?? '';
+      final idToken = await authController.requireIdToken();
+      final result = await paymentLinkService.getOrCreatePaymentLink(
+        orderNumber,
+        firebaseUid: firebaseUid,
+        idToken: idToken,
+      );
+      _setProcessing(false);
+      if (!mounted) return;
+      if (result['success'] == true) {
+        final paymentLink = result['paymentLink'] as String? ?? '';
+        final expiresAtStr = result['expiresAt'] as String?;
+        final expiresAt = expiresAtStr != null ? DateTime.tryParse(expiresAtStr) : null;
+        _showSharePaymentLinkSheet(paymentLink, orderNumber, expiresAt: expiresAt);
+        _pollLinkPaymentStatus(orderNumber);
+      } else {
+        _showError(result['error'] as String? ?? 'Failed to get payment link');
+      }
+    } catch (e) {
+      _setProcessing(false);
+      AppLogger.error('ReuseLink', e);
+      _showError('Failed to get payment link');
+    }
+  }
+
   Future<void> _placeOrderWithShareableLink({String? pendingOrderAction}) async {
     if (_isProcessing) return;
 
@@ -731,7 +765,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         });
       }
 
-      _showSharePaymentLinkSheet(paymentLink, orderId);
+      _showSharePaymentLinkSheet(paymentLink, orderId, expiresAt: result.expiresAt);
       _pollLinkPaymentStatus(orderId);
     } catch (e) {
       AppLogger.error('ShareablePayment', e);
@@ -770,13 +804,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _showSharePaymentLinkSheet(String paymentLink, String orderId) {
+  void _showSharePaymentLinkSheet(String paymentLink, String orderId, {DateTime? expiresAt}) {
     final amount = cartController.totalAmount;
     final message =
         'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
         '$paymentLink\n\n'
         'Order amount: ₹${amount.toStringAsFixed(2)}\n'
-        'This link expires in 10 minutes.';
+        'This link expires in 15 minutes.';
     var copied = false;
 
     showModalBottomSheet(
@@ -798,6 +832,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               child: StatefulBuilder(
                 builder: (context, setSheetState) {
+                  Timer? countdownTimer;
+                  Duration remaining = expiresAt != null
+                      ? expiresAt.difference(DateTime.now())
+                      : const Duration(minutes: 15);
+                  if (remaining.isNegative) remaining = Duration.zero;
+
+                  if (expiresAt != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      countdownTimer?.cancel();
+                      countdownTimer = Timer.periodic(
+                        const Duration(seconds: 1),
+                        (_) {
+                          final diff = expiresAt.difference(DateTime.now());
+                          if (diff.isNegative) {
+                            countdownTimer?.cancel();
+                          }
+                          setSheetState(() {});
+                        },
+                      );
+                    });
+                  }
+
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -817,7 +873,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       SizedBox(height: 12.h),
                       Text(
-                        'Order Created!',
+                        'Payment Link Ready',
                         style: TextStyle(
                           fontSize: 20.sp,
                           fontWeight: FontWeight.bold,
@@ -848,7 +904,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 12.h),
+                      if (remaining.inSeconds > 0)
+                        Text(
+                          'Expires in ${remaining.inMinutes} min ${remaining.inSeconds.remainder(60)} sec',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: remaining.inMinutes < 2
+                                ? Colors.red
+                                : Colors.orange[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      SizedBox(height: 16.h),
                       Row(
                         children: [
                           Expanded(
@@ -1685,8 +1753,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (orderId != null) {
         await _markPaymentFailedBestEffort(orderId);
         if (mounted && _pendingOrderInfo?.orderNumber == orderId) {
+          final existing = _pendingOrderInfo!;
           setState(() {
-            _pendingOrderInfo = null;
+            _pendingOrderInfo = PendingOrderInfo(
+              orderNumber: existing.orderNumber,
+              finalAmount: existing.finalAmount,
+              orderedAt: existing.orderedAt,
+              expiresInMinutes: existing.expiresInMinutes,
+              paymentStatus: 'failed',
+              orderStatus: existing.orderStatus,
+              linkStatus: existing.linkStatus,
+              cartData: existing.cartData,
+            );
           });
         }
       }
@@ -1716,6 +1794,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final safeMessage = message.trim().isEmpty
         ? 'Payment failed. Please try again.'
         : message;
+    AppLogger.error('Checkout', safeMessage);
     if (mounted) {
       setState(() {
         _errorMessage = safeMessage;

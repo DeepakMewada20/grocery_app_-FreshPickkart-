@@ -147,13 +147,18 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 
 ### Stale `_pendingOrderInfo` After Failed Payment (`checkout_screen.dart`)
 - **Problem**: When UPI payment fails/cancelled, `_handlePaymentError` marks order as `failed` on server via `_markPaymentFailedBestEffort`, but `_pendingOrderInfo` still shows `paymentStatus: 'pending'` on client. Next Pay Now click → decision matrix sees 'pending' → tries `pendingOrderAction: 'continue'` → server's `findActivePendingOrder` doesn't find the now-failed order → returns "No active pending order found".
-- **Fix**: In `_handlePaymentError` at line 1668, after `_markPaymentFailedBestEffort`, clear `_pendingOrderInfo` via `setState` if matches current order.
-- **File**: `freshpickkat_flutter/lib/screens/checkout_screen.dart:1668`
+- **Fix**: In `_handlePaymentError`, instead of nulling `_pendingOrderInfo`, update it to `paymentStatus: 'failed'` — so decision matrix correctly routes to fresh order creation.
+- **File**: `freshpickkat_flutter/lib/screens/checkout_screen.dart:1685-1698`
 
 ### Switch to Ask Someone Else After Failed UPI Payment (`checkout_screen.dart` + server)
 - **Problem**: After UPI cancel, user switches to "Ask Someone Else To Pay" → decision matrix doesn't check `_isShareablePayment` → `_placeOrderCore` (UPI flow) runs instead of `_placeOrderWithShareableLink` (link flow). Server's `createShareablePaymentLink` also lacks `pendingOrderAction` → returns "Failed to create payment link".
 - **Fix**: (1) `_handlePendingOrderOnPlaceOrder` — all 4 paths (`failed`, `pending`+same+time, `pending`+active link, `pending`+no link) now check `_isShareablePayment` and route to `_placeOrderWithShareableLink(pendingOrderAction: 'cancel')`. (2) Server `createShareablePaymentLink` accepts `pendingOrderAction: 'cancel'` — cancels existing pending order before creating new one. (3) `_placeOrderWithShareableLink` passes `pendingOrderAction` param to endpoint.
 - **Files**: `checkout_screen.dart:226-272`, `payment_link_endpoint.dart:22-162`, `payment_link_service.dart:18-34`, `client.dart:2994-3012`, `endpoints.dart:6369-6417`
+
+### Reuse Existing Active Payment Link (`checkout_screen.dart`)
+- **Problem**: When user has an existing active payment link and clicks Place Order again for "Ask Someone Else", it should reuse the existing link (not create a new order or cancel the link).
+- **Fix**: In decision matrix `pending`+sameCart+withinTime+`_isShareablePayment`, check `linkStatus == 'ACTIVE'` → call `getOrCreatePaymentLink` (returns existing active link) → show it with expiry countdown. `_showSharePaymentLinkSheet` now accepts `expiresAt` param and shows real-time countdown timer.
+- **Files**: `checkout_screen.dart:261-267`, `checkout_screen.dart:663-685` (new `_reuseExistingPaymentLink` method), `checkout_screen.dart:808-880` (countdown timer)
 
 ### Timezone Fix — All DateTime Display (`_formatDate` in 5 screens)
 - **Root cause**: Server stores `orderedAt` etc. as UTC (`DateTime.now().toUtc()`), but PostgreSQL `TIMESTAMP` column loses the UTC flag. Client receives DateTime not marked as UTC, so `dt.toLocal()` is a no-op — UTC time displayed as-is (e.g. 8:26 AM UTC instead of 1:56 PM IST).
