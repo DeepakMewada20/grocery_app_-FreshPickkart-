@@ -14,54 +14,57 @@ void main() {
       paymentService = PostgresPaymentService();
     });
 
-    test('getPaymentSessionStatus returns session data for seeded order', () async {
-      final session = sessionBuilder.build();
-      try {
-        final user = await protocol.AppUserRow.db.insertRow(
-          session,
-          protocol.AppUserRow(
-            phoneNumber: '9999999001',
-            name: 'PL Test User',
-            role: 'customer',
-            status: 'active',
-          ),
-        );
+    test(
+      'getPaymentSessionStatus returns session data for seeded order',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final user = await protocol.AppUserRow.db.insertRow(
+            session,
+            protocol.AppUserRow(
+              phoneNumber: '9999999001',
+              name: 'PL Test User',
+              role: 'customer',
+              status: 'active',
+            ),
+          );
 
-        final now = DateTime.now().toUtc();
-        final order = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'pl-test-${now.microsecondsSinceEpoch}',
-            userId: user.id!,
-            orderStatus: 'pending',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            discountAmount: 0.0,
-            deliveryFee: 0.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            paymentLinkUrl: 'https://rzp.io/i/test',
-            paymentLinkExpiresAt: now.add(const Duration(hours: 1)),
-            orderedAt: now,
-          ),
-        );
+          final now = DateTime.now().toUtc();
+          final order = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'pl-test-${now.microsecondsSinceEpoch}',
+              userId: user.id!,
+              orderStatus: 'pending',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              paymentLinkUrl: 'https://rzp.io/i/test',
+              paymentLinkExpiresAt: now.add(const Duration(hours: 1)),
+              orderedAt: now,
+            ),
+          );
 
-        final result = await paymentLinkService.getPaymentSessionStatus(
-          session,
-          order.orderNumber,
-        );
+          final result = await paymentLinkService.getPaymentSessionStatus(
+            session,
+            order.orderNumber,
+          );
 
-        expect(result['orderNumber'], equals(order.orderNumber));
-        expect(result['paymentStatus'], equals('pending'));
-        expect(result['orderStatus'], equals('pending'));
-        expect(result['paymentLinkUrl'], equals('https://rzp.io/i/test'));
-      } finally {
-        await session.close();
-      }
-    });
+          expect(result['orderNumber'], equals(order.orderNumber));
+          expect(result['paymentStatus'], equals('pending'));
+          expect(result['orderStatus'], equals('pending'));
+          expect(result['paymentLinkUrl'], equals('https://rzp.io/i/test'));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('disablePaymentLink disables link on an order', () async {
       final session = sessionBuilder.build();
@@ -100,7 +103,10 @@ void main() {
 
         await paymentLinkService.disablePaymentLink(session, order.orderNumber);
 
-        final updated = await protocol.CustomerOrderRow.db.findById(session, order.id!);
+        final updated = await protocol.CustomerOrderRow.db.findById(
+          session,
+          order.id!,
+        );
         expect(updated, isNotNull);
         expect(updated!.linkStatus, equals('DISABLED'));
       } finally {
@@ -211,7 +217,10 @@ void main() {
           razorpayPaymentId: 'pay_test_${now.microsecondsSinceEpoch}',
         );
 
-        final updated = await protocol.CustomerOrderRow.db.findById(session, order.id!);
+        final updated = await protocol.CustomerOrderRow.db.findById(
+          session,
+          order.id!,
+        );
         expect(updated, isNotNull);
         expect(updated!.paymentStatus, equals('paid'));
       } finally {

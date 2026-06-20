@@ -22,44 +22,47 @@ void main() {
     // autoCancelPendingPayments
     // ─────────────────────────────────────────────
 
-    test('autoCancelPendingPayments cancels old pending orders within age window', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        // Order placed 11 min ago → eligible (createdAt < 10min ago, >= 2 days ago)
-        final orderNumber = 'ac-eligible-${now.microsecondsSinceEpoch}';
-        await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: orderNumber,
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            createdAt: now.subtract(const Duration(minutes: 11)),
-            orderedAt: now.subtract(const Duration(minutes: 11)),
-          ),
-        );
+    test(
+      'autoCancelPendingPayments cancels old pending orders within age window',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          // Order placed 11 min ago → eligible (createdAt < 10min ago, >= 2 days ago)
+          final orderNumber = 'ac-eligible-${now.microsecondsSinceEpoch}';
+          await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: orderNumber,
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              createdAt: now.subtract(const Duration(minutes: 11)),
+              orderedAt: now.subtract(const Duration(minutes: 11)),
+            ),
+          );
 
-        final count = await paymentService.autoCancelPendingPayments(session);
+          final count = await paymentService.autoCancelPendingPayments(session);
 
-        expect(count, greaterThanOrEqualTo(1));
+          expect(count, greaterThanOrEqualTo(1));
 
-        final updated = await protocol.CustomerOrderRow.db.findFirstRow(
-          session,
-          where: (t) => t.orderNumber.equals(orderNumber),
-        );
-        expect(updated!.orderStatus, equals('cancelled'));
-      } finally {
-        await session.close();
-      }
-    });
+          final updated = await protocol.CustomerOrderRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderNumber.equals(orderNumber),
+          );
+          expect(updated!.orderStatus, equals('cancelled'));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('autoCancelPendingPayments skips recent pending orders', () async {
       final session = sessionBuilder.build();
@@ -97,41 +100,44 @@ void main() {
       }
     });
 
-    test('autoCancelPendingPayments skips orders older than 2 day window', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        // Order placed 3 days ago → excluded (createdAt < 2 days ago)
-        final orderNumber = 'ac-old-${now.microsecondsSinceEpoch}';
-        await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: orderNumber,
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            createdAt: now.subtract(const Duration(days: 3)),
-            orderedAt: now.subtract(const Duration(days: 3)),
-          ),
-        );
+    test(
+      'autoCancelPendingPayments skips orders older than 2 day window',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          // Order placed 3 days ago → excluded (createdAt < 2 days ago)
+          final orderNumber = 'ac-old-${now.microsecondsSinceEpoch}';
+          await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: orderNumber,
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              createdAt: now.subtract(const Duration(days: 3)),
+              orderedAt: now.subtract(const Duration(days: 3)),
+            ),
+          );
 
-        // Count may include other seeded orders but not this one
-        final updated = await protocol.CustomerOrderRow.db.findFirstRow(
-          session,
-          where: (t) => t.orderNumber.equals(orderNumber),
-        );
-        expect(updated!.orderStatus, equals('placed'));
-      } finally {
-        await session.close();
-      }
-    });
+          // Count may include other seeded orders but not this one
+          final updated = await protocol.CustomerOrderRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderNumber.equals(orderNumber),
+          );
+          expect(updated!.orderStatus, equals('placed'));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('autoCancelPendingPayments skips already-confirmed orders', () async {
       final session = sessionBuilder.build();
@@ -174,81 +180,87 @@ void main() {
     // expireStaleSessions
     // ─────────────────────────────────────────────
 
-    test('expireStaleSessions cancels expired links within age window', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        // Expired 1 hour ago, ageCutoff = 2 days → included
-        final orderNumber = 'es-in-${now.microsecondsSinceEpoch}';
-        await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: orderNumber,
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            paymentLinkUrl: 'https://rzp.io/i/test',
-            paymentLinkExpiresAt: now.subtract(const Duration(hours: 1)),
-            orderedAt: now.subtract(const Duration(hours: 2)),
-          ),
-        );
+    test(
+      'expireStaleSessions cancels expired links within age window',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          // Expired 1 hour ago, ageCutoff = 2 days → included
+          final orderNumber = 'es-in-${now.microsecondsSinceEpoch}';
+          await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: orderNumber,
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              paymentLinkUrl: 'https://rzp.io/i/test',
+              paymentLinkExpiresAt: now.subtract(const Duration(hours: 1)),
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ),
+          );
 
-        await paymentService.expireStaleSessions(session);
+          await paymentService.expireStaleSessions(session);
 
-        final updated = await protocol.CustomerOrderRow.db.findFirstRow(
-          session,
-          where: (t) => t.orderNumber.equals(orderNumber),
-        );
-        expect(updated!.paymentStatus, equals('cancelled'));
-      } finally {
-        await session.close();
-      }
-    });
+          final updated = await protocol.CustomerOrderRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderNumber.equals(orderNumber),
+          );
+          expect(updated!.paymentStatus, equals('cancelled'));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
-    test('expireStaleSessions skips orders with expiredAt older than 2 days', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        // Expired 3 days ago → excluded (paymentLinkExpiresAt < 2 days ago)
-        final orderNumber = 'es-old-${now.microsecondsSinceEpoch}';
-        await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: orderNumber,
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            paymentLinkUrl: 'https://rzp.io/i/old',
-            paymentLinkExpiresAt: now.subtract(const Duration(days: 3)),
-            orderedAt: now.subtract(const Duration(days: 4)),
-          ),
-        );
+    test(
+      'expireStaleSessions skips orders with expiredAt older than 2 days',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          // Expired 3 days ago → excluded (paymentLinkExpiresAt < 2 days ago)
+          final orderNumber = 'es-old-${now.microsecondsSinceEpoch}';
+          await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: orderNumber,
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              paymentLinkUrl: 'https://rzp.io/i/old',
+              paymentLinkExpiresAt: now.subtract(const Duration(days: 3)),
+              orderedAt: now.subtract(const Duration(days: 4)),
+            ),
+          );
 
-        await paymentService.expireStaleSessions(session);
+          await paymentService.expireStaleSessions(session);
 
-        final updated = await protocol.CustomerOrderRow.db.findFirstRow(
-          session,
-          where: (t) => t.orderNumber.equals(orderNumber),
-        );
-        expect(updated!.paymentStatus, equals('pending'));
-      } finally {
-        await session.close();
-      }
-    });
+          final updated = await protocol.CustomerOrderRow.db.findFirstRow(
+            session,
+            where: (t) => t.orderNumber.equals(orderNumber),
+          );
+          expect(updated!.paymentStatus, equals('pending'));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     // ─────────────────────────────────────────────
     // expireExpiredLinks (payment_link table)
@@ -295,46 +307,49 @@ void main() {
       }
     });
 
-    test('expireExpiredLinks skips links with expiresAt older than 2 days', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        final order = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'el-old-${now.microsecondsSinceEpoch}',
-            userId: user.id!,
-            orderStatus: 'payment_pending',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'link',
-            orderedAt: now.subtract(const Duration(days: 4)),
-          ),
-        );
-        // Link that expired 3 days ago → excluded
-        await protocol.PaymentLinkRow.db.insertRow(
-          session,
-          protocol.PaymentLinkRow(
-            orderId: order.id!,
-            token: 'el-old-token-${now.microsecondsSinceEpoch}',
-            expiresAt: now.subtract(const Duration(days: 3)),
-            isUsed: false,
-            linkStatus: 'ACTIVE',
-          ),
-        );
+    test(
+      'expireExpiredLinks skips links with expiresAt older than 2 days',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          final order = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'el-old-${now.microsecondsSinceEpoch}',
+              userId: user.id!,
+              orderStatus: 'payment_pending',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'link',
+              orderedAt: now.subtract(const Duration(days: 4)),
+            ),
+          );
+          // Link that expired 3 days ago → excluded
+          await protocol.PaymentLinkRow.db.insertRow(
+            session,
+            protocol.PaymentLinkRow(
+              orderId: order.id!,
+              token: 'el-old-token-${now.microsecondsSinceEpoch}',
+              expiresAt: now.subtract(const Duration(days: 3)),
+              isUsed: false,
+              linkStatus: 'ACTIVE',
+            ),
+          );
 
-        final count = await paymentLinkService.expireExpiredLinks(session);
+          final count = await paymentLinkService.expireExpiredLinks(session);
 
-        expect(count, equals(0));
-      } finally {
-        await session.close();
-      }
-    });
+          expect(count, equals(0));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('expireExpiredLinks skips used links', () async {
       final session = sessionBuilder.build();
@@ -434,11 +449,14 @@ void main() {
             orderId: txn!.orderId,
             orderNumber: orderId,
             customerId: txn.userId,
-            gatewayPaymentId: 'pay-old-${DateTime.now().microsecondsSinceEpoch}',
+            gatewayPaymentId:
+                'pay-old-${DateTime.now().microsecondsSinceEpoch}',
             paymentTransactionId: txn.id!,
             amount: 100.0,
             jobStatus: 'PENDING',
-            createdAt: DateTime.now().toUtc().subtract(const Duration(days: 20)),
+            createdAt: DateTime.now().toUtc().subtract(
+              const Duration(days: 20),
+            ),
           ),
         );
 
@@ -535,7 +553,10 @@ void main() {
         );
 
         final orphans = await paymentService.detectOrphanPayments(session);
-        expect(orphans.where((o) => o['txnPaymentStatus'] == 'paid').length, equals(0));
+        expect(
+          orphans.where((o) => o['txnPaymentStatus'] == 'paid').length,
+          equals(0),
+        );
       } finally {
         await session.close();
       }
@@ -545,52 +566,57 @@ void main() {
     // reconcileAllPendingPayments — 24h ageCutoff
     // ─────────────────────────────────────────────
 
-    test('reconcileAllPendingPayments runs without error for eligible rows', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        final order = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'rp-${now.microsecondsSinceEpoch}',
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            orderedAt: now.subtract(const Duration(hours: 2)),
-          ),
-        );
-        // payment_transaction with gatewayPaymentId but pending status
-        await protocol.PaymentTransactionRow.db.insertRow(
-          session,
-          protocol.PaymentTransactionRow(
-            orderId: order.id!,
-            userId: user.id!,
-            idempotencyKey: 'rp-txn-${now.microsecondsSinceEpoch}',
-            gatewayName: 'razorpay',
-            gatewayOrderId: 'rzp_test',
-            gatewayPaymentId: 'pay_rp_${now.microsecondsSinceEpoch}',
-            amount: 100.0,
-            paymentStatus: 'pending',
-            createdAt: now.subtract(const Duration(hours: 2)),
-          ),
-        );
+    test(
+      'reconcileAllPendingPayments runs without error for eligible rows',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          final order = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'rp-${now.microsecondsSinceEpoch}',
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ),
+          );
+          // payment_transaction with gatewayPaymentId but pending status
+          await protocol.PaymentTransactionRow.db.insertRow(
+            session,
+            protocol.PaymentTransactionRow(
+              orderId: order.id!,
+              userId: user.id!,
+              idempotencyKey: 'rp-txn-${now.microsecondsSinceEpoch}',
+              gatewayName: 'razorpay',
+              gatewayOrderId: 'rzp_test',
+              gatewayPaymentId: 'pay_rp_${now.microsecondsSinceEpoch}',
+              amount: 100.0,
+              paymentStatus: 'pending',
+              createdAt: now.subtract(const Duration(hours: 2)),
+            ),
+          );
 
-        final result = await paymentService.reconcileAllPendingPayments(session);
+          final result = await paymentService.reconcileAllPendingPayments(
+            session,
+          );
 
-        expect(result, containsPair('recovered', anyOf(0, greaterThan(0))));
-        expect(result, containsPair('failed', anyOf(0, greaterThan(0))));
-        expect(result, containsPair('skipped', anyOf(0, greaterThan(0))));
-      } finally {
-        await session.close();
-      }
-    });
+          expect(result, containsPair('recovered', anyOf(0, greaterThan(0))));
+          expect(result, containsPair('failed', anyOf(0, greaterThan(0))));
+          expect(result, containsPair('skipped', anyOf(0, greaterThan(0))));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('reconcileAllPendingPayments skips rows older than 24 hours', () async {
       final session = sessionBuilder.build();
@@ -629,7 +655,9 @@ void main() {
           ),
         );
 
-        final result = await paymentService.reconcileAllPendingPayments(session);
+        final result = await paymentService.reconcileAllPendingPayments(
+          session,
+        );
 
         // skipped and recovered should both be 0 since the row is excluded by age filter
         expect(result['recovered'], equals(0));
@@ -642,52 +670,57 @@ void main() {
     // reconcilePaymentLinkOrders — 3d ageCutoff
     // ─────────────────────────────────────────────
 
-    test('reconcilePaymentLinkOrders runs without error for eligible rows', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user = await _seedUser(session);
-        final order = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'rpl-${now.microsecondsSinceEpoch}',
-            userId: user.id!,
-            orderStatus: 'payment_pending',
-            paymentStatus: 'pending',
-            linkStatus: 'ACTIVE',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'link',
-            orderedAt: now.subtract(const Duration(minutes: 30)),
-          ),
-        );
-        await protocol.PaymentLinkRow.db.insertRow(
-          session,
-          protocol.PaymentLinkRow(
-            orderId: order.id!,
-            token: 'rpl-token-${now.microsecondsSinceEpoch}',
-            expiresAt: now.add(const Duration(hours: 1)),
-            linkStatus: 'ACTIVE',
-            isUsed: false,
-            razorpayPaymentLinkId: 'rzp_link_test',
-            razorpayPaymentLinkUrl: 'https://rzp.io/i/test',
-            generatedBy: 'test',
-          ),
-        );
+    test(
+      'reconcilePaymentLinkOrders runs without error for eligible rows',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user = await _seedUser(session);
+          final order = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'rpl-${now.microsecondsSinceEpoch}',
+              userId: user.id!,
+              orderStatus: 'payment_pending',
+              paymentStatus: 'pending',
+              linkStatus: 'ACTIVE',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'link',
+              orderedAt: now.subtract(const Duration(minutes: 30)),
+            ),
+          );
+          await protocol.PaymentLinkRow.db.insertRow(
+            session,
+            protocol.PaymentLinkRow(
+              orderId: order.id!,
+              token: 'rpl-token-${now.microsecondsSinceEpoch}',
+              expiresAt: now.add(const Duration(hours: 1)),
+              linkStatus: 'ACTIVE',
+              isUsed: false,
+              razorpayPaymentLinkId: 'rzp_link_test',
+              razorpayPaymentLinkUrl: 'https://rzp.io/i/test',
+              generatedBy: 'test',
+            ),
+          );
 
-        final result = await paymentService.reconcilePaymentLinkOrders(session);
+          final result = await paymentService.reconcilePaymentLinkOrders(
+            session,
+          );
 
-        expect(result, containsPair('recovered', 0));
-        expect(result, containsPair('failed', 0));
-        // At least 1 row was found (will be skipped because Razorpay API not available)
-        expect(result['skipped'], greaterThanOrEqualTo(0));
-      } finally {
-        await session.close();
-      }
-    });
+          expect(result, containsPair('recovered', 0));
+          expect(result, containsPair('failed', 0));
+          // At least 1 row was found (will be skipped because Razorpay API not available)
+          expect(result['skipped'], greaterThanOrEqualTo(0));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('reconcilePaymentLinkOrders skips orders older than 3 days', () async {
       final session = sessionBuilder.build();

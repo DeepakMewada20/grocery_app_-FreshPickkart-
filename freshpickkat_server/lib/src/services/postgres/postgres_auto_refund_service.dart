@@ -16,7 +16,10 @@ class PostgresAutoRefundService {
     required AutoRefundJobRow job,
   }) async {
     // Dedup: check if a job already exists for this gatewayPaymentId
-    final existing = await getJobByGatewayPaymentId(session, job.gatewayPaymentId);
+    final existing = await getJobByGatewayPaymentId(
+      session,
+      job.gatewayPaymentId,
+    );
     if (existing != null) {
       return existing;
     }

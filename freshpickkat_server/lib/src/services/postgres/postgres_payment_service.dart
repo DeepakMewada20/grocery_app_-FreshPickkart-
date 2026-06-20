@@ -224,7 +224,10 @@ class PostgresPaymentService {
 
         // 2. Re-read both rows under lock
         final freshOrder = await CustomerOrderRow.db.findById(
-          session, resolvedOrderRow.id!, transaction: transaction);
+          session,
+          resolvedOrderRow.id!,
+          transaction: transaction,
+        );
         final freshPayment = await PaymentTransactionRow.db.findFirstRow(
           session,
           where: (t) => t.orderId.equals(resolvedOrderRow.id!),
@@ -232,7 +235,10 @@ class PostgresPaymentService {
         );
         if (freshOrder == null || freshPayment == null) {
           result = PaymentVerifyResult(
-            success: false, verified: false, message: 'Order or payment not found');
+            success: false,
+            verified: false,
+            message: 'Order or payment not found',
+          );
           return;
         }
 
@@ -242,12 +248,18 @@ class PostgresPaymentService {
             freshOrder.orderStatus == 'payment_expired') {
           if (razorpayPaymentId.isNotEmpty) {
             await _createAutoRefundJob(
-              session, freshOrder, freshPayment,
-              razorpayPaymentId, razorpayOrderId);
+              session,
+              freshOrder,
+              freshPayment,
+              razorpayPaymentId,
+              razorpayOrderId,
+            );
           }
           result = PaymentVerifyResult(
-            success: false, verified: false,
-            message: 'Order no longer accepts payments.');
+            success: false,
+            verified: false,
+            message: 'Order no longer accepts payments.',
+          );
           return;
         }
 
@@ -258,12 +270,18 @@ class PostgresPaymentService {
               freshPayment.gatewayPaymentId!.isNotEmpty &&
               freshPayment.gatewayPaymentId != razorpayPaymentId) {
             await _createAutoRefundJob(
-              session, freshOrder, freshPayment,
-              razorpayPaymentId, razorpayOrderId);
+              session,
+              freshOrder,
+              freshPayment,
+              razorpayPaymentId,
+              razorpayOrderId,
+            );
           }
           result = PaymentVerifyResult(
-            success: true, verified: true,
-            message: 'Payment already verified');
+            success: true,
+            verified: true,
+            message: 'Payment already verified',
+          );
           return;
         }
 
@@ -273,8 +291,10 @@ class PostgresPaymentService {
             freshOrder.paymentStatus == 'paid' ||
             freshPayment.paymentStatus == 'paid') {
           result = PaymentVerifyResult(
-            success: false, verified: false,
-            message: 'Order is closed or already paid');
+            success: false,
+            verified: false,
+            message: 'Order is closed or already paid',
+          );
           return;
         }
 
@@ -292,14 +312,15 @@ class PostgresPaymentService {
           transaction: transaction,
         );
 
-        final paymentSnapshotJson = SnapshotBuilder.instance.buildPaymentSnapshot(
-          gatewayName: 'razorpay',
-          gatewayOrderId: razorpayOrderId,
-          gatewayPaymentId: razorpayPaymentId,
-          paymentStatus: 'paid',
-          amount: freshOrder.finalAmount,
-          paidAt: now,
-        );
+        final paymentSnapshotJson = SnapshotBuilder.instance
+            .buildPaymentSnapshot(
+              gatewayName: 'razorpay',
+              gatewayOrderId: razorpayOrderId,
+              gatewayPaymentId: razorpayPaymentId,
+              paymentStatus: 'paid',
+              amount: freshOrder.finalAmount,
+              paidAt: now,
+            );
 
         await CustomerOrderRow.db.updateRow(
           session,
@@ -341,7 +362,6 @@ class PostgresPaymentService {
         }
         return result!;
       }
-
 
       await _processPaidOrderAnalytics(
         session,
@@ -406,7 +426,8 @@ class PostgresPaymentService {
       return {
         'success': false,
         'verified': false,
-        'message': verifyResult.message ?? verifyResult.error ?? 'Verification failed',
+        'message':
+            verifyResult.message ?? verifyResult.error ?? 'Verification failed',
       };
     }
 
@@ -519,7 +540,10 @@ class PostgresPaymentService {
 
         // 2. Re-read both rows under lock
         final freshOrder = await CustomerOrderRow.db.findById(
-          session, resolvedOrderRow.id!, transaction: transaction);
+          session,
+          resolvedOrderRow.id!,
+          transaction: transaction,
+        );
         final freshPayment = await PaymentTransactionRow.db.findFirstRow(
           session,
           where: (t) => t.orderId.equals(resolvedOrderRow.id!),
@@ -527,7 +551,10 @@ class PostgresPaymentService {
         );
         if (freshOrder == null || freshPayment == null) {
           result = PaymentVerifyResult(
-            success: false, verified: false, message: 'Order or payment not found');
+            success: false,
+            verified: false,
+            message: 'Order or payment not found',
+          );
           return;
         }
 
@@ -537,12 +564,18 @@ class PostgresPaymentService {
             freshOrder.orderStatus == 'payment_expired') {
           if (razorpayPaymentId.isNotEmpty) {
             await _createAutoRefundJob(
-              session, freshOrder, freshPayment,
-              razorpayPaymentId, razorpayOrderId);
+              session,
+              freshOrder,
+              freshPayment,
+              razorpayPaymentId,
+              razorpayOrderId,
+            );
           }
           result = PaymentVerifyResult(
-            success: false, verified: false,
-            message: 'Order no longer accepts payments.');
+            success: false,
+            verified: false,
+            message: 'Order no longer accepts payments.',
+          );
           return;
         }
 
@@ -554,12 +587,18 @@ class PostgresPaymentService {
               freshPayment.gatewayPaymentId!.isNotEmpty &&
               freshPayment.gatewayPaymentId != razorpayPaymentId) {
             await _createAutoRefundJob(
-              session, freshOrder, freshPayment,
-              razorpayPaymentId, razorpayOrderId);
+              session,
+              freshOrder,
+              freshPayment,
+              razorpayPaymentId,
+              razorpayOrderId,
+            );
           }
           result = PaymentVerifyResult(
-            success: true, verified: true,
-            message: 'Payment already verified');
+            success: true,
+            verified: true,
+            message: 'Payment already verified',
+          );
           return;
         }
 
@@ -569,8 +608,10 @@ class PostgresPaymentService {
             freshOrder.paymentStatus == 'paid' ||
             freshPayment.paymentStatus == 'paid') {
           result = PaymentVerifyResult(
-            success: false, verified: false,
-            message: 'Order is closed or already paid');
+            success: false,
+            verified: false,
+            message: 'Order is closed or already paid',
+          );
           return;
         }
 
@@ -592,18 +633,19 @@ class PostgresPaymentService {
           transaction: transaction,
         );
 
-        final paymentSnapshotJson = SnapshotBuilder.instance.buildPaymentSnapshot(
-          gatewayName: 'razorpay',
-          gatewayOrderId: razorpayOrderId.isNotEmpty
-              ? razorpayOrderId
-              : freshPayment.gatewayOrderId,
-          gatewayPaymentId: razorpayPaymentId.isNotEmpty
-              ? razorpayPaymentId
-              : freshPayment.gatewayPaymentId,
-          paymentStatus: 'paid',
-          amount: freshOrder.finalAmount,
-          paidAt: now,
-        );
+        final paymentSnapshotJson = SnapshotBuilder.instance
+            .buildPaymentSnapshot(
+              gatewayName: 'razorpay',
+              gatewayOrderId: razorpayOrderId.isNotEmpty
+                  ? razorpayOrderId
+                  : freshPayment.gatewayOrderId,
+              gatewayPaymentId: razorpayPaymentId.isNotEmpty
+                  ? razorpayPaymentId
+                  : freshPayment.gatewayPaymentId,
+              paymentStatus: 'paid',
+              amount: freshOrder.finalAmount,
+              paidAt: now,
+            );
 
         await CustomerOrderRow.db.updateRow(
           session,
@@ -990,7 +1032,8 @@ class PostgresPaymentService {
       final rows = await PaymentTransactionRow.db.find(
         session,
         where: (t) =>
-            ((t.paymentStatus.equals('pending') | t.paymentStatus.equals('verifying')) &
+            ((t.paymentStatus.equals('pending') |
+                    t.paymentStatus.equals('verifying')) &
                 (t.createdAt >= ageCutoff)) |
             (t.paymentStatus.equals('failed') &
                 t.gatewayPaymentId.notEquals(null) &
@@ -1100,20 +1143,24 @@ class PostgresPaymentService {
 
     List<RefundRecord>? refundRecords;
     if (refundRows.isNotEmpty) {
-      refundRecords = refundRows.map((r) => RefundRecord(
-        refundId: r.id?.toString() ?? '',
-        orderId: r.orderId.toString(),
-        paymentId: r.paymentTransactionId.toString(),
-        userId: r.userId.toString(),
-        amount: r.amount,
-        status: r.refundStatus,
-        gatewayRefundId: r.gatewayRefundId,
-        source: r.source,
-        reason: r.reason,
-        complaintId: r.complaintId?.toString(),
-        createdAt: r.createdAt,
-        updatedAt: r.updatedAt,
-      )).toList();
+      refundRecords = refundRows
+          .map(
+            (r) => RefundRecord(
+              refundId: r.id?.toString() ?? '',
+              orderId: r.orderId.toString(),
+              paymentId: r.paymentTransactionId.toString(),
+              userId: r.userId.toString(),
+              amount: r.amount,
+              status: r.refundStatus,
+              gatewayRefundId: r.gatewayRefundId,
+              source: r.source,
+              reason: r.reason,
+              complaintId: r.complaintId?.toString(),
+              createdAt: r.createdAt,
+              updatedAt: r.updatedAt,
+            ),
+          )
+          .toList();
     }
 
     RazorpayPaymentStatus? razorpayLiveStatus;
@@ -1321,47 +1368,49 @@ class PostgresPaymentService {
         where: (t) => t.orderId.equals(row.id!),
       );
       final userRow = await _resolveUser(session, row.userId.toString());
-      orders.add(Order(
-        orderId: row.orderNumber,
-        userId: row.userId.toString(),
-        userName: userRow?.name,
-        userPhone: userRow?.phoneNumber ?? '',
-        items: const [],
-        itemCount: row.itemCount,
-        totalAmount: row.totalAmount,
-        discountAmount: row.discountAmount,
-        mrpTotal: row.mrpTotal,
-        productDiscountAmount: row.productDiscountAmount,
-        comboDiscountAmount: row.comboDiscountAmount,
-        bogoDiscountAmount: row.bogoDiscountAmount,
-        deliveryFee: row.deliveryFee,
-        originalDeliveryFee: row.originalDeliveryFee,
-        deliveryDiscountAmount: row.deliveryDiscountAmount,
-        freeDeliveryApplied: row.freeDeliveryApplied,
-        finalAmount: row.finalAmount,
-        status: row.orderStatus,
-        paymentStatus: row.paymentStatus,
-        refundStatus: row.refundStatus,
-        razorpayOrderId: cleanNullableString(paymentRow?.gatewayOrderId),
-        razorpayPaymentId: cleanNullableString(paymentRow?.gatewayPaymentId),
-        deliveryAddress: Address(
-          street: addressRow?.streetLine1 ?? '',
-          city: addressRow?.city ?? '',
-          state: addressRow?.state ?? '',
-          zipCode: addressRow?.postalCode ?? '',
-          country: addressRow?.country ?? '',
-          latitude: addressRow?.latitude,
-          longitude: addressRow?.longitude,
+      orders.add(
+        Order(
+          orderId: row.orderNumber,
+          userId: row.userId.toString(),
+          userName: userRow?.name,
+          userPhone: userRow?.phoneNumber ?? '',
+          items: const [],
+          itemCount: row.itemCount,
+          totalAmount: row.totalAmount,
+          discountAmount: row.discountAmount,
+          mrpTotal: row.mrpTotal,
+          productDiscountAmount: row.productDiscountAmount,
+          comboDiscountAmount: row.comboDiscountAmount,
+          bogoDiscountAmount: row.bogoDiscountAmount,
+          deliveryFee: row.deliveryFee,
+          originalDeliveryFee: row.originalDeliveryFee,
+          deliveryDiscountAmount: row.deliveryDiscountAmount,
+          freeDeliveryApplied: row.freeDeliveryApplied,
+          finalAmount: row.finalAmount,
+          status: row.orderStatus,
+          paymentStatus: row.paymentStatus,
+          refundStatus: row.refundStatus,
+          razorpayOrderId: cleanNullableString(paymentRow?.gatewayOrderId),
+          razorpayPaymentId: cleanNullableString(paymentRow?.gatewayPaymentId),
+          deliveryAddress: Address(
+            street: addressRow?.streetLine1 ?? '',
+            city: addressRow?.city ?? '',
+            state: addressRow?.state ?? '',
+            zipCode: addressRow?.postalCode ?? '',
+            country: addressRow?.country ?? '',
+            latitude: addressRow?.latitude,
+            longitude: addressRow?.longitude,
+          ),
+          orderedAt: row.orderedAt,
+          confirmedAt: row.confirmedAt,
+          outForDeliveryAt: row.outForDeliveryAt,
+          deliveredAt: row.deliveredAt,
+          cancelledAt: row.cancelledAt,
+          orderType: row.orderType,
+          sourceOrderNumber: row.sourceOrderNumber,
+          complaintId: row.complaintId,
         ),
-        orderedAt: row.orderedAt,
-        confirmedAt: row.confirmedAt,
-        outForDeliveryAt: row.outForDeliveryAt,
-        deliveredAt: row.deliveredAt,
-        cancelledAt: row.cancelledAt,
-        orderType: row.orderType,
-        sourceOrderNumber: row.sourceOrderNumber,
-        complaintId: row.complaintId,
-      ));
+      );
     }
 
     return OrderPage(
@@ -1460,7 +1509,11 @@ class PostgresPaymentService {
       transaction: transaction,
     );
 
-    await _deductStockForOrderItems(session, order.id!, transaction: transaction);
+    await _deductStockForOrderItems(
+      session,
+      order.id!,
+      transaction: transaction,
+    );
 
     if (order.couponId != null) {
       final couponRow = await CouponRow.db.findById(
@@ -1594,7 +1647,9 @@ class PostgresPaymentService {
         customerId: order.userId,
         gatewayPaymentId: incomingPaymentId,
         paymentTransactionId: payment.id!,
-        gatewayOrderId: incomingOrderId.isNotEmpty ? incomingOrderId : payment.gatewayOrderId,
+        gatewayOrderId: incomingOrderId.isNotEmpty
+            ? incomingOrderId
+            : payment.gatewayOrderId,
         amount: order.finalAmount,
         currency: 'INR',
       );
@@ -1672,10 +1727,13 @@ class PostgresPaymentService {
 
   /// Detect orphan payments: payment_transaction rows marked 'paid' but
   /// the corresponding customer_order is not 'paid'.
-  Future<List<Map<String, dynamic>>> detectOrphanPayments(Session session) async {
+  Future<List<Map<String, dynamic>>> detectOrphanPayments(
+    Session session,
+  ) async {
     final now = DateTime.now().toUtc();
     final ageCutoff = now.subtract(const Duration(days: 7));
-    final orphans = await session.db.unsafeQuery('''
+    final orphans = await session.db.unsafeQuery(
+      '''
       SELECT pt.id AS txnId,
              pt."gatewayPaymentId",
              pt."gatewayOrderId",
@@ -1690,9 +1748,11 @@ class PostgresPaymentService {
         AND pt."createdAt" >= @ageCutoff
       ORDER BY pt."createdAt" DESC
       LIMIT 50
-    ''', parameters: QueryParameters.named({
-      'ageCutoff': ageCutoff.toIso8601String(),
-    }));
+    ''',
+      parameters: QueryParameters.named({
+        'ageCutoff': ageCutoff.toIso8601String(),
+      }),
+    );
 
     return orphans.map((row) {
       final map = row.toColumnMap();
@@ -1747,7 +1807,10 @@ class PostgresPaymentService {
           final map = row.toColumnMap();
           final linkId = map['razorpayPaymentLinkId'] as String?;
           final orderNumber = map['orderNumber'] as String?;
-          if (linkId == null || linkId.isEmpty || orderNumber == null || orderNumber.isEmpty) {
+          if (linkId == null ||
+              linkId.isEmpty ||
+              orderNumber == null ||
+              orderNumber.isEmpty) {
             skipped++;
             continue;
           }

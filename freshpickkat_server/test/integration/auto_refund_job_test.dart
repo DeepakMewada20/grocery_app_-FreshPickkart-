@@ -22,7 +22,8 @@ void main() {
           session,
           orderNumber: orderId,
           razorpayOrderId: 'rzp_dup1_${DateTime.now().microsecondsSinceEpoch}',
-          razorpayPaymentId: 'pay_dup1_${DateTime.now().microsecondsSinceEpoch}',
+          razorpayPaymentId:
+              'pay_dup1_${DateTime.now().microsecondsSinceEpoch}',
         );
 
         final jobs = await protocol.AutoRefundJobRow.db.find(
@@ -39,7 +40,8 @@ void main() {
       final orderId = await _seedCompletedOrder(sessionBuilder);
       final session = sessionBuilder.build();
       try {
-        final gwPaymentId = 'pay_dedup_${DateTime.now().microsecondsSinceEpoch}';
+        final gwPaymentId =
+            'pay_dedup_${DateTime.now().microsecondsSinceEpoch}';
         await paymentService.completePaymentVerification(
           session,
           orderNumber: orderId,
@@ -49,7 +51,8 @@ void main() {
         await paymentService.completePaymentVerification(
           session,
           orderNumber: orderId,
-          razorpayOrderId: 'rzp_dedup2_${DateTime.now().microsecondsSinceEpoch}',
+          razorpayOrderId:
+              'rzp_dedup2_${DateTime.now().microsecondsSinceEpoch}',
           razorpayPaymentId: gwPaymentId,
         );
 
@@ -77,7 +80,8 @@ void main() {
         );
         final paymentTxn = paymentTxns.first;
 
-        final gwPaymentId = 'pay_dedup_job_${DateTime.now().microsecondsSinceEpoch}';
+        final gwPaymentId =
+            'pay_dedup_job_${DateTime.now().microsecondsSinceEpoch}';
         final jobRow = protocol.AutoRefundJobRow(
           orderId: paymentTxn.orderId,
           orderNumber: orderId,
@@ -96,7 +100,10 @@ void main() {
           session,
           where: (t) => t.orderNumber.equals(orderId),
         );
-        expect(jobs.where((j) => j.gatewayPaymentId == gwPaymentId).length, lessThanOrEqualTo(1));
+        expect(
+          jobs.where((j) => j.gatewayPaymentId == gwPaymentId).length,
+          lessThanOrEqualTo(1),
+        );
       } finally {
         await session.close();
       }
@@ -122,7 +129,8 @@ void main() {
             orderId: paymentTxn.orderId,
             orderNumber: orderId,
             customerId: paymentTxn.userId,
-            gatewayPaymentId: 'pay_update_${DateTime.now().microsecondsSinceEpoch}',
+            gatewayPaymentId:
+                'pay_update_${DateTime.now().microsecondsSinceEpoch}',
             paymentTransactionId: paymentTxn.id!,
             amount: 100.0,
             jobStatus: 'PENDING',
@@ -138,7 +146,10 @@ void main() {
           processedAt: DateTime.now().toUtc(),
         );
 
-        final updated = await protocol.AutoRefundJobRow.db.findById(session, job.id!);
+        final updated = await protocol.AutoRefundJobRow.db.findById(
+          session,
+          job.id!,
+        );
         expect(updated, isNotNull);
         expect(updated!.jobStatus, equals('COMPLETED'));
       } finally {
@@ -166,7 +177,8 @@ void main() {
             orderId: paymentTxn.orderId,
             orderNumber: orderId,
             customerId: paymentTxn.userId,
-            gatewayPaymentId: 'pay_cron_${DateTime.now().microsecondsSinceEpoch}',
+            gatewayPaymentId:
+                'pay_cron_${DateTime.now().microsecondsSinceEpoch}',
             paymentTransactionId: paymentTxn.id!,
             amount: 100.0,
             jobStatus: 'PENDING',

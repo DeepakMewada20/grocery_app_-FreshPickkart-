@@ -138,10 +138,12 @@ class RazorpayWebhookRoute extends Route {
                WHERE "orderId" = @orderId AND "paymentStatus" = 'paid'
                LIMIT 1''',
             parameters: QueryParameters.named({
-              'orderId': (await CustomerOrderRow.db.findFirstRow(
-                session,
-                where: (t) => t.orderNumber.equals(order.orderId),
-              ))?.id?.toJson() ?? '',
+              'orderId':
+                  (await CustomerOrderRow.db.findFirstRow(
+                    session,
+                    where: (t) => t.orderNumber.equals(order.orderId),
+                  ))?.id?.toJson() ??
+                  '',
             }),
           );
           if (existingTxns.isNotEmpty) {
@@ -157,10 +159,11 @@ class RazorpayWebhookRoute extends Route {
                   where: (t) => t.orderNumber.equals(order.orderId),
                 );
                 if (orderRow?.id != null) {
-                  final paymentRow = await PaymentTransactionRow.db.findFirstRow(
-                    session,
-                    where: (t) => t.orderId.equals(orderRow!.id!),
-                  );
+                  final paymentRow = await PaymentTransactionRow.db
+                      .findFirstRow(
+                        session,
+                        where: (t) => t.orderId.equals(orderRow!.id!),
+                      );
                   if (paymentRow != null) {
                     await _createAutoRefundJob(
                       session,
@@ -194,24 +197,31 @@ class RazorpayWebhookRoute extends Route {
       );
       if (freshOrderRow != null &&
           (freshOrderRow.orderStatus == 'cancelled' ||
-           freshOrderRow.orderStatus == 'payment_expired')) {
+              freshOrderRow.orderStatus == 'payment_expired')) {
         if (paymentId != null && paymentId.isNotEmpty) {
           final paymentRow = await PaymentTransactionRow.db.findFirstRow(
             session,
             where: (t) => t.orderId.equals(freshOrderRow.id!),
           );
-            if (paymentRow != null) {
-              await _createAutoRefundJob(
-                session, freshOrderRow, paymentRow,
-                paymentId, razorpayOrderId ?? '');
-            }
+          if (paymentRow != null) {
+            await _createAutoRefundJob(
+              session,
+              freshOrderRow,
+              paymentRow,
+              paymentId,
+              razorpayOrderId ?? '',
+            );
           }
-          session.log(
-            'PAYMENT_RECEIVED_FOR_CLOSED_ORDER: order=$orderNumber, payment=$paymentId',
-            level: LogLevel.warning,
-          );
-          return _jsonOk({'success': true, 'message': 'Order closed, auto-refund created'});
         }
+        session.log(
+          'PAYMENT_RECEIVED_FOR_CLOSED_ORDER: order=$orderNumber, payment=$paymentId',
+          level: LogLevel.warning,
+        );
+        return _jsonOk({
+          'success': true,
+          'message': 'Order closed, auto-refund created',
+        });
+      }
 
       if (paymentId != null && paymentId.isNotEmpty) {
         session.log(
@@ -239,7 +249,8 @@ class RazorpayWebhookRoute extends Route {
         // Mark payment link as used (for shareable link orders)
         try {
           final paymentEntity =
-              payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
+              payload['payload']?['payment']?['entity']
+                  as Map<String, dynamic>?;
           final notes = paymentEntity?['notes'] as Map<String, dynamic>?;
           final paidByName = notes?['paidByName']?.toString();
           final paidByPhone = notes?['paidByPhone']?.toString();
@@ -265,7 +276,9 @@ class RazorpayWebhookRoute extends Route {
                 );
 
                 // Also store payer info on the order
-                if (paidByName != null || paidByPhone != null || paidByEmail != null) {
+                if (paidByName != null ||
+                    paidByPhone != null ||
+                    paidByEmail != null) {
                   await CustomerOrderRow.db.updateRow(
                     session,
                     orderRow.copyWith(
@@ -517,12 +530,16 @@ class RazorpayWebhookRoute extends Route {
   ) async {
     try {
       final paymentLinkEntity =
-          payload['payload']?['payment_link']?['entity'] as Map<String, dynamic>?;
+          payload['payload']?['payment_link']?['entity']
+              as Map<String, dynamic>?;
       final paymentEntity =
           payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
 
       if (paymentLinkEntity == null) {
-        session.log('payment_link.paid: missing payment_link entity', level: LogLevel.warning);
+        session.log(
+          'payment_link.paid: missing payment_link entity',
+          level: LogLevel.warning,
+        );
         return;
       }
 
@@ -588,7 +605,8 @@ class RazorpayWebhookRoute extends Route {
           parameters: QueryParameters.named({'token': token}),
         );
         if (linkRows.isNotEmpty) {
-          final storedLinkId = linkRows.first.toColumnMap()['razorpayPaymentLinkId'] as String?;
+          final storedLinkId =
+              linkRows.first.toColumnMap()['razorpayPaymentLinkId'] as String?;
           if (storedLinkId != null && storedLinkId != razorpayPaymentLinkId) {
             session.log(
               'payment_link.paid: link ID mismatch for $orderNumber (stored: $storedLinkId, webhook: $razorpayPaymentLinkId)',
@@ -654,7 +672,8 @@ class RazorpayWebhookRoute extends Route {
       }
 
       // Fresh state check for closed orders
-      if (orderRow.orderStatus == 'cancelled' || orderRow.orderStatus == 'payment_expired') {
+      if (orderRow.orderStatus == 'cancelled' ||
+          orderRow.orderStatus == 'payment_expired') {
         if (paymentId != null && paymentId.isNotEmpty) {
           final paymentRow = await PaymentTransactionRow.db.findFirstRow(
             session,
@@ -662,8 +681,12 @@ class RazorpayWebhookRoute extends Route {
           );
           if (paymentRow != null) {
             await _createAutoRefundJob(
-              session, orderRow, paymentRow,
-              paymentId, razorpayOrderId ?? '');
+              session,
+              orderRow,
+              paymentRow,
+              paymentId,
+              razorpayOrderId ?? '',
+            );
           }
         }
         session.log(
@@ -692,7 +715,8 @@ class RazorpayWebhookRoute extends Route {
         // Mark payment link as used
         if (token != null && token.isNotEmpty) {
           final now = DateTime.now().toUtc();
-          final customer = paymentLinkEntity['customer'] as Map<String, dynamic>?;
+          final customer =
+              paymentLinkEntity['customer'] as Map<String, dynamic>?;
           await session.db.unsafeQuery(
             '''
             UPDATE "payment_link"
@@ -732,7 +756,10 @@ class RazorpayWebhookRoute extends Route {
 
         // Send FCM push notification to the user
         try {
-          final userRow = await AppUserRow.db.findById(session, orderRow.userId);
+          final userRow = await AppUserRow.db.findById(
+            session,
+            orderRow.userId,
+          );
           await NotificationService.notifyPaymentLinkPaid(
             session: session,
             userId: orderRow.userId.toString(),
@@ -767,7 +794,9 @@ class RazorpayWebhookRoute extends Route {
         customerId: order.userId,
         gatewayPaymentId: incomingPaymentId,
         paymentTransactionId: payment.id!,
-        gatewayOrderId: incomingOrderId.isNotEmpty ? incomingOrderId : payment.gatewayOrderId,
+        gatewayOrderId: incomingOrderId.isNotEmpty
+            ? incomingOrderId
+            : payment.gatewayOrderId,
         amount: order.finalAmount,
         currency: 'INR',
       );
@@ -795,7 +824,8 @@ class RazorpayWebhookRoute extends Route {
   ) async {
     try {
       final paymentLinkEntity =
-          payload['payload']?['payment_link']?['entity'] as Map<String, dynamic>?;
+          payload['payload']?['payment_link']?['entity']
+              as Map<String, dynamic>?;
       if (paymentLinkEntity == null) return;
 
       final notes = paymentLinkEntity['notes'] as Map<String, dynamic>?;

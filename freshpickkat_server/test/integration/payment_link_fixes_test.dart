@@ -17,160 +17,166 @@ void main() {
       paymentService = PostgresPaymentService();
     });
 
-    test('cancelPendingOrder removes order from findActivePendingOrder', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final firebaseUid = 'test_fb_${now.microsecondsSinceEpoch}';
-        final user = await protocol.AppUserRow.db.insertRow(
-          session,
-          protocol.AppUserRow(
-            phoneNumber: '9999999101',
-            name: 'PLF Test User 1',
-            role: 'customer',
-            status: 'active',
-            firebaseUid: firebaseUid,
-          ),
-        );
+    test(
+      'cancelPendingOrder removes order from findActivePendingOrder',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final firebaseUid = 'test_fb_${now.microsecondsSinceEpoch}';
+          final user = await protocol.AppUserRow.db.insertRow(
+            session,
+            protocol.AppUserRow(
+              phoneNumber: '9999999101',
+              name: 'PLF Test User 1',
+              role: 'customer',
+              status: 'active',
+              firebaseUid: firebaseUid,
+            ),
+          );
 
-        final order = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'plf-${now.microsecondsSinceEpoch}',
-            userId: user.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            discountAmount: 0.0,
-            deliveryFee: 0.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            orderedAt: now,
-          ),
-        );
+          final order = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'plf-${now.microsecondsSinceEpoch}',
+              userId: user.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now,
+            ),
+          );
 
-        var active = await orderService.findActivePendingOrder(
-          session,
-          firebaseUid,
-        );
-        expect(active, isNotNull);
-        expect(active!.orderNumber, equals(order.orderNumber));
+          var active = await orderService.findActivePendingOrder(
+            session,
+            firebaseUid,
+          );
+          expect(active, isNotNull);
+          expect(active!.orderNumber, equals(order.orderNumber));
 
-        await orderService.cancelPendingOrder(
-          session,
-          order.orderNumber,
-          firebaseUid,
-          reason: 'Test cancel',
-        );
+          await orderService.cancelPendingOrder(
+            session,
+            order.orderNumber,
+            firebaseUid,
+            reason: 'Test cancel',
+          );
 
-        active = await orderService.findActivePendingOrder(
-          session,
-          firebaseUid,
-        );
-        expect(active, isNull);
-      } finally {
-        await session.close();
-      }
-    });
+          active = await orderService.findActivePendingOrder(
+            session,
+            firebaseUid,
+          );
+          expect(active, isNull);
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
-    test('multiple payment transactions with null gatewayOrderId is allowed', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final user1 = await protocol.AppUserRow.db.insertRow(
-          session,
-          protocol.AppUserRow(
-            phoneNumber: '9999999102',
-            name: 'PLF Test User 2',
-            role: 'customer',
-            status: 'active',
-          ),
-        );
+    test(
+      'multiple payment transactions with null gatewayOrderId is allowed',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final user1 = await protocol.AppUserRow.db.insertRow(
+            session,
+            protocol.AppUserRow(
+              phoneNumber: '9999999102',
+              name: 'PLF Test User 2',
+              role: 'customer',
+              status: 'active',
+            ),
+          );
 
-        final order1 = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'plf-null-${now.microsecondsSinceEpoch}',
-            userId: user1.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            discountAmount: 0.0,
-            deliveryFee: 0.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            orderedAt: now,
-          ),
-        );
+          final order1 = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'plf-null-${now.microsecondsSinceEpoch}',
+              userId: user1.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now,
+            ),
+          );
 
-        await protocol.PaymentTransactionRow.db.insertRow(
-          session,
-          protocol.PaymentTransactionRow(
-            orderId: order1.id!,
-            userId: user1.id!,
-            idempotencyKey: 'null-gw-1-${now.microsecondsSinceEpoch}',
-            gatewayName: 'razorpay',
-            gatewayOrderId: null,
-            amount: 100.0,
-            paymentStatus: 'pending',
-          ),
-        );
+          await protocol.PaymentTransactionRow.db.insertRow(
+            session,
+            protocol.PaymentTransactionRow(
+              orderId: order1.id!,
+              userId: user1.id!,
+              idempotencyKey: 'null-gw-1-${now.microsecondsSinceEpoch}',
+              gatewayName: 'razorpay',
+              gatewayOrderId: null,
+              amount: 100.0,
+              paymentStatus: 'pending',
+            ),
+          );
 
-        final user2 = await protocol.AppUserRow.db.insertRow(
-          session,
-          protocol.AppUserRow(
-            phoneNumber: '9999999103',
-            name: 'PLF Test User 3',
-            role: 'customer',
-            status: 'active',
-          ),
-        );
+          final user2 = await protocol.AppUserRow.db.insertRow(
+            session,
+            protocol.AppUserRow(
+              phoneNumber: '9999999103',
+              name: 'PLF Test User 3',
+              role: 'customer',
+              status: 'active',
+            ),
+          );
 
-        final order2 = await protocol.CustomerOrderRow.db.insertRow(
-          session,
-          protocol.CustomerOrderRow(
-            orderNumber: 'plf-null-2-${now.microsecondsSinceEpoch}',
-            userId: user2.id!,
-            orderStatus: 'placed',
-            paymentStatus: 'pending',
-            refundStatus: 'none',
-            itemCount: 1,
-            totalAmount: 100.0,
-            discountAmount: 0.0,
-            deliveryFee: 0.0,
-            finalAmount: 100.0,
-            orderType: 'regular',
-            paymentMode: 'standard',
-            orderedAt: now,
-          ),
-        );
+          final order2 = await protocol.CustomerOrderRow.db.insertRow(
+            session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'plf-null-2-${now.microsecondsSinceEpoch}',
+              userId: user2.id!,
+              orderStatus: 'placed',
+              paymentStatus: 'pending',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 100.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 100.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now,
+            ),
+          );
 
-        await protocol.PaymentTransactionRow.db.insertRow(
-          session,
-          protocol.PaymentTransactionRow(
-            orderId: order2.id!,
-            userId: user2.id!,
-            idempotencyKey: 'null-gw-2-${now.microsecondsSinceEpoch}',
-            gatewayName: 'razorpay',
-            gatewayOrderId: null,
-            amount: 100.0,
-            paymentStatus: 'pending',
-          ),
-        );
+          await protocol.PaymentTransactionRow.db.insertRow(
+            session,
+            protocol.PaymentTransactionRow(
+              orderId: order2.id!,
+              userId: user2.id!,
+              idempotencyKey: 'null-gw-2-${now.microsecondsSinceEpoch}',
+              gatewayName: 'razorpay',
+              gatewayOrderId: null,
+              amount: 100.0,
+              paymentStatus: 'pending',
+            ),
+          );
 
-        final all = await protocol.PaymentTransactionRow.db.find(session);
-        final nullGw = all.where((t) => t.gatewayOrderId == null);
-        expect(nullGw.length, greaterThanOrEqualTo(2));
-      } finally {
-        await session.close();
-      }
-    });
+          final all = await protocol.PaymentTransactionRow.db.find(session);
+          final nullGw = all.where((t) => t.gatewayOrderId == null);
+          expect(nullGw.length, greaterThanOrEqualTo(2));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('disablePaymentLink sets linkStatus to DISABLED', () async {
       final session = sessionBuilder.build();
@@ -209,7 +215,10 @@ void main() {
 
         await paymentLinkService.disablePaymentLink(session, order.orderNumber);
 
-        final updated = await protocol.CustomerOrderRow.db.findById(session, order.id!);
+        final updated = await protocol.CustomerOrderRow.db.findById(
+          session,
+          order.id!,
+        );
         expect(updated, isNotNull);
         expect(updated!.linkStatus, equals('DISABLED'));
       } finally {

@@ -49,7 +49,8 @@ class PostgresPaymentLinkService {
       // Check if a valid active link already exists (one active link per order)
       final existing = await _getExistingLink(session, orderRow.id!);
       if (existing != null) {
-        final isExpired = existing['expiresAt'] != null &&
+        final isExpired =
+            existing['expiresAt'] != null &&
             DateTime.now().toUtc().isAfter(
               DateTime.parse(existing['expiresAt'] as String).toUtc(),
             );
@@ -67,8 +68,7 @@ class PostgresPaymentLinkService {
       }
 
       final now = DateTime.now().toUtc();
-      final expiresAt =
-          now.add(expiryDuration ?? defaultExpiry);
+      final expiresAt = now.add(expiryDuration ?? defaultExpiry);
       final token = generateSecureToken();
       final baseUrl = await _getBaseUrl(session);
       final paymentLink = '$baseUrl/pay/$token';
@@ -150,7 +150,8 @@ class PostgresPaymentLinkService {
       // Check if a valid active link already exists (one active link per order)
       final existing = await _getExistingLink(session, orderRow.id!);
       if (existing != null) {
-        final isExpired = existing['expiresAt'] != null &&
+        final isExpired =
+            existing['expiresAt'] != null &&
             DateTime.now().toUtc().isAfter(
               DateTime.parse(existing['expiresAt'] as String).toUtc(),
             );
@@ -295,7 +296,10 @@ class PostgresPaymentLinkService {
       );
 
       if (linkRows.isEmpty) {
-        return {'valid': false, 'errorMessage': 'This payment link is no longer valid.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This payment link is no longer valid.',
+        };
       }
 
       final linkMap = linkRows.first.toColumnMap();
@@ -305,35 +309,56 @@ class PostgresPaymentLinkService {
 
       // Check if used
       if (isUsed) {
-        return {'valid': false, 'errorMessage': 'This payment link has already been used.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This payment link has already been used.',
+        };
       }
 
       // Check if expired
       if (expiresAtStr != null) {
         final expiresAt = DateTime.tryParse(expiresAtStr)?.toUtc();
         if (expiresAt != null && DateTime.now().toUtc().isAfter(expiresAt)) {
-          return {'valid': false, 'errorMessage': 'This payment link has expired.'};
+          return {
+            'valid': false,
+            'errorMessage': 'This payment link has expired.',
+          };
         }
       }
 
       // Fetch the order
       final parsedOrderId = tryParseUuid(orderId);
       if (parsedOrderId == null) {
-        return {'valid': false, 'errorMessage': 'This payment link is no longer valid.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This payment link is no longer valid.',
+        };
       }
 
-      final orderRow = await CustomerOrderRow.db.findById(session, parsedOrderId);
+      final orderRow = await CustomerOrderRow.db.findById(
+        session,
+        parsedOrderId,
+      );
       if (orderRow == null) {
-        return {'valid': false, 'errorMessage': 'This payment link is no longer valid.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This payment link is no longer valid.',
+        };
       }
 
       // Check order is still unpaid
       if (orderRow.paymentStatus == 'paid') {
-        return {'valid': false, 'errorMessage': 'This payment has already been completed.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This payment has already been completed.',
+        };
       }
 
       if (orderRow.orderStatus == 'cancelled') {
-        return {'valid': false, 'errorMessage': 'This order has been cancelled.'};
+        return {
+          'valid': false,
+          'errorMessage': 'This order has been cancelled.',
+        };
       }
 
       // Build order summary
@@ -356,16 +381,22 @@ class PostgresPaymentLinkService {
           ? ''
           : '${addressRow.streetLine1}, ${addressRow.city}, ${addressRow.state} - ${addressRow.postalCode}';
 
-      final itemList = items.map((item) => {
-        'productName': item.productNameSnapshot,
-        'variantLabel': item.variantLabelSnapshot,
-        'quantity': item.quantity,
-        'unitPrice': item.unitPrice,
-        'totalPrice': item.totalPrice,
-        'productImage': item.productImageUrlSnapshot,
-      }).toList();
+      final itemList = items
+          .map(
+            (item) => {
+              'productName': item.productNameSnapshot,
+              'variantLabel': item.variantLabelSnapshot,
+              'quantity': item.quantity,
+              'unitPrice': item.unitPrice,
+              'totalPrice': item.totalPrice,
+              'productImage': item.productImageUrlSnapshot,
+            },
+          )
+          .toList();
 
-      final expiresAt = expiresAtStr != null ? DateTime.tryParse(expiresAtStr) : null;
+      final expiresAt = expiresAtStr != null
+          ? DateTime.tryParse(expiresAtStr)
+          : null;
 
       return {
         'valid': true,
@@ -376,14 +407,18 @@ class PostgresPaymentLinkService {
         'itemCount': orderRow.itemCount,
         'deliveryAddress': addressStr,
         'items': itemList,
-        'razorpayOrderId': cleanNullableString(paymentRow?.gatewayOrderId) ?? '',
+        'razorpayOrderId':
+            cleanNullableString(paymentRow?.gatewayOrderId) ?? '',
         'amountPaise': (orderRow.finalAmount * 100).round(),
         'currency': 'INR',
         'expiresAt': expiresAt?.toIso8601String(),
         'createdAt': orderRow.createdAt.toIso8601String(),
       };
     } catch (error) {
-      return {'valid': false, 'errorMessage': 'This payment link is no longer valid.'};
+      return {
+        'valid': false,
+        'errorMessage': 'This payment link is no longer valid.',
+      };
     }
   }
 
@@ -598,7 +633,10 @@ class PostgresPaymentLinkService {
 
       // 2. Re-read under lock
       final lockedOrder = await CustomerOrderRow.db.findById(
-        session, orderRow.id!, transaction: transaction);
+        session,
+        orderRow.id!,
+        transaction: transaction,
+      );
       if (lockedOrder == null) {
         return {'success': false, 'error': 'Order not found'};
       }
@@ -607,7 +645,10 @@ class PostgresPaymentLinkService {
         return {'success': false, 'error': 'This order has already been paid.'};
       }
       if (lockedOrder.linkStatus == 'DISABLED') {
-        return {'success': false, 'error': 'This payment link has been disabled.'};
+        return {
+          'success': false,
+          'error': 'This payment link has been disabled.',
+        };
       }
       if (lockedOrder.linkStatus == 'EXPIRED') {
         return {'success': false, 'error': 'This payment link has expired.'};
@@ -616,7 +657,8 @@ class PostgresPaymentLinkService {
       // 3. Check existing link (safe now — serialized by FOR UPDATE)
       final existing = await _getExistingLink(session, lockedOrder.id!);
       if (existing != null) {
-        final isExpired = existing['expiresAt'] != null &&
+        final isExpired =
+            existing['expiresAt'] != null &&
             now.isAfter(
               DateTime.parse(existing['expiresAt'] as String).toUtc(),
             );
@@ -626,7 +668,9 @@ class PostgresPaymentLinkService {
             await CustomerOrderRow.db.updateRow(
               session,
               lockedOrder.copyWith(
-                paymentLinkId: tryParseUuid(existing['paymentLinkId'] as String? ?? ''),
+                paymentLinkId: tryParseUuid(
+                  existing['paymentLinkId'] as String? ?? '',
+                ),
                 paymentLinkUrl: existing['paymentLink'] as String?,
                 paymentLinkExpiresAt: existing['expiresAt'] != null
                     ? DateTime.parse(existing['expiresAt'] as String).toUtc()
@@ -678,14 +722,14 @@ class PostgresPaymentLinkService {
         session,
         lockedOrder.copyWith(
           paymentMode: 'shareable_link',
-          paymentSessionId: lockedOrder.paymentSessionId ??
+          paymentSessionId:
+              lockedOrder.paymentSessionId ??
               UuidValue.fromString(
                 (await session.db.unsafeQuery(
-                  'SELECT gen_random_uuid()::text AS id',
-                  transaction: transaction,
-                ))
-                    .first
-                    .toColumnMap()['id'] as String,
+                      'SELECT gen_random_uuid()::text AS id',
+                      transaction: transaction,
+                    )).first.toColumnMap()['id']
+                    as String,
               ),
           paymentLinkId: linkId != null ? tryParseUuid(linkId) : null,
           paymentLinkUrl: paymentLink,
@@ -728,7 +772,10 @@ class PostgresPaymentLinkService {
     final expiresAt = orderRow.paymentLinkExpiresAt;
     int expiresInSeconds = 0;
     if (expiresAt != null) {
-      expiresInSeconds = expiresAt.difference(DateTime.now().toUtc()).inSeconds.clamp(0, 999999);
+      expiresInSeconds = expiresAt
+          .difference(DateTime.now().toUtc())
+          .inSeconds
+          .clamp(0, 999999);
     }
 
     return {
