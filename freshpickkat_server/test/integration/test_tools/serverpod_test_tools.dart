@@ -253,6 +253,7 @@ void withServerpod(
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
       experimentalFeatures: experimentalFeatures,
+      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
     ),
     maybeRollbackDatabase: rollbackDatabase,
@@ -9645,6 +9646,123 @@ class _SupportEndpoint {
             'appVersion': appVersion,
             'buildNumber': buildNumber,
             'deviceInfo': deviceInfo,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i71.SupportIssue>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i71.SupportIssue>> listSupportIssues(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken, {
+    String? status,
+    required int limit,
+    required int offset,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'listSupportIssues',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'listSupportIssues',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'status': status,
+            'limit': limit,
+            'offset': offset,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i71.SupportIssue>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i71.SupportIssue?> getSupportIssueDetail(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+    String issueId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'getSupportIssueDetail',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'getSupportIssueDetail',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'issueId': issueId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i71.SupportIssue?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i71.SupportIssue> updateSupportIssueStatus(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+    String issueId,
+    String status,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'support',
+            method: 'updateSupportIssueStatus',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'support',
+          methodName: 'updateSupportIssueStatus',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'issueId': issueId,
+            'status': status,
           }),
           serializationManager: _serializationManager,
         );

@@ -3792,6 +3792,54 @@ class EndpointSupport extends _i1.EndpointRef {
       'deviceInfo': deviceInfo,
     },
   );
+
+  _i2.Future<List<_i70.SupportIssue>> listSupportIssues(
+    String firebaseUid,
+    String idToken, {
+    String? status,
+    required int limit,
+    required int offset,
+  }) => caller.callServerEndpoint<List<_i70.SupportIssue>>(
+    'support',
+    'listSupportIssues',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'status': status,
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  _i2.Future<_i70.SupportIssue?> getSupportIssueDetail(
+    String firebaseUid,
+    String idToken,
+    String issueId,
+  ) => caller.callServerEndpoint<_i70.SupportIssue?>(
+    'support',
+    'getSupportIssueDetail',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'issueId': issueId,
+    },
+  );
+
+  _i2.Future<_i70.SupportIssue> updateSupportIssueStatus(
+    String firebaseUid,
+    String idToken,
+    String issueId,
+    String status,
+  ) => caller.callServerEndpoint<_i70.SupportIssue>(
+    'support',
+    'updateSupportIssueStatus',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'issueId': issueId,
+      'status': status,
+    },
+  );
 }
 
 /// {@category Endpoint}

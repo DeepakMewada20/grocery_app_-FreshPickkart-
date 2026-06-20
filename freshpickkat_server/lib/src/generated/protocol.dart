@@ -189,8 +189,10 @@ import 'package:freshpickkat_server/src/generated/data_flow/product_ranking_item
     as _i158;
 import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
     as _i159;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
     as _i160;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i161;
 export 'data_flow/active_user_statistics.dart';
 export 'data_flow/address.dart';
 export 'data_flow/admin_analytics.dart';
@@ -7736,8 +7738,14 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i160.CartItem>) {
-      return (data as List).map((e) => deserialize<_i160.CartItem>(e)).toList()
+    if (t == List<_i160.SupportIssue>) {
+      return (data as List)
+              .map((e) => deserialize<_i160.SupportIssue>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i161.CartItem>) {
+      return (data as List).map((e) => deserialize<_i161.CartItem>(e)).toList()
           as T;
     }
     try {

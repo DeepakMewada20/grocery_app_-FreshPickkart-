@@ -12,6 +12,7 @@ import '../widgets/network_error_widget.dart';
 import 'broadcasts_screen.dart';
 import 'address_change_requests_screen.dart';
 import 'complaint_management_screen.dart';
+import 'support_issue_management_screen.dart';
 import 'payment_monitoring_screen.dart';
 import 'cancellation_requests_screen.dart';
 import 'customers_screen.dart';
@@ -388,6 +389,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const ComplaintManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bug_report_outlined),
+              title: Text('Support Issues'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SupportIssueManagementScreen(),
                   ),
                 );
               },

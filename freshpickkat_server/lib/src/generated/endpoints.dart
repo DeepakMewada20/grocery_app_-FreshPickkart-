@@ -8098,6 +8098,117 @@ class Endpoints extends _i1.EndpointDispatch {
                     deviceInfo: params['deviceInfo'],
                   ),
         ),
+        'listSupportIssues': _i1.MethodConnector(
+          name: 'listSupportIssues',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'offset': _i1.ParameterDescription(
+              name: 'offset',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['support'] as _i31.SupportEndpoint)
+                  .listSupportIssues(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    status: params['status'],
+                    limit: params['limit'],
+                    offset: params['offset'],
+                  ),
+        ),
+        'getSupportIssueDetail': _i1.MethodConnector(
+          name: 'getSupportIssueDetail',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'issueId': _i1.ParameterDescription(
+              name: 'issueId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['support'] as _i31.SupportEndpoint)
+                  .getSupportIssueDetail(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    params['issueId'],
+                  ),
+        ),
+        'updateSupportIssueStatus': _i1.MethodConnector(
+          name: 'updateSupportIssueStatus',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'issueId': _i1.ParameterDescription(
+              name: 'issueId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'status': _i1.ParameterDescription(
+              name: 'status',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['support'] as _i31.SupportEndpoint)
+                  .updateSupportIssueStatus(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                    params['issueId'],
+                    params['status'],
+                  ),
+        ),
       },
     );
     connectors['user'] = _i1.EndpointConnector(

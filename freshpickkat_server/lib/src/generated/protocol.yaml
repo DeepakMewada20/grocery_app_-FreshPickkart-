@@ -267,6 +267,9 @@ subCategory:
   - deleteSubCategory:
 support:
   - submitIssue:
+  - listSupportIssues:
+  - getSupportIssueDetail:
+  - updateSupportIssueStatus:
 user:
   - getUserByFirebaseUid:
   - createOrUpdateUser:

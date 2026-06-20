@@ -143,12 +143,14 @@ import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.
     as _i115;
 import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
     as _i116;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
     as _i117;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
     as _i118;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i119;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i120;
 export 'data_flow/active_user_statistics.dart';
 export 'data_flow/address.dart';
 export 'data_flow/admin_analytics.dart';
@@ -1299,15 +1301,21 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i117.CartItem>) {
-      return (data as List).map((e) => deserialize<_i117.CartItem>(e)).toList()
+    if (t == List<_i117.SupportIssue>) {
+      return (data as List)
+              .map((e) => deserialize<_i117.SupportIssue>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i118.CartItem>) {
+      return (data as List).map((e) => deserialize<_i118.CartItem>(e)).toList()
           as T;
     }
     try {
-      return _i118.Protocol().deserialize<T>(data, t);
+      return _i119.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i119.Protocol().deserialize<T>(data, t);
+      return _i120.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -1623,11 +1631,11 @@ class Protocol extends _i1.SerializationManager {
       case _i98.SupportIssue():
         return 'SupportIssue';
     }
-    className = _i118.Protocol().getClassNameForObject(data);
+    className = _i119.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i119.Protocol().getClassNameForObject(data);
+    className = _i120.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -1933,11 +1941,11 @@ class Protocol extends _i1.SerializationManager {
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i118.Protocol().deserializeByClassName(data);
+      return _i119.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i119.Protocol().deserializeByClassName(data);
+      return _i120.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -1952,10 +1960,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i118.Protocol().mapRecordToJson(record);
+      return _i119.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i119.Protocol().mapRecordToJson(record);
+      return _i120.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

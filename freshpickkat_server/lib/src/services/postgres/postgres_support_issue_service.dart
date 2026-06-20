@@ -84,6 +84,70 @@ class PostgresSupportIssueService {
     return _mapIssue(row);
   }
 
+  Future<List<SupportIssue>> listIssues(
+    Session session, {
+    String? status,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final rows = await SupportIssueRow.db.find(
+      session,
+      where: status != null && statuses.contains(status)
+          ? (t) => t.status.equals(status)
+          : null,
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+      limit: limit,
+      offset: offset,
+    );
+    return rows.map(_mapIssue).toList();
+  }
+
+  Future<SupportIssue?> getIssueById(Session session, String issueId) async {
+    UuidValue? id;
+    try {
+      id = parseUuid(issueId);
+    } catch (_) {
+      return null;
+    }
+    final row = await SupportIssueRow.db.findFirstRow(
+      session,
+      where: (t) => t.id.equals(id),
+    );
+    return row == null ? null : _mapIssue(row);
+  }
+
+  Future<SupportIssue> updateIssueStatus(
+    Session session, {
+    required String issueId,
+    required String status,
+  }) async {
+    if (!statuses.contains(status)) {
+      throw Exception('Invalid status: $status');
+    }
+    UuidValue id;
+    try {
+      id = parseUuid(issueId);
+    } catch (_) {
+      throw Exception('Invalid issue ID.');
+    }
+    final existing = await SupportIssueRow.db.findFirstRow(
+      session,
+      where: (t) => t.id.equals(id),
+    );
+    if (existing == null) {
+      throw Exception('Support issue not found.');
+    }
+    final updated = await SupportIssueRow.db.updateRow(
+      session,
+      existing.copyWith(
+        status: status,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+    return _mapIssue(updated);
+  }
+
   SupportIssue _mapIssue(SupportIssueRow row) {
     return SupportIssue(
       issueId: row.id?.toString() ?? '',

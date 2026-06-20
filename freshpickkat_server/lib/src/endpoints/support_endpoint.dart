@@ -1,12 +1,14 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_support_issue_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
 
 class SupportEndpoint extends Endpoint {
   final PostgresSupportIssueService _issues = PostgresSupportIssueService();
   final PostgresUserGuardService _userGuard = PostgresUserGuardService();
+  final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();
 
   Future<SupportIssue> submitIssue(
     Session session, {
@@ -36,6 +38,60 @@ class SupportEndpoint extends Endpoint {
       appVersion: appVersion,
       buildNumber: buildNumber,
       deviceInfo: deviceInfo,
+    );
+  }
+
+  Future<List<SupportIssue>> listSupportIssues(
+    Session session,
+    String firebaseUid,
+    String idToken, {
+    String? status,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _issues.listIssues(
+      session,
+      status: status,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<SupportIssue?> getSupportIssueDetail(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String issueId,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _issues.getIssueById(session, issueId);
+  }
+
+  Future<SupportIssue> updateSupportIssueStatus(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String issueId,
+    String status,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _issues.updateIssueStatus(
+      session,
+      issueId: issueId,
+      status: status,
     );
   }
 }
