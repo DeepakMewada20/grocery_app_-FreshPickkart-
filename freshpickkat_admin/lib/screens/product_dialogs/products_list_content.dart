@@ -503,30 +503,24 @@ class _OfferChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final chips = <Widget>[];
+    final chipColor = cs.onSurfaceVariant;
 
     if (_hasBogo) {
-      chips.add(
-        _offerChip(context, 'BOGO', AdminAppTheme.getWarningColor(context)),
-      );
+      chips.add(_offerChip(context, 'BOGO', chipColor));
     }
 
     if (_hasCombo) {
-      chips.add(_offerChip(context, 'COMBO', const Color(0xFF7C4DFF)));
+      chips.add(_offerChip(context, 'COMBO', chipColor));
     }
 
     if (_hasFreeDelivery) {
-      chips.add(
-        _offerChip(
-          context,
-          'FREE DELIVERY',
-          AdminAppTheme.getSuccessColor(context),
-        ),
-      );
+      chips.add(_offerChip(context, 'FREE DELIVERY', chipColor));
     }
 
     if (product.hasCategoryOffer) {
-      chips.add(_offerChip(context, 'CATEGORY OFFER', const Color(0xFFFF6F00)));
+      chips.add(_offerChip(context, 'CATEGORY OFFER', chipColor));
     }
 
     if (product.discountType == 'percentage' ||
@@ -534,7 +528,7 @@ class _OfferChips extends StatelessWidget {
       final label = product.discountType == 'percentage'
           ? '${product.discountValue?.toStringAsFixed(0) ?? ''}% OFF'
           : 'FLAT ₹${product.discountValue?.toStringAsFixed(0) ?? ''} OFF';
-      chips.add(_offerChip(context, label, const Color(0xFFD32F2F)));
+      chips.add(_offerChip(context, label, chipColor));
     }
 
     if (chips.isEmpty) return const SizedBox.shrink();
@@ -546,15 +540,14 @@ class _OfferChips extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4.r),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
       ),
       child: Text(
         label,
         style: TextStyle(
           fontSize: 9.sp,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: color,
           height: 1.2,
         ),
@@ -579,7 +572,7 @@ class _VariantPriceRow extends StatelessWidget {
     if (variants.isEmpty) {
       return CatalogInlineBadge(
         label: '₹${product.price.toStringAsFixed(2)}',
-        color: AdminAppTheme.getSuccessColor(context),
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       );
     }
 
@@ -600,23 +593,12 @@ class _VariantPriceRow extends StatelessWidget {
 
           return Padding(
             padding: EdgeInsets.only(right: i < variants.length - 1 ? 6.w : 0),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
-              decoration: BoxDecoration(
-                color: AdminAppTheme.getSuccessContainerColor(context),
-                borderRadius: BorderRadius.circular(6.r),
-                border: Border.all(
-                  color: AdminAppTheme.getSuccessColor(context),
-                  width: 0.8,
-                ),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: (10.5.sp).clamp(9.0, 12.0),
-                  fontWeight: FontWeight.w600,
-                  color: AdminAppTheme.getSuccessColor(context),
-                ),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: (10.5.sp).clamp(9.0, 12.0),
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           );

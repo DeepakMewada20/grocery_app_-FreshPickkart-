@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/cascade_deactivation_dialog.dart';
 import 'package:freshpickkat_admin/widgets/delete_impact_dialog.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as sc;
@@ -295,39 +296,83 @@ class AdminBannerController extends GetxController {
 
   Future<bool> toggleBannerActive(String bannerId, bool active) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      await ApiClient().request(() async {
-        await _client.banner.toggleBannerActive(bannerId, active, uid, idToken);
-      });
-      final index = banners.indexWhere((b) => b.bannerId == bannerId);
-      if (index != -1) {
-        final banner = banners[index];
-        banners[index] = sc.Banner(
-          bannerId: banner.bannerId,
-          title: banner.title,
-          imageUrl: banner.imageUrl,
-          type: banner.type,
-          offerId: banner.offerId,
-          categoryId: banner.categoryId,
-          productId: banner.productId,
-          comboId: banner.comboId,
-          couponCode: banner.couponCode,
-          externalUrl: banner.externalUrl,
-          screenPlacements: banner.screenPlacements,
-          priority: banner.priority,
-          startDate: banner.startDate,
-          endDate: banner.endDate,
-          active: active,
-          isBaseImage: banner.isBaseImage,
-          linkedProductIds: banner.linkedProductIds,
-          createdAt: banner.createdAt,
-          updatedAt: banner.updatedAt,
+      if (active) {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
         );
+        await ApiClient().request(() async {
+          await _client.banner.toggleBannerActive(bannerId, active, uid, idToken);
+        });
+        final index = banners.indexWhere((b) => b.bannerId == bannerId);
+        if (index != -1) {
+          final banner = banners[index];
+          banners[index] = sc.Banner(
+            bannerId: banner.bannerId,
+            title: banner.title,
+            imageUrl: banner.imageUrl,
+            type: banner.type,
+            offerId: banner.offerId,
+            categoryId: banner.categoryId,
+            productId: banner.productId,
+            comboId: banner.comboId,
+            couponCode: banner.couponCode,
+            externalUrl: banner.externalUrl,
+            screenPlacements: banner.screenPlacements,
+            priority: banner.priority,
+            startDate: banner.startDate,
+            endDate: banner.endDate,
+            active: active,
+            isBaseImage: banner.isBaseImage,
+            linkedProductIds: banner.linkedProductIds,
+            createdAt: banner.createdAt,
+            updatedAt: banner.updatedAt,
+          );
+        }
+        return true;
+      } else {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await _client.cascade.analyzeCascadeDeactivation(
+          'banner', bannerId, uid, idToken,
+        );
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await _client.cascade.executeCascadeDeactivation(
+          'banner', bannerId, uid, idToken,
+        );
+        final index = banners.indexWhere((b) => b.bannerId == bannerId);
+        if (index != -1) {
+          final banner = banners[index];
+          banners[index] = sc.Banner(
+            bannerId: banner.bannerId,
+            title: banner.title,
+            imageUrl: banner.imageUrl,
+            type: banner.type,
+            offerId: banner.offerId,
+            categoryId: banner.categoryId,
+            productId: banner.productId,
+            comboId: banner.comboId,
+            couponCode: banner.couponCode,
+            externalUrl: banner.externalUrl,
+            screenPlacements: banner.screenPlacements,
+            priority: banner.priority,
+            startDate: banner.startDate,
+            endDate: banner.endDate,
+            active: false,
+            isBaseImage: banner.isBaseImage,
+            linkedProductIds: banner.linkedProductIds,
+            createdAt: banner.createdAt,
+            updatedAt: banner.updatedAt,
+          );
+        }
+        return true;
       }
-      return true;
     } catch (e) {
       error.value = e.toString();
       return false;

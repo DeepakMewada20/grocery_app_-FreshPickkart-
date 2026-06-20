@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/cascade_deactivation_dialog.dart';
 import '../../widgets/delete_impact_dialog.dart';
 import '../../controller/network_controller.dart';
 
@@ -241,27 +242,54 @@ class AdminCategoryOfferController extends GetxController {
 
   Future<bool> toggleCategoryOffer(String offerId, bool isActive) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      final result = await client.categoryOffer.setCategoryOfferActive(
-        offerId,
-        isActive,
-        uid,
-        idToken,
-      );
-      if (result) {
+      if (isActive) {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final result = await client.categoryOffer.setCategoryOfferActive(
+          offerId,
+          isActive,
+          uid,
+          idToken,
+        );
+        if (result) {
+          final index = categoryOffers.indexWhere(
+            (offer) => offer.offerId == offerId,
+          );
+          if (index != -1) {
+            categoryOffers[index] = categoryOffers[index].copyWith(
+              isActive: isActive,
+            );
+          }
+        }
+        return result;
+      } else {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await client.cascade.analyzeCascadeDeactivation(
+          'category_offer', offerId, uid, idToken,
+        );
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await client.cascade.executeCascadeDeactivation(
+          'category_offer', offerId, uid, idToken,
+        );
         final index = categoryOffers.indexWhere(
           (offer) => offer.offerId == offerId,
         );
         if (index != -1) {
           categoryOffers[index] = categoryOffers[index].copyWith(
-            isActive: isActive,
+            isActive: false,
           );
         }
+        return true;
       }
-      return result;
     } catch (e) {
       return false;
     }

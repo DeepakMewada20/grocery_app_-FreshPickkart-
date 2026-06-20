@@ -892,8 +892,8 @@ class PostgresProductCompatService {
   }
 
   /// Checks whether updating [product] would delete variants that are
-  /// referenced by orders or offers. Returns a human-readable message listing
-  /// the conflicts, or an empty string if no conflicts exist.
+  /// referenced by offers (BOGO, combo, etc.). Returns a human-readable
+  /// message listing the conflicts per variant, or empty string if none.
   Future<String> checkVariantDeletionConflicts(
     Session session,
     Product product,
@@ -945,7 +945,7 @@ class PostgresProductCompatService {
       }
     }
 
-    final refs = <String>[];
+    final details = <String>[];
     for (final existing in existingRows) {
       if (existing.id != null && !matchedIds.contains(existing.id.toString())) {
         final variantRefs = await DependencyChecker.checkVariant(
@@ -953,14 +953,15 @@ class PostgresProductCompatService {
           existing.id!,
         );
         if (variantRefs.isNotEmpty) {
-          refs.add(existing.sku ?? 'unknown');
+          final sku = existing.sku ?? 'unknown';
+          details.add('$sku: ${variantRefs.join(', ')}');
         }
       }
     }
 
-    if (refs.isEmpty) return '';
+    if (details.isEmpty) return '';
 
-    return 'This product has variants (${refs.join(', ')}) that are linked to existing orders or offers. These variants cannot be deleted — they will be hidden instead. Do you want to continue?';
+    return 'The following variants are linked to active offers and will be hidden:\n${details.join('\n')}';
   }
 
   Future<String> _generateUniqueProductSlug(

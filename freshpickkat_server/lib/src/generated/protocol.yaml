@@ -45,6 +45,9 @@ bogo:
   - getOfferForProduct:
 cart:
   - getCartHydratedData:
+cascade:
+  - analyzeCascadeDeactivation:
+  - executeCascadeDeactivation:
 category:
   - getCategories:
   - getInactiveCategories:

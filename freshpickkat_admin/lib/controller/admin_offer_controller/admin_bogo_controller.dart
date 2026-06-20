@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import '../../services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/cascade_deactivation_dialog.dart';
 import '../../widgets/delete_impact_dialog.dart';
 import '../network_controller.dart';
 
@@ -211,23 +212,47 @@ class AdminBogoController extends GetxController {
     bool isActive,
   ) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken();
-      final success = await client.bogo.setBogoOfferActive(
-        triggerProductId,
-        isActive,
-        uid,
-        idToken,
-      );
-      if (success) {
+      if (isActive) {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        final success = await client.bogo.setBogoOfferActive(
+          triggerProductId,
+          isActive,
+          uid,
+          idToken,
+        );
+        if (success) {
+          final index = bogoOffers.indexWhere(
+            (offer) => offer.triggerProductId == triggerProductId,
+          );
+          if (index != -1) {
+            bogoOffers[index] = bogoOffers[index].copyWith(isActive: isActive);
+          }
+        }
+        return success;
+      } else {
         final index = bogoOffers.indexWhere(
           (offer) => offer.triggerProductId == triggerProductId,
         );
-        if (index != -1) {
-          bogoOffers[index] = bogoOffers[index].copyWith(isActive: isActive);
-        }
+        if (index == -1) return false;
+        final offerId = bogoOffers[index].offerId;
+        if (offerId == null || offerId.isEmpty) return false;
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken();
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await client.cascade.analyzeCascadeDeactivation(
+          'bogo_offer', offerId, uid, idToken,
+        );
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await client.cascade.executeCascadeDeactivation(
+          'bogo_offer', offerId, uid, idToken,
+        );
+        bogoOffers[index] = bogoOffers[index].copyWith(isActive: false);
+        return true;
       }
-      return success;
     } catch (e) {
       return false;
     }

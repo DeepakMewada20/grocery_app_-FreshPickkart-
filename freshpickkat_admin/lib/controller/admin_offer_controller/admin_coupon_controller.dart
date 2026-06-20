@@ -1,6 +1,7 @@
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
 import 'package:freshpickkat_admin/services/api_client.dart';
+import 'package:freshpickkat_admin/widgets/cascade_deactivation_dialog.dart';
 import 'package:freshpickkat_admin/widgets/delete_impact_dialog.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -96,25 +97,49 @@ class AdminCouponController extends GetxController {
 
   Future<bool> setCouponActive(String code, bool isActive) async {
     try {
-      final ok = await ApiClient().request(() async {
+      if (isActive) {
+        final ok = await ApiClient().request(() async {
+          final uid = AdminSessionService.requireUid();
+          final idToken = await AdminSessionService.requireIdToken(
+            forceRefresh: false,
+          );
+          return await _client.coupon.setCouponActive(
+            code,
+            isActive,
+            uid,
+            idToken,
+          );
+        });
+        if (ok) {
+          final index = coupons.indexWhere((c) => c.code == code);
+          if (index != -1) {
+            coupons[index] = coupons[index].copyWith(isActive: isActive);
+          }
+        }
+        return ok;
+      } else {
+        final index = coupons.indexWhere((c) => c.code == code);
+        if (index == -1) return false;
+        final couponId = coupons[index].id;
+        if (couponId == null || couponId.isEmpty) return false;
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken(
           forceRefresh: false,
         );
-        return await _client.coupon.setCouponActive(
-          code,
-          isActive,
-          uid,
-          idToken,
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await _client.cascade.analyzeCascadeDeactivation(
+          'coupon', couponId, uid, idToken,
         );
-      });
-      if (ok) {
-        final index = coupons.indexWhere((c) => c.code == code);
-        if (index != -1) {
-          coupons[index] = coupons[index].copyWith(isActive: isActive);
-        }
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await _client.cascade.executeCascadeDeactivation(
+          'coupon', couponId, uid, idToken,
+        );
+        coupons[index] = coupons[index].copyWith(isActive: false);
+        return true;
       }
-      return ok;
     } catch (e) {
       rethrow;
     }

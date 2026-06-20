@@ -1,0 +1,7 @@
+class: CascadeEntityInfo
+fields:
+  entityType: String
+  entityId: String
+  entityName: String
+  action: String
+  reason: String

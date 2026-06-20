@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/widgets/cascade_deactivation_dialog.dart';
 import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
@@ -229,25 +230,50 @@ class AdminFreeDeliveryController extends GetxController {
 
   Future<bool> toggleDeliveryRule(String ruleId, bool isActive) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      final result = await client.freeDelivery.setDeliveryRuleActive(
-        ruleId,
-        isActive,
-        uid,
-        idToken,
-      );
-      if (result) {
+      if (isActive) {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final result = await client.freeDelivery.setDeliveryRuleActive(
+          ruleId,
+          isActive,
+          uid,
+          idToken,
+        );
+        if (result) {
+          final index = deliveryRules.indexWhere((rule) => rule.ruleId == ruleId);
+          if (index != -1) {
+            deliveryRules[index] = deliveryRules[index].copyWith(
+              isActive: isActive,
+            );
+          }
+        }
+        return result;
+      } else {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await client.cascade.analyzeCascadeDeactivation(
+          'delivery_rule', ruleId, uid, idToken,
+        );
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await client.cascade.executeCascadeDeactivation(
+          'delivery_rule', ruleId, uid, idToken,
+        );
         final index = deliveryRules.indexWhere((rule) => rule.ruleId == ruleId);
         if (index != -1) {
           deliveryRules[index] = deliveryRules[index].copyWith(
-            isActive: isActive,
+            isActive: false,
           );
         }
+        return true;
       }
-      return result;
     } catch (e) {
       return false;
     }

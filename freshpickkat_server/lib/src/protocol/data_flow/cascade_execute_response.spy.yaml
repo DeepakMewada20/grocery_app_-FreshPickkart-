@@ -1,0 +1,7 @@
+class: CascadeExecuteResponse
+fields:
+  success: bool
+  action: String
+  deactivatedCount: int
+  protectedCount: int
+  message: String

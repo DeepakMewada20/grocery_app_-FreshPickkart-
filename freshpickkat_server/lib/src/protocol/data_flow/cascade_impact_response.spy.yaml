@@ -1,0 +1,5 @@
+class: CascadeImpactResponse
+fields:
+  primaryEntity: CascadeEntityInfo
+  affectedEntities: List<CascadeEntityInfo>
+  protectedEntities: List<CascadeEntityInfo>

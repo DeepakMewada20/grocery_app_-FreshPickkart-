@@ -100,14 +100,81 @@ Future<bool> showDeactivationDialog({
   required String title,
   required String message,
 }) async {
-  return await Get.defaultDialog<bool>(
-        title: title,
-        middleText: '$message\n\nDo you want to deactivate this?',
-        textCancel: 'Cancel',
-        textConfirm: 'Deactivate',
-        onConfirm: () => Get.back(result: true),
-      ) ??
-      false;
+  return showDialog<bool>(
+    context: Get.context!,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange.shade700,
+            size: 24,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.orange.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'These variants will be hidden instead of deleted.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.orange.shade700,
+            side: BorderSide(color: Colors.orange.shade700),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Proceed'),
+        ),
+      ],
+    ),
+  ).then((v) => v ?? false);
 }
 
 void showUndoSnackBar(

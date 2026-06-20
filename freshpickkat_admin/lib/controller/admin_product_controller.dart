@@ -4,6 +4,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../services/api_client.dart';
 import '../core/exceptions.dart';
+import '../widgets/cascade_deactivation_dialog.dart';
 import '../widgets/delete_impact_dialog.dart';
 import '../widgets/shared_dialogs.dart';
 import 'network_controller.dart';
@@ -268,16 +269,48 @@ class AdminProductController extends GetxController {
 
   Future<void> deactivateProduct(String productId, bool isActive) async {
     try {
-      await ApiClient().request(() async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken();
-        await _client.product.deactivateProduct(
-          productId,
-          isActive,
-          uid,
-          idToken,
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken();
+
+      if (isActive) {
+        // Reactivation: direct toggle (no cascade)
+        await ApiClient().request(() async {
+          await _client.product.deactivateProduct(
+            productId,
+            true,
+            uid,
+            idToken,
+          );
+        });
+      } else {
+        // Deactivation: cascade flow
+        final ctx = Get.context;
+        if (ctx == null) return;
+
+        final impact = await ApiClient().request<CascadeImpactResponse>(
+          () => _client.cascade.analyzeCascadeDeactivation(
+            'product',
+            productId,
+            uid,
+            idToken,
+          ),
         );
-      });
+        if (!ctx.mounted) return;
+        final proceed = await showCascadeDeactivationDialog(
+          context: ctx,
+          impact: impact,
+        );
+        if (!proceed) return;
+
+        await ApiClient().request(() async {
+          await _client.cascade.executeCascadeDeactivation(
+            'product',
+            productId,
+            uid,
+            idToken,
+          );
+        });
+      }
     } catch (e) {
       rethrow;
     }

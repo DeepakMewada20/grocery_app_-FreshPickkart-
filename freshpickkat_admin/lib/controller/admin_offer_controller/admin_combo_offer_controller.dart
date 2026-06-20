@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import '../../services/api_client.dart';
 import '../../core/exceptions.dart';
+import '../../widgets/cascade_deactivation_dialog.dart';
 import '../../widgets/delete_impact_dialog.dart';
 import '../../controller/network_controller.dart';
 
@@ -245,25 +246,50 @@ class AdminComboOfferController extends GetxController {
 
   Future<bool> toggleComboOffer(String comboId, bool isActive) async {
     try {
-      final uid = AdminSessionService.requireUid();
-      final idToken = await AdminSessionService.requireIdToken(
-        forceRefresh: false,
-      );
-      final result = await client.comboOffer.setComboOfferActive(
-        comboId,
-        isActive,
-        uid,
-        idToken,
-      );
-      if (result) {
+      if (isActive) {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final result = await client.comboOffer.setComboOfferActive(
+          comboId,
+          isActive,
+          uid,
+          idToken,
+        );
+        if (result) {
+          final index = comboOffers.indexWhere(
+            (offer) => offer.comboId == comboId,
+          );
+          if (index != -1) {
+            comboOffers[index] = comboOffers[index].copyWith(isActive: isActive);
+          }
+        }
+        return result;
+      } else {
+        final uid = AdminSessionService.requireUid();
+        final idToken = await AdminSessionService.requireIdToken(
+          forceRefresh: false,
+        );
+        final ctx = Get.context;
+        if (ctx == null) return false;
+        final impact = await client.cascade.analyzeCascadeDeactivation(
+          'combo_offer', comboId, uid, idToken,
+        );
+        if (!ctx.mounted) return false;
+        final proceed = await showCascadeDeactivationDialog(context: ctx, impact: impact);
+        if (!proceed) return false;
+        await client.cascade.executeCascadeDeactivation(
+          'combo_offer', comboId, uid, idToken,
+        );
         final index = comboOffers.indexWhere(
           (offer) => offer.comboId == comboId,
         );
         if (index != -1) {
-          comboOffers[index] = comboOffers[index].copyWith(isActive: isActive);
+          comboOffers[index] = comboOffers[index].copyWith(isActive: false);
         }
+        return true;
       }
-      return result;
     } catch (e) {
       return false;
     }
