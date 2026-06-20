@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 
 class DeleteImpactService {
   static Future<DeleteImpactResponse> checkProductImpact(

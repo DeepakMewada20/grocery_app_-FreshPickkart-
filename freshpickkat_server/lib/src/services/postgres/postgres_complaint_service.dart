@@ -4,8 +4,8 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../notification_outbox_service.dart';
-import '../order_outbox_service.dart';
+import '../background/notification_outbox_service.dart';
+import '../background/order_outbox_service.dart';
 import 'postgres_audit_log_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';

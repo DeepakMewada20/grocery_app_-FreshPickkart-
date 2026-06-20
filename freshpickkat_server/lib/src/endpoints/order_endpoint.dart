@@ -1,8 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
 import '../services/business/validation_service.dart';
-import '../services/firebase_notification_service.dart';
-import '../services/order_outbox_service.dart';
+import '../services/firebase/firebase_notification_service.dart';
+import '../services/background/order_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_delivery_otp_service.dart';
@@ -10,7 +10,7 @@ import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
 import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
-import '../services/realtime_service.dart';
+import '../services/realtime/realtime_service.dart';
 
 class OrderEndpoint extends Endpoint {
   static const String statusPaymentPending = 'payment_pending';

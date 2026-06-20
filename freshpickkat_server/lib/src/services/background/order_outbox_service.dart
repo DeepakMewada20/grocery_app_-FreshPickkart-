@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 import 'background_task_service.dart';
-import 'postgres/postgres_support.dart';
+import '../postgres/postgres_support.dart';
 
 class OrderOutboxService {
   static final OrderOutboxService instance = OrderOutboxService._();

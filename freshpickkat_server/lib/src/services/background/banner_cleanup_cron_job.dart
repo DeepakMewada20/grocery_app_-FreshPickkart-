@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:serverpod/serverpod.dart';
-import 'cascade_deactivation_service.dart';
+import '../admin/cascade_deactivation_service.dart';
 
 class BannerCleanupCronJob {
   BannerCleanupCronJob(this._pod);

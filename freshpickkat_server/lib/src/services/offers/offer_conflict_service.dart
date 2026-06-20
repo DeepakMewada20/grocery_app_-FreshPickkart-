@@ -1,9 +1,9 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
-import 'postgres/postgres_offer_service.dart';
-import 'postgres/postgres_product_compat_service.dart';
-import 'postgres/postgres_support.dart';
+import '../../generated/protocol.dart';
+import '../postgres/postgres_offer_service.dart';
+import '../postgres/postgres_product_compat_service.dart';
+import '../postgres/postgres_support.dart';
 
 class OfferConflictService {
   OfferConflictService({

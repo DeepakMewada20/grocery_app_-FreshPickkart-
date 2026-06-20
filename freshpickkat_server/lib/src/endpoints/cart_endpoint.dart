@@ -4,7 +4,7 @@ import '../generated/protocol.dart';
 import '../services/basket_suggestions/basket_suggestion_service.dart';
 import '../services/postgres/postgres_coupon_service.dart';
 import '../services/delivery/delivery_engine.dart';
-import '../services/pricing_engine.dart';
+import '../services/pricing/pricing_engine.dart';
 
 class CartEndpoint extends Endpoint {
   final PostgresCouponService _couponService = PostgresCouponService();

@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../order_outbox_service.dart';
+import '../background/order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
 import 'postgres_support.dart';
 

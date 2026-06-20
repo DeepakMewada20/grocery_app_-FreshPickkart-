@@ -2,8 +2,8 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
-import '../services/delete_impact_service.dart';
-import '../services/notification_outbox_service.dart';
+import '../services/admin/delete_impact_service.dart';
+import '../services/background/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';

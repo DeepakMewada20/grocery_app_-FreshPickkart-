@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 
 class RealtimeService {
   static const String adminOrdersChannel = 'admin_orders';

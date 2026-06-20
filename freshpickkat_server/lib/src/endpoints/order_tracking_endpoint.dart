@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
-import '../services/directions_service.dart';
+import '../services/maps/directions_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';

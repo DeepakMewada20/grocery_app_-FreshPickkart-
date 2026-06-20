@@ -3,7 +3,7 @@ import '../generated/protocol.dart';
 import '../services/analytics/redis_analytics_service.dart';
 import '../services/business/product_business_service.dart';
 import '../services/business/validation_service.dart';
-import '../services/delete_impact_service.dart';
+import '../services/admin/delete_impact_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_search_service.dart';

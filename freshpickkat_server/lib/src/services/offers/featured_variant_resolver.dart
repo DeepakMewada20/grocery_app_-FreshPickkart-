@@ -1,4 +1,4 @@
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 
 class FeaturedVariantResolver {
   /// Selects the single best variant to display on the homepage.

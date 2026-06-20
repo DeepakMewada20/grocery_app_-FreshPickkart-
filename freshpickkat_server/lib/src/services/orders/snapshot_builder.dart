@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart' hide Order;
 
-import '../generated/protocol.dart';
-import 'postgres/postgres_support.dart';
+import '../../generated/protocol.dart';
+import '../postgres/postgres_support.dart';
 
 class OrderItemSnapshot {
   final double? mrp;

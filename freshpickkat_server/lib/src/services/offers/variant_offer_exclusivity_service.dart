@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
-import '../generated/protocol.dart';
-import 'postgres/postgres_support.dart';
+import '../../generated/protocol.dart';
+import '../postgres/postgres_support.dart';
 import 'effective_offer_resolver.dart';
 
 class VariantOfferExclusivityService {

@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
-import '../services/cascade_deactivation_service.dart';
+import '../services/admin/cascade_deactivation_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 
 class CascadeEndpoint extends Endpoint {

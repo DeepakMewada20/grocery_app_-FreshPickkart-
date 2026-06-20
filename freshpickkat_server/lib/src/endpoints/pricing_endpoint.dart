@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
-import '../services/pricing_engine.dart';
+import '../services/pricing/pricing_engine.dart';
 import '../services/basket_suggestions/basket_suggestion_service.dart';
 import '../services/delivery/delivery_engine.dart';
 

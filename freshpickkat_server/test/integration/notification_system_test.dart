@@ -1,5 +1,5 @@
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
-import 'package:freshpickkat_server/src/services/notification_outbox_service.dart';
+import 'package:freshpickkat_server/src/services/background/notification_outbox_service.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';

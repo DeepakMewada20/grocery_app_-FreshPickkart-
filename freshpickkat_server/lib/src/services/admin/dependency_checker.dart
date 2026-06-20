@@ -1,5 +1,5 @@
 import 'package:serverpod/serverpod.dart';
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 
 class DependencyChecker {
   /// Checks if a product is referenced by any active entity.

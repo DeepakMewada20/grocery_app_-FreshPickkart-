@@ -5,7 +5,7 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
-import '../services/realtime_service.dart';
+import '../services/realtime/realtime_service.dart';
 
 class OrderRealtimeEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();

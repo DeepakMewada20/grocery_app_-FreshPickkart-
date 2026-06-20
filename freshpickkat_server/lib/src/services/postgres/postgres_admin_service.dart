@@ -8,7 +8,7 @@ import '../../generated/protocol.dart'
         ProductRow,
         ProductVariantRow;
 import '../../generated/protocol.dart' as protocol;
-import '../firebase_auth_service.dart';
+import '../firebase/firebase_auth_service.dart';
 import 'postgres_support.dart';
 
 class PostgresAdminService {

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../dependency_checker.dart';
+import '../admin/dependency_checker.dart';
 import 'postgres_catalog_service.dart';
 import 'postgres_product_search_service.dart';
 import 'postgres_support.dart';

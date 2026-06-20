@@ -5,12 +5,12 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
-import '../order_outbox_service.dart';
-import '../pricing_engine.dart';
+import '../background/order_outbox_service.dart';
+import '../pricing/pricing_engine.dart';
 import 'postgres_payment_link_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
-import '../snapshot_builder.dart';
+import '../orders/snapshot_builder.dart';
 
 class PostgresOrderService {
   static const int _defaultLimit = 20;

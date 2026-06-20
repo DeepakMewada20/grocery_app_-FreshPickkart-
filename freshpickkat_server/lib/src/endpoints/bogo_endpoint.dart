@@ -1,14 +1,14 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart' as protocol;
-import '../services/delete_impact_service.dart';
-import '../services/notification_outbox_service.dart';
-import '../services/offer_conflict_service.dart';
+import '../services/admin/delete_impact_service.dart';
+import '../services/background/notification_outbox_service.dart';
+import '../services/offers/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_offer_service.dart';
 import '../services/postgres/postgres_support.dart';
-import '../services/variant_offer_exclusivity_service.dart';
+import '../services/offers/variant_offer_exclusivity_service.dart';
 
 class BogoEndpoint extends Endpoint {
   final PostgresOfferService _offers = PostgresOfferService();

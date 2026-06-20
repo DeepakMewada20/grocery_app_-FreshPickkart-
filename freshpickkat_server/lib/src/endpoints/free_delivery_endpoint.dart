@@ -4,12 +4,12 @@ import '../generated/protocol.dart';
 import '../services/business/validation_service.dart';
 import '../services/delivery/delivery_charge_calculator.dart';
 import '../services/delivery/delivery_engine.dart';
-import '../services/notification_outbox_service.dart';
-import '../services/offer_conflict_service.dart';
+import '../services/background/notification_outbox_service.dart';
+import '../services/offers/offer_conflict_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_support.dart';
-import '../services/variant_offer_exclusivity_service.dart';
+import '../services/offers/variant_offer_exclusivity_service.dart';
 
 class FreeDeliveryEndpoint extends Endpoint {
   final PostgresAdminGuardService _adminGuard = PostgresAdminGuardService();

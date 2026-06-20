@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
-import '../services/delete_impact_service.dart';
+import '../services/admin/delete_impact_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_banner_service.dart';
 import '../services/postgres/postgres_support.dart';

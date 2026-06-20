@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../firebase_auth_service.dart';
+import '../firebase/firebase_auth_service.dart';
 
 class PostgresUserGuardService {
   Future<AppUserRow> ensureUser(

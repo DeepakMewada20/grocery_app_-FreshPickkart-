@@ -1,4 +1,4 @@
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 
 class EffectiveOfferResolver {
   /// Resolves free delivery for a variant using lower→higher quantity inheritance.

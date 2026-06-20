@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
-import 'firebase_notification_service.dart';
+import '../../generated/protocol.dart';
+import '../firebase/firebase_notification_service.dart';
 import 'notification_outbox_service.dart';
-import 'realtime_service.dart';
+import '../realtime/realtime_service.dart';
 
 class BackgroundTaskService {
   static const int _drainLock = 4200201;

@@ -2,10 +2,10 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
-import '../env_service.dart';
-import '../order_outbox_service.dart';
+import '../config/env_service.dart';
+import '../background/order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
-import '../snapshot_builder.dart';
+import '../orders/snapshot_builder.dart';
 import 'postgres_auto_refund_service.dart';
 import 'postgres_payment_link_service.dart';
 import 'postgres_support.dart';

@@ -1,8 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
-import '../effective_offer_resolver.dart';
-import '../featured_variant_resolver.dart';
+import '../offers/effective_offer_resolver.dart';
+import '../offers/featured_variant_resolver.dart';
 import 'postgres_support.dart';
 
 class PostgresCatalogService {

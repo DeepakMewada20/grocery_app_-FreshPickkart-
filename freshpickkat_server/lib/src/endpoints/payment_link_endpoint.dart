@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
-import '../services/env_service.dart';
+import '../services/config/env_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_payment_link_service.dart';
 import '../services/postgres/postgres_payment_service.dart';

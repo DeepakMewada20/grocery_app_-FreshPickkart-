@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'env_service.dart';
+import '../config/env_service.dart';
 
 class CachedRoute {
   final List<double> latitudes;

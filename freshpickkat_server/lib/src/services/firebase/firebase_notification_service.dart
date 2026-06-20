@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
+import '../../generated/protocol.dart';
 import 'firebase_service.dart';
-import 'postgres/postgres_support.dart';
+import '../postgres/postgres_support.dart';
 
 class FcmUnregisteredException implements Exception {
   final String token;

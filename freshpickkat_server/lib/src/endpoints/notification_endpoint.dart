@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
-import '../services/notification_outbox_service.dart';
+import '../services/background/notification_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_support.dart';
 

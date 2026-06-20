@@ -1,8 +1,8 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart';
-import 'postgres/postgres_audit_log_service.dart';
-import 'postgres/postgres_support.dart';
+import '../../generated/protocol.dart';
+import '../postgres/postgres_audit_log_service.dart';
+import '../postgres/postgres_support.dart';
 
 class CascadeDeactivationService {
   final PostgresAuditLogService _auditLog = PostgresAuditLogService();

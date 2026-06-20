@@ -1,7 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/protocol.dart' show OrderRealtimeEvent;
-import 'firebase_notification_service.dart';
+import '../../generated/protocol.dart' show OrderRealtimeEvent;
+import '../firebase/firebase_notification_service.dart';
 
 class NotificationService {
   static final FirebaseNotificationService _service =

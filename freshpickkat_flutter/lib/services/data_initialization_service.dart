@@ -1,6 +1,6 @@
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/home_data_service.dart';
-import 'package:freshpickkat_flutter/services/notification_service.dart';
+import 'package:freshpickkat_flutter/services/notifications/notification_service.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:get/get.dart';
 

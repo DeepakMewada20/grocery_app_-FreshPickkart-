@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
-import '../env_service.dart';
+import '../config/env_service.dart';
 
 class PaymentGatewayService {
   static const String razorpayBaseUrl = 'https://api.razorpay.com/v1';

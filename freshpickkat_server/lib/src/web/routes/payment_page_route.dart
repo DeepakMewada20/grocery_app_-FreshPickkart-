@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_payment_link_service.dart';
-import 'package:freshpickkat_server/src/services/env_service.dart';
+import 'package:freshpickkat_server/src/services/config/env_service.dart';
 
 class PaymentPageRoute extends Route {
   PaymentPageRoute() : super(methods: {Method.get, Method.post});

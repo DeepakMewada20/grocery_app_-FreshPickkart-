@@ -6,7 +6,7 @@ import '../services/postgres/postgres_banner_service.dart';
 import '../services/postgres/postgres_coupon_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_payment_link_service.dart';
-import '../services/pricing_engine.dart';
+import '../services/pricing/pricing_engine.dart';
 import 'order_endpoint.dart';
 import 'payment_endpoint.dart';
 

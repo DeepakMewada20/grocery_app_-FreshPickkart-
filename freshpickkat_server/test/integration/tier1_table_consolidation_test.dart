@@ -1,5 +1,5 @@
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
-import 'package:freshpickkat_server/src/services/dependency_checker.dart';
+import 'package:freshpickkat_server/src/services/admin/dependency_checker.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_support.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';

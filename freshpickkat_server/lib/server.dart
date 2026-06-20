@@ -2,14 +2,14 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:serverpod/serverpod.dart';
-import 'src/services/firebase_service.dart';
+import 'src/services/firebase/firebase_service.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/services/background_task_service.dart';
+import 'src/services/background/background_task_service.dart';
 import 'src/services/analytics/product_analytics_cron_job.dart';
-import 'src/services/payment_reconciliation_cron_job.dart';
-import 'src/services/banner_cleanup_cron_job.dart';
+import 'src/services/background/payment_reconciliation_cron_job.dart';
+import 'src/services/background/banner_cleanup_cron_job.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 import 'src/web/routes/razorpay_webhook_route.dart';
