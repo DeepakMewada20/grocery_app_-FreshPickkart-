@@ -4,11 +4,7 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class RefundInfoCard extends StatelessWidget {
-  const RefundInfoCard({
-    super.key,
-    required this.refund,
-    this.retryButton,
-  });
+  const RefundInfoCard({super.key, required this.refund, this.retryButton});
 
   final RefundRecord refund;
   final Widget? retryButton;
@@ -85,16 +81,18 @@ class RefundInfoCard extends StatelessWidget {
           _row('Initiated', _formatDate(refund.createdAt), null, context),
           SizedBox(height: 8.h),
           _row('Expected', '2–5 Business Days', null, context),
-          if (retryButton != null) ...[
-            SizedBox(height: 16.h),
-            retryButton!,
-          ],
+          if (retryButton != null) ...[SizedBox(height: 16.h), retryButton!],
         ],
       ),
     );
   }
 
-  Widget _row(String label, String value, Color? valueColor, BuildContext context) {
+  Widget _row(
+    String label,
+    String value,
+    Color? valueColor,
+    BuildContext context,
+  ) {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [

@@ -33,8 +33,7 @@ class PostgresDeliveryOtpService {
     await DeliveryOtpRow.db.updateWhere(
       session,
       columnValues: (t) => [t.isActive(false)],
-      where: (t) =>
-          t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
+      where: (t) => t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
     );
 
     // Generate secure OTP
@@ -86,13 +85,13 @@ class PostgresDeliveryOtpService {
 
     final activeOtp = await DeliveryOtpRow.db.findFirstRow(
       session,
-      where: (t) =>
-          t.orderId.equals(orderRow.id!) &
-          t.isActive.equals(true),
+      where: (t) => t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
     );
 
     if (activeOtp == null) {
-      throw StateError('No active OTP found for this order. Please generate a new OTP.');
+      throw StateError(
+        'No active OTP found for this order. Please generate a new OTP.',
+      );
     }
 
     if (activeOtp.expiresAt.isBefore(DateTime.now().toUtc())) {
@@ -171,8 +170,7 @@ class PostgresDeliveryOtpService {
     await DeliveryOtpRow.db.updateWhere(
       session,
       columnValues: (t) => [t.isActive(false)],
-      where: (t) =>
-          t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
+      where: (t) => t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
     );
 
     // Check resend limit
@@ -181,7 +179,9 @@ class PostgresDeliveryOtpService {
       where: (t) => t.orderId.equals(orderRow.id!),
     );
     if (resentCount >= maxResends + 1) {
-      throw StateError('Maximum OTP resend limit reached (${maxResends + 1} attempts).');
+      throw StateError(
+        'Maximum OTP resend limit reached (${maxResends + 1} attempts).',
+      );
     }
 
     // Generate new OTP
@@ -231,9 +231,7 @@ class PostgresDeliveryOtpService {
 
     final activeOtp = await DeliveryOtpRow.db.findFirstRow(
       session,
-      where: (t) =>
-          t.orderId.equals(orderRow.id!) &
-          t.isActive.equals(true),
+      where: (t) => t.orderId.equals(orderRow.id!) & t.isActive.equals(true),
     );
 
     if (activeOtp == null) return null;

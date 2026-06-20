@@ -18,46 +18,50 @@ void main() {
     Get.reset();
   });
 
-  testWidgets('address change request screen shows request details and actions', (
-    tester,
-  ) async {
-    final controller = _FakeAdminComplaintController(
-      complaints: [
-        _addressChangeComplaint(
-          complaintId: 'c-1',
-          orderNumber: 'ORD-9001',
-          oldAddress: Address(
-            street: '1 Old Street',
-            city: 'Old City',
-            state: 'Old State',
-            zipCode: '123123',
-            country: 'India',
-            latitude: 28.55,
-            longitude: 77.11,
+  testWidgets(
+    'address change request screen shows request details and actions',
+    (tester) async {
+      final controller = _FakeAdminComplaintController(
+        complaints: [
+          _addressChangeComplaint(
+            complaintId: 'c-1',
+            orderNumber: 'ORD-9001',
+            oldAddress: Address(
+              street: '1 Old Street',
+              city: 'Old City',
+              state: 'Old State',
+              zipCode: '123123',
+              country: 'India',
+              latitude: 28.55,
+              longitude: 77.11,
+            ),
+            newAddress: Address(
+              street: '99 New Street',
+              city: 'New City',
+              state: 'New State',
+              zipCode: '321321',
+              country: 'India',
+              latitude: 28.57,
+              longitude: 77.19,
+            ),
           ),
-          newAddress: Address(
-            street: '99 New Street',
-            city: 'New City',
-            state: 'New State',
-            zipCode: '321321',
-            country: 'India',
-            latitude: 28.57,
-            longitude: 77.19,
-          ),
-        ),
-      ],
-    );
-    Get.put<AdminComplaintController>(controller, tag: 'address_change_requests');
+        ],
+      );
+      Get.put<AdminComplaintController>(
+        controller,
+        tag: 'address_change_requests',
+      );
 
-    await _pumpApp(tester, const AddressChangeRequestsScreen());
+      await _pumpApp(tester, const AddressChangeRequestsScreen());
 
-    expect(find.text('Order #ORD-9001'), findsOneWidget);
-    expect(find.text('Old address'), findsOneWidget);
-    expect(find.text('New address'), findsOneWidget);
-    expect(find.text('Approve'), findsOneWidget);
-    expect(find.text('Reject'), findsOneWidget);
-    expect(find.text('Call Customer'), findsOneWidget);
-  });
+      expect(find.text('Order #ORD-9001'), findsOneWidget);
+      expect(find.text('Old address'), findsOneWidget);
+      expect(find.text('New address'), findsOneWidget);
+      expect(find.text('Approve'), findsOneWidget);
+      expect(find.text('Reject'), findsOneWidget);
+      expect(find.text('Call Customer'), findsOneWidget);
+    },
+  );
 }
 
 Future<void> _pumpApp(WidgetTester tester, Widget child) async {

@@ -416,14 +416,18 @@ class BasketSuggestionService {
   }
 
   static String _getScoredCategory(_Scored item) {
-    final action = item.suggestion.action ??
+    final action =
+        item.suggestion.action ??
         (item.suggestion.actions?.isNotEmpty == true
             ? item.suggestion.actions!.first
             : null);
 
     // 1. Free Delivery Product
     if (action?.label == 'FREE DELIVERY' ||
-        item.suggestion.subtitle?.toLowerCase().contains('free delivery with this product') == true) {
+        item.suggestion.subtitle?.toLowerCase().contains(
+              'free delivery with this product',
+            ) ==
+            true) {
       return 'free_delivery_product';
     }
 
@@ -2178,7 +2182,8 @@ class BasketSuggestionService {
           .where((v) => v.isAvailable)
           .toList()
           .firstOrNull;
-      final effectiveVariant = variant ??
+      final effectiveVariant =
+          variant ??
           ProductVariant(
             variantId: product.productId!,
             price: product.price,
@@ -2221,8 +2226,7 @@ class BasketSuggestionService {
           suggestion: BasketSuggestion(
             title: product.productName,
             subtitle: 'Free delivery with this product',
-            message:
-                'Add ${product.productName} for free delivery',
+            message: 'Add ${product.productName} for free delivery',
             type: 'product',
             priority: 0,
             actions: [action],

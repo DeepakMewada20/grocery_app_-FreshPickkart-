@@ -194,13 +194,9 @@ class CatalogOfferFilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(999),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       side: BorderSide(
-        color: selected
-            ? accent
-            : AdminAppTheme.getBorderColor(context),
+        color: selected ? accent : AdminAppTheme.getBorderColor(context),
       ),
       backgroundColor: isDark
           ? AdminThemeTokens.darkSurfaceElevated
@@ -209,9 +205,7 @@ class CatalogOfferFilterChip extends StatelessWidget {
       labelStyle: TextStyle(
         fontSize: 12.sp.clamp(10.0, 13.0),
         fontWeight: FontWeight.w600,
-        color: selected
-            ? accent
-            : AdminAppTheme.getTextPrimaryColor(context),
+        color: selected ? accent : AdminAppTheme.getTextPrimaryColor(context),
       ),
       padding: EdgeInsets.symmetric(horizontal: 4.w),
     );

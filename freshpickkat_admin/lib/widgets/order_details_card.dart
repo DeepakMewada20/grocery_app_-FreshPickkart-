@@ -109,11 +109,11 @@ class OrderDetailsCard extends StatelessWidget {
           color: AdminAppTheme.getSuccessColor(context),
         ),
       _buildSummaryRow(
-          'BOGO Savings',
-          -bogoDiscount,
-          cs,
-          color: AdminAppTheme.getSuccessColor(context),
-        ),
+        'BOGO Savings',
+        -bogoDiscount,
+        cs,
+        color: AdminAppTheme.getSuccessColor(context),
+      ),
       _buildSummaryRow(
         'Items Total',
         complaint.totalAmount ?? _calcSubtotal(complaint.orderItems),
@@ -341,8 +341,8 @@ class _ComplaintItemLine extends StatelessWidget {
         SizedBox(
           width: 80.w,
           child: Text(
-'₹${item.totalPrice.toStringAsFixed(2)}',
-    textAlign: TextAlign.end,
+            '₹${item.totalPrice.toStringAsFixed(2)}',
+            textAlign: TextAlign.end,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),

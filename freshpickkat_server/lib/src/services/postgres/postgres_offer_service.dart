@@ -738,8 +738,6 @@ class PostgresOfferService {
     return true;
   }
 
-
-
   Future<List<BogoOffer>> _hydrateBogoOffers(
     Session session,
     List<BogoOfferRow> rows,
@@ -879,11 +877,21 @@ class PostgresOfferService {
         discountValue: row.discountValue,
         maxDiscount: row.maxDiscountAmount,
         minOrderAmount: row.minOrderAmount,
-        productIds: row.scopeProductIds != null && row.scopeProductIds!.isNotEmpty
-            ? row.scopeProductIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+        productIds:
+            row.scopeProductIds != null && row.scopeProductIds!.isNotEmpty
+            ? row.scopeProductIds!
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList()
             : null,
-        excludeProductIds: row.excludeProductIds != null && row.excludeProductIds!.isNotEmpty
-            ? row.excludeProductIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+        excludeProductIds:
+            row.excludeProductIds != null && row.excludeProductIds!.isNotEmpty
+            ? row.excludeProductIds!
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList()
             : null,
         startDate: row.startsAt,
         endDate: row.endsAt,
@@ -1015,13 +1023,21 @@ class PostgresOfferService {
         .whereType<UuidValue>()
         .map((id) => id.toString())
         .join(',');
-    final row = await CategoryOfferRow.db.findById(session, offerId, transaction: transaction);
+    final row = await CategoryOfferRow.db.findById(
+      session,
+      offerId,
+      transaction: transaction,
+    );
     if (row == null) return;
     final updated = row.copyWith(
       scopeProductIds: scopeStr.isEmpty ? null : scopeStr,
       excludeProductIds: exclStr.isEmpty ? null : exclStr,
     );
-    await CategoryOfferRow.db.updateRow(session, updated, transaction: transaction);
+    await CategoryOfferRow.db.updateRow(
+      session,
+      updated,
+      transaction: transaction,
+    );
   }
 
   Future<CategoryRow?> _resolveCategory(

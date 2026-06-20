@@ -34,7 +34,10 @@ Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
 ) async {
   try {
     await Firebase.initializeApp();
-    final title = message.notification?.title ?? message.data['title'] ?? 'Payment received!';
+    final title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'Payment received!';
     final body = message.notification?.body ?? message.data['body'] ?? '';
     if (title.isEmpty || body.isEmpty) return;
 
@@ -53,7 +56,8 @@ Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
     );
     await localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
 
     const androidDetails = AndroidNotificationDetails(
@@ -328,9 +332,10 @@ class NotificationController extends GetxController {
         if (orderId != null && orderId.isNotEmpty) {
           await navigateDeferred(
             loadLibrary: order_confirmation_screen.loadLibrary,
-            pageBuilder: () => order_confirmation_screen.OrderConfirmationScreen(
-              orderId: orderId,
-            ),
+            pageBuilder: () =>
+                order_confirmation_screen.OrderConfirmationScreen(
+                  orderId: orderId,
+                ),
           );
         }
         return;

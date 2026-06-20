@@ -84,7 +84,8 @@ Future<bool?> showConfirmActionDialog({
                             confirmLabel,
                             style: TextStyle(
                               color:
-                                  confirmColor ?? AdminAppTheme.getErrorColor(context),
+                                  confirmColor ??
+                                  AdminAppTheme.getErrorColor(context),
                             ),
                           ),
                   ),
@@ -100,12 +101,13 @@ Future<bool> showDeactivationDialog({
   required String message,
 }) async {
   return await Get.defaultDialog<bool>(
-    title: title,
-    middleText: '$message\n\nDo you want to deactivate this?',
-    textCancel: 'Cancel',
-    textConfirm: 'Deactivate',
-    onConfirm: () => Get.back(result: true),
-  ) ?? false;
+        title: title,
+        middleText: '$message\n\nDo you want to deactivate this?',
+        textCancel: 'Cancel',
+        textConfirm: 'Deactivate',
+        onConfirm: () => Get.back(result: true),
+      ) ??
+      false;
 }
 
 void showUndoSnackBar(
@@ -120,11 +122,7 @@ void showUndoSnackBar(
     SnackBar(
       content: Row(
         children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
+          const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -139,9 +137,7 @@ void showUndoSnackBar(
       ),
       duration: duration,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       action: SnackBarAction(
         label: 'UNDO',
         textColor: Colors.white,
@@ -157,5 +153,3 @@ void showUndoSnackBar(
     controller.close();
   });
 }
-
-

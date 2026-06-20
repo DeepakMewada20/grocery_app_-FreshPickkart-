@@ -41,10 +41,10 @@ class PostgresUserService {
       );
 
       existing ??= await _findUserByPhoneNumber(
-          session,
-          user.phoneNumber.trim(),
-          transaction: transaction,
-        );
+        session,
+        user.phoneNumber.trim(),
+        transaction: transaction,
+      );
 
       final role = cleanNullableString(user.role) ?? 'user';
       final persisted = existing == null

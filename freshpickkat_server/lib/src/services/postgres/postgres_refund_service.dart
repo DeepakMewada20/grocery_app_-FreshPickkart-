@@ -330,9 +330,11 @@ class PostgresRefundService {
     String? failureReason;
     if (!success && response['body'] != null) {
       try {
-        final body = jsonDecode(response['body'] as String) as Map<String, dynamic>;
+        final body =
+            jsonDecode(response['body'] as String) as Map<String, dynamic>;
         final error = body['error'] as Map<String, dynamic>?;
-        failureReason = error?['description'] as String? ?? response['body']!.toString();
+        failureReason =
+            error?['description'] as String? ?? response['body']!.toString();
       } catch (_) {
         failureReason = response['body']!.toString();
       }
@@ -402,7 +404,8 @@ class PostgresRefundService {
     );
 
     if (refund.refundStatus == 'failed') {
-      final errorMsg = refund.failureReason ?? 'Refund failed at payment gateway';
+      final errorMsg =
+          refund.failureReason ?? 'Refund failed at payment gateway';
       session.log(
         'Refund failed for order ${order.orderNumber}: $errorMsg',
         level: LogLevel.error,

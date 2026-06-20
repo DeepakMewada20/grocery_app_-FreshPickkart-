@@ -81,8 +81,7 @@ class PaymentLinkEndpoint extends Endpoint {
       );
 
       final amountInPaise = (serverFinalAmount * 100).round();
-      final enableWebCheckout =
-          EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
+      final enableWebCheckout = EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
 
       if (enableWebCheckout) {
         // === BROWSER CHECKOUT FLOW (existing) ===
@@ -127,7 +126,8 @@ class PaymentLinkEndpoint extends Endpoint {
           );
           return protocol.PaymentLinkData(
             success: false,
-            error: linkResult['error'] as String? ??
+            error:
+                linkResult['error'] as String? ??
                 'Failed to create payment link',
             orderId: orderNumber,
           );
@@ -169,7 +169,8 @@ class PaymentLinkEndpoint extends Endpoint {
           );
           return protocol.PaymentLinkData(
             success: false,
-            error: linkResult['error'] as String? ??
+            error:
+                linkResult['error'] as String? ??
                 'Failed to create payment link',
             orderId: orderNumber,
           );
@@ -233,14 +234,20 @@ class PaymentLinkEndpoint extends Endpoint {
       final linkMap = linkRows.first.toColumnMap();
 
       if (linkMap['isUsed'] as bool? ?? false) {
-        return {'success': false, 'message': 'This payment link has already been used.'};
+        return {
+          'success': false,
+          'message': 'This payment link has already been used.',
+        };
       }
 
       final expiresAtStr = linkMap['expiresAt'] as String?;
       if (expiresAtStr != null) {
         final expiresAt = DateTime.tryParse(expiresAtStr)?.toUtc();
         if (expiresAt != null && DateTime.now().toUtc().isAfter(expiresAt)) {
-          return {'success': false, 'message': 'This payment link has expired.'};
+          return {
+            'success': false,
+            'message': 'This payment link has expired.',
+          };
         }
       }
 
@@ -250,7 +257,10 @@ class PaymentLinkEndpoint extends Endpoint {
         return {'success': false, 'message': 'Invalid order reference.'};
       }
 
-      final orderRow = await protocol.CustomerOrderRow.db.findById(session, parsedOrderId);
+      final orderRow = await protocol.CustomerOrderRow.db.findById(
+        session,
+        parsedOrderId,
+      );
       if (orderRow == null) {
         return {'success': false, 'message': 'Order not found.'};
       }
@@ -274,7 +284,8 @@ class PaymentLinkEndpoint extends Endpoint {
 
       return {
         'success': false,
-        'message': result['message'] as String? ??
+        'message':
+            result['message'] as String? ??
             result['error'] as String? ??
             'Payment verification failed.',
       };

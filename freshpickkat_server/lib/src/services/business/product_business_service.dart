@@ -121,9 +121,7 @@ class ProductBusinessService {
       double price = variant.price;
       if (price <= 0 && realPrice > 0) {
         price = calculateRealPriceForVariant(
-          baseRealPrice: product.price > 0
-              ? product.price
-              : product.realPrice,
+          baseRealPrice: product.price > 0 ? product.price : product.realPrice,
           baseQuantity: baseQuantity,
           baseUnit: baseUnit,
           variantQuantity: variantQuantity,

@@ -29,9 +29,10 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.isRegistered<AdminPaymentMonitoringController>(
-      tag: 'payment_monitoring',
-    )
+    _controller =
+        Get.isRegistered<AdminPaymentMonitoringController>(
+          tag: 'payment_monitoring',
+        )
         ? Get.find<AdminPaymentMonitoringController>(tag: 'payment_monitoring')
         : Get.put(
             AdminPaymentMonitoringController(),
@@ -105,18 +106,15 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
 
   Widget _buildHealthBanner(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final pending =
-        (_healthMetrics!['pendingPaymentCount'] as int?) ?? 0;
-    final expired =
-        (_healthMetrics!['expiredSessionCount'] as int?) ?? 0;
+    final pending = (_healthMetrics!['pendingPaymentCount'] as int?) ?? 0;
+    final expired = (_healthMetrics!['expiredSessionCount'] as int?) ?? 0;
     final autoRefundPending =
         (_healthMetrics!['autoRefundPendingCount'] as int?) ?? 0;
     final autoRefundFailed =
         (_healthMetrics!['autoRefundFailedCount'] as int?) ?? 0;
     final duplicatesToday =
         (_healthMetrics!['duplicatePaymentCount'] as int?) ?? 0;
-    final manualReview =
-        (_healthMetrics!['manualReviewCount'] as int?) ?? 0;
+    final manualReview = (_healthMetrics!['manualReviewCount'] as int?) ?? 0;
     final needsAttention = expired + autoRefundFailed + manualReview;
 
     return Container(
@@ -144,10 +142,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
               SizedBox(width: 6.w),
               Text(
                 'Payment Health',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14.sp,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.sp),
               ),
               const Spacer(),
               if (_healthLoading)
@@ -171,7 +166,11 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
               _metricChip('Expired', expired, cs.error),
               _metricChip('Duplicates (today)', duplicatesToday, Colors.purple),
               _metricChip('Manual Review', manualReview, Colors.red),
-              _metricChip('Auto-Refund Pending', autoRefundPending, Colors.orange),
+              _metricChip(
+                'Auto-Refund Pending',
+                autoRefundPending,
+                Colors.orange,
+              ),
               _metricChip('Auto-Refund Failed', autoRefundFailed, cs.error),
             ],
           ),
@@ -206,10 +205,11 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
         decoration: InputDecoration(
           hintText: 'Search by order, payment ID, phone or email...',
           prefixIcon: const Icon(Icons.search_outlined),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         ),
         onChanged: _controller.onSearchChanged,
       ),
@@ -294,10 +294,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
       }
       final error = _controller.error.value;
       if (error != null) {
-        return AdminStateView.error(
-          message: error,
-          onRetry: _controller.load,
-        );
+        return AdminStateView.error(message: error, onRetry: _controller.load);
       }
       if (_controller.orders.isEmpty) {
         return AdminStateView.empty(
@@ -310,9 +307,9 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
         onRefresh: _controller.load,
         child: ListView.separated(
           controller: _scrollController,
-          padding: AdminResponsive.pagePadding(context).copyWith(
-            bottom: AdminResponsive.bottomInset(context),
-          ),
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
           itemCount:
               _controller.orders.length + (_controller.hasMore.value ? 1 : 0),
           separatorBuilder: (_, _) => SizedBox(height: 8.h),
@@ -324,8 +321,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
             return _OrderCard(
               order: order,
               onTap: () => _openOrderDetail(context, order),
-              onRazorpayDetails: () =>
-                  _showRazorpayDetailSheet(context, order),
+              onRazorpayDetails: () => _showRazorpayDetailSheet(context, order),
             );
           },
         ),
@@ -346,10 +342,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
 
   Future<void> _openOrderDetail(BuildContext context, Order order) async {
     await Get.to(
-      () => _PaymentOrderDetailScreen(
-        order: order,
-        controller: _controller,
-      ),
+      () => _PaymentOrderDetailScreen(order: order, controller: _controller),
     );
   }
 
@@ -545,16 +538,13 @@ class _RazorpayDetailSheetContentState
             width: 140.w,
             child: Text(
               label,
-              style: AdminTextStyles.caption(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: AdminTextStyles.caption(
+                context,
+              ).copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
+            child: SelectableText(value, style: const TextStyle(fontSize: 13)),
           ),
         ],
       ),
@@ -563,8 +553,10 @@ class _RazorpayDetailSheetContentState
 
   String _formatTimestamp(int? ts) {
     if (ts != null) {
-      final dt =
-          DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toLocal();
+      final dt = DateTime.fromMillisecondsSinceEpoch(
+        ts * 1000,
+        isUtc: true,
+      ).toLocal();
       return '${dt.day}/${dt.month}/${dt.year} '
           '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
     }
@@ -636,11 +628,7 @@ class _OrderCard extends StatelessWidget {
               children: [
                 _statusChip(context, order.status, cs.primary),
                 SizedBox(width: 6.w),
-                _statusChip(
-                  context,
-                  order.paymentStatus,
-                  paymentStatusColor,
-                ),
+                _statusChip(context, order.paymentStatus, paymentStatusColor),
                 const Spacer(),
                 Text(
                   _formatDateTime(order.orderedAt),
@@ -680,8 +668,11 @@ class _OrderCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.info_outline,
-                              size: 14.r, color: cs.primary),
+                          Icon(
+                            Icons.info_outline,
+                            size: 14.r,
+                            color: cs.primary,
+                          ),
                           SizedBox(width: 4.w),
                           Text(
                             'Details',
@@ -759,8 +750,7 @@ class _PaymentOrderDetailScreen extends StatefulWidget {
       _PaymentOrderDetailScreenState();
 }
 
-class _PaymentOrderDetailScreenState
-    extends State<_PaymentOrderDetailScreen> {
+class _PaymentOrderDetailScreenState extends State<_PaymentOrderDetailScreen> {
   PaymentOrderDetailHydrated? _hydrated;
   bool _loading = true;
   bool _reconciling = false;
@@ -819,17 +809,15 @@ class _PaymentOrderDetailScreenState
       final result = await widget.controller.reconcileAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.message ?? 'Reconciliation complete'),
-          ),
+          SnackBar(content: Text(result.message ?? 'Reconciliation complete')),
         );
         _load();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Reconciliation failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Reconciliation failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _reconciling = false);
@@ -845,9 +833,7 @@ class _PaymentOrderDetailScreenState
       final decoded = jsonDecode(json) as Map<String, dynamic>;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(decoded['message']?.toString() ?? 'Done'),
-          ),
+          SnackBar(content: Text(decoded['message']?.toString() ?? 'Done')),
         );
         _load();
       }
@@ -878,9 +864,9 @@ class _PaymentOrderDetailScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Retry failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Retry failed: $e')));
       }
     }
   }
@@ -894,16 +880,18 @@ class _PaymentOrderDetailScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(decoded['message'] as String? ?? 'Marked as reviewed'),
+            content: Text(
+              decoded['message'] as String? ?? 'Marked as reviewed',
+            ),
           ),
         );
         _loadAutoRefundJobs();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mark reviewed failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Mark reviewed failed: $e')));
       }
     }
   }
@@ -934,10 +922,9 @@ class _PaymentOrderDetailScreenState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding:
-                  AdminResponsive.pagePadding(context).copyWith(
-                    bottom: AdminResponsive.bottomInset(context),
-                  ),
+              padding: AdminResponsive.pagePadding(
+                context,
+              ).copyWith(bottom: AdminResponsive.bottomInset(context)),
               children: [
                 AdminResponsive.constrainContent(
                   context: context,
@@ -959,8 +946,7 @@ class _PaymentOrderDetailScreenState
                       SizedBox(height: 12.h),
                       _StatusComparisonPanel(
                         order: widget.order,
-                        paymentTransaction:
-                            _hydrated?.paymentTransaction,
+                        paymentTransaction: _hydrated?.paymentTransaction,
                         razorpayLiveData: _hydrated?.razorpayLiveStatus,
                       ),
                       SizedBox(height: 12.h),
@@ -994,7 +980,7 @@ class _PaymentOrderDetailScreenState
                 ),
               ],
             ),
-     );
+    );
   }
 }
 
@@ -1050,30 +1036,15 @@ class _PaymentTransactionPanel extends StatelessWidget {
     return _InfoPanel(
       title: 'Payment Transaction (DB)',
       children: [
-        _InfoRow(
-          'Gateway Order ID',
-          paymentTransaction!.gatewayOrderId ?? '-',
-        ),
+        _InfoRow('Gateway Order ID', paymentTransaction!.gatewayOrderId ?? '-'),
         _InfoRow(
           'Gateway Payment ID',
           paymentTransaction!.gatewayPaymentId ?? '-',
         ),
-        _InfoRow(
-          'Amount',
-          paymentTransaction!.amount?.toString() ?? '-',
-        ),
-        _InfoRow(
-          'Status',
-          paymentTransaction!.paymentStatus ?? '-',
-        ),
-        _InfoRow(
-          'Gateway Status',
-          paymentTransaction!.gatewayStatus ?? '-',
-        ),
-        _InfoRow(
-          'Failure Reason',
-          paymentTransaction!.failureReason ?? 'None',
-        ),
+        _InfoRow('Amount', paymentTransaction!.amount?.toString() ?? '-'),
+        _InfoRow('Status', paymentTransaction!.paymentStatus ?? '-'),
+        _InfoRow('Gateway Status', paymentTransaction!.gatewayStatus ?? '-'),
+        _InfoRow('Failure Reason', paymentTransaction!.failureReason ?? 'None'),
       ],
     );
   }
@@ -1109,17 +1080,16 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
                   style: AdminTextStyles.caption(context),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onRefresh,
-              ),
+              IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
             ],
           )
         else if (liveStatus!.error != null) ...[
           Container(
             padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
-              color: AdminAppTheme.getErrorColor(context).withValues(alpha: 0.08),
+              color: AdminAppTheme.getErrorColor(
+                context,
+              ).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Column(
@@ -1159,10 +1129,7 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
                   style: AdminTextStyles.caption(context),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onRefresh,
-              ),
+              IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
             ],
           ),
         ] else ...[
@@ -1178,7 +1145,8 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
             _InfoRow('Captured', liveStatus!.captured.toString()),
           if (liveStatus!.refundStatus != null)
             _InfoRow('Refund Status', liveStatus!.refundStatus.toString()),
-          if (liveStatus!.amountRefunded != null && liveStatus!.amountRefunded! > 0)
+          if (liveStatus!.amountRefunded != null &&
+              liveStatus!.amountRefunded! > 0)
             _InfoRow('Amount Refunded', _fmtAmount(liveStatus!.amountRefunded)),
           if (liveStatus!.fee != null)
             _InfoRow('Razorpay Fee', _fmtAmount(liveStatus!.fee)),
@@ -1200,7 +1168,10 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
           if (liveStatus!.errorCode != null)
             _InfoRow('Error Code', liveStatus!.errorCode.toString()),
           if (liveStatus!.errorDescription != null)
-            _InfoRow('Error Description', liveStatus!.errorDescription.toString()),
+            _InfoRow(
+              'Error Description',
+              liveStatus!.errorDescription.toString(),
+            ),
         ],
       ],
     );
@@ -1209,8 +1180,10 @@ class _RazorpayLiveStatusPanel extends StatelessWidget {
 
 String _formatRazorpayTs(int? ts) {
   if (ts != null) {
-    final dt =
-        DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toLocal();
+    final dt = DateTime.fromMillisecondsSinceEpoch(
+      ts * 1000,
+      isUtc: true,
+    ).toLocal();
     return '${dt.day}/${dt.month}/${dt.year} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
   }
@@ -1268,11 +1241,7 @@ class _StatusComparisonPanel extends StatelessWidget {
             padding: EdgeInsets.only(bottom: 8.h),
             child: Row(
               children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: cs.error,
-                  size: 18.r,
-                ),
+                Icon(Icons.warning_amber_rounded, color: cs.error, size: 18.r),
                 SizedBox(width: 6.w),
                 Text(
                   'Status mismatch detected',
@@ -1328,10 +1297,7 @@ class _RefundInfoPanel extends StatelessWidget {
                   style: AdminTextStyles.caption(context),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onRefresh,
-              ),
+              IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
             ],
           )
         else ...[
@@ -1467,9 +1433,7 @@ class _QuickActionsPanel extends StatelessWidget {
                   ],
                 );
                 final url = uri.toString();
-                final snack = SnackBar(
-                  content: Text('URL copied: $url'),
-                );
+                final snack = SnackBar(content: Text('URL copied: $url'));
                 ScaffoldMessenger.of(context).showSnackBar(snack);
               },
               icon: const Icon(Icons.open_in_new_outlined),
@@ -1527,10 +1491,7 @@ class _AutoRefundPanel extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 8.h),
-              OutlinedButton(
-                onPressed: onRefresh,
-                child: const Text('Retry'),
-              ),
+              OutlinedButton(onPressed: onRefresh, child: const Text('Retry')),
             ],
           )
         else if (jobs == null || jobs!.isEmpty)
@@ -1542,10 +1503,7 @@ class _AutoRefundPanel extends StatelessWidget {
                   style: AdminTextStyles.caption(context),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: onRefresh,
-              ),
+              IconButton(icon: const Icon(Icons.refresh), onPressed: onRefresh),
             ],
           )
         else ...[
@@ -1718,10 +1676,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(label, style: AdminTextStyles.caption(context)),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
+            child: SelectableText(value, style: const TextStyle(fontSize: 13)),
           ),
         ],
       ),

@@ -244,9 +244,7 @@ class _ProductsScreenState extends State<ProductsScreen>
     }
 
     try {
-      final result = await _productController.deleteProduct(
-        product.productId!,
-      );
+      final result = await _productController.deleteProduct(product.productId!);
       if (!mounted) return;
       if (result == null) {
         showUndoSnackBar(
@@ -265,9 +263,9 @@ class _ProductsScreenState extends State<ProductsScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete product: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete product: $e')));
       }
     }
   }

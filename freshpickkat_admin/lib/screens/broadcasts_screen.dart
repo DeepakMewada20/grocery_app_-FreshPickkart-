@@ -50,7 +50,9 @@ class _BroadcastsScreenState extends State<BroadcastsScreen> {
             isScrollable: true,
             indicatorColor: Theme.of(context).colorScheme.onPrimary,
             labelColor: Theme.of(context).colorScheme.onPrimary,
-            unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.6),
+            unselectedLabelColor: Theme.of(
+              context,
+            ).colorScheme.onPrimary.withValues(alpha: 0.6),
             tabs: const [
               Tab(text: 'Create Announcement'),
               Tab(text: 'Notification History'),
@@ -170,9 +172,9 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       () => RefreshIndicator(
         onRefresh: widget.controller.refreshAll,
         child: ListView(
-          padding: AdminResponsive.pagePadding(context).copyWith(
-            bottom: AdminResponsive.bottomInset(context),
-          ),
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
           children: [
             AdminResponsive.constrainContent(
               context: context,
@@ -547,10 +549,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Select Users',
-                    style: AdminTextStyles.screenTitle(ctx),
-                  ),
+                  Text('Select Users', style: AdminTextStyles.screenTitle(ctx)),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(ctx),
@@ -563,10 +562,9 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
             // Widget Content
             Expanded(
               child: Padding(
-                padding: AdminResponsive.pagePadding(ctx).copyWith(
-                  top: 0,
-                  bottom: 0,
-                ),
+                padding: AdminResponsive.pagePadding(
+                  ctx,
+                ).copyWith(top: 0, bottom: 0),
                 child: UserSearchFilterWidget(
                   key: tempKey,
                   allUsers: users,
@@ -578,10 +576,9 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
 
             // Footer with buttons
             Padding(
-              padding: AdminResponsive.pagePadding(ctx).copyWith(
-                top: 8,
-                bottom: 16 + AdminResponsive.bottomInset(ctx),
-              ),
+              padding: AdminResponsive.pagePadding(
+                ctx,
+              ).copyWith(top: 8, bottom: 16 + AdminResponsive.bottomInset(ctx)),
               child: Row(
                 children: [
                   Expanded(
@@ -730,9 +727,9 @@ class _BroadcastListTab extends StatelessWidget {
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: ListView(
-          padding: AdminResponsive.pagePadding(context).copyWith(
-            bottom: AdminResponsive.bottomInset(context),
-          ),
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
           children: [
             AdminResponsive.constrainContent(
               context: context,

@@ -39,9 +39,7 @@ Future<DeleteChoice> _showHardDeleteDialog(
           child: const Text('Cancel'),
         ),
         FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.red.shade700,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
           onPressed: () => Navigator.pop(context, DeleteChoice.hardDelete),
           child: const Text('Delete Permanently'),
         ),
@@ -119,7 +117,11 @@ Future<DeleteChoice> _showReferencesDialog(
     builder: (context) => AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 24),
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange.shade700,
+            size: 24,
+          ),
           const SizedBox(width: 10),
           const Expanded(child: Text('Permanent Delete Not Possible')),
         ],
@@ -139,7 +141,11 @@ Future<DeleteChoice> _showReferencesDialog(
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 18, color: Colors.orange.shade700),
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.orange.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(

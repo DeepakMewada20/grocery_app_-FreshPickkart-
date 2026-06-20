@@ -271,7 +271,12 @@ class AdminProductController extends GetxController {
       await ApiClient().request(() async {
         final uid = AdminSessionService.requireUid();
         final idToken = await AdminSessionService.requireIdToken();
-        await _client.product.deactivateProduct(productId, isActive, uid, idToken);
+        await _client.product.deactivateProduct(
+          productId,
+          isActive,
+          uid,
+          idToken,
+        );
       });
     } catch (e) {
       rethrow;

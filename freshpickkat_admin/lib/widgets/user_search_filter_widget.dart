@@ -240,8 +240,8 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
   Widget _buildSelectionControls(BuildContext context) {
     final filtered = _getFilteredAndSortedUsers();
     final hasFilteredUsers = filtered.isNotEmpty;
-    final allSelected = hasFilteredUsers &&
-        _selectedUserIds.length == filtered.length;
+    final allSelected =
+        hasFilteredUsers && _selectedUserIds.length == filtered.length;
     return Row(
       children: [
         Text(
@@ -253,7 +253,9 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
         const Spacer(),
         _CompactActionChip(
           label: 'Select All',
-          onTap: allSelected ? _clearSelection : (hasFilteredUsers ? _selectAll : null),
+          onTap: allSelected
+              ? _clearSelection
+              : (hasFilteredUsers ? _selectAll : null),
           isSelected: allSelected,
         ),
         SizedBox(width: 8.w),

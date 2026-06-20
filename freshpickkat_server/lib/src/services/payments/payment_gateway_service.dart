@@ -41,23 +41,25 @@ class PaymentGatewayService {
     required int amountInPaise,
     required String customerPhone,
   }) async {
-    final response = await http.post(
-      Uri.parse('$razorpayBaseUrl/orders'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-      body: jsonEncode({
-        'amount': amountInPaise,
-        'currency': 'INR',
-        'receipt': receipt,
-        'notes': {
-          'order_id': receipt,
-          'phone': customerPhone,
-        },
-      }),
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .post(
+          Uri.parse('$razorpayBaseUrl/orders'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+          body: jsonEncode({
+            'amount': amountInPaise,
+            'currency': 'INR',
+            'receipt': receipt,
+            'notes': {
+              'order_id': receipt,
+              'phone': customerPhone,
+            },
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
 
     return {
       'statusCode': response.statusCode,
@@ -73,20 +75,22 @@ class PaymentGatewayService {
     required Map<String, String> notes,
     String speed = 'optimum',
   }) async {
-    final response = await http.post(
-      Uri.parse('$razorpayBaseUrl/payments/$paymentId/refund'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-      body: jsonEncode({
-        'amount': amountInPaise,
-        'speed': speed,
-        'receipt': receipt,
-        'notes': notes,
-      }),
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .post(
+          Uri.parse('$razorpayBaseUrl/payments/$paymentId/refund'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+          body: jsonEncode({
+            'amount': amountInPaise,
+            'speed': speed,
+            'receipt': receipt,
+            'notes': notes,
+          }),
+        )
+        .timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,
@@ -95,14 +99,16 @@ class PaymentGatewayService {
   }
 
   Future<Map<String, dynamic>> fetchPaymentStatus(String paymentId) async {
-    final response = await http.get(
-      Uri.parse('$razorpayBaseUrl/payments/$paymentId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .get(
+          Uri.parse('$razorpayBaseUrl/payments/$paymentId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,
@@ -146,15 +152,17 @@ class PaymentGatewayService {
       body['callback_method'] = 'get';
     }
 
-    final response = await http.post(
-      Uri.parse('$razorpayBaseUrl/payment_links'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .post(
+          Uri.parse('$razorpayBaseUrl/payment_links'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 30));
 
     return {
       'statusCode': response.statusCode,
@@ -163,15 +171,19 @@ class PaymentGatewayService {
     };
   }
 
-  Future<Map<String, dynamic>> fetchPaymentLinkStatus(String razorpayPaymentLinkId) async {
-    final response = await http.get(
-      Uri.parse('$razorpayBaseUrl/payment_links/$razorpayPaymentLinkId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-    ).timeout(const Duration(seconds: 30));
+  Future<Map<String, dynamic>> fetchPaymentLinkStatus(
+    String razorpayPaymentLinkId,
+  ) async {
+    final response = await http
+        .get(
+          Uri.parse('$razorpayBaseUrl/payment_links/$razorpayPaymentLinkId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,
@@ -183,14 +195,16 @@ class PaymentGatewayService {
     required String paymentId,
     required String refundId,
   }) async {
-    final response = await http.get(
-      Uri.parse('$razorpayBaseUrl/payments/$paymentId/refunds/$refundId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
-      },
-    ).timeout(const Duration(seconds: 30));
+    final response = await http
+        .get(
+          Uri.parse('$razorpayBaseUrl/payments/$paymentId/refunds/$refundId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
     return {
       'statusCode': response.statusCode,
       'body': response.body,

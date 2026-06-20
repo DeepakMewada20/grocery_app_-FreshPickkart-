@@ -27,9 +27,8 @@ class _CancellationRequestsScreenState
   @override
   void initState() {
     super.initState();
-    _controller = Get.isRegistered<AdminCancellationController>(
-      tag: 'cancellation',
-    )
+    _controller =
+        Get.isRegistered<AdminCancellationController>(tag: 'cancellation')
         ? Get.find<AdminCancellationController>(tag: 'cancellation')
         : Get.put(AdminCancellationController(), tag: 'cancellation');
     _controller.loadRequests();
@@ -77,11 +76,11 @@ class _CancellationRequestsScreenState
           onRefresh: _controller.loadRequests,
           child: ListView.separated(
             controller: _scrollController,
-            padding: AdminResponsive.pagePadding(context).copyWith(
-              bottom: AdminResponsive.bottomInset(context),
-            ),
-            itemCount: _controller.orders.length +
-                (_controller.hasMore.value ? 1 : 0),
+            padding: AdminResponsive.pagePadding(
+              context,
+            ).copyWith(bottom: AdminResponsive.bottomInset(context)),
+            itemCount:
+                _controller.orders.length + (_controller.hasMore.value ? 1 : 0),
             separatorBuilder: (_, _) => SizedBox(height: 8.h),
             itemBuilder: (context, index) {
               if (index >= _controller.orders.length) {
@@ -118,10 +117,7 @@ class _CancellationRequestsScreenState
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (sheetContext) {
-        return _CancellationDetailSheet(
-          order: order,
-          controller: _controller,
-        );
+        return _CancellationDetailSheet(order: order, controller: _controller);
       },
     );
   }
@@ -487,8 +483,7 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                           'Refund Amount',
                           '₹${refundAmount.toStringAsFixed(2)}',
                         ),
-                        if (reasonData['originalStatus'] ==
-                            'out_for_delivery')
+                        if (reasonData['originalStatus'] == 'out_for_delivery')
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: 4.h),
                             child: Text(
@@ -519,7 +514,10 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                       _DetailPanel(
                         title: 'Refund Status',
                         children: [
-                          _DetailRow('Status', _refundStatusLabel(_refund!.status)),
+                          _DetailRow(
+                            'Status',
+                            _refundStatusLabel(_refund!.status),
+                          ),
                           _DetailRow(
                             'Amount',
                             '₹${_refund!.amount.toStringAsFixed(2)}',
@@ -552,8 +550,9 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                           child: SizedBox(
                             height: 44.h,
                             child: ElevatedButton.icon(
-                              onPressed:
-                                  _approving || _rejecting ? null : _handleApprove,
+                              onPressed: _approving || _rejecting
+                                  ? null
+                                  : _handleApprove,
                               icon: _approving
                                   ? SizedBox(
                                       width: 16.r,
@@ -579,8 +578,9 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                           child: SizedBox(
                             height: 44.h,
                             child: ElevatedButton.icon(
-                              onPressed:
-                                  _approving || _rejecting ? null : _handleReject,
+                              onPressed: _approving || _rejecting
+                                  ? null
+                                  : _handleReject,
                               icon: _rejecting
                                   ? SizedBox(
                                       width: 16.r,
@@ -635,10 +635,7 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
 }
 
 class _CancellationOrderCard extends StatelessWidget {
-  const _CancellationOrderCard({
-    required this.order,
-    required this.onTap,
-  });
+  const _CancellationOrderCard({required this.order, required this.onTap});
 
   final Order order;
   final VoidCallback onTap;
@@ -819,16 +816,13 @@ class _DetailRow extends StatelessWidget {
             width: 140.w,
             child: Text(
               label,
-              style: AdminTextStyles.caption(context).copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: AdminTextStyles.caption(
+                context,
+              ).copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
+            child: SelectableText(value, style: const TextStyle(fontSize: 13)),
           ),
         ],
       ),

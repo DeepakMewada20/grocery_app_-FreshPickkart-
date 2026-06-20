@@ -1360,7 +1360,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   String _formatDate(DateTime dt) {
-    final utc = DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+    final utc = DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond,
+    );
     final local = utc.toLocal();
     final day = local.day.toString().padLeft(2, '0');
     final month = local.month.toString().padLeft(2, '0');

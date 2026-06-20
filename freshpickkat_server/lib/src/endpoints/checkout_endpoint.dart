@@ -50,12 +50,14 @@ class CheckoutEndpoint extends Endpoint {
     ];
 
     if (userId != null && userId.isNotEmpty) {
-      futures.add(_coupons.getAvailableCoupons(
-        session,
-        userId: userId,
-        cartSubtotal: subtotal,
-        cartItems: items,
-      ));
+      futures.add(
+        _coupons.getAvailableCoupons(
+          session,
+          userId: userId,
+          cartSubtotal: subtotal,
+          cartItems: items,
+        ),
+      );
     }
 
     // Check for existing active pending order
@@ -94,7 +96,9 @@ class CheckoutEndpoint extends Endpoint {
     try {
       if (pendingOrderAction == 'continue') {
         return await _handleContinuePayment(
-          session, order, customerPhone,
+          session,
+          order,
+          customerPhone,
         );
       }
 
@@ -241,15 +245,20 @@ class CheckoutEndpoint extends Endpoint {
 
     final cartItems = itemRows
         .where((i) => !i.isFreeItem)
-        .map((i) => protocol.CartItemSnapshot(
-              productId: i.productId.toString(),
-              variantId: i.productVariantId?.toString() ?? '',
-              quantity: i.quantity,
-            ))
+        .map(
+          (i) => protocol.CartItemSnapshot(
+            productId: i.productId.toString(),
+            variantId: i.productVariantId?.toString() ?? '',
+            quantity: i.quantity,
+          ),
+        )
         .toList();
 
-    cartItems.sort((a, b) =>
-        '${a.productId}_${a.variantId}'.compareTo('${b.productId}_${b.variantId}'));
+    cartItems.sort(
+      (a, b) => '${a.productId}_${a.variantId}'.compareTo(
+        '${b.productId}_${b.variantId}',
+      ),
+    );
 
     return protocol.PendingOrderInfo(
       orderNumber: order.orderNumber,

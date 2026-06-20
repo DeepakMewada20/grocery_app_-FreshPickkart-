@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 
-
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
@@ -105,7 +104,9 @@ class _OffersScreenState extends State<OffersScreen>
         }
         if (_categoryOfferController.categoryOffers.isEmpty &&
             !_categoryOfferController.isLoading.value) {
-          futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
+          futures.add(
+            _categoryOfferController.loadCategoryOffers(loadAll: true),
+          );
         }
         if (_comboOfferController.comboOffers.isEmpty &&
             !_comboOfferController.isLoading.value) {
@@ -134,7 +135,9 @@ class _OffersScreenState extends State<OffersScreen>
         }
         if (_categoryOfferController.categoryOffers.isEmpty &&
             !_categoryOfferController.isLoading.value) {
-          futures.add(_categoryOfferController.loadCategoryOffers(loadAll: true));
+          futures.add(
+            _categoryOfferController.loadCategoryOffers(loadAll: true),
+          );
         }
         if (_comboOfferController.comboOffers.isEmpty &&
             !_comboOfferController.isLoading.value) {
@@ -241,123 +244,122 @@ class _OffersScreenState extends State<OffersScreen>
     return AnimatedBuilder(
       animation: _tabController,
       builder: (context, _) {
-              return Scaffold(
-                appBar: AdminAppBar(
-                  title: TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    labelColor: AdminThemeTokens.white,
-                    unselectedLabelColor: AdminThemeTokens.white.withValues(
-                      alpha: 0.7,
-                    ),
-                    tabs: const [
-                      Tab(text: 'Dashboard'),
-                      Tab(text: 'Offers'),
-                      Tab(text: 'Coupons'),
-                      Tab(text: 'Delivery'),
-                      Tab(text: 'Banners'),
-                    ],
-                  ),
-                ),
-                body: TabBarView(
-                  controller: _tabController,
+        return Scaffold(
+          appBar: AdminAppBar(
+            title: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              labelColor: AdminThemeTokens.white,
+              unselectedLabelColor: AdminThemeTokens.white.withValues(
+                alpha: 0.7,
+              ),
+              tabs: const [
+                Tab(text: 'Dashboard'),
+                Tab(text: 'Offers'),
+                Tab(text: 'Coupons'),
+                Tab(text: 'Delivery'),
+                Tab(text: 'Banners'),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              OffersDashboardTab(
+                couponController: _couponController,
+                bogoController: _bogoController,
+                categoryOfferController: _categoryOfferController,
+                comboOfferController: _comboOfferController,
+                freeDeliveryController: _freeDeliveryController,
+                bannerController: _bannerController,
+              ),
+              Scaffold(
+                key: _offersTabFabKey,
+                backgroundColor: AdminThemeTokens.transparent,
+                body: Stack(
                   children: [
-                    OffersDashboardTab(
+                    CatalogOffersTab(
+                      productController: _productController,
+                      categoryController: _categoryController,
                       couponController: _couponController,
-                      bogoController: _bogoController,
                       categoryOfferController: _categoryOfferController,
                       comboOfferController: _comboOfferController,
-                      freeDeliveryController: _freeDeliveryController,
-                      bannerController: _bannerController,
+                      offerSearchQuery: _offerSearchQuery,
+                      offerTypeFilter: _offerTypeFilter,
+                      offerCategoryFilter: _offerCategoryFilter,
+                      onOfferSearchChanged: (value) {
+                        setState(() {
+                          _offerSearchQuery = value;
+                        });
+                      },
+                      onOfferCategoryChanged: (value) {
+                        setState(() {
+                          _offerCategoryFilter = value;
+                        });
+                      },
+                      onOfferTypeChanged: (value) {
+                        setState(() {
+                          _offerTypeFilter = value;
+                        });
+                      },
+                      onRefresh: _refreshAll,
                     ),
-                    Scaffold(
-                      key: _offersTabFabKey,
-                      backgroundColor: AdminThemeTokens.transparent,
-                      body: Stack(
-                        children: [
-                          CatalogOffersTab(
-                            productController: _productController,
-                            categoryController: _categoryController,
-                            couponController: _couponController,
-                            categoryOfferController: _categoryOfferController,
-                            comboOfferController: _comboOfferController,
-                            offerSearchQuery: _offerSearchQuery,
-                            offerTypeFilter: _offerTypeFilter,
-                            offerCategoryFilter: _offerCategoryFilter,
-                            onOfferSearchChanged: (value) {
-                              setState(() {
-                                _offerSearchQuery = value;
-                              });
-                            },
-                            onOfferCategoryChanged: (value) {
-                              setState(() {
-                                _offerCategoryFilter = value;
-                              });
-                            },
-                            onOfferTypeChanged: (value) {
-                              setState(() {
-                                _offerTypeFilter = value;
-                              });
-                            },
-                            onRefresh: _refreshAll,
-                          ),
-                          if (_isOfferFabExpanded)
-                            Positioned.fill(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: _toggleOfferFab,
-                                child: Container(
-                                  color: AdminAppTheme.getScrimShadowColor(
-                                    context,
-                                    alpha: 0.02,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Positioned(
-                            right: 16.w,
-                            bottom: AdminResponsive.bottomInset(context),
-                            child: _OfferFabMenu(
-                              isExpanded: _isOfferFabExpanded,
-                              onToggle: _toggleOfferFab,
-                              onSelected: _handleOfferCreationAction,
+                    if (_isOfferFabExpanded)
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _toggleOfferFab,
+                          child: Container(
+                            color: AdminAppTheme.getScrimShadowColor(
+                              context,
+                              alpha: 0.02,
                             ),
                           ),
-                        ],
+                        ),
+                      ),
+                    Positioned(
+                      right: 16.w,
+                      bottom: AdminResponsive.bottomInset(context),
+                      child: _OfferFabMenu(
+                        isExpanded: _isOfferFabExpanded,
+                        onToggle: _toggleOfferFab,
+                        onSelected: _handleOfferCreationAction,
                       ),
                     ),
-                    Scaffold(
-                      backgroundColor: AdminThemeTokens.transparent,
-                      floatingActionButton: FloatingActionButton.extended(
-                        heroTag: 'coupons_add_fab',
-                        onPressed: _openAddCouponDialog,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add Coupon'),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: AdminThemeTokens.white,
-                      ),
-                      body: CatalogCouponsTab(
-                        controller: _couponController,
-                        searchQuery: _couponSearchQuery,
-                        onSearchChanged: (value) {
-                          setState(() {
-                            _couponSearchQuery = value;
-                          });
-                        },
-                        onEditCoupon: _openEditCouponDialog,
-                        onDeleteCoupon: _openDeleteCouponDialog,
-                      ),
-                    ),
-                    const FreeDeliveryScreen(),
-                    const BannersScreen(),
                   ],
                 ),
-              );
-            },
-          );
+              ),
+              Scaffold(
+                backgroundColor: AdminThemeTokens.transparent,
+                floatingActionButton: FloatingActionButton.extended(
+                  heroTag: 'coupons_add_fab',
+                  onPressed: _openAddCouponDialog,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Coupon'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: AdminThemeTokens.white,
+                ),
+                body: CatalogCouponsTab(
+                  controller: _couponController,
+                  searchQuery: _couponSearchQuery,
+                  onSearchChanged: (value) {
+                    setState(() {
+                      _couponSearchQuery = value;
+                    });
+                  },
+                  onEditCoupon: _openEditCouponDialog,
+                  onDeleteCoupon: _openDeleteCouponDialog,
+                ),
+              ),
+              const FreeDeliveryScreen(),
+              const BannersScreen(),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
-
 
 class _OfferFabMenu extends StatefulWidget {
   const _OfferFabMenu({

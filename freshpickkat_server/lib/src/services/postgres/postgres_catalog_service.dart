@@ -295,7 +295,8 @@ class PostgresCatalogService {
     Map<String, Object?> params;
 
     if (categoryId != null && subCategoryId != null) {
-      query = "SELECT COUNT(*) AS \"totalCount\""
+      query =
+          "SELECT COUNT(*) AS \"totalCount\""
           " FROM product p"
           " JOIN category c ON c.id = p.\"categoryId\""
           " WHERE p.status = 'active'"
@@ -305,7 +306,8 @@ class PostgresCatalogService {
           "  AND ',' || p.\"subCategoryIds\" || ',' LIKE '%,' || @subCategoryId || ',%'";
       params = {'categoryId': categoryId, 'subCategoryId': subCategoryId};
     } else if (categoryId != null) {
-      query = "SELECT COUNT(*) AS \"totalCount\""
+      query =
+          "SELECT COUNT(*) AS \"totalCount\""
           " FROM product p"
           " JOIN category c ON c.id = p.\"categoryId\""
           " WHERE p.status = 'active'"
@@ -313,7 +315,8 @@ class PostgresCatalogService {
           "  AND p.\"categoryId\"::text = @categoryId";
       params = {'categoryId': categoryId};
     } else if (subCategoryId != null) {
-      query = "SELECT COUNT(*) AS \"totalCount\""
+      query =
+          "SELECT COUNT(*) AS \"totalCount\""
           " FROM product p"
           " JOIN category c ON c.id = p.\"categoryId\""
           " WHERE p.status = 'active'"
@@ -322,7 +325,8 @@ class PostgresCatalogService {
           "  AND ',' || p.\"subCategoryIds\" || ',' LIKE '%,' || @subCategoryId || ',%'";
       params = {'subCategoryId': subCategoryId};
     } else {
-      query = "SELECT COUNT(*) AS \"totalCount\""
+      query =
+          "SELECT COUNT(*) AS \"totalCount\""
           " FROM product p"
           " JOIN category c ON c.id = p.\"categoryId\""
           " WHERE p.status = 'active'"
@@ -349,7 +353,8 @@ class PostgresCatalogService {
     String sql;
     Map<String, Object?> params;
 
-    final baseQuery = "SELECT COUNT(*) AS \"totalCount\""
+    final baseQuery =
+        "SELECT COUNT(*) AS \"totalCount\""
         " FROM product_search_document psd"
         " JOIN product p ON p.id = psd.\"productId\""
         " JOIN category c ON c.id = p.\"categoryId\""
@@ -359,7 +364,8 @@ class PostgresCatalogService {
         "  AND similarity(psd.\"searchText\", @query) > @threshold::float8";
 
     if (categoryId != null && subCategoryId != null) {
-      sql = "$baseQuery"
+      sql =
+          "$baseQuery"
           " AND p.\"categoryId\"::text = @categoryId"
           " AND p.\"subCategoryIds\" IS NOT NULL"
           " AND @subCategoryId = ANY(string_to_array(p.\"subCategoryIds\", ','))";
@@ -377,7 +383,8 @@ class PostgresCatalogService {
         'categoryId': categoryId,
       };
     } else if (subCategoryId != null) {
-      sql = "$baseQuery"
+      sql =
+          "$baseQuery"
           " AND p.\"subCategoryIds\" IS NOT NULL"
           " AND @subCategoryId = ANY(string_to_array(p.\"subCategoryIds\", ','))";
       params = {
@@ -420,23 +427,27 @@ class PostgresCatalogService {
     );
 
     // --- Batch 1: Independent queries ---
-    final batch1 = await Future.wait([
-      Future.value(products),
-      ProductVariantRow.db.find(
-        session,
-        where: (t) =>
-            t.productId.inSet(productIds) & t.status.equals('active'),
-      ),
-      BogoOfferRow.db.find(
-        session,
-        where: (t) =>
-            t.triggerProductId.inSet(productIds) & t.status.equals('active'),
-      ),
-      ComboOfferItemRow.db.find(
-        session,
-        where: (t) => t.productId.inSet(productIds),
-      ),
-    ] as List<Future<dynamic>>);
+    final batch1 = await Future.wait(
+      [
+            Future.value(products),
+            ProductVariantRow.db.find(
+              session,
+              where: (t) =>
+                  t.productId.inSet(productIds) & t.status.equals('active'),
+            ),
+            BogoOfferRow.db.find(
+              session,
+              where: (t) =>
+                  t.triggerProductId.inSet(productIds) &
+                  t.status.equals('active'),
+            ),
+            ComboOfferItemRow.db.find(
+              session,
+              where: (t) => t.productId.inSet(productIds),
+            ),
+          ]
+          as List<Future<dynamic>>,
+    );
 
     products = batch1[0] as List<ProductRow>;
     final variants = batch1[1] as List<ProductVariantRow>;
@@ -455,9 +466,11 @@ class PostgresCatalogService {
     }
 
     final now = DateTime.now().toUtc();
-    final activeBogoOfferRows = bogoOfferRows.where(
-      (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-    ).toList();
+    final activeBogoOfferRows = bogoOfferRows
+        .where(
+          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
+        )
+        .toList();
     final activeBogoOfferIds = activeBogoOfferRows
         .map((row) => row.id!)
         .toSet();
@@ -465,43 +478,51 @@ class PostgresCatalogService {
     final subCategoryIds = products
         .map((p) => p.subCategoryIds)
         .whereType<String>()
-        .expand((s) => s.split(',').map((id) => tryParseUuid(id.trim())).whereType<UuidValue>())
+        .expand(
+          (s) => s
+              .split(',')
+              .map((id) => tryParseUuid(id.trim()))
+              .whereType<UuidValue>(),
+        )
         .toSet();
     final categoryIds = products.map((product) => product.categoryId).toSet();
     final comboOfferIdSet = comboItemRows.map((r) => r.comboOfferId).toSet();
 
     // --- Batch 2: Dependent queries ---
-    final batch2 = await Future.wait([
-      subCategoryIds.isEmpty
-          ? Future.value(<SubCategoryRow>[])
-          : SubCategoryRow.db.find(
+    final batch2 = await Future.wait(
+      [
+            subCategoryIds.isEmpty
+                ? Future.value(<SubCategoryRow>[])
+                : SubCategoryRow.db.find(
+                    session,
+                    where: (t) =>
+                        t.id.inSet(subCategoryIds) & t.status.equals('active'),
+                  ),
+            CategoryRow.db.find(
+              session,
+              where: (t) => t.id.inSet(categoryIds) & t.status.equals('active'),
+            ),
+            activeBogoOfferIds.isEmpty
+                ? Future.value(<BogoOfferRewardRow>[])
+                : BogoOfferRewardRow.db.find(
+                    session,
+                    where: (t) => t.bogoOfferId.inSet(activeBogoOfferIds),
+                  ),
+            CategoryOfferRow.db.find(
               session,
               where: (t) =>
-                  t.id.inSet(subCategoryIds) & t.status.equals('active'),
+                  t.categoryId.inSet(categoryIds) & t.status.equals('active'),
             ),
-      CategoryRow.db.find(
-        session,
-        where: (t) => t.id.inSet(categoryIds) & t.status.equals('active'),
-      ),
-      activeBogoOfferIds.isEmpty
-          ? Future.value(<BogoOfferRewardRow>[])
-          : BogoOfferRewardRow.db.find(
-              session,
-              where: (t) => t.bogoOfferId.inSet(activeBogoOfferIds),
-            ),
-      CategoryOfferRow.db.find(
-        session,
-        where: (t) =>
-            t.categoryId.inSet(categoryIds) & t.status.equals('active'),
-      ),
-      comboOfferIdSet.isEmpty
-          ? Future.value(<ComboOfferRow>[])
-          : ComboOfferRow.db.find(
-              session,
-              where: (t) =>
-                  t.id.inSet(comboOfferIdSet) & t.status.equals('active'),
-            ),
-    ] as List<Future<dynamic>>);
+            comboOfferIdSet.isEmpty
+                ? Future.value(<ComboOfferRow>[])
+                : ComboOfferRow.db.find(
+                    session,
+                    where: (t) =>
+                        t.id.inSet(comboOfferIdSet) & t.status.equals('active'),
+                  ),
+          ]
+          as List<Future<dynamic>>,
+    );
 
     final subCategories = batch2[0] as List<SubCategoryRow>;
     final categories = batch2[1] as List<CategoryRow>;
@@ -575,20 +596,24 @@ class PostgresCatalogService {
       }
     }
 
-    final activeCategoryOffers = categoryOfferRows.where(
-      (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-    ).toList();
+    final activeCategoryOffers = categoryOfferRows
+        .where(
+          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
+        )
+        .toList();
     activeCategoryOffers.sort((a, b) => b.priority.compareTo(a.priority));
     final categoryOfferByCategory = {
-      for (final o in activeCategoryOffers)
-        o.categoryId.toString(): o,
+      for (final o in activeCategoryOffers) o.categoryId.toString(): o,
     };
 
-    final activeComboOffers = activeComboOfferRows.where(
-      (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-    ).toList();
-    final activeComboOfferIds =
-        activeComboOffers.map((r) => r.id!.toString()).toSet();
+    final activeComboOffers = activeComboOfferRows
+        .where(
+          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
+        )
+        .toList();
+    final activeComboOfferIds = activeComboOffers
+        .map((r) => r.id!.toString())
+        .toSet();
     final comboByProduct = <String, List<String>>{};
     // Variant-level combo tracking: productId -> {variantId -> [comboOfferId]}
     final comboByVariant = <String, Map<String, List<String>>>{};
@@ -623,8 +648,7 @@ class PostgresCatalogService {
       final category = categoryById[productRow.categoryId.toString()];
       if (category == null) continue;
 
-      final variantRows =
-          variantsByProduct[productId] ?? <ProductVariantRow>[];
+      final variantRows = variantsByProduct[productId] ?? <ProductVariantRow>[];
       variantRows.sort((a, b) {
         if (a.isDefault != b.isDefault) return b.isDefault ? 1 : -1;
         final sortOrderCompare = a.sortOrder.compareTo(b.sortOrder);
@@ -643,54 +667,53 @@ class PostgresCatalogService {
       final freeDeliverySources = <ProductVariantRow>[
         for (final v in variantRows)
           if (v.isFreeDelivery) v,
-        if (productRow.isFreeDelivery && defaultForFD != null)
-          defaultForFD,
+        if (productRow.isFreeDelivery && defaultForFD != null) defaultForFD,
       ];
 
-      final mappedVariants = variantRows
-          .map(
-            (variant) {
-              final variantIdStr = variant.id!.toString();
-              // Variant-level BOGO: check variant-specific first, then product-level
-              final variantBogo =
-                  bogoByVariant[productId]?[variantIdStr]?.toList()?..sort();
-              final productBogo =
-                  bogoByProductOnly[productId]?.toList()?..sort();
-              // Product-level BOGO applies only to the default variant
-              final resolvedBogo = variantBogo?.isNotEmpty == true
-                  ? variantBogo
-                  : (productBogo?.isNotEmpty == true &&
-                          variant.id == defaultForFD?.id)
-                      ? productBogo
-                      : null;
-              // Variant-level combo: check variant-specific first, then product-level
-              final variantCombo = comboByVariant[productId]?[variantIdStr];
-              final resolvedCombo = variantCombo?.isNotEmpty == true
-                  ? variantCombo
-                  : comboByProduct[productId]?.isNotEmpty == true
-                      ? comboByProduct[productId]
-                      : null;
-              return ProductVariant(
-                variantId: variantIdStr,
-                quantityValue: variant.quantityValue,
-                quantityUnit: variant.quantityUnit,
-                quantityDescription: variant.quantityDescription,
-                price: variant.salePrice,
-                realPrice: variant.listPrice,
-                isAvailable: variant.isAvailable && variant.status == 'active',
-                sortOrder: variant.sortOrder,
-                bogoFreeProductIds:
-                    resolvedBogo?.isEmpty == true ? null : resolvedBogo,
-                comboOfferIds:
-                    resolvedCombo?.isEmpty == true ? null : resolvedCombo,
-                isFreeDelivery: EffectiveOfferResolver.effectiveFreeDelivery(
-                  quantityValue: variant.quantityValue,
-                  quantityUnit: variant.quantityUnit,
-                  freeDeliverySources: freeDeliverySources,),
-              );
-            },
-          )
-          .toList();
+      final mappedVariants = variantRows.map(
+        (variant) {
+          final variantIdStr = variant.id!.toString();
+          // Variant-level BOGO: check variant-specific first, then product-level
+          final variantBogo = bogoByVariant[productId]?[variantIdStr]?.toList()
+            ?..sort();
+          final productBogo = bogoByProductOnly[productId]?.toList()?..sort();
+          // Product-level BOGO applies only to the default variant
+          final resolvedBogo = variantBogo?.isNotEmpty == true
+              ? variantBogo
+              : (productBogo?.isNotEmpty == true &&
+                    variant.id == defaultForFD?.id)
+              ? productBogo
+              : null;
+          // Variant-level combo: check variant-specific first, then product-level
+          final variantCombo = comboByVariant[productId]?[variantIdStr];
+          final resolvedCombo = variantCombo?.isNotEmpty == true
+              ? variantCombo
+              : comboByProduct[productId]?.isNotEmpty == true
+              ? comboByProduct[productId]
+              : null;
+          return ProductVariant(
+            variantId: variantIdStr,
+            quantityValue: variant.quantityValue,
+            quantityUnit: variant.quantityUnit,
+            quantityDescription: variant.quantityDescription,
+            price: variant.salePrice,
+            realPrice: variant.listPrice,
+            isAvailable: variant.isAvailable && variant.status == 'active',
+            sortOrder: variant.sortOrder,
+            bogoFreeProductIds: resolvedBogo?.isEmpty == true
+                ? null
+                : resolvedBogo,
+            comboOfferIds: resolvedCombo?.isEmpty == true
+                ? null
+                : resolvedCombo,
+            isFreeDelivery: EffectiveOfferResolver.effectiveFreeDelivery(
+              quantityValue: variant.quantityValue,
+              quantityUnit: variant.quantityUnit,
+              freeDeliverySources: freeDeliverySources,
+            ),
+          );
+        },
+      ).toList();
 
       final defaultVariant = variantRows.cast<ProductVariantRow?>().firstWhere(
         (variant) => variant != null && variant.isDefault,
@@ -706,13 +729,16 @@ class PostgresCatalogService {
       double? resolvedDiscountValue;
 
       // 1. Check for Category Offer first
-      final applicableCategoryOffer = categoryOfferByCategory[productRow.categoryId.toString()];
+      final applicableCategoryOffer =
+          categoryOfferByCategory[productRow.categoryId.toString()];
       if (applicableCategoryOffer != null) {
         double categoryOfferPrice = salePrice;
         if (applicableCategoryOffer.discountType == 'percentage') {
-          categoryOfferPrice = listPrice * (1 - (applicableCategoryOffer.discountValue / 100));
+          categoryOfferPrice =
+              listPrice * (1 - (applicableCategoryOffer.discountValue / 100));
         } else if (applicableCategoryOffer.discountType == 'flat') {
-          categoryOfferPrice = listPrice - applicableCategoryOffer.discountValue;
+          categoryOfferPrice =
+              listPrice - applicableCategoryOffer.discountValue;
         }
 
         // Use the lower price but keep the product's own discount type/value
@@ -724,7 +750,7 @@ class PostgresCatalogService {
       // 2. Check for BOGO (Dominant for display)
       final bogoFreeProductIds = bogoRewardsByProduct[productId]?.toList()
         ?..sort();
-      
+
       if (bogoFreeProductIds != null && bogoFreeProductIds.isNotEmpty) {
         resolvedDiscountType = 'bogo';
       }
@@ -734,12 +760,13 @@ class PostgresCatalogService {
           ? (flatDiscount / listPrice) * 100
           : 0.0;
 
-      final resolvedDiscountValueFinal = resolvedDiscountValue ??
+      final resolvedDiscountValueFinal =
+          resolvedDiscountValue ??
           (resolvedDiscountType == 'percentage'
               ? double.parse(discountPercent.toStringAsFixed(2))
               : flatDiscount > 0
-                  ? double.parse(flatDiscount.toStringAsFixed(2))
-                  : null);
+              ? double.parse(flatDiscount.toStringAsFixed(2))
+              : null);
 
       hydrated.add(
         Product(
@@ -776,8 +803,9 @@ class PostgresCatalogService {
           comboOfferIds: (comboByProduct[productId]?.isEmpty == true)
               ? null
               : comboByProduct[productId],
-          hasCategoryOffer:
-              categoryOfferByCategory.containsKey(productRow.categoryId.toString()),
+          hasCategoryOffer: categoryOfferByCategory.containsKey(
+            productRow.categoryId.toString(),
+          ),
           variants: mappedVariants.isEmpty ? null : mappedVariants,
         ),
       );
@@ -815,7 +843,7 @@ class PostgresCatalogService {
         final quantityLabel = quantityDesc != null && quantityDesc.isNotEmpty
             ? quantityDesc
             : '${_compactNumber(variant.quantityValue)} ${variant.quantityUnit}'
-                .trim();
+                  .trim();
 
         result.add(
           product.copyWith(
@@ -829,7 +857,8 @@ class PostgresCatalogService {
             isAvailable: variant.isAvailable,
             discount: product.realPrice > 0 && product.realPrice > variant.price
                 ? double.parse(
-                    (((product.realPrice - variant.price) / product.realPrice) * 100)
+                    (((product.realPrice - variant.price) / product.realPrice) *
+                            100)
                         .toStringAsFixed(2),
                   )
                 : 0.0,

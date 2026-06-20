@@ -10,7 +10,8 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/utils/order_item_grouping.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as live_delivery_map_preview_screen;
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart'
+    deferred as live_delivery_map_preview_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 
@@ -106,7 +107,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final result = await _orderController.retryRefund(_order.orderId);
       if (mounted) {
         if (result.status == 'failed') {
-          debugPrint('Refund retry failed for order ${_order.orderId}: ${result.failureReason}');
+          debugPrint(
+            'Refund retry failed for order ${_order.orderId}: ${result.failureReason}',
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -151,15 +154,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Future<void> _onRefresh() async {
     try {
       await _orderController.loadInitial(force: true);
-      final updated = _orderController.orders.where(
-        (o) => o.orderId == _order.orderId,
-      ).firstOrNull;
+      final updated = _orderController.orders
+          .where((o) => o.orderId == _order.orderId)
+          .firstOrNull;
       if (updated != null && mounted) {
         setState(() => _order = updated);
       }
       await _loadRefund();
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   void _startResendCountdown() {
@@ -190,7 +192,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: AdminThemeTokens.transparent,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -221,10 +225,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 8.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 decoration: BoxDecoration(
                   color: cs.surface,
                   borderRadius: BorderRadius.circular(8.r),
@@ -240,322 +241,312 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
               SizedBox(height: 12.h),
-            _DetailSection(
-              title: 'Customer Info',
-              icon: Icons.person_outline,
-              children: [
-                _DetailRow(
-                  icon: Icons.person,
-                  label: order.userName ?? 'N/A',
-                ),
-                _DetailRow(
-                  icon: Icons.phone,
-                  label: order.userPhone,
-                  onCopy: () => _copyToClipboard(order.userPhone, 'Phone'),
-                  onCall: () => _launchPhoneCall(order.userPhone),
-                ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-            _DetailSection(
-              title: 'Delivery Address',
-              icon: Icons.location_on_outlined,
-              children: [
-                Text(
-                  order.deliveryAddress.street,
-                  style: AdminTextStyles.body(context),
-                ),
-                if (order.deliveryAddress.city.isNotEmpty ||
-                    order.deliveryAddress.state.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 4.h),
-                    child: Text(
-                      '${order.deliveryAddress.city}${order.deliveryAddress.city.isNotEmpty && order.deliveryAddress.state.isNotEmpty ? ", " : ""}${order.deliveryAddress.state}',
-                      style: AdminTextStyles.caption(context),
-                    ),
-                  ),
-                if (order.deliveryAddress.zipCode.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 2.h),
-                    child: Text(
-                      'PIN: ${order.deliveryAddress.zipCode}',
-                      style: AdminTextStyles.caption(context),
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: 12.h),
-            _DetailSection(
-              title: 'Payment & Timeline',
-              icon: Icons.payment_outlined,
-              trailing: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 6.h,
-                ),
-                decoration: BoxDecoration(
-                  color: order.paymentStatus == 'paid'
-                      ? AdminAppTheme.getSuccessContainerColor(context)
-                      : AdminAppTheme.getWarningContainerColor(context),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  order.paymentStatus.toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: order.paymentStatus == 'paid'
-                        ? AdminAppTheme.getSuccessColor(context)
-                        : AdminAppTheme.getWarningColor(context),
-                  ),
-                ),
-              ),
-              children: [
-                _DetailRow(
-                  icon: Icons.access_time,
-                  label:
-                      'Ordered: ${_formatDate(order.orderedAt)} at ${_formatTime(order.orderedAt)}',
-                ),
-                if (order.confirmedAt != null)
-                  _DetailRow(
-                    icon: Icons.check_circle_outline,
-                    label:
-                        'Confirmed: ${_formatDate(order.confirmedAt)} at ${_formatTime(order.confirmedAt)}',
-                  ),
-                if (order.outForDeliveryAt != null)
-                  _DetailRow(
-                    icon: Icons.local_shipping_outlined,
-                    label:
-                        'Out for Delivery: ${_formatDate(order.outForDeliveryAt)} at ${_formatTime(order.outForDeliveryAt)}',
-                  ),
-                if (order.deliveredAt != null)
-                  _DetailRow(
-                    icon: Icons.done_all,
-                    label:
-                        'Delivered: ${_formatDate(order.deliveredAt)} at ${_formatTime(order.deliveredAt)}',
-                  ),
-              ],
-            ),
-            SizedBox(height: 22.h),
-            _DetailSection(
-              title: 'Items (${order.itemCount})',
-              icon: Icons.shopping_bag_outlined,
-              children: [
-                if (order.items.isEmpty)
-                  Text(
-                    'No items available',
-                    style: TextStyle(
-                      color: AdminAppTheme.getTextSecondaryColor(
-                        context,
-                      ),
-                    ),
-                  )
-                else
-                  ..._buildGroupedOrderItemWidgets(groupedItems),
-              ],
-            ),
-            SizedBox(height: 16.h),
-            Container(
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AdminAppTheme.getTextSecondaryColor(
-            context,
-          ).withValues(alpha: 0.12),
-          width: 1,
-        ),
-      ),
-              child: Column(
+              _DetailSection(
+                title: 'Customer Info',
+                icon: Icons.person_outline,
                 children: [
-                  _amountRow(
-                    'MRP Total',
-                    order.mrpTotal > 0
-                        ? order.mrpTotal
-                        : order.totalAmount,
+                  _DetailRow(
+                    icon: Icons.person,
+                    label: order.userName ?? 'N/A',
                   ),
-                  if (order.productDiscountAmount > 0)
-                    _amountRow(
-                      'Product Discount',
-                      -order.productDiscountAmount,
-                    ),
-                  if (order.comboDiscountAmount > 0)
-                    _amountRow(
-                      'Combo Savings',
-                      -order.comboDiscountAmount,
-                    ),
-                  if (order.bogoDiscountAmount > 0)
-                    _amountRow(
-                      'BOGO Savings',
-                      -order.bogoDiscountAmount,
-                    ),
-                  _amountRow('Items Total', order.totalAmount),
-                  if (order.discountAmount > 0)
-                    _amountRow(
-                      order.couponApplied?.isNotEmpty == true
-                          ? 'Coupon (${order.couponApplied})'
-                          : 'Coupon Discount',
-                      -order.discountAmount,
-                    ),
-                  _amountRow('Delivery Fee', order.deliveryFee),
-                  if (order.freeDeliveryApplied &&
-                      order.deliveryDiscountAmount > 0)
-                    _amountRow(
-                      'Delivery Fee Waived',
-                      -order.deliveryDiscountAmount,
-                    ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: const Divider(),
+                  _DetailRow(
+                    icon: Icons.phone,
+                    label: order.userPhone,
+                    onCopy: () => _copyToClipboard(order.userPhone, 'Phone'),
+                    onCall: () => _launchPhoneCall(order.userPhone),
                   ),
-                  _amountRow('To Pay', order.finalAmount, isBold: true),
                 ],
               ),
-            ),
-            if (order.deliveryPersonName != null &&
-                order.deliveryPersonName!.isNotEmpty) ...[
               SizedBox(height: 12.h),
               _DetailSection(
-                title: 'Delivery Details',
-                icon: Icons.delivery_dining,
+                title: 'Delivery Address',
+                icon: Icons.location_on_outlined,
                 children: [
-                  _DetailRow(
-                    icon: Icons.person_pin,
-                    label: order.deliveryPersonName!,
-                    subtitle: order.deliveryPersonPhone,
+                  Text(
+                    order.deliveryAddress.street,
+                    style: AdminTextStyles.body(context),
                   ),
+                  if (order.deliveryAddress.city.isNotEmpty ||
+                      order.deliveryAddress.state.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(top: 4.h),
+                      child: Text(
+                        '${order.deliveryAddress.city}${order.deliveryAddress.city.isNotEmpty && order.deliveryAddress.state.isNotEmpty ? ", " : ""}${order.deliveryAddress.state}',
+                        style: AdminTextStyles.caption(context),
+                      ),
+                    ),
+                  if (order.deliveryAddress.zipCode.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(top: 2.h),
+                      child: Text(
+                        'PIN: ${order.deliveryAddress.zipCode}',
+                        style: AdminTextStyles.caption(context),
+                      ),
+                    ),
                 ],
               ),
-            ],
-            if (order.cancellationReason != null &&
-                order.cancellationReason!.isNotEmpty) ...[
               SizedBox(height: 12.h),
+              _DetailSection(
+                title: 'Payment & Timeline',
+                icon: Icons.payment_outlined,
+                trailing: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: order.paymentStatus == 'paid'
+                        ? AdminAppTheme.getSuccessContainerColor(context)
+                        : AdminAppTheme.getWarningContainerColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    order.paymentStatus.toUpperCase(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: order.paymentStatus == 'paid'
+                          ? AdminAppTheme.getSuccessColor(context)
+                          : AdminAppTheme.getWarningColor(context),
+                    ),
+                  ),
+                ),
+                children: [
+                  _DetailRow(
+                    icon: Icons.access_time,
+                    label:
+                        'Ordered: ${_formatDate(order.orderedAt)} at ${_formatTime(order.orderedAt)}',
+                  ),
+                  if (order.confirmedAt != null)
+                    _DetailRow(
+                      icon: Icons.check_circle_outline,
+                      label:
+                          'Confirmed: ${_formatDate(order.confirmedAt)} at ${_formatTime(order.confirmedAt)}',
+                    ),
+                  if (order.outForDeliveryAt != null)
+                    _DetailRow(
+                      icon: Icons.local_shipping_outlined,
+                      label:
+                          'Out for Delivery: ${_formatDate(order.outForDeliveryAt)} at ${_formatTime(order.outForDeliveryAt)}',
+                    ),
+                  if (order.deliveredAt != null)
+                    _DetailRow(
+                      icon: Icons.done_all,
+                      label:
+                          'Delivered: ${_formatDate(order.deliveredAt)} at ${_formatTime(order.deliveredAt)}',
+                    ),
+                ],
+              ),
+              SizedBox(height: 22.h),
+              _DetailSection(
+                title: 'Items (${order.itemCount})',
+                icon: Icons.shopping_bag_outlined,
+                children: [
+                  if (order.items.isEmpty)
+                    Text(
+                      'No items available',
+                      style: TextStyle(
+                        color: AdminAppTheme.getTextSecondaryColor(context),
+                      ),
+                    )
+                  else
+                    ..._buildGroupedOrderItemWidgets(groupedItems),
+                ],
+              ),
+              SizedBox(height: 16.h),
               Container(
-                padding: AdminResponsive.cardPadding(context),
+                padding: EdgeInsets.all(12.r),
                 decoration: BoxDecoration(
                   color: cs.surface,
-                  borderRadius: BorderRadius.circular(8.r),
-                  border: Border.all(color: cs.outlineVariant),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AdminAppTheme.getErrorColor(context),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cancellation Reason',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: AdminAppTheme.getErrorColor(
-                                context,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            order.cancellationReason!,
-                            style: AdminTextStyles.caption(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            if (order.refundStatus != 'none') ...[
-              SizedBox(height: 12.h),
-              if (_refundLoading)
-                _DetailSection(
-                  title: 'Refund Info',
-                  icon: Icons.monetization_on_outlined,
-                  children: [
-                    _DetailRow(
-                      icon: Icons.info_outline,
-                      label: 'Loading refund details...',
-                    ),
-                  ],
-                )
-              else if (_refund != null)
-                RefundInfoCard(
-                  refund: _refund!,
-                  retryButton: _refund!.status == 'failed'
-                      ? SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _refundRetrying ? null : _retryRefund,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AdminAppTheme.getErrorColor(context),
-                              foregroundColor: AdminThemeTokens.white,
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            icon: _refundRetrying
-                                ? SizedBox(
-                                    width: 18.sp,
-                                    height: 18.sp,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AdminThemeTokens.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.refresh),
-                            label: Text(
-                              _refundRetrying
-                                  ? 'Retrying...'
-                                  : 'Retry Refund',
-                            ),
-                          ),
-                        )
-                      : null,
-                )
-              else
-                _DetailSection(
-                  title: 'Refund Info',
-                  icon: Icons.monetization_on_outlined,
-                  children: [
-                    _DetailRow(
-                      icon: Icons.info_outline,
-                      label: 'Refund Status: ${order.refundStatus.toUpperCase()}',
-                    ),
-                    if (order.cancelledAt != null)
-                      _DetailRow(
-                        icon: Icons.cancel_outlined,
-                        label: 'Cancelled: ${_formatDate(order.cancelledAt)}',
-                      ),
-                  ],
-                ),
-            ],
-            if (order.complaintId != null &&
-                order.complaintId!.isNotEmpty) ...[
-              SizedBox(height: 12.h),
-              _DetailSection(
-                title: 'Complaint',
-                icon: Icons.report_problem_outlined,
-                children: [
-                  _DetailRow(
-                    icon: Icons.description_outlined,
-                    label: 'Complaint ID: ${order.complaintId}',
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: AdminAppTheme.getTextSecondaryColor(
+                      context,
+                    ).withValues(alpha: 0.12),
+                    width: 1,
                   ),
-                ],
+                ),
+                child: Column(
+                  children: [
+                    _amountRow(
+                      'MRP Total',
+                      order.mrpTotal > 0 ? order.mrpTotal : order.totalAmount,
+                    ),
+                    if (order.productDiscountAmount > 0)
+                      _amountRow(
+                        'Product Discount',
+                        -order.productDiscountAmount,
+                      ),
+                    if (order.comboDiscountAmount > 0)
+                      _amountRow('Combo Savings', -order.comboDiscountAmount),
+                    if (order.bogoDiscountAmount > 0)
+                      _amountRow('BOGO Savings', -order.bogoDiscountAmount),
+                    _amountRow('Items Total', order.totalAmount),
+                    if (order.discountAmount > 0)
+                      _amountRow(
+                        order.couponApplied?.isNotEmpty == true
+                            ? 'Coupon (${order.couponApplied})'
+                            : 'Coupon Discount',
+                        -order.discountAmount,
+                      ),
+                    _amountRow('Delivery Fee', order.deliveryFee),
+                    if (order.freeDeliveryApplied &&
+                        order.deliveryDiscountAmount > 0)
+                      _amountRow(
+                        'Delivery Fee Waived',
+                        -order.deliveryDiscountAmount,
+                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      child: const Divider(),
+                    ),
+                    _amountRow('To Pay', order.finalAmount, isBold: true),
+                  ],
+                ),
               ),
+              if (order.deliveryPersonName != null &&
+                  order.deliveryPersonName!.isNotEmpty) ...[
+                SizedBox(height: 12.h),
+                _DetailSection(
+                  title: 'Delivery Details',
+                  icon: Icons.delivery_dining,
+                  children: [
+                    _DetailRow(
+                      icon: Icons.person_pin,
+                      label: order.deliveryPersonName!,
+                      subtitle: order.deliveryPersonPhone,
+                    ),
+                  ],
+                ),
+              ],
+              if (order.cancellationReason != null &&
+                  order.cancellationReason!.isNotEmpty) ...[
+                SizedBox(height: 12.h),
+                Container(
+                  padding: AdminResponsive.cardPadding(context),
+                  decoration: BoxDecoration(
+                    color: cs.surface,
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(color: cs.outlineVariant),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AdminAppTheme.getErrorColor(context),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cancellation Reason',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AdminAppTheme.getErrorColor(context),
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              order.cancellationReason!,
+                              style: AdminTextStyles.caption(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (order.refundStatus != 'none') ...[
+                SizedBox(height: 12.h),
+                if (_refundLoading)
+                  _DetailSection(
+                    title: 'Refund Info',
+                    icon: Icons.monetization_on_outlined,
+                    children: [
+                      _DetailRow(
+                        icon: Icons.info_outline,
+                        label: 'Loading refund details...',
+                      ),
+                    ],
+                  )
+                else if (_refund != null)
+                  RefundInfoCard(
+                    refund: _refund!,
+                    retryButton: _refund!.status == 'failed'
+                        ? SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _refundRetrying ? null : _retryRefund,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AdminAppTheme.getErrorColor(
+                                  context,
+                                ),
+                                foregroundColor: AdminThemeTokens.white,
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              icon: _refundRetrying
+                                  ? SizedBox(
+                                      width: 18.sp,
+                                      height: 18.sp,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AdminThemeTokens.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.refresh),
+                              label: Text(
+                                _refundRetrying
+                                    ? 'Retrying...'
+                                    : 'Retry Refund',
+                              ),
+                            ),
+                          )
+                        : null,
+                  )
+                else
+                  _DetailSection(
+                    title: 'Refund Info',
+                    icon: Icons.monetization_on_outlined,
+                    children: [
+                      _DetailRow(
+                        icon: Icons.info_outline,
+                        label:
+                            'Refund Status: ${order.refundStatus.toUpperCase()}',
+                      ),
+                      if (order.cancelledAt != null)
+                        _DetailRow(
+                          icon: Icons.cancel_outlined,
+                          label: 'Cancelled: ${_formatDate(order.cancelledAt)}',
+                        ),
+                    ],
+                  ),
+              ],
+              if (order.complaintId != null &&
+                  order.complaintId!.isNotEmpty) ...[
+                SizedBox(height: 12.h),
+                _DetailSection(
+                  title: 'Complaint',
+                  icon: Icons.report_problem_outlined,
+                  children: [
+                    _DetailRow(
+                      icon: Icons.description_outlined,
+                      label: 'Complaint ID: ${order.complaintId}',
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 24.h),
+              _buildLifecycleActions(context, order),
+              SizedBox(height: 24.h),
             ],
-            SizedBox(height: 24.h),
-            _buildLifecycleActions(context, order),
-            SizedBox(height: 24.h),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -579,7 +570,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   try {
                     await widget.onStatusChanged('confirmed');
                     if (mounted) {
-                      setState(() => _order = _order.copyWith(status: 'confirmed'));
+                      setState(
+                        () => _order = _order.copyWith(status: 'confirmed'),
+                      );
                     }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
@@ -602,7 +595,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   try {
                     await widget.onStatusChanged('packed');
                     if (mounted) {
-                      setState(() => _order = _order.copyWith(status: 'packed'));
+                      setState(
+                        () => _order = _order.copyWith(status: 'packed'),
+                      );
                     }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
@@ -625,7 +620,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   try {
                     await widget.onStartDelivery(order);
                     if (mounted) {
-                      setState(() => _order = _order.copyWith(status: 'out_for_delivery'));
+                      setState(
+                        () => _order = _order.copyWith(
+                          status: 'out_for_delivery',
+                        ),
+                      );
                     }
                   } finally {
                     if (mounted) setState(() => _isLoading = false);
@@ -659,7 +658,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                         ),
                       );
-                      setState(() => _order = _order.copyWith(status: 'delivery_otp_pending'));
+                      setState(
+                        () => _order = _order.copyWith(
+                          status: 'delivery_otp_pending',
+                        ),
+                      );
                     }
                   } catch (e) {
                     if (context.mounted) {
@@ -687,7 +690,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           onPressed: () async {
             await navigateDeferred(
               loadLibrary: live_delivery_map_preview_screen.loadLibrary,
-              pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(order: order),
+              pageBuilder: () =>
+                  live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
+                    order: order,
+                  ),
             );
           },
         ),
@@ -766,7 +772,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 fontSize: 24.sp.clamp(20.0, 28.0),
                 fontWeight: FontWeight.w700,
                 letterSpacing: 8,
-                color: AdminAppTheme.getTextSecondaryColor(context).withValues(alpha: 0.3),
+                color: AdminAppTheme.getTextSecondaryColor(
+                  context,
+                ).withValues(alpha: 0.3),
               ),
               filled: true,
               fillColor: Theme.of(context).colorScheme.surface,
@@ -834,9 +842,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   : const Icon(Icons.verified),
               label: Text(
                 'Verify & Deliver',
-                style: AdminTextStyles.button(context).copyWith(
-                  color: AdminThemeTokens.white,
-                ),
+                style: AdminTextStyles.button(
+                  context,
+                ).copyWith(color: AdminThemeTokens.white),
               ),
             ),
           ),
@@ -874,7 +882,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               : AdminAppTheme.getTextSecondaryColor(context),
         ),
         label: Text(
-          canResend ? 'Resend OTP' : 'Resend OTP in 00:${_otpResendCountdown.toString().padLeft(2, '0')}',
+          canResend
+              ? 'Resend OTP'
+              : 'Resend OTP in 00:${_otpResendCountdown.toString().padLeft(2, '0')}',
           style: TextStyle(
             color: canResend
                 ? Theme.of(context).colorScheme.primary
@@ -1024,10 +1034,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Container(
             width: 6.r,
             height: 6.r,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           SizedBox(width: 6.w),
           Text(
@@ -1493,11 +1500,7 @@ class _DetailRow extends StatelessWidget {
               width: 32.r,
               height: 32.r,
               child: IconButton(
-                icon: Icon(
-                  Icons.phone,
-                  size: 18,
-                  color: cs.primary,
-                ),
+                icon: Icon(Icons.phone, size: 18, color: cs.primary),
                 onPressed: onCall,
                 tooltip: 'Call',
                 padding: EdgeInsets.zero,

@@ -21,13 +21,17 @@ class AddressChangeRequestsScreen extends StatefulWidget {
       _AddressChangeRequestsScreenState();
 }
 
-class _AddressChangeRequestsScreenState extends State<AddressChangeRequestsScreen> {
+class _AddressChangeRequestsScreenState
+    extends State<AddressChangeRequestsScreen> {
   late final AdminComplaintController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.isRegistered<AdminComplaintController>(tag: 'address_change_requests')
+    _controller =
+        Get.isRegistered<AdminComplaintController>(
+          tag: 'address_change_requests',
+        )
         ? Get.find<AdminComplaintController>(tag: 'address_change_requests')
         : Get.put(AdminComplaintController(), tag: 'address_change_requests');
     _controller.load(
@@ -78,10 +82,11 @@ class _AddressChangeRequestsScreenState extends State<AddressChangeRequestsScree
             complaintType: 'delivery',
           ),
           child: ListView.separated(
-            padding: AdminResponsive.pagePadding(context).copyWith(
-              bottom: 24.h + MediaQuery.paddingOf(context).bottom,
-            ),
-            itemCount: _controller.complaints.length +
+            padding: AdminResponsive.pagePadding(
+              context,
+            ).copyWith(bottom: 24.h + MediaQuery.paddingOf(context).bottom),
+            itemCount:
+                _controller.complaints.length +
                 (_controller.hasMore.value ? 1 : 0),
             separatorBuilder: (_, _) => SizedBox(height: 12.h),
             itemBuilder: (context, index) {
@@ -92,7 +97,9 @@ class _AddressChangeRequestsScreenState extends State<AddressChangeRequestsScree
                         ? null
                         : _controller.loadMore,
                     child: Text(
-                      _controller.isLoadingMore.value ? 'Loading...' : 'Load more',
+                      _controller.isLoadingMore.value
+                          ? 'Loading...'
+                          : 'Load more',
                     ),
                   ),
                 );
@@ -155,8 +162,14 @@ class _AddressChangeCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 14.h),
-            _InfoRow('Old address', oldAddress != null ? _addressText(oldAddress) : 'Unavailable'),
-            _InfoRow('New address', newAddress != null ? _addressText(newAddress) : 'Unavailable'),
+            _InfoRow(
+              'Old address',
+              oldAddress != null ? _addressText(oldAddress) : 'Unavailable',
+            ),
+            _InfoRow(
+              'New address',
+              newAddress != null ? _addressText(newAddress) : 'Unavailable',
+            ),
             if (distance != null) _InfoRow('Distance', distance),
             _InfoRow('Reason', reason),
             if (complaint.adminNote?.trim().isNotEmpty == true)
@@ -214,15 +227,15 @@ class _AddressChangeCard extends StatelessWidget {
         adminNote: note.trim().isEmpty ? null : note.trim(),
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request approved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Request approved')));
       }
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -261,15 +274,15 @@ class _AddressChangeCard extends StatelessWidget {
         adminNote: note.trim().isEmpty ? selected : note.trim(),
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request rejected')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Request rejected')));
       }
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -328,12 +341,12 @@ class _AddressChangeCard extends StatelessWidget {
   }
 
   String _addressText(Address address) => [
-        address.street,
-        address.city,
-        address.state,
-        address.zipCode,
-        address.country,
-      ].where((part) => part.trim().isNotEmpty).join(', ');
+    address.street,
+    address.city,
+    address.state,
+    address.zipCode,
+    address.country,
+  ].where((part) => part.trim().isNotEmpty).join(', ');
 
   String? _distanceLabel(Address? oldAddress, Address? newAddress) {
     if (oldAddress == null || newAddress == null) return null;
@@ -352,8 +365,6 @@ class _AddressChangeCard extends StatelessWidget {
     final local = date.toLocal();
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
-
-
 }
 
 class _InfoRow extends StatelessWidget {
@@ -373,9 +384,9 @@ class _InfoRow extends StatelessWidget {
             width: 100.w,
             child: Text(
               label,
-              style: AdminTextStyles.caption(context).copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: AdminTextStyles.caption(
+                context,
+              ).copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           Expanded(child: Text(value)),

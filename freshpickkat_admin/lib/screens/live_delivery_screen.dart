@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/live_delivery_controller.dart';
 import 'package:freshpickkat_admin/tracking/controllers/delivery_tracking_controller.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as live_delivery_map_preview_screen;
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart'
+    deferred as live_delivery_map_preview_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -237,7 +238,10 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
               onPressed: () async {
                 await navigateDeferred(
                   loadLibrary: live_delivery_map_preview_screen.loadLibrary,
-                  pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(order: order),
+                  pageBuilder: () =>
+                      live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
+                        order: order,
+                      ),
                 );
               },
               icon: const Icon(Icons.map_outlined),

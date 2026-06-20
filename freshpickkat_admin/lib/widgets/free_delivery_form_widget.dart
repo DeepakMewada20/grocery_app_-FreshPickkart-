@@ -26,9 +26,9 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
           children: [
             Text(
               'Product Free Delivery',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16.h),
             Row(
@@ -37,8 +37,8 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
                   child: Text(
                     'Products',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 FilledButton.tonalIcon(
@@ -63,9 +63,7 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'No free delivery products added',
-                    style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: TextStyle(color: cs.onSurfaceVariant),
                   ),
                 ),
               )
@@ -74,7 +72,10 @@ class FreeDeliveryPromotionSection extends StatelessWidget {
                 (product) => SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   secondary: product.imageUrl.isEmpty
-                      ? Icon(Icons.inventory_2_outlined, color: cs.onSurfaceVariant)
+                      ? Icon(
+                          Icons.inventory_2_outlined,
+                          color: cs.onSurfaceVariant,
+                        )
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: Image.network(
@@ -119,20 +120,25 @@ class OfferConflictDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(conflict.message ?? 'This offer conflicts with another active offer.'),
+            Text(
+              conflict.message ??
+                  'This offer conflicts with another active offer.',
+            ),
             if (combo != null) ...[
               const SizedBox(height: 12),
               Text(
                 combo.name,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
               ...combo.comboProducts.map(
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
-                  child: Text('${item.productName ?? item.productId} x${item.quantity}'),
+                  child: Text(
+                    '${item.productName ?? item.productId} x${item.quantity}',
+                  ),
                 ),
               ),
               const SizedBox(height: 8),

@@ -29,16 +29,17 @@ class VariantOfferExclusivityService {
     final existingBogoRows = await BogoOfferRow.db.find(
       session,
       where: (t) =>
-          t.triggerProductId.equals(productRow.id!) &
-          t.status.equals('active'),
+          t.triggerProductId.equals(productRow.id!) & t.status.equals('active'),
     );
     final now = DateTime.now().toUtc();
-    final existingBogo = existingBogoRows.where(
-      (r) =>
-          !now.isBefore(r.startsAt) &&
-          !now.isAfter(r.endsAt) &&
-          r.id.toString() != existingOfferId,
-    ).toList();
+    final existingBogo = existingBogoRows
+        .where(
+          (r) =>
+              !now.isBefore(r.startsAt) &&
+              !now.isAfter(r.endsAt) &&
+              r.id.toString() != existingOfferId,
+        )
+        .toList();
 
     // Existing combo offers involving this product
     final comboItemRows = await ComboOfferItemRow.db.find(
@@ -50,8 +51,7 @@ class VariantOfferExclusivityService {
         ? <ComboOfferRow>[]
         : await ComboOfferRow.db.find(
             session,
-            where: (t) =>
-                t.id.inSet(comboIds) & t.status.equals('active'),
+            where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
           );
     final activeComboIds = comboRows
         .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
@@ -67,7 +67,8 @@ class VariantOfferExclusivityService {
       existingBogoRows: existingBogo,
       existingComboItems: applicableComboItems,
       proposedBogoVariantId: offer.triggerVariantId?.trim(),
-      proposedBogoIsProductLevel: offer.triggerVariantId == null ||
+      proposedBogoIsProductLevel:
+          offer.triggerVariantId == null ||
           offer.triggerVariantId!.trim().isEmpty,
     );
   }
@@ -112,13 +113,14 @@ class VariantOfferExclusivityService {
     final bogoRows = await BogoOfferRow.db.find(
       session,
       where: (t) =>
-          t.triggerProductId.equals(productRow.id!) &
-          t.status.equals('active'),
+          t.triggerProductId.equals(productRow.id!) & t.status.equals('active'),
     );
     final now = DateTime.now().toUtc();
-    final activeBogo = bogoRows.where(
-      (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
-    ).toList();
+    final activeBogo = bogoRows
+        .where(
+          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
+        )
+        .toList();
 
     // Existing combo offers involving this product (exclude the one being edited)
     final comboItemRows = await ComboOfferItemRow.db.find(
@@ -127,21 +129,18 @@ class VariantOfferExclusivityService {
     );
     final otherComboItemRows = existingComboId != null
         ? comboItemRows
-            .where((r) => r.comboOfferId.toString() != existingComboId)
-            .toList()
+              .where((r) => r.comboOfferId.toString() != existingComboId)
+              .toList()
         : comboItemRows;
-    final otherComboIds =
-        otherComboItemRows.map((r) => r.comboOfferId).toSet();
+    final otherComboIds = otherComboItemRows.map((r) => r.comboOfferId).toSet();
     final otherComboRows = otherComboIds.isEmpty
         ? <ComboOfferRow>[]
         : await ComboOfferRow.db.find(
             session,
-            where: (t) =>
-                t.id.inSet(otherComboIds) & t.status.equals('active'),
+            where: (t) => t.id.inSet(otherComboIds) & t.status.equals('active'),
           );
     final activeOtherComboIds = otherComboRows
-        .where(
-            (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
         .map((r) => r.id!.toString())
         .toSet();
     final applicableOtherComboItems = otherComboItemRows
@@ -178,13 +177,14 @@ class VariantOfferExclusivityService {
     final bogoRows = await BogoOfferRow.db.find(
       session,
       where: (t) =>
-          t.triggerProductId.equals(productRow.id!) &
-          t.status.equals('active'),
+          t.triggerProductId.equals(productRow.id!) & t.status.equals('active'),
     );
     final now = DateTime.now().toUtc();
-    final activeBogo = bogoRows.where(
-      (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
-    ).toList();
+    final activeBogo = bogoRows
+        .where(
+          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
+        )
+        .toList();
 
     // Existing combo offers involving this product
     final comboItemRows = await ComboOfferItemRow.db.find(
@@ -196,12 +196,10 @@ class VariantOfferExclusivityService {
         ? <ComboOfferRow>[]
         : await ComboOfferRow.db.find(
             session,
-            where: (t) =>
-                t.id.inSet(comboIds) & t.status.equals('active'),
+            where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
           );
     final activeComboIds = comboRows
-        .where(
-            (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
         .map((r) => r.id!.toString())
         .toSet();
     final applicableComboItems = comboItemRows
@@ -258,8 +256,7 @@ class VariantOfferExclusivityService {
     final fdSourcesBefore = <ProductVariantRow>[
       for (final v in variantRows)
         if (v.isFreeDelivery) v,
-      if (productHasFreeDelivery && defaultVariant != null)
-        defaultVariant,
+      if (productHasFreeDelivery && defaultVariant != null) defaultVariant,
     ];
 
     // Per-variant active offer types

@@ -870,7 +870,16 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   }
 
   String _formatDate(DateTime dt) {
-    final utc = DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond, dt.microsecond);
+    final utc = DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond,
+    );
     final local = utc.toLocal();
     final months = [
       'Jan',

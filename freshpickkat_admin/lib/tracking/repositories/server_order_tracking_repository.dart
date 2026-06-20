@@ -8,9 +8,8 @@ import '../models/delivery_location.dart';
 import '../models/order_tracking_snapshot.dart';
 
 class ServerOrderTrackingRepository {
-  ServerOrderTrackingRepository({
-    server.Client? client,
-  }) : _client = client ?? ServerpodAdminClient().client;
+  ServerOrderTrackingRepository({server.Client? client})
+    : _client = client ?? ServerpodAdminClient().client;
 
   final server.Client _client;
 

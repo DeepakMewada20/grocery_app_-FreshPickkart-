@@ -17,7 +17,8 @@ class PostgresUserGuardService {
     final verifiedToken = await FirebaseAuthService.verifyIdToken(idToken);
     if (verifiedToken == null) {
       final verifyError = FirebaseAuthService.getLastVerifyError() ?? '';
-      final isNetworkError = verifyError.contains('HandshakeException') ||
+      final isNetworkError =
+          verifyError.contains('HandshakeException') ||
           verifyError.contains('SocketException') ||
           verifyError.contains('ClientException') ||
           verifyError.contains('Connection closed') ||

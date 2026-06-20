@@ -161,7 +161,10 @@ class AdminEndpoint extends Endpoint {
     try {
       final jobs = await _autoRefund.listJobsByOrder(session, orderNumber);
       if (jobs.isEmpty) {
-        return jsonEncode({'success': false, 'error': 'No auto-refund jobs found'});
+        return jsonEncode({
+          'success': false,
+          'error': 'No auto-refund jobs found',
+        });
       }
       // Find the latest job
       final latest = jobs.last;
@@ -173,7 +176,10 @@ class AdminEndpoint extends Endpoint {
       if (parsedId == null) {
         return jsonEncode({'success': false, 'error': 'Invalid job ID'});
       }
-      final jobRow = await protocol.AutoRefundJobRow.db.findById(session, parsedId);
+      final jobRow = await protocol.AutoRefundJobRow.db.findById(
+        session,
+        parsedId,
+      );
       if (jobRow == null) {
         return jsonEncode({'success': false, 'error': 'Job not found'});
       }
@@ -181,8 +187,9 @@ class AdminEndpoint extends Endpoint {
       if (!allowedStates.contains(jobRow.jobStatus)) {
         return jsonEncode({
           'success': false,
-          'error': 'Job is in \'${jobRow.jobStatus}\' state and cannot be retried. '
-                   'Allowed states: FAILED, MANUAL_REVIEW.',
+          'error':
+              'Job is in \'${jobRow.jobStatus}\' state and cannot be retried. '
+              'Allowed states: FAILED, MANUAL_REVIEW.',
         });
       }
       await _autoRefund.updateJobStatus(
@@ -191,7 +198,10 @@ class AdminEndpoint extends Endpoint {
         status: 'PENDING',
         error: null,
       );
-      return jsonEncode({'success': true, 'message': 'Auto-refund retry initiated'});
+      return jsonEncode({
+        'success': true,
+        'message': 'Auto-refund retry initiated',
+      });
     } catch (e) {
       return jsonEncode({'success': false, 'error': e.toString()});
     }
@@ -211,9 +221,14 @@ class AdminEndpoint extends Endpoint {
     );
     try {
       final jobs = await _autoRefund.listJobsByOrder(session, orderNumber);
-      final manualReview = jobs.where((j) => j['jobStatus'] == 'MANUAL_REVIEW').toList();
+      final manualReview = jobs
+          .where((j) => j['jobStatus'] == 'MANUAL_REVIEW')
+          .toList();
       if (manualReview.isEmpty) {
-        return jsonEncode({'success': false, 'error': 'No MANUAL_REVIEW jobs found'});
+        return jsonEncode({
+          'success': false,
+          'error': 'No MANUAL_REVIEW jobs found',
+        });
       }
       final latest = manualReview.last;
       final jobId = latest['id'] as String?;
@@ -224,7 +239,10 @@ class AdminEndpoint extends Endpoint {
       if (parsedId == null) {
         return jsonEncode({'success': false, 'error': 'Invalid job ID'});
       }
-      final jobRow = await protocol.AutoRefundJobRow.db.findById(session, parsedId);
+      final jobRow = await protocol.AutoRefundJobRow.db.findById(
+        session,
+        parsedId,
+      );
       if (jobRow == null) {
         return jsonEncode({'success': false, 'error': 'Job not found'});
       }
@@ -235,7 +253,10 @@ class AdminEndpoint extends Endpoint {
         error: 'Reviewed by admin',
         processedAt: DateTime.now().toUtc(),
       );
-      return jsonEncode({'success': true, 'message': 'Auto-refund marked as reviewed'});
+      return jsonEncode({
+        'success': true,
+        'message': 'Auto-refund marked as reviewed',
+      });
     } catch (e) {
       return jsonEncode({'success': false, 'error': e.toString()});
     }
@@ -291,7 +312,8 @@ class AdminEndpoint extends Endpoint {
         'WHERE pt."paymentStatus" = \'paid\' '
         'AND (co.id IS NULL OR co."paymentStatus" != \'paid\')',
       );
-      final orphanCount = (orphanResult.first.toColumnMap()['cnt'] as int?) ?? 0;
+      final orphanCount =
+          (orphanResult.first.toColumnMap()['cnt'] as int?) ?? 0;
 
       // Refund failures in last 24 hours
       final refundFailResult = await session.db.unsafeQuery(
@@ -299,10 +321,13 @@ class AdminEndpoint extends Endpoint {
         'WHERE "refundStatus" = \'failed\' '
         'AND "createdAt" >= @yesterday',
         parameters: QueryParameters.named({
-          'yesterday': now.subtract(const Duration(hours: 24)).toIso8601String(),
+          'yesterday': now
+              .subtract(const Duration(hours: 24))
+              .toIso8601String(),
         }),
       );
-      final recentRefundFailuresCount = (refundFailResult.first.toColumnMap()['cnt'] as int?) ?? 0;
+      final recentRefundFailuresCount =
+          (refundFailResult.first.toColumnMap()['cnt'] as int?) ?? 0;
 
       // Backlog — total incomplete jobs
       final backlogJobs = await protocol.AutoRefundJobRow.db.find(
@@ -316,9 +341,11 @@ class AdminEndpoint extends Endpoint {
       return jsonEncode({
         'pendingPaymentCount': pendingPayments.length,
         'expiredSessionCount': pendingPayments
-            .where((o) =>
-                o.paymentLinkExpiresAt != null &&
-                o.paymentLinkExpiresAt!.isBefore(now))
+            .where(
+              (o) =>
+                  o.paymentLinkExpiresAt != null &&
+                  o.paymentLinkExpiresAt!.isBefore(now),
+            )
             .length,
         'autoRefundPendingCount': pendingJobs.length,
         'autoRefundFailedCount': failedJobs.length,

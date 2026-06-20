@@ -90,8 +90,9 @@ class PostgresBannerService {
     );
     final offset = int.tryParse(pageToken ?? '') ?? 0;
     final safeOffset = offset.clamp(0, banners.length);
-    final end = (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
-        .clamp(0, banners.length);
+    final end =
+        (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
+            .clamp(0, banners.length);
 
     return BannerPage(
       banners: banners.sublist(safeOffset, end),
@@ -115,7 +116,9 @@ class PostgresBannerService {
     final row = await session.db.transaction<BannerRow>((transaction) async {
       final refs = await _resolveBannerRefs(session, banner);
       final placements = _normalizePlacements(banner.screenPlacements);
-      final linkedProductIds = _normalizeLinkedProductIds(banner.linkedProductIds);
+      final linkedProductIds = _normalizeLinkedProductIds(
+        banner.linkedProductIds,
+      );
       final now = DateTime.now().toUtc();
 
       if (banner.isBaseImage && placements.isNotEmpty) {
@@ -180,7 +183,9 @@ class PostgresBannerService {
 
       final refs = await _resolveBannerRefs(session, banner);
       final placements = _normalizePlacements(banner.screenPlacements);
-      final linkedProductIds = _normalizeLinkedProductIds(banner.linkedProductIds);
+      final linkedProductIds = _normalizeLinkedProductIds(
+        banner.linkedProductIds,
+      );
       final now = DateTime.now().toUtc();
 
       if (banner.isBaseImage && placements.isNotEmpty) {
@@ -351,51 +356,51 @@ class PostgresBannerService {
       for (final coupon in coupons) coupon.id!.toString(): coupon,
     };
 
-    return rows
-        .map((row) {
-          final linkedIdsStr = row.linkedProductIds;
-          final linkedIds = linkedIdsStr == null || linkedIdsStr.trim().isEmpty
-              ? null
-              : linkedIdsStr
-                  .split(',')
-                  .map((id) => id.trim())
-                  .where((id) => id.isNotEmpty)
-                  .toList();
-          final categoryName = row.linkedCategoryId == null
-              ? null
-              : categoryById[row.linkedCategoryId.toString()]?.name;
-          final couponCode = row.couponId == null
-              ? null
-              : couponById[row.couponId.toString()]?.code;
-          return Banner(
-            bannerId: row.id!.toString(),
-            title: row.title,
-            imageUrl: row.imageUrl,
-            type: row.actionType,
-            offerId: row.offerId,
-            categoryId: categoryName,
-            productId:
-                row.linkedProductId?.toString() ??
-                (linkedIds == null || linkedIds.isEmpty ? null : linkedIds.first),
-            comboId: row.comboOfferId?.toString(),
-            couponCode: couponCode,
-            externalUrl: row.externalUrl,
-            screenPlacements: row.screenPlacements,
-            priority: row.priority,
-            startDate: row.startsAt,
-            endDate: row.endsAt,
-            active: row.status == 'active',
-            isBaseImage: row.isBaseImage,
-            linkedProductIds: linkedIds,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-          );
-        })
-        .toList();
+    return rows.map((row) {
+      final linkedIdsStr = row.linkedProductIds;
+      final linkedIds = linkedIdsStr == null || linkedIdsStr.trim().isEmpty
+          ? null
+          : linkedIdsStr
+                .split(',')
+                .map((id) => id.trim())
+                .where((id) => id.isNotEmpty)
+                .toList();
+      final categoryName = row.linkedCategoryId == null
+          ? null
+          : categoryById[row.linkedCategoryId.toString()]?.name;
+      final couponCode = row.couponId == null
+          ? null
+          : couponById[row.couponId.toString()]?.code;
+      return Banner(
+        bannerId: row.id!.toString(),
+        title: row.title,
+        imageUrl: row.imageUrl,
+        type: row.actionType,
+        offerId: row.offerId,
+        categoryId: categoryName,
+        productId:
+            row.linkedProductId?.toString() ??
+            (linkedIds == null || linkedIds.isEmpty ? null : linkedIds.first),
+        comboId: row.comboOfferId?.toString(),
+        couponCode: couponCode,
+        externalUrl: row.externalUrl,
+        screenPlacements: row.screenPlacements,
+        priority: row.priority,
+        startDate: row.startsAt,
+        endDate: row.endsAt,
+        active: row.status == 'active',
+        isBaseImage: row.isBaseImage,
+        linkedProductIds: linkedIds,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      );
+    }).toList();
   }
 
   Future<_BannerRefs> _resolveBannerRefs(Session session, Banner banner) async {
-    final linkedProductIds = _normalizeLinkedProductIds(banner.linkedProductIds);
+    final linkedProductIds = _normalizeLinkedProductIds(
+      banner.linkedProductIds,
+    );
     final primaryProductId =
         tryParseUuid(banner.productId) ??
         (linkedProductIds.isEmpty ? null : linkedProductIds.first);

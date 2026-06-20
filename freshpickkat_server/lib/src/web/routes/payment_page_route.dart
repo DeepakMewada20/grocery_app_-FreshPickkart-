@@ -9,8 +9,7 @@ class PaymentPageRoute extends Route {
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
-    final enableWebCheckout =
-        EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
+    final enableWebCheckout = EnvService.get('ENABLE_WEB_CHECKOUT') == 'true';
     if (!enableWebCheckout) {
       return _invalidLinkPage(
         'Online payments through this link are currently unavailable. '
@@ -28,7 +27,8 @@ class PaymentPageRoute extends Route {
 
     if (data['valid'] != true) {
       return _invalidLinkPage(
-        data['errorMessage'] as String? ?? 'This payment link is no longer valid.',
+        data['errorMessage'] as String? ??
+            'This payment link is no longer valid.',
       );
     }
 
@@ -103,7 +103,8 @@ class PaymentPageRoute extends Route {
       itemsHtml.write('</div>');
     }
 
-    final html = '''
+    final html =
+        '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -485,7 +486,8 @@ class PaymentPageRoute extends Route {
   }
 
   Response _invalidLinkPage(String message) {
-    final html = '''
+    final html =
+        '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -539,5 +541,4 @@ class PaymentPageRoute extends Route {
         .replaceAll('\n', '\\n')
         .replaceAll('\r', '\\r');
   }
-
 }

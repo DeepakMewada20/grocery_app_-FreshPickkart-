@@ -84,12 +84,13 @@ class PostgresProductSearchService {
       return;
     }
 
-    final subCategoryIds = (product.subCategoryIds != null && product.subCategoryIds!.isNotEmpty)
+    final subCategoryIds =
+        (product.subCategoryIds != null && product.subCategoryIds!.isNotEmpty)
         ? product.subCategoryIds!
-            .split(',')
-            .map((s) => tryParseUuid(s.trim()))
-            .whereType<UuidValue>()
-            .toSet()
+              .split(',')
+              .map((s) => tryParseUuid(s.trim()))
+              .whereType<UuidValue>()
+              .toSet()
         : <UuidValue>{};
     final subCategories = subCategoryIds.isEmpty
         ? <SubCategoryRow>[]

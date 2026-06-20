@@ -169,8 +169,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     final firstVariantId = product?.variants?.firstOrNull?.variantId.trim();
     _originalFirstVariantId =
         (firstVariantId != null && firstVariantId.isNotEmpty)
-            ? firstVariantId
-            : 'default';
+        ? firstVariantId
+        : 'default';
 
     discountType = product?.discountType == 'flat' ? 'flat' : 'percentage';
     baseUnit = product?.baseUnit ?? _parseQuantityUnit(product?.quantity ?? '');
@@ -397,9 +397,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      final data = await ServerpodAdminClient()
-          .client
-          .productForm
+      final data = await ServerpodAdminClient().client.productForm
           .getProductFormReferenceData(uid, idToken);
       _bogoOffers = data.bogoOffers;
       _comboOffers = data.comboOffers;
@@ -1300,9 +1298,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     }
 
     if (categoryName != null && categoryName.isNotEmpty) {
-      final categoryOffers = _categoryOffers.where((
-        offer,
-      ) {
+      final categoryOffers = _categoryOffers.where((offer) {
         if (!_isOfferLive(
           offer.startDate,
           offer.endDate,
@@ -1363,12 +1359,10 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         );
       }
 
-      final bogoOffer = _bogoOffers
-          .cast<BogoOffer?>()
-          .firstWhere(
-            (offer) => offer?.triggerProductId == productId,
-            orElse: () => null,
-          );
+      final bogoOffer = _bogoOffers.cast<BogoOffer?>().firstWhere(
+        (offer) => offer?.triggerProductId == productId,
+        orElse: () => null,
+      );
       if (bogoOffer != null &&
           _isOfferLive(
             bogoOffer.startDate,

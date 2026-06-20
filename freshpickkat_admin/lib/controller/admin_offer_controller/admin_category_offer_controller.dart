@@ -199,42 +199,41 @@ class AdminCategoryOfferController extends GetxController {
 
   Future<bool?> deleteCategoryOffer(String offerId) async {
     try {
-      return await AdminSessionService.withRetry(apiCall: () async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken();
+      return await AdminSessionService.withRetry(
+        apiCall: () async {
+          final uid = AdminSessionService.requireUid();
+          final idToken = await AdminSessionService.requireIdToken();
 
-        final impact = await client.categoryOffer.checkCategoryOfferDeleteImpact(
-          offerId,
-          uid,
-          idToken,
-        );
+          final impact = await client.categoryOffer
+              .checkCategoryOfferDeleteImpact(offerId, uid, idToken);
 
-        final choice = await showDeleteImpactDialog(
-          context: Get.context!,
-          impact: impact,
-          entityName: 'Category Offer',
-        );
+          final choice = await showDeleteImpactDialog(
+            context: Get.context!,
+            impact: impact,
+            entityName: 'Category Offer',
+          );
 
-        switch (choice) {
-          case DeleteChoice.hardDelete:
-            final result = await client.categoryOffer.hardDeleteCategoryOffer(
-              offerId,
-              uid,
-              idToken,
-            );
-            if (result.success) {
-              categoryOffers.removeWhere((offer) => offer.offerId == offerId);
-              if (totalCount.value > 0) totalCount.value--;
-              return null;
-            }
-            return false;
-          case DeleteChoice.softDelete:
-            await toggleCategoryOffer(offerId, false);
-            return true;
-          case DeleteChoice.cancel:
-            return false;
-        }
-      });
+          switch (choice) {
+            case DeleteChoice.hardDelete:
+              final result = await client.categoryOffer.hardDeleteCategoryOffer(
+                offerId,
+                uid,
+                idToken,
+              );
+              if (result.success) {
+                categoryOffers.removeWhere((offer) => offer.offerId == offerId);
+                if (totalCount.value > 0) totalCount.value--;
+                return null;
+              }
+              return false;
+            case DeleteChoice.softDelete:
+              await toggleCategoryOffer(offerId, false);
+              return true;
+            case DeleteChoice.cancel:
+              return false;
+          }
+        },
+      );
     } catch (e) {
       return false;
     }

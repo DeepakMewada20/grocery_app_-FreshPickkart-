@@ -45,9 +45,11 @@ class PaymentReconciliationCronJob {
 
   void start() {
     // Startup recovery: reset stale PROCESSING auto-refund jobs
-    unawaited(_runLocked(_autoRefundLock, (session) async {
-      await _recoverStaleProcessingJobs(session);
-    }));
+    unawaited(
+      _runLocked(_autoRefundLock, (session) async {
+        await _recoverStaleProcessingJobs(session);
+      }),
+    );
 
     _reconciliationTimer ??= Timer.periodic(
       const Duration(minutes: 2),
@@ -165,7 +167,10 @@ class PaymentReconciliationCronJob {
         // Recover stale PROCESSING jobs before loading new ones
         await _recoverStaleProcessingJobs(session);
 
-        final pendingJobs = await _autoRefund.loadPendingJobs(session, limit: 25);
+        final pendingJobs = await _autoRefund.loadPendingJobs(
+          session,
+          limit: 25,
+        );
         for (final job in pendingJobs) {
           try {
             await _processAutoRefundJob(session, job);
@@ -182,8 +187,13 @@ class PaymentReconciliationCronJob {
     }
   }
 
-  Future<void> _processAutoRefundJob(Session session, protocol.AutoRefundJobRow job) async {
-    final pj = await session.db.transaction<protocol.AutoRefundJobRow?>((transaction) async {
+  Future<void> _processAutoRefundJob(
+    Session session,
+    protocol.AutoRefundJobRow job,
+  ) async {
+    final pj = await session.db.transaction<protocol.AutoRefundJobRow?>((
+      transaction,
+    ) async {
       final locked = await session.db.unsafeQuery(
         'SELECT id FROM "auto_refund_job" WHERE "id" = @id FOR UPDATE',
         parameters: QueryParameters.named({'id': job.id!.toJson()}),
@@ -192,7 +202,10 @@ class PaymentReconciliationCronJob {
       if (locked.isEmpty) return null;
 
       final currentJob = await protocol.AutoRefundJobRow.db.findById(
-        session, job.id!, transaction: transaction);
+        session,
+        job.id!,
+        transaction: transaction,
+      );
       if (currentJob == null || currentJob.jobStatus != 'PENDING') return null;
 
       await protocol.AutoRefundJobRow.db.updateRow(
@@ -213,7 +226,10 @@ class PaymentReconciliationCronJob {
       action: 'AUTO_REFUND_PROCESSING',
       entityType: 'payment',
       entityId: pj.orderNumber,
-      metadata: {'gatewayPaymentId': pj.gatewayPaymentId, 'amount': pj.amount.toString()},
+      metadata: {
+        'gatewayPaymentId': pj.gatewayPaymentId,
+        'amount': pj.amount.toString(),
+      },
     );
 
     try {
@@ -221,7 +237,8 @@ class PaymentReconciliationCronJob {
         session,
         where: (t) =>
             t.gatewayRefundId.equals(pj.gatewayPaymentId) &
-            (t.refundStatus.equals('processed') | t.refundStatus.equals('pending')),
+            (t.refundStatus.equals('processed') |
+                t.refundStatus.equals('pending')),
         limit: 1,
       );
       if (existingRefunds.isNotEmpty) {
@@ -229,7 +246,12 @@ class PaymentReconciliationCronJob {
           'Auto-refund already processed for ${pj.gatewayPaymentId}, marking COMPLETED',
           level: LogLevel.info,
         );
-        await _autoRefund.updateJobStatus(session, pj, status: 'COMPLETED', error: null);
+        await _autoRefund.updateJobStatus(
+          session,
+          pj,
+          status: 'COMPLETED',
+          error: null,
+        );
         return;
       }
 
@@ -254,7 +276,10 @@ class PaymentReconciliationCronJob {
         );
       } else {
         await _handleRefundFailure(
-          session, pj, refundResult.failureReason ?? 'Refund failed');
+          session,
+          pj,
+          refundResult.failureReason ?? 'Refund failed',
+        );
       }
 
       if (refundResult.refundId != 'error') {
@@ -390,7 +415,10 @@ class PaymentReconciliationCronJob {
       await _runLocked(_sessionExpiryLock, (session) async {
         final expired = await _payments.expireStaleSessions(session);
         if (expired > 0) {
-          session.log('Expired $expired stale payment sessions', level: LogLevel.info);
+          session.log(
+            'Expired $expired stale payment sessions',
+            level: LogLevel.info,
+          );
         }
       });
     } finally {
@@ -419,7 +447,10 @@ class PaymentReconciliationCronJob {
           }
         }
         if (newCount > 0) {
-          session.log('Detected $newCount new orphan payment(s)', level: LogLevel.warning);
+          session.log(
+            'Detected $newCount new orphan payment(s)',
+            level: LogLevel.warning,
+          );
         }
       });
     } finally {

@@ -602,19 +602,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       title: 'Remove Offer',
       content: 'Remove category offer "${offer.name}"?',
       confirmLabel: 'Remove',
-      onConfirm: () => widget.categoryOfferController.deleteCategoryOffer(
-        offerId,
-      ),
+      onConfirm: () =>
+          widget.categoryOfferController.deleteCategoryOffer(offerId),
     );
     if (confirmed != true || !mounted) return;
     showUndoSnackBar(
       context,
       message: 'Category offer removed',
       onUndo: () {
-        widget.categoryOfferController.toggleCategoryOffer(
-          offerId,
-          true,
-        );
+        widget.categoryOfferController.toggleCategoryOffer(offerId, true);
       },
     );
   }
@@ -1249,10 +1245,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
             final offer = _linkedCategoryOffer(product, categoryOffers);
             final oid = offer?.offerId;
             if (oid != null) {
-              widget.categoryOfferController.toggleCategoryOffer(
-                oid,
-                true,
-              );
+              widget.categoryOfferController.toggleCategoryOffer(oid, true);
             }
           case _OfferCardActionType.comboOffer:
             final offer = _linkedComboOffer(product, comboOffers);
@@ -1745,28 +1738,26 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 if (supportsToggle)
                                   PopupMenuItem(
                                     value: 'toggle',
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            isOfferActive
-                                                ? Icons.toggle_on
-                                                : Icons.toggle_off_outlined,
-                                            color: isOfferActive
-                                                ? AdminAppTheme.getSuccessColor(
-                                                    context,
-                                                  )
-                                                : AdminAppTheme.getErrorColor(
-                                                    context,
-                                                  ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            isOfferActive
-                                                ? 'Active'
-                                                : 'Inactive',
-                                          ),
-                                        ],
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          isOfferActive
+                                              ? Icons.toggle_on
+                                              : Icons.toggle_off_outlined,
+                                          color: isOfferActive
+                                              ? AdminAppTheme.getSuccessColor(
+                                                  context,
+                                                )
+                                              : AdminAppTheme.getErrorColor(
+                                                  context,
+                                                ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          isOfferActive ? 'Active' : 'Inactive',
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 const PopupMenuItem(
                                   value: 'edit',

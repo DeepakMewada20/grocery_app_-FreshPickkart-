@@ -431,9 +431,7 @@ class AdminAppTheme {
         contentTextStyle: isDark ? const TextStyle(color: Colors.white) : null,
         behavior: isDark ? SnackBarBehavior.floating : null,
         shape: isDark
-            ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              )
+            ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
             : null,
       ),
       switchTheme: isDark

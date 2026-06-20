@@ -91,10 +91,9 @@ class AdminPaymentMonitoringController extends GetxController {
         idToken: token,
         query: searchQuery.value.isEmpty ? null : searchQuery.value,
         status: statusFilter.value.isEmpty ? null : statusFilter.value,
-        paymentStatus:
-            paymentStatusFilter.value.isEmpty
-                ? null
-                : paymentStatusFilter.value,
+        paymentStatus: paymentStatusFilter.value.isEmpty
+            ? null
+            : paymentStatusFilter.value,
         limit: 20,
         pageToken: pageToken,
       );

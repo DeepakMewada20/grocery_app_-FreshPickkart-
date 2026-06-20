@@ -373,7 +373,11 @@ class PostgresCouponService {
             maxDiscount: row.maxDiscountAmount,
             maxDiscountAmount: row.maxDiscountAmount,
             productIds: row.productIds != null && row.productIds!.isNotEmpty
-                ? row.productIds!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+                ? row.productIds!
+                      .split(',')
+                      .map((s) => s.trim())
+                      .where((s) => s.isNotEmpty)
+                      .toList()
                 : null,
             loyaltyRequiredOrders: row.loyaltyRequiredOrders,
             startDate: row.startsAt,
@@ -399,7 +403,11 @@ class PostgresCouponService {
         .whereType<UuidValue>()
         .map((id) => id.toString())
         .join(',');
-    final row = await CouponRow.db.findById(session, couponId, transaction: transaction);
+    final row = await CouponRow.db.findById(
+      session,
+      couponId,
+      transaction: transaction,
+    );
     if (row == null) return;
     final updated = row.copyWith(productIds: idsStr.isEmpty ? null : idsStr);
     await CouponRow.db.updateRow(session, updated, transaction: transaction);
@@ -413,7 +421,10 @@ class PostgresCouponService {
     required List<CartItemInput> cartItems,
   }) async {
     final products = await _fetchProducts(session, cartItems);
-    final completedOrdersCount = await _getCompletedOrdersCount(session, userId);
+    final completedOrdersCount = await _getCompletedOrdersCount(
+      session,
+      userId,
+    );
 
     final results = <_CouponEvaluation>[];
     for (final coupon in coupons) {
@@ -422,15 +433,17 @@ class PostgresCouponService {
         userId,
         coupon.id ?? '',
       );
-      results.add(_evaluateCouponWithContext(
-        coupon: coupon,
-        userId: userId,
-        cartSubtotal: cartSubtotal,
-        cartItems: cartItems,
-        products: products,
-        completedOrdersCount: completedOrdersCount,
-        userCouponUsageCount: userCouponUsageCount,
-      ));
+      results.add(
+        _evaluateCouponWithContext(
+          coupon: coupon,
+          userId: userId,
+          cartSubtotal: cartSubtotal,
+          cartItems: cartItems,
+          products: products,
+          completedOrdersCount: completedOrdersCount,
+          userCouponUsageCount: userCouponUsageCount,
+        ),
+      );
     }
     return results;
   }
@@ -443,7 +456,10 @@ class PostgresCouponService {
     required List<CartItemInput> cartItems,
   }) async {
     final products = await _fetchProducts(session, cartItems);
-    final completedOrdersCount = await _getCompletedOrdersCount(session, userId);
+    final completedOrdersCount = await _getCompletedOrdersCount(
+      session,
+      userId,
+    );
     final userCouponUsageCount = await _countUserCouponUsage(
       session,
       userId,

@@ -12,7 +12,8 @@ class FcmUnregisteredException implements Exception {
   FcmUnregisteredException(this.token);
 
   @override
-  String toString() => 'FcmUnregisteredException: Token $token is no longer registered with FCM';
+  String toString() =>
+      'FcmUnregisteredException: Token $token is no longer registered with FCM';
 }
 
 class FirebaseNotificationService {
@@ -160,7 +161,8 @@ class FirebaseNotificationService {
 
     final itemStr = itemCount != null ? ' ($itemCount items)' : '';
     final title = 'Payment received!';
-    final body = '₹${amount.toStringAsFixed(0)} paid for Order #$orderId$itemStr. '
+    final body =
+        '₹${amount.toStringAsFixed(0)} paid for Order #$orderId$itemStr. '
         'Status: ${orderStatus.toUpperCase()}, Payment: ${paymentStatus.toUpperCase()}';
 
     await _sendToTokens(

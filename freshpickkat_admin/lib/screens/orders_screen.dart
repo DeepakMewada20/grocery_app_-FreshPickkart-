@@ -12,7 +12,8 @@ import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart' deferred as live_delivery_map_preview_screen;
+import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart'
+    deferred as live_delivery_map_preview_screen;
 import '../widgets/admin_app_bar.dart';
 import '../widgets/admin_state_view.dart';
 import '../widgets/network_error_widget.dart';
@@ -189,9 +190,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
       await navigateDeferred(
         loadLibrary: live_delivery_map_preview_screen.loadLibrary,
-        pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
-          order: order.copyWith(status: 'out_for_delivery'),
-        ),
+        pageBuilder: () =>
+            live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
+              order: order.copyWith(status: 'out_for_delivery'),
+            ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -227,16 +229,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
     try {
       final success = await _orderController.generateDeliveryOtp(order);
       if (success && mounted) {
-        final index =
-            _orderController.orders.indexWhere((o) => o.orderId == order.orderId);
+        final index = _orderController.orders.indexWhere(
+          (o) => o.orderId == order.orderId,
+        );
         if (index != -1) {
-          _orderController.orders[index] =
-              order.copyWith(status: 'delivery_otp_pending');
+          _orderController.orders[index] = order.copyWith(
+            status: 'delivery_otp_pending',
+          );
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Delivery OTP generated for order ${order.orderId}'),
+            content: Text('Delivery OTP generated for order ${order.orderId}'),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -539,17 +542,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               order: order,
                               isHighlighted:
                                   order.orderId == _highlightedOrderId,
-              onTap: () async {
-                await navigateDeferred(
-                  loadLibrary: order_detail_screen.loadLibrary,
-                  pageBuilder: () => order_detail_screen.OrderDetailScreen(
-                    order: order,
-                    onStatusChanged: (status) =>
-                        _updateStatus(order, status),
-                    onStartDelivery: _startDelivery,
-                  ),
-                );
-              },
+                              onTap: () async {
+                                await navigateDeferred(
+                                  loadLibrary: order_detail_screen.loadLibrary,
+                                  pageBuilder: () =>
+                                      order_detail_screen.OrderDetailScreen(
+                                        order: order,
+                                        onStatusChanged: (status) =>
+                                            _updateStatus(order, status),
+                                        onStartDelivery: _startDelivery,
+                                      ),
+                                );
+                              },
                               onStatusChanged: (status) =>
                                   _updateStatus(order, status),
                               onStartDelivery: _startDelivery,
@@ -565,7 +569,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
       }),
     );
   }
-
 }
 
 class _StatusFilterChips extends StatelessWidget {
@@ -981,7 +984,10 @@ class _OrderCardState extends State<_OrderCard> {
           onPressed: () async {
             await navigateDeferred(
               loadLibrary: live_delivery_map_preview_screen.loadLibrary,
-              pageBuilder: () => live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(order: order),
+              pageBuilder: () =>
+                  live_delivery_map_preview_screen.LiveDeliveryMapPreviewScreen(
+                    order: order,
+                  ),
             );
           },
         ),
@@ -1126,5 +1132,3 @@ class _RefundStatusBadge extends StatelessWidget {
     );
   }
 }
-
-

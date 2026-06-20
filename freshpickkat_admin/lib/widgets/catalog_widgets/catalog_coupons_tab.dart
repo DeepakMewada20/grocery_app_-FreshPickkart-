@@ -538,9 +538,9 @@ class _CouponStatDivider extends StatelessWidget {
       width: 1,
       height: 28.h,
       margin: EdgeInsets.symmetric(horizontal: 6.w),
-      color: AdminAppTheme.getBorderColor(context).withValues(
-        alpha: isDark ? 0.5 : 0.7,
-      ),
+      color: AdminAppTheme.getBorderColor(
+        context,
+      ).withValues(alpha: isDark ? 0.5 : 0.7),
     );
   }
 }

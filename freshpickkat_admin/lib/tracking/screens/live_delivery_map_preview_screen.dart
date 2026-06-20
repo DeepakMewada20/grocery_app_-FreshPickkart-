@@ -141,8 +141,8 @@ class _LiveDeliveryMapPreviewScreenState
 
   Future<void> _focusLiveView() async {
     if (_mapController == null) return;
-    final rider = _animatedRiderPosition ??
-        _toMapsOrNull(_controller.currentRiderMarker);
+    final rider =
+        _animatedRiderPosition ?? _toMapsOrNull(_controller.currentRiderMarker);
     final user =
         _toMapsOrNull(_controller.currentUserMarker) ?? _destinationMarker;
     if (rider == null && user == null) return;
@@ -277,8 +277,8 @@ class _LiveDeliveryMapPreviewScreenState
 
   Set<Marker> _buildMarkers(LatLng? destination) {
     final markers = <Marker>{};
-    final rider = _animatedRiderPosition ??
-        _toMapsOrNull(_controller.currentRiderMarker);
+    final rider =
+        _animatedRiderPosition ?? _toMapsOrNull(_controller.currentRiderMarker);
 
     if (destination != null) {
       markers.add(

@@ -219,9 +219,7 @@ class DeliveryEngine {
           ? 'Free delivery on your ${n}th order!'
           : 'Special pricing on your ${n}th order';
     }
-    return isFree
-        ? 'Free delivery on all orders!'
-        : 'Special delivery pricing';
+    return isFree ? 'Free delivery on all orders!' : 'Special delivery pricing';
   }
 
   static DeliveryPricingResult _buildResult({

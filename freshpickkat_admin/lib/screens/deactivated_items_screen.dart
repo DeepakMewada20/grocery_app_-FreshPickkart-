@@ -76,8 +76,7 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
           isScrollable: true,
           controller: _tabController,
           labelColor: AdminThemeTokens.white,
-          unselectedLabelColor:
-              AdminThemeTokens.white.withValues(alpha: 0.7),
+          unselectedLabelColor: AdminThemeTokens.white.withValues(alpha: 0.7),
           tabs: const [
             Tab(text: 'Categories'),
             Tab(text: 'Products'),
@@ -94,127 +93,125 @@ class _DeactivatedItemsScreenState extends State<DeactivatedItemsScreen>
         controller: _tabController,
         children: [
           _DeactivatedTab<protocol.Category>(
-            sourceList:
-                AdminCategoryController.instance.inactiveCategories,
+            sourceList: AdminCategoryController.instance.inactiveCategories,
             displayName: (c) => c.categoryName,
-            leadingIcon: (c) =>
-                const Icon(Icons.category_outlined),
+            leadingIcon: (c) => const Icon(Icons.category_outlined),
             onReactivate: (c) async {
-              await AdminCategoryController.instance
-                  .setCategoryActive(c.categoryName, true);
+              await AdminCategoryController.instance.setCategoryActive(
+                c.categoryName,
+                true,
+              );
             },
             emptyMessage: 'No deactivated categories',
             isLoading: AdminCategoryController.instance.isLoadingInactive,
-            onRefresh: () => AdminCategoryController.instance
-                .loadInactiveCategories(),
+            onRefresh: () =>
+                AdminCategoryController.instance.loadInactiveCategories(),
           ),
           _DeactivatedTab<protocol.Product>(
-            sourceList:
-                AdminProductController.instance.inactiveProducts,
+            sourceList: AdminProductController.instance.inactiveProducts,
             displayName: (p) => p.productName,
-            leadingIcon: (p) =>
-                const Icon(Icons.shopping_bag_outlined),
+            leadingIcon: (p) => const Icon(Icons.shopping_bag_outlined),
             onReactivate: (p) async {
-              await AdminProductController.instance
-                  .deactivateProduct(p.productId!, true);
+              await AdminProductController.instance.deactivateProduct(
+                p.productId!,
+                true,
+              );
             },
             emptyMessage: 'No deactivated products',
             isLoading: AdminProductController.instance.isLoadingInactive,
-            onRefresh: () => AdminProductController.instance
-                .loadInactiveProducts(),
+            onRefresh: () =>
+                AdminProductController.instance.loadInactiveProducts(),
           ),
           _DeactivatedTab<protocol.ComboOffer>(
-            sourceList:
-                AdminComboOfferController.instance.inactiveComboOffers,
+            sourceList: AdminComboOfferController.instance.inactiveComboOffers,
             displayName: (o) => o.name,
-            leadingIcon: (o) =>
-                const Icon(Icons.local_offer_outlined),
+            leadingIcon: (o) => const Icon(Icons.local_offer_outlined),
             onReactivate: (o) async {
-              await AdminComboOfferController.instance
-                  .toggleComboOffer(o.comboId!, true);
+              await AdminComboOfferController.instance.toggleComboOffer(
+                o.comboId!,
+                true,
+              );
             },
             emptyMessage: 'No deactivated combo offers',
-            isLoading:
-                AdminComboOfferController.instance.isLoadingInactive,
-            onRefresh: () => AdminComboOfferController.instance
-                .loadInactiveComboOffers(),
+            isLoading: AdminComboOfferController.instance.isLoadingInactive,
+            onRefresh: () =>
+                AdminComboOfferController.instance.loadInactiveComboOffers(),
           ),
           _DeactivatedTab<protocol.BogoOffer>(
-            sourceList:
-                AdminBogoController.instance.inactiveBogoOffers,
+            sourceList: AdminBogoController.instance.inactiveBogoOffers,
             displayName: (o) => o.offerTitle,
             leadingIcon: (o) =>
                 const Icon(Icons.production_quantity_limits_outlined),
             onReactivate: (o) async {
-              await AdminBogoController.instance
-                  .setBogoOfferActive(o.triggerProductId, true);
+              await AdminBogoController.instance.setBogoOfferActive(
+                o.triggerProductId,
+                true,
+              );
             },
             emptyMessage: 'No deactivated BOGO offers',
             isLoading: AdminBogoController.instance.isLoadingInactive,
-            onRefresh: () => AdminBogoController.instance
-                .loadInactiveBogoOffers(),
+            onRefresh: () =>
+                AdminBogoController.instance.loadInactiveBogoOffers(),
           ),
           _DeactivatedTab<protocol.CategoryOffer>(
             sourceList:
                 AdminCategoryOfferController.instance.inactiveCategoryOffers,
             displayName: (o) => o.name,
-            leadingIcon: (o) =>
-                const Icon(Icons.category_outlined),
+            leadingIcon: (o) => const Icon(Icons.category_outlined),
             onReactivate: (o) async {
-              await AdminCategoryOfferController.instance
-                  .toggleCategoryOffer(o.offerId!, true);
+              await AdminCategoryOfferController.instance.toggleCategoryOffer(
+                o.offerId!,
+                true,
+              );
             },
             emptyMessage: 'No deactivated category offers',
-            isLoading:
-                AdminCategoryOfferController.instance.isLoadingInactive,
+            isLoading: AdminCategoryOfferController.instance.isLoadingInactive,
             onRefresh: () => AdminCategoryOfferController.instance
                 .loadInactiveCategoryOffers(),
           ),
           _DeactivatedTab<protocol.Coupon>(
-            sourceList:
-                AdminCouponController.instance.inactiveCoupons,
+            sourceList: AdminCouponController.instance.inactiveCoupons,
             displayName: (c) => c.code,
-            leadingIcon: (c) =>
-                const Icon(Icons.card_giftcard_outlined),
+            leadingIcon: (c) => const Icon(Icons.card_giftcard_outlined),
             onReactivate: (c) async {
-              await AdminCouponController.instance
-                  .setCouponActive(c.code, true);
+              await AdminCouponController.instance.setCouponActive(
+                c.code,
+                true,
+              );
             },
             emptyMessage: 'No deactivated coupons',
-            isLoading:
-                AdminCouponController.instance.isLoadingInactive,
-            onRefresh: () => AdminCouponController.instance
-                .loadInactiveCoupons(),
+            isLoading: AdminCouponController.instance.isLoadingInactive,
+            onRefresh: () =>
+                AdminCouponController.instance.loadInactiveCoupons(),
           ),
           _DeactivatedTab<protocol.Banner>(
-            sourceList:
-                AdminBannerController.instance.inactiveBanners,
+            sourceList: AdminBannerController.instance.inactiveBanners,
             displayName: (b) => b.title,
-            leadingIcon: (b) =>
-                const Icon(Icons.campaign_outlined),
+            leadingIcon: (b) => const Icon(Icons.campaign_outlined),
             onReactivate: (b) async {
-              await AdminBannerController.instance
-                  .toggleBannerActive(b.bannerId!, true);
+              await AdminBannerController.instance.toggleBannerActive(
+                b.bannerId!,
+                true,
+              );
             },
             emptyMessage: 'No deactivated banners',
-            isLoading:
-                AdminBannerController.instance.isLoadingInactive,
-            onRefresh: () => AdminBannerController.instance
-                .loadInactiveBanners(),
+            isLoading: AdminBannerController.instance.isLoadingInactive,
+            onRefresh: () =>
+                AdminBannerController.instance.loadInactiveBanners(),
           ),
           _DeactivatedTab<protocol.DeliveryRule>(
             sourceList:
                 AdminFreeDeliveryController.instance.inactiveDeliveryRules,
             displayName: (r) => r.name,
-            leadingIcon: (r) =>
-                const Icon(Icons.local_shipping_outlined),
+            leadingIcon: (r) => const Icon(Icons.local_shipping_outlined),
             onReactivate: (r) async {
-              await AdminFreeDeliveryController.instance
-                  .toggleDeliveryRule(r.ruleId!, true);
+              await AdminFreeDeliveryController.instance.toggleDeliveryRule(
+                r.ruleId!,
+                true,
+              );
             },
             emptyMessage: 'No deactivated delivery rules',
-            isLoading:
-                AdminFreeDeliveryController.instance.isLoadingInactive,
+            isLoading: AdminFreeDeliveryController.instance.isLoadingInactive,
             onRefresh: () => AdminFreeDeliveryController.instance
                 .loadInactiveDeliveryRules(),
           ),
@@ -263,10 +260,9 @@ class _DeactivatedTab<T> extends StatelessWidget {
                     child: Text(
                       emptyMessage,
                       style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                         fontSize: 15,
                       ),
                     ),
@@ -296,8 +292,7 @@ class _DeactivatedTab<T> extends StatelessWidget {
                 title: Text(displayName(item)),
                 trailing: TextButton.icon(
                   onPressed: () => _reactivate(context, item),
-                  icon: const Icon(Icons.check_circle_outline,
-                      size: 18),
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
                   label: const Text('Reactivate'),
                 ),
               ),
@@ -315,19 +310,13 @@ class _DeactivatedTab<T> extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(
-          SnackBar(
-            content: Text('${displayName(item)} reactivated'),
-          ),
+          SnackBar(content: Text('${displayName(item)} reactivated')),
         );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(
-            content: Text('Failed: $e'),
-          ),
-        );
+        ..showSnackBar(SnackBar(content: Text('Failed: $e')));
     }
   }
 }

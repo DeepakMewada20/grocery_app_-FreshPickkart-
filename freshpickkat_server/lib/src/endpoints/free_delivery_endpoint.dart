@@ -51,9 +51,9 @@ class FreeDeliveryEndpoint extends Endpoint {
     if (isFreeDelivery) {
       final exclusivityErr =
           await VariantOfferExclusivityService.validateFreeDeliveryEnable(
-        session,
-        productId,
-      );
+            session,
+            productId,
+          );
       if (exclusivityErr != null) {
         return OfferMutationResult(
           success: false,

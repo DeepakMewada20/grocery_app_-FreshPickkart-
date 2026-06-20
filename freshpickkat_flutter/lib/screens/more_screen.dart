@@ -100,7 +100,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: help_support_screen.loadLibrary,
-                      pageBuilder: () => help_support_screen.HelpSupportScreen(),
+                      pageBuilder: () =>
+                          help_support_screen.HelpSupportScreen(),
                     );
                   },
                   cs: cs,
@@ -150,7 +151,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: edit_profile_screen.loadLibrary,
-                      pageBuilder: () => edit_profile_screen.EditProfileScreen(),
+                      pageBuilder: () =>
+                          edit_profile_screen.EditProfileScreen(),
                     );
                   },
                   cs: cs,

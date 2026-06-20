@@ -126,10 +126,7 @@ class _BannersScreenState extends State<BannersScreen>
                       SizedBox(width: 8.w),
                       _buildFilterChip('Standard', _BannerMode.normal),
 
-                    _buildFilterChip(
-                      'Home Top',
-                      _BannerMode.homeTopImage,
-                      ),
+                      _buildFilterChip('Home Top', _BannerMode.homeTopImage),
                     ],
                   ),
                 ),
@@ -300,9 +297,9 @@ class _BannersScreenState extends State<BannersScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete banner: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete banner: $e')));
       }
     }
   }

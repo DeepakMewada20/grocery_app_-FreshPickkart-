@@ -40,7 +40,8 @@ class OrderEndpoint extends Endpoint {
   final PostgresAuditLogService _audit = PostgresAuditLogService();
   final PostgresRefundService _pgRefunds = PostgresRefundService();
   final PostgresDeliveryOtpService _deliveryOtp = PostgresDeliveryOtpService();
-  final FirebaseNotificationService _notifications = FirebaseNotificationService();
+  final FirebaseNotificationService _notifications =
+      FirebaseNotificationService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
     return _orders.createOrder(session, order);
@@ -397,7 +398,8 @@ class OrderEndpoint extends Endpoint {
           return protocol.PaymentActionResult(
             success: true,
             status: 'cancelled',
-            message: 'Order cancelled, but refund could not be initiated automatically. Please contact support.',
+            message:
+                'Order cancelled, but refund could not be initiated automatically. Please contact support.',
           );
         }
 
@@ -425,7 +427,8 @@ class OrderEndpoint extends Endpoint {
         return protocol.PaymentActionResult(
           success: true,
           status: 'cancelled',
-          message: 'Order cancelled, but refund could not be processed automatically. Please contact support.',
+          message:
+              'Order cancelled, but refund could not be processed automatically. Please contact support.',
         );
       }
     }
@@ -621,7 +624,8 @@ class OrderEndpoint extends Endpoint {
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
     }
-    if (order.status != statusOutForDelivery && order.status != statusDeliveryOtpPending) {
+    if (order.status != statusOutForDelivery &&
+        order.status != statusDeliveryOtpPending) {
       throw StateError(
         'Order status must be "out_for_delivery" to generate delivery OTP. '
         'Current status: ${order.status}',

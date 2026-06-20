@@ -16,7 +16,9 @@ void main() {
     Get.reset();
   });
 
-  testWidgets('shows direct update branch before out for delivery', (tester) async {
+  testWidgets('shows direct update branch before out for delivery', (
+    tester,
+  ) async {
     await _pumpApp(
       tester,
       ReportDeliveryIssueScreen(
@@ -35,7 +37,9 @@ void main() {
     // Open the dropdown, then select 'Delivery Location Issue'
     await tester.tap(find.text('Late Delivery'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue).last);
+    await tester.tap(
+      find.text(DeliveryIssueController.deliveryLocationIssue).last,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Update the delivery details directly'), findsOneWidget);
@@ -63,7 +67,9 @@ void main() {
     // Open the dropdown, then select 'Delivery Location Issue'
     await tester.tap(find.text('Late Delivery'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(DeliveryIssueController.deliveryLocationIssue).last);
+    await tester.tap(
+      find.text(DeliveryIssueController.deliveryLocationIssue).last,
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Request approval for delivery changes'), findsOneWidget);

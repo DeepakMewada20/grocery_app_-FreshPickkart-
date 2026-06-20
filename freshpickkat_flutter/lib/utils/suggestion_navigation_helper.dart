@@ -45,8 +45,9 @@ class SuggestionNavigationHelper {
         if (comboId != null) {
           await navigateDeferred(
             loadLibrary: combo_offers_screen.loadLibrary,
-            pageBuilder: () =>
-                combo_offers_screen.ComboOffersScreen(highlightComboId: comboId),
+            pageBuilder: () => combo_offers_screen.ComboOffersScreen(
+              highlightComboId: comboId,
+            ),
           );
         }
         break;

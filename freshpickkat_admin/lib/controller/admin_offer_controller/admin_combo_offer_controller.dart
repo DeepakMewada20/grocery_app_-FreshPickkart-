@@ -200,42 +200,44 @@ class AdminComboOfferController extends GetxController {
 
   Future<bool?> deleteComboOffer(String comboId) async {
     try {
-      return await AdminSessionService.withRetry(apiCall: () async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken();
+      return await AdminSessionService.withRetry(
+        apiCall: () async {
+          final uid = AdminSessionService.requireUid();
+          final idToken = await AdminSessionService.requireIdToken();
 
-        final impact = await client.comboOffer.checkComboDeleteImpact(
-          comboId,
-          uid,
-          idToken,
-        );
+          final impact = await client.comboOffer.checkComboDeleteImpact(
+            comboId,
+            uid,
+            idToken,
+          );
 
-        final choice = await showDeleteImpactDialog(
-          context: Get.context!,
-          impact: impact,
-          entityName: 'Combo Offer',
-        );
+          final choice = await showDeleteImpactDialog(
+            context: Get.context!,
+            impact: impact,
+            entityName: 'Combo Offer',
+          );
 
-        switch (choice) {
-          case DeleteChoice.hardDelete:
-            final result = await client.comboOffer.hardDeleteComboOffer(
-              comboId,
-              uid,
-              idToken,
-            );
-            if (result.success) {
-              comboOffers.removeWhere((offer) => offer.comboId == comboId);
-              if (totalCount.value > 0) totalCount.value--;
-              return null;
-            }
-            return false;
-          case DeleteChoice.softDelete:
-            await toggleComboOffer(comboId, false);
-            return true;
-          case DeleteChoice.cancel:
-            return false;
-        }
-      });
+          switch (choice) {
+            case DeleteChoice.hardDelete:
+              final result = await client.comboOffer.hardDeleteComboOffer(
+                comboId,
+                uid,
+                idToken,
+              );
+              if (result.success) {
+                comboOffers.removeWhere((offer) => offer.comboId == comboId);
+                if (totalCount.value > 0) totalCount.value--;
+                return null;
+              }
+              return false;
+            case DeleteChoice.softDelete:
+              await toggleComboOffer(comboId, false);
+              return true;
+            case DeleteChoice.cancel:
+              return false;
+          }
+        },
+      );
     } catch (e) {
       return false;
     }

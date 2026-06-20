@@ -35,10 +35,10 @@ class ComboOfferEndpoint extends Endpoint {
 
       final exclusivityErr =
           await VariantOfferExclusivityService.validateComboSave(
-        session,
-        offer,
-        existingComboId: offer.comboId,
-      );
+            session,
+            offer,
+            existingComboId: offer.comboId,
+          );
       if (exclusivityErr != null) {
         return OfferMutationResult(
           success: false,
@@ -119,10 +119,10 @@ class ComboOfferEndpoint extends Endpoint {
 
       final exclusivityErr =
           await VariantOfferExclusivityService.validateComboSave(
-        session,
-        offer,
-        existingComboId: offer.comboId,
-      );
+            session,
+            offer,
+            existingComboId: offer.comboId,
+          );
       if (exclusivityErr != null) {
         return false;
       }

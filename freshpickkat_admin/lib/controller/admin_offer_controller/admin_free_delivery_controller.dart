@@ -252,6 +252,7 @@ class AdminFreeDeliveryController extends GetxController {
       return false;
     }
   }
+
   Future<OfferMutationResult> setProductFreeDelivery(
     String productId,
     bool isFreeDelivery, {
@@ -278,5 +279,4 @@ class AdminFreeDeliveryController extends GetxController {
       );
     }
   }
-
 }

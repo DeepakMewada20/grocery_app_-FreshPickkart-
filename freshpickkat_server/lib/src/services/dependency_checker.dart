@@ -170,7 +170,8 @@ class DependencyChecker {
       session,
       where: (t) => t.couponId.equals(couponId),
     );
-    if (deliveryRuleCount > 0) refs.add('$deliveryRuleCount free delivery rule(s)');
+    if (deliveryRuleCount > 0)
+      refs.add('$deliveryRuleCount free delivery rule(s)');
 
     return refs;
   }

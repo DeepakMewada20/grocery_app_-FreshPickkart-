@@ -27,7 +27,10 @@ class ConfirmPaymentRoute extends Route {
           razorpayPaymentId.isEmpty ||
           razorpayOrderId.isEmpty ||
           razorpaySignature.isEmpty) {
-        return _jsonResponse({'success': false, 'message': 'Missing required parameters.'});
+        return _jsonResponse({
+          'success': false,
+          'message': 'Missing required parameters.',
+        });
       }
 
       // Validate payment link
@@ -36,26 +39,38 @@ class ConfirmPaymentRoute extends Route {
         parameters: QueryParameters.named({'token': token}),
       );
       if (linkRows.isEmpty) {
-        return _jsonResponse({'success': false, 'message': 'Payment link not found.'});
+        return _jsonResponse({
+          'success': false,
+          'message': 'Payment link not found.',
+        });
       }
 
       final linkMap = linkRows.first.toColumnMap();
       if (linkMap['isUsed'] as bool? ?? false) {
-        return _jsonResponse({'success': false, 'message': 'This payment link has already been used.'});
+        return _jsonResponse({
+          'success': false,
+          'message': 'This payment link has already been used.',
+        });
       }
 
       final expiresAtStr = linkMap['expiresAt']?.toString();
       if (expiresAtStr != null) {
         final expiresAt = DateTime.tryParse(expiresAtStr)?.toUtc();
         if (expiresAt != null && DateTime.now().toUtc().isAfter(expiresAt)) {
-          return _jsonResponse({'success': false, 'message': 'This payment link has expired.'});
+          return _jsonResponse({
+            'success': false,
+            'message': 'This payment link has expired.',
+          });
         }
       }
 
       final orderIdStr = linkMap['orderId']?.toString() ?? '';
       final parsedOrderId = tryParseUuid(orderIdStr);
       if (parsedOrderId == null) {
-        return _jsonResponse({'success': false, 'message': 'Invalid order reference.'});
+        return _jsonResponse({
+          'success': false,
+          'message': 'Invalid order reference.',
+        });
       }
 
       final orderRow = await session.db.unsafeQuery(
@@ -66,7 +81,8 @@ class ConfirmPaymentRoute extends Route {
         return _jsonResponse({'success': false, 'message': 'Order not found.'});
       }
 
-      final orderNumber = orderRow.first.toColumnMap()['orderNumber'] as String? ?? '';
+      final orderNumber =
+          orderRow.first.toColumnMap()['orderNumber'] as String? ?? '';
 
       // Verify payment via Razorpay signature
       final result = await _payments.verifyPaymentFromLink(
@@ -88,7 +104,10 @@ class ConfirmPaymentRoute extends Route {
             : result['message'] as String? ?? 'Payment verification failed.',
       });
     } catch (e) {
-      return _jsonResponse({'success': false, 'message': 'Server error. Please contact support.'});
+      return _jsonResponse({
+        'success': false,
+        'message': 'Server error. Please contact support.',
+      });
     }
   }
 

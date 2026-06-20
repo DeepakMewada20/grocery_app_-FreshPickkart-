@@ -97,7 +97,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: report_issue_screen.loadLibrary,
-                      pageBuilder: () => report_issue_screen.ReportIssueScreen(),
+                      pageBuilder: () =>
+                          report_issue_screen.ReportIssueScreen(),
                     );
                   },
                   cs: cs,
@@ -112,12 +113,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   onTap: () async {
                     await navigateDeferred(
                       loadLibrary: legal_webview_screen.loadLibrary,
-                      pageBuilder: () => legal_webview_screen.LegalWebViewScreen(
-                        title: 'FAQ',
-                        url: legal_webview_screen.LegalWebViewScreen.docsUrl(
-                          'frequently-asked-questions.html',
-                        ),
-                      ),
+                      pageBuilder: () =>
+                          legal_webview_screen.LegalWebViewScreen(
+                            title: 'FAQ',
+                            url:
+                                legal_webview_screen.LegalWebViewScreen.docsUrl(
+                                  'frequently-asked-questions.html',
+                                ),
+                          ),
                     );
                   },
                   cs: cs,

@@ -288,14 +288,14 @@ class CatalogCategoriesTab extends StatelessWidget {
               } catch (e) {
                 messenger
                   ..clearSnackBars()
-                  ..showSnackBar(
-                    SnackBar(content: Text('Delete failed: $e')),
-                  );
+                  ..showSnackBar(SnackBar(content: Text('Delete failed: $e')));
               }
             },
             child: Text(
               'Delete',
-              style: TextStyle(color: AdminAppTheme.getErrorColor(dialogContext)),
+              style: TextStyle(
+                color: AdminAppTheme.getErrorColor(dialogContext),
+              ),
             ),
           ),
         ],
@@ -440,9 +440,7 @@ Future<void> showAddCategoryDialog({
                             }
                           } catch (e) {
                             if (context.mounted) {
-                              setSheetState(
-                                () => imageError = e.toString(),
-                              );
+                              setSheetState(() => imageError = e.toString());
                             }
                           } finally {
                             if (context.mounted) {
@@ -510,8 +508,9 @@ Future<void> showAddCategoryDialog({
                                   }
 
                                   if (context.mounted) {
-                                    final messenger =
-                                        ScaffoldMessenger.of(context);
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
                                     Navigator.pop(context);
                                     messenger.showSnackBar(
                                       SnackBar(
@@ -579,7 +578,7 @@ Future<void> showAddSubcategoryDialog({
   final formKey = GlobalKey<FormState>();
   String selectedCategory =
       subcategoryToEdit?.categoryId ?? controller.categories.first.categoryName;
-  
+
   final List<TextEditingController> nameControllers = [];
   if (isEdit && subcategoryToEdit.subCategoriesName.isNotEmpty) {
     for (final name in subcategoryToEdit.subCategoriesName) {
@@ -705,7 +704,9 @@ Future<void> showAddSubcategoryDialog({
                           icon: const Icon(Icons.add),
                           label: const Text('Add More'),
                           style: TextButton.styleFrom(
-                            foregroundColor: AdminAppTheme.getTealColor(context),
+                            foregroundColor: AdminAppTheme.getTealColor(
+                              context,
+                            ),
                           ),
                           onPressed: () {
                             setSheetState(() {
@@ -780,9 +781,7 @@ Future<void> showAddSubcategoryDialog({
                             }
                           } catch (e) {
                             if (context.mounted) {
-                              setSheetState(
-                                () => imageError = e.toString(),
-                              );
+                              setSheetState(() => imageError = e.toString());
                             }
                           } finally {
                             if (context.mounted) {
@@ -822,7 +821,10 @@ Future<void> showAddSubcategoryDialog({
                                     .where((n) => n.isNotEmpty)
                                     .toList();
                                 if (names.isEmpty) {
-                                  setSheetState(() => imageError = 'Please add at least one subcategory name');
+                                  setSheetState(
+                                    () => imageError =
+                                        'Please add at least one subcategory name',
+                                  );
                                   return;
                                 }
 
@@ -854,8 +856,9 @@ Future<void> showAddSubcategoryDialog({
                                   }
 
                                   if (context.mounted) {
-                                    final messenger =
-                                        ScaffoldMessenger.of(context);
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
                                     Navigator.pop(context);
                                     messenger.showSnackBar(
                                       SnackBar(

@@ -43,8 +43,10 @@ class PostgresHomeService {
     final subCategoryFuture = _category
         .getSubCategories(session)
         .catchError((_, _) => <SubCategory>[]);
-    final deliveryFuture = _getDeliveryOffer(session, userId)
-        .catchError((_, _) => null);
+    final deliveryFuture = _getDeliveryOffer(
+      session,
+      userId,
+    ).catchError((_, _) => null);
     final catalogIdsFuture = _catalog
         .getActiveProductIds(session, limit: productLimit)
         .catchError((_, _) => <String>[]);
@@ -176,14 +178,10 @@ class PostgresHomeService {
           .toList(),
       middleBanners: middleBanners,
       products: products,
-      trendingProducts:
-          trendingItems.map((r) => r.product).toList(),
-      bestSellersProducts:
-          sellingItems.map((r) => r.product).toList(),
-      mostViewedProducts:
-          viewedItems.map((r) => r.product).toList(),
-      frequentlyReorderedProducts:
-          reorderItems.map((r) => r.product).toList(),
+      trendingProducts: trendingItems.map((r) => r.product).toList(),
+      bestSellersProducts: sellingItems.map((r) => r.product).toList(),
+      mostViewedProducts: viewedItems.map((r) => r.product).toList(),
+      frequentlyReorderedProducts: reorderItems.map((r) => r.product).toList(),
       activeBogoOffers: bogoOffers,
       activeComboOffers: comboOffers,
       categories: categories,

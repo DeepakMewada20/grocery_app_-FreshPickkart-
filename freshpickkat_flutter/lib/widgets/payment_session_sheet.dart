@@ -45,8 +45,9 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
 
   Future<void> _fetchSessionStatus() async {
     try {
-      final status = await PaymentLinkService.instance
-          .getPaymentSessionStatus(widget.orderId);
+      final status = await PaymentLinkService.instance.getPaymentSessionStatus(
+        widget.orderId,
+      );
       if (status['error'] != null) return;
       setState(() => _sessionStatus = status);
     } catch (_) {}
@@ -250,7 +251,10 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                             icon: Icon(Icons.copy, size: 18.r),
                             onPressed: _copyLink,
                             padding: EdgeInsets.zero,
-                            constraints: BoxConstraints(minWidth: 32.r, minHeight: 32.r),
+                            constraints: BoxConstraints(
+                              minWidth: 32.r,
+                              minHeight: 32.r,
+                            ),
                           ),
                         ],
                       ),
@@ -272,9 +276,11 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
 
                   // Pay Now button
                   FilledButton.icon(
-                    onPressed: isPaid ? null : () {
-                      Navigator.of(context).pop(true);
-                    },
+                    onPressed: isPaid
+                        ? null
+                        : () {
+                            Navigator.of(context).pop(true);
+                          },
                     icon: const Icon(Icons.payment),
                     label: const Text('Pay Now'),
                     style: FilledButton.styleFrom(
@@ -293,7 +299,9 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                               ? SizedBox(
                                   width: 16.r,
                                   height: 16.r,
-                                  child: CircularProgressIndicator(strokeWidth: 2.r),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.r,
+                                  ),
                                 )
                               : const Icon(Icons.share),
                           label: const Text('Share Link'),
@@ -310,7 +318,9 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                               ? SizedBox(
                                   width: 16.r,
                                   height: 16.r,
-                                  child: CircularProgressIndicator(strokeWidth: 2.r),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.r,
+                                  ),
                                 )
                               : const Icon(Icons.copy),
                           label: const Text('Copy Link'),
@@ -348,7 +358,11 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle, color: cs.primary, size: 20.r),
+                          Icon(
+                            Icons.check_circle,
+                            color: cs.primary,
+                            size: 20.r,
+                          ),
                           SizedBox(width: 8.w),
                           Text(
                             'Payment received! Redirecting...',

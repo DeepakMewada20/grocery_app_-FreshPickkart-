@@ -23,7 +23,8 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
     with AutomaticKeepAliveClientMixin {
   final AdminFreeDeliveryController _controller =
       AdminFreeDeliveryController.instance;
-  final AdminProductController _productController = AdminProductController.instance;
+  final AdminProductController _productController =
+      AdminProductController.instance;
 
   List<Product> get _freeDeliveryProducts =>
       _productController.products.where((p) => p.isFreeDelivery).toList();
@@ -121,15 +122,23 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
       if (!mounted) return;
       _showMutationSnack(retry);
       if (retry.success) {
-        _productController.products[_productController.products.indexWhere((p) => p.productId == productId)] = product.copyWith(isFreeDelivery: enabled);
+        _productController.products[_productController.products.indexWhere(
+          (p) => p.productId == productId,
+        )] = product.copyWith(
+          isFreeDelivery: enabled,
+        );
       }
       return;
     }
     _showMutationSnack(result);
     if (result.success) {
-      final index = _productController.products.indexWhere((p) => p.productId == productId);
+      final index = _productController.products.indexWhere(
+        (p) => p.productId == productId,
+      );
       if (index != -1) {
-        _productController.products[index] = product.copyWith(isFreeDelivery: enabled);
+        _productController.products[index] = product.copyWith(
+          isFreeDelivery: enabled,
+        );
       }
     }
   }
@@ -145,8 +154,12 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   void _showMutationSnack(OfferMutationResult result) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(result.message ?? (result.success ? 'Updated' : 'Update failed')),
-        backgroundColor: result.success ? null : AdminAppTheme.getErrorColor(context),
+        content: Text(
+          result.message ?? (result.success ? 'Updated' : 'Update failed'),
+        ),
+        backgroundColor: result.success
+            ? null
+            : AdminAppTheme.getErrorColor(context),
       ),
     );
   }
@@ -609,7 +622,9 @@ class _DeliveryConfigBottomSheetState
     final baseFeeText = _baseFeeController.text.trim();
     final thresholdText = _freeThresholdController.text.trim();
     final baseFee = double.tryParse(baseFeeText);
-    final threshold = thresholdText.isEmpty ? null : double.tryParse(thresholdText);
+    final threshold = thresholdText.isEmpty
+        ? null
+        : double.tryParse(thresholdText);
 
     if (baseFee == null || baseFee < 0) {
       _showError('Base delivery fee must be a valid non-negative number.');
@@ -632,7 +647,9 @@ class _DeliveryConfigBottomSheetState
         return;
       }
       if (maxVal == null || maxVal <= 0) {
-        _showError('Each slab must have a valid maximum amount greater than 0.');
+        _showError(
+          'Each slab must have a valid maximum amount greater than 0.',
+        );
         return;
       }
       if (feeVal == null || feeVal < 0) {
@@ -676,7 +693,10 @@ class _DeliveryConfigBottomSheetState
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AdminAppTheme.getErrorColor(context)),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AdminAppTheme.getErrorColor(context),
+      ),
     );
   }
 }
@@ -998,7 +1018,10 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AdminAppTheme.getErrorColor(context)),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AdminAppTheme.getErrorColor(context),
+      ),
     );
   }
 }
@@ -1020,5 +1043,3 @@ class _DeliverySlabDraft {
     feeCtrl.dispose();
   }
 }
-
-

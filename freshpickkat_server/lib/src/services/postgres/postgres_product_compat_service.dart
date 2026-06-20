@@ -306,8 +306,7 @@ class PostgresProductCompatService {
           countryOfOrigin: cleanNullableString(product.countryOfOrigin),
           baseUnit: cleanNullableString(product.baseUnit),
           baseQuantity: product.baseQuantity,
-          quantityDescription:
-              cleanNullableString(product.quantityDescription),
+          quantityDescription: cleanNullableString(product.quantityDescription),
           stock: product.stock,
           stockUnit: cleanNullableString(product.stockUnit),
           discountType: product.discountType,
@@ -383,8 +382,7 @@ class PostgresProductCompatService {
         countryOfOrigin: cleanNullableString(product.countryOfOrigin),
         baseUnit: cleanNullableString(product.baseUnit),
         baseQuantity: product.baseQuantity,
-        quantityDescription:
-            cleanNullableString(product.quantityDescription),
+        quantityDescription: cleanNullableString(product.quantityDescription),
         stock: product.stock,
         stockUnit: cleanNullableString(product.stockUnit),
         discountType: product.discountType,
@@ -515,8 +513,6 @@ class PostgresProductCompatService {
     );
     return true;
   }
-
-
 
   Future<int> migrateProducts(Session session) async {
     return 0;
@@ -757,8 +753,9 @@ class PostgresProductCompatService {
                   cleanNullableString(product.baseUnit) ??
                   cleanNullableString(product.quantity) ??
                   'unit',
-              quantityDescription:
-                  cleanNullableString(product.quantityDescription),
+              quantityDescription: cleanNullableString(
+                product.quantityDescription,
+              ),
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,
@@ -798,8 +795,9 @@ class PostgresProductCompatService {
             label: label,
             quantityValue: variant.quantityValue,
             quantityUnit: variant.quantityUnit.trim(),
-            quantityDescription:
-                cleanNullableString(variant.quantityDescription),
+            quantityDescription: cleanNullableString(
+              variant.quantityDescription,
+            ),
             salePrice: variant.price,
             listPrice: variant.realPrice,
             isAvailable: variant.isAvailable,
@@ -824,8 +822,9 @@ class PostgresProductCompatService {
             sku: sku,
             quantityValue: variant.quantityValue,
             quantityUnit: variant.quantityUnit.trim(),
-            quantityDescription:
-                cleanNullableString(variant.quantityDescription),
+            quantityDescription: cleanNullableString(
+              variant.quantityDescription,
+            ),
             salePrice: variant.price,
             listPrice: variant.realPrice,
             isAvailable: variant.isAvailable,
@@ -882,15 +881,15 @@ class PostgresProductCompatService {
       transaction: transaction,
     );
     final idsStr = subCategoryIds.map((id) => id.toString()).join(',');
-    final updated = productRow.copyWith(subCategoryIds: idsStr.isEmpty ? null : idsStr);
+    final updated = productRow.copyWith(
+      subCategoryIds: idsStr.isEmpty ? null : idsStr,
+    );
     await ProductRow.db.updateRow(
       session,
       updated,
       transaction: transaction,
     );
   }
-
-
 
   /// Checks whether updating [product] would delete variants that are
   /// referenced by orders or offers. Returns a human-readable message listing
@@ -920,8 +919,9 @@ class PostgresProductCompatService {
                   cleanNullableString(product.baseUnit) ??
                   cleanNullableString(product.quantity) ??
                   'unit',
-              quantityDescription:
-                  cleanNullableString(product.quantityDescription),
+              quantityDescription: cleanNullableString(
+                product.quantityDescription,
+              ),
               price: product.price,
               realPrice: product.realPrice,
               isAvailable: product.isAvailable,

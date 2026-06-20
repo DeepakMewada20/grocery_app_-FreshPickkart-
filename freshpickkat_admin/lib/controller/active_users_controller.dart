@@ -65,5 +65,4 @@ class ActiveUsersController extends GetxController {
       isLoading.value = false;
     }
   }
-
 }

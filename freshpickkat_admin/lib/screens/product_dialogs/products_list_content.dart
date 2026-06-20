@@ -506,7 +506,9 @@ class _OfferChips extends StatelessWidget {
     final chips = <Widget>[];
 
     if (_hasBogo) {
-      chips.add(_offerChip(context, 'BOGO', AdminAppTheme.getWarningColor(context)));
+      chips.add(
+        _offerChip(context, 'BOGO', AdminAppTheme.getWarningColor(context)),
+      );
     }
 
     if (_hasCombo) {
@@ -514,14 +516,21 @@ class _OfferChips extends StatelessWidget {
     }
 
     if (_hasFreeDelivery) {
-      chips.add(_offerChip(context, 'FREE DELIVERY', AdminAppTheme.getSuccessColor(context)));
+      chips.add(
+        _offerChip(
+          context,
+          'FREE DELIVERY',
+          AdminAppTheme.getSuccessColor(context),
+        ),
+      );
     }
 
     if (product.hasCategoryOffer) {
       chips.add(_offerChip(context, 'CATEGORY OFFER', const Color(0xFFFF6F00)));
     }
 
-    if (product.discountType == 'percentage' || product.discountType == 'flat') {
+    if (product.discountType == 'percentage' ||
+        product.discountType == 'flat') {
       final label = product.discountType == 'percentage'
           ? '${product.discountValue?.toStringAsFixed(0) ?? ''}% OFF'
           : 'FLAT ₹${product.discountValue?.toStringAsFixed(0) ?? ''} OFF';
@@ -530,11 +539,7 @@ class _OfferChips extends StatelessWidget {
 
     if (chips.isEmpty) return const SizedBox.shrink();
 
-    return Wrap(
-      spacing: 4.w,
-      runSpacing: 4.h,
-      children: chips,
-    );
+    return Wrap(spacing: 4.w, runSpacing: 4.h, children: chips);
   }
 
   Widget _offerChip(BuildContext context, String label, Color color) {

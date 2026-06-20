@@ -169,8 +169,7 @@ class OfferConflictService {
         return OfferConflictResponse(
           hasConflict: true,
           conflictType: 'bogo_product_free_delivery',
-          message:
-              'BOGO conflicts with active Free Delivery on this product.',
+          message: 'BOGO conflicts with active Free Delivery on this product.',
           productIds: freeDeliveryProducts
               .map((product) => product.productId)
               .whereType<String>()
@@ -224,5 +223,3 @@ class OfferConflictService {
     productNames: const [],
   );
 }
-
-

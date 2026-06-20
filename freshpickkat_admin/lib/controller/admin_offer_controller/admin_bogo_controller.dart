@@ -161,44 +161,46 @@ class AdminBogoController extends GetxController {
 
   Future<bool?> deleteOffer(String triggerProductId) async {
     try {
-      return await AdminSessionService.withRetry(apiCall: () async {
-        final uid = AdminSessionService.requireUid();
-        final idToken = await AdminSessionService.requireIdToken();
+      return await AdminSessionService.withRetry(
+        apiCall: () async {
+          final uid = AdminSessionService.requireUid();
+          final idToken = await AdminSessionService.requireIdToken();
 
-        final impact = await client.bogo.checkBogoDeleteImpact(
-          triggerProductId,
-          uid,
-          idToken,
-        );
+          final impact = await client.bogo.checkBogoDeleteImpact(
+            triggerProductId,
+            uid,
+            idToken,
+          );
 
-        final choice = await showDeleteImpactDialog(
-          context: Get.context!,
-          impact: impact,
-          entityName: 'BOGO Offer',
-        );
+          final choice = await showDeleteImpactDialog(
+            context: Get.context!,
+            impact: impact,
+            entityName: 'BOGO Offer',
+          );
 
-        switch (choice) {
-          case DeleteChoice.hardDelete:
-            final result = await client.bogo.hardDeleteBogoOffer(
-              triggerProductId,
-              uid,
-              idToken,
-            );
-            if (result.success) {
-              bogoOffers.removeWhere(
-                (offer) => offer.triggerProductId == triggerProductId,
+          switch (choice) {
+            case DeleteChoice.hardDelete:
+              final result = await client.bogo.hardDeleteBogoOffer(
+                triggerProductId,
+                uid,
+                idToken,
               );
-              if (totalCount.value > 0) totalCount.value--;
-              return null;
-            }
-            return false;
-          case DeleteChoice.softDelete:
-            await setBogoOfferActive(triggerProductId, false);
-            return true;
-          case DeleteChoice.cancel:
-            return false;
-        }
-      });
+              if (result.success) {
+                bogoOffers.removeWhere(
+                  (offer) => offer.triggerProductId == triggerProductId,
+                );
+                if (totalCount.value > 0) totalCount.value--;
+                return null;
+              }
+              return false;
+            case DeleteChoice.softDelete:
+              await setBogoOfferActive(triggerProductId, false);
+              return true;
+            case DeleteChoice.cancel:
+              return false;
+          }
+        },
+      );
     } catch (e) {
       return false;
     }

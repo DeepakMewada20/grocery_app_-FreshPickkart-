@@ -31,8 +31,7 @@ class PostgresCategoryService {
         .toSet();
     final subCategories = await SubCategoryRow.db.find(
       session,
-      where: (t) =>
-          t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
     );
     subCategories.sort(_sortSubCategoryRows);
 
@@ -69,8 +68,7 @@ class PostgresCategoryService {
         .toSet();
     final subCategories = await SubCategoryRow.db.find(
       session,
-      where: (t) =>
-          t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
     );
     subCategories.sort(_sortSubCategoryRows);
 
@@ -104,8 +102,7 @@ class PostgresCategoryService {
         .toSet();
     final subCategories = await SubCategoryRow.db.find(
       session,
-      where: (t) =>
-          t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
     );
     subCategories.sort(_sortSubCategoryRows);
 
@@ -141,8 +138,7 @@ class PostgresCategoryService {
     final categoryIds = categoryById.values.map((row) => row.id!).toSet();
     final subCategories = await SubCategoryRow.db.find(
       session,
-      where: (t) =>
-          t.categoryId.inSet(categoryIds) & t.status.equals('active'),
+      where: (t) => t.categoryId.inSet(categoryIds) & t.status.equals('active'),
     );
     subCategories.sort(_sortSubCategoryRows);
 
@@ -152,13 +148,17 @@ class PostgresCategoryService {
       if (category == null) continue;
 
       final secondsSinceEpoch = row.createdAt.millisecondsSinceEpoch ~/ 1000;
-      final key = '${row.categoryId.toString()}|${row.imageUrl ?? ''}|$secondsSinceEpoch';
+      final key =
+          '${row.categoryId.toString()}|${row.imageUrl ?? ''}|$secondsSinceEpoch';
 
-      groupedMap.putIfAbsent(key, () => {
-        'categoryId': category.name,
-        'names': <String>[],
-        'imageUrl': row.imageUrl ?? '',
-      });
+      groupedMap.putIfAbsent(
+        key,
+        () => {
+          'categoryId': category.name,
+          'names': <String>[],
+          'imageUrl': row.imageUrl ?? '',
+        },
+      );
       (groupedMap[key]!['names'] as List<String>).add(row.name);
     }
 
@@ -198,7 +198,9 @@ class PostgresCategoryService {
         transaction: transaction,
       );
       if (existing != null) {
-        throw Exception('Category already exists: "${existing.name}" (Status: ${existing.status})');
+        throw Exception(
+          'Category already exists: "${existing.name}" (Status: ${existing.status})',
+        );
       }
 
       final inserted = await CategoryRow.db.insertRow(
@@ -337,7 +339,10 @@ class PostgresCategoryService {
     final existing = await _resolveCategory(session, oldName);
     if (existing == null) throw Exception('Category not found');
 
-    final newName = _requireName(category.categoryName, fieldName: 'categoryName');
+    final newName = _requireName(
+      category.categoryName,
+      fieldName: 'categoryName',
+    );
     final newSlug = _slugify(newName);
 
     if (newSlug != existing.slug) {
@@ -375,62 +380,63 @@ class PostgresCategoryService {
       idToken: idToken,
     );
 
-    final createdSubCategoryIds = await session.db.transaction<List<UuidValue>>((
-      transaction,
-    ) async {
-      final category = await _resolveCategory(
-        session,
-        subCategory.categoryId,
-        transaction: transaction,
-      );
-      final categoryId = category?.id;
-      if (categoryId == null) {
-        throw Exception('Category not found');
-      }
-
-      final imageUrl = cleanNullableString(subCategory.subCategoriesUrl);
-      final created = <UuidValue>[];
-      final seenSubCategorySlugs = <String>{};
-      for (final rawName in subCategory.subCategoriesName) {
-        final subCategoryName = cleanNullableString(rawName);
-        if (subCategoryName == null) continue;
-
-        final slug = _slugify(subCategoryName);
-        if (!seenSubCategorySlugs.add(slug)) {
-          throw Exception('Duplicate subcategory name: $subCategoryName');
-        }
-
-        final existing = await SubCategoryRow.db.findFirstRow(
+    final createdSubCategoryIds = await session.db.transaction<List<UuidValue>>(
+      (
+        transaction,
+      ) async {
+        final category = await _resolveCategory(
           session,
-          where: (t) =>
-              t.categoryId.equals(categoryId) & t.slug.equals(slug),
+          subCategory.categoryId,
           transaction: transaction,
         );
-        if (existing != null) {
-          throw Exception('Subcategory already exists: $subCategoryName');
+        final categoryId = category?.id;
+        if (categoryId == null) {
+          throw Exception('Category not found');
         }
 
-        final inserted = await SubCategoryRow.db.insertRow(
-          session,
-          SubCategoryRow(
-            categoryId: categoryId,
-            name: subCategoryName,
-            slug: slug,
-            imageUrl: imageUrl,
-            status: 'active',
-            createdAt: DateTime.now().toUtc(),
-            updatedAt: DateTime.now().toUtc(),
-          ),
-          transaction: transaction,
-        );
+        final imageUrl = cleanNullableString(subCategory.subCategoriesUrl);
+        final created = <UuidValue>[];
+        final seenSubCategorySlugs = <String>{};
+        for (final rawName in subCategory.subCategoriesName) {
+          final subCategoryName = cleanNullableString(rawName);
+          if (subCategoryName == null) continue;
 
-        if (inserted.id != null) {
-          created.add(inserted.id!);
+          final slug = _slugify(subCategoryName);
+          if (!seenSubCategorySlugs.add(slug)) {
+            throw Exception('Duplicate subcategory name: $subCategoryName');
+          }
+
+          final existing = await SubCategoryRow.db.findFirstRow(
+            session,
+            where: (t) => t.categoryId.equals(categoryId) & t.slug.equals(slug),
+            transaction: transaction,
+          );
+          if (existing != null) {
+            throw Exception('Subcategory already exists: $subCategoryName');
+          }
+
+          final inserted = await SubCategoryRow.db.insertRow(
+            session,
+            SubCategoryRow(
+              categoryId: categoryId,
+              name: subCategoryName,
+              slug: slug,
+              imageUrl: imageUrl,
+              status: 'active',
+              createdAt: DateTime.now().toUtc(),
+              updatedAt: DateTime.now().toUtc(),
+            ),
+            transaction: transaction,
+          );
+
+          if (inserted.id != null) {
+            created.add(inserted.id!);
+          }
         }
-      }
 
-      return created;
-    });
+        return created;
+      },
+    );
 
     await _audit.write(
       session,
@@ -444,6 +450,7 @@ class PostgresCategoryService {
     );
     return true;
   }
+
   Future<String> deleteSubCategory(
     Session session,
     String categoryName,
@@ -476,14 +483,16 @@ class PostgresCategoryService {
       return DependencyChecker.formatRefs(refs);
     }
 
-    final secondsSinceEpoch = subCategory.createdAt.millisecondsSinceEpoch ~/ 1000;
+    final secondsSinceEpoch =
+        subCategory.createdAt.millisecondsSinceEpoch ~/ 1000;
     final allGroupCandidates = await SubCategoryRow.db.find(
       session,
       where: (t) => t.categoryId.equals(category.id!),
     );
     final targetGroupRows = allGroupCandidates.where((row) {
       final sameImage = row.imageUrl == subCategory.imageUrl;
-      final sameSecond = row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
+      final sameSecond =
+          row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
       return sameImage && sameSecond;
     }).toList();
 
@@ -513,6 +522,7 @@ class PostgresCategoryService {
     );
     return '';
   }
+
   Future<bool> updateSubCategory(
     Session session,
     String categoryName,
@@ -539,14 +549,16 @@ class PostgresCategoryService {
     );
     if (targetRow == null) throw Exception('Subcategory not found');
 
-    final secondsSinceEpoch = targetRow.createdAt.millisecondsSinceEpoch ~/ 1000;
+    final secondsSinceEpoch =
+        targetRow.createdAt.millisecondsSinceEpoch ~/ 1000;
     final allUpdateCandidates = await SubCategoryRow.db.find(
       session,
       where: (t) => t.categoryId.equals(oldCategory.id!),
     );
     final oldGroupRows = allUpdateCandidates.where((row) {
       final sameImage = row.imageUrl == targetRow.imageUrl;
-      final sameSecond = row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
+      final sameSecond =
+          row.createdAt.millisecondsSinceEpoch ~/ 1000 == secondsSinceEpoch;
       return sameImage && sameSecond;
     }).toList();
 
@@ -567,7 +579,8 @@ class PostgresCategoryService {
 
     final oldNamesSet = oldGroupRows.map((r) => r.name.toLowerCase()).toSet();
     for (final name in newNames) {
-      if (oldNamesSet.contains(name.toLowerCase()) && newCategory.id == oldCategory.id) {
+      if (oldNamesSet.contains(name.toLowerCase()) &&
+          newCategory.id == oldCategory.id) {
         continue;
       }
       final newSlug = _slugify(name);
@@ -577,13 +590,17 @@ class PostgresCategoryService {
             t.categoryId.equals(newCategory.id!) & t.slug.equals(newSlug),
       );
       if (conflict != null) {
-        throw Exception('Subcategory "$name" already exists in the selected category');
+        throw Exception(
+          'Subcategory "$name" already exists in the selected category',
+        );
       }
     }
 
     await session.db.transaction((transaction) async {
       for (final oldRow in oldGroupRows) {
-        if (!newNames.any((n) => n.toLowerCase() == oldRow.name.toLowerCase())) {
+        if (!newNames.any(
+          (n) => n.toLowerCase() == oldRow.name.toLowerCase(),
+        )) {
           final oldIdStr = oldRow.id!.toString();
           await session.db.unsafeQuery(
             '''UPDATE product
@@ -605,7 +622,9 @@ class PostgresCategoryService {
         }
       }
 
-      final oldNamesMap = {for (final r in oldGroupRows) r.name.toLowerCase(): r};
+      final oldNamesMap = {
+        for (final r in oldGroupRows) r.name.toLowerCase(): r,
+      };
       final now = DateTime.now().toUtc();
       final groupCreatedAt = targetRow.createdAt;
 
@@ -703,9 +722,9 @@ class PostgresCategoryService {
   }
 
   int _sortSubCategoryRows(SubCategoryRow a, SubCategoryRow b) {
-    final categoryOrder = a.categoryId
-        .toString()
-        .compareTo(b.categoryId.toString());
+    final categoryOrder = a.categoryId.toString().compareTo(
+      b.categoryId.toString(),
+    );
     if (categoryOrder != 0) return categoryOrder;
 
     final displayOrder = a.displayOrder.compareTo(b.displayOrder);

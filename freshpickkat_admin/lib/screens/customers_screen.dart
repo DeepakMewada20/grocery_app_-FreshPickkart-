@@ -105,8 +105,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               vertical: 8.h,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  AdminAppTheme.getInfoContainerColor(context),
+                              color: AdminAppTheme.getInfoContainerColor(
+                                context,
+                              ),
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: Text(

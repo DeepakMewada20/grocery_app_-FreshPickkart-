@@ -296,7 +296,9 @@ class LiveDeliveryMapController extends GetxController {
   }
 
   List<AppLatLng> _buildStraightLineRoute(
-      DeliveryLocation user, AppLatLng rider) {
+    DeliveryLocation user,
+    AppLatLng rider,
+  ) {
     const segments = 24;
     final points = <AppLatLng>[];
     for (var i = 0; i <= segments; i++) {

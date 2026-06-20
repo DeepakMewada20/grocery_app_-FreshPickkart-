@@ -39,14 +39,18 @@ void main() {
       final result = BasketSuggestionService.testFinalizeResults(items: pool);
 
       expect(result.suggestions.length, equals(6));
-      
+
       // Verify that the combo suggestion is included in the output!
       final hasCombo = result.suggestions.any((s) => s.type == 'combo');
       expect(hasCombo, isTrue);
 
       // Verify categories of returned suggestions
-      final bogoCount = result.suggestions.where((s) => s.type == 'bogo').length;
-      final comboCount = result.suggestions.where((s) => s.type == 'combo').length;
+      final bogoCount = result.suggestions
+          .where((s) => s.type == 'bogo')
+          .length;
+      final comboCount = result.suggestions
+          .where((s) => s.type == 'combo')
+          .length;
       expect(bogoCount, equals(5));
       expect(comboCount, equals(1));
     });
@@ -69,13 +73,21 @@ void main() {
       expect(result.suggestions.length, equals(6));
 
       final freeDeliveryCount = result.suggestions
-          .where((s) => s.type == 'product' && s.action?.label == 'FREE DELIVERY')
+          .where(
+            (s) => s.type == 'product' && s.action?.label == 'FREE DELIVERY',
+          )
           .length;
       final regularProductCount = result.suggestions
-          .where((s) => s.type == 'product' && s.action?.label != 'FREE DELIVERY')
+          .where(
+            (s) => s.type == 'product' && s.action?.label != 'FREE DELIVERY',
+          )
           .length;
-      final bogoCount = result.suggestions.where((s) => s.type == 'bogo').length;
-      final comboCount = result.suggestions.where((s) => s.type == 'combo').length;
+      final bogoCount = result.suggestions
+          .where((s) => s.type == 'bogo')
+          .length;
+      final comboCount = result.suggestions
+          .where((s) => s.type == 'combo')
+          .length;
 
       expect(freeDeliveryCount, equals(3));
       expect(regularProductCount, equals(1));

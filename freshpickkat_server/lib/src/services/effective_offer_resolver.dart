@@ -17,7 +17,8 @@ class EffectiveOfferResolver {
 
     for (final source in freeDeliverySources) {
       if (_unitGroup(source.quantityUnit) != group) continue;
-      if (_toBaseUnit(source.quantityValue, source.quantityUnit) > currentBase) {
+      if (_toBaseUnit(source.quantityValue, source.quantityUnit) >
+          currentBase) {
         continue;
       }
       return true;
@@ -33,17 +34,51 @@ class EffectiveOfferResolver {
   /// Groups a unit string into a canonical measurement family.
   static String _unitGroup(String unit) {
     final u = unit.trim().toLowerCase();
-    if (const {'g', 'gm', 'gram', 'grams', 'kg', 'kilogram', 'kilograms',
-               'kilo', 'kilos', 'kilogramme', 'kilogrammes'}.contains(u)) {
+    if (const {
+      'g',
+      'gm',
+      'gram',
+      'grams',
+      'kg',
+      'kilogram',
+      'kilograms',
+      'kilo',
+      'kilos',
+      'kilogramme',
+      'kilogrammes',
+    }.contains(u)) {
       return 'mass';
     }
-    if (const {'ml', 'milliliter', 'millilitre', 'milliliters', 'millilitres',
-               'l', 'litre', 'liter', 'litres', 'liters',
-               'lt'}.contains(u)) {
+    if (const {
+      'ml',
+      'milliliter',
+      'millilitre',
+      'milliliters',
+      'millilitres',
+      'l',
+      'litre',
+      'liter',
+      'litres',
+      'liters',
+      'lt',
+    }.contains(u)) {
       return 'volume';
     }
-    if (const {'pcs', 'pc', 'piece', 'pieces', 'count', 'unit', 'units',
-               'nos', 'no', 'number', 'numbers', 'pack', 'packs'}.contains(u)) {
+    if (const {
+      'pcs',
+      'pc',
+      'piece',
+      'pieces',
+      'count',
+      'unit',
+      'units',
+      'nos',
+      'no',
+      'number',
+      'numbers',
+      'pack',
+      'packs',
+    }.contains(u)) {
       return 'count';
     }
     return u;
@@ -55,12 +90,18 @@ class EffectiveOfferResolver {
   ///   count  → as-is
   static double _toBaseUnit(double quantity, String unit) {
     final u = unit.trim().toLowerCase();
-    if (const {'kg', 'kilogram', 'kilograms', 'kilo', 'kilos',
-               'kilogramme', 'kilogrammes'}.contains(u)) {
+    if (const {
+      'kg',
+      'kilogram',
+      'kilograms',
+      'kilo',
+      'kilos',
+      'kilogramme',
+      'kilogrammes',
+    }.contains(u)) {
       return quantity * 1000;
     }
-    if (const {'l', 'litre', 'liter', 'litres', 'liters',
-               'lt'}.contains(u)) {
+    if (const {'l', 'litre', 'liter', 'litres', 'liters', 'lt'}.contains(u)) {
       return quantity * 1000;
     }
     return quantity;

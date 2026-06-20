@@ -49,7 +49,9 @@ class FreshPickKatAdmin extends StatelessWidget {
         const double screenUtilWidth = 430;
         final isWideWeb = kIsWeb && rawWidth > baseWidth;
         final scale = rawHeight / baseHeight;
-        final containerWidth = (baseWidth * scale).clamp(430.0, 800.0).toDouble();
+        final containerWidth = (baseWidth * scale)
+            .clamp(430.0, 800.0)
+            .toDouble();
         final effectiveWidth = isWideWeb ? screenUtilWidth : rawWidth;
 
         return MediaQuery(
@@ -74,10 +76,7 @@ class FreshPickKatAdmin extends StatelessWidget {
                   return Container(
                     color: const Color(0xFFEDEDED),
                     alignment: Alignment.topCenter,
-                    child: SizedBox(
-                      width: containerWidth,
-                      child: child,
-                    ),
+                    child: SizedBox(width: containerWidth, child: child),
                   );
                 },
                 initialRoute: '/',

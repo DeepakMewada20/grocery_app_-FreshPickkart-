@@ -197,27 +197,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final items = <CartItemSnapshot>[];
 
     for (final item in cartController.regularCartItems) {
-      items.add(CartItemSnapshot(
-        productId: item.product.productId ?? '',
-        variantId: item.variantId ?? '',
-        quantity: item.quantity,
-      ));
+      items.add(
+        CartItemSnapshot(
+          productId: item.product.productId ?? '',
+          variantId: item.variantId ?? '',
+          quantity: item.quantity,
+        ),
+      );
     }
 
     for (final group in cartController.comboGroups) {
       for (final item in group.items) {
-        items.add(CartItemSnapshot(
-          productId: item.product.productId ?? '',
-          variantId: item.variantId ?? '',
-          quantity: item.quantity,
-        ));
+        items.add(
+          CartItemSnapshot(
+            productId: item.product.productId ?? '',
+            variantId: item.variantId ?? '',
+            quantity: item.quantity,
+          ),
+        );
       }
     }
 
-    items.sort((a, b) =>
-        '${a.productId}_${a.variantId}'.compareTo('${b.productId}_${b.variantId}'));
+    items.sort(
+      (a, b) => '${a.productId}_${a.variantId}'.compareTo(
+        '${b.productId}_${b.variantId}',
+      ),
+    );
 
-    double totalDiscount = cartController.couponDiscount +
+    double totalDiscount =
+        cartController.couponDiscount +
         cartController.productDiscountTotal +
         cartController.comboDiscountTotal +
         cartController.bogoDiscountTotal;
@@ -309,8 +317,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     // EXPIRED / CANCELLED → create fresh (dead order)
-    if (pStatus == 'expired' || pStatus == 'cancelled' ||
-        oStatus == 'cancelled' || oStatus == 'cancelled_by_user' ||
+    if (pStatus == 'expired' ||
+        pStatus == 'cancelled' ||
+        oStatus == 'cancelled' ||
+        oStatus == 'cancelled_by_user' ||
         oStatus == 'payment_expired') {
       _pendingOrderInfo = null;
       if (_isShareablePayment) {
@@ -324,8 +334,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // PENDING — compare cart + age
     final currentCart = _computeCurrentCartData();
     final pendingCart = info.cartData;
-    final isSameCart = pendingCart != null && _isCartSame(currentCart, pendingCart);
-    final isWithinTime = DateTime.now().difference(info.orderedAt).inMinutes <= (info.expiresInMinutes);
+    final isSameCart =
+        pendingCart != null && _isCartSame(currentCart, pendingCart);
+    final isWithinTime =
+        DateTime.now().difference(info.orderedAt).inMinutes <=
+        (info.expiresInMinutes);
 
     if (isSameCart && isWithinTime) {
       if (_isShareablePayment) {
@@ -416,8 +429,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         status: pendingOrderAction == 'continue'
             ? 'Resuming payment...'
             : pendingOrderAction == 'cancel'
-                ? 'Cancelling & creating new order...'
-                : 'Creating order & fetching payment ID...',
+            ? 'Cancelling & creating new order...'
+            : 'Creating order & fetching payment ID...',
       );
 
       final checkoutResult = await checkoutService.createOrderAndPayment(
@@ -529,21 +542,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _paymentStreamSub = client.paymentStream
           .watchPaymentStatus(orderId, user.uid, idToken)
           .listen(
-        (event) {
-          if (event.paymentStatus == 'paid') {
-            _linkCardTimer?.cancel();
-            if (mounted) setState(() => _linkPaymentReceived = true);
-            if (_isShareSheetOpen) {
-              Navigator.of(context, rootNavigator: true).pop();
-            }
-            _completeSuccessfulPayment(orderId);
-          }
-        },
-        onError: (_) {
-          // Stream disconnected — will auto-reconnect
-        },
-        cancelOnError: false,
-      );
+            (event) {
+              if (event.paymentStatus == 'paid') {
+                _linkCardTimer?.cancel();
+                if (mounted) setState(() => _linkPaymentReceived = true);
+                if (_isShareSheetOpen) {
+                  Navigator.of(context, rootNavigator: true).pop();
+                }
+                _completeSuccessfulPayment(orderId);
+              }
+            },
+            onError: (_) {
+              // Stream disconnected — will auto-reconnect
+            },
+            cancelOnError: false,
+          );
     } catch (_) {}
   }
 
@@ -808,7 +821,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _placeOrderWithShareableLink({String? pendingOrderAction}) async {
+  Future<void> _placeOrderWithShareableLink({
+    String? pendingOrderAction,
+  }) async {
     if (_isProcessing) return;
 
     try {
@@ -904,8 +919,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'This link expires in 20 minutes.';
 
     final localExpiresAt = _pendingOrderInfo != null
-        ? _pendingOrderInfo!.orderedAt
-            .add(Duration(minutes: _pendingOrderInfo!.expiresInMinutes))
+        ? _pendingOrderInfo!.orderedAt.add(
+            Duration(minutes: _pendingOrderInfo!.expiresInMinutes),
+          )
         : DateTime.now().add(const Duration(minutes: 20));
 
     final remainingNotifier = ValueNotifier<Duration>(
@@ -1720,7 +1736,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       await order_confirmation_screen.loadLibrary();
       Get.back();
       Get.offAll(
-        () => order_confirmation_screen.OrderConfirmationScreen(orderId: orderId),
+        () =>
+            order_confirmation_screen.OrderConfirmationScreen(orderId: orderId),
       );
     } catch (e) {
       Get.back();
@@ -1961,59 +1978,59 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     padding: EdgeInsets.only(top: 16.r),
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
-                    children: [
-                      // 🎯 Checkout Page Banner - full width
-                      Obx(() {
-                        final banners =
-                            BannerController.instance.checkoutPageBanners;
-                        if (banners.isEmpty) return const SizedBox.shrink();
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 16.h),
-                          child: NetworkBannerWidget(
-                            height: AppResponsive.bannerHeight(
-                              context,
-                              ratio: 0.42,
-                              min: 110,
-                              max: 160,
+                      children: [
+                        // 🎯 Checkout Page Banner - full width
+                        Obx(() {
+                          final banners =
+                              BannerController.instance.checkoutPageBanners;
+                          if (banners.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 16.h),
+                            child: NetworkBannerWidget(
+                              height: AppResponsive.bannerHeight(
+                                context,
+                                ratio: 0.42,
+                                min: 110,
+                                max: 160,
+                              ),
+                              banners: banners,
+                              autoScrollInterval: const Duration(seconds: 5),
+                              autoScrollDuration: const Duration(
+                                milliseconds: 500,
+                              ),
                             ),
-                            banners: banners,
-                            autoScrollInterval: const Duration(seconds: 5),
-                            autoScrollDuration: const Duration(
-                              milliseconds: 500,
-                            ),
-                          ),
-                        );
-                      }),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: AppResponsive.constrainContent(
-                          context: context,
-                          maxWidth: AppResponsive.maxCheckoutWidth,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildAddressSection(cs),
-                              SizedBox(height: 16.h),
-                              _buildItemsSection(cs),
-                              SizedBox(height: 16.h),
-                              _buildBillDetails(cs),
-                              SizedBox(height: 16.h),
-                              _buildPaymentSection(cs),
-                              if (_errorMessage != null) ...[
+                          );
+                        }),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          child: AppResponsive.constrainContent(
+                            context: context,
+                            maxWidth: AppResponsive.maxCheckoutWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildAddressSection(cs),
                                 SizedBox(height: 16.h),
-                                _buildErrorBanner(cs),
+                                _buildItemsSection(cs),
+                                SizedBox(height: 16.h),
+                                _buildBillDetails(cs),
+                                SizedBox(height: 16.h),
+                                _buildPaymentSection(cs),
+                                if (_errorMessage != null) ...[
+                                  SizedBox(height: 16.h),
+                                  _buildErrorBanner(cs),
+                                ],
+                                SizedBox(height: 80.h),
                               ],
-                              SizedBox(height: 80.h),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            SafeArea(
+              SafeArea(
                 top: false,
                 child: _buildPlaceOrderButton(cs),
               ),
@@ -2901,7 +2918,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             title: 'Ask Someone Else To Pay',
             subtitle: 'Share a payment link via WhatsApp, SMS, etc.',
             isSelected: linkValid ? true : _isShareablePayment,
-            onTap: linkValid ? null : () => setState(() => _isShareablePayment = true),
+            onTap: linkValid
+                ? null
+                : () => setState(() => _isShareablePayment = true),
             isDisabled: linkValid,
           ),
           if (_activePaymentLink != null) ...[
@@ -2915,24 +2934,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildLinkStatusCard(ColorScheme cs) {
     final expiresAt = _pendingOrderInfo != null
-        ? _pendingOrderInfo!.orderedAt
-            .add(Duration(minutes: _pendingOrderInfo!.expiresInMinutes))
+        ? _pendingOrderInfo!.orderedAt.add(
+            Duration(minutes: _pendingOrderInfo!.expiresInMinutes),
+          )
         : DateTime.now().add(const Duration(minutes: 20));
     final remaining = expiresAt.difference(DateTime.now());
     final expired = remaining.isNegative;
     final statusColor = _linkPaymentReceived
         ? cs.primary
         : expired
-            ? cs.error
-            : cs.primary;
+        ? cs.error
+        : cs.primary;
     final bgColor = statusColor.withValues(alpha: 0.1);
     final borderColor = statusColor.withValues(alpha: 0.3);
     final textColor = statusColor.withValues(alpha: 0.85);
     final message = _pendingOrderInfo != null
         ? 'Hi,\n\nCan you please complete the payment for my grocery order?\n\n'
-            '$_activePaymentLink\n\n'
-            'Order amount: ₹${_pendingOrderInfo!.finalAmount.toStringAsFixed(2)}\n'
-            'This link expires in 20 minutes.'
+              '$_activePaymentLink\n\n'
+              'Order amount: ₹${_pendingOrderInfo!.finalAmount.toStringAsFixed(2)}\n'
+              'This link expires in 20 minutes.'
         : '';
 
     return Container(
@@ -2952,8 +2972,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _linkPaymentReceived
                     ? Icons.check_circle
                     : expired
-                        ? Icons.timer_off
-                        : Icons.timer_outlined,
+                    ? Icons.timer_off
+                    : Icons.timer_outlined,
                 color: statusColor,
                 size: 24.r,
               ),
@@ -2966,8 +2986,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       _linkPaymentReceived
                           ? 'Payment Received!'
                           : expired
-                              ? 'Link Expired'
-                              : 'Payment Link Active',
+                          ? 'Link Expired'
+                          : 'Payment Link Active',
                       style: TextStyle(
                         color: textColor,
                         fontWeight: FontWeight.w600,
@@ -2997,7 +3017,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Clipboard.setData(
                         ClipboardData(text: _activePaymentLink ?? ''),
                       );
-                      AppSnackbar.show('Link Copied', 'Payment link copied to clipboard');
+                      AppSnackbar.show(
+                        'Link Copied',
+                        'Payment link copied to clipboard',
+                      );
                     },
                     borderRadius: BorderRadius.circular(8.r),
                     child: Container(
@@ -3190,9 +3213,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ],
                 )
               : Text(
-                  disablePlaceOrder
-                      ? 'LINK ACTIVE'
-                      : 'PLACE ORDER',
+                  disablePlaceOrder ? 'LINK ACTIVE' : 'PLACE ORDER',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
         ),

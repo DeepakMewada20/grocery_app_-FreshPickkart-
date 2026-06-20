@@ -236,11 +236,7 @@ class _QuickStatsBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.bolt_rounded,
-            color: cs.primary,
-            size: 20.r,
-          ),
+          Icon(Icons.bolt_rounded, color: cs.primary, size: 20.r),
           SizedBox(width: 10.w),
           Text(
             'Live Now',
@@ -305,16 +301,15 @@ class _QuickStatChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: AdminAppTheme.isDark(context) ? 0.16 : 0.1),
+        color: color.withValues(
+          alpha: AdminAppTheme.isDark(context) ? 0.16 : 0.1,
+        ),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (count > 0) ...[
-            _PulsingDot(color: color),
-            SizedBox(width: 5.w),
-          ],
+          if (count > 0) ...[_PulsingDot(color: color), SizedBox(width: 5.w)],
           Text(
             '$count $label',
             style: TextStyle(
@@ -357,9 +352,7 @@ class _SummaryStatCard extends StatelessWidget {
     return Card(
       elevation: isDark ? 1 : 2,
       shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       child: Padding(
         padding: AdminResponsive.cardPadding(context),
         child: Column(
@@ -483,9 +476,7 @@ class _OfferProgramCard extends StatelessWidget {
     return Card(
       elevation: isDark ? 1 : 2,
       shadowColor: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.r),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16.r),
         child: IntrinsicHeight(
@@ -498,10 +489,7 @@ class _OfferProgramCard extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      accentColor,
-                      accentColor.withValues(alpha: 0.4),
-                    ],
+                    colors: [accentColor, accentColor.withValues(alpha: 0.4)],
                   ),
                 ),
               ),
@@ -527,11 +515,7 @@ class _OfferProgramCard extends StatelessWidget {
                               ),
                               borderRadius: BorderRadius.circular(12.r),
                             ),
-                            child: Icon(
-                              icon,
-                              color: accentColor,
-                              size: 22.r,
-                            ),
+                            child: Icon(icon, color: accentColor, size: 22.r),
                           ),
                           SizedBox(width: 12.w),
                           Expanded(
@@ -616,10 +600,9 @@ class _OfferProgramCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 10.sp.clamp(9.0, 12.0),
                                     fontWeight: FontWeight.w600,
-                                    color:
-                                        AdminAppTheme.getTextSecondaryColor(
-                                          context,
-                                        ),
+                                    color: AdminAppTheme.getTextSecondaryColor(
+                                      context,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -665,9 +648,10 @@ class _PulsingDotState extends State<_PulsingDot>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.45, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.45,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override

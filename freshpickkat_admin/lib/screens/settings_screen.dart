@@ -66,9 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: AdminResponsive.constrainContent(
         context: context,
         child: ListView(
-          padding: AdminResponsive.pagePadding(context).copyWith(
-            bottom: AdminResponsive.bottomInset(context),
-          ),
+          padding: AdminResponsive.pagePadding(
+            context,
+          ).copyWith(bottom: AdminResponsive.bottomInset(context)),
           children: [
             Center(
               child: Column(

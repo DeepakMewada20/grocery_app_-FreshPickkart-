@@ -244,10 +244,10 @@ class PaymentEndpoint extends Endpoint {
         );
       }
       final data = response['data'] as Map<String, dynamic>;
-        return protocol.RazorpayPaymentStatus(
-          id: data['id'] as String?,
-          status: data['status'] as String?,
-          amount: data['amount'] as int?,
+      return protocol.RazorpayPaymentStatus(
+        id: data['id'] as String?,
+        status: data['status'] as String?,
+        amount: data['amount'] as int?,
         currency: data['currency'] as String?,
         orderId: data['order_id'] as String?,
         method: data['method'] as String?,
@@ -280,7 +280,8 @@ class PaymentEndpoint extends Endpoint {
     }
   }
 
-  Future<protocol.PaymentOrderDetailHydrated> adminGetPaymentOrderDetailHydrated(
+  Future<protocol.PaymentOrderDetailHydrated>
+  adminGetPaymentOrderDetailHydrated(
     Session session,
     String orderId, {
     required String firebaseUid,

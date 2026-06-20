@@ -142,7 +142,16 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final utc = DateTime.utc(date.year, date.month, date.day, date.hour, date.minute, date.second, date.millisecond, date.microsecond);
+    final utc = DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+      date.hour,
+      date.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
     final local = utc.toLocal();
     return '${local.day.toString().padLeft(2, '0')}-${local.month.toString().padLeft(2, '0')}-${local.year}';
   }
@@ -159,9 +168,10 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
             onTap: () async {
               await navigateDeferred(
                 loadLibrary: complaint_detail_screen.loadLibrary,
-                pageBuilder: () => complaint_detail_screen.ComplaintDetailScreen(
-                  complaint: complaint,
-                ),
+                pageBuilder: () =>
+                    complaint_detail_screen.ComplaintDetailScreen(
+                      complaint: complaint,
+                    ),
               );
             },
             child: Container(

@@ -31,11 +31,12 @@ class BogoEndpoint extends Endpoint {
       idToken: idToken,
     );
 
-    final exclusivityErr = await VariantOfferExclusivityService.validateBogoSave(
-      session,
-      offer,
-      existingOfferId: offer.offerId,
-    );
+    final exclusivityErr =
+        await VariantOfferExclusivityService.validateBogoSave(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
     if (exclusivityErr != null) {
       return protocol.OfferMutationResult(
         success: false,
@@ -47,8 +48,7 @@ class BogoEndpoint extends Endpoint {
     for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
       if (conflict.comboOffer != null && confirmDisableConflictingCombo) {
         await _conflicts.disableCombo(session, conflict.comboOffer!.comboId!);
-      } else if (conflict.productIds.isNotEmpty &&
-          forceDisableFreeDelivery) {
+      } else if (conflict.productIds.isNotEmpty && forceDisableFreeDelivery) {
         for (final pid in conflict.productIds) {
           await _conflicts.disableFreeDeliveryForProduct(session, pid);
         }
@@ -101,11 +101,12 @@ class BogoEndpoint extends Endpoint {
       idToken: idToken,
     );
 
-    final exclusivityErr = await VariantOfferExclusivityService.validateBogoSave(
-      session,
-      offer,
-      existingOfferId: offer.offerId,
-    );
+    final exclusivityErr =
+        await VariantOfferExclusivityService.validateBogoSave(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
     if (exclusivityErr != null) {
       throw Exception(exclusivityErr);
     }
@@ -211,12 +212,17 @@ class BogoEndpoint extends Endpoint {
       );
       return _offers.setBogoOfferActive(session, triggerProductId, isActive);
     } catch (error) {
-      session.log('Error updating bogo active state: $error', level: LogLevel.error);
+      session.log(
+        'Error updating bogo active state: $error',
+        level: LogLevel.error,
+      );
       return false;
     }
   }
 
-  Future<List<protocol.BogoOffer>> getInactiveBogoOffers(Session session) async {
+  Future<List<protocol.BogoOffer>> getInactiveBogoOffers(
+    Session session,
+  ) async {
     return _offers.getInactiveBogoOffers(session);
   }
 

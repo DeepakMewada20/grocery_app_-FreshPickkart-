@@ -40,12 +40,14 @@ class CartEndpoint extends Endpoint {
     ];
 
     if (userId != null && userId.isNotEmpty) {
-      futures.add(_couponService.getAvailableCoupons(
-        session,
-        userId: userId,
-        cartSubtotal: subtotal,
-        cartItems: items,
-      ));
+      futures.add(
+        _couponService.getAvailableCoupons(
+          session,
+          userId: userId,
+          cartSubtotal: subtotal,
+          cartItems: items,
+        ),
+      );
     }
 
     final results = await Future.wait(futures);

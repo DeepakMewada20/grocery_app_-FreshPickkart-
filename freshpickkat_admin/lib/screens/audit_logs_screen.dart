@@ -76,9 +76,9 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
             child: AdminResponsive.constrainContent(
               context: context,
               child: ListView.builder(
-                padding: AdminResponsive.pagePadding(context).copyWith(
-                  bottom: AdminResponsive.bottomInset(context),
-                ),
+                padding: AdminResponsive.pagePadding(
+                  context,
+                ).copyWith(bottom: AdminResponsive.bottomInset(context)),
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final row = rows[index];

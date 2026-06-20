@@ -197,10 +197,7 @@ class AdminOrderController extends GetxController {
     });
   }
 
-  Future<bool> verifyDeliveryOtp(
-    Order order,
-    String otp,
-  ) async {
+  Future<bool> verifyDeliveryOtp(Order order, String otp) async {
     return await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(
@@ -253,11 +250,7 @@ class AdminOrderController extends GetxController {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      return await _client.refund.adminGetRefundStatus(
-        orderId,
-        uid,
-        idToken,
-      );
+      return await _client.refund.adminGetRefundStatus(orderId, uid, idToken);
     });
   }
 
@@ -267,11 +260,7 @@ class AdminOrderController extends GetxController {
       final idToken = await AdminSessionService.requireIdToken(
         forceRefresh: false,
       );
-      return await _client.refund.initiateRefund(
-        orderId,
-        uid,
-        idToken,
-      );
+      return await _client.refund.initiateRefund(orderId, uid, idToken);
     });
   }
 

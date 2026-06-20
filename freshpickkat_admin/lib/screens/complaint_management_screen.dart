@@ -34,7 +34,8 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
   @override
   void initState() {
     super.initState();
-    _controller = Get.isRegistered<AdminComplaintController>(tag: 'complaint_management')
+    _controller =
+        Get.isRegistered<AdminComplaintController>(tag: 'complaint_management')
         ? Get.find<AdminComplaintController>(tag: 'complaint_management')
         : Get.put(AdminComplaintController(), tag: 'complaint_management');
     _tabController = TabController(length: _statuses.length, vsync: this);
@@ -82,17 +83,19 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
         if (_controller.complaints.isEmpty) {
           return AdminStateView.empty(
             title: 'No complaints',
-            message: 'No ${(_controller.statusFilter ?? 'pending').toLowerCase()} complaints.',
+            message:
+                'No ${(_controller.statusFilter ?? 'pending').toLowerCase()} complaints.',
             onRefresh: () => _controller.load(status: _controller.statusFilter),
           );
         }
         return RefreshIndicator(
           onRefresh: () => _controller.load(status: _controller.statusFilter),
           child: ListView.separated(
-            padding: AdminResponsive.pagePadding(context).copyWith(
-              bottom: AdminResponsive.bottomInset(context),
-            ),
-            itemCount: _controller.complaints.length +
+            padding: AdminResponsive.pagePadding(
+              context,
+            ).copyWith(bottom: AdminResponsive.bottomInset(context)),
+            itemCount:
+                _controller.complaints.length +
                 (_controller.hasMore.value ? 1 : 0),
             separatorBuilder: (_, _) => SizedBox(height: 10.h),
             itemBuilder: (context, index) {
@@ -103,7 +106,9 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
                         ? null
                         : _controller.loadMore,
                     child: Text(
-                      _controller.isLoadingMore.value ? 'Loading...' : 'Load more',
+                      _controller.isLoadingMore.value
+                          ? 'Loading...'
+                          : 'Load more',
                     ),
                   ),
                 );
@@ -112,13 +117,14 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
               return _ComplaintCard(
                 complaint: complaint,
                 onTap: () async {
-                      await Get.to(
-                        () => _ComplaintDetailAdminScreen(
-                          complaint: complaint,
-                          controller: _controller,
-                        ),
+                  await Get.to(
+                    () => _ComplaintDetailAdminScreen(
+                      complaint: complaint,
+                      controller: _controller,
+                    ),
                   );
-                  if (mounted) _controller.load(status: _controller.statusFilter);
+                  if (mounted)
+                    _controller.load(status: _controller.statusFilter);
                 },
               );
             },
@@ -211,9 +217,9 @@ class _ComplaintDetailAdminScreenState
         title: Text('Complaint #${_shortId(_complaint.complaintId)}'),
       ),
       body: ListView(
-        padding: AdminResponsive.pagePadding(context).copyWith(
-          bottom: AdminResponsive.bottomInset(context),
-        ),
+        padding: AdminResponsive.pagePadding(
+          context,
+        ).copyWith(bottom: AdminResponsive.bottomInset(context)),
         children: [
           AdminResponsive.constrainContent(
             context: context,
@@ -371,11 +377,15 @@ class _ComplaintDetailAdminScreenState
                         children: isAddressChange
                             ? [
                                 ElevatedButton(
-                                  onPressed: _busy ? null : _approveAddressChange,
+                                  onPressed: _busy
+                                      ? null
+                                      : _approveAddressChange,
                                   child: const Text('Approve'),
                                 ),
                                 OutlinedButton(
-                                  onPressed: _busy ? null : _rejectAddressChange,
+                                  onPressed: _busy
+                                      ? null
+                                      : _rejectAddressChange,
                                   child: const Text('Reject'),
                                 ),
                               ]
@@ -643,9 +653,18 @@ class _AddressChangeDetails extends StatelessWidget {
     return _InfoPanel(
       title: 'Address Change Details',
       children: [
-        _InfoRow('Selected field', complaint.selectedField ?? 'delivery_location_issue'),
-        _InfoRow('Old address', oldAddress != null ? _addressText(oldAddress) : 'Unavailable'),
-        _InfoRow('New address', newAddress != null ? _addressText(newAddress) : 'Unavailable'),
+        _InfoRow(
+          'Selected field',
+          complaint.selectedField ?? 'delivery_location_issue',
+        ),
+        _InfoRow(
+          'Old address',
+          oldAddress != null ? _addressText(oldAddress) : 'Unavailable',
+        ),
+        _InfoRow(
+          'New address',
+          newAddress != null ? _addressText(newAddress) : 'Unavailable',
+        ),
         if (distance != null) _InfoRow('Distance', distance),
         if (extra['requestedNote']?.trim().isNotEmpty == true)
           _InfoRow('Requested note', extra['requestedNote']!),
@@ -668,12 +687,12 @@ class _AddressChangeDetails extends StatelessWidget {
   }
 
   String _addressText(Address address) => [
-        address.street,
-        address.city,
-        address.state,
-        address.zipCode,
-        address.country,
-      ].where((part) => part.trim().isNotEmpty).join(', ');
+    address.street,
+    address.city,
+    address.state,
+    address.zipCode,
+    address.country,
+  ].where((part) => part.trim().isNotEmpty).join(', ');
 
   String? _distanceLabel(Address? oldAddress, Address? newAddress) {
     if (oldAddress == null || newAddress == null) return null;
@@ -912,16 +931,24 @@ class _ImageGrid extends StatelessWidget {
               child: Image.network(
                 url,
                 fit: BoxFit.contain,
-                loadingBuilder: (_, child, progress) =>
-                    progress == null ? child : const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
+                loadingBuilder: (_, child, progress) => progress == null
+                    ? child
+                    : const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
                 errorBuilder: (_, _, _) => const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
+                    Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 64,
+                    ),
                     SizedBox(height: 8),
-                    Text('Failed to load image', style: TextStyle(color: Colors.white54)),
+                    Text(
+                      'Failed to load image',
+                      style: TextStyle(color: Colors.white54),
+                    ),
                   ],
                 ),
               ),
@@ -932,5 +959,3 @@ class _ImageGrid extends StatelessWidget {
     );
   }
 }
-
-

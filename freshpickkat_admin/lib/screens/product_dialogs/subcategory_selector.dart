@@ -74,7 +74,9 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                 children: row0.asMap().entries.map((entry) {
                   final i = entry.key;
                   final option = entry.value;
-                  final isSel = option.names.any((n) => widget.selected.contains(n));
+                  final isSel = option.names.any(
+                    (n) => widget.selected.contains(n),
+                  );
                   return Padding(
                     padding: EdgeInsets.only(
                       right: i < row0.length - 1 ? 8.w : 0,
@@ -83,10 +85,7 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                       option: option,
                       isSelected: isSel,
                       size: chipSize,
-                      onTap: () => widget.onToggle(
-                        option.names,
-                        !isSel,
-                      ),
+                      onTap: () => widget.onToggle(option.names, !isSel),
                     ),
                   );
                 }).toList(),
@@ -99,7 +98,9 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                   children: row1.asMap().entries.map((entry) {
                     final i = entry.key;
                     final option = entry.value;
-                    final isSel = option.names.any((n) => widget.selected.contains(n));
+                    final isSel = option.names.any(
+                      (n) => widget.selected.contains(n),
+                    );
                     return Padding(
                       padding: EdgeInsets.only(
                         right: i < row1.length - 1 ? 8.w : 0,
@@ -108,10 +109,7 @@ class _SubcategorySelectorState extends State<SubcategorySelector> {
                         option: option,
                         isSelected: isSel,
                         size: chipSize,
-                        onTap: () => widget.onToggle(
-                          option.names,
-                          !isSel,
-                        ),
+                        onTap: () => widget.onToggle(option.names, !isSel),
                       ),
                     );
                   }).toList(),

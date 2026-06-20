@@ -21,16 +21,22 @@ void main() {
       productId = seed.productId;
     });
 
-    test('product subCategoryIds are hydrated into subcategory names', () async {
-      final products = await endpoints.product.getProductsByIds(
-        sessionBuilder,
-        [productId],
-      );
+    test(
+      'product subCategoryIds are hydrated into subcategory names',
+      () async {
+        final products = await endpoints.product.getProductsByIds(
+          sessionBuilder,
+          [productId],
+        );
 
-      expect(products.length, 1);
-      expect(products.first.subcategory, isNotEmpty);
-      expect(products.first.subcategory.first, contains('Test Subcat $suffix'));
-    });
+        expect(products.length, 1);
+        expect(products.first.subcategory, isNotEmpty);
+        expect(
+          products.first.subcategory.first,
+          contains('Test Subcat $suffix'),
+        );
+      },
+    );
 
     test('browse subCategoryId filter uses subCategoryIds column', () async {
       final session = sessionBuilder.build();
@@ -128,64 +134,72 @@ void main() {
       }
     });
 
-    test('category offer scopeProductIds and excludeProductIds columns work', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final catId = tryParseUuid(categoryId)!;
-        final offer = await protocol.CategoryOfferRow.db.insertRow(
-          session,
-          protocol.CategoryOfferRow(
-            categoryId: catId,
-            name: 'Cat Offer $suffix',
-            description: 'Consolidation test',
-            discountType: 'percentage',
-            discountValue: 10,
-            maxDiscountAmount: 100,
-            priority: 1,
-            scopeProductIds: '$productId,550e8400-e29b-41d4-a716-446655440000',
-            excludeProductIds: '660e8400-e29b-41d4-a716-446655440001',
-            startsAt: now.subtract(const Duration(days: 1)),
-            endsAt: now.add(const Duration(days: 1)),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+    test(
+      'category offer scopeProductIds and excludeProductIds columns work',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final catId = tryParseUuid(categoryId)!;
+          final offer = await protocol.CategoryOfferRow.db.insertRow(
+            session,
+            protocol.CategoryOfferRow(
+              categoryId: catId,
+              name: 'Cat Offer $suffix',
+              description: 'Consolidation test',
+              discountType: 'percentage',
+              discountValue: 10,
+              maxDiscountAmount: 100,
+              priority: 1,
+              scopeProductIds:
+                  '$productId,550e8400-e29b-41d4-a716-446655440000',
+              excludeProductIds: '660e8400-e29b-41d4-a716-446655440001',
+              startsAt: now.subtract(const Duration(days: 1)),
+              endsAt: now.add(const Duration(days: 1)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
 
-        expect(offer.id, isNotNull);
+          expect(offer.id, isNotNull);
 
-        final fetched = await protocol.CategoryOfferRow.db.findById(
-          session,
-          offer.id!,
-        );
-        expect(fetched, isNotNull);
-        expect(fetched!.scopeProductIds, contains(productId));
-        expect(fetched.excludeProductIds,
-            contains('660e8400-e29b-41d4-a716-446655440001'));
-      } finally {
-        await session.close();
-      }
-    });
+          final fetched = await protocol.CategoryOfferRow.db.findById(
+            session,
+            offer.id!,
+          );
+          expect(fetched, isNotNull);
+          expect(fetched!.scopeProductIds, contains(productId));
+          expect(
+            fetched.excludeProductIds,
+            contains('660e8400-e29b-41d4-a716-446655440001'),
+          );
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
-    test('subcategory deletion cleans up product subCategoryIds column', () async {
-      final session = sessionBuilder.build();
-      try {
-        // Create a second subcategory to verify only the deleted one is removed
-        const otherSubCatIdStr = '770e8400-e29b-41d4-a716-446655440002';
-        final productRow = await protocol.ProductRow.db.findById(
-          session,
-          tryParseUuid(productId)!,
-        );
-        expect(productRow, isNotNull);
-        // Set both subCategoryIds
-        final updated = productRow!.copyWith(
-          subCategoryIds: '$subCategoryId,$otherSubCatIdStr',
-        );
-        await protocol.ProductRow.db.updateRow(session, updated);
+    test(
+      'subcategory deletion cleans up product subCategoryIds column',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          // Create a second subcategory to verify only the deleted one is removed
+          const otherSubCatIdStr = '770e8400-e29b-41d4-a716-446655440002';
+          final productRow = await protocol.ProductRow.db.findById(
+            session,
+            tryParseUuid(productId)!,
+          );
+          expect(productRow, isNotNull);
+          // Set both subCategoryIds
+          final updated = productRow!.copyWith(
+            subCategoryIds: '$subCategoryId,$otherSubCatIdStr',
+          );
+          await protocol.ProductRow.db.updateRow(session, updated);
 
-        // Simulate subcategory deletion cleanup
-        await session.db.unsafeQuery(
-          '''UPDATE product
+          // Simulate subcategory deletion cleanup
+          await session.db.unsafeQuery(
+            '''UPDATE product
              SET "subCategoryIds" = (
                SELECT string_agg(elem, ',')
                FROM unnest(string_to_array("subCategoryIds", ',')) AS elem
@@ -193,22 +207,23 @@ void main() {
              )
              WHERE "subCategoryIds" IS NOT NULL
                AND @id = ANY(string_to_array("subCategoryIds", ','))''',
-          parameters: QueryParameters.named({
-            'id': subCategoryId,
-          }),
-        );
+            parameters: QueryParameters.named({
+              'id': subCategoryId,
+            }),
+          );
 
-        final refreshed = await protocol.ProductRow.db.findById(
-          session,
-          tryParseUuid(productId)!,
-        );
-        expect(refreshed, isNotNull);
-        expect(refreshed!.subCategoryIds, isNot(contains(subCategoryId)));
-        expect(refreshed.subCategoryIds, contains(otherSubCatIdStr));
-      } finally {
-        await session.close();
-      }
-    });
+          final refreshed = await protocol.ProductRow.db.findById(
+            session,
+            tryParseUuid(productId)!,
+          );
+          expect(refreshed, isNotNull);
+          expect(refreshed!.subCategoryIds, isNot(contains(subCategoryId)));
+          expect(refreshed.subCategoryIds, contains(otherSubCatIdStr));
+        } finally {
+          await session.close();
+        }
+      },
+    );
 
     test('DependencyChecker.checkProduct finds coupon reference', () async {
       final session = sessionBuilder.build();
@@ -239,36 +254,39 @@ void main() {
       }
     });
 
-    test('DependencyChecker.checkProduct finds category offer reference', () async {
-      final session = sessionBuilder.build();
-      try {
-        final now = DateTime.now().toUtc();
-        final catId = tryParseUuid(categoryId)!;
-        await protocol.CategoryOfferRow.db.insertRow(
-          session,
-          protocol.CategoryOfferRow(
-            categoryId: catId,
-            name: 'Dep Check Offer $suffix',
-            description: 'Category offer dep check',
-            discountType: 'percentage',
-            discountValue: 15,
-            priority: 1,
-            scopeProductIds: productId,
-            startsAt: now.subtract(const Duration(days: 1)),
-            endsAt: now.add(const Duration(days: 1)),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+    test(
+      'DependencyChecker.checkProduct finds category offer reference',
+      () async {
+        final session = sessionBuilder.build();
+        try {
+          final now = DateTime.now().toUtc();
+          final catId = tryParseUuid(categoryId)!;
+          await protocol.CategoryOfferRow.db.insertRow(
+            session,
+            protocol.CategoryOfferRow(
+              categoryId: catId,
+              name: 'Dep Check Offer $suffix',
+              description: 'Category offer dep check',
+              discountType: 'percentage',
+              discountValue: 15,
+              priority: 1,
+              scopeProductIds: productId,
+              startsAt: now.subtract(const Duration(days: 1)),
+              endsAt: now.add(const Duration(days: 1)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
 
-        final pid = tryParseUuid(productId)!;
-        final refs = await DependencyChecker.checkProduct(session, pid);
+          final pid = tryParseUuid(productId)!;
+          final refs = await DependencyChecker.checkProduct(session, pid);
 
-        expect(refs.any((r) => r.contains('category offer scope')), isTrue);
-      } finally {
-        await session.close();
-      }
-    });
+          expect(refs.any((r) => r.contains('category offer scope')), isTrue);
+        } finally {
+          await session.close();
+        }
+      },
+    );
   });
 }
 

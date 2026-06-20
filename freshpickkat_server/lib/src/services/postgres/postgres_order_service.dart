@@ -123,17 +123,18 @@ class PostgresOrderService {
           coupon,
           pricing.couponDiscount,
         );
-        final addressSnapshotJson = SnapshotBuilder.instance.buildAddressSnapshot(
-          recipientName: cleanNullableString(order.userName),
-          phoneNumber: cleanNullableString(order.userPhone),
-          streetLine1: order.deliveryAddress.street.trim(),
-          city: order.deliveryAddress.city.trim(),
-          state: order.deliveryAddress.state.trim(),
-          postalCode: order.deliveryAddress.zipCode.trim(),
-          country: order.deliveryAddress.country.trim(),
-          latitude: order.deliveryAddress.latitude,
-          longitude: order.deliveryAddress.longitude,
-        );
+        final addressSnapshotJson = SnapshotBuilder.instance
+            .buildAddressSnapshot(
+              recipientName: cleanNullableString(order.userName),
+              phoneNumber: cleanNullableString(order.userPhone),
+              streetLine1: order.deliveryAddress.street.trim(),
+              city: order.deliveryAddress.city.trim(),
+              state: order.deliveryAddress.state.trim(),
+              postalCode: order.deliveryAddress.zipCode.trim(),
+              country: order.deliveryAddress.country.trim(),
+              latitude: order.deliveryAddress.latitude,
+              longitude: order.deliveryAddress.longitude,
+            );
 
         final createdOrder = await CustomerOrderRow.db.insertRow(
           session,
@@ -923,7 +924,8 @@ class PostgresOrderService {
         orderStatus: newStatus,
         confirmedAt: newStatus == 'confirmed' ? now : row.confirmedAt,
         packedAt: newStatus == 'packed' ? now : row.packedAt,
-        outForDeliveryAt: (newStatus == 'out_for_delivery' ||
+        outForDeliveryAt:
+            (newStatus == 'out_for_delivery' ||
                 newStatus == 'delivery_otp_pending')
             ? now
             : row.outForDeliveryAt,
@@ -1380,7 +1382,8 @@ class PostgresOrderService {
 
     final now = DateTime.now().toUtc();
     final reasonData = _parseCancellationReason(row.cancellationReason);
-    final originalStatus = reasonData['originalStatus'] as String? ?? 'confirmed';
+    final originalStatus =
+        reasonData['originalStatus'] as String? ?? 'confirmed';
 
     double refundAmount;
     if (fixedRefundAmount != null) {
@@ -1397,7 +1400,9 @@ class PostgresOrderService {
         session,
         row.copyWith(
           orderStatus: 'cancelled',
-          paymentStatus: row.paymentStatus == 'paid' ? 'refunded' : row.paymentStatus,
+          paymentStatus: row.paymentStatus == 'paid'
+              ? 'refunded'
+              : row.paymentStatus,
           refundStatus: 'refund_initiated',
           cancelledAt: now,
           cancellationReason: adminNote.isNotEmpty
@@ -1456,7 +1461,8 @@ class PostgresOrderService {
     if (row == null) return false;
 
     final reasonData = _parseCancellationReason(row.cancellationReason);
-    final originalStatus = reasonData['originalStatus'] as String? ?? 'confirmed';
+    final originalStatus =
+        reasonData['originalStatus'] as String? ?? 'confirmed';
     final now = DateTime.now().toUtc();
 
     await CustomerOrderRow.db.updateRow(
@@ -1582,13 +1588,15 @@ class PostgresOrderService {
     final result = <CartItemInput>[];
     for (final item in order.items) {
       if (item.isFreeItem) continue;
-      result.add(CartItemInput(
-        productId: item.productId,
-        variantId: item.variantId,
-        quantity: item.quantity,
-        comboId: item.comboId,
-        bogoFreeProductId: bogoTriggerMap[item.productId],
-      ));
+      result.add(
+        CartItemInput(
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          comboId: item.comboId,
+          bogoFreeProductId: bogoTriggerMap[item.productId],
+        ),
+      );
     }
     return result;
   }
@@ -1604,9 +1612,7 @@ class PostgresOrderService {
     final variantIds = <UuidValue>{};
     for (final item in items) {
       if (item.isFreeItem) continue;
-      final vid = item.variantId == null
-          ? null
-          : tryParseUuid(item.variantId!);
+      final vid = item.variantId == null ? null : tryParseUuid(item.variantId!);
       if (vid != null) variantIds.add(vid);
     }
 
@@ -1663,9 +1669,8 @@ class PostgresOrderService {
   String _buildPricingSnapshot(CartPricingResult pricing) {
     return jsonEncode({
       'subtotal': pricing.subtotal,
-      'offerDiscount': pricing.itemDiscounts +
-          pricing.comboDiscount +
-          pricing.bogoDiscount,
+      'offerDiscount':
+          pricing.itemDiscounts + pricing.comboDiscount + pricing.bogoDiscount,
       'couponDiscount': pricing.couponDiscount,
       'deliveryCharge': pricing.deliveryFee,
       'grandTotal': pricing.totalAmount,

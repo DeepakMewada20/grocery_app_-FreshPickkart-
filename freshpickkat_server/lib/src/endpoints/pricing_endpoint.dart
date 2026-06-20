@@ -23,7 +23,7 @@ class PricingEndpoint extends Endpoint {
           ),
         )
         .toList();
- 
+
     return await PricingEngine.calculateCartPricing(
       session: session,
       items: cartItems,
