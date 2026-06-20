@@ -1737,6 +1737,7 @@ class PostgresPaymentService {
           'cutoff': cutoff.toIso8601String(),
           'ageCutoff': ageCutoff.toIso8601String(),
           'limit': limit,
+          // ignore: use_null_aware_elements
           if (singleOrderNumber != null) 'orderNumber': singleOrderNumber,
         }),
       );

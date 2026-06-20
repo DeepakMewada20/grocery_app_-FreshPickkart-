@@ -2,7 +2,6 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../payments/payment_gateway_service.dart';
-import 'postgres_audit_log_service.dart';
 
 class PostgresAutoRefundService {
   final PaymentGatewayService _gateway;

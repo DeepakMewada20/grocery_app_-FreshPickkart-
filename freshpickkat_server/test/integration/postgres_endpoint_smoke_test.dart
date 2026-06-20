@@ -77,6 +77,7 @@ Future<String> _seedBanner(TestSessionBuilder sessionBuilder) async {
         imageUrl: 'https://example.com/banner.png',
         actionType: 'external_link',
         externalUrl: 'https://example.com',
+        screenPlacements: 'home_top',
         priority: 1,
         startsAt: now.subtract(const Duration(days: 1)),
         endsAt: now.add(const Duration(days: 1)),

@@ -1,10 +1,8 @@
-import 'package:serverpod/serverpod.dart' as serverpod;
 import 'package:test/test.dart';
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
 import 'package:freshpickkat_server/src/services/postgres/postgres_payment_link_service.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_order_service.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_payment_service.dart';
-import 'package:freshpickkat_server/src/services/postgres/postgres_audit_log_service.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {

@@ -1,4 +1,3 @@
-import 'package:serverpod/serverpod.dart' as serverpod;
 import 'package:test/test.dart';
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
 import 'package:freshpickkat_server/src/services/postgres/postgres_payment_link_service.dart';

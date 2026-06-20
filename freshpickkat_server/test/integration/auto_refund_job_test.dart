@@ -1,4 +1,3 @@
-import 'package:serverpod/serverpod.dart' as serverpod;
 import 'package:test/test.dart';
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
 import 'package:freshpickkat_server/src/services/postgres/postgres_auto_refund_service.dart';
@@ -237,10 +236,4 @@ Future<String> _seedCompletedOrder(
   } finally {
     await session.close();
   }
-}
-
-serverpod.UuidValue _uuid() {
-  return serverpod.UuidValue.fromString(
-    '00000000-0000-0000-0000-${DateTime.now().microsecondsSinceEpoch.toString().padLeft(12, '0').substring(0, 12)}',
-  );
 }
