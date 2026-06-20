@@ -774,6 +774,8 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                             SizedBox(height: 12.h),
                             _buildVariantsSection(),
                             SizedBox(height: 12.h),
+                            _buildAdditionInformationSection(),
+                            SizedBox(height: 12.h),
                             _buildOffersSection(),
                             SizedBox(height: 12.h),
                             AvailabilitySwitch(
@@ -827,20 +829,6 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             labelText: 'Product name',
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Required' : null,
-          ),
-          const SizedBox(height: 12),
-          ModernTextField(
-            controller: shortDescriptionCtrl,
-            labelText: 'Short Description (Optional)',
-            hintText: 'e.g., Fresh organic apples from Kashmir',
-            maxLines: 2,
-          ),
-          const SizedBox(height: 12),
-          ModernTextField(
-            controller: descriptionCtrl,
-            labelText: 'Full Description (Optional)',
-            hintText: 'Detailed information about the product...',
-            maxLines: 4,
           ),
           const SizedBox(height: 12),
           ModernDropdown<String>(
@@ -1046,23 +1034,43 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
             ],
           ),
           SizedBox(height: 12.h),
+          ModernTextField(
+            controller: quantityDescriptionCtrl,
+            labelText: 'Quantity Description (Optional)',
+            hintText: 'e.g., 10-12 pieces',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdditionInformationSection() {
+    return SectionCard(
+      icon: Icons.article_outlined,
+      title: 'Additional Information',
+      child: Column(
+        children: [
+          ModernTextField(
+            controller: shortDescriptionCtrl,
+            labelText: 'Short Description (Optional)',
+            hintText: 'e.g., Fresh organic apples from Kashmir',
+            maxLines: 2,
+          ),
+          const SizedBox(height: 12),
+          ModernTextField(
+            controller: descriptionCtrl,
+            labelText: 'Full Description (Optional)',
+            hintText: 'Detailed information about the product...',
+            maxLines: 4,
+          ),
+          const SizedBox(height: 12),
           CompactFieldRow(
             children: [
-              ModernTextField(
-                controller: quantityDescriptionCtrl,
-                labelText: 'Quantity Description (Optional)',
-                hintText: 'e.g., 10-12 pieces',
-              ),
               ModernTextField(
                 controller: countryOfOriginCtrl,
                 labelText: 'Country of Origin (Optional)',
                 hintText: 'e.g., India',
               ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          CompactFieldRow(
-            children: [
               ModernTextField(
                 controller: stockCtrl,
                 labelText: 'Stock (Optional)',
@@ -1071,34 +1079,35 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
                   decimal: true,
                 ),
               ),
-              DropdownButtonFormField<String>(
-                initialValue: stockUnit,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: 'Unit',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'gm', child: Text('gm')),
-                  DropdownMenuItem(value: 'kg', child: Text('kg')),
-                  DropdownMenuItem(value: 'litre', child: Text('litre')),
-                  DropdownMenuItem(value: 'ml', child: Text('ml')),
-                  DropdownMenuItem(value: 'pc', child: Text('pc')),
-                  DropdownMenuItem(value: 'pack', child: Text('pack')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      stockUnit = value;
-                    });
-                  }
-                },
-              ),
             ],
+          ),
+          SizedBox(height: 12.h),
+          DropdownButtonFormField<String>(
+            initialValue: stockUnit,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: 'Stock Unit',
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'gm', child: Text('gm')),
+              DropdownMenuItem(value: 'kg', child: Text('kg')),
+              DropdownMenuItem(value: 'litre', child: Text('litre')),
+              DropdownMenuItem(value: 'ml', child: Text('ml')),
+              DropdownMenuItem(value: 'pc', child: Text('pc')),
+              DropdownMenuItem(value: 'pack', child: Text('pack')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  stockUnit = value;
+                });
+              }
+            },
           ),
         ],
       ),
