@@ -37,6 +37,10 @@ class OrderTrackingController extends GetxController {
   int _routeRetryAttempts = 0;
   DeliveryLocation? _latestRouteUser;
   AppLatLng? _latestRouteRider;
+  AppLatLng? _routeOrigin;
+  Timer? _routeRefreshTimer;
+  static const double _routeRefreshDistance = 200.0;
+  static const Duration _routeRefreshInterval = Duration(seconds: 20);
   static const List<Duration> _routeRetryDelays = [
     Duration(seconds: 3),
     Duration(seconds: 8),
@@ -284,6 +288,8 @@ class OrderTrackingController extends GetxController {
       routePolyline.assignAll(polylinePoints);
       _routeIsFallback = false;
       _routeRetryAttempts = 0;
+      _routeOrigin = rider;
+      _startRouteRefreshTimer();
     } catch (e) {
       if (_activeOrderId != orderId) {
         return;
@@ -331,6 +337,25 @@ class OrderTrackingController extends GetxController {
     });
   }
 
+  void _startRouteRefreshTimer() {
+    _routeRefreshTimer?.cancel();
+    _routeRefreshTimer = Timer(_routeRefreshInterval, () {
+      final origin = _routeOrigin;
+      final rider = _latestRouteRider;
+      if (origin == null || rider == null) return;
+      final moved = AppLatLng.distanceBetween(
+        origin.latitude,
+        origin.longitude,
+        rider.latitude,
+        rider.longitude,
+      );
+      if (moved > _routeRefreshDistance) {
+        unawaited(_maybeBuildRoute(_latestRouteUser, rider, force: true));
+      }
+      _startRouteRefreshTimer();
+    });
+  }
+
   void _resetRouteRetryState() {
     _routeRetryTimer?.cancel();
     _routeRetryTimer = null;
@@ -339,6 +364,9 @@ class OrderTrackingController extends GetxController {
     _routeRetryAttempts = 0;
     _latestRouteUser = null;
     _latestRouteRider = null;
+    _routeOrigin = null;
+    _routeRefreshTimer?.cancel();
+    _routeRefreshTimer = null;
   }
 
   Future<void> stopListening() async {

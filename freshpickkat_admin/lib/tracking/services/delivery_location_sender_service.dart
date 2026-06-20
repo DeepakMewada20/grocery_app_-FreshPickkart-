@@ -97,7 +97,7 @@ class DeliveryLocationSenderService {
 
       final shouldSend =
           _lastRawPosition == null ||
-          _distanceBetween(_lastRawPosition!, rawCandidate) > 50;
+          _distanceBetween(_lastRawPosition!, rawCandidate) > 30;
 
       if (shouldSend) {
         await _repository.updateRiderLocation(
@@ -169,7 +169,8 @@ class DeliveryLocationSenderService {
   void resume() {
     if (_activeOrderId == null) return;
     _paused = false;
-    _ensureLoop();
+    _lastRawPosition = null;
+    unawaited(_sendCurrentLocation());
   }
 
   Future<void> stop() async {
