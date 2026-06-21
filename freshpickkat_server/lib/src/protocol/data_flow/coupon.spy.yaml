@@ -17,3 +17,5 @@ fields:
   usedCount: int
   isActive: bool
   couponCategory: String
+  assignedUserId: String?
+  assignedPhone: String?

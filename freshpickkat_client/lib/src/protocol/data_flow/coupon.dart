@@ -32,6 +32,8 @@ abstract class Coupon implements _i1.SerializableModel {
     required this.usedCount,
     required this.isActive,
     required this.couponCategory,
+    this.assignedUserId,
+    this.assignedPhone,
   });
 
   factory Coupon({
@@ -52,6 +54,8 @@ abstract class Coupon implements _i1.SerializableModel {
     required int usedCount,
     required bool isActive,
     required String couponCategory,
+    String? assignedUserId,
+    String? assignedPhone,
   }) = _CouponImpl;
 
   factory Coupon.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -82,6 +86,8 @@ abstract class Coupon implements _i1.SerializableModel {
       usedCount: jsonSerialization['usedCount'] as int,
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       couponCategory: jsonSerialization['couponCategory'] as String,
+      assignedUserId: jsonSerialization['assignedUserId'] as String?,
+      assignedPhone: jsonSerialization['assignedPhone'] as String?,
     );
   }
 
@@ -119,6 +125,10 @@ abstract class Coupon implements _i1.SerializableModel {
 
   String couponCategory;
 
+  String? assignedUserId;
+
+  String? assignedPhone;
+
   /// Returns a shallow copy of this [Coupon]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -140,6 +150,8 @@ abstract class Coupon implements _i1.SerializableModel {
     int? usedCount,
     bool? isActive,
     String? couponCategory,
+    String? assignedUserId,
+    String? assignedPhone,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -163,6 +175,8 @@ abstract class Coupon implements _i1.SerializableModel {
       'usedCount': usedCount,
       'isActive': isActive,
       'couponCategory': couponCategory,
+      if (assignedUserId != null) 'assignedUserId': assignedUserId,
+      if (assignedPhone != null) 'assignedPhone': assignedPhone,
     };
   }
 
@@ -193,6 +207,8 @@ class _CouponImpl extends Coupon {
     required int usedCount,
     required bool isActive,
     required String couponCategory,
+    String? assignedUserId,
+    String? assignedPhone,
   }) : super._(
          id: id,
          code: code,
@@ -211,6 +227,8 @@ class _CouponImpl extends Coupon {
          usedCount: usedCount,
          isActive: isActive,
          couponCategory: couponCategory,
+         assignedUserId: assignedUserId,
+         assignedPhone: assignedPhone,
        );
 
   /// Returns a shallow copy of this [Coupon]
@@ -235,6 +253,8 @@ class _CouponImpl extends Coupon {
     int? usedCount,
     bool? isActive,
     String? couponCategory,
+    Object? assignedUserId = _Undefined,
+    Object? assignedPhone = _Undefined,
   }) {
     return Coupon(
       id: id is String? ? id : this.id,
@@ -262,6 +282,12 @@ class _CouponImpl extends Coupon {
       usedCount: usedCount ?? this.usedCount,
       isActive: isActive ?? this.isActive,
       couponCategory: couponCategory ?? this.couponCategory,
+      assignedUserId: assignedUserId is String?
+          ? assignedUserId
+          : this.assignedUserId,
+      assignedPhone: assignedPhone is String?
+          ? assignedPhone
+          : this.assignedPhone,
     );
   }
 }

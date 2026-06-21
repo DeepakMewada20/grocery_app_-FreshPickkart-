@@ -28,6 +28,25 @@ abstract class ReferralSettings
     required this.enableReferralExpiry,
     required this.referralExpiryDays,
     required this.shareMessageTemplate,
+    required this.enableFraudScoring,
+    required this.autoApproveThreshold,
+    required this.manualReviewThreshold,
+    required this.autoRejectThreshold,
+    required this.enableRewardHold,
+    required this.holdDurationHours,
+    required this.enableAutoReject,
+    required this.minimumActualPaymentForQualification,
+    required this.maxRewardedPerDay,
+    required this.maxPendingReferrals,
+    required this.maxSharesPerDay,
+    required this.maxSharesPerMonth,
+    required this.referralVelocityScore,
+    required this.velocityTimeWindowHours,
+    required this.velocityThreshold,
+    required this.newAccountScore,
+    required this.newAccountHours,
+    required this.autoReversalWindowDays,
+    this.termsText,
     required this.updatedAt,
   });
 
@@ -45,6 +64,25 @@ abstract class ReferralSettings
     required bool enableReferralExpiry,
     required int referralExpiryDays,
     required String shareMessageTemplate,
+    required bool enableFraudScoring,
+    required int autoApproveThreshold,
+    required int manualReviewThreshold,
+    required int autoRejectThreshold,
+    required bool enableRewardHold,
+    required int holdDurationHours,
+    required bool enableAutoReject,
+    required double minimumActualPaymentForQualification,
+    required int maxRewardedPerDay,
+    required int maxPendingReferrals,
+    required int maxSharesPerDay,
+    required int maxSharesPerMonth,
+    required int referralVelocityScore,
+    required int velocityTimeWindowHours,
+    required int velocityThreshold,
+    required int newAccountScore,
+    required int newAccountHours,
+    required int autoReversalWindowDays,
+    String? termsText,
     required DateTime updatedAt,
   }) = _ReferralSettingsImpl;
 
@@ -74,6 +112,35 @@ abstract class ReferralSettings
       ),
       referralExpiryDays: jsonSerialization['referralExpiryDays'] as int,
       shareMessageTemplate: jsonSerialization['shareMessageTemplate'] as String,
+      enableFraudScoring: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['enableFraudScoring'],
+      ),
+      autoApproveThreshold: jsonSerialization['autoApproveThreshold'] as int,
+      manualReviewThreshold: jsonSerialization['manualReviewThreshold'] as int,
+      autoRejectThreshold: jsonSerialization['autoRejectThreshold'] as int,
+      enableRewardHold: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['enableRewardHold'],
+      ),
+      holdDurationHours: jsonSerialization['holdDurationHours'] as int,
+      enableAutoReject: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['enableAutoReject'],
+      ),
+      minimumActualPaymentForQualification:
+          (jsonSerialization['minimumActualPaymentForQualification'] as num)
+              .toDouble(),
+      maxRewardedPerDay: jsonSerialization['maxRewardedPerDay'] as int,
+      maxPendingReferrals: jsonSerialization['maxPendingReferrals'] as int,
+      maxSharesPerDay: jsonSerialization['maxSharesPerDay'] as int,
+      maxSharesPerMonth: jsonSerialization['maxSharesPerMonth'] as int,
+      referralVelocityScore: jsonSerialization['referralVelocityScore'] as int,
+      velocityTimeWindowHours:
+          jsonSerialization['velocityTimeWindowHours'] as int,
+      velocityThreshold: jsonSerialization['velocityThreshold'] as int,
+      newAccountScore: jsonSerialization['newAccountScore'] as int,
+      newAccountHours: jsonSerialization['newAccountHours'] as int,
+      autoReversalWindowDays:
+          jsonSerialization['autoReversalWindowDays'] as int,
+      termsText: jsonSerialization['termsText'] as String?,
       updatedAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['updatedAt'],
       ),
@@ -106,6 +173,44 @@ abstract class ReferralSettings
 
   String shareMessageTemplate;
 
+  bool enableFraudScoring;
+
+  int autoApproveThreshold;
+
+  int manualReviewThreshold;
+
+  int autoRejectThreshold;
+
+  bool enableRewardHold;
+
+  int holdDurationHours;
+
+  bool enableAutoReject;
+
+  double minimumActualPaymentForQualification;
+
+  int maxRewardedPerDay;
+
+  int maxPendingReferrals;
+
+  int maxSharesPerDay;
+
+  int maxSharesPerMonth;
+
+  int referralVelocityScore;
+
+  int velocityTimeWindowHours;
+
+  int velocityThreshold;
+
+  int newAccountScore;
+
+  int newAccountHours;
+
+  int autoReversalWindowDays;
+
+  String? termsText;
+
   DateTime updatedAt;
 
   /// Returns a shallow copy of this [ReferralSettings]
@@ -125,6 +230,25 @@ abstract class ReferralSettings
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    String? termsText,
     DateTime? updatedAt,
   });
   @override
@@ -144,6 +268,26 @@ abstract class ReferralSettings
       'enableReferralExpiry': enableReferralExpiry,
       'referralExpiryDays': referralExpiryDays,
       'shareMessageTemplate': shareMessageTemplate,
+      'enableFraudScoring': enableFraudScoring,
+      'autoApproveThreshold': autoApproveThreshold,
+      'manualReviewThreshold': manualReviewThreshold,
+      'autoRejectThreshold': autoRejectThreshold,
+      'enableRewardHold': enableRewardHold,
+      'holdDurationHours': holdDurationHours,
+      'enableAutoReject': enableAutoReject,
+      'minimumActualPaymentForQualification':
+          minimumActualPaymentForQualification,
+      'maxRewardedPerDay': maxRewardedPerDay,
+      'maxPendingReferrals': maxPendingReferrals,
+      'maxSharesPerDay': maxSharesPerDay,
+      'maxSharesPerMonth': maxSharesPerMonth,
+      'referralVelocityScore': referralVelocityScore,
+      'velocityTimeWindowHours': velocityTimeWindowHours,
+      'velocityThreshold': velocityThreshold,
+      'newAccountScore': newAccountScore,
+      'newAccountHours': newAccountHours,
+      'autoReversalWindowDays': autoReversalWindowDays,
+      if (termsText != null) 'termsText': termsText,
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -165,6 +309,26 @@ abstract class ReferralSettings
       'enableReferralExpiry': enableReferralExpiry,
       'referralExpiryDays': referralExpiryDays,
       'shareMessageTemplate': shareMessageTemplate,
+      'enableFraudScoring': enableFraudScoring,
+      'autoApproveThreshold': autoApproveThreshold,
+      'manualReviewThreshold': manualReviewThreshold,
+      'autoRejectThreshold': autoRejectThreshold,
+      'enableRewardHold': enableRewardHold,
+      'holdDurationHours': holdDurationHours,
+      'enableAutoReject': enableAutoReject,
+      'minimumActualPaymentForQualification':
+          minimumActualPaymentForQualification,
+      'maxRewardedPerDay': maxRewardedPerDay,
+      'maxPendingReferrals': maxPendingReferrals,
+      'maxSharesPerDay': maxSharesPerDay,
+      'maxSharesPerMonth': maxSharesPerMonth,
+      'referralVelocityScore': referralVelocityScore,
+      'velocityTimeWindowHours': velocityTimeWindowHours,
+      'velocityThreshold': velocityThreshold,
+      'newAccountScore': newAccountScore,
+      'newAccountHours': newAccountHours,
+      'autoReversalWindowDays': autoReversalWindowDays,
+      if (termsText != null) 'termsText': termsText,
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -174,6 +338,8 @@ abstract class ReferralSettings
     return _i1.SerializationManager.encode(this);
   }
 }
+
+class _Undefined {}
 
 class _ReferralSettingsImpl extends ReferralSettings {
   _ReferralSettingsImpl({
@@ -190,6 +356,25 @@ class _ReferralSettingsImpl extends ReferralSettings {
     required bool enableReferralExpiry,
     required int referralExpiryDays,
     required String shareMessageTemplate,
+    required bool enableFraudScoring,
+    required int autoApproveThreshold,
+    required int manualReviewThreshold,
+    required int autoRejectThreshold,
+    required bool enableRewardHold,
+    required int holdDurationHours,
+    required bool enableAutoReject,
+    required double minimumActualPaymentForQualification,
+    required int maxRewardedPerDay,
+    required int maxPendingReferrals,
+    required int maxSharesPerDay,
+    required int maxSharesPerMonth,
+    required int referralVelocityScore,
+    required int velocityTimeWindowHours,
+    required int velocityThreshold,
+    required int newAccountScore,
+    required int newAccountHours,
+    required int autoReversalWindowDays,
+    String? termsText,
     required DateTime updatedAt,
   }) : super._(
          isEnabled: isEnabled,
@@ -205,6 +390,26 @@ class _ReferralSettingsImpl extends ReferralSettings {
          enableReferralExpiry: enableReferralExpiry,
          referralExpiryDays: referralExpiryDays,
          shareMessageTemplate: shareMessageTemplate,
+         enableFraudScoring: enableFraudScoring,
+         autoApproveThreshold: autoApproveThreshold,
+         manualReviewThreshold: manualReviewThreshold,
+         autoRejectThreshold: autoRejectThreshold,
+         enableRewardHold: enableRewardHold,
+         holdDurationHours: holdDurationHours,
+         enableAutoReject: enableAutoReject,
+         minimumActualPaymentForQualification:
+             minimumActualPaymentForQualification,
+         maxRewardedPerDay: maxRewardedPerDay,
+         maxPendingReferrals: maxPendingReferrals,
+         maxSharesPerDay: maxSharesPerDay,
+         maxSharesPerMonth: maxSharesPerMonth,
+         referralVelocityScore: referralVelocityScore,
+         velocityTimeWindowHours: velocityTimeWindowHours,
+         velocityThreshold: velocityThreshold,
+         newAccountScore: newAccountScore,
+         newAccountHours: newAccountHours,
+         autoReversalWindowDays: autoReversalWindowDays,
+         termsText: termsText,
          updatedAt: updatedAt,
        );
 
@@ -226,6 +431,25 @@ class _ReferralSettingsImpl extends ReferralSettings {
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    Object? termsText = _Undefined,
     DateTime? updatedAt,
   }) {
     return ReferralSettings(
@@ -246,6 +470,31 @@ class _ReferralSettingsImpl extends ReferralSettings {
       enableReferralExpiry: enableReferralExpiry ?? this.enableReferralExpiry,
       referralExpiryDays: referralExpiryDays ?? this.referralExpiryDays,
       shareMessageTemplate: shareMessageTemplate ?? this.shareMessageTemplate,
+      enableFraudScoring: enableFraudScoring ?? this.enableFraudScoring,
+      autoApproveThreshold: autoApproveThreshold ?? this.autoApproveThreshold,
+      manualReviewThreshold:
+          manualReviewThreshold ?? this.manualReviewThreshold,
+      autoRejectThreshold: autoRejectThreshold ?? this.autoRejectThreshold,
+      enableRewardHold: enableRewardHold ?? this.enableRewardHold,
+      holdDurationHours: holdDurationHours ?? this.holdDurationHours,
+      enableAutoReject: enableAutoReject ?? this.enableAutoReject,
+      minimumActualPaymentForQualification:
+          minimumActualPaymentForQualification ??
+          this.minimumActualPaymentForQualification,
+      maxRewardedPerDay: maxRewardedPerDay ?? this.maxRewardedPerDay,
+      maxPendingReferrals: maxPendingReferrals ?? this.maxPendingReferrals,
+      maxSharesPerDay: maxSharesPerDay ?? this.maxSharesPerDay,
+      maxSharesPerMonth: maxSharesPerMonth ?? this.maxSharesPerMonth,
+      referralVelocityScore:
+          referralVelocityScore ?? this.referralVelocityScore,
+      velocityTimeWindowHours:
+          velocityTimeWindowHours ?? this.velocityTimeWindowHours,
+      velocityThreshold: velocityThreshold ?? this.velocityThreshold,
+      newAccountScore: newAccountScore ?? this.newAccountScore,
+      newAccountHours: newAccountHours ?? this.newAccountHours,
+      autoReversalWindowDays:
+          autoReversalWindowDays ?? this.autoReversalWindowDays,
+      termsText: termsText is String? ? termsText : this.termsText,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }

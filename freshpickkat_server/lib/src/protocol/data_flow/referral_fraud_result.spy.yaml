@@ -1,0 +1,7 @@
+class: ReferralFraudResult
+fields:
+  totalScore: int
+  outcome: String
+  rules: List<ReferralFraudRuleResult>
+  hardReject: bool
+  hardRejectReason: String?

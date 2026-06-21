@@ -28,6 +28,7 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     this.referralCode,
+    this.termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : role = role ?? 'customer',
@@ -52,6 +53,7 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _AppUserRowImpl;
@@ -77,6 +79,11 @@ abstract class AppUserRow
       totalEarned: jsonSerialization['totalEarned'] as int?,
       totalRedeemed: jsonSerialization['totalRedeemed'] as int?,
       referralCode: jsonSerialization['referralCode'] as String?,
+      termsAcceptedAt: jsonSerialization['termsAcceptedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['termsAcceptedAt'],
+            ),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -117,6 +124,8 @@ abstract class AppUserRow
 
   String? referralCode;
 
+  DateTime? termsAcceptedAt;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -141,6 +150,7 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -161,6 +171,7 @@ abstract class AppUserRow
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
       if (referralCode != null) 'referralCode': referralCode,
+      if (termsAcceptedAt != null) 'termsAcceptedAt': termsAcceptedAt?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -218,6 +229,7 @@ class _AppUserRowImpl extends AppUserRow {
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -234,6 +246,7 @@ class _AppUserRowImpl extends AppUserRow {
          totalEarned: totalEarned,
          totalRedeemed: totalRedeemed,
          referralCode: referralCode,
+         termsAcceptedAt: termsAcceptedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -256,6 +269,7 @@ class _AppUserRowImpl extends AppUserRow {
     int? totalEarned,
     int? totalRedeemed,
     Object? referralCode = _Undefined,
+    Object? termsAcceptedAt = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -275,6 +289,9 @@ class _AppUserRowImpl extends AppUserRow {
       totalEarned: totalEarned ?? this.totalEarned,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
       referralCode: referralCode is String? ? referralCode : this.referralCode,
+      termsAcceptedAt: termsAcceptedAt is DateTime?
+          ? termsAcceptedAt
+          : this.termsAcceptedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -343,6 +360,12 @@ class AppUserRowUpdateTable extends _i1.UpdateTable<AppUserRowTable> {
   _i1.ColumnValue<String, String> referralCode(String? value) =>
       _i1.ColumnValue(
         table.referralCode,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> termsAcceptedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.termsAcceptedAt,
         value,
       );
 
@@ -415,6 +438,10 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
       'referralCode',
       this,
     );
+    termsAcceptedAt = _i1.ColumnDateTime(
+      'termsAcceptedAt',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -453,6 +480,8 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString referralCode;
 
+  late final _i1.ColumnDateTime termsAcceptedAt;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -472,6 +501,7 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
     totalEarned,
     totalRedeemed,
     referralCode,
+    termsAcceptedAt,
     createdAt,
     updatedAt,
   ];

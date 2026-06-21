@@ -8,6 +8,7 @@ import '../postgres/postgres_audit_log_service.dart';
 import '../postgres/postgres_payment_link_service.dart';
 import '../postgres/postgres_payment_service.dart';
 import '../postgres/postgres_refund_service.dart';
+import '../postgres/postgres_referral_service.dart';
 
 class PaymentReconciliationCronJob {
   PaymentReconciliationCronJob(this._pod);
@@ -19,6 +20,8 @@ class PaymentReconciliationCronJob {
   static const int _sessionExpiryLock = 4200305;
   static const int _orphanDetectionLock = 4200306;
   static const int _paymentLinkReconciliationLock = 4200307;
+  static const int _holdReleaseLock = 4200308;
+  static const int _autoReversalLock = 4200309;
 
   final Serverpod _pod;
   final PostgresPaymentService _payments = PostgresPaymentService();
@@ -26,6 +29,7 @@ class PaymentReconciliationCronJob {
   final PostgresAutoRefundService _autoRefund = PostgresAutoRefundService();
   final PostgresRefundService _refunds = PostgresRefundService();
   final PostgresAuditLogService _auditLog = PostgresAuditLogService();
+  final PostgresReferralService _referral = PostgresReferralService();
 
   Timer? _reconciliationTimer;
   Timer? _autoCancelTimer;
@@ -34,6 +38,8 @@ class PaymentReconciliationCronJob {
   Timer? _sessionExpiryTimer;
   Timer? _orphanDetectionTimer;
   Timer? _paymentLinkReconciliationTimer;
+  Timer? _holdReleaseTimer;
+  Timer? _autoReversalTimer;
   bool _reconciliationRunning = false;
   bool _autoCancelRunning = false;
   bool _paymentLinkExpiryRunning = false;
@@ -41,6 +47,8 @@ class PaymentReconciliationCronJob {
   bool _sessionExpiryRunning = false;
   bool _orphanDetectionRunning = false;
   bool _paymentLinkReconciliationRunning = false;
+  bool _holdReleaseRunning = false;
+  bool _autoReversalRunning = false;
   final Set<String> _reportedOrphanIds = {};
 
   void start() {
@@ -79,6 +87,14 @@ class PaymentReconciliationCronJob {
       const Duration(minutes: 5),
       (_) => unawaited(runPaymentLinkReconciliation()),
     );
+    _holdReleaseTimer ??= Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => unawaited(runHoldRelease()),
+    );
+    _autoReversalTimer ??= Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => unawaited(runAutoReversal()),
+    );
 
     unawaited(runPaymentReconciliation());
     unawaited(runAutoCancellation());
@@ -87,6 +103,8 @@ class PaymentReconciliationCronJob {
     unawaited(runSessionExpiry());
     unawaited(runOrphanDetection());
     unawaited(runPaymentLinkReconciliation());
+    unawaited(runHoldRelease());
+    unawaited(runAutoReversal());
   }
 
   void stop() {
@@ -97,6 +115,8 @@ class PaymentReconciliationCronJob {
     _sessionExpiryTimer?.cancel();
     _orphanDetectionTimer?.cancel();
     _paymentLinkReconciliationTimer?.cancel();
+    _holdReleaseTimer?.cancel();
+    _autoReversalTimer?.cancel();
     _reconciliationTimer = null;
     _autoCancelTimer = null;
     _paymentLinkExpiryTimer = null;
@@ -104,6 +124,8 @@ class PaymentReconciliationCronJob {
     _sessionExpiryTimer = null;
     _orphanDetectionTimer = null;
     _paymentLinkReconciliationTimer = null;
+    _holdReleaseTimer = null;
+    _autoReversalTimer = null;
   }
 
   Future<void> runPaymentReconciliation() async {
@@ -127,6 +149,44 @@ class PaymentReconciliationCronJob {
       });
     } finally {
       _paymentLinkReconciliationRunning = false;
+    }
+  }
+
+  /// Release held referral rewards whose [holdExpiresAt] has elapsed.
+  Future<void> runHoldRelease() async {
+    if (_holdReleaseRunning) return;
+    _holdReleaseRunning = true;
+    try {
+      await _runLocked(_holdReleaseLock, (session) async {
+        final released = await _referral.releaseHeldRewards(session);
+        if (released > 0) {
+          session.log(
+            'Released $released held referral reward(s)',
+            level: LogLevel.info,
+          );
+        }
+      });
+    } finally {
+      _holdReleaseRunning = false;
+    }
+  }
+
+  /// Auto-reverse referral rewards past the configured window.
+  Future<void> runAutoReversal() async {
+    if (_autoReversalRunning) return;
+    _autoReversalRunning = true;
+    try {
+      await _runLocked(_autoReversalLock, (session) async {
+        final reversed = await _referral.autoReverseExpiredRewards(session);
+        if (reversed > 0) {
+          session.log(
+            'Auto-reversed $reversed expired referral reward(s)',
+            level: LogLevel.info,
+          );
+        }
+      });
+    } finally {
+      _autoReversalRunning = false;
     }
   }
 

@@ -27,12 +27,25 @@ abstract class ReferralRow
     bool? inviteeCouponIssued,
     this.rewardIssuedAt,
     this.fraudNotes,
+    int? fraudScore,
+    this.fraudBreakdown,
+    this.holdExpiresAt,
+    this.scheduledReleaseAt,
+    int? attempts,
+    this.lastError,
+    int? dailyShareCount,
+    int? monthlyShareCount,
+    this.lastShareDate,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : status = status ?? 'LINK_SHARED',
        qualifyingOrderAmount = qualifyingOrderAmount ?? 0.0,
        rewardPointsIssued = rewardPointsIssued ?? 0,
        inviteeCouponIssued = inviteeCouponIssued ?? false,
+       fraudScore = fraudScore ?? 0,
+       attempts = attempts ?? 0,
+       dailyShareCount = dailyShareCount ?? 0,
+       monthlyShareCount = monthlyShareCount ?? 0,
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -49,6 +62,15 @@ abstract class ReferralRow
     bool? inviteeCouponIssued,
     DateTime? rewardIssuedAt,
     String? fraudNotes,
+    int? fraudScore,
+    String? fraudBreakdown,
+    DateTime? holdExpiresAt,
+    DateTime? scheduledReleaseAt,
+    int? attempts,
+    String? lastError,
+    int? dailyShareCount,
+    int? monthlyShareCount,
+    DateTime? lastShareDate,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ReferralRowImpl;
@@ -88,6 +110,27 @@ abstract class ReferralRow
               jsonSerialization['rewardIssuedAt'],
             ),
       fraudNotes: jsonSerialization['fraudNotes'] as String?,
+      fraudScore: jsonSerialization['fraudScore'] as int?,
+      fraudBreakdown: jsonSerialization['fraudBreakdown'] as String?,
+      holdExpiresAt: jsonSerialization['holdExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['holdExpiresAt'],
+            ),
+      scheduledReleaseAt: jsonSerialization['scheduledReleaseAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['scheduledReleaseAt'],
+            ),
+      attempts: jsonSerialization['attempts'] as int?,
+      lastError: jsonSerialization['lastError'] as String?,
+      dailyShareCount: jsonSerialization['dailyShareCount'] as int?,
+      monthlyShareCount: jsonSerialization['monthlyShareCount'] as int?,
+      lastShareDate: jsonSerialization['lastShareDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['lastShareDate'],
+            ),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -126,6 +169,24 @@ abstract class ReferralRow
 
   String? fraudNotes;
 
+  int fraudScore;
+
+  String? fraudBreakdown;
+
+  DateTime? holdExpiresAt;
+
+  DateTime? scheduledReleaseAt;
+
+  int attempts;
+
+  String? lastError;
+
+  int dailyShareCount;
+
+  int monthlyShareCount;
+
+  DateTime? lastShareDate;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -149,6 +210,15 @@ abstract class ReferralRow
     bool? inviteeCouponIssued,
     DateTime? rewardIssuedAt,
     String? fraudNotes,
+    int? fraudScore,
+    String? fraudBreakdown,
+    DateTime? holdExpiresAt,
+    DateTime? scheduledReleaseAt,
+    int? attempts,
+    String? lastError,
+    int? dailyShareCount,
+    int? monthlyShareCount,
+    DateTime? lastShareDate,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -169,6 +239,16 @@ abstract class ReferralRow
       'inviteeCouponIssued': inviteeCouponIssued,
       if (rewardIssuedAt != null) 'rewardIssuedAt': rewardIssuedAt?.toJson(),
       if (fraudNotes != null) 'fraudNotes': fraudNotes,
+      'fraudScore': fraudScore,
+      if (fraudBreakdown != null) 'fraudBreakdown': fraudBreakdown,
+      if (holdExpiresAt != null) 'holdExpiresAt': holdExpiresAt?.toJson(),
+      if (scheduledReleaseAt != null)
+        'scheduledReleaseAt': scheduledReleaseAt?.toJson(),
+      'attempts': attempts,
+      if (lastError != null) 'lastError': lastError,
+      'dailyShareCount': dailyShareCount,
+      'monthlyShareCount': monthlyShareCount,
+      if (lastShareDate != null) 'lastShareDate': lastShareDate?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -225,6 +305,15 @@ class _ReferralRowImpl extends ReferralRow {
     bool? inviteeCouponIssued,
     DateTime? rewardIssuedAt,
     String? fraudNotes,
+    int? fraudScore,
+    String? fraudBreakdown,
+    DateTime? holdExpiresAt,
+    DateTime? scheduledReleaseAt,
+    int? attempts,
+    String? lastError,
+    int? dailyShareCount,
+    int? monthlyShareCount,
+    DateTime? lastShareDate,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -240,6 +329,15 @@ class _ReferralRowImpl extends ReferralRow {
          inviteeCouponIssued: inviteeCouponIssued,
          rewardIssuedAt: rewardIssuedAt,
          fraudNotes: fraudNotes,
+         fraudScore: fraudScore,
+         fraudBreakdown: fraudBreakdown,
+         holdExpiresAt: holdExpiresAt,
+         scheduledReleaseAt: scheduledReleaseAt,
+         attempts: attempts,
+         lastError: lastError,
+         dailyShareCount: dailyShareCount,
+         monthlyShareCount: monthlyShareCount,
+         lastShareDate: lastShareDate,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -261,6 +359,15 @@ class _ReferralRowImpl extends ReferralRow {
     bool? inviteeCouponIssued,
     Object? rewardIssuedAt = _Undefined,
     Object? fraudNotes = _Undefined,
+    int? fraudScore,
+    Object? fraudBreakdown = _Undefined,
+    Object? holdExpiresAt = _Undefined,
+    Object? scheduledReleaseAt = _Undefined,
+    int? attempts,
+    Object? lastError = _Undefined,
+    int? dailyShareCount,
+    int? monthlyShareCount,
+    Object? lastShareDate = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -284,6 +391,23 @@ class _ReferralRowImpl extends ReferralRow {
           ? rewardIssuedAt
           : this.rewardIssuedAt,
       fraudNotes: fraudNotes is String? ? fraudNotes : this.fraudNotes,
+      fraudScore: fraudScore ?? this.fraudScore,
+      fraudBreakdown: fraudBreakdown is String?
+          ? fraudBreakdown
+          : this.fraudBreakdown,
+      holdExpiresAt: holdExpiresAt is DateTime?
+          ? holdExpiresAt
+          : this.holdExpiresAt,
+      scheduledReleaseAt: scheduledReleaseAt is DateTime?
+          ? scheduledReleaseAt
+          : this.scheduledReleaseAt,
+      attempts: attempts ?? this.attempts,
+      lastError: lastError is String? ? lastError : this.lastError,
+      dailyShareCount: dailyShareCount ?? this.dailyShareCount,
+      monthlyShareCount: monthlyShareCount ?? this.monthlyShareCount,
+      lastShareDate: lastShareDate is DateTime?
+          ? lastShareDate
+          : this.lastShareDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -358,6 +482,55 @@ class ReferralRowUpdateTable extends _i1.UpdateTable<ReferralRowTable> {
     value,
   );
 
+  _i1.ColumnValue<int, int> fraudScore(int value) => _i1.ColumnValue(
+    table.fraudScore,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> fraudBreakdown(String? value) =>
+      _i1.ColumnValue(
+        table.fraudBreakdown,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> holdExpiresAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.holdExpiresAt,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> scheduledReleaseAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.scheduledReleaseAt,
+        value,
+      );
+
+  _i1.ColumnValue<int, int> attempts(int value) => _i1.ColumnValue(
+    table.attempts,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> lastError(String? value) => _i1.ColumnValue(
+    table.lastError,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> dailyShareCount(int value) => _i1.ColumnValue(
+    table.dailyShareCount,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> monthlyShareCount(int value) => _i1.ColumnValue(
+    table.monthlyShareCount,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> lastShareDate(DateTime? value) =>
+      _i1.ColumnValue(
+        table.lastShareDate,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -422,6 +595,46 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
       'fraudNotes',
       this,
     );
+    fraudScore = _i1.ColumnInt(
+      'fraudScore',
+      this,
+      hasDefault: true,
+    );
+    fraudBreakdown = _i1.ColumnString(
+      'fraudBreakdown',
+      this,
+    );
+    holdExpiresAt = _i1.ColumnDateTime(
+      'holdExpiresAt',
+      this,
+    );
+    scheduledReleaseAt = _i1.ColumnDateTime(
+      'scheduledReleaseAt',
+      this,
+    );
+    attempts = _i1.ColumnInt(
+      'attempts',
+      this,
+      hasDefault: true,
+    );
+    lastError = _i1.ColumnString(
+      'lastError',
+      this,
+    );
+    dailyShareCount = _i1.ColumnInt(
+      'dailyShareCount',
+      this,
+      hasDefault: true,
+    );
+    monthlyShareCount = _i1.ColumnInt(
+      'monthlyShareCount',
+      this,
+      hasDefault: true,
+    );
+    lastShareDate = _i1.ColumnDateTime(
+      'lastShareDate',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -458,6 +671,24 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString fraudNotes;
 
+  late final _i1.ColumnInt fraudScore;
+
+  late final _i1.ColumnString fraudBreakdown;
+
+  late final _i1.ColumnDateTime holdExpiresAt;
+
+  late final _i1.ColumnDateTime scheduledReleaseAt;
+
+  late final _i1.ColumnInt attempts;
+
+  late final _i1.ColumnString lastError;
+
+  late final _i1.ColumnInt dailyShareCount;
+
+  late final _i1.ColumnInt monthlyShareCount;
+
+  late final _i1.ColumnDateTime lastShareDate;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -476,6 +707,15 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
     inviteeCouponIssued,
     rewardIssuedAt,
     fraudNotes,
+    fraudScore,
+    fraudBreakdown,
+    holdExpiresAt,
+    scheduledReleaseAt,
+    attempts,
+    lastError,
+    dailyShareCount,
+    monthlyShareCount,
+    lastShareDate,
     createdAt,
     updatedAt,
   ];

@@ -3876,6 +3876,20 @@ class EndpointReferral extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> hasAcceptedTerms(String userId) =>
+      caller.callServerEndpoint<bool>(
+        'referral',
+        'hasAcceptedTerms',
+        {'userId': userId},
+      );
+
+  _i2.Future<void> acceptTerms(String userId) =>
+      caller.callServerEndpoint<void>(
+        'referral',
+        'acceptTerms',
+        {'userId': userId},
+      );
+
   _i2.Future<_i74.ReferralSettings> updateSettings(
     _i74.ReferralSettings settings,
     String firebaseUid,
@@ -3942,6 +3956,48 @@ class EndpointReferral extends _i1.EndpointRef {
   ) => caller.callServerEndpoint<void>(
     'referral',
     'rejectReward',
+    {
+      'referralId': referralId,
+      'reason': reason,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> getFraudAnalytics(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'referral',
+    'getFraudAnalytics',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>?> getFraudBreakdown(
+    String referralId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<Map<String, dynamic>?>(
+    'referral',
+    'getFraudBreakdown',
+    {
+      'referralId': referralId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<void> reverseReward(
+    String referralId,
+    String reason,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<void>(
+    'referral',
+    'reverseReward',
     {
       'referralId': referralId,
       'reason': reason,

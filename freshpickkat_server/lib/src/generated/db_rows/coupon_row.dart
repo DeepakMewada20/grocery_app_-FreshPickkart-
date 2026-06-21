@@ -31,6 +31,8 @@ abstract class CouponRow
     required this.endsAt,
     String? status,
     this.deactivatedAt,
+    this.assignedUserId,
+    this.assignedPhone,
     this.productIds,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -58,6 +60,8 @@ abstract class CouponRow
     required DateTime endsAt,
     String? status,
     DateTime? deactivatedAt,
+    _i1.UuidValue? assignedUserId,
+    String? assignedPhone,
     String? productIds,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -90,6 +94,12 @@ abstract class CouponRow
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deactivatedAt'],
             ),
+      assignedUserId: jsonSerialization['assignedUserId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['assignedUserId'],
+            ),
+      assignedPhone: jsonSerialization['assignedPhone'] as String?,
       productIds: jsonSerialization['productIds'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -137,6 +147,10 @@ abstract class CouponRow
 
   DateTime? deactivatedAt;
 
+  _i1.UuidValue? assignedUserId;
+
+  String? assignedPhone;
+
   String? productIds;
 
   DateTime createdAt;
@@ -166,6 +180,8 @@ abstract class CouponRow
     DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
+    _i1.UuidValue? assignedUserId,
+    String? assignedPhone,
     String? productIds,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -191,6 +207,8 @@ abstract class CouponRow
       'endsAt': endsAt.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
+      if (assignedUserId != null) 'assignedUserId': assignedUserId?.toJson(),
+      if (assignedPhone != null) 'assignedPhone': assignedPhone,
       if (productIds != null) 'productIds': productIds,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -252,6 +270,8 @@ class _CouponRowImpl extends CouponRow {
     required DateTime endsAt,
     String? status,
     DateTime? deactivatedAt,
+    _i1.UuidValue? assignedUserId,
+    String? assignedPhone,
     String? productIds,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -272,6 +292,8 @@ class _CouponRowImpl extends CouponRow {
          endsAt: endsAt,
          status: status,
          deactivatedAt: deactivatedAt,
+         assignedUserId: assignedUserId,
+         assignedPhone: assignedPhone,
          productIds: productIds,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -298,6 +320,8 @@ class _CouponRowImpl extends CouponRow {
     DateTime? endsAt,
     String? status,
     Object? deactivatedAt = _Undefined,
+    Object? assignedUserId = _Undefined,
+    Object? assignedPhone = _Undefined,
     Object? productIds = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -329,6 +353,12 @@ class _CouponRowImpl extends CouponRow {
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
           : this.deactivatedAt,
+      assignedUserId: assignedUserId is _i1.UuidValue?
+          ? assignedUserId
+          : this.assignedUserId,
+      assignedPhone: assignedPhone is String?
+          ? assignedPhone
+          : this.assignedPhone,
       productIds: productIds is String? ? productIds : this.productIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -421,6 +451,19 @@ class CouponRowUpdateTable extends _i1.UpdateTable<CouponRowTable> {
         value,
       );
 
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> assignedUserId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.assignedUserId,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> assignedPhone(String? value) =>
+      _i1.ColumnValue(
+        table.assignedPhone,
+        value,
+      );
+
   _i1.ColumnValue<String, String> productIds(String? value) => _i1.ColumnValue(
     table.productIds,
     value,
@@ -506,6 +549,14 @@ class CouponRowTable extends _i1.Table<_i1.UuidValue?> {
       'deactivatedAt',
       this,
     );
+    assignedUserId = _i1.ColumnUuid(
+      'assignedUserId',
+      this,
+    );
+    assignedPhone = _i1.ColumnString(
+      'assignedPhone',
+      this,
+    );
     productIds = _i1.ColumnString(
       'productIds',
       this,
@@ -554,6 +605,10 @@ class CouponRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime deactivatedAt;
 
+  late final _i1.ColumnUuid assignedUserId;
+
+  late final _i1.ColumnString assignedPhone;
+
   late final _i1.ColumnString productIds;
 
   late final _i1.ColumnDateTime createdAt;
@@ -578,6 +633,8 @@ class CouponRowTable extends _i1.Table<_i1.UuidValue?> {
     endsAt,
     status,
     deactivatedAt,
+    assignedUserId,
+    assignedPhone,
     productIds,
     createdAt,
     updatedAt,

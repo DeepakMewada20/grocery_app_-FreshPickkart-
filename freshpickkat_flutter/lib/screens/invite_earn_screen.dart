@@ -18,7 +18,10 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   final _auth = AuthController.instance;
 
   bool _isLoading = true;
+  bool _termsAccepted = false;
+  bool _termsLoading = true;
   ReferralCodeInfo? _info;
+  ReferralSettings? _settings;
   List<ReferralActivity> _activities = [];
 
   @override
@@ -35,15 +38,35 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
       final results = await Future.wait([
         _client.referral.getMyReferralCodeInfo(uid),
         _client.referral.getMyReferralActivity(uid),
+        _client.referral.getSettings(),
+        _client.referral.hasAcceptedTerms(uid),
       ]);
       setState(() {
         _info = results[0] as ReferralCodeInfo;
         _activities = results[1] as List<ReferralActivity>;
+        _settings = results[2] as ReferralSettings;
+        _termsAccepted = results[3] as bool;
+        _termsLoading = false;
       });
     } catch (_) {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _toggleTerms() async {
+    if (_termsAccepted) return;
+    try {
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return;
+      await _client.referral.acceptTerms(uid);
+      setState(() => _termsAccepted = true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Terms accepted!'), duration: Duration(seconds: 2)),
+        );
+      }
+    } catch (_) {}
   }
 
   void _copyCode() {
@@ -90,6 +113,9 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   _buildStatsCard(cs),
                   const SizedBox(height: 16),
                   _buildShareButtons(cs),
+                  const SizedBox(height: 16),
+                  if (_settings?.termsText != null && _settings!.termsText!.isNotEmpty && !_termsLoading)
+                    _buildTermsSection(cs),
                   const SizedBox(height: 24),
                   _buildActivitySection(cs),
                 ],
@@ -194,6 +220,47 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         icon: Icon(icon, size: 18),
         label: Text(label),
         style: OutlinedButton.styleFrom(foregroundColor: color),
+      ),
+    );
+  }
+
+  Widget _buildTermsSection(ColorScheme cs) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Terms & Conditions', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(_settings?.termsText ?? '', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  _termsAccepted ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: _termsAccepted ? Colors.green : cs.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('I accept the referral terms and conditions',
+                    style: TextStyle(color: _termsAccepted ? Colors.green : cs.onSurface)),
+                ),
+              ],
+            ),
+            if (!_termsAccepted) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _toggleTerms,
+                  child: const Text('Accept Terms'),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

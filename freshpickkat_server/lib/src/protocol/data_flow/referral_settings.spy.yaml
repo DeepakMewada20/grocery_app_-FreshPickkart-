@@ -13,4 +13,23 @@ fields:
   enableReferralExpiry: bool
   referralExpiryDays: int
   shareMessageTemplate: String
+  enableFraudScoring: bool
+  autoApproveThreshold: int
+  manualReviewThreshold: int
+  autoRejectThreshold: int
+  enableRewardHold: bool
+  holdDurationHours: int
+  enableAutoReject: bool
+  minimumActualPaymentForQualification: double
+  maxRewardedPerDay: int
+  maxPendingReferrals: int
+  maxSharesPerDay: int
+  maxSharesPerMonth: int
+  referralVelocityScore: int
+  velocityTimeWindowHours: int
+  velocityThreshold: int
+  newAccountScore: int
+  newAccountHours: int
+  autoReversalWindowDays: int
+  termsText: String?
   updatedAt: DateTime

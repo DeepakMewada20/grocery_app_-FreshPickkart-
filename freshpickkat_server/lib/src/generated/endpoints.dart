@@ -8267,6 +8267,44 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['referralCode'],
                   ),
         ),
+        'hasAcceptedTerms': _i1.MethodConnector(
+          name: 'hasAcceptedTerms',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .hasAcceptedTerms(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'acceptTerms': _i1.MethodConnector(
+          name: 'acceptTerms',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['referral'] as _i31.ReferralEndpoint).acceptTerms(
+                    session,
+                    params['userId'],
+                  ),
+        ),
         'updateSettings': _i1.MethodConnector(
           name: 'updateSettings',
           params: {
@@ -8427,6 +8465,99 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['referral'] as _i31.ReferralEndpoint).rejectReward(
+                    session,
+                    params['referralId'],
+                    params['reason'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'getFraudAnalytics': _i1.MethodConnector(
+          name: 'getFraudAnalytics',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .getFraudAnalytics(
+                    session,
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'getFraudBreakdown': _i1.MethodConnector(
+          name: 'getFraudBreakdown',
+          params: {
+            'referralId': _i1.ParameterDescription(
+              name: 'referralId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .getFraudBreakdown(
+                    session,
+                    params['referralId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'reverseReward': _i1.MethodConnector(
+          name: 'reverseReward',
+          params: {
+            'referralId': _i1.ParameterDescription(
+              name: 'referralId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'reason': _i1.ParameterDescription(
+              name: 'reason',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .reverseReward(
                     session,
                     params['referralId'],
                     params['reason'],

@@ -195,6 +195,7 @@ void main() {
     test('checkOrderForReward processes reward for delivered order', () async {
       final session = sessionBuilder.build();
       try {
+        await _seedSettingsRow(sessionBuilder, enableFraudScoring: false);
         final settings = await referralService.getOrCreateSettingsRow(session);
         final referrer = await _seedUser(sessionBuilder, '9999999017', referralCode: 'FPKREW',
             currentFreshPoints: 100, totalEarned: 100);
@@ -361,7 +362,7 @@ void main() {
     test('checkOrderForReward enforces monthly cap', () async {
       final session = sessionBuilder.build();
       try {
-        await _seedSettingsRow(sessionBuilder, maxRewardedPerMonth: 1);
+        await _seedSettingsRow(sessionBuilder, maxRewardedPerMonth: 1, enableFraudScoring: false);
         final referrer = await _seedUser(sessionBuilder, '9999999025', referralCode: 'FPKMON');
         final invitee1 = await _seedUser(sessionBuilder, '9999999026');
         final invitee2 = await _seedUser(sessionBuilder, '9999999027');
@@ -502,6 +503,24 @@ void main() {
             enableReferralExpiry: true,
             referralExpiryDays: 30,
             shareMessageTemplate: 'Custom share {CODE}',
+            enableFraudScoring: true,
+            autoApproveThreshold: 40,
+            manualReviewThreshold: 69,
+            autoRejectThreshold: 90,
+            enableRewardHold: true,
+            holdDurationHours: 72,
+            enableAutoReject: true,
+            minimumActualPaymentForQualification: 0,
+            maxRewardedPerDay: 3,
+            maxPendingReferrals: 50,
+            maxSharesPerDay: 100,
+            maxSharesPerMonth: 1000,
+            referralVelocityScore: 30,
+            velocityTimeWindowHours: 24,
+            velocityThreshold: 3,
+            newAccountScore: 20,
+            newAccountHours: 48,
+            autoReversalWindowDays: 30,
             updatedAt: DateTime.now().toUtc(),
           ),
           adminFirebaseUid: 'admin_fb_uid',
@@ -540,6 +559,24 @@ void main() {
             enableReferralExpiry: false,
             referralExpiryDays: 90,
             shareMessageTemplate: 'Join! {CODE}',
+            enableFraudScoring: true,
+            autoApproveThreshold: 40,
+            manualReviewThreshold: 69,
+            autoRejectThreshold: 90,
+            enableRewardHold: true,
+            holdDurationHours: 72,
+            enableAutoReject: true,
+            minimumActualPaymentForQualification: 0,
+            maxRewardedPerDay: 3,
+            maxPendingReferrals: 50,
+            maxSharesPerDay: 100,
+            maxSharesPerMonth: 1000,
+            referralVelocityScore: 30,
+            velocityTimeWindowHours: 24,
+            velocityThreshold: 3,
+            newAccountScore: 20,
+            newAccountHours: 48,
+            autoReversalWindowDays: 30,
             updatedAt: DateTime.now().toUtc(),
           ),
           adminFirebaseUid: 'non_existent_admin',
@@ -723,6 +760,7 @@ Future<protocol.ReferralSettingsRow> _seedSettingsRow(
   double minimumQualifyingAmount = 0.0,
   int maxRewardedPerMonth = 20,
   String rewardTriggerStatus = 'DELIVERED',
+  bool enableFraudScoring = false,
 }) async {
   final session = sessionBuilder.build();
   try {
@@ -732,6 +770,7 @@ Future<protocol.ReferralSettingsRow> _seedSettingsRow(
         minimumQualifyingAmount: minimumQualifyingAmount,
         maxRewardedPerMonth: maxRewardedPerMonth,
         rewardTriggerStatus: rewardTriggerStatus,
+        enableFraudScoring: enableFraudScoring,
       ),
     );
   } finally {

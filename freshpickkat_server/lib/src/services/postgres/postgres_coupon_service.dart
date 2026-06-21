@@ -387,6 +387,8 @@ class PostgresCouponService {
             usedCount: row.usedCount,
             isActive: row.status == 'active',
             couponCategory: row.couponCategory,
+            assignedUserId: row.assignedUserId?.toString(),
+            assignedPhone: row.assignedPhone,
           ),
         )
         .toList();
@@ -455,6 +457,25 @@ class PostgresCouponService {
     required double cartSubtotal,
     required List<CartItemInput> cartItems,
   }) async {
+    // Coupon ownership check
+    if (coupon.assignedUserId != null && coupon.assignedUserId!.isNotEmpty) {
+      if (userId.isEmpty || coupon.assignedUserId != userId) {
+        return _CouponEvaluation.notApplicable(coupon, 'Coupon not assigned to you');
+      }
+    }
+    if (coupon.assignedPhone != null && coupon.assignedPhone!.isNotEmpty) {
+      final parsedId = tryParseUuid(userId);
+      final user = parsedId != null
+          ? await AppUserRow.db.findById(session, parsedId)
+          : await AppUserRow.db.findFirstRow(
+              session,
+              where: (t) => t.firebaseUid.equals(userId),
+            );
+      if (user == null || user.phoneNumber != coupon.assignedPhone) {
+        return _CouponEvaluation.notApplicable(coupon, 'Coupon not assigned to your phone');
+      }
+    }
+
     final products = await _fetchProducts(session, cartItems);
     final completedOrdersCount = await _getCompletedOrdersCount(
       session,

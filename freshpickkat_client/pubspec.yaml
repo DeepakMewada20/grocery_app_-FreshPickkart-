@@ -5,6 +5,6 @@ environment:
   sdk: '^3.8.0'
 
 dependencies:
-  serverpod_auth_idp_client: 3.4.5
-  serverpod_client: 3.4.5
+  serverpod_auth_idp_client: 3.4.10
+  serverpod_client: 3.4.10
 

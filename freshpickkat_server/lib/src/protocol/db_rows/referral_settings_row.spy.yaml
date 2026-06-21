@@ -17,4 +17,23 @@ fields:
   referralExpiryDays: int, default=90
   shareMessageTemplate: String, default='Join FreshPickKat using my referral code {CODE}. Get ₹50 OFF on your first order!'
   lastUpdatedBy: UuidValue?
+  enableFraudScoring: bool, default=true
+  autoApproveThreshold: int, default=40
+  manualReviewThreshold: int, default=69
+  autoRejectThreshold: int, default=90
+  enableRewardHold: bool, default=true
+  holdDurationHours: int, default=72
+  enableAutoReject: bool, default=true
+  minimumActualPaymentForQualification: double, default=0
+  maxRewardedPerDay: int, default=3
+  maxPendingReferrals: int, default=50
+  maxSharesPerDay: int, default=100
+  maxSharesPerMonth: int, default=1000
+  referralVelocityScore: int, default=30
+  velocityTimeWindowHours: int, default=24
+  velocityThreshold: int, default=3
+  newAccountScore: int, default=20
+  newAccountHours: int, default=48
+  autoReversalWindowDays: int, default=30
+  termsText: String?
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

@@ -1,0 +1,7 @@
+class: ReferralFraudRuleResult
+fields:
+  ruleName: String
+  weight: int
+  score: int
+  passed: bool
+  description: String

@@ -56,6 +56,24 @@ class ReferralEndpoint extends Endpoint {
     await _referral.applyReferral(session, parsedId, inviteePhone, referralCode);
   }
 
+  Future<bool> hasAcceptedTerms(
+    Session session,
+    String userId,
+  ) async {
+    final parsedId = tryParseUuid(userId);
+    if (parsedId == null) throw Exception('Invalid user ID');
+    return _referral.hasAcceptedTerms(session, parsedId);
+  }
+
+  Future<void> acceptTerms(
+    Session session,
+    String userId,
+  ) async {
+    final parsedId = tryParseUuid(userId);
+    if (parsedId == null) throw Exception('Invalid user ID');
+    await _referral.acceptTerms(session, parsedId);
+  }
+
   // ── Admin ──────────────────────────────────────────────────────────────────
 
   Future<protocol.ReferralSettings> updateSettings(
@@ -133,5 +151,52 @@ class ReferralEndpoint extends Endpoint {
       idToken: idToken,
     );
     await _referral.rejectReward(session, referralId, reason, firebaseUid);
+  }
+
+  Future<Map<String, dynamic>> getFraudAnalytics(
+    Session session,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _referral.getFraudAnalytics(session);
+  }
+
+  Future<Map<String, dynamic>?> getFraudBreakdown(
+    Session session,
+    String referralId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _referral.getFraudBreakdown(session, referralId);
+  }
+
+  Future<void> reverseReward(
+    Session session,
+    String referralId,
+    String reason,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    await _referral.reverseReward(
+      session,
+      referralId,
+      reason: reason,
+      actorFirebaseUid: firebaseUid,
+    );
   }
 }

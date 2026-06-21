@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
+import '../fraud/postgres_fraud_score_service.dart';
 import '../notifications/notification_service.dart';
 import 'postgres_audit_log_service.dart';
 import 'postgres_support.dart';
@@ -108,6 +110,21 @@ class PostgresReferralService {
     );
     if (existing != null) throw Exception('Already referred');
 
+    final settings = await getOrCreateSettings(session);
+    if (settings.maxPendingReferrals > 0) {
+      final pending = await ReferralRow.db.find(
+        session,
+        where: (t) =>
+            t.referrerUserId.equals(referrer.id) &
+            (t.status.equals('SIGNED_UP') |
+                t.status.equals('PENDING_REVIEW') |
+                t.status.equals('REWARD_HELD')),
+      );
+      if (pending.length >= settings.maxPendingReferrals) {
+        throw Exception('Referrer has too many pending referrals');
+      }
+    }
+
     final now = DateTime.now().toUtc();
     await ReferralRow.db.insertRow(
       session,
@@ -202,10 +219,15 @@ class PostgresReferralService {
         inviteePhone: masked,
         description: switch (ref.status) {
           'SIGNED_UP' => 'Friend signed up using your referral code',
+          'PENDING_REVIEW' =>
+            'Referral reward is pending review',
+          'REWARD_HELD' =>
+            'Reward is on hold until ${ref.holdExpiresAt?.toLocal().toString().substring(0, 16)}',
           'REWARDED' =>
             'You earned ${ref.rewardPointsIssued} FreshPoints for this referral',
-          'REJECTED' => 'Referral reward was not approved',
+          'REJECTED' => ref.fraudNotes ?? 'Referral reward was not approved',
           'EXPIRED' => 'Referral has expired',
+          'REVERSED' => 'Referral reward has been reversed',
           _ => 'Referral status: ${ref.status}',
         },
         pointsEarned:
@@ -238,6 +260,8 @@ class PostgresReferralService {
     final settings = await getOrCreateSettings(session);
     if (!settings.isEnabled) return;
     if ((order.finalAmount ?? 0) < settings.minimumQualifyingAmount) return;
+    if (settings.minimumActualPaymentForQualification > 0 &&
+        (order.finalAmount ?? 0) < settings.minimumActualPaymentForQualification) return;
     if (!_isStatusAtOrAfter(
         order.orderStatus, settings.rewardTriggerStatus)) return;
 
@@ -263,6 +287,20 @@ class PostgresReferralService {
       if (monthly.length >= settings.maxRewardedPerMonth) return;
     }
 
+    if (settings.maxRewardedPerDay > 0) {
+      final now = DateTime.now().toUtc();
+      final dayStart = DateTime(now.year, now.month, now.day).toUtc();
+      final daily = await ReferralRow.db.find(
+        session,
+        where: (t) =>
+            t.referrerUserId.equals(referral.referrerUserId) &
+            t.status.equals('REWARDED') &
+            t.rewardIssuedAt.notEquals(null) &
+            (t.rewardIssuedAt >= dayStart),
+      );
+      if (daily.length >= settings.maxRewardedPerDay) return;
+    }
+
     if (referral.referrerUserId == referral.inviteeUserId) {
       await ReferralRow.db.updateRow(
         session,
@@ -275,8 +313,63 @@ class PostgresReferralService {
       return;
     }
 
-    final settingsRow = await ReferralSettingsRow.db.findFirstRow(session);
-    await _processReward(session, referral, order, settingsRow);
+    // ── Fraud evaluation ──
+    final fraudService = PostgresFraudScoreService.instance;
+    final outcome = await fraudService.evaluateReferral(session, referral);
+    final now = DateTime.now().toUtc();
+    final fraudBreakdownJson = jsonEncode(
+      outcome.ruleResults.map((r) => r.toJson()).toList(),
+    );
+
+    switch (outcome.result.outcome) {
+      case 'AUTO_APPROVE':
+        final settingsRow = await ReferralSettingsRow.db.findFirstRow(session);
+        // Update referral with score/breakdown before processing reward
+        await ReferralRow.db.updateRow(
+          session,
+          referral.copyWith(
+            fraudScore: outcome.result.totalScore,
+            fraudBreakdown: fraudBreakdownJson,
+            updatedAt: now,
+          ),
+        );
+        final refreshed = await ReferralRow.db.findById(
+          session, referral.id!) ?? referral;
+        await _processReward(session, refreshed, order, settingsRow);
+      case 'MANUAL_REVIEW':
+        await ReferralRow.db.updateRow(
+          session,
+          referral.copyWith(
+            status: 'PENDING_REVIEW',
+            fraudScore: outcome.result.totalScore,
+            fraudBreakdown: fraudBreakdownJson,
+            updatedAt: now,
+          ),
+        );
+      case 'AUTO_HOLD':
+        await ReferralRow.db.updateRow(
+          session,
+          referral.copyWith(
+            status: 'REWARD_HELD',
+            fraudScore: outcome.result.totalScore,
+            fraudBreakdown: fraudBreakdownJson,
+            holdExpiresAt: outcome.holdExpiresAt,
+            updatedAt: now,
+          ),
+        );
+      case 'AUTO_REJECT':
+        await ReferralRow.db.updateRow(
+          session,
+          referral.copyWith(
+            status: 'REJECTED',
+            fraudScore: outcome.result.totalScore,
+            fraudBreakdown: fraudBreakdownJson,
+            fraudNotes: outcome.result.hardRejectReason ??
+                'Auto-rejected by fraud scoring (score: ${outcome.result.totalScore})',
+            updatedAt: now,
+          ),
+        );
+    }
   }
 
   bool _isStatusAtOrAfter(String current, String trigger) {
@@ -331,6 +424,8 @@ class PostgresReferralService {
               startsAt: now,
               endsAt: now.add(const Duration(days: 30)),
               status: 'active',
+              assignedUserId: referral.inviteeUserId,
+              assignedPhone: referral.inviteePhone,
               createdAt: now,
               updatedAt: now,
             ),
@@ -528,9 +623,12 @@ class PostgresReferralService {
     final rewarded = all.where((r) => r.status == 'REWARDED').length;
     final rejected = all.where((r) => r.status == 'REJECTED').length;
     final expired = all.where((r) => r.status == 'EXPIRED').length;
-    final pending =
-        all.where((r) => r.status != 'REWARDED' && r.status != 'REJECTED' && r.status != 'EXPIRED').length;
-    final qualified = all.where((r) => r.status == 'REWARDED' || r.status == 'QUALIFIED').length;
+    final pending = all.where((r) =>
+        r.status != 'REWARDED' &&
+        r.status != 'REJECTED' &&
+        r.status != 'EXPIRED').length;
+    final qualified =
+        all.where((r) => r.status == 'REWARDED' || r.status == 'QUALIFIED').length;
     final totalPoints = all.fold<int>(0, (s, r) => s + r.rewardPointsIssued);
     final totalCoupons = all.where((r) => r.inviteeCouponIssued).length;
 
@@ -651,7 +749,9 @@ class PostgresReferralService {
     final referral = await ReferralRow.db.findById(session, id);
     if (referral == null) throw Exception('Referral not found');
 
-    if (referral.status != 'QUALIFIED' && referral.status != 'REJECTED') {
+    if (referral.status != 'QUALIFIED' &&
+        referral.status != 'REJECTED' &&
+        referral.status != 'PENDING_REVIEW') {
       throw Exception('Referral is not in a reviewable state');
     }
 
@@ -697,6 +797,266 @@ class PostgresReferralService {
     );
   }
 
+  /// Release all held rewards where [holdExpiresAt] has passed.
+  /// Returns the number of referrals released.
+  Future<int> releaseHeldRewards(Session session) async {
+    final now = DateTime.now().toUtc();
+    final held = await ReferralRow.db.find(
+      session,
+      where: (t) =>
+          t.status.equals('REWARD_HELD') &
+          t.holdExpiresAt.notEquals(null) &
+          (t.holdExpiresAt <= now),
+    );
+
+    var released = 0;
+    for (final referral in held) {
+      try {
+        final order = referral.qualifyingOrderId != null
+            ? await CustomerOrderRow.db.findById(
+                session, referral.qualifyingOrderId!)
+            : null;
+        if (order == null) {
+          session.log(
+            'Hold release: qualifying order not found for referral ${referral.id}',
+            level: LogLevel.error,
+          );
+          continue;
+        }
+
+        await _processReward(session, referral, order, null);
+        released++;
+        session.log(
+          'Released held reward for referral ${referral.id}',
+          level: LogLevel.info,
+        );
+      } catch (e) {
+        session.log(
+          'Hold release failed for referral ${referral.id}: $e',
+          level: LogLevel.error,
+        );
+      }
+    }
+    return released;
+  }
+
+  // ── Reward Reversal ────────────────────────────────────────────────────────
+
+  /// Reverse a reward (admin triggered or auto-reversal).
+  /// Deducts FreshPoints from referrer, logs transaction, marks REVERSED.
+  Future<void> reverseReward(
+    Session session,
+    String referralId, {
+    required String reason,
+    String? actorFirebaseUid,
+  }) async {
+    final id = UuidValue.fromString(referralId);
+    final referral = await ReferralRow.db.findById(session, id);
+    if (referral == null) throw Exception('Referral not found');
+    if (referral.status != 'REWARDED') {
+      throw Exception('Only rewarded referrals can be reversed');
+    }
+
+    final now = DateTime.now().toUtc();
+    final pointsToDeduct = referral.rewardPointsIssued;
+
+    await session.db.transaction((transaction) async {
+      if (pointsToDeduct > 0) {
+        final referrer = await AppUserRow.db.findById(
+          session,
+          referral.referrerUserId,
+          transaction: transaction,
+        );
+        if (referrer != null) {
+          final newBalance = (referrer.currentFreshPoints - pointsToDeduct)
+              .clamp(0, referrer.currentFreshPoints);
+          await AppUserRow.db.updateRow(
+            session,
+            referrer.copyWith(
+              currentFreshPoints: newBalance,
+              totalEarned: (referrer.totalEarned - pointsToDeduct)
+                  .clamp(0, referrer.totalEarned),
+            ),
+            transaction: transaction,
+          );
+
+          await FreshPointsTransactionRow.db.insertRow(
+            session,
+            FreshPointsTransactionRow(
+              userId: referral.referrerUserId,
+              transactionType: 'REWARD_REVERSAL',
+              points: -pointsToDeduct,
+              balanceBefore: referrer.currentFreshPoints,
+              balanceAfter: newBalance,
+              referenceType: 'referral',
+              referenceId: referral.id,
+              description: 'Reward reversal: $reason',
+              createdBy: actorFirebaseUid ?? 'referral_system',
+              createdAt: now,
+            ),
+            transaction: transaction,
+          );
+        }
+      }
+
+      await ReferralRow.db.updateRow(
+        session,
+        referral.copyWith(
+          status: 'REVERSED',
+          rewardPointsIssued: 0,
+          fraudNotes: reason,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+
+      await _auditLog.write(
+        session,
+        actorFirebaseUid: actorFirebaseUid ?? 'referral_system',
+        action: 'REFERRAL_REWARD_REVERSED',
+        entityType: 'referral',
+        entityId: referral.id.toString(),
+        metadata: {
+          'referrerUserId': referral.referrerUserId.toString(),
+          'inviteeUserId': referral.inviteeUserId?.toString() ?? '',
+          'pointsDeducted': pointsToDeduct.toString(),
+          'reason': reason,
+        },
+      );
+    });
+  }
+
+  /// Auto-reverse rewards past the configured window (default 30 days).
+  /// Returns the number of reversals performed.
+  Future<int> autoReverseExpiredRewards(Session session) async {
+    final settings = await ReferralSettingsRow.db.findFirstRow(session);
+    final windowDays = settings?.autoReversalWindowDays ?? 30;
+    if (windowDays <= 0) return 0;
+
+    final now = DateTime.now().toUtc();
+    final cutoff = now.subtract(Duration(days: windowDays));
+    final expired = await ReferralRow.db.find(
+      session,
+      where: (t) =>
+          t.status.equals('REWARDED') &
+          t.rewardIssuedAt.notEquals(null) &
+          (t.rewardIssuedAt <= cutoff),
+    );
+
+    var reversed = 0;
+    for (final referral in expired) {
+      try {
+        await reverseReward(
+          session,
+          referral.id.toString(),
+          reason: 'Auto-reversal beyond $windowDays day window',
+          actorFirebaseUid: 'referral_system',
+        );
+        reversed++;
+        session.log(
+          'Auto-reversed reward for referral ${referral.id}',
+          level: LogLevel.info,
+        );
+      } catch (e) {
+        session.log(
+          'Auto-reversal failed for referral ${referral.id}: $e',
+          level: LogLevel.error,
+        );
+      }
+    }
+    return reversed;
+  }
+
+  // ── Fraud Dashboard ────────────────────────────────────────────────────────
+
+  /// Get fraud analytics for the admin dashboard.
+  Future<Map<String, dynamic>> getFraudAnalytics(Session session) async {
+    final all = await ReferralRow.db.find(session);
+
+    final total = all.length;
+    final withFraudScore = all.where((r) => r.fraudScore > 0).length;
+    final avgScore = total > 0
+        ? all.fold<int>(0, (s, r) => s + r.fraudScore) / total
+        : 0.0;
+    final hardRejected = all.where((r) =>
+        r.status == 'REJECTED' &&
+        (r.fraudNotes?.contains('same_user_id') == true ||
+            r.fraudNotes?.contains('same_phone') == true ||
+            r.fraudNotes?.contains('Self-referral') == true)).length;
+    final autoRejected = all.where((r) =>
+        r.status == 'REJECTED' &&
+        r.fraudScore >= 90).length;
+    final pendingReview = all.where((r) =>
+        r.status == 'PENDING_REVIEW').length;
+    final rewardHeld = all.where((r) =>
+        r.status == 'REWARD_HELD').length;
+    final reversed = all.where((r) =>
+        r.status == 'REVERSED').length;
+
+    return {
+      'totalReferrals': total,
+      'referralsWithFraudScore': withFraudScore,
+      'averageFraudScore': avgScore,
+      'hardRejectedReferrals': hardRejected,
+      'autoRejectedReferrals': autoRejected,
+      'pendingReviewReferrals': pendingReview,
+      'rewardHeldReferrals': rewardHeld,
+      'reversedReferrals': reversed,
+    };
+  }
+
+  /// Get fraud breakdown for a single referral.
+  Future<Map<String, dynamic>?> getFraudBreakdown(
+    Session session,
+    String referralId,
+  ) async {
+    final id = UuidValue.fromString(referralId);
+    final referral = await ReferralRow.db.findById(session, id);
+    if (referral == null) return null;
+
+    final breakdown = referral.fraudBreakdown != null
+        ? (jsonDecode(referral.fraudBreakdown!) as List<dynamic>)
+            .cast<Map<String, dynamic>>()
+        : <Map<String, dynamic>>[];
+
+    return {
+      'id': referral.id.toString(),
+      'referrerUserId': referral.referrerUserId.toString(),
+      'inviteeUserId': referral.inviteeUserId?.toString(),
+      'status': referral.status,
+      'fraudScore': referral.fraudScore,
+      'fraudBreakdown': breakdown,
+      'fraudNotes': referral.fraudNotes,
+      'createdAt': referral.createdAt.toIso8601String(),
+      'updatedAt': referral.updatedAt.toIso8601String(),
+    };
+  }
+
+  // ── Terms & Conditions ─────────────────────────────────────────────────────
+
+  Future<void> acceptTerms(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final user = await AppUserRow.db.findById(session, userId);
+    if (user == null) throw Exception('User not found');
+
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        termsAcceptedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  Future<bool> hasAcceptedTerms(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final user = await AppUserRow.db.findById(session, userId);
+    return user?.termsAcceptedAt != null;
+  }
+
   // ── Mappers ───────────────────────────────────────────────────────────────
 
   ReferralSettings _mapSettings(ReferralSettingsRow row) {
@@ -714,6 +1074,26 @@ class PostgresReferralService {
       enableReferralExpiry: row.enableReferralExpiry,
       referralExpiryDays: row.referralExpiryDays,
       shareMessageTemplate: row.shareMessageTemplate,
+      enableFraudScoring: row.enableFraudScoring,
+      autoApproveThreshold: row.autoApproveThreshold,
+      manualReviewThreshold: row.manualReviewThreshold,
+      autoRejectThreshold: row.autoRejectThreshold,
+      enableRewardHold: row.enableRewardHold,
+      holdDurationHours: row.holdDurationHours,
+      enableAutoReject: row.enableAutoReject,
+      minimumActualPaymentForQualification:
+          row.minimumActualPaymentForQualification,
+      maxRewardedPerDay: row.maxRewardedPerDay,
+      maxPendingReferrals: row.maxPendingReferrals,
+      maxSharesPerDay: row.maxSharesPerDay,
+      maxSharesPerMonth: row.maxSharesPerMonth,
+      referralVelocityScore: row.referralVelocityScore,
+      velocityTimeWindowHours: row.velocityTimeWindowHours,
+      velocityThreshold: row.velocityThreshold,
+      newAccountScore: row.newAccountScore,
+      newAccountHours: row.newAccountHours,
+      autoReversalWindowDays: row.autoReversalWindowDays,
+      termsText: row.termsText,
       updatedAt: row.updatedAt,
     );
   }

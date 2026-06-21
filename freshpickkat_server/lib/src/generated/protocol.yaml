@@ -274,11 +274,16 @@ referral:
   - getMyReferralActivity:
   - validateReferralCode:
   - applyReferralCode:
+  - hasAcceptedTerms:
+  - acceptTerms:
   - updateSettings:
   - getReferralAnalytics:
   - listReferrals:
   - approveReward:
   - rejectReward:
+  - getFraudAnalytics:
+  - getFraudBreakdown:
+  - reverseReward:
 refund:
   - initiateRefund:
   - getRefundStatus:

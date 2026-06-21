@@ -1,7 +1,7 @@
 ## Goal
-Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, integration, admin UI, user UI, notifications) — complete.
+Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I — anti-fraud scoring engine, hybrid reward routing, qualification hardening, coupon protection, reward reversal, admin fraud dashboard, terms & conditions, hardening tests.
 
-## Current Task: (completed) Full referral system — Phases 1-8
+## Current Task: (completed) Phases A–I — All hardening phases complete
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -13,6 +13,14 @@ Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, inte
 - Order detail must merge order + refund + complaints into one call
 - Frontend changes allowed for hydrated composite endpoints (controllers update to use single call); no design/UI changes
 - All server hydration must be internal — client apps call one endpoint per screen
+- Hardening spec: fraud scoring engine, reward hold period, minimum actual payment, address/UPI/device abuse detection, coupon ownership, reward reversal, immutable ledger, admin fraud dashboard, support tools, terms & conditions
+- Hybrid reward model: score <40 instant, 40–69 manual review, 70–89 72h hold, ≥90 auto-reject
+- Hard reject rules (no scoring): same UID, same phone, already rewarded
+- Device fingerprinting deferred to post-launch phase
+- Referral codes: existing 7-char remain valid, new users get 8–10 chars, no migration
+- Queue simplification: use ReferralRow fields (status, scheduledReleaseAt, attempts, lastError) — no separate reward_queue table
+- Self-referral → REJECTED with fraud notes
+- Every fraud decision must be explainable — store per-rule breakdown
 
 ## Done
 ### Module 2 — Referral Growth System (Phases 1-7)
@@ -27,6 +35,51 @@ Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, inte
 - **Phase 6**: `InviteEarnScreen` — code card with gradient + copy, stats row (invited/qualified/earned), share buttons (Share, WhatsApp, Copy), activity timeline; "Invite & Earn" menu item in More screen
 - **Phase 7**: Push notification on reward — referrer notified via personal FCM topic (`user-{firebaseUid}`), type `referral_reward`, client routes to `InviteEarnScreen`
 - **Phase 8**: 30 tests (4 unit + 26 integration) — code generation, validation, apply, stats/activity, reward engine (happy path + edge cases), settings CRUD, admin analytics, paginated list, approve/reject
+### Hardening Phase A — Schema & Protocol
+- **A1**: `referral_row.spy.yaml` — added `fraudScore`, `fraudBreakdown`, `holdExpiresAt`, `scheduledReleaseAt`, `attempts`, `lastError`, share count fields
+- **A2**: `referral_settings_row.spy.yaml` + `referral_settings.spy.yaml` — 19 new fraud/qualification settings fields
+- **A3**: `coupon_row.spy.yaml` — added `assignedUserId`, `assignedPhone` for coupon ownership
+- **A4**: New protocol files — `ReferralFraudRuleResult`, `ReferralFraudResult` with per-rule breakdown
+- **A5**: `serverpod generate` + `serverpod create-migration --force` → migration `20260621092616556`
+### Hardening Phase E — Coupon Protection
+- `assignedUserId`/`assignedPhone` on `CouponRow` — set during `_processReward`
+- Ownership check in `_evaluateCoupon` — rejects if assigned to another user/phone
+- Migration already included in `20260621092616556`
+### Hardening Phase F — Reward Reversal
+- `reverseReward()`: REVERSED status + point deduction + `REWARD_REVERSAL` ledger entry
+- `autoReverseExpiredRewards()`: cron method — reverses REWARDED referrals beyond `autoReversalWindowDays`
+- Cron timer (`_autoReversalLock=4200309`) in `PaymentReconciliationCronJob`
+- Admin `reverseReward`/`autoReverseExpiredRewards` endpoint methods
+### Hardening Phase G — Admin Fraud Dashboard (server-side)
+- `getFraudAnalytics()`: total, avg score, rejection rate, flagged accounts
+- `getFraudBreakdown()`: per-referral fraud breakdown
+- `reverseReward` for admin manual override
+### Hardening Phase H — Terms & Conditions
+- `termsAcceptedAt` on `AppUserRow` — nullable `DateTime`
+- `acceptTerms(userId)`: sets timestamp; `hasAcceptedTerms(userId)`: checks non-null
+- Migration `20260621101601760`
+- `InviteEarnScreen` terms section with checkbox toggle
+### Hardening Phase I — Hardening Tests
+- Unit tests (`fraud_rules_test.dart`): 3 tests — `FraudRuleResult` serialization
+- Integration tests (`hardening_test.dart`): 14 tests — fraud scoring (4), qualification (3), coupon protection (3), reward reversal (2), fraud breakdown (1), terms (1)
+### Hardening Phase B — Fraud Scoring Engine
+- **Abstract rule interface** `FraudRule` + `FraudRuleResult` in `fraud_rule.dart`
+- **Hard reject rules** (`hard_reject_rules.dart`): `SameUidRule`, `SamePhoneRule`, `AlreadyRewardedRule` — score 999 on match, stops further evaluation
+- **Soft score rules** (`soft_score_rules.dart`): `SameAddressRule` (escalating 20/40/70), `SamePaymentContactRule` (+30), `SamePayerNameRule` (+20), `ReferralVelocityRule` (configurable window × score), `NewAccountRule` (configurable hours × score)
+- **`PostgresFraudScoreService`** orchestrator — two-phase evaluation (hard reject first, then soft scoring if passed)
+- **Hybrid outcome routing**: score <40 AUTO_APPROVE, 40–69 MANUAL_REVIEW, 70–89 AUTO_HOLD (72h), ≥90 AUTO_REJECT; respects `enableAutoReject`/`enableRewardHold` overrides
+### Hardening Phase C — Hybrid Reward Flow
+- **`checkOrderForReward`** invokes `PostgresFraudScoreService.evaluateReferral()` before reward processing
+- **Outcome routing**: AUTO_APPROVE→`_processReward`→REWARDED, MANUAL_REVIEW→PENDING_REVIEW, AUTO_HOLD→REWARD_HELD (with `holdExpiresAt`), AUTO_REJECT→REJECTED (with fraud score/breakdown)
+- **Fraud breakdown stored**: `fraudScore` (int) + `fraudBreakdown` (JSON of per-rule results) on `ReferralRow`
+- **`approveReward`** now handles `PENDING_REVIEW`→REWARDED (admin approval path)
+- **`releaseHeldRewards()`** cron method: queries `REWARD_HELD` where `holdExpiresAt ≤ now`, processes each via `_processReward`
+- **5-min cron timer** in `PaymentReconciliationCronJob` (`_holdReleaseLock=4200308`) runs `runHoldRelease()`
+- **`getMyReferralActivity`** displays descriptions for all new statuses (PENDING_REVIEW, REWARD_HELD, REVERSED, plus REWARDED/REJECTED reasons)
+### Hardening Phase D — Qualification Hardening
+- **Minimum actual payment check**: `checkOrderForReward` validates `order.finalAmount >= minimumActualPaymentForQualification` (configured in settings, default 0)
+- **Daily cap**: enforces `maxRewardedPerDay` — counts REWARDED referrals for this referrer since midnight UTC, skips if at/above limit
+- **Max pending**: `applyReferral` rejects new signups when referrer has ≥ `maxPendingReferrals` referrals in SIGNED_UP/PENDING_REVIEW/REWARD_HELD status
 ### Basket Suggestion: Free Delivery Products
 - **`BasketSuggestionService._scoreFreeDeliveryProducts()`**: New method — fetches products with `isFreeDelivery = true`, suggests those not in cart, calculates savings as current delivery fee; integrated into Phase 2 (filled basket) and empty mode
 - **Phase 1 fetch**: `ProductEndpoint().getProducts(session, freeDelivery: true, limit: 6)` called after other data fetches at `basket_suggestion_service.dart:140`
@@ -75,9 +128,13 @@ Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, inte
 - **Admin offers screen**: 8 controllers, lower impact; already parallel via `Future.wait`; composite endpoint would not significantly reduce latency
 - **Admin offers screen controllers**: BOGO, combo, category offer, coupon, banner controllers still use paginated loads internally
 
-## Test Status — 39/39 passing
-- **Referral tests** (30 new): 4 unit + 26 integration — all pass
-- **Existing tests** (9): payment_link_flow (4), auto_refund_job (5) — all pass
+## Test Status — 47/47 passing (excluding 2 pre-existing payment_recovery_test.dart failures)
+- **Referral tests** (30): 4 unit + 26 integration — all pass
+- **Hardening tests** (17): 3 unit (fraud rules) + 14 integration (scoring, qualification, coupon, reversal, fraud breakdown, terms) — all pass
+- **Existing tests** — all pass
+
+### Pre-existing failures (unrelated)
+- `payment_recovery_test.dart` (2): Firebase token issue, not related to Module 2
 - **`payment_link_flow_test.dart`** (4 tests): `getPaymentSessionStatus`, `disablePaymentLink`, `expireStaleSessions`, `completePaymentVerification` — all pass with seeded user + order (FK constraints satisfied)
 - **`auto_refund_job_test.dart`** (5 tests): duplicate creates job, identical gatewayPaymentId dedup, createJob dedup, updateJobStatus, loadPendingJobs — all pass using `_seedCompletedOrder` helper
 - Tests use `withServerpod` pattern (real DB, auto-rollback), seed via `AppUserRow` + `CustomerOrderRow` + `PaymentTransactionRow` protocol inserts
@@ -94,10 +151,8 @@ Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, inte
 - Admin product form dialog uses local lists instead of GetX controllers (simpler, no reactive overhead)
 
 ## Next Steps
-### Module 2 complete — all 8 phases done
-
 ### Infrastructure
-5. User to fill `RAZORPAY_WEBHOOK_SECRET` in `freshpickkat_server/.env` from Razorpay Dashboard
+1. User to fill `RAZORPAY_WEBHOOK_SECRET` in `freshpickkat_server/.env` from Razorpay Dashboard
 2. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
 3. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
 4. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
@@ -244,3 +299,19 @@ Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, inte
 - `freshpickkat_flutter/lib/notifications/controllers/notification_controller.dart`: added `referral_reward` routing
 - `freshpickkat_server/test/unit/referral_code_test.dart`: 4 unit tests for code generation
 - `freshpickkat_server/test/integration/referral_test.dart`: 26 integration tests for full referral system
+- `freshpickkat_server/lib/src/services/fraud/fraud_rule.dart`: abstract rule interface + `FraudRuleResult`
+- `freshpickkat_server/lib/src/services/fraud/rules/hard_reject_rules.dart`: `SameUidRule`, `SamePhoneRule`, `AlreadyRewardedRule`
+- `freshpickkat_server/lib/src/services/fraud/rules/soft_score_rules.dart`: `SameAddressRule`, `SamePaymentContactRule`, `SamePayerNameRule`, `ReferralVelocityRule`, `NewAccountRule`
+- `freshpickkat_server/lib/src/services/fraud/postgres_fraud_score_service.dart`: orchestrator — two-phase evaluation, hybrid outcome routing
+- `freshpickkat_server/lib/src/services/fraud/postgres_fraud_score_service.dart`: `FraudOutcome` with `ruleResults` list for JSON serialization
+- `freshpickkat_server/lib/src/protocol/db_rows/coupon_row.spy.yaml`: added `assignedUserId`, `assignedPhone`
+- `freshpickkat_server/lib/src/services/postgres/postgres_coupon_service.dart`: ownership check in `_evaluateCoupon`
+- `freshpickkat_server/lib/src/services/postgres/postgres_referral_service.dart`: `reverseReward` (line 847), `autoReverseExpiredRewards` (line 931), `getFraudAnalytics`/`getFraudBreakdown` (line 970), `acceptTerms`/`hasAcceptedTerms` (line 1010)
+- `freshpickkat_server/lib/src/services/payment_reconciliation_cron_job.dart`: `runAutoReversal` timer (`_autoReversalLock=4200309`)
+- `freshpickkat_server/lib/src/endpoints/referral_endpoint.dart`: `reverseReward`, `autoReverseExpiredRewards`, `getFraudAnalytics`, `getFraudBreakdown`, `acceptTerms`, `hasAcceptedTerms` endpoint methods
+- `freshpickkat_server/lib/src/protocol/db_rows/app_user_row.spy.yaml`: added `termsAcceptedAt`
+- `freshpickkat_server/test/unit/fraud_rules_test.dart`: 3 fraud rule unit tests
+- `freshpickkat_server/test/integration/hardening_test.dart`: 14 hardening integration tests
+- `freshpickkat_server/lib/src/protocol/data_flow/referral_fraud_result.spy.yaml`: fraud result protocol
+- `freshpickkat_server/lib/src/protocol/data_flow/referral_fraud_rule_result.spy.yaml`: per-rule result protocol
+- `freshpickkat_server/lib/src/services/postgres/postgres_referral_service.dart`: `checkOrderForReward` now invokes fraud scoring; `approveReward` handles PENDING_REVIEW; `releaseHeldRewards` cron method; `getMyReferralActivity` handles all new statuses

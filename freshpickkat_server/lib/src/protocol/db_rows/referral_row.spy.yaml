@@ -14,6 +14,15 @@ fields:
   inviteeCouponIssued: bool, default=false
   rewardIssuedAt: DateTime?
   fraudNotes: String?
+  fraudScore: int, default=0
+  fraudBreakdown: String?
+  holdExpiresAt: DateTime?
+  scheduledReleaseAt: DateTime?
+  attempts: int, default=0
+  lastError: String?
+  dailyShareCount: int, default=0
+  monthlyShareCount: int, default=0
+  lastShareDate: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

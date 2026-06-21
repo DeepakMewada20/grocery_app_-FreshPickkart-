@@ -30,6 +30,25 @@ abstract class ReferralSettingsRow
     int? referralExpiryDays,
     String? shareMessageTemplate,
     this.lastUpdatedBy,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    this.termsText,
     DateTime? updatedAt,
   }) : isEnabled = isEnabled ?? true,
        inviteeCouponEnabled = inviteeCouponEnabled ?? true,
@@ -46,6 +65,25 @@ abstract class ReferralSettingsRow
        shareMessageTemplate =
            shareMessageTemplate ??
            'Join FreshPickKat using my referral code {CODE}. Get ₹50 OFF on your first order!',
+       enableFraudScoring = enableFraudScoring ?? true,
+       autoApproveThreshold = autoApproveThreshold ?? 40,
+       manualReviewThreshold = manualReviewThreshold ?? 69,
+       autoRejectThreshold = autoRejectThreshold ?? 90,
+       enableRewardHold = enableRewardHold ?? true,
+       holdDurationHours = holdDurationHours ?? 72,
+       enableAutoReject = enableAutoReject ?? true,
+       minimumActualPaymentForQualification =
+           minimumActualPaymentForQualification ?? 0.0,
+       maxRewardedPerDay = maxRewardedPerDay ?? 3,
+       maxPendingReferrals = maxPendingReferrals ?? 50,
+       maxSharesPerDay = maxSharesPerDay ?? 100,
+       maxSharesPerMonth = maxSharesPerMonth ?? 1000,
+       referralVelocityScore = referralVelocityScore ?? 30,
+       velocityTimeWindowHours = velocityTimeWindowHours ?? 24,
+       velocityThreshold = velocityThreshold ?? 3,
+       newAccountScore = newAccountScore ?? 20,
+       newAccountHours = newAccountHours ?? 48,
+       autoReversalWindowDays = autoReversalWindowDays ?? 30,
        updatedAt = updatedAt ?? DateTime.now();
 
   factory ReferralSettingsRow({
@@ -64,6 +102,25 @@ abstract class ReferralSettingsRow
     int? referralExpiryDays,
     String? shareMessageTemplate,
     _i1.UuidValue? lastUpdatedBy,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    String? termsText,
     DateTime? updatedAt,
   }) = _ReferralSettingsRowImpl;
 
@@ -112,6 +169,41 @@ abstract class ReferralSettingsRow
           : _i1.UuidValueJsonExtension.fromJson(
               jsonSerialization['lastUpdatedBy'],
             ),
+      enableFraudScoring: jsonSerialization['enableFraudScoring'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['enableFraudScoring'],
+            ),
+      autoApproveThreshold: jsonSerialization['autoApproveThreshold'] as int?,
+      manualReviewThreshold: jsonSerialization['manualReviewThreshold'] as int?,
+      autoRejectThreshold: jsonSerialization['autoRejectThreshold'] as int?,
+      enableRewardHold: jsonSerialization['enableRewardHold'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['enableRewardHold'],
+            ),
+      holdDurationHours: jsonSerialization['holdDurationHours'] as int?,
+      enableAutoReject: jsonSerialization['enableAutoReject'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['enableAutoReject'],
+            ),
+      minimumActualPaymentForQualification:
+          (jsonSerialization['minimumActualPaymentForQualification'] as num?)
+              ?.toDouble(),
+      maxRewardedPerDay: jsonSerialization['maxRewardedPerDay'] as int?,
+      maxPendingReferrals: jsonSerialization['maxPendingReferrals'] as int?,
+      maxSharesPerDay: jsonSerialization['maxSharesPerDay'] as int?,
+      maxSharesPerMonth: jsonSerialization['maxSharesPerMonth'] as int?,
+      referralVelocityScore: jsonSerialization['referralVelocityScore'] as int?,
+      velocityTimeWindowHours:
+          jsonSerialization['velocityTimeWindowHours'] as int?,
+      velocityThreshold: jsonSerialization['velocityThreshold'] as int?,
+      newAccountScore: jsonSerialization['newAccountScore'] as int?,
+      newAccountHours: jsonSerialization['newAccountHours'] as int?,
+      autoReversalWindowDays:
+          jsonSerialization['autoReversalWindowDays'] as int?,
+      termsText: jsonSerialization['termsText'] as String?,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
@@ -153,6 +245,44 @@ abstract class ReferralSettingsRow
 
   _i1.UuidValue? lastUpdatedBy;
 
+  bool enableFraudScoring;
+
+  int autoApproveThreshold;
+
+  int manualReviewThreshold;
+
+  int autoRejectThreshold;
+
+  bool enableRewardHold;
+
+  int holdDurationHours;
+
+  bool enableAutoReject;
+
+  double minimumActualPaymentForQualification;
+
+  int maxRewardedPerDay;
+
+  int maxPendingReferrals;
+
+  int maxSharesPerDay;
+
+  int maxSharesPerMonth;
+
+  int referralVelocityScore;
+
+  int velocityTimeWindowHours;
+
+  int velocityThreshold;
+
+  int newAccountScore;
+
+  int newAccountHours;
+
+  int autoReversalWindowDays;
+
+  String? termsText;
+
   DateTime updatedAt;
 
   @override
@@ -177,6 +307,25 @@ abstract class ReferralSettingsRow
     int? referralExpiryDays,
     String? shareMessageTemplate,
     _i1.UuidValue? lastUpdatedBy,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    String? termsText,
     DateTime? updatedAt,
   });
   @override
@@ -198,6 +347,26 @@ abstract class ReferralSettingsRow
       'referralExpiryDays': referralExpiryDays,
       'shareMessageTemplate': shareMessageTemplate,
       if (lastUpdatedBy != null) 'lastUpdatedBy': lastUpdatedBy?.toJson(),
+      'enableFraudScoring': enableFraudScoring,
+      'autoApproveThreshold': autoApproveThreshold,
+      'manualReviewThreshold': manualReviewThreshold,
+      'autoRejectThreshold': autoRejectThreshold,
+      'enableRewardHold': enableRewardHold,
+      'holdDurationHours': holdDurationHours,
+      'enableAutoReject': enableAutoReject,
+      'minimumActualPaymentForQualification':
+          minimumActualPaymentForQualification,
+      'maxRewardedPerDay': maxRewardedPerDay,
+      'maxPendingReferrals': maxPendingReferrals,
+      'maxSharesPerDay': maxSharesPerDay,
+      'maxSharesPerMonth': maxSharesPerMonth,
+      'referralVelocityScore': referralVelocityScore,
+      'velocityTimeWindowHours': velocityTimeWindowHours,
+      'velocityThreshold': velocityThreshold,
+      'newAccountScore': newAccountScore,
+      'newAccountHours': newAccountHours,
+      'autoReversalWindowDays': autoReversalWindowDays,
+      if (termsText != null) 'termsText': termsText,
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -256,6 +425,25 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     int? referralExpiryDays,
     String? shareMessageTemplate,
     _i1.UuidValue? lastUpdatedBy,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    String? termsText,
     DateTime? updatedAt,
   }) : super._(
          id: id,
@@ -273,6 +461,26 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
          referralExpiryDays: referralExpiryDays,
          shareMessageTemplate: shareMessageTemplate,
          lastUpdatedBy: lastUpdatedBy,
+         enableFraudScoring: enableFraudScoring,
+         autoApproveThreshold: autoApproveThreshold,
+         manualReviewThreshold: manualReviewThreshold,
+         autoRejectThreshold: autoRejectThreshold,
+         enableRewardHold: enableRewardHold,
+         holdDurationHours: holdDurationHours,
+         enableAutoReject: enableAutoReject,
+         minimumActualPaymentForQualification:
+             minimumActualPaymentForQualification,
+         maxRewardedPerDay: maxRewardedPerDay,
+         maxPendingReferrals: maxPendingReferrals,
+         maxSharesPerDay: maxSharesPerDay,
+         maxSharesPerMonth: maxSharesPerMonth,
+         referralVelocityScore: referralVelocityScore,
+         velocityTimeWindowHours: velocityTimeWindowHours,
+         velocityThreshold: velocityThreshold,
+         newAccountScore: newAccountScore,
+         newAccountHours: newAccountHours,
+         autoReversalWindowDays: autoReversalWindowDays,
+         termsText: termsText,
          updatedAt: updatedAt,
        );
 
@@ -296,6 +504,25 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     int? referralExpiryDays,
     String? shareMessageTemplate,
     Object? lastUpdatedBy = _Undefined,
+    bool? enableFraudScoring,
+    int? autoApproveThreshold,
+    int? manualReviewThreshold,
+    int? autoRejectThreshold,
+    bool? enableRewardHold,
+    int? holdDurationHours,
+    bool? enableAutoReject,
+    double? minimumActualPaymentForQualification,
+    int? maxRewardedPerDay,
+    int? maxPendingReferrals,
+    int? maxSharesPerDay,
+    int? maxSharesPerMonth,
+    int? referralVelocityScore,
+    int? velocityTimeWindowHours,
+    int? velocityThreshold,
+    int? newAccountScore,
+    int? newAccountHours,
+    int? autoReversalWindowDays,
+    Object? termsText = _Undefined,
     DateTime? updatedAt,
   }) {
     return ReferralSettingsRow(
@@ -320,6 +547,31 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
       lastUpdatedBy: lastUpdatedBy is _i1.UuidValue?
           ? lastUpdatedBy
           : this.lastUpdatedBy,
+      enableFraudScoring: enableFraudScoring ?? this.enableFraudScoring,
+      autoApproveThreshold: autoApproveThreshold ?? this.autoApproveThreshold,
+      manualReviewThreshold:
+          manualReviewThreshold ?? this.manualReviewThreshold,
+      autoRejectThreshold: autoRejectThreshold ?? this.autoRejectThreshold,
+      enableRewardHold: enableRewardHold ?? this.enableRewardHold,
+      holdDurationHours: holdDurationHours ?? this.holdDurationHours,
+      enableAutoReject: enableAutoReject ?? this.enableAutoReject,
+      minimumActualPaymentForQualification:
+          minimumActualPaymentForQualification ??
+          this.minimumActualPaymentForQualification,
+      maxRewardedPerDay: maxRewardedPerDay ?? this.maxRewardedPerDay,
+      maxPendingReferrals: maxPendingReferrals ?? this.maxPendingReferrals,
+      maxSharesPerDay: maxSharesPerDay ?? this.maxSharesPerDay,
+      maxSharesPerMonth: maxSharesPerMonth ?? this.maxSharesPerMonth,
+      referralVelocityScore:
+          referralVelocityScore ?? this.referralVelocityScore,
+      velocityTimeWindowHours:
+          velocityTimeWindowHours ?? this.velocityTimeWindowHours,
+      velocityThreshold: velocityThreshold ?? this.velocityThreshold,
+      newAccountScore: newAccountScore ?? this.newAccountScore,
+      newAccountHours: newAccountHours ?? this.newAccountHours,
+      autoReversalWindowDays:
+          autoReversalWindowDays ?? this.autoReversalWindowDays,
+      termsText: termsText is String? ? termsText : this.termsText,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -410,6 +662,105 @@ class ReferralSettingsRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<bool, bool> enableFraudScoring(bool value) => _i1.ColumnValue(
+    table.enableFraudScoring,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> autoApproveThreshold(int value) => _i1.ColumnValue(
+    table.autoApproveThreshold,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> manualReviewThreshold(int value) => _i1.ColumnValue(
+    table.manualReviewThreshold,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> autoRejectThreshold(int value) => _i1.ColumnValue(
+    table.autoRejectThreshold,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> enableRewardHold(bool value) => _i1.ColumnValue(
+    table.enableRewardHold,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> holdDurationHours(int value) => _i1.ColumnValue(
+    table.holdDurationHours,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> enableAutoReject(bool value) => _i1.ColumnValue(
+    table.enableAutoReject,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> minimumActualPaymentForQualification(
+    double value,
+  ) => _i1.ColumnValue(
+    table.minimumActualPaymentForQualification,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> maxRewardedPerDay(int value) => _i1.ColumnValue(
+    table.maxRewardedPerDay,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> maxPendingReferrals(int value) => _i1.ColumnValue(
+    table.maxPendingReferrals,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> maxSharesPerDay(int value) => _i1.ColumnValue(
+    table.maxSharesPerDay,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> maxSharesPerMonth(int value) => _i1.ColumnValue(
+    table.maxSharesPerMonth,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> referralVelocityScore(int value) => _i1.ColumnValue(
+    table.referralVelocityScore,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> velocityTimeWindowHours(int value) =>
+      _i1.ColumnValue(
+        table.velocityTimeWindowHours,
+        value,
+      );
+
+  _i1.ColumnValue<int, int> velocityThreshold(int value) => _i1.ColumnValue(
+    table.velocityThreshold,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> newAccountScore(int value) => _i1.ColumnValue(
+    table.newAccountScore,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> newAccountHours(int value) => _i1.ColumnValue(
+    table.newAccountHours,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> autoReversalWindowDays(int value) =>
+      _i1.ColumnValue(
+        table.autoReversalWindowDays,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> termsText(String? value) => _i1.ColumnValue(
+    table.termsText,
+    value,
+  );
+
   _i1.ColumnValue<DateTime, DateTime> updatedAt(DateTime value) =>
       _i1.ColumnValue(
         table.updatedAt,
@@ -490,6 +841,100 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
       'lastUpdatedBy',
       this,
     );
+    enableFraudScoring = _i1.ColumnBool(
+      'enableFraudScoring',
+      this,
+      hasDefault: true,
+    );
+    autoApproveThreshold = _i1.ColumnInt(
+      'autoApproveThreshold',
+      this,
+      hasDefault: true,
+    );
+    manualReviewThreshold = _i1.ColumnInt(
+      'manualReviewThreshold',
+      this,
+      hasDefault: true,
+    );
+    autoRejectThreshold = _i1.ColumnInt(
+      'autoRejectThreshold',
+      this,
+      hasDefault: true,
+    );
+    enableRewardHold = _i1.ColumnBool(
+      'enableRewardHold',
+      this,
+      hasDefault: true,
+    );
+    holdDurationHours = _i1.ColumnInt(
+      'holdDurationHours',
+      this,
+      hasDefault: true,
+    );
+    enableAutoReject = _i1.ColumnBool(
+      'enableAutoReject',
+      this,
+      hasDefault: true,
+    );
+    minimumActualPaymentForQualification = _i1.ColumnDouble(
+      'minimumActualPaymentForQualification',
+      this,
+      hasDefault: true,
+    );
+    maxRewardedPerDay = _i1.ColumnInt(
+      'maxRewardedPerDay',
+      this,
+      hasDefault: true,
+    );
+    maxPendingReferrals = _i1.ColumnInt(
+      'maxPendingReferrals',
+      this,
+      hasDefault: true,
+    );
+    maxSharesPerDay = _i1.ColumnInt(
+      'maxSharesPerDay',
+      this,
+      hasDefault: true,
+    );
+    maxSharesPerMonth = _i1.ColumnInt(
+      'maxSharesPerMonth',
+      this,
+      hasDefault: true,
+    );
+    referralVelocityScore = _i1.ColumnInt(
+      'referralVelocityScore',
+      this,
+      hasDefault: true,
+    );
+    velocityTimeWindowHours = _i1.ColumnInt(
+      'velocityTimeWindowHours',
+      this,
+      hasDefault: true,
+    );
+    velocityThreshold = _i1.ColumnInt(
+      'velocityThreshold',
+      this,
+      hasDefault: true,
+    );
+    newAccountScore = _i1.ColumnInt(
+      'newAccountScore',
+      this,
+      hasDefault: true,
+    );
+    newAccountHours = _i1.ColumnInt(
+      'newAccountHours',
+      this,
+      hasDefault: true,
+    );
+    autoReversalWindowDays = _i1.ColumnInt(
+      'autoReversalWindowDays',
+      this,
+      hasDefault: true,
+    );
+    termsText = _i1.ColumnString(
+      'termsText',
+      this,
+    );
     updatedAt = _i1.ColumnDateTime(
       'updatedAt',
       this,
@@ -527,6 +972,44 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnUuid lastUpdatedBy;
 
+  late final _i1.ColumnBool enableFraudScoring;
+
+  late final _i1.ColumnInt autoApproveThreshold;
+
+  late final _i1.ColumnInt manualReviewThreshold;
+
+  late final _i1.ColumnInt autoRejectThreshold;
+
+  late final _i1.ColumnBool enableRewardHold;
+
+  late final _i1.ColumnInt holdDurationHours;
+
+  late final _i1.ColumnBool enableAutoReject;
+
+  late final _i1.ColumnDouble minimumActualPaymentForQualification;
+
+  late final _i1.ColumnInt maxRewardedPerDay;
+
+  late final _i1.ColumnInt maxPendingReferrals;
+
+  late final _i1.ColumnInt maxSharesPerDay;
+
+  late final _i1.ColumnInt maxSharesPerMonth;
+
+  late final _i1.ColumnInt referralVelocityScore;
+
+  late final _i1.ColumnInt velocityTimeWindowHours;
+
+  late final _i1.ColumnInt velocityThreshold;
+
+  late final _i1.ColumnInt newAccountScore;
+
+  late final _i1.ColumnInt newAccountHours;
+
+  late final _i1.ColumnInt autoReversalWindowDays;
+
+  late final _i1.ColumnString termsText;
+
   late final _i1.ColumnDateTime updatedAt;
 
   @override
@@ -546,6 +1029,25 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
     referralExpiryDays,
     shareMessageTemplate,
     lastUpdatedBy,
+    enableFraudScoring,
+    autoApproveThreshold,
+    manualReviewThreshold,
+    autoRejectThreshold,
+    enableRewardHold,
+    holdDurationHours,
+    enableAutoReject,
+    minimumActualPaymentForQualification,
+    maxRewardedPerDay,
+    maxPendingReferrals,
+    maxSharesPerDay,
+    maxSharesPerMonth,
+    referralVelocityScore,
+    velocityTimeWindowHours,
+    velocityThreshold,
+    newAccountScore,
+    newAccountHours,
+    autoReversalWindowDays,
+    termsText,
     updatedAt,
   ];
 }
