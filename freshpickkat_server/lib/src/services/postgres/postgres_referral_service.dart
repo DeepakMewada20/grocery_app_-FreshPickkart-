@@ -402,6 +402,23 @@ class PostgresReferralService {
     var pointsIssued = 0;
 
     await session.db.transaction((transaction) async {
+      // 0 — FOR UPDATE lock on referral row to prevent concurrent duplicate processing
+      await session.db.unsafeQuery(
+        'SELECT id FROM referral WHERE id = \'${referral.id}\' FOR UPDATE',
+        transaction: transaction,
+      );
+      final lockedReferral = await ReferralRow.db.findById(
+        session,
+        referral.id!,
+        transaction: transaction,
+      );
+      if (lockedReferral == null ||
+          lockedReferral.status == 'REWARDED' ||
+          lockedReferral.status == 'REJECTED' ||
+          lockedReferral.status == 'EXPIRED') {
+        return; // Already processed by another concurrent request
+      }
+
       // 1 — Invitee coupon
       if (settings.inviteeCouponEnabled) {
         final existing = await CouponRow.db.findFirstRow(
@@ -436,40 +453,51 @@ class PostgresReferralService {
 
       // 2 — Referrer FreshPoints (directly within transaction)
       if (settings.referrerPointsEnabled && settings.referrerRewardPoints > 0) {
-        pointsIssued = settings.referrerRewardPoints;
-        final referrer = await AppUserRow.db.findById(
+        // Idempotency check: skip if ledger entry already exists for this referral
+        final existingLedger = await FreshPointsTransactionRow.db.findFirstRow(
           session,
-          referral.referrerUserId,
+          where: (t) =>
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(referral.id) &
+              t.transactionType.equals('REFERRAL_REWARD'),
           transaction: transaction,
         );
-        if (referrer != null) {
-          final newBalance = referrer.currentFreshPoints + pointsIssued;
-          await AppUserRow.db.updateRow(
+        if (existingLedger == null) {
+          pointsIssued = settings.referrerRewardPoints;
+          final referrer = await AppUserRow.db.findById(
             session,
-            referrer.copyWith(
-              currentFreshPoints: newBalance,
-              totalEarned: referrer.totalEarned + pointsIssued,
-            ),
+            referral.referrerUserId,
             transaction: transaction,
           );
+          if (referrer != null) {
+            final newBalance = referrer.currentFreshPoints + pointsIssued;
+            await AppUserRow.db.updateRow(
+              session,
+              referrer.copyWith(
+                currentFreshPoints: newBalance,
+                totalEarned: referrer.totalEarned + pointsIssued,
+              ),
+              transaction: transaction,
+            );
 
-          await FreshPointsTransactionRow.db.insertRow(
-            session,
-            FreshPointsTransactionRow(
-              userId: referral.referrerUserId,
-              transactionType: 'REFERRAL_REWARD',
-              points: pointsIssued,
-              balanceBefore: referrer.currentFreshPoints,
-              balanceAfter: newBalance,
-              referenceType: 'referral',
-              referenceId: referral.id,
-              description:
-                  'Referral reward: ${referral.inviteePhone}',
-              createdBy: 'referral_system',
-              createdAt: now,
-            ),
-            transaction: transaction,
-          );
+            await FreshPointsTransactionRow.db.insertRow(
+              session,
+              FreshPointsTransactionRow(
+                userId: referral.referrerUserId,
+                transactionType: 'REFERRAL_REWARD',
+                points: pointsIssued,
+                balanceBefore: referrer.currentFreshPoints,
+                balanceAfter: newBalance,
+                referenceType: 'referral',
+                referenceId: referral.id,
+                description:
+                    'Referral reward: ${referral.inviteePhone}',
+                createdBy: 'referral_system',
+                createdAt: now,
+              ),
+              transaction: transaction,
+            );
+          }
         }
       }
 
@@ -859,6 +887,7 @@ class PostgresReferralService {
 
     final now = DateTime.now().toUtc();
     final pointsToDeduct = referral.rewardPointsIssued;
+    var outstandingRecovery = 0;
 
     await session.db.transaction((transaction) async {
       if (pointsToDeduct > 0) {
@@ -868,14 +897,22 @@ class PostgresReferralService {
           transaction: transaction,
         );
         if (referrer != null) {
-          final newBalance = (referrer.currentFreshPoints - pointsToDeduct)
-              .clamp(0, referrer.currentFreshPoints);
+          outstandingRecovery = pointsToDeduct > referrer.currentFreshPoints
+              ? pointsToDeduct - referrer.currentFreshPoints
+              : 0;
+          final actualDeduction = pointsToDeduct <= referrer.currentFreshPoints
+              ? pointsToDeduct
+              : referrer.currentFreshPoints;
+          final outstanding = pointsToDeduct - actualDeduction;
+          final newBalance = referrer.currentFreshPoints - actualDeduction;
+          final newTotalEarned = referrer.totalEarned >= pointsToDeduct
+              ? referrer.totalEarned - pointsToDeduct
+              : 0;
           await AppUserRow.db.updateRow(
             session,
             referrer.copyWith(
               currentFreshPoints: newBalance,
-              totalEarned: (referrer.totalEarned - pointsToDeduct)
-                  .clamp(0, referrer.totalEarned),
+              totalEarned: newTotalEarned,
             ),
             transaction: transaction,
           );
@@ -885,7 +922,7 @@ class PostgresReferralService {
             FreshPointsTransactionRow(
               userId: referral.referrerUserId,
               transactionType: 'REWARD_REVERSAL',
-              points: -pointsToDeduct,
+              points: -actualDeduction,
               balanceBefore: referrer.currentFreshPoints,
               balanceAfter: newBalance,
               referenceType: 'referral',
@@ -896,6 +933,25 @@ class PostgresReferralService {
             ),
             transaction: transaction,
           );
+
+          if (outstanding > 0) {
+            await FreshPointsTransactionRow.db.insertRow(
+              session,
+              FreshPointsTransactionRow(
+                userId: referral.referrerUserId,
+                transactionType: 'REWARD_REVERSAL',
+                points: 0,
+                balanceBefore: referrer.currentFreshPoints,
+                balanceAfter: newBalance,
+                referenceType: 'referral',
+                referenceId: referral.id,
+                description: 'Reward reversal: $reason (outstanding recovery: $outstanding points)',
+                createdBy: actorFirebaseUid ?? 'referral_system',
+                createdAt: now,
+              ),
+              transaction: transaction,
+            );
+          }
         }
       }
 
@@ -905,6 +961,9 @@ class PostgresReferralService {
           status: 'REVERSED',
           rewardPointsIssued: 0,
           fraudNotes: reason,
+          outstandingRecoveryPoints: outstandingRecovery > 0 ? outstandingRecovery : 0,
+          isRecoveryPending: outstandingRecovery > 0,
+          recoveryReason: outstandingRecovery > 0 ? 'Referral Reward Reversal' : null,
           updatedAt: now,
         ),
         transaction: transaction,

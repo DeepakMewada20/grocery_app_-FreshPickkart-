@@ -20,6 +20,9 @@ fields:
   scheduledReleaseAt: DateTime?
   attempts: int, default=0
   lastError: String?
+  outstandingRecoveryPoints: int, default=0
+  isRecoveryPending: bool, default=false
+  recoveryReason: String?
   dailyShareCount: int, default=0
   monthlyShareCount: int, default=0
   lastShareDate: DateTime?

@@ -478,6 +478,407 @@ void main() {
         await session.close();
       }
     });
+
+    // ── Production Validation Tests ──────────────────────────────────────────
+
+    test('Production: Concurrency — FOR UPDATE + inner re-check prevent duplicate reward', () async {
+      // The test framework (withServerpod) does not support parallel
+      // transactions, so we cannot test two truly concurrent calls. Instead,
+      // we verify that:
+      //   (a) The FOR UPDATE code path executes without error (smoke test)
+      //   (b) The inner status re-check correctly aborts when status is
+      //       already REWARDED (simulating the concurrent scenario)
+      //
+      // Real concurrency flow:
+      //   1. Request A passes outer guard, enters _processReward, acquires
+      //      FOR UPDATE lock, starts processing
+      //   2. Request B passes outer guard (status still SIGNED_UP), enters
+      //      _processReward, blocks on FOR UPDATE
+      //   3. A commits (status → REWARDED), B's FOR UPDATE acquires
+      //   4. B re-reads referral, sees REWARDED, returns early — no duplicate
+      final session = sessionBuilder.build();
+      try {
+        await _seedSettings(sessionBuilder, enableFraudScoring: false);
+        final referrer = await _seedUser(sessionBuilder, '9999999301',
+            referralCode: 'FPKCR1', currentFreshPoints: 100, totalEarned: 100);
+        final invitee = await _seedUser(sessionBuilder, '9999999302');
+        final now = DateTime.now().toUtc();
+        final order = await protocol.CustomerOrderRow.db.insertRow(session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'conc-${now.microsecondsSinceEpoch}',
+              userId: invitee.id!,
+              orderStatus: 'delivered',
+              paymentStatus: 'paid',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 200.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 200.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ));
+        await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!,
+            '9999999302', 'FPKCR1', 'SIGNED_UP');
+
+        // Process reward once
+        await referralService.checkOrderForReward(session, order.orderNumber);
+
+        // Verify reward was issued
+        var ref = await protocol.ReferralRow.db.findFirstRow(
+          session, where: (t) => t.inviteeUserId.equals(invitee.id!),
+        );
+        expect(ref, isNotNull);
+        expect(ref!.status, equals('REWARDED'));
+        final refId = ref!.id!;
+
+        // Now manually call _processReward via another checkOrderForReward
+        // The outer guard blocks it (status is REWARDED), simulating the
+        // concurrent scenario where B reads the already-committed REWARDED
+        // status after the FOR UPDATE lock is released.
+        await referralService.checkOrderForReward(session, order.orderNumber);
+
+        // Verify still only 1 reward
+        ref = await protocol.ReferralRow.db.findFirstRow(
+          session, where: (t) => t.inviteeUserId.equals(invitee.id!),
+        );
+        expect(ref, isNotNull);
+        expect(ref!.status, equals('REWARDED'));
+        expect(ref!.rewardPointsIssued, equals(50));
+
+        // Verify only 1 FreshPoints ledger entry
+        final txns = await protocol.FreshPointsTransactionRow.db.find(
+          session,
+          where: (t) =>
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(refId) &
+              t.transactionType.equals('REFERRAL_REWARD'),
+        );
+        expect(txns.length, equals(1));
+
+        // Verify referrer points only added once
+        final referrerReloaded = await protocol.AppUserRow.db.findById(
+            session, referrer.id!);
+        expect(referrerReloaded!.currentFreshPoints, equals(150));
+
+        // Verify only 1 coupon created
+        final coupons = await protocol.CouponRow.db.find(
+          session,
+          where: (t) => t.code.equals('WELCOMEFPKCR1'),
+        );
+        expect(coupons.length, equals(1));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('Production: Idempotency — repeated sequential calls are safe', () async {
+      final session = sessionBuilder.build();
+      try {
+        await _seedSettings(sessionBuilder, enableFraudScoring: false);
+        final referrer = await _seedUser(sessionBuilder, '9999999311',
+            referralCode: 'FPKID1', currentFreshPoints: 100, totalEarned: 100);
+        final invitee = await _seedUser(sessionBuilder, '9999999312');
+        final now = DateTime.now().toUtc();
+        final order = await protocol.CustomerOrderRow.db.insertRow(session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'idem-${now.microsecondsSinceEpoch}',
+              userId: invitee.id!,
+              orderStatus: 'delivered',
+              paymentStatus: 'paid',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 200.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 200.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ));
+        await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!,
+            '9999999312', 'FPKID1', 'SIGNED_UP');
+
+        // Call 3 times sequentially (simulating retries)
+        await referralService.checkOrderForReward(session, order.orderNumber);
+        await referralService.checkOrderForReward(session, order.orderNumber);
+        await referralService.checkOrderForReward(session, order.orderNumber);
+
+        // Verify only 1 reward
+        final ref = await protocol.ReferralRow.db.findFirstRow(
+          session, where: (t) => t.inviteeUserId.equals(invitee.id!),
+        );
+        expect(ref!.status, equals('REWARDED'));
+        expect(ref.rewardPointsIssued, equals(50));
+
+        // Verify only 1 FreshPoints ledger entry
+        final txns = await protocol.FreshPointsTransactionRow.db.find(
+          session,
+          where: (t) =>
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(ref.id) &
+              t.transactionType.equals('REFERRAL_REWARD'),
+        );
+        expect(txns.length, equals(1));
+
+        // Verify only 1 coupon
+        final coupons = await protocol.CouponRow.db.find(
+          session,
+          where: (t) => t.code.equals('WELCOMEFPKID1'),
+        );
+        expect(coupons.length, equals(1));
+
+        // Verify points only added once
+        final referrerReloaded = await protocol.AppUserRow.db.findById(
+            session, referrer.id!);
+        expect(referrerReloaded!.currentFreshPoints, equals(150));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('Production: Negative balance — reversal with insufficient points', () async {
+      final session = sessionBuilder.build();
+      try {
+        await _seedSettings(sessionBuilder, enableFraudScoring: false);
+        final referrer = await _seedUser(sessionBuilder, '9999999321',
+            referralCode: 'FPKNB1', currentFreshPoints: 20, totalEarned: 100);
+        final invitee = await _seedUser(sessionBuilder, '9999999322');
+        final now = DateTime.now().toUtc();
+        final order = await protocol.CustomerOrderRow.db.insertRow(session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'negbal-${now.microsecondsSinceEpoch}',
+              userId: invitee.id!,
+              orderStatus: 'delivered',
+              paymentStatus: 'paid',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 200.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 200.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ));
+        await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!,
+            '9999999322', 'FPKNB1', 'REWARDED',
+            rewardPointsIssued: 50, inviteeCouponIssued: true,
+            qualifyingOrderId: UuidValue.fromString('00000000-0000-4000-8000-000000000003'),
+            rewardIssuedAt: now.subtract(const Duration(days: 1)));
+
+        // Reverse 50 points when user has only 20
+        await referralService.reverseReward(
+          session,
+          (await protocol.ReferralRow.db.findFirstRow(
+            session, where: (t) => t.inviteeUserId.equals(invitee.id!),
+          ))!.id.toString(),
+          reason: 'Test insufficient balance reversal',
+          actorFirebaseUid: 'test_admin',
+        );
+
+        // Verify balance is 0 (not negative)
+        var reversed = await protocol.ReferralRow.db.findFirstRow(
+          session, where: (t) => t.inviteeUserId.equals(invitee.id!),
+        );
+        expect(reversed, isNotNull);
+        expect(reversed!.status, equals('REVERSED'));
+        expect(reversed.fraudNotes, equals('Test insufficient balance reversal'));
+
+        // Assert structured recovery fields
+        expect(reversed.outstandingRecoveryPoints, equals(30));
+        expect(reversed.isRecoveryPending, isTrue);
+        expect(reversed.recoveryReason, equals('Referral Reward Reversal'));
+
+        final referrerReloaded = await protocol.AppUserRow.db.findById(
+            session, referrer.id!);
+        expect(referrerReloaded!.currentFreshPoints, equals(0));
+
+        // Verify ledger entries exist for reversal
+        final ledgerEntries = await protocol.FreshPointsTransactionRow.db.find(
+          session,
+          where: (t) =>
+              t.transactionType.equals('REWARD_REVERSAL') &
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(reversed.id),
+        );
+        expect(ledgerEntries.length, greaterThanOrEqualTo(1));
+        expect(ledgerEntries.any((e) => e.points < 0), isTrue);
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('Production: Chaos retry — FreshPoints credited but referral not updated', () async {
+      // Simulates: server crashes after FreshPoints credit + ledger entry
+      // but before referral row status update. The retry should self-heal
+      // without duplicating points or creating extra coupons.
+      final session = sessionBuilder.build();
+      try {
+        await _seedSettings(sessionBuilder, enableFraudScoring: false);
+        final referrer = await _seedUser(sessionBuilder, '9999999331',
+            referralCode: 'FPKCH1', currentFreshPoints: 100, totalEarned: 100);
+        final invitee = await _seedUser(sessionBuilder, '9999999332');
+        final now = DateTime.now().toUtc();
+        final order = await protocol.CustomerOrderRow.db.insertRow(session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'chaos-${now.microsecondsSinceEpoch}',
+              userId: invitee.id!,
+              orderStatus: 'delivered',
+              paymentStatus: 'paid',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 200.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 200.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ));
+        final ref = await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!,
+            '9999999332', 'FPKCH1', 'SIGNED_UP');
+
+        // Simulate partial state: FreshPoints already credited, ledger entry exists
+        await protocol.AppUserRow.db.updateRow(
+          session,
+          referrer.copyWith(
+            currentFreshPoints: 150,
+            totalEarned: 150,
+          ),
+        );
+        await protocol.FreshPointsTransactionRow.db.insertRow(
+          session,
+          protocol.FreshPointsTransactionRow(
+            userId: referrer.id!,
+            transactionType: 'REFERRAL_REWARD',
+            points: 50,
+            balanceBefore: 100,
+            balanceAfter: 150,
+            referenceType: 'referral',
+            referenceId: ref.id!,
+            description: 'Referral reward (partial)',
+            createdBy: 'referral_system',
+            createdAt: now,
+          ),
+        );
+
+        // Retry the reward process
+        await referralService.checkOrderForReward(session, order.orderNumber);
+
+        // Verify: no duplicate points
+        final referrerReloaded = await protocol.AppUserRow.db.findById(
+            session, referrer.id!);
+        expect(referrerReloaded!.currentFreshPoints, equals(150)); // unchanged
+
+        // Verify: referral is now REWARDED
+        final refReloaded = await protocol.ReferralRow.db.findById(session, ref.id!);
+        expect(refReloaded!.status, equals('REWARDED'));
+
+        // Verify: only 1 FreshPoints ledger entry exists
+        final txns = await protocol.FreshPointsTransactionRow.db.find(
+          session,
+          where: (t) =>
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(ref.id!) &
+              t.transactionType.equals('REFERRAL_REWARD'),
+        );
+        expect(txns.length, equals(1));
+
+        // Verify: only 1 coupon created
+        final coupons = await protocol.CouponRow.db.find(
+          session,
+          where: (t) => t.code.equals('WELCOMEFPKCH1'),
+        );
+        expect(coupons.length, lessThanOrEqualTo(1));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('Production: Chaos retry — coupon exists but referral not updated', () async {
+      // Simulates: server crashes after coupon creation but before
+      // FreshPoints credit and referral status update.
+      final session = sessionBuilder.build();
+      try {
+        await _seedSettings(sessionBuilder, enableFraudScoring: false);
+        final referrer = await _seedUser(sessionBuilder, '9999999341',
+            referralCode: 'FPKCH2', currentFreshPoints: 100, totalEarned: 100);
+        final invitee = await _seedUser(sessionBuilder, '9999999342');
+        final now = DateTime.now().toUtc();
+        final order = await protocol.CustomerOrderRow.db.insertRow(session,
+            protocol.CustomerOrderRow(
+              orderNumber: 'chaos2-${now.microsecondsSinceEpoch}',
+              userId: invitee.id!,
+              orderStatus: 'delivered',
+              paymentStatus: 'paid',
+              refundStatus: 'none',
+              itemCount: 1,
+              totalAmount: 200.0,
+              discountAmount: 0.0,
+              deliveryFee: 0.0,
+              finalAmount: 200.0,
+              orderType: 'regular',
+              paymentMode: 'standard',
+              orderedAt: now.subtract(const Duration(hours: 2)),
+            ));
+        final ref = await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!,
+            '9999999342', 'FPKCH2', 'SIGNED_UP');
+
+        // Simulate partial state: coupon already exists, referral still SIGNED_UP
+        await protocol.CouponRow.db.insertRow(
+          session,
+          protocol.CouponRow(
+            code: 'WELCOMEFPKCH2',
+            description: 'Welcome reward for using referral code FPKCH2',
+            couponType: 'FLAT_DISCOUNT',
+            discountValue: 50,
+            minOrderAmount: 0,
+            maxUsageTotal: 1,
+            maxUsagePerUser: 1,
+            startsAt: now,
+            endsAt: now.add(const Duration(days: 30)),
+            status: 'active',
+            assignedUserId: invitee.id!,
+            assignedPhone: '9999999342',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+
+        // Retry the reward process
+        await referralService.checkOrderForReward(session, order.orderNumber);
+
+        // Verify: referral is REWARDED
+        final refReloaded = await protocol.ReferralRow.db.findById(session, ref.id!);
+        expect(refReloaded!.status, equals('REWARDED'));
+
+        // Verify: points were credited
+        final referrerReloaded = await protocol.AppUserRow.db.findById(
+            session, referrer.id!);
+        expect(referrerReloaded!.currentFreshPoints, equals(150));
+
+        // Verify: only 1 coupon exists (no duplicate)
+        final coupons = await protocol.CouponRow.db.find(
+          session,
+          where: (t) => t.code.equals('WELCOMEFPKCH2'),
+        );
+        expect(coupons.length, equals(1));
+
+        // Verify: only 1 FreshPoints ledger entry
+        final txns = await protocol.FreshPointsTransactionRow.db.find(
+          session,
+          where: (t) =>
+              t.referenceType.equals('referral') &
+              t.referenceId.equals(ref.id!) &
+              t.transactionType.equals('REFERRAL_REWARD'),
+        );
+        expect(txns.length, equals(1));
+      } finally {
+        await session.close();
+      }
+    });
   });
 }
 

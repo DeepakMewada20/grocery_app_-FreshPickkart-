@@ -33,6 +33,9 @@ abstract class ReferralRow
     this.scheduledReleaseAt,
     int? attempts,
     this.lastError,
+    int? outstandingRecoveryPoints,
+    bool? isRecoveryPending,
+    this.recoveryReason,
     int? dailyShareCount,
     int? monthlyShareCount,
     this.lastShareDate,
@@ -44,6 +47,8 @@ abstract class ReferralRow
        inviteeCouponIssued = inviteeCouponIssued ?? false,
        fraudScore = fraudScore ?? 0,
        attempts = attempts ?? 0,
+       outstandingRecoveryPoints = outstandingRecoveryPoints ?? 0,
+       isRecoveryPending = isRecoveryPending ?? false,
        dailyShareCount = dailyShareCount ?? 0,
        monthlyShareCount = monthlyShareCount ?? 0,
        createdAt = createdAt ?? DateTime.now(),
@@ -68,6 +73,9 @@ abstract class ReferralRow
     DateTime? scheduledReleaseAt,
     int? attempts,
     String? lastError,
+    int? outstandingRecoveryPoints,
+    bool? isRecoveryPending,
+    String? recoveryReason,
     int? dailyShareCount,
     int? monthlyShareCount,
     DateTime? lastShareDate,
@@ -124,6 +132,14 @@ abstract class ReferralRow
             ),
       attempts: jsonSerialization['attempts'] as int?,
       lastError: jsonSerialization['lastError'] as String?,
+      outstandingRecoveryPoints:
+          jsonSerialization['outstandingRecoveryPoints'] as int?,
+      isRecoveryPending: jsonSerialization['isRecoveryPending'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['isRecoveryPending'],
+            ),
+      recoveryReason: jsonSerialization['recoveryReason'] as String?,
       dailyShareCount: jsonSerialization['dailyShareCount'] as int?,
       monthlyShareCount: jsonSerialization['monthlyShareCount'] as int?,
       lastShareDate: jsonSerialization['lastShareDate'] == null
@@ -181,6 +197,12 @@ abstract class ReferralRow
 
   String? lastError;
 
+  int outstandingRecoveryPoints;
+
+  bool isRecoveryPending;
+
+  String? recoveryReason;
+
   int dailyShareCount;
 
   int monthlyShareCount;
@@ -216,6 +238,9 @@ abstract class ReferralRow
     DateTime? scheduledReleaseAt,
     int? attempts,
     String? lastError,
+    int? outstandingRecoveryPoints,
+    bool? isRecoveryPending,
+    String? recoveryReason,
     int? dailyShareCount,
     int? monthlyShareCount,
     DateTime? lastShareDate,
@@ -246,6 +271,9 @@ abstract class ReferralRow
         'scheduledReleaseAt': scheduledReleaseAt?.toJson(),
       'attempts': attempts,
       if (lastError != null) 'lastError': lastError,
+      'outstandingRecoveryPoints': outstandingRecoveryPoints,
+      'isRecoveryPending': isRecoveryPending,
+      if (recoveryReason != null) 'recoveryReason': recoveryReason,
       'dailyShareCount': dailyShareCount,
       'monthlyShareCount': monthlyShareCount,
       if (lastShareDate != null) 'lastShareDate': lastShareDate?.toJson(),
@@ -311,6 +339,9 @@ class _ReferralRowImpl extends ReferralRow {
     DateTime? scheduledReleaseAt,
     int? attempts,
     String? lastError,
+    int? outstandingRecoveryPoints,
+    bool? isRecoveryPending,
+    String? recoveryReason,
     int? dailyShareCount,
     int? monthlyShareCount,
     DateTime? lastShareDate,
@@ -335,6 +366,9 @@ class _ReferralRowImpl extends ReferralRow {
          scheduledReleaseAt: scheduledReleaseAt,
          attempts: attempts,
          lastError: lastError,
+         outstandingRecoveryPoints: outstandingRecoveryPoints,
+         isRecoveryPending: isRecoveryPending,
+         recoveryReason: recoveryReason,
          dailyShareCount: dailyShareCount,
          monthlyShareCount: monthlyShareCount,
          lastShareDate: lastShareDate,
@@ -365,6 +399,9 @@ class _ReferralRowImpl extends ReferralRow {
     Object? scheduledReleaseAt = _Undefined,
     int? attempts,
     Object? lastError = _Undefined,
+    int? outstandingRecoveryPoints,
+    bool? isRecoveryPending,
+    Object? recoveryReason = _Undefined,
     int? dailyShareCount,
     int? monthlyShareCount,
     Object? lastShareDate = _Undefined,
@@ -403,6 +440,12 @@ class _ReferralRowImpl extends ReferralRow {
           : this.scheduledReleaseAt,
       attempts: attempts ?? this.attempts,
       lastError: lastError is String? ? lastError : this.lastError,
+      outstandingRecoveryPoints:
+          outstandingRecoveryPoints ?? this.outstandingRecoveryPoints,
+      isRecoveryPending: isRecoveryPending ?? this.isRecoveryPending,
+      recoveryReason: recoveryReason is String?
+          ? recoveryReason
+          : this.recoveryReason,
       dailyShareCount: dailyShareCount ?? this.dailyShareCount,
       monthlyShareCount: monthlyShareCount ?? this.monthlyShareCount,
       lastShareDate: lastShareDate is DateTime?
@@ -515,6 +558,23 @@ class ReferralRowUpdateTable extends _i1.UpdateTable<ReferralRowTable> {
     value,
   );
 
+  _i1.ColumnValue<int, int> outstandingRecoveryPoints(int value) =>
+      _i1.ColumnValue(
+        table.outstandingRecoveryPoints,
+        value,
+      );
+
+  _i1.ColumnValue<bool, bool> isRecoveryPending(bool value) => _i1.ColumnValue(
+    table.isRecoveryPending,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> recoveryReason(String? value) =>
+      _i1.ColumnValue(
+        table.recoveryReason,
+        value,
+      );
+
   _i1.ColumnValue<int, int> dailyShareCount(int value) => _i1.ColumnValue(
     table.dailyShareCount,
     value,
@@ -621,6 +681,20 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
       'lastError',
       this,
     );
+    outstandingRecoveryPoints = _i1.ColumnInt(
+      'outstandingRecoveryPoints',
+      this,
+      hasDefault: true,
+    );
+    isRecoveryPending = _i1.ColumnBool(
+      'isRecoveryPending',
+      this,
+      hasDefault: true,
+    );
+    recoveryReason = _i1.ColumnString(
+      'recoveryReason',
+      this,
+    );
     dailyShareCount = _i1.ColumnInt(
       'dailyShareCount',
       this,
@@ -683,6 +757,12 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString lastError;
 
+  late final _i1.ColumnInt outstandingRecoveryPoints;
+
+  late final _i1.ColumnBool isRecoveryPending;
+
+  late final _i1.ColumnString recoveryReason;
+
   late final _i1.ColumnInt dailyShareCount;
 
   late final _i1.ColumnInt monthlyShareCount;
@@ -713,6 +793,9 @@ class ReferralRowTable extends _i1.Table<_i1.UuidValue?> {
     scheduledReleaseAt,
     attempts,
     lastError,
+    outstandingRecoveryPoints,
+    isRecoveryPending,
+    recoveryReason,
     dailyShareCount,
     monthlyShareCount,
     lastShareDate,

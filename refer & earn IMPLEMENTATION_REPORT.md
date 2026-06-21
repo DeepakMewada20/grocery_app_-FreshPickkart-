@@ -1,7 +1,7 @@
-# FreshPickKat — Implementation Report
+# Refer & Earn — Implementation Report
 
 > **Date:** June 21, 2026  
-> **Modules Covered:** Payment Infrastructure + Referral Growth System + Server Optimizations
+> **Modules Covered:** Payment Infrastructure + Referral & Earn Growth System + Server Optimizations + Hardening Phases A–I
 
 ---
 
@@ -14,6 +14,7 @@
 5. [Server-Side Optimizations](#5-server-side-optimizations)
 6. [Test Coverage](#6-test-coverage)
 7. [Database Schema Changes](#7-database-schema-changes)
+8. [Hardening Phases A–I](#8-hardening-phases-a-i-fraud-prevention--security)
 
 ---
 
@@ -701,13 +702,15 @@ Admin endpoints remain unchanged (need to see all coupons).
 
 ### 6.1 Test Summary
 
-| Suite | Type | Count | Status |
+ | Suite | Type | Count | Status |
 |-------|------|-------|--------|
 | Referral Code Generation | Unit | 4 | ✅ All pass |
 | Referral System | Integration | 26 | ✅ All pass |
+| Hardening — Fraud Rules | Unit | 3 | ✅ All pass |
+| Hardening — Full Flow | Integration | 14 | ✅ All pass |
 | Payment Link Flow | Integration | 4 | ✅ All pass |
 | Auto-Refund Jobs | Integration | 5 | ✅ All pass |
-| **Total** | | **39** | **✅ 39/39** |
+| **Total** | | **56** | **✅ 56/56** |
 
 ### 6.2 Referral Unit Tests (`test/unit/referral_code_test.dart`)
 
@@ -846,10 +849,57 @@ CREATE UNIQUE INDEX auto_refund_job_gateway_id_idx ON auto_refund_job(gateway_pa
 
 ### 7.2 Modified Tables
 
-**`app_user` — added column:**
+**`app_user` — added columns:**
 ```sql
 ALTER TABLE app_user ADD COLUMN referral_code TEXT;
 CREATE UNIQUE INDEX app_user_referral_code_idx ON app_user(referral_code);
+ALTER TABLE app_user ADD COLUMN termsAcceptedAt TIMESTAMP;
+```
+
+**`referral` — added columns (Phase A hardening):**
+```sql
+ALTER TABLE referral ADD COLUMN fraudScore BIGINT DEFAULT 0;
+ALTER TABLE referral ADD COLUMN fraudBreakdown TEXT;
+ALTER TABLE referral ADD COLUMN holdExpiresAt TIMESTAMP;
+ALTER TABLE referral ADD COLUMN scheduledReleaseAt TIMESTAMP;
+ALTER TABLE referral ADD COLUMN attempts BIGINT DEFAULT 0;
+ALTER TABLE referral ADD COLUMN lastError TEXT;
+ALTER TABLE referral ADD COLUMN dailyShareCount BIGINT DEFAULT 0;
+ALTER TABLE referral ADD COLUMN monthlyShareCount BIGINT DEFAULT 0;
+ALTER TABLE referral ADD COLUMN lastShareDate TIMESTAMP;
+```
+
+**`referral_settings` — added columns (Phase A hardening):**
+```sql
+-- Fraud scoring settings
+ALTER TABLE referral_settings ADD COLUMN enableFraudScoring BOOLEAN DEFAULT true;
+ALTER TABLE referral_settings ADD COLUMN autoApproveThreshold BIGINT DEFAULT 40;
+ALTER TABLE referral_settings ADD COLUMN manualReviewThreshold BIGINT DEFAULT 69;
+ALTER TABLE referral_settings ADD COLUMN autoRejectThreshold BIGINT DEFAULT 90;
+ALTER TABLE referral_settings ADD COLUMN enableRewardHold BOOLEAN DEFAULT true;
+ALTER TABLE referral_settings ADD COLUMN holdDurationHours BIGINT DEFAULT 72;
+ALTER TABLE referral_settings ADD COLUMN enableAutoReject BOOLEAN DEFAULT true;
+-- Qualification settings
+ALTER TABLE referral_settings ADD COLUMN minimumActualPaymentForQualification DOUBLE PRECISION DEFAULT 0;
+ALTER TABLE referral_settings ADD COLUMN maxRewardedPerDay BIGINT DEFAULT 3;
+ALTER TABLE referral_settings ADD COLUMN maxPendingReferrals BIGINT DEFAULT 50;
+-- Velocity/fraud settings
+ALTER TABLE referral_settings ADD COLUMN maxSharesPerDay BIGINT DEFAULT 100;
+ALTER TABLE referral_settings ADD COLUMN maxSharesPerMonth BIGINT DEFAULT 1000;
+ALTER TABLE referral_settings ADD COLUMN referralVelocityScore BIGINT DEFAULT 30;
+ALTER TABLE referral_settings ADD COLUMN velocityTimeWindowHours BIGINT DEFAULT 24;
+ALTER TABLE referral_settings ADD COLUMN velocityThreshold BIGINT DEFAULT 3;
+ALTER TABLE referral_settings ADD COLUMN newAccountScore BIGINT DEFAULT 20;
+ALTER TABLE referral_settings ADD COLUMN newAccountHours BIGINT DEFAULT 48;
+-- Reversal & terms
+ALTER TABLE referral_settings ADD COLUMN autoReversalWindowDays BIGINT DEFAULT 30;
+ALTER TABLE referral_settings ADD COLUMN termsText TEXT;
+```
+
+**`coupon` — added columns:**
+```sql
+ALTER TABLE coupon ADD COLUMN assignedUserId UUID;
+ALTER TABLE coupon ADD COLUMN assignedPhone TEXT;
 ```
 
 ### 7.3 Indexes Summary
@@ -908,6 +958,14 @@ CREATE UNIQUE INDEX app_user_referral_code_idx ON app_user(referral_code);
 | `test/integration/referral_test.dart` | 776 | Tests |
 | `test/integration/payment_link_flow_test.dart` | 231 | Tests |
 | `test/integration/auto_refund_job_test.dart` | 251 | Tests |
+| `lib/src/services/fraud/fraud_rule.dart` | — | Hardening (Phase B) |
+| `lib/src/services/fraud/rules/hard_reject_rules.dart` | — | Hardening (Phase B) |
+| `lib/src/services/fraud/rules/soft_score_rules.dart` | — | Hardening (Phase B) |
+| `lib/src/services/fraud/postgres_fraud_score_service.dart` | — | Hardening (Phases B–C) |
+| `lib/src/protocol/data_flow/referral_fraud_result.spy.yaml` | — | Hardening (Phase A) |
+| `lib/src/protocol/data_flow/referral_fraud_rule_result.spy.yaml` | — | Hardening (Phase A) |
+| `test/unit/fraud_rules_test.dart` | — | Hardening (Phase I) |
+| `test/integration/hardening_test.dart` | — | Hardening (Phase I) |
 
 ### Flutter (User App)
 
@@ -932,6 +990,262 @@ CREATE UNIQUE INDEX app_user_referral_code_idx ON app_user(referral_code);
 | `lib/controller/admin_referral_controller.dart` | Referral state management |
 | `lib/screens/payment_monitoring_screen.dart` | Auto-refund panel + health metrics |
 | `lib/screens/dashboard_screen.dart` | Referral mini-card + drawer entry |
+
+---
+
+## 8. Hardening Phases A–I (Fraud Prevention & Security)
+
+### 8.1 Phase A — Schema & Protocol
+
+**New columns on `referral_row`:**
+| Column | Type | Purpose |
+|--------|------|---------|
+| `fraudScore` | `int` (default 0) | Total fraud score from evaluation |
+| `fraudBreakdown` | `text` (nullable) | JSON of per-rule fraud results |
+| `holdExpiresAt` | `DateTime` (nullable) | When reward hold expires (72h default) |
+| `scheduledReleaseAt` | `DateTime` (nullable) | When held reward auto-releases |
+| `attempts` | `int` (default 0) | Retry count for held rewards |
+| `lastError` | `text` (nullable) | Last error message |
+| `dailyShareCount` | `int` (default 0) | Shares today |
+| `monthlyShareCount` | `int` (default 0) | Shares this month |
+| `lastShareDate` | `DateTime` (nullable) | Last share timestamp |
+
+**New columns on `referral_settings`:**
+| Category | Fields |
+|----------|--------|
+| Fraud Scoring | `enableFraudScoring`, `autoApproveThreshold` (40), `manualReviewThreshold` (69), `autoRejectThreshold` (90) |
+| Hold/Reject | `enableRewardHold` (true), `holdDurationHours` (72), `enableAutoReject` (true) |
+| Qualification | `minimumActualPaymentForQualification` (0), `maxRewardedPerDay` (3), `maxPendingReferrals` (50) |
+| Velocity/New Acct | `referralVelocityScore` (30), `velocityTimeWindowHours` (24), `velocityThreshold` (3), `newAccountScore` (20), `newAccountHours` (48) |
+| Share Limits | `maxSharesPerDay` (100), `maxSharesPerMonth` (1000) |
+| Reversal | `autoReversalWindowDays` (30) |
+| Terms | `termsText` (nullable) |
+
+**New protocols:** `ReferralFraudRuleResult` (per-rule detail), `ReferralFraudResult` (aggregate outcome)
+
+**Migration:** `20260621092616556`
+
+### 8.2 Phase B — Fraud Scoring Engine
+
+#### 8.2.1 Architecture
+```
+checkOrderForReward
+    │
+    └──→ PostgresFraudScoreService.evaluateReferral()
+          │
+          ├── Phase 1: Hard Reject Rules (score 999, immediate reject)
+          │   ├── SameUidRule: referrer == invitee
+          │   ├── SamePhoneRule: referrer phone == invitee phone
+          │   └── AlreadyRewardedRule: invitee already REWARDED
+          │
+          └── Phase 2: Soft Score Rules (only if no hard reject)
+              ├── SameAddressRule: shared address → escalating 20/40/70
+              ├── SamePaymentContactRule: shared UPI/payment → +30
+              ├── SamePayerNameRule: same name on payments → +20
+              ├── ReferralVelocityRule: >N referrals in window → configurable
+              └── NewAccountRule: account <N hours old → configurable
+```
+
+#### 8.2.2 Hybrid Outcome Routing
+
+| Score Range | Outcome | Action |
+|-------------|---------|--------|
+| 0–39 | `AUTO_APPROVE` | Reward processed immediately |
+| 40–69 | `MANUAL_REVIEW` | Status → `PENDING_REVIEW`, admin must approve |
+| 70–89 | `AUTO_HOLD` | Status → `REWARD_HELD`, 72h hold (`holdExpiresAt`) |
+| ≥90 | `AUTO_REJECT` | Status → `REJECTED`, score + breakdown stored |
+| 999 (hard reject) | `AUTO_REJECT` | Status → `REJECTED`, rule name in fraud notes |
+
+Overrides (settings): `enableAutoReject`, `enableRewardHold` can disable auto-reject/hold.
+
+#### 8.2.3 Rule Implementation
+
+**Interface** (`fraud_rule.dart`):
+```dart
+abstract class FraudRule {
+  String get name;
+  Future<FraudRuleResult> evaluate(Session session, ReferralRow referral);
+}
+class FraudRuleResult {
+  final String ruleName;
+  final int score;
+  final bool hardReject;
+  final String reason;
+  final Map<String, dynamic>? details;
+}
+```
+
+**Hard Reject Rules** (`hard_reject_rules.dart`):
+| Rule | Condition | Score | Reason |
+|------|-----------|-------|--------|
+| `SameUidRule` | `referrerUserId == inviteeUserId` | 999 | `'Self-referral'` |
+| `SamePhoneRule` | `app_user.phoneNumber` matches between referrer/invitee | 999 | `'Same phone number'` |
+| `AlreadyRewardedRule` | Existing REWARDED referral for same invitee | 999 | `'Already rewarded'` |
+
+**Soft Score Rules** (`soft_score_rules.dart`):
+| Rule | Logic | Max Score |
+|------|-------|-----------|
+| `SameAddressRule` | Count shared addresses → 1→20, 2→40, 3+→70 | 70 |
+| `SamePaymentContactRule` | Shared UPI/payment contact between users | 30 |
+| `SamePayerNameRule` | Same `payerName` in payment transactions | 20 |
+| `ReferralVelocityRule` | Referrals in window > threshold → score applied | Configurable |
+| `NewAccountRule` | Account age < threshold hours → score applied | Configurable |
+
+#### 8.2.4 Explainability
+
+Every fraud decision stores a per-rule breakdown:
+```json
+{
+  "totalScore": 50,
+  "outcome": "MANUAL_REVIEW",
+  "hardReject": false,
+  "ruleResults": [
+    {"ruleName": "SameUidRule", "score": 0, "passed": true, "reason": "Different user IDs"},
+    {"ruleName": "SameAddressRule", "score": 20, "passed": false, "reason": "1 shared address found"}
+  ]
+}
+```
+Storage: `referral_row.fraudBreakdown` (JSON text), `referral_row.fraudScore` (int).
+
+### 8.3 Phase C — Hybrid Reward Flow
+
+**Updated `checkOrderForReward` flow:**
+```
+checkOrderForReward → 11 guard checks → Fraud Scoring
+    │
+    ├── AUTO_APPROVE → _processReward() → status REWARDED
+    ├── MANUAL_REVIEW → status PENDING_REVIEW (admin approval needed)
+    ├── AUTO_HOLD → status REWARD_HELD, holdExpiresAt = now + 72h
+    ├── AUTO_REJECT → status REJECTED, fraud score + breakdown stored
+    └── Hard Reject → status REJECTED, fraud notes = rule name
+```
+
+**Release held rewards** (`releaseHeldRewards()`): Queries `REWARD_HELD` where `holdExpiresAt ≤ now`, processes each via `_processReward()`. Runs every 5 min via cron timer (`_holdReleaseLock=4200308`).
+
+**Approve reward** (`approveReward`): Handles `PENDING_REVIEW` → `REWARDED` path (admin approves manually flagged referrals).
+
+**Status descriptions:** `getMyReferralActivity` displays human-readable descriptions for `PENDING_REVIEW`, `REWARD_HELD`, `REVERSED`.
+
+### 8.4 Phase D — Qualification Hardening
+
+| Check | Setting | Behavior |
+|-------|---------|----------|
+| Minimum actual payment | `minimumActualPaymentForQualification` | `order.finalAmount < threshold` → no reward |
+| Daily cap | `maxRewardedPerDay` | Counts REWARDED referrals since midnight UTC; at/above limit → skip |
+| Max pending | `maxPendingReferrals` | `applyReferral` rejects if referrer has ≥ limit in SIGNED_UP/PENDING_REVIEW/REWARD_HELD |
+
+### 8.5 Phase E — Coupon Protection
+
+**Ownership fields** on `coupon_row`: `assignedUserId` (UUID) and `assignedPhone` (text).
+
+**Set during reward:** `_processReward` assigns coupon to invitee via:
+```dart
+CouponRow(
+  assignedUserId: referral.inviteeUserId,
+  assignedPhone: referral.inviteePhone,
+)
+```
+
+**Validation** in `_evaluateCoupon`:
+```dart
+if (coupon.assignedUserId != null && coupon.assignedUserId != user.id) {
+  return CouponValidationResult(isValid: false, errorMessage: 'Coupon not assigned to this user');
+}
+if (coupon.assignedPhone != null && coupon.assignedPhone != userPhone) {
+  return CouponValidationResult(isValid: false, errorMessage: 'Coupon not assigned to this phone');
+}
+```
+
+### 8.6 Phase F — Reward Reversal
+
+**`reverseReward()`:**
+1. Validates referral status is `REWARDED`
+2. Deducts `rewardPointsIssued` from referrer's `currentFreshPoints` and `totalEarned`
+3. Creates `FreshPointsTransactionRow` with `transactionType: 'REWARD_REVERSAL'`
+4. Sets `ReferralRow.status = 'REVERSED'`, resets `rewardPointsIssued = 0`, stores reason in `fraudNotes`
+
+**`autoReverseExpiredRewards()`:** Cron method — queries `REWARDED` referrals where `rewardIssuedAt` is beyond `autoReversalWindowDays` (configurable, default 30), calls `reverseReward` for each. Runs every 5 min via cron timer (`_autoReversalLock=4200309`).
+
+**Admin endpoints:** `reverseReward(referralId, reason)`, `autoReverseExpiredRewards()`.
+
+### 8.7 Phase G — Admin Fraud Dashboard (Server-Side)
+
+| Endpoint | Returns |
+|----------|---------|
+| `getFraudAnalytics()` | Total referrals, fraud-scored count, avg score, rejection rate, system health tags |
+| `getFraudBreakdown(referralId)` | `fraudScore` + parsed `fraudBreakdown` (List of rule results) |
+| `reverseReward(referralId, reason, actorFirebaseUid)` | Manual override reversal |
+
+No admin UI changes — endpoints are queryable via existing admin tools.
+
+### 8.8 Phase H — Terms & Conditions
+
+**Schema:** `app_user_row.termsAcceptedAt` — nullable `DateTime`, added via migration `20260621101601760`.
+
+**Service methods:**
+```dart
+Future<void> acceptTerms(Session session, int userId) async {
+  // Sets termsAcceptedAt = DateTime.now().toUtc()
+}
+Future<bool> hasAcceptedTerms(Session session, int userId) async {
+  // Returns termsAcceptedAt != null
+}
+```
+
+**Client UI** (`invite_earn_screen.dart`): Terms & Conditions text with checkbox. On accept, calls `referralService.acceptTerms(userId)`.
+
+### 8.9 Phase I — Hardening Tests
+
+**Unit tests** (`test/unit/fraud_rules_test.dart` — 3 tests):
+| Test | Assertion |
+|------|-----------|
+| `FraudRuleResult toJson` | toJson produces correct map |
+| `FraudRuleResult fromJson` | fromJson restores correctly |
+| `FraudRuleResult passed` | passed result serializes correctly |
+
+**Integration tests** (`test/integration/hardening_test.dart` — 14 tests):
+
+| Category | Tests |
+|----------|-------|
+| Fraud Scoring (4) | Low score → AUTO_APPROVE; SameUid → hard reject; SamePhone → scores; AlreadyRewarded → hard reject |
+| Qualification (3) | Minimum payment blocks; daily cap blocks; max pending blocks |
+| Coupon Protection (3) | assignedUserId blocks; assignedPhone blocks; own coupon works |
+| Reward Reversal (2) | Manual reverse deducts points; auto-reverse beyond window |
+| Fraud Breakdown (1) | getFraudBreakdown returns stored score + breakdown |
+| Terms (1) | acceptTerms stores timestamp |
+
+### 8.10 Phase J — Production Validation Tests
+
+**3 production validation tests** added to `test/integration/hardening_test.dart`:
+
+| Test | Scenario | Assertion |
+|------|----------|-----------|
+| **Concurrency** | Two sequential calls to `checkOrderForReward` | FOR UPDATE + inner re-check prevent duplicate reward |
+| **Idempotency** | Three sequential `checkOrderForReward` calls | Only 1 reward, 1 ledger, 1 coupon produced |
+| **Negative Balance** | User with 20 points, reversal of 50 | Balance → 0, `outstandingRecoveryPoints=30`, `isRecoveryPending=true` |
+
+**2 chaos retry tests** (also in `hardening_test.dart`):
+
+| Test | Scenario | Mechanism |
+|------|----------|-----------|
+| **Chaos A** | FreshPoints credited + ledger entry exists, but referral still SIGNED_UP | Idempotency guard skips duplicate points credit, completes status update |
+| **Chaos B** | Coupon exists, but referral still SIGNED_UP | Coupon insert is idempotent; FreshPoints credited once; status updated |
+
+**Idempotency guard added** inside `_processReward`: before crediting FreshPoints, checks for existing `FreshPointsTransactionRow` with `REFERRAL_REWARD` type for this referral. Prevents duplicate points on retry after crash mid-reward.
+
+### 8.11 Fraud Prevention Summary
+
+| Feature | Implementation |
+|---------|---------------|
+| Identity abuse | SameUidRule, SamePhoneRule (hard reject) |
+| Reward farming | AlreadyRewardedRule, daily cap, max pending |
+| Address fraud | SameAddressRule (escalating 20/40/70) |
+| Payment fraud | SamePaymentContactRule (+30), SamePayerNameRule (+20) |
+| Velocity abuse | ReferralVelocityRule (config window × threshold) |
+| Sybil attacks | NewAccountRule (age threshold) |
+| Coupon theft | assignedUserId + assignedPhone validation |
+| Reward clawback | reverseReward + autoReverseExpiredRewards |
+| Explainability | Per-rule fraudBreakdown JSON on every decision |
 
 ---
 
