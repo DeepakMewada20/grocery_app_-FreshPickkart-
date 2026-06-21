@@ -1,0 +1,15 @@
+class: ReferralAdminStats
+fields:
+  totalReferrals: int
+  qualifiedReferrals: int
+  rewardedReferrals: int
+  pendingReferrals: int
+  rejectedReferrals: int
+  expiredReferrals: int
+  totalPointsIssued: int
+  totalCouponsIssued: int
+  funnelShared: int
+  funnelSignedUp: int
+  funnelQualified: int
+  funnelRewarded: int
+  topReferrers: List<TopReferrerEntry>

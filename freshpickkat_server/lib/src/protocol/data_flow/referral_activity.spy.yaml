@@ -1,0 +1,7 @@
+class: ReferralActivity
+fields:
+  type: String
+  inviteePhone: String
+  description: String
+  pointsEarned: int?
+  createdAt: DateTime

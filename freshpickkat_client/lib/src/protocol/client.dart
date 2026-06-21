@@ -151,17 +151,25 @@ import 'package:freshpickkat_client/src/protocol/data_flow/product_form_referenc
     as _i72;
 import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
     as _i73;
-import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/referral_settings.dart'
     as _i74;
-import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/referral_code_info.dart'
     as _i75;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/referral_activity.dart'
     as _i76;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/referral_admin_stats.dart'
     as _i77;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
     as _i78;
-import 'protocol.dart' as _i79;
+import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
+    as _i79;
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+    as _i80;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i81;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i82;
+import 'protocol.dart' as _i83;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -3814,6 +3822,136 @@ class EndpointProductRanking extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointReferral extends _i1.EndpointRef {
+  EndpointReferral(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'referral';
+
+  _i2.Future<_i74.ReferralSettings> getSettings() =>
+      caller.callServerEndpoint<_i74.ReferralSettings>(
+        'referral',
+        'getSettings',
+        {},
+      );
+
+  _i2.Future<_i75.ReferralCodeInfo> getMyReferralCodeInfo(String userId) =>
+      caller.callServerEndpoint<_i75.ReferralCodeInfo>(
+        'referral',
+        'getMyReferralCodeInfo',
+        {'userId': userId},
+      );
+
+  _i2.Future<List<_i76.ReferralActivity>> getMyReferralActivity(
+    String userId,
+  ) => caller.callServerEndpoint<List<_i76.ReferralActivity>>(
+    'referral',
+    'getMyReferralActivity',
+    {'userId': userId},
+  );
+
+  _i2.Future<Map<String, dynamic>?> validateReferralCode(
+    String code,
+    String currentUserId,
+  ) => caller.callServerEndpoint<Map<String, dynamic>?>(
+    'referral',
+    'validateReferralCode',
+    {
+      'code': code,
+      'currentUserId': currentUserId,
+    },
+  );
+
+  _i2.Future<void> applyReferralCode(
+    String inviteeUserId,
+    String inviteePhone,
+    String referralCode,
+  ) => caller.callServerEndpoint<void>(
+    'referral',
+    'applyReferralCode',
+    {
+      'inviteeUserId': inviteeUserId,
+      'inviteePhone': inviteePhone,
+      'referralCode': referralCode,
+    },
+  );
+
+  _i2.Future<_i74.ReferralSettings> updateSettings(
+    _i74.ReferralSettings settings,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i74.ReferralSettings>(
+    'referral',
+    'updateSettings',
+    {
+      'settings': settings,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i77.ReferralAdminStats> getReferralAnalytics(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i77.ReferralAdminStats>(
+    'referral',
+    'getReferralAnalytics',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<Map<String, dynamic>> listReferrals(
+    String firebaseUid,
+    String idToken, {
+    required int limit,
+    String? pageToken,
+    String? statusFilter,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'referral',
+    'listReferrals',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+      'statusFilter': statusFilter,
+    },
+  );
+
+  _i2.Future<void> approveReward(
+    String referralId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<void>(
+    'referral',
+    'approveReward',
+    {
+      'referralId': referralId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<void> rejectReward(
+    String referralId,
+    String reason,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<void>(
+    'referral',
+    'rejectReward',
+    {
+      'referralId': referralId,
+      'reason': reason,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+}
+
+/// {@category Endpoint}
 class EndpointRefund extends _i1.EndpointRef {
   EndpointRefund(_i1.EndpointCaller caller) : super(caller);
 
@@ -3870,15 +4008,15 @@ class EndpointSubCategory extends _i1.EndpointRef {
   @override
   String get name => 'subCategory';
 
-  _i2.Future<List<_i74.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i74.SubCategory>>(
+  _i2.Future<List<_i78.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i78.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
       );
 
   _i2.Future<bool> uploadSubCategory(
-    _i74.SubCategory subCategory,
+    _i78.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -3894,7 +4032,7 @@ class EndpointSubCategory extends _i1.EndpointRef {
   _i2.Future<bool> updateSubCategory(
     String categoryName,
     String oldSubName,
-    _i74.SubCategory subCategory,
+    _i78.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -3933,7 +4071,7 @@ class EndpointSupport extends _i1.EndpointRef {
   @override
   String get name => 'support';
 
-  _i2.Future<_i75.SupportIssue> submitIssue({
+  _i2.Future<_i79.SupportIssue> submitIssue({
     required String firebaseUid,
     required String idToken,
     required String issueType,
@@ -3943,7 +4081,7 @@ class EndpointSupport extends _i1.EndpointRef {
     required String appVersion,
     required String buildNumber,
     required String deviceInfo,
-  }) => caller.callServerEndpoint<_i75.SupportIssue>(
+  }) => caller.callServerEndpoint<_i79.SupportIssue>(
     'support',
     'submitIssue',
     {
@@ -3959,13 +4097,13 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i75.SupportIssue>> listSupportIssues(
+  _i2.Future<List<_i79.SupportIssue>> listSupportIssues(
     String firebaseUid,
     String idToken, {
     String? status,
     required int limit,
     required int offset,
-  }) => caller.callServerEndpoint<List<_i75.SupportIssue>>(
+  }) => caller.callServerEndpoint<List<_i79.SupportIssue>>(
     'support',
     'listSupportIssues',
     {
@@ -3977,11 +4115,11 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i75.SupportIssue?> getSupportIssueDetail(
+  _i2.Future<_i79.SupportIssue?> getSupportIssueDetail(
     String firebaseUid,
     String idToken,
     String issueId,
-  ) => caller.callServerEndpoint<_i75.SupportIssue?>(
+  ) => caller.callServerEndpoint<_i79.SupportIssue?>(
     'support',
     'getSupportIssueDetail',
     {
@@ -3991,12 +4129,12 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i75.SupportIssue> updateSupportIssueStatus(
+  _i2.Future<_i79.SupportIssue> updateSupportIssueStatus(
     String firebaseUid,
     String idToken,
     String issueId,
     String status,
-  ) => caller.callServerEndpoint<_i75.SupportIssue>(
+  ) => caller.callServerEndpoint<_i79.SupportIssue>(
     'support',
     'updateSupportIssueStatus',
     {
@@ -4031,7 +4169,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i76.CartItem> cart,
+    List<_i80.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -4052,17 +4190,31 @@ class EndpointUser extends _i1.EndpointRef {
       'token': token,
     },
   );
+
+  _i2.Future<void> applyReferralCode(
+    String userId,
+    String phone,
+    String referralCode,
+  ) => caller.callServerEndpoint<void>(
+    'user',
+    'applyReferralCode',
+    {
+      'userId': userId,
+      'phone': phone,
+      'referralCode': referralCode,
+    },
+  );
 }
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i77.Caller(client);
-    serverpod_auth_core = _i78.Caller(client);
+    serverpod_auth_idp = _i81.Caller(client);
+    serverpod_auth_core = _i82.Caller(client);
   }
 
-  late final _i77.Caller serverpod_auth_idp;
+  late final _i81.Caller serverpod_auth_idp;
 
-  late final _i78.Caller serverpod_auth_core;
+  late final _i82.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -4085,7 +4237,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i79.Protocol(),
+         _i83.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -4123,6 +4275,7 @@ class Client extends _i1.ServerpodClientShared {
     productForm = EndpointProductForm(this);
     productPg = EndpointProductPg(this);
     productRanking = EndpointProductRanking(this);
+    referral = EndpointReferral(this);
     refund = EndpointRefund(this);
     subCategory = EndpointSubCategory(this);
     support = EndpointSupport(this);
@@ -4188,6 +4341,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointProductRanking productRanking;
 
+  late final EndpointReferral referral;
+
   late final EndpointRefund refund;
 
   late final EndpointSubCategory subCategory;
@@ -4229,6 +4384,7 @@ class Client extends _i1.ServerpodClientShared {
     'productForm': productForm,
     'productPg': productPg,
     'productRanking': productRanking,
+    'referral': referral,
     'refund': refund,
     'subCategory': subCategory,
     'support': support,

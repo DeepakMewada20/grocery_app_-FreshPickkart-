@@ -16,6 +16,7 @@ import 'package:freshpickkat_flutter/screens/help_support_screen.dart'
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
     deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/fresh_points_history_screen.dart';
+import 'package:freshpickkat_flutter/screens/invite_earn_screen.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
     deferred as location_picker_screen;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
@@ -102,6 +103,18 @@ class _MoreScreenState extends State<MoreScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const FreshPointsHistoryScreen(),
+                      ),
+                    );
+                  },
+                  cs: cs,
+                ),
+                _buildMenuItem(
+                  icon: Icons.group_add_outlined,
+                  title: 'Invite & Earn',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const InviteEarnScreen(),
                       ),
                     );
                   },

@@ -30,6 +30,7 @@ abstract class AppUser
     required this.currentFreshPoints,
     required this.totalEarned,
     required this.totalRedeemed,
+    this.referralCode,
   });
 
   factory AppUser({
@@ -45,6 +46,7 @@ abstract class AppUser
     required int currentFreshPoints,
     required int totalEarned,
     required int totalRedeemed,
+    String? referralCode,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -69,6 +71,7 @@ abstract class AppUser
       currentFreshPoints: jsonSerialization['currentFreshPoints'] as int,
       totalEarned: jsonSerialization['totalEarned'] as int,
       totalRedeemed: jsonSerialization['totalRedeemed'] as int,
+      referralCode: jsonSerialization['referralCode'] as String?,
     );
   }
 
@@ -96,6 +99,8 @@ abstract class AppUser
 
   int totalRedeemed;
 
+  String? referralCode;
+
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -112,6 +117,7 @@ abstract class AppUser
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    String? referralCode,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -130,6 +136,7 @@ abstract class AppUser
       'currentFreshPoints': currentFreshPoints,
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
+      if (referralCode != null) 'referralCode': referralCode,
     };
   }
 
@@ -152,6 +159,7 @@ abstract class AppUser
       'currentFreshPoints': currentFreshPoints,
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
+      if (referralCode != null) 'referralCode': referralCode,
     };
   }
 
@@ -177,6 +185,7 @@ class _AppUserImpl extends AppUser {
     required int currentFreshPoints,
     required int totalEarned,
     required int totalRedeemed,
+    String? referralCode,
   }) : super._(
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
@@ -190,6 +199,7 @@ class _AppUserImpl extends AppUser {
          currentFreshPoints: currentFreshPoints,
          totalEarned: totalEarned,
          totalRedeemed: totalRedeemed,
+         referralCode: referralCode,
        );
 
   /// Returns a shallow copy of this [AppUser]
@@ -209,6 +219,7 @@ class _AppUserImpl extends AppUser {
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    Object? referralCode = _Undefined,
   }) {
     return AppUser(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -229,6 +240,7 @@ class _AppUserImpl extends AppUser {
       currentFreshPoints: currentFreshPoints ?? this.currentFreshPoints,
       totalEarned: totalEarned ?? this.totalEarned,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
+      referralCode: referralCode is String? ? referralCode : this.referralCode,
     );
   }
 }

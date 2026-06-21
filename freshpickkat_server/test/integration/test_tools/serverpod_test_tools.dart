@@ -155,12 +155,20 @@ import 'package:freshpickkat_server/src/generated/data_flow/product_form_referen
     as _i73;
 import 'package:freshpickkat_server/src/generated/data_flow/product_ranking_item.dart'
     as _i74;
-import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_settings.dart'
     as _i75;
-import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_code_info.dart'
     as _i76;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_activity.dart'
     as _i77;
+import 'package:freshpickkat_server/src/generated/data_flow/referral_admin_stats.dart'
+    as _i78;
+import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+    as _i79;
+import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
+    as _i80;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i81;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -225,6 +233,11 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// }
 /// ```
 ///
+/// [configOverride] A function to override the server configuration. This function is called with
+/// the default server configuration after it is loaded from the config/ directory
+/// and before it is used to start the server. Use this to override particular
+/// settings in the server configuration.
+///
 /// [testGroupTagsOverride] By default Serverpod test tools tags the `withServerpod` test group with `"integration"`.
 /// This is to provide a simple way to only run unit or integration tests.
 /// This property allows this tag to be overridden to something else. Defaults to `['integration']`.
@@ -235,6 +248,7 @@ void withServerpod(
   String testGroupName,
   _i1.TestClosure<TestEndpoints> testClosure, {
   bool? applyMigrations,
+  _i2.ServerpodConfig Function(_i2.ServerpodConfig)? configOverride,
   bool? enableSessionLogging,
   _i2.ExperimentalFeatures? experimentalFeatures,
   _i1.RollbackDatabase? rollbackDatabase,
@@ -325,6 +339,8 @@ class TestEndpoints {
   late final _ProductPgEndpoint productPg;
 
   late final _ProductRankingEndpoint productRanking;
+
+  late final _ReferralEndpoint referral;
 
   late final _RefundEndpoint refund;
 
@@ -455,6 +471,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     productRanking = _ProductRankingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    referral = _ReferralEndpoint(
       endpoints,
       serializationManager,
     );
@@ -9731,6 +9751,370 @@ class _ProductRankingEndpoint {
   }
 }
 
+class _ReferralEndpoint {
+  _ReferralEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i75.ReferralSettings> getSettings(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'getSettings',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'getSettings',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i75.ReferralSettings>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i76.ReferralCodeInfo> getMyReferralCodeInfo(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'getMyReferralCodeInfo',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'getMyReferralCodeInfo',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i76.ReferralCodeInfo>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i77.ReferralActivity>> getMyReferralActivity(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'getMyReferralActivity',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'getMyReferralActivity',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i77.ReferralActivity>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>?> validateReferralCode(
+    _i1.TestSessionBuilder sessionBuilder,
+    String code,
+    String currentUserId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'validateReferralCode',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'validateReferralCode',
+          parameters: _i1.testObjectToJson({
+            'code': code,
+            'currentUserId': currentUserId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> applyReferralCode(
+    _i1.TestSessionBuilder sessionBuilder,
+    String inviteeUserId,
+    String inviteePhone,
+    String referralCode,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'applyReferralCode',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'applyReferralCode',
+          parameters: _i1.testObjectToJson({
+            'inviteeUserId': inviteeUserId,
+            'inviteePhone': inviteePhone,
+            'referralCode': referralCode,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i75.ReferralSettings> updateSettings(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i75.ReferralSettings settings,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'updateSettings',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'updateSettings',
+          parameters: _i1.testObjectToJson({
+            'settings': settings,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i75.ReferralSettings>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i78.ReferralAdminStats> getReferralAnalytics(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'getReferralAnalytics',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'getReferralAnalytics',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i78.ReferralAdminStats>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<Map<String, dynamic>> listReferrals(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken, {
+    required int limit,
+    String? pageToken,
+    String? statusFilter,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'listReferrals',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'listReferrals',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'limit': limit,
+            'pageToken': pageToken,
+            'statusFilter': statusFilter,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> approveReward(
+    _i1.TestSessionBuilder sessionBuilder,
+    String referralId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'approveReward',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'approveReward',
+          parameters: _i1.testObjectToJson({
+            'referralId': referralId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> rejectReward(
+    _i1.TestSessionBuilder sessionBuilder,
+    String referralId,
+    String reason,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'rejectReward',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'rejectReward',
+          parameters: _i1.testObjectToJson({
+            'referralId': referralId,
+            'reason': reason,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _RefundEndpoint {
   _RefundEndpoint(
     this._endpointDispatch,
@@ -9863,7 +10247,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i75.SubCategory>> getSubCategories(
+  _i3.Future<List<_i79.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -9885,7 +10269,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i75.SubCategory>>);
+                as _i3.Future<List<_i79.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -9895,7 +10279,7 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i75.SubCategory subCategory,
+    _i79.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -9934,7 +10318,7 @@ class _SubCategoryEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String categoryName,
     String oldSubName,
-    _i75.SubCategory subCategory,
+    _i79.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -10021,7 +10405,7 @@ class _SupportEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i76.SupportIssue> submitIssue(
+  _i3.Future<_i80.SupportIssue> submitIssue(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,
     required String idToken,
@@ -10062,7 +10446,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i76.SupportIssue>);
+                as _i3.Future<_i80.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10070,7 +10454,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<List<_i76.SupportIssue>> listSupportIssues(
+  _i3.Future<List<_i80.SupportIssue>> listSupportIssues(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken, {
@@ -10103,7 +10487,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i76.SupportIssue>>);
+                as _i3.Future<List<_i80.SupportIssue>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10111,7 +10495,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i76.SupportIssue?> getSupportIssueDetail(
+  _i3.Future<_i80.SupportIssue?> getSupportIssueDetail(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -10140,7 +10524,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i76.SupportIssue?>);
+                as _i3.Future<_i80.SupportIssue?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10148,7 +10532,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i76.SupportIssue> updateSupportIssueStatus(
+  _i3.Future<_i80.SupportIssue> updateSupportIssueStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -10179,7 +10563,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i76.SupportIssue>);
+                as _i3.Future<_i80.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10263,7 +10647,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i77.CartItem> cart,
+    List<_i81.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -10323,6 +10707,43 @@ class _UserEndpoint {
                   _localCallContext.arguments,
                 )
                 as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<void> applyReferralCode(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+    String phone,
+    String referralCode,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'user',
+            method: 'applyReferralCode',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'user',
+          methodName: 'applyReferralCode',
+          parameters: _i1.testObjectToJson({
+            'userId': userId,
+            'phone': phone,
+            'referralCode': referralCode,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<void>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

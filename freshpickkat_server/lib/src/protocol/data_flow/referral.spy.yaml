@@ -1,0 +1,11 @@
+class: Referral
+fields:
+  id: String
+  referrerUserId: String
+  inviteeUserId: String?
+  inviteePhone: String
+  status: String
+  qualifyingOrderAmount: double
+  rewardPointsIssued: int
+  createdAt: DateTime
+  updatedAt: DateTime

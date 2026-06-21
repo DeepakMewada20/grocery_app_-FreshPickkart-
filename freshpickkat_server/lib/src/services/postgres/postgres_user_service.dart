@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import '../bogo/bogo_eligibility.dart';
+import 'postgres_referral_service.dart';
 import 'postgres_support.dart';
 import 'postgres_offer_service.dart';
 import 'postgres_product_compat_service.dart';
@@ -47,7 +48,8 @@ class PostgresUserService {
       );
 
       final role = cleanNullableString(user.role) ?? 'user';
-      final persisted = existing == null
+      final isNewUser = existing == null;
+      final persisted = isNewUser
           ? await AppUserRow.db.insertRow(
               session,
               AppUserRow(
@@ -99,6 +101,11 @@ class PostgresUserService {
           cart: user.cart!,
           transaction: transaction,
         );
+      }
+
+      if (isNewUser) {
+        final referral = PostgresReferralService();
+        await referral.getOrCreateReferralCodeForUser(session, persistedId);
       }
     });
 

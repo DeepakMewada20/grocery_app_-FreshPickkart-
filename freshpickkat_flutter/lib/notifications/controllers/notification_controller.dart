@@ -23,6 +23,8 @@ import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
     deferred as order_detail_screen;
 import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart'
     deferred as offers_screen;
+import 'package:freshpickkat_flutter/screens/invite_earn_screen.dart'
+    deferred as invite_earn_screen;
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart'
     deferred as order_tracking_map_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
@@ -379,6 +381,12 @@ class NotificationController extends GetxController {
             ),
           );
         }
+        return;
+      case 'referral_reward':
+        await navigateDeferred(
+          loadLibrary: invite_earn_screen.loadLibrary,
+          pageBuilder: () => invite_earn_screen.InviteEarnScreen(),
+        );
         return;
       case 'delivery':
         await navigateDeferred(

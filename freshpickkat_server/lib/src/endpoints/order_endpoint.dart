@@ -8,6 +8,7 @@ import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_delivery_otp_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
+import '../services/postgres/postgres_referral_service.dart';
 import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
 import '../services/realtime/realtime_service.dart';
@@ -42,6 +43,7 @@ class OrderEndpoint extends Endpoint {
   final PostgresDeliveryOtpService _deliveryOtp = PostgresDeliveryOtpService();
   final FirebaseNotificationService _notifications =
       FirebaseNotificationService();
+  final PostgresReferralService _referral = PostgresReferralService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
     return _orders.createOrder(session, order);
@@ -213,6 +215,8 @@ class OrderEndpoint extends Endpoint {
       status: newStatus,
     );
 
+    await _referral.checkOrderForReward(session, orderId);
+
     return true;
   }
 
@@ -344,6 +348,8 @@ class OrderEndpoint extends Endpoint {
           userId: order.userId,
           status: 'confirmed',
         );
+
+        await _referral.checkOrderForReward(session, orderId);
       }
     }
     return updated;
@@ -412,6 +418,8 @@ class OrderEndpoint extends Endpoint {
           status: 'cancelled',
         );
 
+        await _referral.checkOrderForReward(session, orderId);
+
         return protocol.PaymentActionResult(
           success: true,
           status: 'refunded',
@@ -455,9 +463,10 @@ class OrderEndpoint extends Endpoint {
       status: 'cancelled',
     );
 
+    await _referral.checkOrderForReward(session, orderId);
+
     return protocol.PaymentActionResult(
       success: true,
-      status: 'cancelled',
       message: 'Order cancelled successfully.',
     );
   }
@@ -690,6 +699,7 @@ class OrderEndpoint extends Endpoint {
         userId: updatedOrder.userId,
         status: statusDeliveryOtpPending,
       );
+      await _referral.checkOrderForReward(session, orderId);
       await RealtimeService().broadcastOrderEvent(
         session,
         protocol.OrderRealtimeEvent(
@@ -763,6 +773,7 @@ class OrderEndpoint extends Endpoint {
         userId: updatedOrder.userId,
         status: statusDelivered,
       );
+      await _referral.checkOrderForReward(session, orderId);
       await RealtimeService().broadcastOrderEvent(
         session,
         protocol.OrderRealtimeEvent(

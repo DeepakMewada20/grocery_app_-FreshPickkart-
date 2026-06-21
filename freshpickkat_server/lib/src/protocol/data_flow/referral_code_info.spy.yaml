@@ -1,0 +1,8 @@
+class: ReferralCodeInfo
+fields:
+  referralCode: String
+  shareLink: String
+  shareMessage: String
+  totalReferred: int
+  totalQualified: int
+  totalRewardsEarned: int

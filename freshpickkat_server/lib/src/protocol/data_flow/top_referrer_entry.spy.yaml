@@ -1,0 +1,9 @@
+class: TopReferrerEntry
+fields:
+  userId: String
+  name: String
+  phone: String
+  referralCount: int
+  rewardPointsIssued: int
+  qualificationRate: double
+  lastActivity: DateTime?

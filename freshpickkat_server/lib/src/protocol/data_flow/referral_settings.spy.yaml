@@ -1,0 +1,16 @@
+class: ReferralSettings
+fields:
+  isEnabled: bool
+  inviteeCouponEnabled: bool
+  inviteeCouponAmount: double
+  inviteeCouponCodeTemplate: String
+  referrerPointsEnabled: bool
+  referrerRewardPoints: int
+  minimumQualifyingAmount: double
+  rewardTriggerStatus: String
+  maxRewardedPerMonth: int
+  enableFraudProtection: bool
+  enableReferralExpiry: bool
+  referralExpiryDays: int
+  shareMessageTemplate: String
+  updatedAt: DateTime

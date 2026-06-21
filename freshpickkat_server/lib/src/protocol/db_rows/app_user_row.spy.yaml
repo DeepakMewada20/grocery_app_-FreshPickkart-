@@ -14,9 +14,13 @@ fields:
   currentFreshPoints: int, default=0
   totalEarned: int, default=0
   totalRedeemed: int, default=0
+  referralCode: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:
   app_user_firebase_uid_idx:
     fields: firebaseUid
+    unique: true
+  app_user_referral_code_idx:
+    fields: referralCode
     unique: true

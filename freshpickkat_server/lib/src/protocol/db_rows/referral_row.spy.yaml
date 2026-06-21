@@ -1,0 +1,26 @@
+class: ReferralRow
+serverOnly: true
+table: referral
+fields:
+  id: UuidValue?, defaultPersist=random
+  referrerUserId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  inviteeUserId: UuidValue?
+  inviteePhone: String
+  referralCodeUsed: String
+  status: String, default='LINK_SHARED'
+  qualifyingOrderId: UuidValue?
+  qualifyingOrderAmount: double, default=0.0
+  rewardPointsIssued: int, default=0
+  inviteeCouponIssued: bool, default=false
+  rewardIssuedAt: DateTime?
+  fraudNotes: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  referral_referrer_idx:
+    fields: referrerUserId
+  referral_invitee_idx:
+    fields: inviteeUserId
+    unique: true
+  referral_code_status_idx:
+    fields: referralCodeUsed, status

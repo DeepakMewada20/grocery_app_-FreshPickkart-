@@ -12,3 +12,4 @@ fields:
   currentFreshPoints: int
   totalEarned: int
   totalRedeemed: int
+  referralCode: String?

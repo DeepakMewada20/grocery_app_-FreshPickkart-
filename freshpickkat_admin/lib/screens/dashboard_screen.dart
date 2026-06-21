@@ -14,6 +14,7 @@ import 'address_change_requests_screen.dart';
 import 'complaint_management_screen.dart';
 import 'support_issue_management_screen.dart';
 import 'payment_monitoring_screen.dart';
+import 'referral_dashboard_screen.dart';
 import 'cancellation_requests_screen.dart';
 import 'customers_screen.dart';
 import 'live_delivery_screen.dart';
@@ -116,6 +117,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   value: _asCurrency(stats.totalRevenue),
                   icon: Icons.savings_outlined,
                   color: AdminAppTheme.getPinkColor(context),
+                ),
+                _statCard(
+                  title: 'Referral',
+                  value: 'View',
+                  icon: Icons.group_add_outlined,
+                  color: AdminAppTheme.getTealColor(context),
                 ),
               ];
 
@@ -415,6 +422,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => const PaymentMonitoringScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.group_add_outlined),
+              title: Text('Referral Dashboard'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReferralDashboardScreen(),
                   ),
                 );
               },

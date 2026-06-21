@@ -27,6 +27,7 @@ abstract class AppUserRow
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    this.referralCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : role = role ?? 'customer',
@@ -50,6 +51,7 @@ abstract class AppUserRow
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    String? referralCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _AppUserRowImpl;
@@ -74,6 +76,7 @@ abstract class AppUserRow
       currentFreshPoints: jsonSerialization['currentFreshPoints'] as int?,
       totalEarned: jsonSerialization['totalEarned'] as int?,
       totalRedeemed: jsonSerialization['totalRedeemed'] as int?,
+      referralCode: jsonSerialization['referralCode'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -112,6 +115,8 @@ abstract class AppUserRow
 
   int totalRedeemed;
 
+  String? referralCode;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -135,6 +140,7 @@ abstract class AppUserRow
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    String? referralCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -154,6 +160,7 @@ abstract class AppUserRow
       'currentFreshPoints': currentFreshPoints,
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
+      if (referralCode != null) 'referralCode': referralCode,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -210,6 +217,7 @@ class _AppUserRowImpl extends AppUserRow {
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    String? referralCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -225,6 +233,7 @@ class _AppUserRowImpl extends AppUserRow {
          currentFreshPoints: currentFreshPoints,
          totalEarned: totalEarned,
          totalRedeemed: totalRedeemed,
+         referralCode: referralCode,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -246,6 +255,7 @@ class _AppUserRowImpl extends AppUserRow {
     int? currentFreshPoints,
     int? totalEarned,
     int? totalRedeemed,
+    Object? referralCode = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -264,6 +274,7 @@ class _AppUserRowImpl extends AppUserRow {
       currentFreshPoints: currentFreshPoints ?? this.currentFreshPoints,
       totalEarned: totalEarned ?? this.totalEarned,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
+      referralCode: referralCode is String? ? referralCode : this.referralCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -328,6 +339,12 @@ class AppUserRowUpdateTable extends _i1.UpdateTable<AppUserRowTable> {
     table.totalRedeemed,
     value,
   );
+
+  _i1.ColumnValue<String, String> referralCode(String? value) =>
+      _i1.ColumnValue(
+        table.referralCode,
+        value,
+      );
 
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
@@ -394,6 +411,10 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    referralCode = _i1.ColumnString(
+      'referralCode',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -430,6 +451,8 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt totalRedeemed;
 
+  late final _i1.ColumnString referralCode;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -448,6 +471,7 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
     currentFreshPoints,
     totalEarned,
     totalRedeemed,
+    referralCode,
     createdAt,
     updatedAt,
   ];

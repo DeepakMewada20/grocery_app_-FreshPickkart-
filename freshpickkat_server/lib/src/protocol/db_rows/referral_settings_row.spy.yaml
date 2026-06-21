@@ -1,0 +1,20 @@
+class: ReferralSettingsRow
+serverOnly: true
+table: referral_settings
+fields:
+  id: UuidValue?, defaultPersist=random
+  isEnabled: bool, default=true
+  inviteeCouponEnabled: bool, default=true
+  inviteeCouponAmount: double, default=50.0
+  inviteeCouponCodeTemplate: String, default='WELCOME{CODE}'
+  referrerPointsEnabled: bool, default=true
+  referrerRewardPoints: int, default=50
+  minimumQualifyingAmount: double, default=0.0
+  rewardTriggerStatus: String, default='DELIVERED'
+  maxRewardedPerMonth: int, default=20
+  enableFraudProtection: bool, default=true
+  enableReferralExpiry: bool, default=false
+  referralExpiryDays: int, default=90
+  shareMessageTemplate: String, default='Join FreshPickKat using my referral code {CODE}. Get ₹50 OFF on your first order!'
+  lastUpdatedBy: UuidValue?
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

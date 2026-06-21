@@ -1,7 +1,7 @@
 ## Goal
-Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module 4 (Admin + Cron) — complete.
+Module 2 (Referral Growth System): Phases 1-7 (protocol, service, endpoint, integration, admin UI, user UI, notifications) — complete.
 
-## Current Task: (completed) Full payment infrastructure — Modules 2/3/4
+## Current Task: (completed) Full referral system — Phases 1-8
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -15,6 +15,18 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - All server hydration must be internal — client apps call one endpoint per screen
 
 ## Done
+### Module 2 — Referral Growth System (Phases 1-7)
+- **Phase 1**: 8 protocol models + DB migration (`referral`, `referral_settings` tables, `app_user.referralCode` column)
+- **Phase 2**: `PostgresReferralService` (~700 lines) — code generation, validation, apply referral, user stats, reward engine (`checkOrderForReward` + `_processReward`), settings CRUD, admin analytics/list/approve/reject
+- **Phase 3**: `ReferralEndpoint` — 8 user/admin methods (get code info, activity, settings, analytics, paginated referrals, approve/reject)
+- **Phase 4**: Integration hooks — referral code auto-generation on new user signup (`postgres_user_service.dart`), `applyReferralCode()` on `user_endpoint.dart`, 6 `checkOrderForReward()` hooks in `order_endpoint.dart` (after every `enqueueOrderStatusChanged`)
+- **Phase 5a**: `AdminReferralController` — GetX with settings/analytics/referrals state, load/save/approve/reject
+- **Phase 5b**: `ReferralSettingsScreen` — 12 settings fields (toggles, text inputs, dropdown for trigger status)
+- **Phase 5c**: `ReferralDashboardScreen` — stats grid, funnel chart, top referrers, paginated referral list with approve/reject dialogs
+- **Phase 5d**: Dashboard mini-card + drawer entry + settings screen menu item
+- **Phase 6**: `InviteEarnScreen` — code card with gradient + copy, stats row (invited/qualified/earned), share buttons (Share, WhatsApp, Copy), activity timeline; "Invite & Earn" menu item in More screen
+- **Phase 7**: Push notification on reward — referrer notified via personal FCM topic (`user-{firebaseUid}`), type `referral_reward`, client routes to `InviteEarnScreen`
+- **Phase 8**: 30 tests (4 unit + 26 integration) — code generation, validation, apply, stats/activity, reward engine (happy path + edge cases), settings CRUD, admin analytics, paginated list, approve/reject
 ### Basket Suggestion: Free Delivery Products
 - **`BasketSuggestionService._scoreFreeDeliveryProducts()`**: New method — fetches products with `isFreeDelivery = true`, suggests those not in cart, calculates savings as current delivery fee; integrated into Phase 2 (filled basket) and empty mode
 - **Phase 1 fetch**: `ProductEndpoint().getProducts(session, freeDelivery: true, limit: 6)` called after other data fetches at `basket_suggestion_service.dart:140`
@@ -63,7 +75,9 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - **Admin offers screen**: 8 controllers, lower impact; already parallel via `Future.wait`; composite endpoint would not significantly reduce latency
 - **Admin offers screen controllers**: BOGO, combo, category offer, coupon, banner controllers still use paginated loads internally
 
-## Test Status — 9/9 passing
+## Test Status — 39/39 passing
+- **Referral tests** (30 new): 4 unit + 26 integration — all pass
+- **Existing tests** (9): payment_link_flow (4), auto_refund_job (5) — all pass
 - **`payment_link_flow_test.dart`** (4 tests): `getPaymentSessionStatus`, `disablePaymentLink`, `expireStaleSessions`, `completePaymentVerification` — all pass with seeded user + order (FK constraints satisfied)
 - **`auto_refund_job_test.dart`** (5 tests): duplicate creates job, identical gatewayPaymentId dedup, createJob dedup, updateJobStatus, loadPendingJobs — all pass using `_seedCompletedOrder` helper
 - Tests use `withServerpod` pattern (real DB, auto-rollback), seed via `AppUserRow` + `CustomerOrderRow` + `PaymentTransactionRow` protocol inserts
@@ -80,7 +94,10 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - Admin product form dialog uses local lists instead of GetX controllers (simpler, no reactive overhead)
 
 ## Next Steps
-1. User to fill `RAZORPAY_WEBHOOK_SECRET` in `freshpickkat_server/.env` from Razorpay Dashboard
+### Module 2 complete — all 8 phases done
+
+### Infrastructure
+5. User to fill `RAZORPAY_WEBHOOK_SECRET` in `freshpickkat_server/.env` from Razorpay Dashboard
 2. Run end-to-end testing on device/emulator — verify category screen tap-to-scroll works on first load and subsequent taps
 3. Verify offer badges on user app product cards (BOGO, FREE DELIVERY, %/₹ OFF)
 4. Verify offer chips on admin product cards (BOGO, COMBO, FREE DELIVERY, CATEGORY OFFER, %/₹ OFF)
@@ -215,3 +232,15 @@ Payment infrastructure: Module 2 (Payment Links), Module 3 (Auto-Refund), Module
 - `freshpickkat_admin/lib/screens/payment_monitoring_screen.dart`: `_AutoRefundPanel`, `_AutoRefundJobCard`, health metrics banner
 - `freshpickkat_flutter/lib/widgets/payment_session_sheet.dart`: payment link countdown/retry sheet
 - `freshpickkat_flutter/lib/services/payment_link_service.dart`: payment link HTTP calls
+- `freshpickkat_server/lib/src/protocol/db_rows/referral_row.spy.yaml`: referral DB table
+- `freshpickkat_server/lib/src/protocol/db_rows/referral_settings_row.spy.yaml`: referral settings table
+- `freshpickkat_server/lib/src/protocol/data_flow/referral.spy.yaml`, `referral_settings.spy.yaml`, `referral_code_info.spy.yaml`, `referral_activity.spy.yaml`, `referral_admin_stats.spy.yaml`, `top_referrer_entry.spy.yaml`: referral DTOs
+- `freshpickkat_server/lib/src/services/postgres/postgres_referral_service.dart`: core referral service (~700 lines, reward engine)
+- `freshpickkat_server/lib/src/endpoints/referral_endpoint.dart`: referral API endpoints
+- `freshpickkat_admin/lib/controller/admin_referral_controller.dart`: admin referral controller
+- `freshpickkat_admin/lib/screens/referral_settings_screen.dart`: admin referral settings UI
+- `freshpickkat_admin/lib/screens/referral_dashboard_screen.dart`: admin referral dashboard
+- `freshpickkat_flutter/lib/screens/invite_earn_screen.dart`: user invite & earn screen
+- `freshpickkat_flutter/lib/notifications/controllers/notification_controller.dart`: added `referral_reward` routing
+- `freshpickkat_server/test/unit/referral_code_test.dart`: 4 unit tests for code generation
+- `freshpickkat_server/test/integration/referral_test.dart`: 26 integration tests for full referral system
